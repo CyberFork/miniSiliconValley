@@ -3,6 +3,7 @@
 ## 平台
 
 - 本项目使用 Next/Vinext，并由 OpenAI Sites 托管。
+- 正式公开入口：`https://mini-silicon-valley-rpg.cyberforker.chatgpt.site`
 - `.openai/hosting.json` 保存 Sites 项目标识及可选资源绑定；项目不使用 D1 或 R2。
 - 学员进度只保存在浏览器 `localStorage`，部署端不存储学员档案。
 

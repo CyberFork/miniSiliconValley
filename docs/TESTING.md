@@ -12,7 +12,7 @@ npm test
 1. `npm run typecheck`：TypeScript strict 类型检查。
 2. `npm run lint`：ESLint，`--max-warnings=0`。
 3. `npm run build`：Vinext/Vite 生产构建。
-4. `node --import tsx --test tests/*.test.ts`：12 项确定性测试。
+4. `node --import tsx --test tests/*.test.ts`：19 项确定性测试。
 
 可分开执行：
 
@@ -46,6 +46,14 @@ npm run test:render
 - 4 个 WebP 资源存在且画布尺寸一致，保证跨时代交叉切换不跳位。
 - 核心源码无 TODO、旧 Starter 或已拒绝的模板化假历史短语。
 
+### `tests/interaction-contract.test.ts`
+
+- 年份始终限制在 1891—2026；地图缩放始终限制在 1—2.4。
+- 四代地图在任意年份只混合相邻图层，透明度总和恒为 1。
+- 自动检查桌面/平板/手机断点、弹窗视口约束、减少动态与打印样式。
+- 自动锁定时间轴、键盘、搜索、拖动、双指缩放、滚轮、档案和关卡返回契约。
+- 自动锁定 Modal 焦点/关闭语义和六阶段学习闭环，防止关键交互在重构时静默消失。
+
 ## 响应式与无障碍验收
 
 代码级闸检查：
@@ -64,6 +72,6 @@ Sites 构建规范不要求用浏览器截图作为发布前置；因此默认�
 TypeScript    PASS
 ESLint        PASS (0 warnings)
 Build         PASS
-Node tests    12 / 12 PASS
+Node tests    19 / 19 PASS
 Data report   0 errors / 0 warnings
 ```

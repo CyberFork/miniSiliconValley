@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://mini-silicon-valley-rpg.cyberforker.chatgpt.site"),
   title: {
     default: "Mini Silicon Valley | 真实科技史创业 RPG",
     template: "%s | Mini Silicon Valley",

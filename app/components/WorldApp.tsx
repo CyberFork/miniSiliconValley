@@ -28,6 +28,15 @@ import {
   STORAGE_KEY,
   updateMissionNotes,
 } from "../lib/state";
+import {
+  clampMapScale,
+  clampYear,
+  MAP_LAYERS,
+  mapLayerLabel,
+  mapLayerOpacity,
+  YEAR_MAX,
+  YEAR_MIN,
+} from "../lib/world";
 import { MentorGuide } from "./MentorGuide";
 import { MissionPlayer } from "./MissionPlayer";
 import { Modal } from "./Modal";
@@ -36,9 +45,6 @@ type ViewId = "world" | "missions" | "dossier" | "mentor";
 
 const CHECKPOINT_KEY = "msv-world-checkpoint-v1";
 const MAX_IMPORT_BYTES = 2 * 1024 * 1024;
-const yearMin = historyCatalog.eras[0].start;
-const yearMax = historyCatalog.eras.at(-1)!.end;
-
 const categoryMeta: Record<HistoryCategory, { label: string; glyph: string }> = {
   education: { label: "教育", glyph: "EDU" },
   defense: { label: "国防研究", glyph: "R&D" },
@@ -53,13 +59,6 @@ const categoryMeta: Record<HistoryCategory, { label: string; glyph: string }> = 
   robotics: { label: "机器人", glyph: "BOT" },
   global: { label: "全球节点", glyph: "GLO" },
 };
-
-const mapLayers = [
-  { year: 1939, src: "/assets/map-1939.webp", label: "1939 · 果园与车库" },
-  { year: 1968, src: "/assets/map-1968.webp", label: "1968 · 芯片山谷" },
-  { year: 1998, src: "/assets/map-1998.webp", label: "1998 · 互联网起飞" },
-  { year: 2026, src: "/assets/silicon-valley-base-map.webp", label: "2026 · AI 与机器人" },
-];
 
 const sourceById = new Map(historyCatalog.sources.map((item) => [item.id, item]));
 const placeById = new Map(historyCatalog.places.map((item) => [item.id, item]));
@@ -118,8 +117,8 @@ export function WorldApp() {
     if (!playing) return;
     const timer = window.setInterval(() => {
       setState((current) => {
-        const next = Math.min(yearMax, current.currentYear + speed);
-        if (next >= yearMax) window.setTimeout(() => setPlaying(false), 0);
+        const next = Math.min(YEAR_MAX, current.currentYear + speed);
+        if (next >= YEAR_MAX) window.setTimeout(() => setPlaying(false), 0);
         return { ...current, currentYear: next, savedAt: new Date().toISOString() };
       });
     }, 700);
@@ -200,7 +199,7 @@ export function WorldApp() {
     setPlaying(false);
     setState((current) => ({
       ...current,
-      currentYear: Math.max(yearMin, Math.min(yearMax, Math.round(year))),
+      currentYear: clampYear(year),
       savedAt: new Date().toISOString(),
     }));
   }
@@ -328,7 +327,7 @@ export function WorldApp() {
       const centerX = (first.x + second.x) / 2;
       const centerY = (first.y + second.y) / 2;
       setMapView({
-        scale: Math.max(1, Math.min(2.4, Number((pinch.scale * distance / pinch.distance).toFixed(2)))),
+        scale: clampMapScale(pinch.scale * distance / pinch.distance),
         x: pinch.originX + centerX - pinch.centerX,
         y: pinch.originY + centerY - pinch.centerY,
       });
@@ -349,7 +348,7 @@ export function WorldApp() {
   }
 
   function zoomMap(delta: number) {
-    setMapView((current) => ({ ...current, scale: Math.max(1, Math.min(2.4, Number((current.scale + delta).toFixed(1)))) }));
+    setMapView((current) => ({ ...current, scale: clampMapScale(current.scale + delta) }));
   }
 
   function onMapWheel(event: WheelEvent<HTMLDivElement>) {
@@ -434,7 +433,7 @@ export function WorldApp() {
               </header>
               <div className="map-viewport" onPointerDown={onMapPointerDown} onPointerMove={onMapPointerMove} onPointerUp={onMapPointerUp} onPointerCancel={onMapPointerUp} onWheel={onMapWheel}>
                 <div className="map-canvas" style={{ transform: `translate3d(${mapView.x}px, ${mapView.y}px, 0) scale(${mapView.scale})` }}>
-                  {mapLayers.map((layer, index) => (
+                  {MAP_LAYERS.map((layer, index) => (
                     <Image key={layer.year} src={layer.src} alt="" fill unoptimized priority sizes="(max-width: 900px) 100vw, 76vw" className="era-map-layer" style={{ opacity: mapLayerOpacity(index, state.currentYear) }} draggable={false} />
                   ))}
                   <div className="map-atmosphere" aria-hidden="true"><span>{era.shortTitle}</span><i>{state.currentYear}</i></div>
@@ -475,10 +474,10 @@ export function WorldApp() {
                 <div><b>{state.currentYear}</b><small>{playing ? `正在以 ${speed}× 推进` : "时间线已暂停"}</small></div>
               </div>
               <div className="timeline-track">
-                <input type="range" min={yearMin} max={yearMax} value={state.currentYear} onChange={(event) => changeYear(Number(event.target.value))} aria-label="选择历史年份" style={{ "--timeline-progress": `${((state.currentYear - yearMin) / (yearMax - yearMin)) * 100}%` } as CSSProperties} />
+                <input type="range" min={YEAR_MIN} max={YEAR_MAX} value={state.currentYear} onChange={(event) => changeYear(Number(event.target.value))} aria-label="选择历史年份" style={{ "--timeline-progress": `${((state.currentYear - YEAR_MIN) / (YEAR_MAX - YEAR_MIN)) * 100}%` } as CSSProperties} />
                 <div className="era-ticks">
                   {historyCatalog.eras.map((item) => (
-                    <button key={item.id} type="button" className={era.id === item.id ? "is-active" : ""} style={{ left: `${((item.start - yearMin) / (yearMax - yearMin)) * 100}%` }} onClick={() => changeYear(item.start)}>
+                    <button key={item.id} type="button" className={era.id === item.id ? "is-active" : ""} style={{ left: `${((item.start - YEAR_MIN) / (YEAR_MAX - YEAR_MIN)) * 100}%` }} onClick={() => changeYear(item.start)}>
                       <span>{item.start}</span><small>{item.shortTitle}</small>
                     </button>
                   ))}
@@ -503,26 +502,6 @@ export function WorldApp() {
       {showBriefing ? <WorldBriefing onClose={() => setShowBriefing(false)} /> : null}
     </div>
   );
-}
-
-function mapLayerLabel(year: number) {
-  if (year < 1954) return mapLayers[0].label;
-  if (year < 1989) return mapLayers[1].label;
-  if (year < 2006) return mapLayers[2].label;
-  return mapLayers[3].label;
-}
-
-function mapLayerOpacity(index: number, year: number) {
-  const anchors = mapLayers.map((item) => item.year);
-  if (year <= anchors[0]) return index === 0 ? 1 : 0;
-  if (year >= anchors.at(-1)!) return index === anchors.length - 1 ? 1 : 0;
-  let lower = 0;
-  while (lower < anchors.length - 1 && year > anchors[lower + 1]) lower += 1;
-  const upper = Math.min(lower + 1, anchors.length - 1);
-  const progress = (year - anchors[lower]) / (anchors[upper] - anchors[lower]);
-  if (index === lower) return 1 - progress;
-  if (index === upper) return progress;
-  return 0;
 }
 
 function EventDetail({ event, onClose, onOpenRelated, onLaunch }: { event: HistoryEvent; onClose: () => void; onOpenRelated: (id: string) => void; onLaunch: (id: string) => void }) {

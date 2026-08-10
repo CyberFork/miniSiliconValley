@@ -4,6 +4,8 @@
 
 面向青少年的、由可核验科技史驱动的有限开放世界创业学习 RPG。学员以 Young Builder 团队身份进入 1891—2026 年的硅谷与全球科技网络，在当时信息边界内调查、判断、获得规则化平行反馈，再对照真实历史并把能力带回现实项目。
 
+**在线体验：** https://mini-silicon-valley-rpg.cyberforker.chatgpt.site
+
 ## 可玩内容
 
 - **建设中的地图**：4 幅同构原创像素正交地图在果园/车库、芯片、互联网、AI 时代之间连续变化。
@@ -39,7 +41,7 @@ npm run validate:data
 npm test
 ```
 
-`npm test` 依次执行 TypeScript、ESLint（0 warning）、生产构建和 12 项数据/状态/渲染/资源测试。
+`npm test` 依次执行 TypeScript、ESLint（0 warning）、生产构建和 19 项数据、状态、世界交互契约、响应式、渲染与资源测试。
 
 ## 代码地图
 
@@ -49,6 +51,7 @@ npm test
 - `app/components/MissionPlayer.tsx`：六阶段 RPG 循环
 - `app/components/MentorGuide.tsx`：在线 DM 手册
 - `app/lib/state.ts`：版本化存档、安全导入与重玩规则
+- `app/lib/world.ts`：年份、地图层过渡与缩放规则
 - `app/lib/validate.ts`：外键、唯一性、数量与地理校验
 - `tests/`：无网络、确定性验收
 
