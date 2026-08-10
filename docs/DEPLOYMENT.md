@@ -4,6 +4,7 @@
 
 - 本项目使用 Next/Vinext，并由 OpenAI Sites 托管。
 - 正式公开入口：`https://mini-silicon-valley-rpg.cyberforker.chatgpt.site`
+- Work 演示入口：`https://work.cyberforker.com/msv/demo.html`
 - `.openai/hosting.json` 保存 Sites 项目标识及可选资源绑定；项目不使用 D1 或 R2。
 - 学员进度只保存在浏览器 `localStorage`，部署端不存储学员档案。
 
@@ -29,6 +30,34 @@ git diff --check
 5. 用同一个提交 SHA 和归档保存 Sites 版本并发起部署。
 6. 轮询部署状态至成功；本课程经需求方明确要求公开访问，因此完成后将访问级别设为 public。
 7. 对正式 URL 进行在线回归：入口、标题、四幅地图资源与核心交互脚本均应返回成功状态。
+
+## Work `/msv/demo.html` 发布流程
+
+### 构建与校验
+
+```bash
+npm run validate:data
+npm run test:work
+```
+
+`build:work` 使用以下独立构建边界，不修改 Sites 版本：
+
+- Vite Base：`/msv/`
+- Canonical：`https://work.cyberforker.com/msv/demo.html`
+- 产物：`dist/work/msv/`
+- 入口：`dist/work/msv/demo.html`
+- 完整性清单：`dist/work/msv/demo-manifest.json`
+
+### 网关与发布原子性
+
+1. 从远端 `site/current` 完整复制一个新 release，保留既有 `/msv/launch.html` 与其他产品路径。
+2. 只把 `dist/work/msv/` 覆盖到新 release 的 `msv/` 目录。
+3. 逐项验证远端文件与 `demo-manifest.json` 的字节数和 SHA-256。
+4. 将 `deploy/work-demo-location.conf` 的精确路由插入通用 `/msv/` 路由之前；不得覆盖服务器已有的 GolfNine 或 SFTPGo 配置。
+5. `nginx -t` 通过后原子切换 `site/current`，然后只重建 `work-sync-gateway`，使 Docker 重新解析 release 软链接。
+6. 验证 Demo、原 Workshop、其他静态页面和 SFTPGo fallback；失败时恢复上一 release 并重建网关。
+
+Demo 页面需要 React/Vinext 的内联启动脚本和动态位置样式，因此只对 `/msv/demo.html` 放开 `script-src/style-src 'unsafe-inline'`；原 Workshop 的严格 CSP 不变。图片与字体均限制为同源，本版本不发起应用网络请求。
 
 ## 回滚
 

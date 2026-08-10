@@ -11,6 +11,11 @@ const { d1, r2 } = hostingConfig;
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
 
+const publicBase = process.env.MSV_PUBLIC_BASE ?? "/";
+if (!publicBase.startsWith("/") || !publicBase.endsWith("/") || publicBase.includes("..") || publicBase.includes("//")) {
+  throw new Error(`MSV_PUBLIC_BASE must be a normalized absolute path ending in /: ${publicBase}`);
+}
+
 const localBindingConfig = {
   main: "./worker/index.ts",
   compatibility_flags: ["nodejs_compat"],
@@ -44,6 +49,7 @@ export default defineConfig(async () => {
   const { cloudflare } = await import("@cloudflare/vite-plugin");
 
   return {
+    base: publicBase,
     server: isCodexSeatbeltSandbox
       ? { watch: { useFsEvents: false, usePolling: true } }
       : undefined,

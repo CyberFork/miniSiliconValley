@@ -1,13 +1,14 @@
 import { historyCatalog } from "../data/history";
+import { publicPath } from "./public-path";
 
 export const YEAR_MIN = historyCatalog.eras[0].start;
 export const YEAR_MAX = historyCatalog.eras.at(-1)!.end;
 
 export const MAP_LAYERS = [
-  { year: 1939, src: "/assets/map-1939.webp", label: "1939 · 果园与车库" },
-  { year: 1968, src: "/assets/map-1968.webp", label: "1968 · 芯片山谷" },
-  { year: 1998, src: "/assets/map-1998.webp", label: "1998 · 互联网起飞" },
-  { year: 2026, src: "/assets/silicon-valley-base-map.webp", label: "2026 · AI 与机器人" },
+  { year: 1939, src: publicPath("/assets/map-1939.webp"), label: "1939 · 果园与车库" },
+  { year: 1968, src: publicPath("/assets/map-1968.webp"), label: "1968 · 芯片山谷" },
+  { year: 1998, src: publicPath("/assets/map-1998.webp"), label: "1998 · 互联网起飞" },
+  { year: 2026, src: publicPath("/assets/silicon-valley-base-map.webp"), label: "2026 · AI 与机器人" },
 ] as const;
 
 export function clampYear(year: number) {

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "status": "deployed",
+  "target": "https://work.cyberforker.com/msv/demo.html",
+  "deployedAt": "2026-08-10T19:30:48Z",
+  "verifiedAt": "2026-08-10T19:42:31Z",
+  "release": {
+    "id": "20260810T193048Z-msv-demo-970bb9b2",
+    "manifestSha256": "970bb9b216bdb76d6329c0e7c5f40bb6e51365c46c208d2c5d4d423e91f63099",
+    "files": 25,
+    "payloadBytes": 3037817
+  },
+  "gateway": {
+    "configSha256": "50dd9ac04d61e5555865c841216654b2cff5aa645605eb20b9c5f4db64a4f644",
+    "health": "healthy",
+    "exactRoute": "/msv/demo.html"
+  },
+  "verification": {
+    "dataErrors": 0,
+    "dataWarnings": 0,
+    "testsPassed": 21,
+    "testsTotal": 21,
+    "publicFilesVerified": 25,
+    "publicFilesTotal": 25,
+    "headlessChromeInteraction": "PASS",
+    "workshopPreserved": true,
+    "golfNinePreserved": true,
+    "sftpgoFallbackHealthy": true
+  },
+  "rollback": {
+    "previousRelease": "releases/20260810T053636Z-golfnine",
+    "gatewayBackup": "backups/gateway.before-msv-demo-switch.20260810T193048Z-msv-demo-970bb9b2.conf"
+  },
+  "secretsRecorded": false
+}
