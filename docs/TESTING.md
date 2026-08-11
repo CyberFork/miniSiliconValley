@@ -12,7 +12,7 @@ npm test
 1. `npm run typecheck`：TypeScript strict 类型检查。
 2. `npm run lint`：ESLint，`--max-warnings=0`。
 3. `npm run build`：Vinext/Vite 生产构建。
-4. 核心质量闸执行 20 项确定性测试。
+4. 核心质量闸执行 21 项确定性测试。
 
 Work 子路径部署质量闸：
 
@@ -20,7 +20,7 @@ Work 子路径部署质量闸：
 npm run test:work
 ```
 
-它在完整核心检查之外生成 `/msv/` 静态构建，并执行 2 项部署契约测试，总计 22 项。
+它在完整核心检查之外生成 `/msv/` 静态构建，并执行 2 项部署契约测试，总计 23 项。
 
 可分开执行：
 
@@ -69,6 +69,11 @@ npm run test:render
 - HTML 的脚本、样式、图片和图标只能引用 `/msv/` 子路径，Canonical 必须指向 Work 演示地址。
 - `demo-manifest.json` 中每个文件的字节数和 SHA-256 必须与产物一致。
 
+### `tests/mission-progress.test.ts`
+
+- 证据组合必须确定性地解锁对应行动，缺证时返回准确的证据标题。
+- 学员界面只能显示证据标题，不得暴露 `m4-e4` 一类内部 ID。
+
 ## 响应式与无障碍验收
 
 代码级闸检查：
@@ -87,7 +92,7 @@ Sites 构建规范不要求用浏览器截图作为发布前置；因此默认�
 TypeScript    PASS
 ESLint        PASS (0 warnings)
 Build         PASS
-Core tests    20 / 20 PASS
-Work tests    22 / 22 PASS
+Core tests    21 / 21 PASS
+Work tests    23 / 23 PASS
 Data report   0 errors / 0 warnings
 ```

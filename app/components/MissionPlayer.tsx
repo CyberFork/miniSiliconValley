@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type {
   MissionChoice,
   MissionRecord,
@@ -8,6 +8,11 @@ import type {
   PlayerState,
   SourceRecord,
 } from "../lib/model";
+import {
+  countUnlockedChoices,
+  evidenceTitles,
+  missingEvidenceIds,
+} from "../lib/mission-progress";
 import { Modal } from "./Modal";
 
 type MissionStep = "enter" | "investigate" | "decide" | "result" | "history" | "reflect";
@@ -45,19 +50,34 @@ export function MissionPlayer({
   const [choiceId, setChoiceId] = useState(existingResult?.choiceId ?? "");
   const [reflection, setReflection] = useState(existingResult?.reflection ?? "");
   const [commitment, setCommitment] = useState(existingResult?.realityCommitment ?? "");
+  const [requestedEvidenceIds, setRequestedEvidenceIds] = useState<string[]>([]);
+  const shellRef = useRef<HTMLDivElement>(null);
   const choice = mission.choices.find((item) => item.id === choiceId);
   const selectedIndex = steps.findIndex(({ id }) => id === step);
   const resources = state.resources;
   const accessibleIndex = choiceId ? steps.length - 1 : step === "decide" ? 2 : selectedIndex;
 
-  const missingEvidence = useMemo(() => {
-    if (!choice?.requiresEvidenceIds) return [];
-    return choice.requiresEvidenceIds.filter((id) => !evidenceIds.includes(id));
-  }, [choice, evidenceIds]);
   const evidenceSourceIds = useMemo(
     () => [...new Set(mission.evidence.flatMap((item) => item.sourceIds))],
     [mission.evidence],
   );
+  const unlockedChoiceCount = useMemo(
+    () => countUnlockedChoices(mission.choices, evidenceIds),
+    [evidenceIds, mission.choices],
+  );
+  const selectedEvidenceTitles = useMemo(
+    () => evidenceTitles(mission.evidence, evidenceIds),
+    [evidenceIds, mission.evidence],
+  );
+  const requestedEvidence = useMemo(
+    () => mission.evidence.filter((item) => requestedEvidenceIds.includes(item.id) && !evidenceIds.includes(item.id)),
+    [evidenceIds, mission.evidence, requestedEvidenceIds],
+  );
+
+  useEffect(() => {
+    const modalBody = shellRef.current?.closest(".modal-body");
+    if (modalBody instanceof HTMLElement) modalBody.scrollTop = 0;
+  }, [step]);
 
   function toggleEvidence(id: string) {
     setEvidenceIds((current) =>
@@ -66,11 +86,15 @@ export function MissionPlayer({
   }
 
   function makeChoice(selected: MissionChoice) {
-    const required = selected.requiresEvidenceIds ?? [];
-    if (required.some((id) => !evidenceIds.includes(id))) return;
+    if (missingEvidenceIds(selected, evidenceIds).length) return;
     setChoiceId(selected.id);
     onChoose(selected, evidenceIds);
     setStep("result");
+  }
+
+  function returnToEvidence(ids: string[] = []) {
+    setRequestedEvidenceIds([...new Set(ids)]);
+    setStep("investigate");
   }
 
   function saveNotes() {
@@ -85,7 +109,7 @@ export function MissionPlayer({
       wide
       className="mission-modal"
     >
-      <div className="mission-shell">
+      <div ref={shellRef} className="mission-shell">
         <nav className="mission-steps" aria-label="关卡进度">
           {steps.map((item, index) => (
             <button
@@ -151,14 +175,30 @@ export function MissionPlayer({
           <section className="mission-scene">
             <p className="section-kicker">EVIDENCE DESK · 证据不会自动得出结论</p>
             <h3>选择你们真正用于判断的证据</h3>
-            <p className="scene-lead">点击卡片收入团队证据夹。证据卡是依史料制作的教学压缩，不是历史人物原话；来源在决策后解锁，避免用后见之明作答。</p>
+            <p className="scene-lead">读完后点击卡片上的「收入证据夹」。只有收入的卡片才会成为本轮判断依据；证据卡是依史料制作的教学压缩，来源会在历史对照阶段解锁。</p>
+            {requestedEvidenceIds.length ? (
+              <aside className={`evidence-coach ${requestedEvidence.length ? "" : "is-ready"}`} aria-live="polite">
+                <div>
+                  <span>现在做什么</span>
+                  <h4>{requestedEvidence.length ? `补齐这 ${requestedEvidence.length} 条证据` : "补证完成，可以返回决策"}</h4>
+                  <p>{requestedEvidence.length ? "阅读下方黄色高亮卡片，并点击「收入证据夹」。" : "你刚才选择的行动已经满足证据条件。"}</p>
+                </div>
+                {requestedEvidence.length ? (
+                  <ul>{requestedEvidence.map((item) => <li key={item.id}>{item.title}</li>)}</ul>
+                ) : <strong>✓ 证据条件已满足</strong>}
+              </aside>
+            ) : null}
             <div className="evidence-grid">
               {mission.evidence.map((evidence) => {
                 const active = evidenceIds.includes(evidence.id);
+                const requested = requestedEvidenceIds.includes(evidence.id) && !active;
                 return (
-                  <article key={evidence.id} className={`evidence-card ${active ? "is-selected" : ""}`}>
+                  <article key={evidence.id} className={`evidence-card ${active ? "is-selected" : ""} ${requested ? "is-recommended" : ""}`}>
                     <button type="button" aria-pressed={active} onClick={() => toggleEvidence(evidence.id)}>
-                      <span className="evidence-label">{evidence.label}</span>
+                      <div className="evidence-label-row">
+                        <span className="evidence-label">{evidence.label}</span>
+                        {requested ? <span className="evidence-needed">本次补证目标</span> : null}
+                      </div>
                       <h4>{evidence.title}</h4>
                       <p>{evidence.body}</p>
                       <div className="evidence-tension"><b>张力：</b>{evidence.tension}</div>
@@ -172,9 +212,13 @@ export function MissionPlayer({
               })}
             </div>
             <footer className="mission-actions">
-              <p>已选 <b>{evidenceIds.length}</b> / {mission.evidence.length} 条。不需要收集全部，但你必须能说明为什么依赖它们。</p>
+              <p>已收入 <b>{evidenceIds.length}</b> / {mission.evidence.length} 条；当前组合解锁 <b>{unlockedChoiceCount}</b> / {mission.choices.length} 个行动。不必全选，可以先看方案，再为想走的方向补证。</p>
               <button className="pixel-button pixel-button--primary" type="button" disabled={evidenceIds.length < 2} onClick={() => setStep("decide")}>
-                {evidenceIds.length < 2 ? "至少选择 2 条证据" : "进入决策 →"}
+                {evidenceIds.length < 2
+                  ? "至少收入 2 条证据"
+                  : unlockedChoiceCount
+                    ? `进入决策（${unlockedChoiceCount} 个行动可用）→`
+                    : "查看方案，选择补证方向 →"}
               </button>
             </footer>
           </section>
@@ -184,11 +228,28 @@ export function MissionPlayer({
           <section className="mission-scene">
             <p className="section-kicker">PLAYER TIMELINE · 你们现在要写下自己的历史</p>
             <h3>{mission.decisionPrompt}</h3>
+            <aside className={`decision-guide ${unlockedChoiceCount ? "" : "is-blocked"}`}>
+              <div aria-live="polite">
+                <span>现在做什么</span>
+                <h4>{unlockedChoiceCount ? `${unlockedChoiceCount} 个行动已经可以采用` : "先选一个方向，再补齐它需要的证据"}</h4>
+                <p>{unlockedChoiceCount
+                  ? "点击可用方案右侧的「采用此行动」。你也可以继续补证，比较更多路线。"
+                  : "灰色方案不是故障。查看每条路线缺少什么，再点击「去补读」；返回调查后，目标证据会用黄色高亮。"}</p>
+              </div>
+              <button className="pixel-button" type="button" onClick={() => returnToEvidence()}>
+                返回调查查看全部证据
+              </button>
+              <div className="decision-evidence-summary">
+                <b>本轮已收入</b>
+                {selectedEvidenceTitles.map((title) => <span key={title}>{title}</span>)}
+              </div>
+            </aside>
             <div className="choice-list">
               {mission.choices.map((item, index) => {
-                const missing = (item.requiresEvidenceIds ?? []).filter((id) => !evidenceIds.includes(id));
+                const missing = missingEvidenceIds(item, evidenceIds);
+                const missingTitles = evidenceTitles(mission.evidence, missing);
                 return (
-                  <article key={item.id} className="choice-card">
+                  <article key={item.id} className={`choice-card ${missing.length ? "is-locked" : "is-ready"}`}>
                     <div className="choice-number">{String.fromCharCode(65 + index)}</div>
                     <div>
                       <h4>{item.label}</h4>
@@ -201,10 +262,19 @@ export function MissionPlayer({
                           </span>
                         ))}
                       </div>
-                      {missing.length ? <p className="choice-lock">还需阅读：{missing.join(" / ")}</p> : null}
+                      {missing.length ? (
+                        <div className="choice-lock">
+                          <b>尚未解锁 · 缺 {missing.length} 条证据</b>
+                          <span>{missingTitles.join("；")}</span>
+                        </div>
+                      ) : <p className="choice-ready">✓ 证据条件已满足，可以行动</p>}
                     </div>
-                    <button className="pixel-button" type="button" disabled={missing.length > 0} onClick={() => makeChoice(item)}>
-                      采用此行动
+                    <button
+                      className={`pixel-button ${missing.length ? "choice-research-button" : "pixel-button--primary"}`}
+                      type="button"
+                      onClick={() => missing.length ? returnToEvidence(missing) : makeChoice(item)}
+                    >
+                      {missing.length ? `去补读 ${missing.length} 条证据 →` : "采用此行动 →"}
                     </button>
                   </article>
                 );
@@ -306,10 +376,6 @@ export function MissionPlayer({
               </button>
             </footer>
           </section>
-        ) : null}
-
-        {step === "decide" && choice && missingEvidence.length ? (
-          <p className="sr-only" aria-live="polite">所选路径还需 {missingEvidence.length} 条证据。</p>
         ) : null}
       </div>
     </Modal>

@@ -100,7 +100,7 @@ export function MentorGuide({ missions, onLaunch }: MentorGuideProps) {
         <details>
           <summary>如何投放事件与制造信息差</summary>
           <div className="detail-content">
-            <p>每队先分配不同证据卡，90 秒静默阅读后才允许交换。若团队过快一致，问：“哪个角色的目标还没有被说出来？”若卡住，不给结论，只解锁一条反向证据。</p>
+            <p>每队先分配不同证据卡，90 秒静默阅读后才允许交换。若团队过快一致，问：“哪个角色的目标还没有被说出来？”若行动尚未解锁，让学员点击该路线的“去补读”，按黄色高亮卡补证；不要替他们选结论。</p>
             <p><b>禁止：</b>假冒历史人物私密信件、伪造引语、用“我当时就会……”的上帝视角投放现代知识。</p>
           </div>
         </details>

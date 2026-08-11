@@ -85,6 +85,7 @@ test("world UI contract retains timeline, keyboard, search, map pointer/pinch/wh
   assert.match(openEventHandler, /setPlaying\(false\)/, "打开地图节点时应暂停时间轴播放");
   assert.match(openEventHandler, /recordEventVisit\(current, event\.id\)/, "打开地图节点应只登记访问记录");
   assert.doesNotMatch(openEventHandler, /currentYear/, "打开地图节点不得改写当前时间轴年份");
+  assert.doesNotMatch(world, /result\.evidenceIds\.join/, "学习档案不得暴露内部证据 ID");
 });
 
 test("modal contract traps focus, closes safely and exposes dialog semantics", async () => {
@@ -112,7 +113,11 @@ test("mission UI contract preserves the complete six-stage learning loop and evi
     'loop: "反思"',
     'loop: "再实践"',
     "史料来源已封存",
-    "至少选择 2 条证据",
+    "至少收入 2 条证据",
+    "只有收入的卡片才会成为本轮判断依据",
+    "现在做什么",
+    "本次补证目标",
+    "去补读",
     "规则化模拟，不是史实",
     "HISTORICAL COMPARISON",
     "CURRENT MISSION",
@@ -120,4 +125,5 @@ test("mission UI contract preserves the complete six-stage learning loop and evi
   ]) {
     assert.ok(mission.includes(token), `MissionPlayer 缺少学习闭环契约：${token}`);
   }
+  assert.doesNotMatch(mission, /missing\.join/, "决策界面不得暴露内部证据 ID");
 });
