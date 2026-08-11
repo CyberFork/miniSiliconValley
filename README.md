@@ -44,7 +44,7 @@ npm run validate:data
 npm test
 ```
 
-`npm test` 依次执行 TypeScript、ESLint（0 warning）、生产构建和 19 项数据、状态、世界交互契约、响应式、渲染与资源测试。部署到 `/msv/demo.html` 前执行 `npm run test:work`，额外验证子路径构建、静态清单与文件哈希，共 21 项。
+`npm test` 依次执行 TypeScript、ESLint（0 warning）、生产构建和 20 项数据、状态、世界交互契约、响应式、渲染与资源测试。部署到 `/msv/demo.html` 前执行 `npm run test:work`，额外验证子路径构建、静态清单与文件哈希，共 22 项。
 
 ## 代码地图
 

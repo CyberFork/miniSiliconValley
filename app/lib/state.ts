@@ -34,6 +34,16 @@ export function createInitialState(): PlayerState {
   };
 }
 
+export function recordEventVisit(state: PlayerState, eventId: string): PlayerState {
+  return {
+    ...state,
+    visitedEventIds: state.visitedEventIds.includes(eventId)
+      ? state.visitedEventIds
+      : [...state.visitedEventIds, eventId],
+    savedAt: isoNow(),
+  };
+}
+
 export function clampResource(value: number) {
   return Math.max(0, Math.min(9, Math.round(value)));
 }

@@ -77,6 +77,14 @@ test("world UI contract retains timeline, keyboard, search, map pointer/pinch/wh
   ]) {
     assert.ok(world.includes(token), `WorldApp 缺少交互契约：${token}`);
   }
+
+  const openEventHandler = world.slice(
+    world.indexOf("function openEvent"),
+    world.indexOf("function launchMission"),
+  );
+  assert.match(openEventHandler, /setPlaying\(false\)/, "打开地图节点时应暂停时间轴播放");
+  assert.match(openEventHandler, /recordEventVisit\(current, event\.id\)/, "打开地图节点应只登记访问记录");
+  assert.doesNotMatch(openEventHandler, /currentYear/, "打开地图节点不得改写当前时间轴年份");
 });
 
 test("modal contract traps focus, closes safely and exposes dialog semantics", async () => {

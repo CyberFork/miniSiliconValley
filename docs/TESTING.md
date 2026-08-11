@@ -12,7 +12,7 @@ npm test
 1. `npm run typecheck`：TypeScript strict 类型检查。
 2. `npm run lint`：ESLint，`--max-warnings=0`。
 3. `npm run build`：Vinext/Vite 生产构建。
-4. 核心质量闸执行 19 项确定性测试。
+4. 核心质量闸执行 20 项确定性测试。
 
 Work 子路径部署质量闸：
 
@@ -20,7 +20,7 @@ Work 子路径部署质量闸：
 npm run test:work
 ```
 
-它在完整核心检查之外生成 `/msv/` 静态构建，并执行 2 项部署契约测试，总计 21 项。
+它在完整核心检查之外生成 `/msv/` 静态构建，并执行 2 项部署契约测试，总计 22 项。
 
 可分开执行：
 
@@ -60,6 +60,7 @@ npm run test:render
 - 四代地图在任意年份只混合相邻图层，透明度总和恒为 1。
 - 自动检查桌面/平板/手机断点、弹窗视口约束、减少动态与打印样式。
 - 自动锁定时间轴、键盘、搜索、拖动、双指缩放、滚轮、档案和关卡返回契约。
+- 打开地图节点只能暂停播放、登记已读并展示详情，不得改写时间轴年份。
 - 自动锁定 Modal 焦点/关闭语义和六阶段学习闭环，防止关键交互在重构时静默消失。
 
 ### `tests/work-static.test.ts`
@@ -86,7 +87,7 @@ Sites 构建规范不要求用浏览器截图作为发布前置；因此默认�
 TypeScript    PASS
 ESLint        PASS (0 warnings)
 Build         PASS
-Core tests    19 / 19 PASS
-Work tests    21 / 21 PASS
+Core tests    20 / 20 PASS
+Work tests    22 / 22 PASS
 Data report   0 errors / 0 warnings
 ```

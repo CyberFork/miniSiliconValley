@@ -24,6 +24,7 @@ import {
   applyChoice,
   createInitialState,
   parseState,
+  recordEventVisit,
   serializeState,
   STORAGE_KEY,
   updateMissionNotes,
@@ -205,15 +206,9 @@ export function WorldApp() {
   }
 
   function openEvent(event: HistoryEvent) {
+    setPlaying(false);
     setSelectedEventId(event.id);
-    setState((current) => ({
-      ...current,
-      currentYear: event.year,
-      visitedEventIds: current.visitedEventIds.includes(event.id)
-        ? current.visitedEventIds
-        : [...current.visitedEventIds, event.id],
-      savedAt: new Date().toISOString(),
-    }));
+    setState((current) => recordEventVisit(current, event.id));
   }
 
   function launchMission(mission: MissionRecord) {

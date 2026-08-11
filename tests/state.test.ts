@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import type { MissionChoice, MissionRecord, ResourceKey } from "../app/lib/model";
-import { createInitialState, applyChoice, parseState, serializeState } from "../app/lib/state";
+import { createInitialState, applyChoice, parseState, recordEventVisit, serializeState } from "../app/lib/state";
 import { historyCatalog } from "../app/data/history";
 import { missions } from "../app/data/missions";
 import { validateMissions } from "../app/lib/validate";
@@ -15,6 +15,18 @@ function readOnlyStringMap() {
     craft: 2,
   } satisfies Record<ResourceKey, number>;
 }
+
+test("opening a historical event records the visit without moving the timeline", () => {
+  const state = { ...createInitialState(), currentYear: 2026 };
+
+  const visited = recordEventVisit(state, "evt-1939-hp-founded");
+  const revisited = recordEventVisit(visited, "evt-1939-hp-founded");
+
+  assert.equal(visited.currentYear, 2026, "打开旧事件详情不应把时间轴跳回事件年份");
+  assert.deepEqual(visited.visitedEventIds, ["evt-1939-hp-founded"]);
+  assert.deepEqual(revisited.visitedEventIds, ["evt-1939-hp-founded"], "重复打开不应重复记录节点");
+  assert.equal(state.visitedEventIds.length, 0, "访问事件不应修改原状态");
+});
 
 
 test("original data set should not be mutated by player-state operations", () => {
