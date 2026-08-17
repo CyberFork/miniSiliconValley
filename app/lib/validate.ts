@@ -1,4 +1,9 @@
-import type { HistoryCatalog, MissionRecord } from "./model";
+import type {
+  CurriculumCatalog,
+  HistoryCatalog,
+  MissionRecord,
+  ProjectStageId,
+} from "./model";
 
 function duplicates(values: string[]) {
   const seen = new Set<string>();
@@ -139,5 +144,105 @@ export function validateMissions(
     errors,
     warnings,
     counts: { mission: missions.length },
+  };
+}
+
+const REQUIRED_PROJECT_STAGE_IDS: ProjectStageId[] = [
+  "find-problem",
+  "validate-problem",
+  "design-solution",
+  "mvp-vc",
+  "operate-brand",
+  "demo-day",
+];
+
+export function validateCurriculum(
+  catalog: HistoryCatalog,
+  missions: MissionRecord[],
+  curriculum: CurriculumCatalog,
+): ValidationReport {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  const eventIds = new Set(catalog.events.map(({ id }) => id));
+  const missionIds = new Set(missions.map(({ id }) => id));
+  const stageIds = curriculum.stages.map(({ id }) => id);
+  const journeyIds = curriculum.companyJourneys.map(({ id }) => id);
+  const exampleIds = curriculum.stages.flatMap(({ examples }) => examples.map(({ id }) => id));
+  const contributionKeys = curriculum.contributionProtocol.map(({ key }) => key);
+
+  if (curriculum.stages.length !== REQUIRED_PROJECT_STAGE_IDS.length) {
+    errors.push(`课程阶段必须恰好为 ${REQUIRED_PROJECT_STAGE_IDS.length} 个`);
+  }
+  if (stageIds.join("|") !== REQUIRED_PROJECT_STAGE_IDS.join("|")) {
+    errors.push("课程阶段 ID 或顺序不符合 0→1 六步主线");
+  }
+  for (const [label, ids] of [
+    ["课程阶段", stageIds],
+    ["课程案例", exampleIds],
+    ["企业流程", journeyIds],
+    ["归集字段", contributionKeys],
+  ] as [string, string[]][]) {
+    const repeated = duplicates(ids);
+    if (repeated.length) errors.push(`${label} ID 重复：${repeated.join(", ")}`);
+  }
+
+  curriculum.stages.forEach((stage, index) => {
+    if (stage.order !== index + 1) errors.push(`课程阶段 ${stage.id} 排序号应为 ${index + 1}`);
+    if (!stage.title || !stage.englishTitle || !stage.promise || !stage.coreQuestion) {
+      errors.push(`课程阶段 ${stage.id} 缺少标题、承诺或核心问题`);
+    }
+    for (const [label, values] of [
+      ["学习目标", stage.learningGoals],
+      ["学员行动", stage.actions],
+      ["交付物", stage.artifacts],
+      ["完成门槛", stage.completionGate],
+    ] as [string, string[]][]) {
+      if (!values.length || values.some((value) => !value.trim())) {
+        errors.push(`课程阶段 ${stage.id} 的${label}不能为空`);
+      }
+    }
+    if (stage.examples.length < 3) errors.push(`课程阶段 ${stage.id} 的历史案例少于 3 个`);
+    stage.examples.forEach((example) => {
+      if (!example.eventIds.length) errors.push(`课程案例 ${example.id} 没有史实锚点`);
+      example.eventIds.forEach((id) => {
+        if (!eventIds.has(id)) errors.push(`课程案例 ${example.id} 引用缺失事件 ${id}`);
+      });
+      if (example.missionId && !missionIds.has(example.missionId)) {
+        errors.push(`课程案例 ${example.id} 引用缺失关卡 ${example.missionId}`);
+      }
+      if (!example.teachingUse.trim()) errors.push(`课程案例 ${example.id} 缺少教学用法`);
+    });
+  });
+
+  if (!curriculum.companyJourneys.length) errors.push("课程大纲至少需要一条企业全流程");
+  curriculum.companyJourneys.forEach((journey) => {
+    const journeyStageIds = journey.steps.map(({ stageId }) => stageId);
+    if (journeyStageIds.join("|") !== REQUIRED_PROJECT_STAGE_IDS.join("|")) {
+      errors.push(`企业流程 ${journey.id} 未完整覆盖并按序排列六步`);
+    }
+    if (journey.missionId && !missionIds.has(journey.missionId)) {
+      errors.push(`企业流程 ${journey.id} 引用缺失关卡 ${journey.missionId}`);
+    }
+    journey.steps.forEach((step) => {
+      if (!step.eventIds.length) errors.push(`企业流程 ${journey.id}/${step.stageId} 没有史实锚点`);
+      step.eventIds.forEach((id) => {
+        if (!eventIds.has(id)) errors.push(`企业流程 ${journey.id}/${step.stageId} 引用缺失事件 ${id}`);
+      });
+      if (!step.teachingUse.trim()) errors.push(`企业流程 ${journey.id}/${step.stageId} 缺少教学用法`);
+    });
+  });
+
+  if (curriculum.contributionProtocol.length < 8) errors.push("内容归集协议少于 8 个必填字段");
+  if (!curriculum.nonNegotiables.length) errors.push("课程目录缺少不可妥协原则");
+
+  return {
+    errors,
+    warnings,
+    counts: {
+      curriculumStage: curriculum.stages.length,
+      curriculumExample: exampleIds.length,
+      companyJourney: curriculum.companyJourneys.length,
+      companyJourneyStep: curriculum.companyJourneys.reduce((sum, journey) => sum + journey.steps.length, 0),
+    },
   };
 }

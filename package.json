@@ -13,9 +13,9 @@
     "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
     "typecheck": "tsc --noEmit --pretty false",
     "validate:data": "tsx scripts/validate-data.ts",
-    "test:unit": "node --import tsx --test tests/data-validate.test.ts tests/state.test.ts",
+    "test:unit": "node --import tsx --test tests/curriculum.test.ts tests/data-validate.test.ts tests/state.test.ts",
     "test:render": "npm run build && node --import tsx --test tests/render.test.ts",
-    "test": "npm run typecheck && npm run lint && npm run build && node --import tsx --test tests/data-validate.test.ts tests/interaction-contract.test.ts tests/mission-progress.test.ts tests/render.test.ts tests/state.test.ts",
+    "test": "npm run typecheck && npm run lint && npm run build && node --import tsx --test tests/curriculum.test.ts tests/data-validate.test.ts tests/interaction-contract.test.ts tests/mission-progress.test.ts tests/render.test.ts tests/state.test.ts",
     "test:work": "npm run typecheck && npm run lint && npm run build:work && node --import tsx --test tests/*.test.ts",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --max-warnings=0"
   },

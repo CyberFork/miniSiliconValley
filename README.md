@@ -14,6 +14,7 @@
 - **建设中的地图**：4 幅同构原创像素正交地图在果园/车库、芯片、互联网、AI 时代之间连续变化。
 - **可操作时间轴**：拖动、播放/暂停、1×/2×/5×、键盘跳转、领域筛选与跨实体搜索。
 - **史实胶囊**：203 个事件均有地点、企业/机构、人物、技术、意义、关系线和可打开来源。
+- **0→1 课程大纲**：找问题、识别真问题、想解决方案、MVP 原型 + VC、运营 + 品牌、Demo Day；支持按阶段纵切与按企业横看。
 - **8 场历史战役**：车库第一单、仙童出走、Homebrew、Mosaic、Google、iPhone、AWS、OpenAI。
 - **完整学习环**：入场 → 调查 → 决策 → 平行反馈 → 史实对照 → 现实任务。
 - **学习档案**：资源、选择、证据、复盘与现实承诺；支持自动保存、检查点、导入/导出、打印。
@@ -26,6 +27,8 @@ Era           8       Place         34
 Organization  74      Person        51
 Technology    75      Source        66
 Event         203     Mission       8
+Stage         6       Stage Case    18
+Journey       1       Journey Step  6
 ```
 
 `ORIGINAL TIMELINE` 是只读史实底座；`PLAYER TIMELINE` 仅保存玩家选择和模拟结果。两者在数据、界面和存档中分离。
@@ -44,13 +47,15 @@ npm run validate:data
 npm test
 ```
 
-`npm test` 依次执行 TypeScript、ESLint（0 warning）、生产构建和 21 项数据、状态、任务引导、世界交互契约、响应式、渲染与资源测试。部署到 `/msv/demo.html` 前执行 `npm run test:work`，额外验证子路径构建、静态清单与文件哈希，共 23 项。
+`npm test` 依次执行 TypeScript、ESLint（0 warning）、生产构建和 23 项课程、数据、状态、任务引导、世界交互契约、响应式、渲染与资源测试。部署到 `/msv/demo.html` 前执行 `npm run test:work`，额外验证子路径构建、静态清单与文件哈希，共 25 项。
 
 ## 代码地图
 
 - `app/data/history.ts`：史实图谱与来源
 - `app/data/missions.ts`：8 个教学战役
+- `app/data/curriculum.ts`：0→1 六步、纵向案例与企业全流程
 - `app/components/WorldApp.tsx`：地图、时间轴、搜索、档案
+- `app/components/CurriculumOutline.tsx`：双轴课程目录与内容归集协议
 - `app/components/MissionPlayer.tsx`：六阶段 RPG 循环
 - `app/components/MentorGuide.tsx`：在线 DM 手册
 - `app/lib/state.ts`：版本化存档、安全导入与重玩规则
@@ -63,7 +68,7 @@ npm test
 ## 文档
 
 - [架构](docs/ARCHITECTURE.md) · [数据模型](docs/DATA_MODEL.md) · [史料治理](docs/HISTORY_SOURCES.md)
-- [游戏设计](docs/GAME_DESIGN.md) · [DM 手册](docs/FACILITATOR_GUIDE.md) · [测试](docs/TESTING.md)
+- [课程大纲与归集指南](docs/CURRICULUM_OUTLINE.md) · [游戏设计](docs/GAME_DESIGN.md) · [DM 手册](docs/FACILITATOR_GUIDE.md) · [测试](docs/TESTING.md)
 - [部署](docs/DEPLOYMENT.md) · [Agentskill 审核](docs/SKILL_AUDIT.md)
 
 ## 项目边界

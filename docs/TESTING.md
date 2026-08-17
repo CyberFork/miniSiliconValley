@@ -12,7 +12,7 @@ npm test
 1. `npm run typecheck`：TypeScript strict 类型检查。
 2. `npm run lint`：ESLint，`--max-warnings=0`。
 3. `npm run build`：Vinext/Vite 生产构建。
-4. 核心质量闸执行 21 项确定性测试。
+4. 核心质量闸执行 23 项确定性测试。
 
 Work 子路径部署质量闸：
 
@@ -20,7 +20,7 @@ Work 子路径部署质量闸：
 npm run test:work
 ```
 
-它在完整核心检查之外生成 `/msv/` 静态构建，并执行 2 项部署契约测试，总计 23 项。
+它在完整核心检查之外生成 `/msv/` 静态构建，并执行 2 项部署契约测试，总计 25 项。
 
 可分开执行：
 
@@ -31,6 +31,13 @@ npm run test:render
 ```
 
 ## 自动测试矩阵
+
+### `tests/curriculum.test.ts`
+
+- 锁定 0→1 六步名称、ID 和顺序。
+- 每条企业全流程必须完整覆盖六步。
+- 校验 18 个纵向案例和所有史实/战役外键。
+- 锁定顶栏入口、双轴切换、史实/战役操作与横向滚动契约。
 
 ### `tests/data-validate.test.ts`
 
@@ -86,13 +93,13 @@ npm run test:render
 
 Sites 构建规范不要求用浏览器截图作为发布前置；因此默认质量闸不依赖图形环境或网络，保持 CI 可重复。
 
-## 当前基线（2026-08-10）
+## 当前基线（2026-08-17）
 
 ```text
 TypeScript    PASS
 ESLint        PASS (0 warnings)
 Build         PASS
-Core tests    21 / 21 PASS
-Work tests    23 / 23 PASS
+Core tests    23 / 23 PASS
+Work tests    25 / 25 PASS
 Data report   0 errors / 0 warnings
 ```

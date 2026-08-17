@@ -4,6 +4,7 @@
 - **前端框架**：React + Next App Router，使用 `vinext` 进行构建。
 - **核心展示**：
   - 世界地图/时间轴/节点浏览：`app/components/WorldApp.tsx`
+  - 0→1 课程大纲：`app/components/CurriculumOutline.tsx`
   - 关卡交互：`app/components/MissionPlayer.tsx`
   - 学员档案页：`app/components/WorldApp.tsx` 内的 `Dossier`
   - DM 手册：`app/components/MentorGuide.tsx`
@@ -16,6 +17,9 @@
   - 包含时代、地点、机构、人物、技术、来源、事件。
 - `app/data/missions.ts`
   - 导出 `missions`，按 `order` 表示 8 个课程关卡。
+- `app/data/curriculum.ts`
+  - 导出 `curriculumCatalog`，包括项目六步、18 个纵向历史案例、企业全流程和内容归集协议。
+  - 只保存教学组织和史实外键；事实正文仍由 `historyCatalog.events` 提供，避免复制后漂移。
 - `WorldApp` 渲染时从 `historyCatalog` + `missions` 建立索引 Map。
 - 用户动作只更新前端 `PlayerState`，在状态变更后通过 `serializeState` 写入 `localStorage`。
 
@@ -31,6 +35,7 @@
 ## 四、时间线两层分离
 - **ORIGINAL TIMELINE**：由 `historyCatalog.events` 与 `sources` 提供，不允许被游戏世界线覆盖。
 - **PLAYER TIMELINE**：保存在 `results`，由 `MissionPlayer` 决策与 `applyChoice` 生成。
+- **CURRICULUM MAPPING**：按项目六步重组史实，只读引用事件；`direct` 与 `course-analogy` 显式分层。
 - 课程 UI 中明确标注该边界：
   - Event 卡片 `EventDetail` 标注 `ORIGINAL TIMELINE`
   - 关卡结果页标注 `PARALLEL WORLD`
@@ -40,12 +45,14 @@
 - `app/lib/validate.ts`
   - `validateCatalog`：校验实体 ID 唯一性、外键完整性、坐标范围、年份范围、基础数据量阈值。
   - `validateMissions`：校验每关卡证据/路径/复盘/现实任务等完整性。
-- `npm run validate:data` 在命令行运行两类校验；`npm test` 还覆盖类型、静态规则、生产构建、存档安全和服务端渲染。
+  - `validateCurriculum`：校验六步顺序、案例数量、企业流程完整性、史实/战役外键和八项归集字段。
+- `npm run validate:data` 在命令行运行三类校验；`npm test` 还覆盖类型、静态规则、生产构建、存档安全和服务端渲染。
 
 ## 六、关键路径和组件责任
 - **时间轴播放/筛选**：`WorldApp` 的查询、标签筛选、时间变更。
 - **事件详情**：点击地图或列表 -> `EventDetail`。
 - **关卡入口**：地图高亮节点 -> `launchMission` -> `MissionPlayer`。
+- **课程目录**：顶栏“课程大纲” -> 纵向六步/企业全流程；史实按钮回到对应年份并打开事件，战役按钮直接进入 `MissionPlayer`。
 - **世界线归档**：`Dossier`（成绩、反思、现实承诺、导入导出）。
 - **DM 辅助**：`MentorGuide` 与页面内 runbook/protocol。
 

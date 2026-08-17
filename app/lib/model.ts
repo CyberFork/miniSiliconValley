@@ -1,4 +1,5 @@
 export const DATA_SCHEMA_VERSION = 1 as const;
+export const CURRICULUM_SCHEMA_VERSION = 1 as const;
 
 export type HistoryCategory =
   | "education"
@@ -178,6 +179,75 @@ export interface MissionRecord {
     watchFor: string[];
     debrief: string[];
   };
+}
+
+export type ProjectStageId =
+  | "find-problem"
+  | "validate-problem"
+  | "design-solution"
+  | "mvp-vc"
+  | "operate-brand"
+  | "demo-day";
+
+export type CurriculumMappingKind = "direct" | "course-analogy";
+
+export interface CurriculumExample {
+  id: string;
+  organization: string;
+  label: string;
+  yearLabel: string;
+  eventIds: string[];
+  missionId?: string;
+  mappingKind: CurriculumMappingKind;
+  teachingUse: string;
+}
+
+export interface CurriculumStage {
+  id: ProjectStageId;
+  order: number;
+  title: string;
+  englishTitle: string;
+  promise: string;
+  coreQuestion: string;
+  learningGoals: string[];
+  actions: string[];
+  artifacts: string[];
+  completionGate: string[];
+  examples: CurriculumExample[];
+}
+
+export interface CompanyJourneyStep {
+  stageId: ProjectStageId;
+  period: string;
+  title: string;
+  eventIds: string[];
+  mappingKind: CurriculumMappingKind;
+  teachingUse: string;
+}
+
+export interface CompanyJourney {
+  id: string;
+  organization: string;
+  product: string;
+  period: string;
+  title: string;
+  summary: string;
+  missionId?: string;
+  steps: CompanyJourneyStep[];
+}
+
+export interface CurriculumContributionField {
+  key: string;
+  label: string;
+  requirement: string;
+}
+
+export interface CurriculumCatalog {
+  schemaVersion: typeof CURRICULUM_SCHEMA_VERSION;
+  stages: CurriculumStage[];
+  companyJourneys: CompanyJourney[];
+  contributionProtocol: CurriculumContributionField[];
+  nonNegotiables: string[];
 }
 
 export interface MissionResult {

@@ -2,35 +2,43 @@
   "schemaVersion": 1,
   "status": "deployed",
   "target": "https://work.cyberforker.com/msv/demo.html",
-  "deployedAt": "2026-08-11T07:51:12Z",
-  "verifiedAt": "2026-08-11T07:56:52Z",
+  "deployedAt": "2026-08-17T04:32:56Z",
+  "verifiedAt": "2026-08-17T04:33:11Z",
   "release": {
-    "id": "20260811T075112Z-msv-decision-guide-9b26330b",
-    "manifestSha256": "9b26330b4ba8585a6c3d0f7603f289f540e2fc5fa85278115d47ebf9ca1e888c",
+    "id": "20260817T043208Z-msv-curriculum-ddf3185e",
+    "manifestSha256": "ddf3185e0ab4740742351b1eb5c1caabd7bbccd865ce1688b1d059dbc731befa",
     "files": 25,
-    "payloadBytes": 3042925
+    "payloadBytes": 3083959
   },
   "gateway": {
-    "configSha256": "50dd9ac04d61e5555865c841216654b2cff5aa645605eb20b9c5f4db64a4f644",
+    "configSha256": "f40358bd1126e954f97c6969518a5603366fadb07be37245d4d53bdc6d9a17c1",
     "health": "healthy",
     "exactRoute": "/msv/demo.html"
+  },
+  "curriculum": {
+    "stages": 6,
+    "verticalExamples": 18,
+    "companyJourneys": 1,
+    "journeySteps": 6
   },
   "verification": {
     "dataErrors": 0,
     "dataWarnings": 0,
-    "testsPassed": 23,
-    "testsTotal": 23,
+    "testsPassed": 25,
+    "testsTotal": 25,
     "publicFilesVerified": 25,
     "publicFilesTotal": 25,
-    "timelineClickRegression": "PASS",
-    "decisionGuidanceRegression": "PASS",
+    "curriculumNavigationRegression": "PASS",
+    "dualAxisRegression": "PASS",
+    "historyAndMissionLinkRegression": "PASS",
     "workshopPreserved": true,
     "golfNinePreserved": true,
     "sftpgoFallbackHealthy": true
   },
   "rollback": {
-    "previousRelease": "releases/20260811T062300Z-golfnine-admin-c0221ee",
-    "gatewayConfigChanged": false
+    "previousRelease": "releases/20260817T042645Z-msv-curriculum-961baf1a",
+    "gatewayConfigChanged": false,
+    "preflightAttemptRollbackVerified": true
   },
   "secretsRecorded": false
 }
