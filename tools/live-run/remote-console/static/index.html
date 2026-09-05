@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>Mini Silicon Valley｜内部测试席位控制台</title>
+  <link rel="stylesheet" href="console.css">
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <small>MISSION CONTROL / INTERNAL QA</small>
+        <h1>测试席位控制台</h1>
+      </div>
+      <div class="controller-access">
+        <div id="connection" role="status" aria-live="polite">
+          <i id="connDot"></i>
+          <span id="connText">连接中…</span>
+          <button id="refreshBtn" type="button" aria-label="立即刷新">↻</button>
+        </div>
+        <button id="controllerBtn" type="button" title="使用当前域名打开受保护的 LIVE RUN 主控">
+          打开主控 <span aria-hidden="true">↗</span>
+        </button>
+      </div>
+    </header>
+
+    <aside>
+      <b>MiniSV Alpha · 团队内部联测专用</b>
+      <span>无需应用账号登录；每台浏览器最多领取 2 席。席位是同一场课堂的 4 导师＋4 学员视角，不是八份独立数据。</span>
+    </aside>
+
+    <p id="connectionMessage" class="connection-message">正在读取课程主控…</p>
+
+    <section class="overview" aria-label="测试运行概览">
+      <div>
+        <label>当前课程</label>
+        <h2 id="courseName">—</h2>
+        <progress id="courseBar" max="100" value="0" aria-label="课程块进度"></progress>
+        <span id="courseCoverage">完整五步课程</span>
+      </div>
+      <div>
+        <label>运行进度</label>
+        <strong><b id="blockNow">—</b> / <em id="blockTotal">—</em> BLOCKS</strong>
+        <span id="macroStep">等待连接…</span>
+      </div>
+      <div>
+        <label>测试昵称</label>
+        <h3 id="nicknameLabel">点击设置</h3>
+        <button id="editNick" type="button">设置／修改</button>
+        <small>我的席位 <b id="claimCount">0</b> / 2</small>
+      </div>
+    </section>
+
+    <div class="heading">
+      <div>
+        <small>SEAT GRID / 08</small>
+        <h2>4 导师＋4 学员</h2>
+      </div>
+      <div class="legend">● 空闲　<span>● 我在用</span>　<i>● 他人使用</i></div>
+    </div>
+    <div id="seatGrid" class="grid" aria-live="polite"></div>
+
+    <footer>
+      <span id="lastUpdated">等待同步…</span>
+      <button id="resetBtn" type="button">全局重置席位</button>
+    </footer>
+  </main>
+  <div id="toast" role="alert" aria-live="assertive"></div>
+  <dialog id="nicknameDialog" aria-labelledby="nicknameDialogTitle" aria-describedby="nicknameDialogHelp">
+    <form method="dialog" id="nicknameForm" novalidate>
+      <small>SEAT IDENTITY / 席位身份</small>
+      <h2 id="nicknameDialogTitle">设置测试昵称</h2>
+      <p id="nicknameDialogHelp">昵称会显示在你领取的角色后，例如“市场导师 · forker”。</p>
+      <label for="nicknameInput">我的昵称 <span>1–24 个字符</span></label>
+      <input id="nicknameInput" name="nickname" maxlength="24" required aria-required="true" autocomplete="nickname" enterkeyhint="done">
+      <div id="nicknameError" class="dialog-error" role="alert" aria-live="assertive"></div>
+      <div class="dialog-actions">
+        <button type="button" class="dialog-cancel">取消</button>
+        <button type="submit" value="save">保存昵称</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="resetDialog" aria-labelledby="resetDialogTitle" aria-describedby="resetDialogHelp">
+    <form method="dialog" id="resetForm" novalidate>
+      <small>DANGER ZONE / 高风险操作</small>
+      <h2 id="resetDialogTitle">全局重置席位</h2>
+      <p id="resetDialogHelp">这会立即释放全部 8 个测试席位，包括其他人正在使用的席位，且无法撤销。</p>
+      <label for="resetInput">输入确认文字 <code>RESET ALL TEST SEATS</code></label>
+      <input id="resetInput" name="confirmation" required aria-required="true" autocomplete="off" spellcheck="false" enterkeyhint="done">
+      <div id="resetError" class="dialog-error" role="alert" aria-live="assertive"></div>
+      <div class="dialog-actions">
+        <button type="button" class="dialog-cancel">取消</button>
+        <button type="submit" value="reset" class="danger">确认重置</button>
+      </div>
+    </form>
+  </dialog>
+  <script src="console.js"></script>
+</body>
+</html>

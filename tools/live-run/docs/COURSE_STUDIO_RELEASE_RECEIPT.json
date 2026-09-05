@@ -1,0 +1,37 @@
+{
+  "release": "20260905T113036Z-course-studio-r2",
+  "deployedAt": "2026-09-05T11:33:28Z",
+  "origin": "hecate",
+  "canonicalOrigin": "https://minisv.vip",
+  "routes": {
+    "controller": "https://minisv.vip/control/",
+    "editor": "https://minisv.vip/control/editor/"
+  },
+  "courseContract": {
+    "schemaVersion": 1,
+    "macroSteps": 5,
+    "microBlocks": 13,
+    "seatTasksPerBlock": 8,
+    "bundledCourses": ["google-1995-2004", "eleme-2008-find-problem"],
+    "draftsAreRuntimeVisible": false,
+    "publishedAdoption": "new-run-or-reset",
+    "activeRunPinsExactJson": true
+  },
+  "persistence": {
+    "root": "~/Services/minisv/data/courses",
+    "directories": ["drafts", "published", "history"],
+    "releaseIndependent": true,
+    "atomicWrites": true,
+    "optimisticRevisionLock": true
+  },
+  "verification": {
+    "liveRunAndCourseEditorTests": {"passed": 18, "failed": 0},
+    "gatewayAndReleaseTests": {"passed": 7, "failed": 0},
+    "pythonCompile": "passed",
+    "javascriptSyntax": "passed",
+    "plistLint": "passed",
+    "authenticatedProductionEditor": "passed",
+    "unauthenticatedEditorRedirect": "/auth/login?returnTo=/control/editor/",
+    "cyberforkerMainSiteChanged": false
+  }
+}

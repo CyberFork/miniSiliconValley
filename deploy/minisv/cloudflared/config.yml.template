@@ -1,0 +1,17 @@
+tunnel: __TUNNEL_ID__
+credentials-file: __HOME__/Services/minisv/secrets/tunnel-credentials.json
+protocol: http2
+no-autoupdate: true
+metrics: 127.0.0.1:18792
+ingress:
+  - hostname: minisv.vip
+    service: http://127.0.0.1:18780
+    originRequest:
+      connectTimeout: 10s
+      noHappyEyeballs: true
+  - hostname: www.minisv.vip
+    service: http://127.0.0.1:18780
+    originRequest:
+      connectTimeout: 10s
+      noHappyEyeballs: true
+  - service: http_status:404

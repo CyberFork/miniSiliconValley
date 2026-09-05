@@ -1,0 +1,1394 @@
+{
+  "schemaVersion": 1,
+  "id": "new-course-template-live-run-v1",
+  "title": "Mini Silicon Valley｜新课程模板｜LIVE RUN SCRIPT",
+  "course": {
+    "id": "new-course-template",
+    "name": "新课程模板｜五步创业闭环",
+    "period": "填写时代",
+    "coverage": "完整课程 · 5 步 / 13 块",
+    "description": "填写课程的一句话简介。",
+    "learnerName": "Young Builder 创业小队",
+    "scriptId": "new-course-template-live-run-v1",
+    "macroStepCount": 5,
+    "blockCount": 13,
+    "completeFiveStep": true
+  },
+  "case": {
+    "campaignId": "google-1995-2004",
+    "name": "填写案例名称与时间范围",
+    "learnerName": "Young Builder 创业小队",
+    "period": "填写时代",
+    "why": "填写为什么这个真实科技史案例值得进入课堂。"
+  },
+  "formula": {
+    "oneWorld": "真实科技史驱动的有限开放世界创业学习 RPG",
+    "twoDualTracks": [
+      "世界线双轨：只读历史世界线 ↔ 可改变的玩家平行世界线",
+      "学习双轨：历史认知 ↔ 现实项目实践"
+    ],
+    "threeGameModes": [
+      {
+        "id": "yarn",
+        "name": "毛线式信息局",
+        "purpose": "抽取、交换、追问并连接不完整信息"
+      },
+      {
+        "id": "american",
+        "name": "美式情境攻坚",
+        "purpose": "由导师推进剧情，以骰子和压力事件迫使团队行动"
+      },
+      {
+        "id": "euro",
+        "name": "德式经营决策",
+        "purpose": "用有限资源购买工具、承担成本并衡量收益"
+      }
+    ],
+    "fourMentors": [
+      {
+        "id": "mentor01",
+        "code": "P",
+        "name": "产品导师",
+        "promise": "确保团队做的是一个真实、具体、值得验证的问题",
+        "roomDuty": "主 DM"
+      },
+      {
+        "id": "mentor02",
+        "code": "D",
+        "name": "开发导师",
+        "promise": "确保方案能被做成可操作、可测试的最小产品",
+        "roomDuty": "实践 DM"
+      },
+      {
+        "id": "mentor03",
+        "code": "M",
+        "name": "市场导师",
+        "promise": "确保第一批目标用户能看见、理解并愿意尝试",
+        "roomDuty": "市场 DM"
+      },
+      {
+        "id": "mentor04",
+        "code": "O",
+        "name": "运营导师",
+        "promise": "确保团队能稳定交付、记录反馈、控制成本并持续迭代",
+        "roomDuty": "运营 DM"
+      }
+    ],
+    "fiveSteps": [
+      {
+        "id": "find",
+        "order": 1,
+        "name": "找真问题",
+        "lead": "P",
+        "output": "一张有用户、有场景损失、有证据、有未知点的问题判断"
+      },
+      {
+        "id": "decide",
+        "order": 2,
+        "name": "定真方案",
+        "lead": "P → D",
+        "output": "一项值得做且本轮做得出来的最小方案赌注"
+      },
+      {
+        "id": "build",
+        "order": 3,
+        "name": "做真产品",
+        "lead": "D",
+        "output": "一个可以被目标用户实际操作并留下试用证据的 MVP"
+      },
+      {
+        "id": "market",
+        "order": 4,
+        "name": "进真市场",
+        "lead": "M",
+        "output": "明确的首批用户、品牌表达、渠道实验和第一次真实尝试"
+      },
+      {
+        "id": "operate",
+        "order": 5,
+        "name": "跑真运营",
+        "lead": "O",
+        "output": "可重复交付的 SOP、账本、留存反馈与下一轮迭代计划"
+      }
+    ],
+    "sixMinuteDemo": "问题证据 → 方案取舍 → MVP 演示 → 用户/市场证据 → 运营账本 → 下一步请求，各 60 秒"
+  },
+  "macroSteps": [
+    {
+      "id": "find",
+      "order": 1,
+      "name": "找真问题",
+      "mentorSequence": [
+        "mentor01"
+      ],
+      "question": "我们看见的是抱怨、解决方案冲动，还是一个值得验证的真实问题？",
+      "exitGate": "明确谁在什么场景完成什么任务、卡在哪里、造成什么损失；至少两条来源证据并保留一个未知点。",
+      "blocks": [
+        "B01",
+        "B02",
+        "B03"
+      ]
+    },
+    {
+      "id": "decide",
+      "order": 2,
+      "name": "定真方案",
+      "mentorSequence": [
+        "mentor01",
+        "mentor02"
+      ],
+      "question": "哪一条路径既创造真实价值，又能在本轮资源内被验证？",
+      "exitGate": "P 先完成价值取舍，再把唯一方案赌注交给 D 完成可做性裁剪；同一时刻只有一名导师主讲。",
+      "blocks": [
+        "B04",
+        "B05"
+      ]
+    },
+    {
+      "id": "build",
+      "order": 3,
+      "name": "做真产品",
+      "mentorSequence": [
+        "mentor02"
+      ],
+      "question": "用户能否不靠讲解，亲手完成一次关键任务？",
+      "exitGate": "存在可操作 MVP、首轮试用记录、压力后的第二版，以及被证据解释的一项改动。",
+      "blocks": [
+        "B06",
+        "B07",
+        "B08"
+      ]
+    },
+    {
+      "id": "market",
+      "order": 4,
+      "name": "进真市场",
+      "mentorSequence": [
+        "mentor03"
+      ],
+      "question": "第一批用户是谁、在哪里、为什么现在愿意试？",
+      "exitGate": "锁定窄人群，完成一句可验证承诺和一次真实渠道实验；记录同意、拒绝及理由。",
+      "blocks": [
+        "B09",
+        "B10"
+      ]
+    },
+    {
+      "id": "operate",
+      "order": 5,
+      "name": "跑真运营",
+      "mentorSequence": [
+        "mentor04"
+      ],
+      "question": "团队能否稳定交付，而不靠某一个人临场救火？",
+      "exitGate": "SOP、订单/服务记录、成本收入、反馈留存、下一轮指标齐全，并完成六分钟 Demo。",
+      "blocks": [
+        "B11",
+        "B12",
+        "B13"
+      ]
+    }
+  ],
+  "blocks": [
+    {
+      "id": "B01",
+      "macroStepId": "find",
+      "title": "B01｜填写本块标题",
+      "leadMentorId": "mentor01",
+      "suggestedMinutes": 6,
+      "gameModes": [
+        "american",
+        "yarn"
+      ],
+      "apiAction": "room-and-deal",
+      "underlyingClassroomPhases": [
+        "lobby",
+        "identity"
+      ],
+      "historyTrack": "填写当时可知的真实历史信息与证据边界。",
+      "realityTrack": "填写学员回到现实项目要完成的对应实践。",
+      "studentPrompt": "用一句具体、可行动的话告诉初中生现在只需要做什么。",
+      "mentorScript": [
+        "填写当值导师逐句口播。"
+      ],
+      "studentActions": [
+        "填写学员现场可观察动作。"
+      ],
+      "systemActions": [
+        "填写执行本块后的系统同步结果。"
+      ],
+      "props": [
+        "填写本块需要的实体或数字道具。"
+      ],
+      "evidenceGate": [
+        "填写导师必须亲眼看见的完成证据。"
+      ],
+      "fallback": [
+        "填写学生卡住时的具象兜底问题。"
+      ],
+      "manualInteraction": "填写线下互动和八席窗口如何配合。",
+      "order": 1,
+      "macroStepOrder": 1,
+      "learnerLens": {
+        "world": "填写学员此刻身处的具体世界。",
+        "say": "填写学员要说的一句话。",
+        "ask": "填写学员要问队友的问题。",
+        "done": "填写学员如何知道自己完成了。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor02": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor03": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor04": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        }
+      }
+    },
+    {
+      "id": "B02",
+      "macroStepId": "find",
+      "title": "B02｜填写本块标题",
+      "leadMentorId": "mentor01",
+      "suggestedMinutes": 8,
+      "gameModes": [
+        "yarn"
+      ],
+      "apiAction": "read-and-publish",
+      "underlyingClassroomPhases": [
+        "private-read",
+        "intel-brief",
+        "intel-network"
+      ],
+      "historyTrack": "填写当时可知的真实历史信息与证据边界。",
+      "realityTrack": "填写学员回到现实项目要完成的对应实践。",
+      "studentPrompt": "用一句具体、可行动的话告诉初中生现在只需要做什么。",
+      "mentorScript": [
+        "填写当值导师逐句口播。"
+      ],
+      "studentActions": [
+        "填写学员现场可观察动作。"
+      ],
+      "systemActions": [
+        "填写执行本块后的系统同步结果。"
+      ],
+      "props": [
+        "填写本块需要的实体或数字道具。"
+      ],
+      "evidenceGate": [
+        "填写导师必须亲眼看见的完成证据。"
+      ],
+      "fallback": [
+        "填写学生卡住时的具象兜底问题。"
+      ],
+      "manualInteraction": "填写线下互动和八席窗口如何配合。",
+      "order": 2,
+      "macroStepOrder": 1,
+      "learnerLens": {
+        "world": "填写学员此刻身处的具体世界。",
+        "say": "填写学员要说的一句话。",
+        "ask": "填写学员要问队友的问题。",
+        "done": "填写学员如何知道自己完成了。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor02": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor03": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor04": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        }
+      }
+    },
+    {
+      "id": "B03",
+      "macroStepId": "find",
+      "title": "B03｜填写本块标题",
+      "leadMentorId": "mentor01",
+      "suggestedMinutes": 8,
+      "gameModes": [
+        "yarn",
+        "american"
+      ],
+      "apiAction": "finish-find-chapter",
+      "underlyingClassroomPhases": [
+        "intel-network",
+        "dm-gate",
+        "pdmo",
+        "challenge-one",
+        "challenge-two",
+        "growth",
+        "history",
+        "debrief"
+      ],
+      "historyTrack": "填写当时可知的真实历史信息与证据边界。",
+      "realityTrack": "填写学员回到现实项目要完成的对应实践。",
+      "studentPrompt": "用一句具体、可行动的话告诉初中生现在只需要做什么。",
+      "mentorScript": [
+        "填写当值导师逐句口播。"
+      ],
+      "studentActions": [
+        "填写学员现场可观察动作。"
+      ],
+      "systemActions": [
+        "填写执行本块后的系统同步结果。"
+      ],
+      "props": [
+        "填写本块需要的实体或数字道具。"
+      ],
+      "evidenceGate": [
+        "填写导师必须亲眼看见的完成证据。"
+      ],
+      "fallback": [
+        "填写学生卡住时的具象兜底问题。"
+      ],
+      "manualInteraction": "填写线下互动和八席窗口如何配合。",
+      "order": 3,
+      "macroStepOrder": 1,
+      "learnerLens": {
+        "world": "填写学员此刻身处的具体世界。",
+        "say": "填写学员要说的一句话。",
+        "ask": "填写学员要问队友的问题。",
+        "done": "填写学员如何知道自己完成了。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor02": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor03": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor04": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        }
+      }
+    },
+    {
+      "id": "B04",
+      "macroStepId": "decide",
+      "title": "B04｜填写本块标题",
+      "leadMentorId": "mentor01",
+      "suggestedMinutes": 7,
+      "gameModes": [
+        "american",
+        "yarn"
+      ],
+      "apiAction": "prepare-decide-value",
+      "underlyingClassroomPhases": [
+        "lobby",
+        "identity",
+        "private-read",
+        "intel-brief",
+        "intel-network",
+        "dm-gate",
+        "pdmo"
+      ],
+      "historyTrack": "填写当时可知的真实历史信息与证据边界。",
+      "realityTrack": "填写学员回到现实项目要完成的对应实践。",
+      "studentPrompt": "用一句具体、可行动的话告诉初中生现在只需要做什么。",
+      "mentorScript": [
+        "填写当值导师逐句口播。"
+      ],
+      "studentActions": [
+        "填写学员现场可观察动作。"
+      ],
+      "systemActions": [
+        "填写执行本块后的系统同步结果。"
+      ],
+      "props": [
+        "填写本块需要的实体或数字道具。"
+      ],
+      "evidenceGate": [
+        "填写导师必须亲眼看见的完成证据。"
+      ],
+      "fallback": [
+        "填写学生卡住时的具象兜底问题。"
+      ],
+      "manualInteraction": "填写线下互动和八席窗口如何配合。",
+      "order": 4,
+      "macroStepOrder": 2,
+      "learnerLens": {
+        "world": "填写学员此刻身处的具体世界。",
+        "say": "填写学员要说的一句话。",
+        "ask": "填写学员要问队友的问题。",
+        "done": "填写学员如何知道自己完成了。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor02": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor03": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor04": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        }
+      }
+    },
+    {
+      "id": "B05",
+      "macroStepId": "decide",
+      "title": "B05｜填写本块标题",
+      "leadMentorId": "mentor02",
+      "suggestedMinutes": 7,
+      "gameModes": [
+        "euro",
+        "american"
+      ],
+      "apiAction": "finish-decide-chapter",
+      "underlyingClassroomPhases": [
+        "challenge-one",
+        "challenge-two",
+        "growth",
+        "history",
+        "debrief"
+      ],
+      "historyTrack": "填写当时可知的真实历史信息与证据边界。",
+      "realityTrack": "填写学员回到现实项目要完成的对应实践。",
+      "studentPrompt": "用一句具体、可行动的话告诉初中生现在只需要做什么。",
+      "mentorScript": [
+        "填写当值导师逐句口播。"
+      ],
+      "studentActions": [
+        "填写学员现场可观察动作。"
+      ],
+      "systemActions": [
+        "填写执行本块后的系统同步结果。"
+      ],
+      "props": [
+        "填写本块需要的实体或数字道具。"
+      ],
+      "evidenceGate": [
+        "填写导师必须亲眼看见的完成证据。"
+      ],
+      "fallback": [
+        "填写学生卡住时的具象兜底问题。"
+      ],
+      "manualInteraction": "填写线下互动和八席窗口如何配合。",
+      "order": 5,
+      "macroStepOrder": 2,
+      "learnerLens": {
+        "world": "填写学员此刻身处的具体世界。",
+        "say": "填写学员要说的一句话。",
+        "ask": "填写学员要问队友的问题。",
+        "done": "填写学员如何知道自己完成了。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor02": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor03": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor04": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        }
+      }
+    },
+    {
+      "id": "B06",
+      "macroStepId": "build",
+      "title": "B06｜填写本块标题",
+      "leadMentorId": "mentor02",
+      "suggestedMinutes": 10,
+      "gameModes": [
+        "euro"
+      ],
+      "apiAction": "prepare-build-mvp",
+      "underlyingClassroomPhases": [
+        "lobby",
+        "identity",
+        "private-read",
+        "intel-brief",
+        "intel-network",
+        "dm-gate",
+        "pdmo"
+      ],
+      "historyTrack": "填写当时可知的真实历史信息与证据边界。",
+      "realityTrack": "填写学员回到现实项目要完成的对应实践。",
+      "studentPrompt": "用一句具体、可行动的话告诉初中生现在只需要做什么。",
+      "mentorScript": [
+        "填写当值导师逐句口播。"
+      ],
+      "studentActions": [
+        "填写学员现场可观察动作。"
+      ],
+      "systemActions": [
+        "填写执行本块后的系统同步结果。"
+      ],
+      "props": [
+        "填写本块需要的实体或数字道具。"
+      ],
+      "evidenceGate": [
+        "填写导师必须亲眼看见的完成证据。"
+      ],
+      "fallback": [
+        "填写学生卡住时的具象兜底问题。"
+      ],
+      "manualInteraction": "填写线下互动和八席窗口如何配合。",
+      "order": 6,
+      "macroStepOrder": 3,
+      "learnerLens": {
+        "world": "填写学员此刻身处的具体世界。",
+        "say": "填写学员要说的一句话。",
+        "ask": "填写学员要问队友的问题。",
+        "done": "填写学员如何知道自己完成了。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor02": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor03": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor04": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        }
+      }
+    },
+    {
+      "id": "B07",
+      "macroStepId": "build",
+      "title": "B07｜填写本块标题",
+      "leadMentorId": "mentor02",
+      "suggestedMinutes": 8,
+      "gameModes": [
+        "american"
+      ],
+      "apiAction": "run-build-pressure",
+      "underlyingClassroomPhases": [
+        "challenge-one",
+        "challenge-two",
+        "growth"
+      ],
+      "historyTrack": "填写当时可知的真实历史信息与证据边界。",
+      "realityTrack": "填写学员回到现实项目要完成的对应实践。",
+      "studentPrompt": "用一句具体、可行动的话告诉初中生现在只需要做什么。",
+      "mentorScript": [
+        "填写当值导师逐句口播。"
+      ],
+      "studentActions": [
+        "填写学员现场可观察动作。"
+      ],
+      "systemActions": [
+        "填写执行本块后的系统同步结果。"
+      ],
+      "props": [
+        "填写本块需要的实体或数字道具。"
+      ],
+      "evidenceGate": [
+        "填写导师必须亲眼看见的完成证据。"
+      ],
+      "fallback": [
+        "填写学生卡住时的具象兜底问题。"
+      ],
+      "manualInteraction": "填写线下互动和八席窗口如何配合。",
+      "order": 7,
+      "macroStepOrder": 3,
+      "learnerLens": {
+        "world": "填写学员此刻身处的具体世界。",
+        "say": "填写学员要说的一句话。",
+        "ask": "填写学员要问队友的问题。",
+        "done": "填写学员如何知道自己完成了。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor02": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor03": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor04": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        }
+      }
+    },
+    {
+      "id": "B08",
+      "macroStepId": "build",
+      "title": "B08｜填写本块标题",
+      "leadMentorId": "mentor02",
+      "suggestedMinutes": 6,
+      "gameModes": [
+        "yarn",
+        "euro"
+      ],
+      "apiAction": "finish-build-chapter",
+      "underlyingClassroomPhases": [
+        "growth",
+        "history",
+        "debrief"
+      ],
+      "historyTrack": "填写当时可知的真实历史信息与证据边界。",
+      "realityTrack": "填写学员回到现实项目要完成的对应实践。",
+      "studentPrompt": "用一句具体、可行动的话告诉初中生现在只需要做什么。",
+      "mentorScript": [
+        "填写当值导师逐句口播。"
+      ],
+      "studentActions": [
+        "填写学员现场可观察动作。"
+      ],
+      "systemActions": [
+        "填写执行本块后的系统同步结果。"
+      ],
+      "props": [
+        "填写本块需要的实体或数字道具。"
+      ],
+      "evidenceGate": [
+        "填写导师必须亲眼看见的完成证据。"
+      ],
+      "fallback": [
+        "填写学生卡住时的具象兜底问题。"
+      ],
+      "manualInteraction": "填写线下互动和八席窗口如何配合。",
+      "order": 8,
+      "macroStepOrder": 3,
+      "learnerLens": {
+        "world": "填写学员此刻身处的具体世界。",
+        "say": "填写学员要说的一句话。",
+        "ask": "填写学员要问队友的问题。",
+        "done": "填写学员如何知道自己完成了。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor02": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor03": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor04": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        }
+      }
+    },
+    {
+      "id": "B09",
+      "macroStepId": "market",
+      "title": "B09｜填写本块标题",
+      "leadMentorId": "mentor03",
+      "suggestedMinutes": 8,
+      "gameModes": [
+        "euro",
+        "yarn"
+      ],
+      "apiAction": "prepare-market",
+      "underlyingClassroomPhases": [
+        "lobby",
+        "identity",
+        "private-read",
+        "intel-brief",
+        "intel-network",
+        "dm-gate",
+        "pdmo"
+      ],
+      "historyTrack": "填写当时可知的真实历史信息与证据边界。",
+      "realityTrack": "填写学员回到现实项目要完成的对应实践。",
+      "studentPrompt": "用一句具体、可行动的话告诉初中生现在只需要做什么。",
+      "mentorScript": [
+        "填写当值导师逐句口播。"
+      ],
+      "studentActions": [
+        "填写学员现场可观察动作。"
+      ],
+      "systemActions": [
+        "填写执行本块后的系统同步结果。"
+      ],
+      "props": [
+        "填写本块需要的实体或数字道具。"
+      ],
+      "evidenceGate": [
+        "填写导师必须亲眼看见的完成证据。"
+      ],
+      "fallback": [
+        "填写学生卡住时的具象兜底问题。"
+      ],
+      "manualInteraction": "填写线下互动和八席窗口如何配合。",
+      "order": 9,
+      "macroStepOrder": 4,
+      "learnerLens": {
+        "world": "填写学员此刻身处的具体世界。",
+        "say": "填写学员要说的一句话。",
+        "ask": "填写学员要问队友的问题。",
+        "done": "填写学员如何知道自己完成了。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor02": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor03": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor04": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        }
+      }
+    },
+    {
+      "id": "B10",
+      "macroStepId": "market",
+      "title": "B10｜填写本块标题",
+      "leadMentorId": "mentor03",
+      "suggestedMinutes": 8,
+      "gameModes": [
+        "american",
+        "euro"
+      ],
+      "apiAction": "finish-market-chapter",
+      "underlyingClassroomPhases": [
+        "challenge-one",
+        "challenge-two",
+        "growth",
+        "history",
+        "debrief"
+      ],
+      "historyTrack": "填写当时可知的真实历史信息与证据边界。",
+      "realityTrack": "填写学员回到现实项目要完成的对应实践。",
+      "studentPrompt": "用一句具体、可行动的话告诉初中生现在只需要做什么。",
+      "mentorScript": [
+        "填写当值导师逐句口播。"
+      ],
+      "studentActions": [
+        "填写学员现场可观察动作。"
+      ],
+      "systemActions": [
+        "填写执行本块后的系统同步结果。"
+      ],
+      "props": [
+        "填写本块需要的实体或数字道具。"
+      ],
+      "evidenceGate": [
+        "填写导师必须亲眼看见的完成证据。"
+      ],
+      "fallback": [
+        "填写学生卡住时的具象兜底问题。"
+      ],
+      "manualInteraction": "填写线下互动和八席窗口如何配合。",
+      "order": 10,
+      "macroStepOrder": 4,
+      "learnerLens": {
+        "world": "填写学员此刻身处的具体世界。",
+        "say": "填写学员要说的一句话。",
+        "ask": "填写学员要问队友的问题。",
+        "done": "填写学员如何知道自己完成了。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor02": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor03": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor04": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        }
+      }
+    },
+    {
+      "id": "B11",
+      "macroStepId": "operate",
+      "title": "B11｜填写本块标题",
+      "leadMentorId": "mentor04",
+      "suggestedMinutes": 9,
+      "gameModes": [
+        "euro",
+        "yarn"
+      ],
+      "apiAction": "prepare-operations",
+      "underlyingClassroomPhases": [
+        "lobby",
+        "identity",
+        "private-read",
+        "intel-brief",
+        "intel-network",
+        "dm-gate",
+        "pdmo"
+      ],
+      "historyTrack": "填写当时可知的真实历史信息与证据边界。",
+      "realityTrack": "填写学员回到现实项目要完成的对应实践。",
+      "studentPrompt": "用一句具体、可行动的话告诉初中生现在只需要做什么。",
+      "mentorScript": [
+        "填写当值导师逐句口播。"
+      ],
+      "studentActions": [
+        "填写学员现场可观察动作。"
+      ],
+      "systemActions": [
+        "填写执行本块后的系统同步结果。"
+      ],
+      "props": [
+        "填写本块需要的实体或数字道具。"
+      ],
+      "evidenceGate": [
+        "填写导师必须亲眼看见的完成证据。"
+      ],
+      "fallback": [
+        "填写学生卡住时的具象兜底问题。"
+      ],
+      "manualInteraction": "填写线下互动和八席窗口如何配合。",
+      "order": 11,
+      "macroStepOrder": 5,
+      "learnerLens": {
+        "world": "填写学员此刻身处的具体世界。",
+        "say": "填写学员要说的一句话。",
+        "ask": "填写学员要问队友的问题。",
+        "done": "填写学员如何知道自己完成了。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor02": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor03": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor04": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        }
+      }
+    },
+    {
+      "id": "B12",
+      "macroStepId": "operate",
+      "title": "B12｜填写本块标题",
+      "leadMentorId": "mentor04",
+      "suggestedMinutes": 9,
+      "gameModes": [
+        "american",
+        "euro",
+        "yarn"
+      ],
+      "apiAction": "run-operations-and-freeze",
+      "underlyingClassroomPhases": [
+        "challenge-one",
+        "challenge-two",
+        "growth",
+        "history",
+        "debrief"
+      ],
+      "historyTrack": "填写当时可知的真实历史信息与证据边界。",
+      "realityTrack": "填写学员回到现实项目要完成的对应实践。",
+      "studentPrompt": "用一句具体、可行动的话告诉初中生现在只需要做什么。",
+      "mentorScript": [
+        "填写当值导师逐句口播。"
+      ],
+      "studentActions": [
+        "填写学员现场可观察动作。"
+      ],
+      "systemActions": [
+        "填写执行本块后的系统同步结果。"
+      ],
+      "props": [
+        "填写本块需要的实体或数字道具。"
+      ],
+      "evidenceGate": [
+        "填写导师必须亲眼看见的完成证据。"
+      ],
+      "fallback": [
+        "填写学生卡住时的具象兜底问题。"
+      ],
+      "manualInteraction": "填写线下互动和八席窗口如何配合。",
+      "order": 12,
+      "macroStepOrder": 5,
+      "learnerLens": {
+        "world": "填写学员此刻身处的具体世界。",
+        "say": "填写学员要说的一句话。",
+        "ask": "填写学员要问队友的问题。",
+        "done": "填写学员如何知道自己完成了。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor02": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor03": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor04": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        }
+      }
+    },
+    {
+      "id": "B13",
+      "macroStepId": "operate",
+      "title": "B13｜填写本块标题",
+      "leadMentorId": "mentor04",
+      "suggestedMinutes": 6,
+      "gameModes": [
+        "yarn",
+        "american",
+        "euro"
+      ],
+      "apiAction": "submit-demo-and-complete",
+      "underlyingClassroomPhases": [
+        "debrief",
+        "completed"
+      ],
+      "historyTrack": "填写当时可知的真实历史信息与证据边界。",
+      "realityTrack": "填写学员回到现实项目要完成的对应实践。",
+      "studentPrompt": "用一句具体、可行动的话告诉初中生现在只需要做什么。",
+      "mentorScript": [
+        "填写当值导师逐句口播。"
+      ],
+      "studentActions": [
+        "填写学员现场可观察动作。"
+      ],
+      "systemActions": [
+        "填写执行本块后的系统同步结果。"
+      ],
+      "props": [
+        "填写本块需要的实体或数字道具。"
+      ],
+      "evidenceGate": [
+        "填写导师必须亲眼看见的完成证据。"
+      ],
+      "fallback": [
+        "填写学生卡住时的具象兜底问题。"
+      ],
+      "manualInteraction": "填写线下互动和八席窗口如何配合。",
+      "order": 13,
+      "macroStepOrder": 5,
+      "learnerLens": {
+        "world": "填写学员此刻身处的具体世界。",
+        "say": "填写学员要说的一句话。",
+        "ask": "填写学员要问队友的问题。",
+        "done": "填写学员如何知道自己完成了。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor02": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor03": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "mentor04": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "填写这个席位此刻唯一要做的动作。"
+        }
+      }
+    }
+  ],
+  "rules": {
+    "manualAdvance": true,
+    "courseSwitch": "new-run-only",
+    "executionStates": [
+      "ready",
+      "executing",
+      "awaiting-acceptance",
+      "error",
+      "completed"
+    ],
+    "studentPdmo": "none-by-default",
+    "cardDeal": "random-independent-of-identity",
+    "singleSpotlightMentor": true,
+    "historyBoundary": "facts-source-backed; simulations-labelled; reveal-after-freeze"
+  },
+  "authoring": {
+    "status": "draft",
+    "revision": 0
+  }
+}
