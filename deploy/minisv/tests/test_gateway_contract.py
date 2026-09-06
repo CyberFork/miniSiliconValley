@@ -45,6 +45,10 @@ class GatewayContractTests(unittest.TestCase):
         self.assertNotIn("/msv/demo/app", self.proxy)
         self.assertIn("proxy_set_header Host minisv.vip", self.proxy)
         self.assertIn("proxy_set_header X-Forwarded-Host minisv.vip", self.proxy)
+        route = re.search(r"location ~ \^/\(classroom\|account\)\(/\)\?\$ \{(.*?)\n    \}", self.gateway, re.DOTALL)
+        self.assertIsNotNone(route)
+        self.assertIn("set $app_path $uri;", route.group(1))
+        self.assertNotIn("set $app_path /$1;", route.group(1))
 
     def test_portal_reports_live_hecate_health_instead_of_static_status(self) -> None:
         site = ROOT / "site"

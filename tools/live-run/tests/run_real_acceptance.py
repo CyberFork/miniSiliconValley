@@ -97,7 +97,7 @@ def assert_b01(state: dict[str, Any]) -> dict[str, dict[str, int]]:
     assert classroom["apiBacked"] is True
     assert classroom["mentorCount"] == 4
     assert classroom["learnerCount"] == 4
-    assert classroom["learnerPdmoCount"] == 0
+    assert classroom["learnerPdmoFields"] == 0
     assert classroom["cardsPerLearner"] == [3, 3, 3, 3]
     assert classroom["uniqueDealtCards"] == 12
     views = classroom["learnerViews"]
@@ -189,7 +189,7 @@ def run(client: ControllerClient, output: Path, reset_after: bool, course_id: st
             "mentorCount": final["classroom"]["mentorCount"],
             "learnerCount": final["classroom"]["learnerCount"],
             "uniqueDealtCards": final["classroom"]["uniqueDealtCards"],
-            "learnerPdmoCount": final["classroom"]["learnerPdmoCount"],
+            "learnerPdmoFields": final["classroom"]["learnerPdmoFields"],
             "individualRp": {seat: view["reputation"] for seat, view in views.items()},
             "personalWalletTenths": {seat: view["walletTenths"] for seat, view in views.items()},
             "teamTreasuryTenths": final["classroom"]["teamTreasuryTenths"],

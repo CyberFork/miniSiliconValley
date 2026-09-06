@@ -16,7 +16,7 @@ Cloudflare Tunnel
       └─ 127.0.0.1:18791  Alpha remote console
 ```
 
-正式课堂的数据存于 Cloudflare D1；Course Registry 以不可变 `courseId + revision + digest` 保存 Candidate／Released。Hecate 文件 Registry 为编辑器、Alpha 与 Workshop 快照服务，不是学员数据存储。
+正式课堂的数据存于 Hecate 上由 Wrangler/workerd 提供的持久化 D1-compatible SQLite（逻辑绑定名仍为 `DB`，数据目录在 release 之外的 `~/Services/msv-classroom/data`）；Course Registry 以不可变 `courseId + revision + digest` 保存 Candidate／Released。Hecate 文件 Registry 为编辑器、Alpha 与 Workshop 快照服务，不是学员数据存储。
 
 ## 2. 日常健康检查
 
