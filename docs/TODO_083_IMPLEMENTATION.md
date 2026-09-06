@@ -1,9 +1,13 @@
 # T-083｜九视窗时序所见即所得课程工作台
 
-状态：实现完成，等待本次发布回执写入
+状态：已完成并通过生产验收
 正式入口：<https://minisv.vip/control/editor/>
 权限：`admin` / `mentor`
 编辑器构建：`t083-nine-pane-studio-r1`
+生产 release：`20260906T112420Z-t083-nine-pane-r2`
+实现提交：`2654005509cd6e142f8f136db74f3028a0390405`
+状态迁移修复：`13f991ed7b13adf912af7b9ebe1446344d95d090`
+机器回执：`docs/TODO_083_PRODUCTION_RECEIPT.json`
 
 ## 1. 交付结果
 
@@ -147,4 +151,4 @@ Released revision + 同一 content digest
 - 1440、1180、768、430、390 px 无页面横向溢出，席位基础字号不低于 13 px。
 - 既有 T-071／072、T-074 编辑器、Alpha 刷新、卡牌搜索和布局回归继续通过。
 
-机器可重复命令见 `docs/TESTING.md`。生产 release、公开 URL、哈希和状态不变证明将在 `docs/TODO_083_PRODUCTION_RECEIPT.json` 中记录。
+机器可重复命令见 `docs/TESTING.md`。生产 release、公开 URL、课程站逐字节不变证明及课堂玩法状态哈希均已写入 `docs/TODO_083_PRODUCTION_RECEIPT.json`。

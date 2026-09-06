@@ -138,4 +138,15 @@ python3 tools/live-run/tests/verify_todos_071_072_browser.py
 - 真实 seat 与 controller 复用共享渲染器，同时不显示编辑控件或预览模拟状态。
 - 1440／1180／768／430／390 px 无横向溢出、无过小基础字号。
 
-生产验收还必须读取 `/control/api/bootstrap` 的 `editorBuild=t083-nine-pane-studio-r1`，并在登录态下复验 Google 与饿了么的 5×13、9 窗、资产加载、CSP、发布前后玩法状态哈希不变。
+生产环境使用只读脚本；账号密码只允许由受控环境变量注入，不得写入命令历史、日志或回执：
+
+```bash
+MSV_QA_ORIGIN=https://minisv.vip \
+MSV_QA_USERNAME='<受控导师账号>' \
+MSV_QA_PASSWORD='<受控密码>' \
+MSV_QA_RELEASE='<release-id>' \
+MSV_QA_MAIN_SHA='<release-main-sha>' \
+python3 tools/live-run/tests/verify_t083_production_readonly.py
+```
+
+脚本登录后只发送 `GET/HEAD/OPTIONS`，读取 `/control/api/bootstrap` 的 `editorBuild=t083-nine-pane-studio-r1`，并复验 Google 与饿了么的 5×13、9 窗、五种画布、确定性发牌、角色隔离、可见字段路径、派生只读及五档响应式布局。部署前后另以服务端状态文件的归一化玩法哈希证明 Run、进度、尝试次数、身份、手牌和账本未改变。

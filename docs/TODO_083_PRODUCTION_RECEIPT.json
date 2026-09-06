@@ -1,0 +1,229 @@
+{
+  "receiptVersion": 1,
+  "completedAt": "2026-09-06T19:29:29+08:00",
+  "todo": "T-083",
+  "status": "completed",
+  "release": {
+    "host": "hecate",
+    "publicOrigin": "https://minisv.vip",
+    "releaseId": "20260906T112420Z-t083-nine-pane-r2",
+    "archiveSha256": "15aca8fa65fa1d2bf921e1797d89b10b9942511443403d1366df5d29123227f1",
+    "siteManifestVerified": true,
+    "editorBuild": "t083-nine-pane-studio-r1",
+    "courseSchemaVersion": 1,
+    "sourceCommits": {
+      "implementation": "2654005509cd6e142f8f136db74f3028a0390405",
+      "stateDigestMigration": "13f991ed7b13adf912af7b9ebe1446344d95d090"
+    }
+  },
+  "entrypoints": {
+    "courseStudio": "https://minisv.vip/control/editor/",
+    "liveController": "https://minisv.vip/control/",
+    "alphaSeatGrid": "https://minisv.vip/alpha/",
+    "courseOutline": "https://minisv.vip/course/"
+  },
+  "delivery": {
+    "defaultWorkspace": "nine-pane",
+    "versionChain": [
+      "Working Copy",
+      "Candidate",
+      "Alpha Active",
+      "Released"
+    ],
+    "macroSteps": 5,
+    "blocks": 13,
+    "mentorSeats": 4,
+    "learnerSeats": 4,
+    "controllerViews": 1,
+    "atomicViews": 9,
+    "layouts": [
+      "overview",
+      "mentors",
+      "learners",
+      "focus",
+      "compare"
+    ],
+    "sharedRuntimeRenderer": true,
+    "sourcePathEditing": true,
+    "derivedRuntimeFieldsReadOnly": true,
+    "undoRedo": true,
+    "deterministicPreviewSeed": true,
+    "candidateSaveDoesNotRefreshAlpha": true,
+    "releasedRequiresExactCompletedAlphaReceipt": true
+  },
+  "coursePackages": {
+    "google-1995-2004": {
+      "macroSteps": 5,
+      "blocks": 13,
+      "decks": 5,
+      "cards": 60,
+      "candidateRevision": 0,
+      "contentDigest": "59e0ef603d97d72578913ec1ab20d055210190137bfb8f437a417e0102ed77cd"
+    },
+    "eleme-2008-find-problem": {
+      "macroSteps": 5,
+      "blocks": 13,
+      "decks": 5,
+      "cards": 60,
+      "candidateRevision": 8,
+      "contentDigest": "d808bbc23c754d31af6cd9128b634c80f6084202b52f6346c707125f80e81e17"
+    },
+    "projectedBlockContracts": 26,
+    "dealContract": {
+      "learners": 4,
+      "cardsPerLearner": 3,
+      "uniqueCards": 12,
+      "roleIsolation": true
+    }
+  },
+  "automatedValidation": {
+    "liveRunPython": {
+      "tests": 38,
+      "passed": 38
+    },
+    "cardRendererNode": {
+      "tests": 2,
+      "passed": 2
+    },
+    "previewProjection": {
+      "blockContracts": 26,
+      "passed": 26
+    },
+    "remoteConsoleSecurityNode": {
+      "tests": 6,
+      "passed": 6
+    },
+    "webApplication": {
+      "typecheck": "passed",
+      "lint": "passed",
+      "productionBuild": "passed",
+      "tests": 23,
+      "passed": 23
+    },
+    "deploymentPython": {
+      "tests": 17,
+      "passed": 17
+    },
+    "themeRuntimeNode": {
+      "tests": 1,
+      "passed": 1
+    },
+    "browserRegression": {
+      "t083NinePane": "passed",
+      "t074CardStudio": "passed",
+      "editorLayout": "passed",
+      "t071T072CourseRuntime": "passed"
+    },
+    "gitDiffCheck": "passed"
+  },
+  "productionAcceptance": {
+    "mode": "authenticated-read-only",
+    "mutationRequestsAfterLogin": 0,
+    "browserPageErrors": 0,
+    "editorBuildVerified": true,
+    "bothCoursesVerified": true,
+    "fiveLayoutsVerified": true,
+    "responsiveWidths": [
+      1440,
+      1180,
+      768,
+      430,
+      390
+    ],
+    "horizontalOverflow": 0,
+    "minimumSeatBaseFontPx": 13,
+    "publicStatus": {
+      "/healthz": 200,
+      "/": 200,
+      "/world/": 200,
+      "/course/": 200,
+      "/framework/": 200,
+      "/parents/": 200,
+      "/workshop/": 200,
+      "/alpha/": 200,
+      "/control/": 303,
+      "/control/editor/": 303
+    },
+    "protectedRoutesRedirectToLogin": true
+  },
+  "preservedArtifacts": {
+    "colleagueCourseSite": {
+      "beforeSha256": "e39ebedc1b4b68230e551deeab9860ba6ce1a608c7b400d21c12d87f8f17b8f9",
+      "afterSha256": "e39ebedc1b4b68230e551deeab9860ba6ce1a608c7b400d21c12d87f8f17b8f9",
+      "files": 103,
+      "bytes": 114365669,
+      "byteIdentical": true,
+      "browserViewports": [
+        390,
+        430,
+        768,
+        1440
+      ],
+      "publicNavigationChecks": 8
+    },
+    "activeClassroom": {
+      "runIdBefore": "run-20260905-150001-a80c1b",
+      "runIdAfter": "run-20260905-150001-a80c1b",
+      "courseId": "eleme-2008-find-problem",
+      "statusBefore": "awaiting-acceptance",
+      "statusAfter": "awaiting-acceptance",
+      "currentBlockIndexBefore": 0,
+      "currentBlockIndexAfter": 0,
+      "attemptsBefore": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "attemptsAfter": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "normalizedGameplaySha256Before": "d6a8dcce5acd8290cbf71ab73e06dc204418ba499a9cfa55075ec310ce7c858a",
+      "normalizedGameplaySha256After": "d6a8dcce5acd8290cbf71ab73e06dc204418ba499a9cfa55075ec310ce7c858a",
+      "gameplayEquivalent": true,
+      "digestMigratedInPlace": true
+    }
+  },
+  "releaseAudit": {
+    "initialRelease": "20260906T111344Z-t083-nine-pane-r1",
+    "finding": "首次重启时，修正后的内容摘要契约会把 schema v4 的既有 Run 误判为不兼容。",
+    "detection": "交付前的部署后状态审计发现了新 Run；只读 UI 验收没有发送任何写请求。",
+    "correction": "加入 T-083 前摘要兼容，使用真实备份回归验证，发布 r2，恢复部署前 Run，并原地迁移其摘要。",
+    "finalStateVerified": true
+  },
+  "security": {
+    "credentialsInReceipt": false,
+    "credentialsInRepository": false,
+    "productionTestReadOnlyAfterLogin": true,
+    "iframeUsed": false,
+    "alphaLeaseUsedByEditor": false,
+    "cyberforkerDeploymentTouched": false
+  },
+  "rollback": {
+    "previousRelease": "20260906T100023Z-t077-chj-verbatim-r1",
+    "preDeployStateBackup": "/Users/hecate/Services/minisv/backups/20260906T111514Z-20260906T111344Z-t083-nine-pane-r1/run-state.json",
+    "releaseCommand": "$HOME/Services/minisv/current/ops/scripts/rollback-hecate.sh 20260906T100023Z-t077-chj-verbatim-r1",
+    "note": "Because the previous binary uses the legacy digest, restore the recorded pre-deploy run-state while the controller is stopped when performing this rollback."
+  }
+}
