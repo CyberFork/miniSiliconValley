@@ -13,7 +13,6 @@
 html,
 body {
   max-width: 100%;
-  overflow-x: clip;
 }
 
 .msv-ui-switch {
@@ -37,38 +36,6 @@ body {
   position: fixed;
   top: max(12px, env(safe-area-inset-top));
   right: max(12px, env(safe-area-inset-right));
-}
-
-.msv-ui-switch-rail {
-  position: fixed;
-  z-index: 79;
-  top: var(--msv-ui-dock-top, 72px);
-  right: 0;
-  left: 0;
-  display: flex;
-  justify-content: flex-end;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 6px max(12px, env(safe-area-inset-right)) 6px max(12px, env(safe-area-inset-left));
-  background: var(--paper, #f8efd8);
-  border-bottom: 1px solid color-mix(in srgb, var(--ink, #172b36) 18%, transparent);
-}
-
-html[data-msv-surface="dark"] .msv-ui-switch-rail {
-  background: #071720;
-  border-bottom-color: #2c4a54;
-}
-
-body:has(.modal-backdrop) .msv-ui-switch-rail {
-  visibility: hidden;
-}
-
-html[data-msv-ui-dock="true"] :is(.topbar, [class*="_authNav_"]) {
-  margin-bottom: 51px;
-}
-
-html[data-msv-ui-dock="true"] body > :is(header, nav) {
-  margin-bottom: 51px;
 }
 
 .msv-ui-switch__label {

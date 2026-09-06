@@ -771,6 +771,19 @@ class LiveRunServer(ThreadingHTTPServer):
             data = target.read_bytes()
             mime = mimetypes.guess_type(target.name)[0] or "application/octet-stream"
             self.static_assets[f"/{name}"] = (data, mime)
+        # In production these shared files are served by the site gateway.
+        # Also expose them from the standalone controller so local browser QA
+        # exercises the exact theme mounting and responsive-layout behavior.
+        theme_roots = (ROOT.parents[1] / "deploy" / "minisv" / "site", ROOT.parent / "site")
+        for theme_root in theme_roots:
+            if not theme_root.is_dir():
+                continue
+            for name in ("ui-theme.css", "ui-theme.js"):
+                target = theme_root / name
+                if target.is_file():
+                    mime = mimetypes.guess_type(target.name)[0] or "application/octet-stream"
+                    self.static_assets[f"/{name}"] = (target.read_bytes(), mime)
+            break
 
 
 class LiveRunHandler(BaseHTTPRequestHandler):

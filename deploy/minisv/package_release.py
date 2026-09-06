@@ -14,7 +14,7 @@ from pathlib import Path
 TEXT_SUFFIXES = {".html", ".css", ".js", ".mjs", ".json", ".svg", ".md", ".txt", ".webmanifest"}
 REQUIRED_PAGES = ("index.html", "world/index.html", "framework/index.html", "parents/index.html", "workshop/index.html")
 FORBIDDEN = ("work.cyberforker.com", "192.168.", "127.0.0.1:18765", "/msv/", r"\/msv\/")
-THEME_VERSION = "20260906-5"
+THEME_VERSION = "20260906-6"
 THEME_ASSETS = f'<link rel="stylesheet" href="/ui-theme.css?v={THEME_VERSION}"><script src="/ui-theme.js?v={THEME_VERSION}"></script>'
 
 

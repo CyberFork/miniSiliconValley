@@ -64,15 +64,24 @@ class UiThemeContractTests(unittest.TestCase):
         self.assertIn('ArrowLeft', script)
         self.assertIn('ArrowRight', script)
 
-    def test_topbar_pages_use_a_non_overlapping_theme_rail(self) -> None:
+    def test_missing_slot_falls_back_to_non_layout_floating_switch(self) -> None:
         script = (self.site_root() / "ui-theme.js").read_text()
         styles = (self.site_root() / "ui-theme.css").read_text()
-        self.assertIn('msv-ui-switch-rail', script)
-        self.assertIn('document.body.appendChild(rail)', script)
-        self.assertIn('data-msv-ui-dock', styles)
-        self.assertIn('.msv-ui-switch-rail', styles)
-        self.assertIn('body:has(.modal-backdrop)', styles)
-        self.assertNotIn('floating-belowbar', script + styles)
+        self.assertIn('switcher.dataset.placement = "floating"', script)
+        self.assertNotIn('msv-ui-switch-rail', script + styles)
+        self.assertNotIn('data-msv-ui-dock', script + styles)
+        self.assertNotIn('--msv-ui-dock-top', script + styles)
+
+    def test_course_editor_declares_slot_and_container_responsive_layout(self) -> None:
+        live_run = self.live_run_root()
+        html = (live_run / "static" / "editor.html").read_text()
+        styles = (live_run / "static" / "editor.css").read_text()
+        self.assertIn("data-msv-theme-slot", html)
+        self.assertIn(".topbar-actions", styles)
+        self.assertIn("container:course-workspace / inline-size", styles)
+        self.assertIn("@container course-workspace (max-width:780px)", styles)
+        self.assertIn(".studio>*{min-width:0;max-width:100%}", styles)
+        self.assertIn("[hidden]{display:none!important}", styles)
 
     def test_adventure_hero_is_skin_only_and_cannot_change_geometry(self) -> None:
         styles = (self.site_root() / "ui-theme.css").read_text()

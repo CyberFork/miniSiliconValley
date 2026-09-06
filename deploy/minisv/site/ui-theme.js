@@ -92,28 +92,11 @@
       slot.appendChild(switcher);
       switcher.dataset.placement = "inline";
     } else {
-      var topbar = document.querySelector(".topbar, body > header, body > nav, [class*='_authNav_']");
-      if (topbar) {
-        var rail = document.createElement("div");
-        rail.className = "msv-ui-switch-rail";
-        rail.setAttribute("aria-label", "界面风格工具栏");
-        rail.appendChild(switcher);
-        document.body.appendChild(rail);
-        root.dataset.msvUiDock = "true";
-        switcher.dataset.placement = "rail";
-
-        var syncDock = function () {
-          var currentTopbar = document.querySelector(".topbar, body > header, body > nav, [class*='_authNav_']");
-          if (!currentTopbar || !currentTopbar.getBoundingClientRect) return;
-          root.style.setProperty("--msv-ui-dock-top", Math.max(0, currentTopbar.getBoundingClientRect().bottom) + "px");
-        };
-        syncDock();
-        if (window.requestAnimationFrame) window.requestAnimationFrame(syncDock);
-        if (window.addEventListener) window.addEventListener("resize", syncDock, { passive: true });
-      } else {
-        document.body.appendChild(switcher);
-        switcher.dataset.placement = "floating";
-      }
+      // Never manufacture a full-width toolbar for pages that do not declare
+      // a theme slot. It changes document geometry and can cover editor fields
+      // at browser zoom levels. The fallback is one non-layout control.
+      document.body.appendChild(switcher);
+      switcher.dataset.placement = "floating";
     }
     setMode(root.dataset.msvTheme || requestedMode(), false);
   }

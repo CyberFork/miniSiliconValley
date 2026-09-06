@@ -73,7 +73,9 @@ class GatewayContractTests(unittest.TestCase):
         self.assertIn('sub_filter \'</head>\'', self.proxy)
         self.assertIn('data-msv-theme="adventure"', theme_css)
         self.assertIn('[class*="_authCard_"]', theme_css)
-        self.assertIn('overflow-x: clip', theme_css)
+        self.assertNotIn('overflow-x: clip', theme_css)
+        self.assertNotIn('msv-ui-switch-rail', theme_css + theme_js)
+        self.assertIn('dataset.placement = "floating"', theme_js)
         self.assertIn('minisv.ui.theme', theme_js)
         self.assertNotIn("work.cyberforker.com", theme_css + theme_js)
 
