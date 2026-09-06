@@ -70,6 +70,12 @@
       .trim();
   }
 
+  function editableFragment(tag, value, path, label, className = "") {
+    const html = `<${tag}${className ? ` class="${className}"` : ""}>${value}</${tag}>`;
+    if (!path) return html;
+    return `<button type="button" class="card-editable" data-course-path="${escapeHtml(path)}" data-edit-label="${escapeHtml(label)}">${html}<span class="card-edit-hint">编辑</span></button>`;
+  }
+
   function renderLearnerCard(card, index = 0, options = {}) {
     const boundary = cardBoundary(card);
     const state = options.state || card?.state || "unread";
@@ -78,11 +84,14 @@
     const sourceLine = boundary === "F"
       ? `<small class="card-source-ids">来源编号：${escapeHtml(sources.join(" · ") || "缺失，请告知导师")}</small>`
       : "";
-    return `<article class="private-card" data-boundary="${escapeHtml(boundary)}" data-card-state="${escapeHtml(state)}">`
-      + `<small class="private-card-meta">私密卡 ${position} · ${escapeHtml(boundaryLabels[boundary])} · ${escapeHtml(boundaryNotes[boundary])} · ${escapeHtml(cardStates[state] || "待确认")}</small>`
-      + `<b>${escapeHtml(cleanCardTitle(card?.title))}</b>`
-      + `<p>${escapeHtml(expandBoundaryText(card?.body))}</p>`
-      + `<em><span>交给队友时说：</span>${escapeHtml(expandBoundaryText(card?.sharePrompt))}</em>`
+    const paths = options.paths || {};
+    const cardId = options.cardId || card?.id || "";
+    const meta = `私密卡 ${position} · ${escapeHtml(boundaryLabels[boundary])} · ${escapeHtml(boundaryNotes[boundary])} · ${escapeHtml(cardStates[state] || "待确认")}`;
+    return `<article class="private-card" data-boundary="${escapeHtml(boundary)}" data-card-state="${escapeHtml(state)}"${cardId ? ` data-card-id="${escapeHtml(cardId)}"` : ""}>`
+      + editableFragment("small", meta, paths.boundary, "证据边界", "private-card-meta")
+      + editableFragment("b", escapeHtml(cleanCardTitle(card?.title)), paths.title, "卡牌标题")
+      + editableFragment("p", escapeHtml(expandBoundaryText(card?.body)), paths.body, "学员看到的具体线索")
+      + editableFragment("em", `<span>交给队友时说：</span>${escapeHtml(expandBoundaryText(card?.sharePrompt))}`, paths.sharePrompt, "交给队友时要说什么")
       + sourceLine
       + `</article>`;
   }

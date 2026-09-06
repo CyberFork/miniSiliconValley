@@ -6,14 +6,15 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>课程编辑器 · Mini Silicon Valley</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="../editor.css?v=20260906-8">
+  <link rel="stylesheet" href="../editor.css?v=20260906-9">
+  <link rel="stylesheet" href="../course-preview.css?v=20260906-9">
   <link rel="stylesheet" href="/ui-theme.css?v=20260906-6">
   <script src="/ui-theme.js?v=20260906-6"></script>
 </head>
 <body>
 <header class="topbar">
   <a class="back" href="../">← LIVE RUN 主控</a>
-  <div><span class="eyebrow">ALPHA COURSE STUDIO · JSON AUTHORING</span><h1>课程编辑器</h1></div>
+  <div><span class="eyebrow">NINE-PANE COURSE STUDIO · 所见即所得</span><h1>课程编排工作台</h1></div>
   <div class="topbar-actions">
     <div class="save-state" id="saveState" data-state="loading">正在载入</div>
     <div data-msv-theme-slot></div>
@@ -24,8 +25,8 @@
 </section>
 <main class="studio">
   <aside class="library panel">
-    <div class="panel-head"><div><span class="eyebrow">COURSE LIBRARY</span><h2>课程库</h2></div><button id="newCourse" class="icon-button" title="从现有课件创建" aria-label="从现有课件创建">＋</button></div>
-    <p class="hint">选择真正运行的课程 JSON。草稿只有手动刷新 Alpha 后才进入当前 Run；发布版只供新 Run 使用。</p>
+    <div class="panel-head"><div><span class="eyebrow">COURSE LIBRARY</span><h2>课程库</h2></div><div class="panel-head-actions"><button id="closeLibrary" class="icon-button subtle" title="收起课程库" aria-label="收起课程库">←</button><button id="newCourse" class="icon-button" title="从现有课件创建" aria-label="从现有课件创建">＋</button></div></div>
+    <p class="hint">选择唯一 Course Package。保存生成 Candidate；不会自动改变正在排练或正式运行的课堂。</p>
     <div id="courseList" class="course-list"></div>
     <div id="diagnostics" class="diagnostics" hidden></div>
     <div class="library-actions">
@@ -40,23 +41,72 @@
       <div class="workspace-head">
         <div><span class="eyebrow" id="courseKicker"></span><h2 id="courseTitle"></h2><p id="revisionLine"></p></div>
         <div class="toolbar">
+          <button id="openLibrary" class="button ghost">课程库</button>
           <button id="validate" class="button ghost">检查结构</button>
           <button id="historyButton" class="button ghost">版本历史</button>
-          <button id="saveDraft" class="button secondary">保存草稿</button>
-          <button id="publish" class="button primary">发布到主控</button>
+          <button id="saveDraft" class="button secondary" data-save-course>保存 Candidate</button>
+          <button id="publish" class="button primary">发布正式课堂</button>
         </div>
       </div>
+
+      <section class="candidate-dock" aria-label="课程版本与保存状态">
+        <div class="version-matrix" id="versionMatrix" aria-live="polite"></div>
+        <div class="candidate-actions">
+          <button type="button" id="undoEdit" class="button ghost" disabled title="撤销上一次可视化修改">↶ 撤销</button>
+          <button type="button" id="redoEdit" class="button ghost" disabled title="恢复上一次可视化修改">↷ 重做</button>
+          <button type="button" id="saveCandidateDock" class="button secondary" data-save-course>保存整门课程</button>
+        </div>
+      </section>
 
       <section id="packageHealth" class="package-health" aria-live="polite"></section>
       <section id="alphaSync" class="alpha-sync" aria-live="polite"></section>
 
       <div class="mode-tabs" role="tablist" aria-label="课程编辑模式">
-        <button id="structuredTab" role="tab" aria-controls="structuredPane" aria-selected="true">课程结构</button>
+        <button id="studioTab" role="tab" aria-controls="studioPane" aria-selected="true"><span>九视窗编排</span><small>默认</small></button>
+        <button id="structuredTab" role="tab" aria-controls="structuredPane" aria-selected="false">高级结构</button>
         <button id="cardsTab" role="tab" aria-controls="cardsPane" aria-selected="false"><span>抽卡内容</span><small id="cardsTabCount">—</small></button>
         <button id="jsonTab" role="tab" aria-controls="jsonPane" aria-selected="false">JSON 源码</button>
       </div>
 
-      <div id="structuredPane" role="tabpanel">
+      <div id="studioPane" role="tabpanel">
+        <section id="studioCourseIdentity" class="studio-course-identity" aria-label="当前课程与大步的可视化编辑入口"></section>
+        <section class="studio-mode-boundary" aria-label="工作台模式边界">
+          <div><span class="eyebrow">WORKING COPY → PREVIEW STATE</span><b>当前：编辑预览</b><p>九个视窗只读取本页未保存副本；不使用 Alpha lease，不读取真实账号、手牌或账本，也不调用 Run 动作。</p></div>
+          <div class="runtime-modes" role="group" aria-label="工作台数据模式"><button type="button" aria-pressed="true">编辑预览</button><button type="button" disabled title="排练控制继续在独立 Alpha 中完成">测试房 · 未连接</button><button type="button" disabled title="正式课堂内容始终只读且锁定 Released 版本">正式课堂 · 未连接</button><a href="/alpha/">打开独立 Alpha 测试房 ↗</a></div>
+        </section>
+
+        <section class="course-timeline-shell" aria-labelledby="timelineTitle">
+          <div class="timeline-toolbar"><div><span class="eyebrow">FULL COURSE TIMELINE · 5 × 13</span><h3 id="timelineTitle">全课程时序轴</h3></div><div class="timeline-actions"><button type="button" id="previousBlock" class="button ghost">← 上一块</button><button type="button" id="nextBlock" class="button ghost">下一块 →</button><label>密度<select id="timelineDensity"><option value="compact">全课程</option><option value="comfortable">舒适</option><option value="detail">详细</option></select></label><label class="check-control"><input id="onlyWarnings" type="checkbox">只看警告</label></div></div>
+          <div id="courseTimeline" class="course-timeline" data-density="compact"></div>
+        </section>
+
+        <section class="preview-toolbar" aria-label="九视窗预览控制">
+          <div class="layout-modes" role="group" aria-label="画布布局">
+            <button type="button" data-layout="overview" aria-pressed="true">八席总览</button>
+            <button type="button" data-layout="mentors" aria-pressed="false">只看导师</button>
+            <button type="button" data-layout="learners" aria-pressed="false">只看学员</button>
+            <button type="button" data-layout="focus" aria-pressed="false">单窗精编</button>
+            <button type="button" data-layout="compare" aria-pressed="false">双窗对照</button>
+          </div>
+          <div class="preview-scenario">
+            <label>焦点 A<select id="focusSeatA"></select></label>
+            <label id="focusBLabel" hidden>对照 B<select id="focusSeatB"></select></label>
+            <label>预览状态<select id="previewRunStatus"><option value="ready">待执行</option><option value="executing">同步中</option><option value="awaiting-acceptance">待人工验收</option><option value="error">错误停住</option><option value="completed">全程完成</option></select></label>
+            <label>随机 seed<input id="previewSeed" value="MSV-PREVIEW-01" autocomplete="off" spellcheck="false"></label>
+            <button type="button" id="nextSeed" class="button ghost">换一组牌</button>
+          </div>
+        </section>
+
+        <div class="preview-legend"><span><i class="editable-dot"></i>虚线提示：点击即改 Course Package</span><span><i class="derived-dot"></i>“只读·模拟”：派生状态，永不保存</span><strong id="projectionStamp">准备投影</strong></div>
+        <section id="seatPreviewGrid" class="seat-preview-grid" data-layout="overview" aria-label="四导师与四学员同步预览"></section>
+
+        <section class="controller-preview-shell" id="controllerShell" aria-labelledby="controllerPreviewTitle">
+          <div class="controller-preview-head"><div><span class="eyebrow">PANE 09 · COURSE CONTROLLER</span><h3 id="controllerPreviewTitle">课程中控视窗</h3></div><div><label>高度 <input id="controllerHeight" type="range" min="320" max="900" step="20" value="600"></label><button type="button" id="toggleController" class="button ghost" aria-expanded="true">收起中控</button></div></div>
+          <article id="previewController" class="controller-preview"></article>
+        </section>
+      </div>
+
+      <div id="structuredPane" role="tabpanel" hidden>
         <section class="meta-card" id="metadataForm"></section>
         <nav id="stepTabs" class="step-tabs" aria-label="五大步骤"></nav>
         <div class="block-layout">
@@ -127,7 +177,7 @@
       <li><b>守住证据边界</b><small>F 有来源；R 明说课堂模拟；G 待验证；U 继续调查。</small></li>
       <li><b>看学员同款预览</b><small>确认初中生读得懂，不把导师方法论压给学员。</small></li>
       <li><b>检查当前手牌</b><small>点击 Alpha 手牌 ID，确认稳定 ID 对应正确内容。</small></li>
-      <li><b>保存不等于生效</b><small>保存草稿后，原 Run 仍使用旧版。</small></li>
+      <li><b>保存不等于生效</b><small>保存 Candidate 后，原 Run 仍使用旧版。</small></li>
       <li><b>人工刷新与验收</b><small>只有“全部刷新 Alpha”才更新八席；正式课堂绝不静默更新。</small></li>
     </ol>
     <div class="boundary"><b>证据边界</b><p>F 有来源｜R 课堂模拟｜G 我们猜的｜U 还不知道。历史事实与玩家平行世界始终分开写。</p></div>
@@ -141,17 +191,27 @@
     <label>课程底稿<select id="cloneSource"></select></label>
     <label>新课程 ID<small>小写英文、数字和连字符；创建后不再修改。</small><input id="cloneId" required pattern="[a-z0-9][a-z0-9-]{2,63}" placeholder="example-2010"></label>
     <label>课程名称<input id="cloneName" required placeholder="案例名｜五步创业闭环"></label>
-    <div class="dialog-actions"><button type="button" id="cloneCancel" class="button ghost">取消</button><button type="submit" class="button primary">创建草稿</button></div>
+    <div class="dialog-actions"><button type="button" id="cloneCancel" class="button ghost">取消</button><button type="submit" class="button primary">创建 Candidate</button></div>
   </form>
 </dialog>
 <dialog id="historyDialog" class="dialog history-dialog">
   <form method="dialog">
     <div class="dialog-title"><div><span class="eyebrow">IMMUTABLE HISTORY · SAFE RESTORE</span><h2>课程版本历史</h2></div><button type="button" id="historyClose" class="button ghost">关闭</button></div>
-    <p>恢复不会覆盖旧历史，也不会自动改变当前 Alpha；系统会把所选快照保存成一个新的草稿 revision。</p>
+    <p>恢复不会覆盖旧历史，也不会自动改变当前 Alpha；系统会把所选快照保存成一个新的 Candidate revision。</p>
     <div id="historyList" class="history-list"></div>
   </form>
 </dialog>
-<script src="../card-view.js?v=20260906-7"></script>
-<script src="../editor.js?v=20260906-7"></script>
+<dialog id="fieldDialog" class="dialog field-dialog" aria-labelledby="fieldDialogTitle">
+  <form method="dialog" id="fieldForm">
+    <div class="dialog-title"><div><span class="eyebrow">VISIBLE ELEMENT → UNIQUE SOURCE PATH</span><h2 id="fieldDialogTitle">编辑课程字段</h2></div><button type="button" id="fieldClose" class="button ghost">关闭</button></div>
+    <div class="field-path"><span>Course Package 路径</span><code id="fieldPath"></code><small id="fieldCardId"></small></div>
+    <label id="fieldValueLabel">字段内容<span id="fieldControl"></span></label>
+    <p id="fieldHelp" class="field-help"></p>
+    <div class="impact-report" id="impactReport" role="status"></div>
+  </form>
+</dialog>
+<script src="../card-view.js?v=20260906-9"></script>
+<script src="../course-preview.js?v=20260906-9"></script>
+<script src="../editor.js?v=20260906-9"></script>
 </body>
 </html>

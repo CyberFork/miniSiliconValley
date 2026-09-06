@@ -1,39 +1,41 @@
-(()=>{'use strict';
-const pageParams=new URLSearchParams(location.search),capabilityParams=new URLSearchParams(location.hash.slice(1)),requested=pageParams.get('seat')||'';
-const hasClaimCapability=['clientId','lease'].every(key=>Boolean(capabilityParams.get(key)));
-const aliases={W00:'mentor01',W01:'mentor02',W02:'mentor03',W03:'mentor04',W04:'learner01',W05:'learner02',W06:'learner03',W07:'learner04'};
-const seatId=aliases[requested]||requested,byId=id=>document.getElementById(id);
-function stateUrl(){const query=new URLSearchParams({seat:seatId});return new URL(`api/state?${query}`,new URL('.',location.href))}
-function stateHeaders(){return{'X-MSV-Client-ID':capabilityParams.get('clientId')||'','X-MSV-Seat-Lease':capabilityParams.get('lease')||''}}
-const statusLabels={ready:'等待主控执行',executing:'系统同步中','awaiting-acceptance':'现场行动时间',error:'本块已停住',completed:'课程已完成'};
- const CardView=window.MsvCardView;
- if(!CardView)throw new Error('共享卡片渲染器未加载');
-	 const {escapeHtml:esc,expandBoundaryText,renderLearnerCard}=CardView;
- function items(lines){return lines.filter(Boolean).map(x=>`<li>${x}</li>`).join('')}
-function readyTask(v,view,data){if(data.status!=='ready')return v.task;if(v.blockOrder===1&&!view)return'先把纸和笔放在手边。不要猜公司结局，等老师发出身份和三张私密卡。';return`先看看上一步留下的结果。老师说“开始”后，再做：${v.task}`}
-function renderLearner(data,v,c){
- const view=c.learnerViews?.[v.id]||null,identity=view?.identity,lens=v.learnerLens||{};
- byId('kind').textContent='YOUNG BUILDER · 私人任务视角';byId('name').textContent=identity?.name||v.title;byId('subidentity').textContent=expandBoundaryText(identity?.publicGoal||statusLabels[data.status]||'');
- byId('taskTitle').textContent='我现在只做这一件事';byId('task').textContent=expandBoundaryText(readyTask(v,view,data));byId('action').textContent=expandBoundaryText(lens.world||v.studentPrompt||'');byId('result').textContent=`做成的样子：${expandBoundaryText(lens.done||v.headline)}`;byId('result').className='result'+(data.status==='error'?' error':data.status==='ready'?' wait':'');
- const known=Boolean(view);const metrics=[{value:known?`${view.reputation} RP`:'—',label:'我的声望'},{value:known?`${(view.walletTenths/10).toFixed(1)} C`:'—',label:'我的钱包'},{value:c.roomId?`${((c.teamTreasuryTenths||0)/10).toFixed(1)} C`:'—',label:'团队资金'}];byId('metrics').innerHTML=metrics.map(m=>`<div class="metric"><b>${esc(m.value)}</b><span>${esc(m.label)}</span></div>`).join('');
- byId('factsTitle').textContent='只有我看到的信息';const facts=[];
- if(identity){facts.push(`<div class="fact-label">我的能力</div>${esc(expandBoundaryText(identity.ability))}`);facts.push(`<div class="fact-label">我心里的担心</div>${esc(expandBoundaryText(identity.privateConcern))}`)}
- if(view?.recentReputation)facts.push(`<div class="fact-label">最近一次成长</div>+${esc(view.recentReputation.points)} RP · ${esc(expandBoundaryText(view.recentReputation.reason))}`);
- else if(known)facts.push(`<div class="fact-label">我的成长记录</div>当前 ${esc(view.reputation)} RP；新 RP 只会在导师指出具体作品后记录。`);
- if(view?.recentWallet){const sign=view.recentWallet.direction==='in'?'+':'-';facts.push(`<div class="fact-label">最近一笔个人资金</div>${sign}${(view.recentWallet.amountTenths/10).toFixed(1)} C · ${esc(expandBoundaryText(view.recentWallet.reason))}`)}
- for(const [index,card] of (view?.cards||[]).entries())facts.push(renderLearnerCard(card,index,{state:card.state}));
- byId('facts').innerHTML=items(facts)||'<li>主控执行第一块后，这里会出现你的身份和三张随机私密卡。</li>';
- byId('teamworkTitle').textContent='和队友怎么配合';byId('teamwork').innerHTML=items([`<b>我要说</b>${esc(expandBoundaryText(lens.say||'用自己的话讲出你掌握的信息。'))}`,`<b>我要问</b>${esc(expandBoundaryText(lens.ask||'听队友说完，再追问一件不清楚的事。'))}`,`<b>完成后</b>${esc(expandBoundaryText(lens.done||'让导师看见一个具体结果。'))}`]);
- byId('chipsTitle').textContent='我已经拥有';const chips=[`${view?.cards?.length||0}/3 私密卡`,`${view?.unlockIds?.length||0} 项解锁`,'一票团队发言权'];byId('chips').innerHTML=chips.map((x,i)=>`<span class="chip ${i===0?'hot':''}">${esc(x)}</span>`).join('');
-}
-function renderMentor(data,v,c){
- byId('kind').textContent=v.id==='mentor01'?'主 DM · 总控主持':`协作导师 · ${v.code} 专业线`;byId('name').textContent=v.title;byId('subidentity').textContent=v.spotlight==='active'?'本块由你主导':'本块观察支援，不抢讲';
- byId('taskTitle').textContent='现在做什么';byId('task').textContent=v.task;byId('action').textContent=`${v.blockId}「${v.blockTitle}」`;byId('result').textContent=v.headline;byId('result').className='result'+(data.status==='ready'?' wait':data.status==='error'?' error':'');
- const metrics=[{value:`${c.mentorCount||0}/${c.learnerCount||0}`,label:'导师 / 学员'},{value:`${c.chapterOrder||1}/${c.chapterCount||v.macroStepCount||1}`,label:'历史章节'},{value:`${((c.teamTreasuryTenths||0)/10).toFixed(1)} C`,label:'团队资金'}];byId('metrics').innerHTML=metrics.map(m=>`<div class="metric"><b>${esc(m.value)}</b><span>${esc(m.label)}</span></div>`).join('');
- byId('factsTitle').textContent='主持 / 验收信息';byId('facts').innerHTML=items([v.spotlight==='active'?'本块由你主导；其他导师只观察支援。':'只记录本专业线索，不提前讲出后续答案。','只有 LIVE RUN SCRIPT 人工验收后才会进入下一块。',`真实课堂：${esc(c.phase||'lobby')} · 随机手牌 ${c.uniqueDealtCards||0}/12`]);
- byId('teamworkTitle').textContent='观察重点';byId('teamwork').innerHTML=items([`<b>当前任务</b>${esc(v.task)}`,`<b>团队可见</b>${c.publishedCards||0} 张卡已讲出，${c.challengeActions||0} 项行动已提交。`]);
- byId('chipsTitle').textContent='导师工具';byId('chips').innerHTML=[v.badge,v.code+' 专业线','一次只突出一名导师'].map((x,i)=>`<span class="chip ${i===0?'hot':''}">${esc(x)}</span>`).join('');
-}
-function render(data){const v=data.seats?.find(item=>item.id===seatId);if(!v)throw new Error('席位不存在');const c=data.classroom||{},total=v.blockCount||data.blocks?.length||1,chapterCount=c.chapterCount||v.macroStepCount||1;document.title=`${v.window} · ${v.title}`;byId('seat').textContent=v.window;byId('phase').textContent=`第 ${v.macroStepOrder} 步 · ${v.macroStepName}`;byId('phaseNo').textContent=`${String(v.blockOrder).padStart(2,'0')} / ${String(total).padStart(2,'0')}`;const syncMark=`r${v.courseRevision??data.courseRevision??0} · #${v.refreshEpoch??data.refreshEpoch??0}${v.isPreview?' · 回看':''}`;if(v.kind==='learner'){byId('room').textContent=`${v.learnerCaseName} · 第 ${c.chapterOrder||1}/${chapterCount} 章`;byId('updated').textContent=`${syncMark} · ${new Date().toLocaleTimeString()}`}else{byId('room').textContent=c.teamPublicId?`${c.teamPublicId} · ${v.caseName}`:`${v.caseName} · 尚未建房`;byId('updated').textContent=`${syncMark} · v${data.version}`}byId('progress').style.setProperty('--block-count',total);byId('progress').innerHTML='';for(let i=1;i<=total;i++){const x=document.createElement('i');x.className=i<v.blockOrder?'done':i===v.blockOrder?'now':'';byId('progress').appendChild(x)}if(v.kind==='learner')renderLearner(data,v,c);else renderMentor(data,v,c)}
-async function refresh(){try{if(!hasClaimCapability)throw new Error('领取凭证缺失或不完整。');const r=await fetch(stateUrl(),{cache:'no-store',headers:stateHeaders()}),j=await r.json();if(!r.ok||!j.ok)throw new Error(j.error?.message||r.status);render(j.data)}catch(e){byId('name').textContent='席位暂不可用';byId('result').textContent=(/领取|失效|LEASE/u.test(e.message)?'请返回测试席位控制台重新领取：':'1 秒后自动重连：')+e.message;byId('result').className='result wait'}}refresh();setInterval(refresh,900);
+(() => {
+  "use strict";
+  const pageParams = new URLSearchParams(location.search);
+  const capabilityParams = new URLSearchParams(location.hash.slice(1));
+  const requested = pageParams.get("seat") || "";
+  const hasClaimCapability = ["clientId", "lease"].every((key) => Boolean(capabilityParams.get(key)));
+  const aliases = {W00: "mentor01", W01: "mentor02", W02: "mentor03", W03: "mentor04", W04: "learner01", W05: "learner02", W06: "learner03", W07: "learner04"};
+  const seatId = aliases[requested] || requested;
+  const app = document.getElementById("seatApp");
+  const Preview = window.MsvCoursePreview;
+  if (!Preview) throw new Error("共享席位渲染器未加载");
+
+  function stateUrl() {
+    return new URL(`api/state?${new URLSearchParams({seat: seatId})}`, new URL(".", location.href));
+  }
+  function stateHeaders() {
+    return {"X-MSV-Client-ID": capabilityParams.get("clientId") || "", "X-MSV-Seat-Lease": capabilityParams.get("lease") || ""};
+  }
+  function render(data) {
+    const model = Preview.runtimeSeatView(data, seatId);
+    document.title = `${model.window} · ${model.title}`;
+    app.innerHTML = Preview.renderSeatSurface(model, {editable: false});
+  }
+  function renderError(error) {
+    const prefix = /领取|失效|LEASE/u.test(error.message) ? "请返回测试席位控制台重新领取：" : "1 秒后自动重连：";
+    app.innerHTML = `<article class="msv-seat-surface"><section class="surface-card"><h2>席位暂不可用</h2><p>${window.MsvCardView.escapeHtml(prefix + error.message)}</p></section></article>`;
+  }
+  async function refresh() {
+    try {
+      if (!hasClaimCapability) throw new Error("领取凭证缺失或不完整。");
+      const response = await fetch(stateUrl(), {cache: "no-store", headers: stateHeaders()});
+      const envelope = await response.json();
+      if (!response.ok || !envelope.ok) throw new Error(envelope.error?.message || String(response.status));
+      render(envelope.data);
+    } catch (error) {
+      renderError(error);
+    }
+  }
+  refresh();
+  setInterval(refresh, 900);
 })();

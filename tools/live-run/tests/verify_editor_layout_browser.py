@@ -121,6 +121,7 @@ def main() -> None:
                 page = browser.new_page(viewport={"width": VIEWPORTS[0], "height": 1000})
                 page.goto(f"http://127.0.0.1:{server.server_port}/editor/", wait_until="networkidle")
                 page.wait_for_selector("#cardsTab")
+                page.click("#structuredTab")
 
                 # The structure pane has its own nested grid. A nowrap block
                 # title previously forced buttons beyond the 170px track and

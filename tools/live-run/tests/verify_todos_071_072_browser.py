@@ -45,11 +45,11 @@ def main() -> None:
 
                 editor.locator('[data-path="decks.0.cards.0.body"]').fill("浏览器验收：同一张卡热刷新后的正文。")
                 editor.click("#saveDraft")
-                expect(editor.locator("#saveState")).to_contain_text("草稿 r1")
-                expect(editor.locator("#alphaSync")).to_contain_text("有新内容待主动刷新")
+                expect(editor.locator("#saveState")).to_contain_text("Candidate r1")
+                expect(editor.locator("#alphaSync")).to_contain_text("有新 Candidate 待主动加载")
                 run_before = controller.public_state()["runId"]
                 editor.click("#refreshAlpha")
-                expect(editor.locator("#alphaSync")).to_contain_text("版本一致")
+                expect(editor.locator("#alphaSync")).to_contain_text("Candidate 一致")
                 assert controller.public_state()["runId"] == run_before
 
                 control = browser.new_page(viewport={"width": 1280, "height": 900})

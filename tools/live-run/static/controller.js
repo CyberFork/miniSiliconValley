@@ -8,6 +8,8 @@
   let loadedDigest = "";
   const APP_BASE = new URL(".", window.location.href);
   const $ = (selector) => document.querySelector(selector);
+  const Preview = window.MsvCoursePreview;
+  if (!Preview) throw new Error("共享课程渲染器未加载");
   const esc = (value) => String(value ?? "").replace(
     /[&<>"']/g,
     (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]),
@@ -19,18 +21,6 @@
     error: "已停住",
     completed: "全程完成",
   };
-  const FIELD = {
-    historyTrack: "历史学习轨｜当时能知道什么",
-    realityTrack: "现实实践轨｜今天要带走什么",
-    mentorScript: "当值导师逐句口播",
-    studentActions: "四名学员现场动作",
-    systemActions: "执行本块后系统会同步",
-    props: "本块道具",
-    evidenceGate: "人工验收门｜必须亲眼看见",
-    fallback: "卡住时怎么兜底",
-    manualInteraction: "线下与八窗怎样配合",
-  };
-
   let confirmationPromise = null;
 
   function askConfirmation({ title, body, confirmLabel, tone = "default" }) {
@@ -105,15 +95,6 @@
       script = await get("api/script"); loadedDigest = state.courseDigest;
     }
     render();
-  }
-
-  function content(value) {
-    if (Array.isArray(value)) return `<ol>${value.map((item) => `<li>${esc(item)}</li>`).join("")}</ol>`;
-    return `<p>${esc(value)}</p>`;
-  }
-
-  function section(key, value) {
-    return `<section class="script-section"><div class="label">${esc(FIELD[key])}</div>${content(value)}</section>`;
   }
 
   function instruction(status, block, isPreview = false) {
@@ -193,8 +174,6 @@
     const index = Number.isInteger(state.previewBlockIndex) ? state.previewBlockIndex : state.currentBlockIndex;
     const isPreview = index !== state.currentBlockIndex;
     const block = script.blocks[index];
-    const macro = script.macroSteps.find((item) => item.id === block.macroStepId);
-    const lead = script.formula.fourMentors.find((item) => item.id === block.leadMentorId);
     const guide = instruction(state.status, block, isPreview);
     $("#runStatus").textContent = STATUS[state.status] || state.status;
     $("#runStatus").dataset.status = state.status;
@@ -203,18 +182,10 @@
     $("#versionPanel").innerHTML = `<div><b>当前 Run · r${esc(update.activeRevision ?? state.courseRevision ?? 0)}</b><span>${esc(update.activeDigest || String(state.courseDigest || "").slice(0,16))} · ${esc(update.activeVariant || state.courseVariant || "published")}</span></div><div><b>编辑器最新 · ${update.latestRevision == null ? "读取失败" : `r${esc(update.latestRevision)}`}</b><span>${esc(update.latestDigest || "—")} ${update.updateAvailable ? "· 有更新待加载" : "· 已一致"}</span></div><div><b>真实位置 ${esc(script.blocks[state.currentBlockIndex]?.id)}</b><span>${isPreview ? `正在回看 ${esc(block.id)} · 未回滚数据` : "当前显示与真实位置一致"} · 刷新信号 ${esc(state.refreshEpoch || 0)}</span></div>`;
     renderCoursePicker();
     renderNavigation(block, index);
-    $("#block").innerHTML = `
-      <div class="block-head">
-        <div><div class="label">${esc(script.case.name)} · 第 ${macro.order} 步 · ${esc(macro.name)} / ${block.id}</div><h2>${esc(block.title)}</h2></div>
-        <div class="block-meta"><b>${esc(block.suggestedMinutes)} 分钟</b><span>当值导师 ${esc(lead ? `${lead.code} · ${lead.name}` : block.leadMentorId)}</span></div>
-      </div>
-      <aside class="next-action" data-status="${esc(state.status)}"><strong>${esc(guide.title)}</strong><p>${esc(guide.body)}</p></aside>
-      <section class="learner-brief"><div class="label">给学员的一句话</div><p>${esc(block.studentPrompt)}</p><div class="mode-row">${block.gameModes.map((mode) => `<span>${esc({ yarn: "毛线信息", american: "美式攻坚", euro: "德式经营" }[mode] || mode)}</span>`).join("")}</div></section>
-      <div class="grid">${[
-        "historyTrack", "realityTrack", "mentorScript", "studentActions", "systemActions",
-        "props", "evidenceGate", "fallback", "manualInteraction",
-      ].map((key) => section(key, block[key])).join("")}</div>
-    `;
+    $("#block").innerHTML = Preview.renderControllerSurface(
+      Preview.runtimeControllerView(script, state, index, guide),
+      {editable: false},
+    );
 
     $("#previewBack").disabled = state.status === "executing" || index <= 0;
     $("#previewForward").disabled = state.status === "executing" || index >= state.currentBlockIndex;

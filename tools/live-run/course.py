@@ -196,6 +196,12 @@ def validate_script(script: Any) -> dict[str, Any]:
             task = _object(tasks[seat_id], f"{path}.seatTasks.{seat_id}")
             if task.get("state") not in SPOTLIGHT_STATES: raise _error(f"{path}.seatTasks.{seat_id}.state", "must be active, support, or standby")
             _string(task.get("badge"), f"{path}.seatTasks.{seat_id}.badge"); _string(task.get("task"), f"{path}.seatTasks.{seat_id}.task")
+        active_mentors = [seat_id for seat_id in SEAT_IDS[:4] if tasks[seat_id]["state"] == "active"]
+        if active_mentors != [block["leadMentorId"]]:
+            raise _error(
+                f"{path}.seatTasks",
+                f"must mark exactly leadMentorId {block['leadMentorId']!r} active; got {active_mentors!r}",
+            )
 
     flattened = [block_id for step in steps for block_id in step["blocks"]]
     if flattened != [f"B{i:02d}" for i in range(1, 14)]: raise _error("$.macroSteps[*].blocks", "must reference B01 through B13 exactly once in course order")
@@ -255,7 +261,15 @@ def _canonical_bytes(value: Any) -> bytes:
 
 
 def course_digest(value: dict[str, Any]) -> str:
-    return hashlib.sha256(_canonical_bytes(value)).hexdigest()
+    """Hash immutable teaching content, not mutable registry metadata.
+
+    Candidate approval and Released publication must bind the exact same
+    teaching bytes.  Revision, status, timestamps and the approval receipt live
+    under ``authoring`` and therefore cannot be part of that content identity.
+    """
+    content = copy.deepcopy(value)
+    content.pop("authoring", None)
+    return hashlib.sha256(_canonical_bytes(content)).hexdigest()
 
 
 def course_manifest(value: dict[str, Any]) -> dict[str, Any]:

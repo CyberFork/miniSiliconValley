@@ -2,16 +2,9 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>MSV Classroom Seat</title><link rel="icon" href="data:,"><link rel="stylesheet" href="seat.css"><link rel="stylesheet" href="/ui-theme.css?v=20260906-6"><script src="/ui-theme.js?v=20260906-6"></script>
+<title>MSV Classroom Seat</title><link rel="icon" href="data:,"><link rel="stylesheet" href="seat.css"><link rel="stylesheet" href="course-preview.css?v=20260906-9"><link rel="stylesheet" href="/ui-theme.css?v=20260906-6"><script src="/ui-theme.js?v=20260906-6"></script>
 </head>
 <body>
-<header><div><div class="eyebrow" id="kind">LOADING</div><h1 id="name" aria-live="polite">正在连接课堂…</h1><p class="subidentity" id="subidentity"></p></div><div class="seat" id="seat"></div></header>
-<div class="phase"><b id="phase">初始化</b><span id="phaseNo">00 / --</span></div><div class="progress" id="progress"></div>
-<section class="card mission"><h2 id="taskTitle">现在做什么</h2><p class="task" id="task">等待 Run 开始</p><p class="action" id="action"></p><div class="result wait" id="result">等待主控动作</div></section>
-<div class="metrics" id="metrics"></div>
-<section class="card"><h2 id="factsTitle">我的信息 / 验收证据</h2><ul id="facts"></ul></section>
-<section class="card" id="teamworkCard"><h2 id="teamworkTitle">怎么和队友配合</h2><ul id="teamwork"></ul></section>
-<section class="card"><h2 id="chipsTitle">当前持有</h2><div class="chips" id="chips"></div></section>
-<footer><span id="room">MSV LIVE RUN</span><span id="updated">--:--:--</span></footer>
-<script src="card-view.js?v=20260906-7"></script><script src="seat.js?v=20260906-7"></script>
+<main id="seatApp" aria-live="polite"><p>正在连接课堂…</p></main>
+<script src="card-view.js?v=20260906-9"></script><script src="course-preview.js?v=20260906-9"></script><script src="seat.js?v=20260906-9"></script>
 </body></html>

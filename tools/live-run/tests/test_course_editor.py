@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from controller import CourseController, LiveRunServer  # noqa: E402
-from course import CourseRepository  # noqa: E402
+from course import CourseRepository, course_digest  # noqa: E402
 
 
 class CourseEditorTests(unittest.TestCase):
@@ -64,12 +64,48 @@ class CourseEditorTests(unittest.TestCase):
         self.assertEqual(value["authoring"]["status"], "draft")
         self.assertNotIn("sample-course-2010", {x["id"] for x in self.repository.list_published()})
         value["course"]["description"] = "一份经过编辑的完整课程。"
-        status, saved = self.request("POST", "/api/courses/save", {"course": value, "status": "published", "expectedRevision": 1})
-        self.assertEqual(status, 200); self.assertEqual(saved["data"]["revision"], 2)
-        self.assertEqual(len(saved["data"]["course"]["decks"]), 5)
+        saved = self.repository.save(value, status="published", expected_revision=1)
+        self.assertEqual(saved["authoring"]["revision"], 2)
+        self.assertEqual(len(saved["decks"]), 5)
         self.assertIn("sample-course-2010", {x["id"] for x in self.repository.list_published()})
         status, loaded = self.request("GET", "/api/courses/sample-course-2010?variant=published")
         self.assertEqual(status, 200); self.assertEqual(loaded["data"]["course"]["course"]["description"], value["course"]["description"])
+
+    def test_formal_release_requires_completed_exact_candidate_receipt(self):
+        base = self.repository.load("google-1995-2004")
+        self.controller.state["status"] = "completed"
+        status, body = self.request("POST", "/api/courses/save", {
+            "course": base, "status": "published", "expectedRevision": 0,
+            "approval": {"runId": self.controller.state["runId"], "digest": course_digest(base), "status": "completed"},
+        })
+        self.assertEqual(status, 409); self.assertIn("Candidate", body["error"]["message"])
+
+        value = self.repository.load("google-1995-2004")
+        value["blocks"][0]["title"] += " · Candidate"
+        candidate = self.repository.save(value, status="draft", expected_revision=0)
+        digest = course_digest(candidate)
+        self.controller.refresh_course()
+
+        status, body = self.request("POST", "/api/courses/save", {
+            "course": candidate, "status": "published", "expectedRevision": 1,
+        })
+        self.assertEqual(status, 409); self.assertIn("验收回执", body["error"]["message"])
+
+        self.controller.state["status"] = "completed"
+        status, body = self.request("POST", "/api/courses/save", {
+            "course": candidate, "status": "published", "expectedRevision": 1,
+            "approval": {"runId": self.controller.state["runId"], "digest": "wrong", "status": "completed"},
+        })
+        self.assertEqual(status, 409); self.assertIn("不匹配", body["error"]["message"])
+
+        status, body = self.request("POST", "/api/courses/save", {
+            "course": candidate, "status": "published", "expectedRevision": 1,
+            "approval": {"runId": self.controller.state["runId"], "digest": digest, "status": "completed"},
+        })
+        self.assertEqual(status, 200)
+        released = body["data"]["course"]
+        self.assertEqual(course_digest(released), digest)
+        self.assertEqual(released["authoring"]["approval"]["digest"], digest)
 
     def test_invalid_json_path_and_revision_conflict_are_visible(self):
         value = self.repository.load("google-1995-2004")

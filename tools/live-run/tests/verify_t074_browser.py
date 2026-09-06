@@ -70,7 +70,7 @@ def main() -> None:
                 for query, card_id, label, clean_title in specified:
                     editor.locator("#cardSearch").fill(query)
                     expect(editor.locator("#deckCardList")).to_contain_text(card_id)
-                    editor.locator(f'[data-card-id="{card_id}"]').click()
+                    editor.locator(f'#deckCardList [data-card-id="{card_id}"]').click()
                     preview = editor.locator("#learnerCardPreview")
                     expect(preview).to_contain_text(label)
                     expect(preview).to_contain_text(clean_title)
@@ -110,8 +110,8 @@ def main() -> None:
                 }
                 body.fill(original + marker)
                 editor.click("#saveDraft")
-                expect(editor.locator("#saveState")).to_contain_text("草稿 r1")
-                expect(editor.locator("#alphaSync")).to_contain_text("待主动刷新")
+                expect(editor.locator("#saveState")).to_contain_text("Candidate r1")
+                expect(editor.locator("#alphaSync")).to_contain_text("待主动加载")
                 saved_not_live = controller.public_state()
                 assert saved_not_live["courseRevision"] == before_snapshot["courseRevision"]
                 assert marker not in learner_card(saved_not_live, card_id)[1]["body"]
@@ -129,7 +129,7 @@ def main() -> None:
                 editor.wait_for_selector('#historyList [data-restore-revision="0"]')
                 restore = editor.locator('#historyList [data-restore-revision="0"]')
                 restore.click(); restore.click()
-                expect(editor.locator("#saveState")).to_contain_text("草稿 r2")
+                expect(editor.locator("#saveState")).to_contain_text("Candidate r2")
                 assert controller.public_state()["courseRevision"] == 1
                 editor.click("#refreshAlpha")
                 wait_until(lambda: controller.public_state()["courseRevision"] == 2)
@@ -143,7 +143,7 @@ def main() -> None:
                 editor.set_viewport_size({"width": 390, "height": 844})
                 editor.click("#cardsTab")
                 editor.locator("#cardSearch").fill("亲自送餐")
-                editor.locator('[data-card-id="e08-c-05"]').click()
+                editor.locator('#deckCardList [data-card-id="e08-c-05"]').click()
                 mobile = editor.evaluate("""() => ({innerWidth, body: document.body.scrollWidth, root: document.documentElement.scrollWidth, preview: !!document.querySelector('#learnerCardPreview .private-card')})""")
                 assert mobile["body"] <= mobile["innerWidth"] + 1
                 assert mobile["root"] <= mobile["innerWidth"] + 1

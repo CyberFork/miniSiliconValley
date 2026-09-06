@@ -40,7 +40,7 @@ ROOT = Path(__file__).resolve().parent
 STATIC = ROOT / "static"
 DEFAULT_STATE_DIR = Path("/tmp/msv-live-run-state")
 STATE_SCHEMA_VERSION = 4
-EDITOR_BUILD_ID = "t074-card-studio-r1"
+EDITOR_BUILD_ID = "t083-nine-pane-studio-r1"
 CONTROL_ROLES = frozenset({"admin", "mentor"})
 
 SEATS = [
@@ -768,7 +768,7 @@ class LiveRunServer(ThreadingHTTPServer):
         self.static_assets = {}
         for name in (
             "index.html", "styles.css", "controller.js", "editor.html", "editor.css", "editor.js",
-            "seat.html", "seat.css", "seat.js", "card-view.js",
+            "seat.html", "seat.css", "seat.js", "card-view.js", "course-preview.css", "course-preview.js",
         ):
             target = STATIC / name
             data = target.read_bytes()
@@ -956,6 +956,35 @@ class LiveRunHandler(BaseHTTPRequestHandler):
             value = payload.get("course")
             status = payload.get("status")
             expected = payload.get("expectedRevision")
+            if status == "published":
+                validate_script(value)
+                approval = payload.get("approval")
+                digest = course_digest(value)
+                course_id = value["course"]["id"]
+                catalog_item = next(
+                    (item for item in repository.list_for_editor()["courses"] if item["id"] == course_id),
+                    None,
+                )
+                if not catalog_item or not catalog_item.get("hasDraft"):
+                    raise ValueError("正式发布必须来自已保存的 Candidate，不能跳过 Candidate 直接发布。")
+                candidate = repository.load(course_id, variant="draft")
+                if course_digest(candidate) != digest or expected != int((candidate.get("authoring") or {}).get("revision", -1)):
+                    raise ValueError("待发布内容不是当前 exact Candidate；请重新载入并验收同一 digest。")
+                state = self.server.controller.public_state()
+                if not isinstance(approval, dict):
+                    raise ValueError("正式发布必须附带 Alpha exact Candidate 验收回执。")
+                if approval.get("runId") != state.get("runId") or approval.get("digest") != digest:
+                    raise ValueError("验收回执与当前 Candidate digest 或 Alpha Run 不匹配。")
+                if state.get("courseId") != value["course"]["id"] or state.get("courseDigest") != digest:
+                    raise ValueError("Alpha 尚未加载这个 exact Candidate；请先明确刷新并完成测试。")
+                if state.get("status") != "completed" or approval.get("status") != "completed":
+                    raise ValueError("Alpha 尚未完成 13 个 Block 的人工验收，不能发布正式课堂。")
+                value = copy.deepcopy(value)
+                value.setdefault("authoring", {})["approval"] = {
+                    "runId": state["runId"], "digest": digest,
+                    "acceptedAt": state.get("updatedAt") or iso_now(),
+                    "blockCount": len(value["blocks"]), "status": "approved",
+                }
             saved = repository.save(value, status=status, expected_revision=expected)
             return {
                 "course": saved,

@@ -70,3 +70,24 @@
 - `deploy/minisv/scripts/build-chj-course.sh` 校验 chj HEAD、Git tree 和干净工作树，再用环境变量构建 `/course/`；整个课程产物在 main 的路径重写和主题注入完成后才按字节复制。
 - `.openai/hosting.json` 仅保存 Sites `project_id` 与可选逻辑绑定，不保存凭据。
 - 该站点不需要 D1/R2；生产包由 Vinext 输出 Cloudflare Workers 兼容的 `dist/server/index.js`。
+
+## 九、九视窗课程编排与运行同源渲染
+
+`/control/editor/` 的默认工作区是 T-083 九视窗课程工作台。它不创建第二套课程数据，而把浏览器内尚未保存的 Course Package 投影成 4 位导师、4 位学员和 1 个课程中控的 View Model。
+
+关键边界：
+
+- `course-preview.js` 是无副作用投影与呈现层；输入是 Course Package 或经过授权的 Runtime State，输出是视图模型和 HTML。
+- 编辑器使用 `projectCourse()`；真实席位使用 `runtimeSeatView()`；真实中控使用 `runtimeControllerView()`。
+- 三条路径最终复用 `renderSeatSurface()`、`renderControllerSurface()` 和 `card-view.js`，避免编辑预览与课堂 UI 漂移。
+- 预览 seed 只控制确定性卡牌和模拟指标；不创建房间、不签发 lease、不执行 Block、不改账本。
+- 可编辑元素携带唯一 `data-course-path`；运行字段没有写入路径，并在编辑器中显式标记为只读派生状态。
+- 编辑器没有 iframe，不嵌入受保护 Alpha 页面，也不改变现有 CSP／frame 安全头。
+
+版本链固定为：
+
+```text
+Working Copy → Candidate → Alpha exact-digest 验收 → Released
+```
+
+服务端发布门禁要求已保存 Candidate、当前 Candidate 完整内容 digest、当前 Alpha digest、完成状态和 `runId` 回执全部一致。`authoring` 只记录 revision、状态、时间和验收回执，不进入教学内容 digest；因此通过验收的 Candidate 与 Released 内容身份完全相同。

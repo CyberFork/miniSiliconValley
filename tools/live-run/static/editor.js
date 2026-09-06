@@ -1,11 +1,13 @@
 (() => {
   "use strict";
 
-  const BUILD_ID = "t074-card-studio-r1";
+  const BUILD_ID = "t083-nine-pane-studio-r1";
   const BASE = new URL("../", window.location.href);
   const $ = (selector) => document.querySelector(selector);
   const CardView = window.MsvCardView;
   if (!CardView) throw new Error("共享卡片渲染器未加载，无法安全预览学员卡片。");
+  const Preview = window.MsvCoursePreview;
+  if (!Preview) throw new Error("九视窗课程投影器未加载，无法安全预览课程。");
   const {
     escapeHtml: esc,
     boundaryLabels: BOUNDARY_NAMES,
@@ -28,17 +30,30 @@
   let diagnostics = [];
   let course = null;
   let courseMeta = null;
+  let lastCandidateMeta = null;
   let revision = 0;
   let activeStep = 0;
   let activeBlock = 0;
   let activeCard = 0;
   let dirty = false;
-  let mode = "structure";
+  let mode = "studio";
   let alphaState = null;
   let releaseInfo = null;
   let serverSchemaVersion = null;
   let serverEditorBuild = null;
   let toastTimer;
+  let previewStatus = "ready";
+  let previewSeed = "MSV-PREVIEW-01";
+  let studioLayout = "overview";
+  let focusSeatA = "mentor01";
+  let focusSeatB = "learner01";
+  let controllerCollapsed = false;
+  let undoStack = [];
+  let redoStack = [];
+  let changedPaths = new Set();
+  let savedSnapshot = "";
+  let fieldSession = null;
+  let savePromise = null;
 
   function endpoint(path) { return new URL(String(path).replace(/^\/+/, ""), BASE); }
   async function request(path, options = {}) {
@@ -72,13 +87,16 @@
     toastTimer = setTimeout(() => { node.className = "toast"; }, 4800);
   }
   function setSaveState(value, state) { const node = $("#saveState"); node.textContent = value; node.dataset.state = state; }
-  function markDirty() {
+  function markDirty(path = "") {
     dirty = true;
+    if (path) changedPaths.add(path);
     courseMeta = null;
     setSaveState("有未保存修改", "dirty");
     syncRaw();
     renderPackageHealth();
     renderAlphaSync();
+    renderVersionMatrix();
+    syncSaveControls();
   }
   function getPath(object, path) { return path.split(".").reduce((value, key) => value?.[Number.isInteger(+key) ? +key : key], object); }
   function setPath(object, path, value) {
@@ -98,10 +116,10 @@
   function renderLibrary() {
     $("#courseList").innerHTML = catalog.map((item) => `<button class="course-item" data-course="${esc(item.id)}" aria-current="${course?.course?.id === item.id}">
       <b>${esc(item.name)}</b><small>${esc(item.period)} · ${esc(item.id)}</small>
-      <span>${item.deckCount || 0} 卡组 / ${item.cardCount || 0} 张卡 · ${item.hasDraft ? `草稿 r${item.draftRevision} · 已发布 r${item.publishedRevision}` : `${SOURCE_NAMES[item.source] || "已发布"} · r${item.publishedRevision}`}</span>
+      <span>${item.deckCount || 0} 卡组 / ${item.cardCount || 0} 张卡 · ${item.hasDraft ? `Candidate r${item.draftRevision} · Released r${item.publishedRevision}` : `${SOURCE_NAMES[item.source] || "Released"} · r${item.publishedRevision}`}</span>
     </button>`).join("");
     document.querySelectorAll("[data-course]").forEach((button) => { button.onclick = () => {
-      if (dirty) return toast("当前有未保存修改：请先保存草稿或发布，再切换课程。", true);
+      if (dirty) return toast("当前有未保存修改：请先保存 Candidate，再切换课程。", true);
       openCourse(button.dataset.course);
     }; });
     const area = $("#diagnostics");
@@ -115,18 +133,29 @@
       const data = await request(`api/courses/${encodeURIComponent(courseId)}?variant=draft`);
       course = data.course;
       courseMeta = data.metadata || null;
+      lastCandidateMeta = data.metadata || null;
       revision = data.revision;
       activeStep = 0;
       activeBlock = 0;
       activeCard = 0;
       dirty = false;
-      mode = "structure";
+      mode = "studio";
+      previewStatus = "ready";
+      previewSeed = `MSV-${course.course.id.toUpperCase().slice(0, 18)}-01`;
+      studioLayout = "overview";
+      focusSeatA = "mentor01";
+      focusSeatB = "learner01";
+      undoStack = [];
+      redoStack = [];
+      changedPaths = new Set();
+      savedSnapshot = JSON.stringify(course);
+      document.body.classList.add("library-collapsed");
       $("#emptyState").hidden = true;
       $("#editor").hidden = false;
       $("#download").disabled = false;
       resetCardFilters();
       renderAll();
-      setSaveState(data.variant === "draft" ? `草稿 r${revision} 已保存` : `已发布 r${revision}`, "saved");
+      setSaveState(data.variant === "draft" ? `Candidate r${revision} 已保存` : `Released r${revision}`, "saved");
     } catch (error) {
       toast(error.message, true);
       setSaveState("载入失败", "error");
@@ -171,18 +200,7 @@
     return `${stem}${String(number).padStart(3, "0")}`;
   }
   function flattenCards() {
-    if (!course) return [];
-    const sourceMap = new Map((course.sources || []).map((source) => [source.id, source]));
-    return (course.decks || []).flatMap((deck, deckIndex) => {
-      const stepIndex = course.macroSteps.findIndex((step) => step.id === deck.macroStepId);
-      const step = course.macroSteps[stepIndex] || {id: deck.macroStepId, order: stepIndex + 1, name: deck.macroStepId};
-      return (deck.cards || []).map((card, cardIndex) => ({
-        card, deck, deckIndex, cardIndex, step, stepIndex,
-        searchText: [card.id, card.title, card.body, card.sharePrompt, ...(card.sourceIds || []), ...(card.sourceIds || []).flatMap((id) => {
-          const source = sourceMap.get(id); return source ? [source.title, source.organization, source.url] : [];
-        })].join(" ").toLocaleLowerCase("zh-CN"),
-      }));
-    });
+    return course ? Preview.flattenCards(course) : [];
   }
   function allDealtIds() {
     if (!alphaState || alphaState.courseId !== course?.course?.id) return new Set();
@@ -233,7 +251,7 @@
       <b>${esc(cleanCardTitle(entry.card.title))}</b>
       <small>${esc(entry.card.id)} · ${entry.card.sourceIds?.length || 0} 个来源${allDealtIds().has(entry.card.id) ? " · Alpha 已发" : ""}</small>
     </button>`).join("") : `<div class="no-card-results"><b>没有匹配卡牌</b><p>试试清空筛选，或搜索标题中的更短词语。</p></div>`;
-    document.querySelectorAll("[data-card-id]").forEach((button) => { button.onclick = () => jumpToCard(button.dataset.cardId); });
+    $("#deckCardList").querySelectorAll("[data-card-id]").forEach((button) => { button.onclick = () => jumpToCard(button.dataset.cardId); });
   }
   function renderCardEditor() {
     const entry = selectedCardEntry();
@@ -259,11 +277,12 @@
         ${field("学员看到的具体线索", `${dp}.body`, {textarea: true, wide: true, help: "一名初中生可以直接读懂；不要把抽象方法论压给学员。"})}
         ${field("交给队友时要说什么", `${dp}.sharePrompt`, {textarea: true, wide: true})}
       </div>
-      <fieldset class="source-field"><legend>来源引用 ${card.boundary === "F" ? "· F 卡至少选 1 项" : "· 可留空"}</legend>${sourceChecks}</fieldset>`;
+      <fieldset class="source-field"><legend>来源引用 ${card.boundary === "F" ? "· F 卡至少选 1 项" : "· 可留空"}</legend>${sourceChecks}</fieldset>
+      <div class="card-context-save"><span>保存会原子保存整门课程并生成新 Candidate；不会自动刷新 Alpha。</span><button type="button" class="button secondary" data-save-course>保存本次修改（整门课程）</button></div>`;
     bindInputs($("#deckCardForm"), {card: true});
     $("#deckCardForm").querySelectorAll("[data-card-source]").forEach((input) => { input.onchange = () => {
       card.sourceIds = [...$("#deckCardForm").querySelectorAll("[data-card-source]:checked")].map((item) => item.dataset.cardSource);
-      markDirty();
+      markDirty(`${dp}.sourceIds`);
       renderCardEditor();
       renderCardResults();
       renderPackageHealth();
@@ -277,7 +296,7 @@
       if (action === "delete" && deck.cards.length > 12) { deck.cards.splice(activeCard, 1); activeCard = Math.min(activeCard, deck.cards.length - 1); }
       if (action === "up" && activeCard > 0) { [deck.cards[activeCard - 1], deck.cards[activeCard]] = [deck.cards[activeCard], deck.cards[activeCard - 1]]; activeCard -= 1; }
       if (action === "down" && activeCard < deck.cards.length - 1) { [deck.cards[activeCard + 1], deck.cards[activeCard]] = [deck.cards[activeCard], deck.cards[activeCard + 1]]; activeCard += 1; }
-      markDirty(); renderCardLibrary();
+      markDirty(`decks.${deckIndex}.cards`); renderCardLibrary();
     }; });
     renderLearnerPreview();
   }
@@ -343,6 +362,7 @@
     renderCardResults();
     renderCardEditor();
     renderAlphaHands();
+    syncSaveControls();
   }
   function resetCardFilters() {
     for (const selector of ["#cardSearch", "#cardStepFilter", "#cardBoundaryFilter", "#cardSourceFilter", "#cardAlphaFilter"]) {
@@ -356,7 +376,7 @@
     const id = nextCardId(deck);
     deck.cards.push({id, boundary: "U", title: "新线索", body: "用学员能直接读懂的语言写一个具体人、地点、动作或未知。", sharePrompt: "告诉队友这条信息能说明什么，还不能说明什么。", sourceIds: []});
     activeCard = deck.cards.length - 1;
-    markDirty(); renderCardLibrary();
+    markDirty(`decks.${course.decks.indexOf(deck)}.cards`); renderCardLibrary();
   }
   function simulateDeal() {
     const deck = currentDeck(); const cards = [...deck.cards];
@@ -420,7 +440,7 @@
       <section class="form-section"><h3>8 个席位此刻分别做什么</h3><div class="seat-grid">${seats}</div></section>`;
     bindInputs($("#blockForm"));
     document.querySelectorAll("[data-mode]").forEach((input) => { input.onchange = () => {
-      current.gameModes = Object.keys(MODE_NAMES).filter((id) => document.querySelector(`[data-mode="${id}"]`).checked); markDirty();
+      current.gameModes = Object.keys(MODE_NAMES).filter((id) => document.querySelector(`[data-mode="${id}"]`).checked); markDirty(`${bp}.gameModes`);
     }; });
   }
   function bindInputs(root, options = {}) {
@@ -429,10 +449,8 @@
       if (input.dataset.array === "true") value = value.split("\n").map((item) => item.trim()).filter(Boolean);
       else if (input.type === "number") value = Number(value);
       setPath(course, input.dataset.path, value);
-      if (/^macroSteps\.\d+\.name$/.test(input.dataset.path)) course.formula.fiveSteps[activeStep].name = value;
-      if (input.dataset.path === "course.period") course.case.period = value;
-      if (input.dataset.path === "course.name") course.title = `Mini Silicon Valley｜${value}｜LIVE RUN SCRIPT`;
-      markDirty();
+      updateCoupledField(input.dataset.path, value);
+      markDirty(input.dataset.path);
       $("#courseTitle").textContent = course.course.name;
       if (options.card) {
         renderLearnerPreview();
@@ -464,6 +482,7 @@
     });
     if (!Array.isArray(course.macroSteps) || course.macroSteps.length !== 5) issues.push("课程必须保留完整五大步");
     if (!Array.isArray(course.blocks) || course.blocks.length !== 13) issues.push("课程必须保留完整十三小块");
+    (course.blocks || []).forEach((block, index) => Preview.blockWarnings(course, index).forEach((warning) => issues.push(`${block?.id || `第 ${index + 1} 块`}：${warning}`)));
     if (courseMeta) {
       if (courseMeta.deckCount !== decks.length || courseMeta.cardCount !== cards.length) issues.push("API 课程摘要与浏览器 JSON 数量不一致，请重新载入");
       if (courseMeta.schemaVersion !== course.schemaVersion) issues.push("API 课程 Schema 与 JSON 不一致，请重新载入");
@@ -478,10 +497,10 @@
     const source = courseMeta?.source || item?.source || "imported";
     node.innerHTML = `<div class="health-title"><span class="health-icon">${blocking ? "!" : "✓"}</span><div><b>${blocking ? "课程包不完整，已阻止发布" : dirty ? "完整课程包 · 有未保存修改" : "完整课程包 · 可以进入 Alpha"}</b><span>${blocking ? esc(health.issues[0]) : "5 步 / 13 块 / 每组至少 12 张；保存后仍需人工刷新 Alpha。"}</span></div></div>
       <div class="health-stats">
-        <div><b>${health.deckCount}/5</b><span>卡组</span></div><div><b>${health.cardCount}</b><span>卡牌（基线 60）</span></div><div><b>v${esc(course.schemaVersion)}</b><span>Schema</span></div><div><b>r${esc(revision)}</b><span>${esc(course.authoring?.status || courseMeta?.variant || "published")}</span></div>
+        <div><b>${health.deckCount}/5</b><span>卡组</span></div><div><b>${health.cardCount}</b><span>卡牌（基线 60）</span></div><div><b>v${esc(course.schemaVersion)}</b><span>Schema</span></div><div><b>r${esc(revision)}</b><span>${(course.authoring?.status || courseMeta?.variant) === "draft" ? "Candidate" : "Released"}</span></div>
       </div>
       <details ${blocking ? "open" : ""}><summary>版本与数据诊断</summary><dl>
-        <div><dt>编辑器资源</dt><dd>${esc(BUILD_ID)}</dd></div><div><dt>生产 release</dt><dd>${esc(releaseInfo?.release || "读取中")}</dd></div><div><dt>课程来源</dt><dd>${esc(SOURCE_NAMES[source] || source)}</dd></div><div><dt>课程 digest</dt><dd><code>${esc(digest)}</code></dd></div><div><dt>卡组分布</dt><dd>${esc(health.counts.join(" / ") || "—")}</dd></div><div><dt>草稿 / 发布</dt><dd>r${esc(item?.draftRevision ?? 0)} / r${esc(item?.publishedRevision ?? 0)}</dd></div>
+        <div><dt>编辑器资源</dt><dd>${esc(BUILD_ID)}</dd></div><div><dt>生产 release</dt><dd>${esc(releaseInfo?.release || "读取中")}</dd></div><div><dt>课程来源</dt><dd>${esc(SOURCE_NAMES[source] || source)}</dd></div><div><dt>课程 digest</dt><dd><code>${esc(digest)}</code></dd></div><div><dt>卡组分布</dt><dd>${esc(health.counts.join(" / ") || "—")}</dd></div><div><dt>Candidate / Released</dt><dd>r${esc(item?.draftRevision ?? 0)} / r${esc(item?.publishedRevision ?? 0)}</dd></div>
       </dl>${blocking ? `<ul>${health.issues.map((issue) => `<li>${esc(issue)}</li>`).join("")}</ul>` : ""}</details>`;
     $("#publish").disabled = blocking;
     $("#publish").title = blocking ? health.issues.join("；") : "发布完整课程到新 Run 选课区";
@@ -497,7 +516,7 @@
     }
     const pending = Boolean(update.updateAvailable); node.dataset.state = pending ? "pending" : "same";
     const canRefresh = !dirty && !inspectPackage().issues.length;
-    node.innerHTML = `<div><b>Alpha Run · ${esc(alphaState.runId)}</b><span>运行 r${esc(update.activeRevision ?? alphaState.courseRevision ?? 0)} / ${esc(update.activeDigest || String(alphaState.courseDigest || "").slice(0, 16))} → 编辑器最新 r${esc(update.latestRevision ?? revision)} / ${esc(update.latestDigest || "待检测")}</span><small>${dirty ? "先保存草稿；未保存内容不会进入 Alpha。" : pending ? "有新内容待主动刷新；当前 Run 仍使用完整旧版。" : "Alpha 与编辑器最新已保存版本一致。"} · refresh epoch ${esc(alphaState.refreshEpoch ?? 0)}</small></div><button type="button" id="refreshAlpha" class="button ${pending ? "primary" : "secondary"}" ${canRefresh ? "" : "disabled"}>全部刷新 Alpha</button>`;
+    node.innerHTML = `<div><b>Alpha Run · ${esc(alphaState.runId)}</b><span>运行 r${esc(update.activeRevision ?? alphaState.courseRevision ?? 0)} / ${esc(update.activeDigest || String(alphaState.courseDigest || "").slice(0, 16))} → Candidate r${esc(update.latestRevision ?? revision)} / ${esc(update.latestDigest || "待检测")}</span><small>${dirty ? "先保存 Candidate；未保存内容不会进入 Alpha。" : pending ? "有新 Candidate 待主动加载；当前 Run 仍使用完整旧版。" : "Alpha 与编辑器最新 Candidate 一致。"} · refresh epoch ${esc(alphaState.refreshEpoch ?? 0)}</small></div><button type="button" id="refreshAlpha" class="button ${pending ? "primary" : "secondary"}" ${canRefresh ? "" : "disabled"}>全部刷新 Alpha</button>`;
     $("#refreshAlpha").onclick = async () => {
       try {
         $("#refreshAlpha").disabled = true;
@@ -510,24 +529,258 @@
     };
   }
   async function refreshAlphaState() {
-    try { alphaState = await request("api/state"); renderAlphaSync(); if (mode === "cards") { renderAlphaHands(); renderCardResults(); renderLearnerPreview(); } }
+    try { alphaState = await request("api/state"); renderAlphaSync(); renderVersionMatrix(); if (mode === "cards") { renderAlphaHands(); renderCardResults(); renderLearnerPreview(); } }
     catch { /* 保留当前编辑内容，下次轮询重试。 */ }
+  }
+
+  function shortDigest(value) { return String(value || "—").slice(0, 16); }
+  function isBlockDirty(blockIndex, stepIndex) {
+    if (changedPaths.has("*")) return true;
+    return [...changedPaths].some((path) => path.startsWith(`blocks.${blockIndex}.`) || path.startsWith(`macroSteps.${stepIndex}.`));
+  }
+  function selectedBlock(index) {
+    const next = Math.max(0, Math.min(index, course.blocks.length - 1));
+    activeBlock = next;
+    activeStep = Math.max(0, course.macroSteps.findIndex((step) => step.id === course.blocks[next].macroStepId));
+    activeCard = 0;
+    renderCourseStudio();
+  }
+  function renderTimeline() {
+    const density = $("#timelineDensity").value;
+    const warningsOnly = $("#onlyWarnings").checked;
+    const groups = course.macroSteps.map((step, stepIndex) => {
+      const blocks = course.blocks.map((block, blockIndex) => ({block, blockIndex})).filter(({block}) => block.macroStepId === step.id);
+      const visible = warningsOnly ? blocks.filter(({blockIndex}) => Preview.blockWarnings(course, blockIndex).length) : blocks;
+      const buttons = visible.map(({block, blockIndex}) => {
+        const warnings = Preview.blockWarnings(course, blockIndex);
+        const lead = course.formula.fourMentors.find((mentor) => mentor.id === block.leadMentorId);
+        return `<button type="button" class="timeline-block" data-preview-block="${blockIndex}" aria-current="${blockIndex === activeBlock}" data-warning="${warnings.length > 0}" data-dirty="${isBlockDirty(blockIndex, stepIndex)}" title="${esc(warnings.length ? warnings.join("；") : `${block.title} · 结构完整`)}"><b>${esc(block.id)}</b><span>${esc(block.title)}</span><small>${esc(lead?.code || "?")} · ${esc(block.suggestedMinutes)}m · ${warnings.length ? `⚠${warnings.length}` : "✓"}</small></button>`;
+      }).join("");
+      return `<section class="timeline-step" data-current="${stepIndex === activeStep}"><button type="button" class="timeline-step-head" data-preview-step="${stepIndex}"><b>${step.order}. ${esc(step.name)}</b><span>${esc(step.question)}</span></button><div class="timeline-blocks">${buttons || `<span class="timeline-empty">本步无警告</span>`}</div></section>`;
+    }).join("");
+    const node = $("#courseTimeline");
+    node.dataset.density = density;
+    node.innerHTML = groups;
+    $("#previousBlock").disabled = activeBlock <= 0;
+    $("#nextBlock").disabled = activeBlock >= course.blocks.length - 1;
+  }
+  function renderFocusSelectors() {
+    const options = SEATS.map(([id, name]) => `<option value="${esc(id)}">${esc(name)}</option>`).join("");
+    const first = $("#focusSeatA"); const second = $("#focusSeatB");
+    if (!first.options.length) first.innerHTML = options;
+    if (!second.options.length) second.innerHTML = options;
+    first.value = focusSeatA; second.value = focusSeatB;
+    $("#focusBLabel").hidden = studioLayout !== "compare";
+  }
+  function seatVisible(seat) {
+    if (studioLayout === "mentors") return seat.kind === "mentor";
+    if (studioLayout === "learners") return seat.kind === "learner";
+    if (studioLayout === "focus") return seat.id === focusSeatA;
+    if (studioLayout === "compare") return seat.id === focusSeatA || seat.id === focusSeatB;
+    return true;
+  }
+  function renderStudioCourseIdentity(projection) {
+    const stepIndex = projection.stepIndex;
+    $("#studioCourseIdentity").innerHTML = `<div class="studio-identity-course"><span class="eyebrow">COURSE PACKAGE · 唯一真值</span>
+      <button type="button" class="identity-edit identity-title" data-course-path="course.name" data-edit-label="课程名称"><b>${esc(course.course.name)}</b><span>点击修改课程名称</span></button>
+      <button type="button" class="identity-edit identity-description" data-course-path="course.description" data-edit-label="课程简介"><p>${esc(course.course.description)}</p><span>点击修改课程简介</span></button>
+      <button type="button" class="identity-edit identity-period" data-course-path="course.period" data-edit-label="课程时间范围"><b>${esc(course.course.period)}</b><span>编辑时间范围</span></button></div>
+      <div class="studio-identity-step"><span class="eyebrow">CURRENT MACRO STEP · 第 ${esc(projection.step.order)} / 5 步</span>
+      <button type="button" class="identity-edit identity-title" data-course-path="macroSteps.${stepIndex}.name" data-edit-label="大步名称"><b>${esc(projection.step.name)}</b><span>点击修改大步名称</span></button>
+      <button type="button" class="identity-edit identity-description" data-course-path="macroSteps.${stepIndex}.question" data-edit-label="本步核心问题"><p>${esc(projection.step.question)}</p><span>点击修改本步核心问题</span></button>
+      <button type="button" class="identity-edit identity-description" data-course-path="macroSteps.${stepIndex}.exitGate" data-edit-label="本步完成门槛"><p>${esc(projection.step.exitGate)}</p><span>点击修改本步完成门槛</span></button></div>`;
+  }
+  function renderCourseStudio() {
+    if (!course || !$("#studioPane")) return;
+    try {
+      const digest = dirty ? "未保存 Working Copy" : lastCandidateMeta?.digest || lastCandidateMeta?.digestShort || "保存后生成";
+      const projection = Preview.projectCourse(course, {blockIndex: activeBlock, status: previewStatus, seed: previewSeed, revision, digest});
+      activeStep = projection.stepIndex;
+      $("#previewRunStatus").value = previewStatus;
+      $("#previewSeed").value = previewSeed;
+      renderStudioCourseIdentity(projection);
+      renderTimeline();
+      renderFocusSelectors();
+      document.querySelectorAll("[data-layout]").forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.layout === studioLayout)));
+      const grid = $("#seatPreviewGrid");
+      grid.dataset.layout = studioLayout;
+      grid.innerHTML = projection.seats.map((seat) => `<div class="seat-preview-card" data-preview-seat="${esc(seat.id)}" data-hidden="${!seatVisible(seat)}">${Preview.renderSeatSurface(seat, {editable: true})}</div>`).join("");
+      $("#previewController").innerHTML = Preview.renderControllerSurface(projection.controller, {editable: true});
+      $("#projectionStamp").textContent = `${projection.block.id} · 9/9 同步 · seed ${previewSeed} · ${projection.deal.uniqueCount}/12 唯一卡`;
+      $("#controllerShell").dataset.collapsed = String(controllerCollapsed);
+      $("#toggleController").setAttribute("aria-expanded", String(!controllerCollapsed));
+      $("#toggleController").textContent = controllerCollapsed ? "展开中控" : "收起中控";
+      syncSaveControls();
+    } catch (error) {
+      $("#seatPreviewGrid").innerHTML = `<div class="timeline-empty"><b>九视窗无法投影</b><p>${esc(error.message)}</p></div>`;
+      $("#previewController").innerHTML = "";
+    }
+  }
+  function releaseEligibility() {
+    const item = catalogItem();
+    const candidateDigest = lastCandidateMeta?.digest || "";
+    const activeDigest = alphaState?.courseDigest || "";
+    if (dirty) return {ok: false, reason: "先保存当前 Working Copy，生成不可变 Candidate。"};
+    if (!item?.hasDraft && lastCandidateMeta?.variant !== "draft") return {ok: false, reason: "当前没有待发布 Candidate；修改并保存后再验收。"};
+    if (!alphaState || alphaState.courseId !== course?.course?.id) return {ok: false, reason: "Alpha 当前没有加载这门课程的 Candidate。"};
+    if (!candidateDigest || shortDigest(candidateDigest) !== shortDigest(activeDigest)) return {ok: false, reason: "Alpha Active 与 Candidate digest 不一致；请明确刷新 Alpha。"};
+    if (alphaState.status !== "completed") return {ok: false, reason: "exact Candidate 尚未完成 Alpha 全程验收。"};
+    return {ok: true, reason: `已由 ${alphaState.runId} 完成 exact digest 验收。`};
+  }
+  function renderVersionMatrix() {
+    const node = $("#versionMatrix");
+    if (!node || !course) return;
+    const item = catalogItem();
+    const candidate = item?.hasDraft || lastCandidateMeta?.variant === "draft";
+    const alphaSameCourse = alphaState?.courseId === course.course.id;
+    const candidateDigest = lastCandidateMeta?.digest || lastCandidateMeta?.digestShort || "";
+    const alphaExact = alphaSameCourse && candidateDigest && shortDigest(candidateDigest) === shortDigest(alphaState?.courseDigest);
+    const eligibility = releaseEligibility();
+    node.innerHTML = `
+      <div class="version-cell" data-state="${dirty ? "warning" : "ok"}"><b>Working Copy</b><span>${dirty ? `${changedPaths.size || 1} 处未保存` : "与已存版本一致"}</span></div>
+      <div class="version-cell" data-state="${candidate ? "active" : ""}"><b>Candidate ${candidate ? `r${revision}` : "—"}</b><span>${candidate ? shortDigest(candidateDigest) : "保存后生成"}</span></div>
+      <div class="version-cell" data-state="${alphaExact ? "ok" : alphaSameCourse ? "warning" : ""}"><b>Alpha Active ${alphaSameCourse ? `r${alphaState.courseRevision || 0}` : "—"}</b><span>${alphaSameCourse ? `${shortDigest(alphaState.courseDigest)} · ${alphaState.status}` : "其他课程 / 未连接"}</span></div>
+      <div class="version-cell" data-state="${eligibility.ok ? "ok" : ""}"><b>Released r${item?.publishedRevision ?? 0}</b><span>${eligibility.ok ? "exact digest 已验收，可发布" : "正式课堂保持不变"}</span></div>`;
+    const publish = $("#publish");
+    if (publish) { publish.disabled = !eligibility.ok || inspectPackage().issues.length > 0; publish.title = eligibility.reason; }
+  }
+  function syncSaveControls() {
+    document.querySelectorAll("[data-save-course]").forEach((button) => {
+      button.disabled = !dirty || Boolean(savePromise) || inspectPackage().issues.length > 0;
+      if (savePromise) button.textContent = "正在保存…";
+      else if (!dirty) button.textContent = button.id === "saveCandidateDock" ? `Candidate r${revision} 已保存` : "保存 Candidate";
+      else button.textContent = button.id === "saveCandidateDock" ? "保存整门课程" : "保存 Candidate";
+    });
+    $("#undoEdit").disabled = !undoStack.length || Boolean(savePromise);
+    $("#redoEdit").disabled = !redoStack.length || Boolean(savePromise);
+    renderVersionMatrix();
+  }
+  function pushUndo(snapshot) {
+    if (!snapshot || undoStack.at(-1) === snapshot) return;
+    undoStack.push(snapshot);
+    if (undoStack.length > 50) undoStack.shift();
+    redoStack = [];
+  }
+  function applySnapshot(snapshot, message) {
+    course = JSON.parse(snapshot);
+    activeBlock = Math.min(activeBlock, course.blocks.length - 1);
+    activeStep = Math.max(0, course.macroSteps.findIndex((step) => step.id === course.blocks[activeBlock].macroStepId));
+    dirty = snapshot !== savedSnapshot;
+    courseMeta = dirty ? null : lastCandidateMeta;
+    changedPaths = dirty ? new Set(["*"]) : new Set();
+    setSaveState(dirty ? "有未保存修改" : `Candidate r${revision} 已保存`, dirty ? "dirty" : "saved");
+    syncRaw(); renderMetadata(); renderSteps(); renderBlocks(); renderCardLibrary(); renderPackageHealth(); renderAlphaSync(); renderCourseStudio();
+    $("#fieldDialog").close();
+    toast(message);
+  }
+  function undoEdit() {
+    if (!undoStack.length) return;
+    redoStack.push(JSON.stringify(course));
+    applySnapshot(undoStack.pop(), "已撤销上一处可视化修改。");
+  }
+  function redoEdit() {
+    if (!redoStack.length) return;
+    undoStack.push(JSON.stringify(course));
+    applySnapshot(redoStack.pop(), "已恢复上一处可视化修改。");
+  }
+  function fieldOptions(path) {
+    if (path.endsWith(".leadMentorId")) return Object.entries(MENTOR_NAMES);
+    if (path.endsWith(".state")) return [["active", "当值 / active"], ["support", "支撑 / support"], ["standby", "待命 / standby"]];
+    if (path.endsWith(".boundary")) return Object.entries(BOUNDARY_NAMES);
+    return null;
+  }
+  function updateCoupledField(path, value) {
+    const match = path.match(/^macroSteps\.(\d+)\.name$/);
+    if (match && course.formula?.fiveSteps?.[Number(match[1])]) course.formula.fiveSteps[Number(match[1])].name = value;
+    if (path === "course.period") course.case.period = value;
+    if (path === "course.name") course.title = `Mini Silicon Valley｜${value}｜LIVE RUN SCRIPT`;
+    const leadMatch = path.match(/^blocks\.(\d+)\.leadMentorId$/);
+    const activeMatch = path.match(/^blocks\.(\d+)\.seatTasks\.(mentor0[1-4])\.state$/);
+    if (leadMatch) {
+      const block = course.blocks[Number(leadMatch[1])];
+      for (const mentorId of ["mentor01", "mentor02", "mentor03", "mentor04"]) {
+        if (mentorId === value) block.seatTasks[mentorId].state = "active";
+        else if (block.seatTasks[mentorId].state === "active") block.seatTasks[mentorId].state = "support";
+      }
+    }
+    if (activeMatch && value === "active") {
+      const block = course.blocks[Number(activeMatch[1])];
+      const selected = activeMatch[2];
+      block.leadMentorId = selected;
+      for (const mentorId of ["mentor01", "mentor02", "mentor03", "mentor04"]) {
+        if (mentorId !== selected && block.seatTasks[mentorId].state === "active") block.seatTasks[mentorId].state = "support";
+      }
+    }
+  }
+  function openFieldEditor(target) {
+    const path = target.dataset.coursePath;
+    if (!path) return;
+    const value = getPath(course, path);
+    if (value === undefined) return toast(`找不到课程字段：${path}`, true);
+    fieldSession = {path, before: JSON.stringify(course), changed: false};
+    const dialog = $("#fieldDialog");
+    dialog.dataset.readonly = "false";
+    $("#fieldDialogTitle").textContent = target.dataset.editLabel || "编辑课程字段";
+    $("#fieldPath").textContent = path;
+    const cardId = target.dataset.cardId || target.closest("[data-card-id]")?.dataset.cardId;
+    $("#fieldCardId").textContent = cardId ? `稳定卡牌 ID：${cardId}` : "";
+    $("#fieldHelp").textContent = Array.isArray(value) ? "每行一项；输入时九视窗立即同步，关闭弹窗不会丢失修改。" : "输入时直接修改浏览器 Working Copy；保存前对 Alpha 与正式课堂均为零副作用。";
+    const options = fieldOptions(path);
+    let control;
+    if (options) {
+      control = document.createElement("select");
+      options.forEach(([key, label]) => control.add(new Option(label, key, false, value === key)));
+    } else if (typeof value === "number") {
+      control = document.createElement("input"); control.type = "number"; control.value = String(value);
+    } else {
+      control = document.createElement("textarea"); control.rows = Array.isArray(value) ? 10 : 8; control.value = Array.isArray(value) ? value.join("\n") : String(value ?? "");
+    }
+    control.id = "fieldValue";
+    control.dataset.array = String(Array.isArray(value));
+    $("#fieldControl").replaceChildren(control);
+    $("#impactReport").textContent = `${document.querySelectorAll(`[data-course-path="${CSS.escape(path)}"]`).length} 个可见位置使用这个唯一源字段。`;
+    const update = () => {
+      let next = control.value;
+      if (control.dataset.array === "true") next = next.split("\n").map((item) => item.trim()).filter(Boolean);
+      else if (control.type === "number") next = Number(next);
+      if (!fieldSession.changed) { pushUndo(fieldSession.before); fieldSession.changed = true; }
+      setPath(course, path, next); updateCoupledField(path, next); markDirty(path); renderCourseStudio();
+      $("#courseTitle").textContent = course.course.name;
+      const affected = document.querySelectorAll(`[data-course-path="${CSS.escape(path)}"]`);
+      affected.forEach((node) => node.classList.add("changed-flash"));
+      $("#impactReport").textContent = `已同步 ${affected.length} 个可见位置；尚未保存到 Candidate。`;
+    };
+    control.addEventListener(options ? "change" : "input", update);
+    dialog.showModal(); requestAnimationFrame(() => control.focus());
+  }
+  function openDerivedInfo(target) {
+    const dialog = $("#fieldDialog");
+    dialog.dataset.readonly = "true";
+    $("#fieldDialogTitle").textContent = target.dataset.derivedLabel || "模拟 / 派生状态";
+    $("#fieldPath").textContent = "无 Course Package 写入路径";
+    $("#fieldCardId").textContent = "";
+    $("#fieldControl").replaceChildren();
+    $("#fieldHelp").textContent = target.dataset.derivedExplain || "这个值来自预览或真实运行状态。";
+    $("#impactReport").textContent = "只读：不会写入课程 JSON，也不会进入 Candidate、Alpha 或正式课堂账本。";
+    dialog.showModal();
   }
 
   function setMode(next) {
     mode = next;
-    const definitions = {structure: ["#structuredTab", "#structuredPane"], cards: ["#cardsTab", "#cardsPane"], json: ["#jsonTab", "#jsonPane"]};
+    const definitions = {studio: ["#studioTab", "#studioPane"], structure: ["#structuredTab", "#structuredPane"], cards: ["#cardsTab", "#cardsPane"], json: ["#jsonTab", "#jsonPane"]};
     Object.entries(definitions).forEach(([name, [tab, pane]]) => {
       $(tab).setAttribute("aria-selected", String(name === next)); $(pane).hidden = name !== next;
     });
+    if (next === "studio") renderCourseStudio();
     if (next === "cards") renderCardLibrary();
     if (next === "json") syncRaw();
   }
   function renderAll() {
     $("#courseKicker").textContent = `${course.course.id} · ${course.case.campaignId}`;
     $("#courseTitle").textContent = course.course.name;
-    $("#revisionLine").textContent = `当前基线 r${revision} · ${course.authoring?.status === "draft" ? "草稿可供 Alpha 显式刷新" : "已发布版本"} · 正式课堂不会静默热更新`;
+    $("#revisionLine").textContent = `当前基线 r${revision} · ${course.authoring?.status === "draft" ? "Candidate 可供 Alpha 显式加载" : "Released 正式版本"} · Working Copy 不会静默热更新任何 Run`;
     renderMetadata(); renderSteps(); renderBlocks(); renderCardFilterSteps(); renderCardLibrary(); renderPackageHealth(); renderAlphaSync(); syncRaw(); renderLibrary(); setMode(mode);
+    syncSaveControls();
   }
   async function validate() {
     try {
@@ -537,20 +790,38 @@
     } catch (error) { toast(`结构未通过：${error.message}`, true); return false; }
   }
   async function save(status) {
+    if (savePromise) return savePromise;
     if (status === "published" && inspectPackage().issues.length) return toast("课程包不完整，已阻止发布。请先查看顶部诊断。", true);
-    try {
-      setSaveState(status === "published" ? "正在发布" : "正在保存", "loading");
-      const data = await post("api/courses/save", {course, status, expectedRevision: revision});
-      course = data.course; courseMeta = data.metadata || null; revision = data.revision; catalog = data.catalog.courses; diagnostics = data.catalog.diagnostics || []; dirty = false;
-      await refreshAlphaState(); renderAll();
-      setSaveState(status === "published" ? `已发布 r${revision}` : `草稿 r${revision} 已保存`, "saved");
-      toast("已安全保存。Alpha 只会标记“待刷新”；正式课堂和当前 Run 均不会静默变化。");
-    } catch (error) { setSaveState("保存失败", "error"); toast(error.message, true); }
+    if (status === "published") {
+      const eligibility = releaseEligibility();
+      if (!eligibility.ok) return toast(`不能发布正式课堂：${eligibility.reason}`, true);
+    }
+    savePromise = (async () => {
+      try {
+        setSaveState(status === "published" ? "正在发布 Released" : "正在保存 Candidate", "loading");
+        syncSaveControls();
+        const approval = status === "published" ? {runId: alphaState.runId, digest: alphaState.courseDigest, status: alphaState.status} : undefined;
+        const data = await post("api/courses/save", {course, status, expectedRevision: revision, approval});
+        course = data.course; courseMeta = data.metadata || null; lastCandidateMeta = data.metadata || null; revision = data.revision; catalog = data.catalog.courses; diagnostics = data.catalog.diagnostics || []; dirty = false; changedPaths = new Set(); savedSnapshot = JSON.stringify(course);
+        await refreshAlphaState(); renderAll();
+        setSaveState(status === "published" ? `Released r${revision}` : `Candidate r${revision} 已保存`, "saved");
+        toast(status === "published" ? "exact Candidate 已发布为 Released；既有课堂仍保持原绑定版本。" : `Candidate r${revision} 已保存。Alpha 只提示待加载；正式课堂完全不受影响。`);
+        return data;
+      } catch (error) {
+        setSaveState(status === "published" ? "发布失败" : "Candidate 保存失败", "error");
+        toast(error.message, true);
+        return null;
+      } finally {
+        savePromise = null;
+        syncSaveControls();
+      }
+    })();
+    return savePromise;
   }
   async function applyRaw() {
     try {
       const value = JSON.parse($("#rawJson").value); const result = await post("api/courses/validate", {course: value});
-      course = value; courseMeta = null; activeStep = 0; activeBlock = 0; activeCard = 0; markDirty(); mode = "structure"; renderAll();
+      pushUndo(JSON.stringify(course)); course = value; courseMeta = null; activeStep = 0; activeBlock = 0; activeCard = 0; mode = "studio"; markDirty("*"); renderAll();
       toast(`JSON 已应用：${result.decks} 卡组 / ${result.cards} 张卡。`);
     } catch (error) { toast(`JSON 未应用：${error.message}`, true); }
   }
@@ -563,9 +834,9 @@
     try {
       const value = JSON.parse(await file.text()); const validated = await post("api/courses/validate", {course: value});
       const item = catalog.find((entry) => entry.id === value.course.id);
-      course = value; courseMeta = validated.metadata; revision = item?.latestRevision || 0; activeStep = 0; activeBlock = 0; activeCard = 0; dirty = true; mode = "structure";
-      $("#emptyState").hidden = true; $("#editor").hidden = false; $("#download").disabled = false; renderAll(); markDirty();
-      toast("JSON 已导入并通过完整检查；请保存草稿或发布。");
+      course = value; courseMeta = null; lastCandidateMeta = validated.metadata; revision = item?.latestRevision || 0; activeStep = 0; activeBlock = 0; activeCard = 0; dirty = true; mode = "studio"; changedPaths = new Set(["*"]);
+      $("#emptyState").hidden = true; $("#editor").hidden = false; $("#download").disabled = false; renderAll(); markDirty("*");
+      toast("JSON 已导入并通过完整检查；请保存为 Candidate。");
     } catch (error) { toast(`导入失败：${error.message}`, true); }
   }
   async function openHistory() {
@@ -575,23 +846,23 @@
       const data = await request(`api/courses/${encodeURIComponent(course.course.id)}/history`);
       const list = $("#historyList");
       list.innerHTML = data.history.length ? data.history.map((item) => `<article class="history-item">
-        <div><b>r${esc(item.revision)} · ${esc(item.status === "bundled" ? "内置基线" : item.status === "draft" ? "草稿快照" : "发布快照")}</b><span>${esc(item.updatedAt || "随 release 提供")} · ${esc(item.deckCount)} 卡组 / ${esc(item.cardCount)} 张卡</span><code>${esc(item.digest.slice(0, 16))}</code></div>
-        ${item.revision === revision ? `<span class="current-revision">当前基线</span>` : `<button type="button" class="button ghost" data-restore-revision="${esc(item.revision)}">恢复为新草稿</button>`}
+        <div><b>r${esc(item.revision)} · ${esc(item.status === "bundled" ? "内置基线" : item.status === "draft" ? "Candidate 快照" : "Released 快照")}</b><span>${esc(item.updatedAt || "随 release 提供")} · ${esc(item.deckCount)} 卡组 / ${esc(item.cardCount)} 张卡</span><code>${esc(item.digest.slice(0, 16))}</code></div>
+        ${item.revision === revision ? `<span class="current-revision">当前基线</span>` : `<button type="button" class="button ghost" data-restore-revision="${esc(item.revision)}">恢复为新 Candidate</button>`}
       </article>`).join("") : `<p>还没有历史修订。首次保存后会自动生成不可变快照。</p>`;
       list.querySelectorAll("[data-restore-revision]").forEach((button) => {
         let armed = false; let timer;
         button.onclick = async () => {
           if (!armed) {
             armed = true; button.textContent = `再次点击：恢复 r${button.dataset.restoreRevision}`; button.classList.add("primary");
-            timer = setTimeout(() => { armed = false; button.textContent = "恢复为新草稿"; button.classList.remove("primary"); }, 5000);
+            timer = setTimeout(() => { armed = false; button.textContent = "恢复为新 Candidate"; button.classList.remove("primary"); }, 5000);
             return;
           }
           clearTimeout(timer); button.disabled = true;
           try {
             const data = await post("api/courses/restore", {courseId: course.course.id, sourceRevision: Number(button.dataset.restoreRevision), expectedRevision: revision});
-            course = data.course; courseMeta = data.metadata || null; revision = data.revision; catalog = data.catalog.courses; diagnostics = data.catalog.diagnostics || []; dirty = false;
-            $("#historyDialog").close(); renderAll(); setSaveState(`已恢复为草稿 r${revision}`, "saved");
-            toast(`历史 r${button.dataset.restoreRevision} 已复制为新草稿 r${revision}。当前 Alpha 尚未改变，请核对后手动刷新。`);
+            course = data.course; courseMeta = data.metadata || null; lastCandidateMeta = data.metadata || null; revision = data.revision; catalog = data.catalog.courses; diagnostics = data.catalog.diagnostics || []; dirty = false; savedSnapshot = JSON.stringify(course); changedPaths = new Set();
+            $("#historyDialog").close(); renderAll(); setSaveState(`Candidate r${revision} 已恢复`, "saved");
+            toast(`历史 r${button.dataset.restoreRevision} 已复制为新 Candidate r${revision}。当前 Alpha 尚未改变，请核对后手动加载。`);
           } catch (error) { button.disabled = false; toast(`恢复失败：${error.message}`, true); }
         };
       });
@@ -611,14 +882,50 @@
     } catch (error) { setSaveState("无法使用", "error"); toast(error.message, true); }
   }
 
+  $("#studioTab").onclick = () => setMode("studio");
   $("#structuredTab").onclick = () => setMode("structure");
   $("#cardsTab").onclick = () => setMode("cards");
   $("#jsonTab").onclick = () => setMode("json");
   $("#validate").onclick = validate;
   $("#historyButton").onclick = openHistory;
   $("#historyClose").onclick = () => $("#historyDialog").close();
-  $("#saveDraft").onclick = () => save("draft");
   $("#publish").onclick = () => save("published");
+  $("#undoEdit").onclick = undoEdit;
+  $("#redoEdit").onclick = redoEdit;
+  $("#openLibrary").onclick = () => document.body.classList.remove("library-collapsed");
+  $("#closeLibrary").onclick = () => document.body.classList.add("library-collapsed");
+  $("#fieldClose").onclick = () => $("#fieldDialog").close();
+  $("#previousBlock").onclick = () => selectedBlock(activeBlock - 1);
+  $("#nextBlock").onclick = () => selectedBlock(activeBlock + 1);
+  $("#timelineDensity").onchange = renderTimeline;
+  $("#onlyWarnings").onchange = renderTimeline;
+  $("#previewRunStatus").onchange = (event) => { previewStatus = event.target.value; renderCourseStudio(); };
+  $("#previewSeed").oninput = (event) => { previewSeed = event.target.value || "MSV-PREVIEW-01"; renderCourseStudio(); };
+  $("#nextSeed").onclick = () => { const match = previewSeed.match(/^(.*?)-(\d+)$/); previewSeed = match ? `${match[1]}-${String(Number(match[2]) + 1).padStart(match[2].length, "0")}` : `${previewSeed}-02`; $("#previewSeed").value = previewSeed; renderCourseStudio(); };
+  $("#focusSeatA").onchange = (event) => { focusSeatA = event.target.value; renderCourseStudio(); };
+  $("#focusSeatB").onchange = (event) => { focusSeatB = event.target.value; renderCourseStudio(); };
+  $("#controllerHeight").oninput = (event) => $("#controllerShell").style.setProperty("--controller-height", `${event.target.value}px`);
+  $("#toggleController").onclick = () => { controllerCollapsed = !controllerCollapsed; renderCourseStudio(); };
+  $("#studioPane").addEventListener("click", (event) => {
+    const editable = event.target.closest("[data-course-path]");
+    if (editable) { event.preventDefault(); openFieldEditor(editable); return; }
+    const derived = event.target.closest("[data-derived-explain]");
+    if (derived) { event.preventDefault(); openDerivedInfo(derived); return; }
+    const block = event.target.closest("[data-preview-block]");
+    if (block) { selectedBlock(Number(block.dataset.previewBlock)); return; }
+    const step = event.target.closest("[data-preview-step]");
+    if (step) {
+      const index = course.blocks.findIndex((item) => item.macroStepId === course.macroSteps[Number(step.dataset.previewStep)].id);
+      if (index >= 0) selectedBlock(index);
+      return;
+    }
+    const layout = event.target.closest("[data-layout]");
+    if (layout) { studioLayout = layout.dataset.layout; renderCourseStudio(); }
+  });
+  document.addEventListener("click", (event) => {
+    const saveButton = event.target.closest("[data-save-course]");
+    if (saveButton) { event.preventDefault(); save("draft"); }
+  });
   $("#applyJson").onclick = applyRaw;
   $("#download").onclick = download;
   $("#addCard").onclick = addCard;
@@ -629,16 +936,22 @@
   }
   $("#resetCardFilters").onclick = resetCardFilters;
   $("#importFile").onchange = (event) => { const file = event.target.files?.[0]; if (file) importFile(file); event.target.value = ""; };
-  $("#newCourse").onclick = () => { if (dirty) return toast("请先保存当前修改，再创建新课程。", true); $("#cloneDialog").showModal(); };
+  $("#newCourse").onclick = () => { if (dirty) return toast("请先保存当前 Candidate，再创建新课程。", true); $("#cloneDialog").showModal(); };
   $("#cloneCancel").onclick = () => $("#cloneDialog").close();
   $("#cloneForm").onsubmit = async (event) => {
     event.preventDefault();
     try {
       const data = await post("api/courses/clone", {sourceCourseId: $("#cloneSource").value, newCourseId: $("#cloneId").value.trim(), newName: $("#cloneName").value.trim()});
-      $("#cloneDialog").close(); course = data.course; courseMeta = data.metadata || null; revision = data.revision; catalog = data.catalog.courses; diagnostics = data.catalog.diagnostics || []; activeStep = 0; activeBlock = 0; activeCard = 0; dirty = false; mode = "structure";
-      $("#emptyState").hidden = true; $("#editor").hidden = false; $("#download").disabled = false; resetCardFilters(); renderAll(); setSaveState(`草稿 r${revision} 已保存`, "saved"); toast("新课程草稿已创建。先逐块改内容，再发布。");
+      $("#cloneDialog").close(); course = data.course; courseMeta = data.metadata || null; lastCandidateMeta = data.metadata || null; revision = data.revision; catalog = data.catalog.courses; diagnostics = data.catalog.diagnostics || []; activeStep = 0; activeBlock = 0; activeCard = 0; dirty = false; mode = "studio"; savedSnapshot = JSON.stringify(course); changedPaths = new Set(); undoStack = []; redoStack = [];
+      $("#emptyState").hidden = true; $("#editor").hidden = false; $("#download").disabled = false; resetCardFilters(); renderAll(); setSaveState(`Candidate r${revision} 已保存`, "saved"); toast("新课程 Candidate 已创建。现在可在九视窗中逐块精编。");
     } catch (error) { toast(error.message, true); }
   };
+  window.addEventListener("keydown", (event) => {
+    const command = event.metaKey || event.ctrlKey;
+    if (command && event.key.toLowerCase() === "s") { event.preventDefault(); if (dirty) save("draft"); }
+    if (command && event.key.toLowerCase() === "z" && !event.shiftKey && !$("#fieldDialog").open) { event.preventDefault(); undoEdit(); }
+    if (command && (event.key.toLowerCase() === "y" || (event.key.toLowerCase() === "z" && event.shiftKey)) && !$("#fieldDialog").open) { event.preventDefault(); redoEdit(); }
+  });
   window.addEventListener("beforeunload", (event) => { if (dirty) { event.preventDefault(); event.returnValue = ""; } });
   init();
 })();

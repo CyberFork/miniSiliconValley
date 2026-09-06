@@ -44,6 +44,12 @@ class CourseTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, r"\$\.blocks\[0\]\.seatTasks"):
             course.validate_script(value)
 
+    def test_multiple_or_wrong_active_mentors_are_rejected(self):
+        value = course.load_script(course.DEFAULT_COURSE_ID)
+        value["blocks"][0]["seatTasks"]["mentor02"]["state"] = "active"
+        with self.assertRaisesRegex(ValueError, "exactly leadMentorId"):
+            course.validate_script(value)
+
     def test_macro_step_must_cover_every_block_once(self):
         value = course.load_script(course.DEFAULT_COURSE_ID)
         value["macroSteps"][0]["blocks"][2] = value["macroSteps"][0]["blocks"][1]

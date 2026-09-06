@@ -110,3 +110,31 @@ deploy/minisv/scripts/build-chj-course.sh <chj-checkout> <course-output>
 - 无浏览器 `pageerror`。
 
 部署测试还覆盖 `/course → /course/`、不透明目录复制、固定 chj 身份、manifest 和生产 smoke。最终版本见 `TODO_077_IMPLEMENTATION.md` 和发布回执。
+
+## T-083 九视窗课程工作台验收
+
+核心测试：
+
+```bash
+python3 -m unittest discover -s tools/live-run/tests -p 'test_*.py'
+node tools/live-run/tests/test_card_view.mjs
+node tools/live-run/tests/test_t083_course_preview.mjs
+node --test tools/live-run/tests/test_remote_console_security.mjs
+python3 tools/live-run/tests/verify_t083_browser.py
+python3 tools/live-run/tests/verify_t074_browser.py
+python3 tools/live-run/tests/verify_editor_layout_browser.py
+python3 tools/live-run/tests/verify_todos_071_072_browser.py
+```
+
+覆盖内容：
+
+- 两门内置课程的 26 个 Block 均生成确定性 9 窗契约快照。
+- 每个 Block 检查 4 导师、4 学员、1 中控同步，且只有一位导师主导。
+- 固定 seed 的 4×3 手牌可重现且 12 张唯一；换 seed 后结果变化。
+- 所见字段反查唯一 Course Package 路径，输入后所有受影响窗口同步；派生字段只读。
+- 五种画布布局、底部可调中控、撤销／重做与粘性保存可用。
+- 保存 Candidate 不改变活动 Run；Released API 拒绝无 Candidate、非 exact digest 和未完成验收。
+- 真实 seat 与 controller 复用共享渲染器，同时不显示编辑控件或预览模拟状态。
+- 1440／1180／768／430／390 px 无横向溢出、无过小基础字号。
+
+生产验收还必须读取 `/control/api/bootstrap` 的 `editorBuild=t083-nine-pane-studio-r1`，并在登录态下复验 Google 与饿了么的 5×13、9 窗、资产加载、CSP、发布前后玩法状态哈希不变。
