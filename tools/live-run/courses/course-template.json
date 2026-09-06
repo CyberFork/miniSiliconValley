@@ -21,6 +21,578 @@
     "period": "填写时代",
     "why": "填写为什么这个真实科技史案例值得进入课堂。"
   },
+  "sources": [
+    {
+      "id": "source-template-001",
+      "title": "待替换的第一手来源",
+      "organization": "填写发布机构",
+      "url": "https://example.invalid/replace-this-source",
+      "kind": "official",
+      "accessed": "2026-01-01"
+    }
+  ],
+  "decks": [
+    {
+      "id": "google-1995-2004-find-information",
+      "macroStepId": "find",
+      "drawAtBlockId": "B01",
+      "cardsPerLearner": 3,
+      "uniqueDeal": true,
+      "shuffle": true,
+      "cards": [
+        {
+          "id": "template-find-001",
+          "boundary": "F",
+          "title": "F · 第 1 步线索 1",
+          "body": "用初中生能直接读懂的语言，填写一条“有来源”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": [
+            "source-template-001"
+          ]
+        },
+        {
+          "id": "template-find-002",
+          "boundary": "R",
+          "title": "R · 第 1 步线索 2",
+          "body": "用初中生能直接读懂的语言，填写一条“课堂模拟”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-find-003",
+          "boundary": "G",
+          "title": "G · 第 1 步线索 3",
+          "body": "用初中生能直接读懂的语言，填写一条“我们猜的”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-find-004",
+          "boundary": "U",
+          "title": "U · 第 1 步线索 4",
+          "body": "用初中生能直接读懂的语言，填写一条“还不知道”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-find-005",
+          "boundary": "F",
+          "title": "F · 第 1 步线索 5",
+          "body": "用初中生能直接读懂的语言，填写一条“有来源”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": [
+            "source-template-001"
+          ]
+        },
+        {
+          "id": "template-find-006",
+          "boundary": "R",
+          "title": "R · 第 1 步线索 6",
+          "body": "用初中生能直接读懂的语言，填写一条“课堂模拟”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-find-007",
+          "boundary": "G",
+          "title": "G · 第 1 步线索 7",
+          "body": "用初中生能直接读懂的语言，填写一条“我们猜的”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-find-008",
+          "boundary": "U",
+          "title": "U · 第 1 步线索 8",
+          "body": "用初中生能直接读懂的语言，填写一条“还不知道”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-find-009",
+          "boundary": "F",
+          "title": "F · 第 1 步线索 9",
+          "body": "用初中生能直接读懂的语言，填写一条“有来源”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": [
+            "source-template-001"
+          ]
+        },
+        {
+          "id": "template-find-010",
+          "boundary": "R",
+          "title": "R · 第 1 步线索 10",
+          "body": "用初中生能直接读懂的语言，填写一条“课堂模拟”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-find-011",
+          "boundary": "G",
+          "title": "G · 第 1 步线索 11",
+          "body": "用初中生能直接读懂的语言，填写一条“我们猜的”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-find-012",
+          "boundary": "U",
+          "title": "U · 第 1 步线索 12",
+          "body": "用初中生能直接读懂的语言，填写一条“还不知道”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        }
+      ]
+    },
+    {
+      "id": "google-1995-2004-decide-information",
+      "macroStepId": "decide",
+      "drawAtBlockId": "B04",
+      "cardsPerLearner": 3,
+      "uniqueDeal": true,
+      "shuffle": true,
+      "cards": [
+        {
+          "id": "template-decide-001",
+          "boundary": "F",
+          "title": "F · 第 2 步线索 1",
+          "body": "用初中生能直接读懂的语言，填写一条“有来源”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": [
+            "source-template-001"
+          ]
+        },
+        {
+          "id": "template-decide-002",
+          "boundary": "R",
+          "title": "R · 第 2 步线索 2",
+          "body": "用初中生能直接读懂的语言，填写一条“课堂模拟”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-decide-003",
+          "boundary": "G",
+          "title": "G · 第 2 步线索 3",
+          "body": "用初中生能直接读懂的语言，填写一条“我们猜的”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-decide-004",
+          "boundary": "U",
+          "title": "U · 第 2 步线索 4",
+          "body": "用初中生能直接读懂的语言，填写一条“还不知道”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-decide-005",
+          "boundary": "F",
+          "title": "F · 第 2 步线索 5",
+          "body": "用初中生能直接读懂的语言，填写一条“有来源”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": [
+            "source-template-001"
+          ]
+        },
+        {
+          "id": "template-decide-006",
+          "boundary": "R",
+          "title": "R · 第 2 步线索 6",
+          "body": "用初中生能直接读懂的语言，填写一条“课堂模拟”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-decide-007",
+          "boundary": "G",
+          "title": "G · 第 2 步线索 7",
+          "body": "用初中生能直接读懂的语言，填写一条“我们猜的”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-decide-008",
+          "boundary": "U",
+          "title": "U · 第 2 步线索 8",
+          "body": "用初中生能直接读懂的语言，填写一条“还不知道”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-decide-009",
+          "boundary": "F",
+          "title": "F · 第 2 步线索 9",
+          "body": "用初中生能直接读懂的语言，填写一条“有来源”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": [
+            "source-template-001"
+          ]
+        },
+        {
+          "id": "template-decide-010",
+          "boundary": "R",
+          "title": "R · 第 2 步线索 10",
+          "body": "用初中生能直接读懂的语言，填写一条“课堂模拟”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-decide-011",
+          "boundary": "G",
+          "title": "G · 第 2 步线索 11",
+          "body": "用初中生能直接读懂的语言，填写一条“我们猜的”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-decide-012",
+          "boundary": "U",
+          "title": "U · 第 2 步线索 12",
+          "body": "用初中生能直接读懂的语言，填写一条“还不知道”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        }
+      ]
+    },
+    {
+      "id": "google-1995-2004-build-information",
+      "macroStepId": "build",
+      "drawAtBlockId": "B06",
+      "cardsPerLearner": 3,
+      "uniqueDeal": true,
+      "shuffle": true,
+      "cards": [
+        {
+          "id": "template-build-001",
+          "boundary": "F",
+          "title": "F · 第 3 步线索 1",
+          "body": "用初中生能直接读懂的语言，填写一条“有来源”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": [
+            "source-template-001"
+          ]
+        },
+        {
+          "id": "template-build-002",
+          "boundary": "R",
+          "title": "R · 第 3 步线索 2",
+          "body": "用初中生能直接读懂的语言，填写一条“课堂模拟”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-build-003",
+          "boundary": "G",
+          "title": "G · 第 3 步线索 3",
+          "body": "用初中生能直接读懂的语言，填写一条“我们猜的”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-build-004",
+          "boundary": "U",
+          "title": "U · 第 3 步线索 4",
+          "body": "用初中生能直接读懂的语言，填写一条“还不知道”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-build-005",
+          "boundary": "F",
+          "title": "F · 第 3 步线索 5",
+          "body": "用初中生能直接读懂的语言，填写一条“有来源”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": [
+            "source-template-001"
+          ]
+        },
+        {
+          "id": "template-build-006",
+          "boundary": "R",
+          "title": "R · 第 3 步线索 6",
+          "body": "用初中生能直接读懂的语言，填写一条“课堂模拟”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-build-007",
+          "boundary": "G",
+          "title": "G · 第 3 步线索 7",
+          "body": "用初中生能直接读懂的语言，填写一条“我们猜的”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-build-008",
+          "boundary": "U",
+          "title": "U · 第 3 步线索 8",
+          "body": "用初中生能直接读懂的语言，填写一条“还不知道”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-build-009",
+          "boundary": "F",
+          "title": "F · 第 3 步线索 9",
+          "body": "用初中生能直接读懂的语言，填写一条“有来源”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": [
+            "source-template-001"
+          ]
+        },
+        {
+          "id": "template-build-010",
+          "boundary": "R",
+          "title": "R · 第 3 步线索 10",
+          "body": "用初中生能直接读懂的语言，填写一条“课堂模拟”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-build-011",
+          "boundary": "G",
+          "title": "G · 第 3 步线索 11",
+          "body": "用初中生能直接读懂的语言，填写一条“我们猜的”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-build-012",
+          "boundary": "U",
+          "title": "U · 第 3 步线索 12",
+          "body": "用初中生能直接读懂的语言，填写一条“还不知道”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        }
+      ]
+    },
+    {
+      "id": "google-1995-2004-market-information",
+      "macroStepId": "market",
+      "drawAtBlockId": "B09",
+      "cardsPerLearner": 3,
+      "uniqueDeal": true,
+      "shuffle": true,
+      "cards": [
+        {
+          "id": "template-market-001",
+          "boundary": "F",
+          "title": "F · 第 4 步线索 1",
+          "body": "用初中生能直接读懂的语言，填写一条“有来源”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": [
+            "source-template-001"
+          ]
+        },
+        {
+          "id": "template-market-002",
+          "boundary": "R",
+          "title": "R · 第 4 步线索 2",
+          "body": "用初中生能直接读懂的语言，填写一条“课堂模拟”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-market-003",
+          "boundary": "G",
+          "title": "G · 第 4 步线索 3",
+          "body": "用初中生能直接读懂的语言，填写一条“我们猜的”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-market-004",
+          "boundary": "U",
+          "title": "U · 第 4 步线索 4",
+          "body": "用初中生能直接读懂的语言，填写一条“还不知道”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-market-005",
+          "boundary": "F",
+          "title": "F · 第 4 步线索 5",
+          "body": "用初中生能直接读懂的语言，填写一条“有来源”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": [
+            "source-template-001"
+          ]
+        },
+        {
+          "id": "template-market-006",
+          "boundary": "R",
+          "title": "R · 第 4 步线索 6",
+          "body": "用初中生能直接读懂的语言，填写一条“课堂模拟”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-market-007",
+          "boundary": "G",
+          "title": "G · 第 4 步线索 7",
+          "body": "用初中生能直接读懂的语言，填写一条“我们猜的”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-market-008",
+          "boundary": "U",
+          "title": "U · 第 4 步线索 8",
+          "body": "用初中生能直接读懂的语言，填写一条“还不知道”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-market-009",
+          "boundary": "F",
+          "title": "F · 第 4 步线索 9",
+          "body": "用初中生能直接读懂的语言，填写一条“有来源”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": [
+            "source-template-001"
+          ]
+        },
+        {
+          "id": "template-market-010",
+          "boundary": "R",
+          "title": "R · 第 4 步线索 10",
+          "body": "用初中生能直接读懂的语言，填写一条“课堂模拟”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-market-011",
+          "boundary": "G",
+          "title": "G · 第 4 步线索 11",
+          "body": "用初中生能直接读懂的语言，填写一条“我们猜的”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-market-012",
+          "boundary": "U",
+          "title": "U · 第 4 步线索 12",
+          "body": "用初中生能直接读懂的语言，填写一条“还不知道”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        }
+      ]
+    },
+    {
+      "id": "google-1995-2004-operate-information",
+      "macroStepId": "operate",
+      "drawAtBlockId": "B11",
+      "cardsPerLearner": 3,
+      "uniqueDeal": true,
+      "shuffle": true,
+      "cards": [
+        {
+          "id": "template-operate-001",
+          "boundary": "F",
+          "title": "F · 第 5 步线索 1",
+          "body": "用初中生能直接读懂的语言，填写一条“有来源”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": [
+            "source-template-001"
+          ]
+        },
+        {
+          "id": "template-operate-002",
+          "boundary": "R",
+          "title": "R · 第 5 步线索 2",
+          "body": "用初中生能直接读懂的语言，填写一条“课堂模拟”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-operate-003",
+          "boundary": "G",
+          "title": "G · 第 5 步线索 3",
+          "body": "用初中生能直接读懂的语言，填写一条“我们猜的”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-operate-004",
+          "boundary": "U",
+          "title": "U · 第 5 步线索 4",
+          "body": "用初中生能直接读懂的语言，填写一条“还不知道”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-operate-005",
+          "boundary": "F",
+          "title": "F · 第 5 步线索 5",
+          "body": "用初中生能直接读懂的语言，填写一条“有来源”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": [
+            "source-template-001"
+          ]
+        },
+        {
+          "id": "template-operate-006",
+          "boundary": "R",
+          "title": "R · 第 5 步线索 6",
+          "body": "用初中生能直接读懂的语言，填写一条“课堂模拟”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-operate-007",
+          "boundary": "G",
+          "title": "G · 第 5 步线索 7",
+          "body": "用初中生能直接读懂的语言，填写一条“我们猜的”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-operate-008",
+          "boundary": "U",
+          "title": "U · 第 5 步线索 8",
+          "body": "用初中生能直接读懂的语言，填写一条“还不知道”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-operate-009",
+          "boundary": "F",
+          "title": "F · 第 5 步线索 9",
+          "body": "用初中生能直接读懂的语言，填写一条“有来源”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": [
+            "source-template-001"
+          ]
+        },
+        {
+          "id": "template-operate-010",
+          "boundary": "R",
+          "title": "R · 第 5 步线索 10",
+          "body": "用初中生能直接读懂的语言，填写一条“课堂模拟”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-operate-011",
+          "boundary": "G",
+          "title": "G · 第 5 步线索 11",
+          "body": "用初中生能直接读懂的语言，填写一条“我们猜的”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "template-operate-012",
+          "boundary": "U",
+          "title": "U · 第 5 步线索 12",
+          "body": "用初中生能直接读懂的语言，填写一条“还不知道”的具体信息。",
+          "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+          "sourceIds": []
+        }
+      ]
+    }
+  ],
   "formula": {
     "oneWorld": "真实科技史驱动的有限开放世界创业学习 RPG",
     "twoDualTracks": [

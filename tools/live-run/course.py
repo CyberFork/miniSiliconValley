@@ -19,6 +19,9 @@ DEFAULT_COURSE_ID = "google-1995-2004"
 COURSE_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9-]{2,63}$")
 STEP_IDS = ("find", "decide", "build", "market", "operate")
 STEP_BLOCKS = (("B01", "B02", "B03"), ("B04", "B05"), ("B06", "B07", "B08"), ("B09", "B10"), ("B11", "B12", "B13"))
+DECK_DRAW_BLOCKS = ("B01", "B04", "B06", "B09", "B11")
+LEARNER_SEAT_IDS = ("learner01", "learner02", "learner03", "learner04")
+EVIDENCE_BOUNDARIES = frozenset({"F", "R", "G", "U"})
 SEAT_IDS = ("mentor01", "mentor02", "mentor03", "mentor04", "learner01", "learner02", "learner03", "learner04")
 API_ACTIONS = (
     "room-and-deal", "read-and-publish", "finish-find-chapter",
@@ -64,7 +67,7 @@ def _string_array(value: Any, path: str, *, nonempty: bool = True) -> list[str]:
 def validate_script(script: Any) -> dict[str, Any]:
     """Validate one executable five-step / thirteen-block course package."""
     script = _object(script, "$")
-    for key in ("schemaVersion", "id", "title", "course", "case", "formula", "macroSteps", "blocks", "rules"):
+    for key in ("schemaVersion", "id", "title", "course", "case", "sources", "decks", "formula", "macroSteps", "blocks", "rules"):
         if key not in script: raise _error(f"$.{key}", "missing required field")
     if script["schemaVersion"] != 1: raise _error("$.schemaVersion", "must equal 1")
     _string(script["id"], "$.id"); _string(script["title"], "$.title")
@@ -86,6 +89,48 @@ def validate_script(script: Any) -> dict[str, Any]:
         _string(case[key], f"$.case.{key}")
     if case["campaignId"] not in SUPPORTED_RUNTIME_CAMPAIGNS:
         raise _error("$.case.campaignId", "must select an installed classroom content base: " + ", ".join(sorted(SUPPORTED_RUNTIME_CAMPAIGNS)))
+
+    sources = _array(script["sources"], "$.sources", nonempty=True)
+    source_ids: set[str] = set()
+    for index, value in enumerate(sources):
+        path = f"$.sources[{index}]"; source = _object(value, path)
+        for key in ("id", "title", "organization", "url", "kind", "accessed"):
+            _string(source.get(key), f"{path}.{key}")
+        source_id = source["id"]
+        if source_id in source_ids: raise _error(f"{path}.id", "must be unique")
+        source_ids.add(source_id)
+
+    decks = _array(script["decks"], "$.decks")
+    if len(decks) != 5: raise _error("$.decks", "must contain exactly one deck for every macro step")
+    global_card_ids: set[str] = set()
+    for index, value in enumerate(decks):
+        path = f"$.decks[{index}]"; deck = _object(value, path)
+        for key in ("id", "macroStepId", "drawAtBlockId", "cardsPerLearner", "uniqueDeal", "shuffle", "cards"):
+            if key not in deck: raise _error(f"{path}.{key}", "missing required field")
+        _string(deck["id"], f"{path}.id")
+        if deck["macroStepId"] != STEP_IDS[index]: raise _error(f"{path}.macroStepId", f"must equal {STEP_IDS[index]!r}")
+        if deck["drawAtBlockId"] != DECK_DRAW_BLOCKS[index]: raise _error(f"{path}.drawAtBlockId", f"must equal {DECK_DRAW_BLOCKS[index]!r}")
+        if deck["cardsPerLearner"] != 3: raise _error(f"{path}.cardsPerLearner", "must equal 3")
+        if deck["uniqueDeal"] is not True: raise _error(f"{path}.uniqueDeal", "must be true")
+        if deck["shuffle"] is not True: raise _error(f"{path}.shuffle", "must be true")
+        cards = _array(deck["cards"], f"{path}.cards")
+        required_count = len(LEARNER_SEAT_IDS) * deck["cardsPerLearner"]
+        if len(cards) < required_count: raise _error(f"{path}.cards", f"must contain at least {required_count} cards for a unique 4 x 3 deal")
+        local_card_ids: set[str] = set()
+        for card_index, card_value in enumerate(cards):
+            card_path = f"{path}.cards[{card_index}]"; card = _object(card_value, card_path)
+            for key in ("id", "boundary", "title", "body", "sharePrompt", "sourceIds"):
+                if key not in card: raise _error(f"{card_path}.{key}", "missing required field")
+            card_id = _string(card["id"], f"{card_path}.id")
+            if card_id in local_card_ids: raise _error(f"{card_path}.id", "must be unique within the deck")
+            if card_id in global_card_ids: raise _error(f"{card_path}.id", "must be unique within the whole course")
+            local_card_ids.add(card_id); global_card_ids.add(card_id)
+            if card["boundary"] not in EVIDENCE_BOUNDARIES: raise _error(f"{card_path}.boundary", "must be F, R, G, or U")
+            for key in ("title", "body", "sharePrompt"): _string(card[key], f"{card_path}.{key}")
+            references = _string_array(card["sourceIds"], f"{card_path}.sourceIds", nonempty=False)
+            unknown = sorted(set(references) - source_ids)
+            if unknown: raise _error(f"{card_path}.sourceIds", "contains unknown sources: " + ", ".join(unknown))
+            if card["boundary"] == "F" and not references: raise _error(f"{card_path}.sourceIds", "F · Fact cards must cite at least one course source")
 
     formula = _object(script["formula"], "$.formula")
     for key in ("oneWorld", "twoDualTracks", "threeGameModes", "fourMentors", "fiveSteps", "sixMinuteDemo"):
@@ -158,6 +203,43 @@ def validate_script(script: Any) -> dict[str, Any]:
         revision = authoring.get("revision", 0)
         if not isinstance(revision, int) or revision < 0: raise _error("$.authoring.revision", "must be a non-negative integer")
     return script
+
+
+def deck_for_step(script: dict[str, Any], macro_step_id: str) -> dict[str, Any]:
+    """Return one validated stage deck without consulting a campaign module."""
+    validate_script(script)
+    try:
+        return next(deck for deck in script["decks"] if deck["macroStepId"] == macro_step_id)
+    except StopIteration as exc:  # pragma: no cover - guarded by validation
+        raise ValueError(f"course has no deck for macro step {macro_step_id!r}") from exc
+
+
+def deal_course_deck(
+    script: dict[str, Any],
+    macro_step_id: str,
+    *,
+    rng: Any | None = None,
+) -> dict[str, list[dict[str, Any]]]:
+    """Deal a role-independent, non-repeating 4 x 3 learner hand.
+
+    The caller persists the returned card IDs for the lifetime of a Run.  A
+    supplied ``random.Random`` is useful for deterministic author previews;
+    production defaults to the operating system's cryptographic RNG.
+    """
+    deck = deck_for_step(script, macro_step_id)
+    cards = copy.deepcopy(deck["cards"])
+    random_source = rng or secrets.SystemRandom()
+    if deck["shuffle"]:
+        random_source.shuffle(cards)
+    hand_size = int(deck["cardsPerLearner"])
+    needed = len(LEARNER_SEAT_IDS) * hand_size
+    selected = cards[:needed]
+    if deck["uniqueDeal"] and len({card["id"] for card in selected}) != needed:
+        raise ValueError("course deck cannot produce a unique 4 x 3 deal")
+    return {
+        seat_id: selected[index * hand_size:(index + 1) * hand_size]
+        for index, seat_id in enumerate(LEARNER_SEAT_IDS)
+    }
 
 
 def _canonical_bytes(value: Any) -> bytes:
@@ -325,9 +407,80 @@ COURSE_OPTIONS = {item["id"]: item for item in list_courses()}
 def json_schema() -> dict[str, Any]:
     string = {"type": "string", "minLength": 1}
     string_array = {"type": "array", "minItems": 1, "items": string}
+    source = {
+        "type": "object", "additionalProperties": True,
+        "required": ["id", "title", "organization", "url", "kind", "accessed"],
+        "properties": {key: string for key in ("id", "title", "organization", "url", "kind", "accessed")},
+    }
+    deck_card = {
+        "type": "object", "additionalProperties": True,
+        "required": ["id", "boundary", "title", "body", "sharePrompt", "sourceIds"],
+        "properties": {
+            "id": string,
+            "boundary": {"enum": sorted(EVIDENCE_BOUNDARIES)},
+            "title": string,
+            "body": string,
+            "sharePrompt": string,
+            "sourceIds": {"type": "array", "uniqueItems": True, "items": string},
+        },
+    }
+    deck = {
+        "type": "object", "additionalProperties": True,
+        "required": ["id", "macroStepId", "drawAtBlockId", "cardsPerLearner", "uniqueDeal", "shuffle", "cards"],
+        "properties": {
+            "id": string,
+            "macroStepId": {"enum": list(STEP_IDS)},
+            "drawAtBlockId": {"enum": list(DECK_DRAW_BLOCKS)},
+            "cardsPerLearner": {"const": 3},
+            "uniqueDeal": {"const": True},
+            "shuffle": {"const": True},
+            "cards": {"type": "array", "minItems": 12, "items": deck_card},
+        },
+    }
     seat_task = {"type": "object", "additionalProperties": False, "required": ["state", "badge", "task"], "properties": {"state": {"enum": sorted(SPOTLIGHT_STATES)}, "badge": string, "task": string}}
     block = {"type": "object", "additionalProperties": True, "required": ["id", "macroStepId", "macroStepOrder", "order", "title", "leadMentorId", "suggestedMinutes", "gameModes", "apiAction", "underlyingClassroomPhases", "historyTrack", "realityTrack", "studentPrompt", "mentorScript", "studentActions", "systemActions", "props", "evidenceGate", "fallback", "manualInteraction", "learnerLens", "seatTasks"], "properties": {"id": {"pattern": "^B(?:0[1-9]|1[0-3])$"}, "macroStepId": {"enum": list(STEP_IDS)}, "macroStepOrder": {"type": "integer", "minimum": 1, "maximum": 5}, "order": {"type": "integer", "minimum": 1, "maximum": 13}, "title": string, "leadMentorId": {"enum": list(SEAT_IDS[:4])}, "suggestedMinutes": {"type": "integer", "minimum": 1, "maximum": 180}, "gameModes": {"type": "array", "minItems": 1, "uniqueItems": True, "items": {"enum": sorted(GAME_MODES)}}, "apiAction": {"enum": list(API_ACTIONS)}, "underlyingClassroomPhases": string_array, "historyTrack": string, "realityTrack": string, "studentPrompt": string, "mentorScript": string_array, "studentActions": string_array, "systemActions": string_array, "props": string_array, "evidenceGate": string_array, "fallback": string_array, "manualInteraction": string, "learnerLens": {"type": "object", "additionalProperties": False, "required": ["world", "say", "ask", "done"], "properties": {key: string for key in ("world", "say", "ask", "done")}}, "seatTasks": {"type": "object", "additionalProperties": False, "required": list(SEAT_IDS), "properties": {seat: seat_task for seat in SEAT_IDS}}}}
-    return {"$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://minisv.vip/schemas/course-package-v1.json", "title": "Mini Silicon Valley LIVE RUN Course Package v1", "type": "object", "additionalProperties": True, "required": ["schemaVersion", "id", "title", "course", "case", "formula", "macroSteps", "blocks", "rules"], "properties": {"schemaVersion": {"const": 1}, "id": string, "title": string, "course": {"type": "object", "additionalProperties": True, "required": ["id", "name", "period", "coverage", "description", "learnerName", "scriptId", "macroStepCount", "blockCount", "completeFiveStep"], "properties": {"id": {"type": "string", "pattern": COURSE_ID_PATTERN.pattern}, "name": string, "period": string, "coverage": string, "description": string, "learnerName": string, "scriptId": string, "macroStepCount": {"const": 5}, "blockCount": {"const": 13}, "completeFiveStep": {"const": True}}}, "case": {"type": "object", "additionalProperties": True, "required": ["campaignId", "name", "learnerName", "period", "why"], "properties": {"campaignId": {"enum": sorted(SUPPORTED_RUNTIME_CAMPAIGNS)}, "name": string, "learnerName": string, "period": string, "why": string}}, "macroSteps": {"type": "array", "minItems": 5, "maxItems": 5}, "blocks": {"type": "array", "minItems": 13, "maxItems": 13, "items": block}, "formula": {"type": "object"}, "rules": {"type": "object"}, "authoring": {"type": "object", "additionalProperties": True, "properties": {"status": {"enum": sorted(AUTHORING_STATES)}, "revision": {"type": "integer", "minimum": 0}, "updatedAt": {"type": "string"}}}}}
+    return {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://minisv.vip/schemas/course-package-v1.json",
+        "title": "Mini Silicon Valley LIVE RUN Course Package v1",
+        "type": "object", "additionalProperties": True,
+        "required": ["schemaVersion", "id", "title", "course", "case", "sources", "decks", "formula", "macroSteps", "blocks", "rules"],
+        "properties": {
+            "schemaVersion": {"const": 1}, "id": string, "title": string,
+            "course": {
+                "type": "object", "additionalProperties": True,
+                "required": ["id", "name", "period", "coverage", "description", "learnerName", "scriptId", "macroStepCount", "blockCount", "completeFiveStep"],
+                "properties": {
+                    "id": {"type": "string", "pattern": COURSE_ID_PATTERN.pattern},
+                    "name": string, "period": string, "coverage": string,
+                    "description": string, "learnerName": string, "scriptId": string,
+                    "macroStepCount": {"const": 5}, "blockCount": {"const": 13},
+                    "completeFiveStep": {"const": True},
+                },
+            },
+            "case": {
+                "type": "object", "additionalProperties": True,
+                "required": ["campaignId", "name", "learnerName", "period", "why"],
+                "properties": {
+                    "campaignId": {"enum": sorted(SUPPORTED_RUNTIME_CAMPAIGNS)},
+                    "name": string, "learnerName": string, "period": string, "why": string,
+                },
+            },
+            "sources": {"type": "array", "minItems": 1, "items": source},
+            "decks": {"type": "array", "minItems": 5, "maxItems": 5, "items": deck},
+            "macroSteps": {"type": "array", "minItems": 5, "maxItems": 5},
+            "blocks": {"type": "array", "minItems": 13, "maxItems": 13, "items": block},
+            "formula": {"type": "object"}, "rules": {"type": "object"},
+            "authoring": {
+                "type": "object", "additionalProperties": True,
+                "properties": {
+                    "status": {"enum": sorted(AUTHORING_STATES)},
+                    "revision": {"type": "integer", "minimum": 0},
+                    "updatedAt": {"type": "string"},
+                },
+            },
+        },
+    }
 
 
 def template_script() -> dict[str, Any]:
@@ -335,6 +488,26 @@ def template_script() -> dict[str, Any]:
     value["id"] = "new-course-template-live-run-v1"; value["title"] = "Mini Silicon Valley｜新课程模板｜LIVE RUN SCRIPT"
     value["course"].update({"id": "new-course-template", "name": "新课程模板｜五步创业闭环", "period": "填写时代", "coverage": "完整课程 · 5 步 / 13 块", "description": "填写课程的一句话简介。", "learnerName": "Young Builder 创业小队", "scriptId": "new-course-template-live-run-v1"})
     value["case"].update({"campaignId": DEFAULT_COURSE_ID, "name": "填写案例名称与时间范围", "learnerName": "Young Builder 创业小队", "period": "填写时代", "why": "填写为什么这个真实科技史案例值得进入课堂。"})
+    value["sources"] = [{
+        "id": "source-template-001", "title": "待替换的第一手来源",
+        "organization": "填写发布机构", "url": "https://example.invalid/replace-this-source",
+        "kind": "official", "accessed": "2026-01-01",
+    }]
+    for step_index, deck in enumerate(value["decks"], 1):
+        cards = []
+        for card_index in range(12):
+            boundary = ("F", "R", "G", "U")[card_index % 4]
+            number = card_index + 1
+            labels = {"F": "有来源", "R": "课堂模拟", "G": "我们猜的", "U": "还不知道"}
+            cards.append({
+                "id": f"template-{STEP_IDS[step_index - 1]}-{number:03d}",
+                "boundary": boundary,
+                "title": f"{boundary} · 第 {step_index} 步线索 {number}",
+                "body": f"用初中生能直接读懂的语言，填写一条“{labels[boundary]}”的具体信息。",
+                "sharePrompt": "告诉队友：这条线索能说明什么，还不能说明什么。",
+                "sourceIds": ["source-template-001"] if boundary == "F" else [],
+            })
+        deck["cards"] = cards
     for block in value["blocks"]:
         block.update({"title": f"{block['id']}｜填写本块标题", "historyTrack": "填写当时可知的真实历史信息与证据边界。", "realityTrack": "填写学员回到现实项目要完成的对应实践。", "studentPrompt": "用一句具体、可行动的话告诉初中生现在只需要做什么。", "mentorScript": ["填写当值导师逐句口播。"], "studentActions": ["填写学员现场可观察动作。"], "systemActions": ["填写执行本块后的系统同步结果。"], "props": ["填写本块需要的实体或数字道具。"], "evidenceGate": ["填写导师必须亲眼看见的完成证据。"], "fallback": ["填写学生卡住时的具象兜底问题。"], "manualInteraction": "填写线下互动和八席窗口如何配合。", "learnerLens": {"world": "填写学员此刻身处的具体世界。", "say": "填写学员要说的一句话。", "ask": "填写学员要问队友的问题。", "done": "填写学员如何知道自己完成了。"}})
         for task in block["seatTasks"].values(): task["task"] = "填写这个席位此刻唯一要做的动作。"

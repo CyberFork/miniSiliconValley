@@ -21,6 +21,795 @@
     "period": "1995—2004",
     "why": "完整覆盖找真问题、定真方案、做真产品、进真市场、跑真运营与六分钟 Demo Day。"
   },
+  "sources": [
+    {
+      "id": "src-google-anatomy",
+      "title": "The Anatomy of a Large-Scale Hypertextual Web Search Engine",
+      "organization": "Google Research",
+      "url": "https://research.google/pubs/the-anatomy-of-a-large-scale-hypertextual-web-search-engine/",
+      "kind": "research-paper",
+      "accessed": "2026-08-28"
+    },
+    {
+      "id": "src-stanford-backrub",
+      "title": "The Stanford Web Search Project: BackRub / Google",
+      "organization": "Stanford InfoLab",
+      "url": "https://infolab.stanford.edu/~backrub/google.html",
+      "kind": "university",
+      "accessed": "2026-08-28"
+    },
+    {
+      "id": "src-stanford-history",
+      "title": "Stanford University History",
+      "organization": "Stanford University",
+      "url": "https://www.stanford.edu/about/history",
+      "kind": "university",
+      "accessed": "2026-08-28"
+    },
+    {
+      "id": "src-stanford-engineering",
+      "title": "The future firmly in sight: 1995–2004",
+      "organization": "Stanford Engineering",
+      "url": "https://engineering100.stanford.edu/stories/the-future-firmly-in-sight",
+      "kind": "university",
+      "accessed": "2026-08-28"
+    },
+    {
+      "id": "src-google-story",
+      "title": "Our story: From the garage to the Googleplex",
+      "organization": "Google",
+      "url": "https://about.google/company-info/our-story/",
+      "kind": "company-history",
+      "accessed": "2026-08-28"
+    },
+    {
+      "id": "src-google-ads",
+      "title": "Celebrating 25 years of Google Ads",
+      "organization": "Google Ads",
+      "url": "https://blog.google/products/ads-commerce/google-ads-turns-25/",
+      "kind": "official",
+      "accessed": "2026-08-28"
+    },
+    {
+      "id": "src-sec-google-2004",
+      "title": "Google Inc. Form S-1 Registration Statement, 2004",
+      "organization": "U.S. Securities and Exchange Commission",
+      "url": "https://www.sec.gov/Archives/edgar/data/1288776/000119312504073639/ds1.htm",
+      "kind": "official",
+      "accessed": "2026-08-28"
+    }
+  ],
+  "decks": [
+    {
+      "id": "google-1995-2004-find-information",
+      "macroStepId": "find",
+      "drawAtBlockId": "B01",
+      "cardsPerLearner": 3,
+      "uniqueDeal": true,
+      "shuffle": true,
+      "cards": [
+        {
+          "id": "g95-p-01",
+          "boundary": "F",
+          "title": "重复翻找是用户损失",
+          "body": "校园观察（非引语）：同一项资料任务常要在多个页面和目录之间来回尝试；先记录用户花费的时间、放弃点和替代行为，不把它直接归因于网页数量。",
+          "sharePrompt": "请说明你观察到的具体任务和损失；哪个细节还只是猜测？",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g95-p-02",
+          "boundary": "G",
+          "title": "更多结果不等于更快完成任务",
+          "body": "角色观点（非史实引语）：用户真正需要的可能是少量可用结果，而不是一张更长的网页清单。要用任务完成时间和复核动作验证这个判断。",
+          "sharePrompt": "这张观点卡改变了哪个问题表述？你会怎样反驳它？",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g95-p-03",
+          "boundary": "G",
+          "title": "失败查询暴露真实问题",
+          "body": "角色推断（待验证）：如果用户反复改写同一查询，损失可能来自相关性或表达困难，而不只是入口缺失；需要一组失败查询和用户解释。",
+          "sharePrompt": "指出推断的前提，并提出一条能在本章内验证或推翻它的观察。",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "low"
+        },
+        {
+          "id": "g95-d-01",
+          "boundary": "F",
+          "title": "BackRub从Stanford研究环境起步",
+          "body": "史实事实：Stanford材料把Page和Brin的早期合作与BackRub项目联系起来；本章可把它视为研究探索的起点，但不能倒推后来公司的规模或成功。",
+          "sharePrompt": "这条事实能证明什么，不能证明什么？请把研究项目与用户问题分开。",
+          "sourceIds": [
+            "src-stanford-engineering",
+            "src-stanford-backrub"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "g95-d-02",
+          "boundary": "F",
+          "title": "链接结构可能成为额外信号",
+          "body": "史实事实：后来的原论文描述了利用超文本结构改善搜索结果的研究方向；在1995–1996的角色讨论中，它只能作为待验证技术线索，不能当作已经有效的排名系统。",
+          "sharePrompt": "把技术线索翻译成一个用户可感知的假设，不要直接跳到实现方案。",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "g95-d-03",
+          "boundary": "G",
+          "title": "链接也可能被操纵",
+          "body": "角色推断（待验证）：若把链接当作重要性信号，发布者可能有动机制造链接；调查应同时寻找质量提升的证据和操纵的反例。",
+          "sharePrompt": "这是一项风险推断而非历史结论；需要什么反例才会让你改变判断？",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "low"
+        },
+        {
+          "id": "g95-m-01",
+          "boundary": "F",
+          "title": "目录解决的是入口，不一定是相关性",
+          "body": "校园传播观察（非引语）：人工目录和熟人推荐能给出入口，但覆盖范围、更新速度和用户信任可能各不相同；先问用户在哪一步卡住。",
+          "sharePrompt": "你看到的是发现成本、内容质量还是信任成本？请为三者分别举一个可观察信号。",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g95-m-02",
+          "boundary": "G",
+          "title": "合作入口会带来条件",
+          "body": "角色观点（非史实引语）：目录或门户可能愿意导流，却会要求展示位置、速度或内容边界；合作要先写出交换条件，不能只算用户数量。",
+          "sharePrompt": "哪一项合作条件会改变问题定义？谁有权发现这个变化？",
+          "sourceIds": [
+            "src-google-story"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g95-m-03",
+          "boundary": "G",
+          "title": "校园里已经有人在做更好的目录",
+          "body": "传闻（未经核实，不可当作事实）：有人声称现有目录很快会覆盖所有重要网页；请追问来源、范围和时间，不要把传闻当作竞争结论。",
+          "sharePrompt": "如果这条传闻为真或为假，分别会改变哪一个调查动作？",
+          "sourceIds": [
+            "src-stanford-history"
+          ],
+          "credibility": "low"
+        },
+        {
+          "id": "g95-o-01",
+          "boundary": "F",
+          "title": "调查也消耗资源",
+          "body": "运营记录（非引语）：每一次抓取、存储、访谈和人工整理都会消耗设备时间；先列出最小可用样本和停止条件，避免把规模当成价值。",
+          "sharePrompt": "哪个成本是一次性的，哪个会持续增长？这会怎样改变问题优先级？",
+          "sourceIds": [
+            "src-stanford-engineering",
+            "src-google-anatomy"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g95-o-02",
+          "boundary": "F",
+          "title": "早期服务器能力是边界",
+          "body": "史实事实：Stanford Engineering对早期原型服务器和有限磁盘资源有记录；它支持资源约束的讨论，但不能单独证明某个产品选择一定正确。",
+          "sharePrompt": "请把这条资源事实连到一个用户损失，而不是只连到技术方案。",
+          "sourceIds": [
+            "src-stanford-engineering"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "g95-o-03",
+          "boundary": "G",
+          "title": "小样本更适合首轮学习",
+          "body": "角色推断（待验证）：在设备有限时，用窄场景和小样本先验证损失，可能比立即覆盖整个网页更快得到可行动的证据；必须写出何时扩大范围。",
+          "sharePrompt": "谁能提供反对小样本的理由？扩大范围的触发指标是什么？",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "low"
+        }
+      ]
+    },
+    {
+      "id": "google-1995-2004-decide-information",
+      "macroStepId": "decide",
+      "drawAtBlockId": "B04",
+      "cardsPerLearner": 3,
+      "uniqueDeal": true,
+      "shuffle": true,
+      "cards": [
+        {
+          "id": "g97-p-01",
+          "boundary": "F",
+          "title": "搜索质量不只由结果数量组成",
+          "body": "史实事实：原论文把搜索引擎的挑战同时放在大规模页面、查询响应和更满意结果上；验证时不能只用返回条数作为成功指标。",
+          "sharePrompt": "请把更满意拆成至少两个可观察行为，并说明它们与损失的关系。",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "g97-p-02",
+          "boundary": "F",
+          "title": "用户会用替代动作检验结果",
+          "body": "用户观察（非引语）：当第一批结果不可信或不相关时，用户会改写查询、翻页、转向目录或询问熟人；这些动作应成为失败分类，而不是简单算作流失。",
+          "sharePrompt": "哪一种替代动作代表相关性问题，哪一种代表信任问题？证据是什么？",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g97-p-03",
+          "boundary": "G",
+          "title": "完成任务比点击更接近价值",
+          "body": "角色推断（待验证）：若用户找到可用资料并停止改写查询，任务完成率可能比单次点击更能说明搜索价值；必须用小样本比较两种指标。",
+          "sharePrompt": "若点击率与任务完成率冲突，你会保留哪项，为什么？",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "low"
+        },
+        {
+          "id": "g97-d-01",
+          "boundary": "F",
+          "title": "原论文公开描述超文本信号",
+          "body": "史实事实：1998年原论文将网页超文本结构作为改善搜索结果的额外信息来源，并讨论了无控制发布集合带来的挑战。",
+          "sharePrompt": "这条事实给了什么研究方向？它没有保证什么结果？",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "g97-d-02",
+          "boundary": "F",
+          "title": "信号质量需要反例",
+          "body": "工程观察（非引语）：一个链接多不代表页面一定适合当前查询；验证样本应包含链接很多但不相关，以及链接少但有用的页面。",
+          "sharePrompt": "请提出一组最小对照，避免把链接数量直接当作相关性。",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g97-d-03",
+          "boundary": "G",
+          "title": "操纵风险必须进入验证",
+          "body": "角色观点（非史实引语）：只测正常页面会高估链接信号；即使没有证据表明操纵已普遍发生，也应预先写出被操纵时如何发现。",
+          "sharePrompt": "观点与事实的边界在哪里？哪个测试结果会迫使你降低信号权重？",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g97-m-01",
+          "boundary": "F",
+          "title": "早期用户重用才是入口信号",
+          "body": "市场观察（非引语）：一次偶然访问不能证明产品价值；更有用的信号是用户在类似任务中再次返回、主动推荐或愿意解释为什么结果有用。",
+          "sharePrompt": "把重用、推荐和门户流量分成三个指标，哪一个最接近你的问题假设？",
+          "sourceIds": [
+            "src-google-story"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g97-m-02",
+          "boundary": "G",
+          "title": "合作速度会扭曲实验",
+          "body": "角色观点（非史实引语）：若合作方要求一周上线，团队可能牺牲对照组和失败记录；快并不自动等于有效验证。",
+          "sharePrompt": "哪一项实验保护线不可因合作而放弃？请由O给出成本。",
+          "sourceIds": [
+            "src-google-story"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g97-m-03",
+          "boundary": "G",
+          "title": "门户会偏好更长的停留",
+          "body": "传闻（未经核实，不可当作事实）：有人声称门户只关心用户在页面上停留更久；团队必须找到原始来源，并避免用传闻推断用户价值。",
+          "sharePrompt": "你会怎样验证这条传闻？如果无法验证，决策中应如何标记它？",
+          "sourceIds": [
+            "src-google-story"
+          ],
+          "credibility": "low"
+        },
+        {
+          "id": "g97-o-01",
+          "boundary": "F",
+          "title": "规模与更新是工程约束",
+          "body": "史实事实：原论文把抓取、索引和大规模查询的工程挑战作为核心议题；验证报告必须同时记录质量、延迟、失败和更新成本。",
+          "sharePrompt": "哪个运行指标会让用户价值假设失效？请给出阈值而不是形容词。",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "g97-o-02",
+          "boundary": "F",
+          "title": "原型稳定才有可比性",
+          "body": "运行观察（非引语）：若第一轮因为服务器中断而少返回结果，第二轮不能把质量下降归咎于信号；先固定运行基线并记录中断。",
+          "sharePrompt": "哪些失败应该重跑，哪些失败本身就是产品风险？",
+          "sourceIds": [
+            "src-stanford-engineering",
+            "src-google-anatomy"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g97-o-03",
+          "boundary": "G",
+          "title": "容量边界会改变问题优先级",
+          "body": "角色推断（待验证）：如果信号提升只能在极小索引上运行，首轮问题可能必须限定到一个高价值场景；需用容量实验验证。",
+          "sharePrompt": "这条推断的最小测试是什么？扩大索引的触发条件是什么？",
+          "sourceIds": [
+            "src-stanford-engineering",
+            "src-google-anatomy"
+          ],
+          "credibility": "low"
+        }
+      ]
+    },
+    {
+      "id": "google-1995-2004-build-information",
+      "macroStepId": "build",
+      "drawAtBlockId": "B06",
+      "cardsPerLearner": 3,
+      "uniqueDeal": true,
+      "shuffle": true,
+      "cards": [
+        {
+          "id": "g98-p-01",
+          "boundary": "F",
+          "title": "用户需要理由，不只是顺序",
+          "body": "体验观察（非引语）：当两个结果都看似相关，用户会寻找来源、上下文或可复核线索；方案应让用户知道如何检查，而不是要求盲信排序。",
+          "sharePrompt": "你想展示哪一种理由？它会增加理解，还是增加页面负担？",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g98-p-02",
+          "boundary": "G",
+          "title": "极简入口可能降低学习成本",
+          "body": "角色观点（非史实引语）：一个聚焦任务的入口可能比堆叠功能更容易测试；这不是审美结论，要用首次完成任务和错误恢复验证。",
+          "sharePrompt": "极简为谁服务？缺少什么信息会让用户不敢使用结果？",
+          "sourceIds": [
+            "src-google-story"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g98-p-03",
+          "boundary": "G",
+          "title": "错误反馈是排序资产",
+          "body": "角色推断（待验证）：如果用户能标记结果不相关或过时，反馈可能帮助团队发现排序盲点；反馈本身也可能带偏，需设计抽样检查。",
+          "sharePrompt": "一条反馈如何进入第二轮，而不是直接变成真相？",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "low"
+        },
+        {
+          "id": "g98-d-01",
+          "boundary": "F",
+          "title": "PageRank由链接关系启发",
+          "body": "史实事实：Google官方和Stanford材料把BackRub对网页链接的分析与后来称为PageRank的方向联系起来；这说明研究线索，不保证任何页面在所有查询中都应更靠前。",
+          "sharePrompt": "把链接关系写成一个可解释机制，并指出它不覆盖的情况。",
+          "sourceIds": [
+            "src-google-story",
+            "src-stanford-engineering",
+            "src-google-anatomy"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "g98-d-02",
+          "boundary": "F",
+          "title": "超文本集合不受单方控制",
+          "body": "史实事实：原论文明确讨论了任何人都可以发布内容的无控制超文本集合；方案必须考虑质量、操纵、更新和边界，而不是只追求一个分数。",
+          "sharePrompt": "请给方案加一条针对操纵或过时内容的保护线。",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "g98-d-03",
+          "boundary": "G",
+          "title": "多信号比单一链接计数稳健",
+          "body": "角色推断（待验证）：把链接关系与查询词、锚文本或用户反馈等信号组合，可能比单一链接计数更能处理歧义；要说明组合如何保持可解释和可回滚。",
+          "sharePrompt": "如果组合信号提升平均分却伤害一个用户群，你会怎样发现？",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "low"
+        },
+        {
+          "id": "g98-m-01",
+          "boundary": "F",
+          "title": "入口是方案的一部分",
+          "body": "市场观察（非引语）：用户不会因为技术存在就自然来到产品；入口、首次任务、复用和分享都要与核心结果体验连起来。",
+          "sharePrompt": "哪个入口能带来学习样本而不改变排序？怎样测量？",
+          "sourceIds": [
+            "src-google-story"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g98-m-02",
+          "boundary": "G",
+          "title": "伙伴可以是渠道也可以是约束",
+          "body": "角色观点（非史实引语）：渠道合作能扩大实验样本，却可能要求优先展示或品牌背书；方案必须将合作条款作为显性约束。",
+          "sharePrompt": "哪些条款可逆，哪些会永久改变用户对结果的理解？",
+          "sourceIds": [
+            "src-google-story"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g98-m-03",
+          "boundary": "G",
+          "title": "竞争者已经拥有分发优势",
+          "body": "传闻（未经核实，不可当作事实）：市场上流传某门户会把自有结果排在前面；在没有原始证据前，只能把它列为调查问题。",
+          "sharePrompt": "这条传闻会诱发哪一种过度反应？请提出低成本核查方式。",
+          "sourceIds": [
+            "src-google-story"
+          ],
+          "credibility": "low"
+        },
+        {
+          "id": "g98-o-01",
+          "boundary": "F",
+          "title": "方案要面对抓取与索引",
+          "body": "史实事实：原论文把高规模抓取、索引和查询视为实用搜索引擎的工程挑战；设计稿必须写更新频率、延迟和失败时的用户行为。",
+          "sharePrompt": "指出方案中的一个容量假设，以及如果它错了如何降级。",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "g98-o-02",
+          "boundary": "F",
+          "title": "更新会改变结果稳定性",
+          "body": "运营观察（非引语）：网页变化、抓取失败和索引滞后会让同一查询在不同时间出现差异；应同时设计更新指示与用户复核路径。",
+          "sharePrompt": "用户需要知道哪种变化？哪些变化可以等到下一轮修复？",
+          "sourceIds": [
+            "src-google-anatomy",
+            "src-stanford-engineering"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g98-o-03",
+          "boundary": "G",
+          "title": "先缩小范围能保留可解释性",
+          "body": "角色推断（待验证）：先服务一组清楚的查询任务，可能让团队同时观察排序理由、更新成本和错误；扩大范围必须等待明确触发条件。",
+          "sharePrompt": "谁会因范围缩小而失去价值？这项代价值得吗？",
+          "sourceIds": [
+            "src-google-anatomy",
+            "src-stanford-engineering"
+          ],
+          "credibility": "low"
+        }
+      ]
+    },
+    {
+      "id": "google-1995-2004-market-information",
+      "macroStepId": "market",
+      "drawAtBlockId": "B09",
+      "cardsPerLearner": 3,
+      "uniqueDeal": true,
+      "shuffle": true,
+      "cards": [
+        {
+          "id": "g00-p-01",
+          "boundary": "F",
+          "title": "MVP必须有真实任务",
+          "body": "测试观察（非引语）：演示者知道资料在哪里时，界面看起来总会成功；MVP测试要让目标用户从查询开始，并记录完成、改写、放弃和求助。",
+          "sharePrompt": "请把演示成功改成用户独立完成任务的证据。",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g00-p-02",
+          "boundary": "F",
+          "title": "大规模搜索需要用户与系统同时验证",
+          "body": "史实事实：原论文把大规模搜索的工程挑战与更满意结果放在同一问题中；MVP不能只证明算法能跑，也不能只收集主观喜欢。",
+          "sharePrompt": "你们的测试如何同时覆盖任务结果和运行体验？",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "g00-p-03",
+          "boundary": "G",
+          "title": "失败恢复是首轮范围",
+          "body": "角色推断（待验证）：若用户不知道下一步怎么改写查询，系统即使返回结果也未完成最小闭环；需用失败任务验证是否应纳入MVP。",
+          "sharePrompt": "若资源只够一个反馈功能，你会优先帮助哪种失败？为什么？",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "low"
+        },
+        {
+          "id": "g00-d-01",
+          "boundary": "F",
+          "title": "原论文强调抓取、索引与查询的整体工程",
+          "body": "史实事实：论文将抓取网页、建立全文与超链接数据库、处理查询和规模扩展作为相互关联的工程问题；课堂MVP可缩小范围，但不能遗漏闭环中的一个环节。",
+          "sharePrompt": "你们缩小了哪一段，如何证明仍保留用户价值？",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "g00-d-02",
+          "boundary": "F",
+          "title": "容量预算先于页面数量",
+          "body": "工程观察（非引语）：每增加资料，抓取、存储、更新和查询都可能增加成本；先测一个可解释的小集合，再声明扩容条件。",
+          "sharePrompt": "请指出一个扩容会破坏的指标，以及你们的降级方案。",
+          "sourceIds": [
+            "src-stanford-engineering",
+            "src-google-anatomy"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g00-d-03",
+          "boundary": "G",
+          "title": "可回滚比一次做全更重要",
+          "body": "角色观点（非史实引语）：MVP应允许团队把一个信号、数据源或界面改回上一版本；这样第二轮才能解释改动带来的因果。",
+          "sharePrompt": "哪一项技术决策必须可回滚？谁负责记录版本差异？",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g00-m-01",
+          "boundary": "F",
+          "title": "2000年前后出现广告商业化节点",
+          "body": "史实事实：Google官方广告历史把Google Ads/AdWords的25年历程追溯到2000年前后；课堂只据此讨论商业试验的时间边界，不把现代广告机制投射到早期。",
+          "sharePrompt": "这条事实支持商业化发生，不支持什么排序细节？请列出未知。",
+          "sourceIds": [
+            "src-google-ads"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "g00-m-02",
+          "boundary": "G",
+          "title": "商业内容必须可识别",
+          "body": "角色观点（非史实引语）：即便收入能支撑服务器，用户也需要知道什么是自然结果、什么是商业试验；透明度是产品约束，不是发布后的补丁。",
+          "sharePrompt": "团队要展示什么标签或分层？如果不展示，用户会怎样误解？",
+          "sourceIds": [
+            "src-google-ads",
+            "src-google-story"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g00-m-03",
+          "boundary": "G",
+          "title": "广告收入会自动解决容量",
+          "body": "传闻（未经核实，不可当作事实）：有人声称只要展示广告，收入就足以覆盖所有增长；这条传闻不能替代价格、转化、成本和信任测试。",
+          "sharePrompt": "需要哪些数字才能把传闻变成可验证假设？谁持有缺口？",
+          "sourceIds": [
+            "src-google-ads"
+          ],
+          "credibility": "low"
+        },
+        {
+          "id": "g00-o-01",
+          "boundary": "F",
+          "title": "演示可用不等于持续可用",
+          "body": "运行观察（非引语）：演示时的低负载不能代表日常使用；MVP必须记录响应、失败、恢复时间和维护责任。",
+          "sharePrompt": "你们要监控的最少三个指标是什么？每个指标触发什么动作？",
+          "sourceIds": [
+            "src-google-anatomy",
+            "src-stanford-engineering"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g00-o-02",
+          "boundary": "F",
+          "title": "早期硬件形态反映资源取舍",
+          "body": "史实事实：Stanford Engineering记录了早期Google算法服务器由有限磁盘与简陋外壳组成；它可作为资源约束的史料，不应被浪漫化为可靠性证明。",
+          "sharePrompt": "资源简陋怎样影响MVP边界？哪项风险不能靠热情抵消？",
+          "sourceIds": [
+            "src-stanford-engineering"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "g00-o-03",
+          "boundary": "G",
+          "title": "容量限制应进入用户承诺",
+          "body": "角色推断（待验证）：若索引更新和响应时间有明确上限，提前向用户说明范围可能比假装覆盖全部网页更能保住信任；需测试用户是否接受。",
+          "sharePrompt": "什么承诺可以缩小而不让核心任务失去价值？",
+          "sourceIds": [
+            "src-google-anatomy",
+            "src-stanford-engineering"
+          ],
+          "credibility": "low"
+        }
+      ]
+    },
+    {
+      "id": "google-1995-2004-operate-information",
+      "macroStepId": "operate",
+      "drawAtBlockId": "B11",
+      "cardsPerLearner": 3,
+      "uniqueDeal": true,
+      "shuffle": true,
+      "cards": [
+        {
+          "id": "g03-p-01",
+          "boundary": "F",
+          "title": "品牌承诺要能被用户体验",
+          "body": "史实事实：Google官方故事将组织信息、可访问性和搜索体验的使命表述放在公司叙事中；本章只能把它作为公开承诺材料，不能把它解释成每个时期都没有冲突。",
+          "sharePrompt": "请把一句宏大承诺翻译成一个用户能观察的行为和一个失败信号。",
+          "sourceIds": [
+            "src-google-story"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "g03-p-02",
+          "boundary": "F",
+          "title": "不透明会放大一次错误",
+          "body": "用户观察（非引语）：当用户分不清自然结果、商业内容和索引过时，单次错误会被理解成系统隐瞒；品牌修复要从可识别的证据开始。",
+          "sharePrompt": "你们要公开什么，才能让用户区分错误、限制和商业内容？",
+          "sourceIds": [
+            "src-google-ads",
+            "src-google-story"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g03-p-03",
+          "boundary": "G",
+          "title": "透明度可能降低短期转化",
+          "body": "角色推断（待验证）：更清楚的商业标识和限制说明可能让一部分短期点击下降，却提高长期复用与信任；需要把两者分开测量。",
+          "sharePrompt": "若短期点击下降，哪些证据会让你仍坚持透明度？",
+          "sourceIds": [
+            "src-google-ads",
+            "src-google-story"
+          ],
+          "credibility": "low"
+        },
+        {
+          "id": "g03-d-01",
+          "boundary": "F",
+          "title": "规模会放大边界条件",
+          "body": "工程观察（非引语）：用户、页面、查询和更新增长后，小样本中不显眼的延迟、过时和操纵问题会变成系统性风险；运营指标必须随规模重测。",
+          "sharePrompt": "哪一个早期指标最可能在规模下失效？你会怎样提前监控？",
+          "sourceIds": [
+            "src-google-anatomy",
+            "src-stanford-engineering"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g03-d-02",
+          "boundary": "F",
+          "title": "搜索工程包含无控制内容风险",
+          "body": "史实事实：原论文明确讨论了任何人都可发布内容的超文本集合及其质量处理问题；规模化运营不能把不受控内容当成一次性数据清理。",
+          "sharePrompt": "写出一个持续发现质量变化的机制，而不是只写人工审核。",
+          "sourceIds": [
+            "src-google-anatomy"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "g03-d-03",
+          "boundary": "G",
+          "title": "发布门槛高于销售承诺",
+          "body": "角色观点（非史实引语）：任何新渠道或商业试验都应先满足质量、容量和回滚门槛；否则增长数据会把不可逆风险藏到下一季。",
+          "sharePrompt": "哪项承诺必须先经过O的容量检查？如果M不同意怎么办？",
+          "sourceIds": [
+            "src-google-anatomy",
+            "src-google-ads"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g03-m-01",
+          "boundary": "F",
+          "title": "商业服务进入Google发展叙事",
+          "body": "史实事实：Google官方广告历史将2000年前后的广告服务作为持续演进的商业线索；来源不自动证明任何具体排序政策，团队必须把广告与自然结果的关系作为本轮设计问题。",
+          "sharePrompt": "商业化事实和产品排序推断之间缺了哪条证据？",
+          "sourceIds": [
+            "src-google-ads"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "g03-m-02",
+          "boundary": "F",
+          "title": "渠道带来反馈也带来依赖",
+          "body": "市场观察（非引语）：合作渠道能扩大样本和收入，却让团队暴露在伙伴目标、品牌联名和退出成本之下；经营计划要把依赖写出来。",
+          "sharePrompt": "哪一项渠道收益值得承担依赖？可逆退出条件是什么？",
+          "sourceIds": [
+            "src-google-story",
+            "src-google-ads"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g03-m-03",
+          "boundary": "G",
+          "title": "公开发行会带来无限资源",
+          "body": "传闻（未经核实，不可当作事实）：市场上有人把2004年公开发行想象成可以解决所有基础设施与人才问题；公开文件只能证明披露/发行程序，不能保证经营结果。",
+          "sharePrompt": "这条传闻隐藏了哪些成本、治理和执行风险？",
+          "sourceIds": [
+            "src-sec-google-2004"
+          ],
+          "credibility": "low"
+        },
+        {
+          "id": "g03-o-01",
+          "boundary": "F",
+          "title": "2004年进入公开披露语境",
+          "body": "史实事实：SEC归档的2004年Google S-1文件显示公司进入首次公开发行的注册披露流程；它提供治理与风险讨论的边界，不等于玩家可以预知后续市场表现。",
+          "sharePrompt": "公开披露会要求团队把哪些风险从口头承诺变成可检查记录？",
+          "sourceIds": [
+            "src-sec-google-2004"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "g03-o-02",
+          "boundary": "F",
+          "title": "维护是增长预算的一部分",
+          "body": "运营观察（非引语）：每新增渠道、页面和商业试验都会增加监控、客服、容量和合规工作；经营计划要先扣维护再谈可分配收益。",
+          "sharePrompt": "你们的增长计划给维护留了多少资源？缺口会在哪里显现？",
+          "sourceIds": [
+            "src-google-anatomy",
+            "src-sec-google-2004"
+          ],
+          "credibility": "medium"
+        },
+        {
+          "id": "g03-o-03",
+          "boundary": "G",
+          "title": "治理机制也是产品能力",
+          "body": "角色推断（待验证）：当质量、商业和渠道目标冲突时，固定的发布门槛、风险登记和复盘节奏可能比一次性英雄式救火更可持续；团队要设计最小治理循环。",
+          "sharePrompt": "一项治理动作如何改变下一轮产品决定？谁拥有叫停权？",
+          "sourceIds": [
+            "src-sec-google-2004",
+            "src-google-anatomy"
+          ],
+          "credibility": "low"
+        }
+      ]
+    }
+  ],
   "formula": {
     "oneWorld": "真实科技史驱动的有限开放世界创业学习 RPG",
     "twoDualTracks": [

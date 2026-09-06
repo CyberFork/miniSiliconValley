@@ -57,6 +57,26 @@ class GatewayContractTests(unittest.TestCase):
         self.assertIn("location = /portal.js", self.gateway)
         self.assertNotIn("静态导航", portal)
 
+    def test_global_ui_comparison_assets_are_served_and_injected(self) -> None:
+        site = ROOT / "site"
+        if not site.is_dir():
+            site = ROOT.parent / "site"
+        portal = (site / "index.html").read_text()
+        theme_css = (site / "ui-theme.css").read_text()
+        theme_js = (site / "ui-theme.js").read_text()
+
+        self.assertIn('href="/ui-theme.css?v=', portal)
+        self.assertIn('src="/ui-theme.js?v=', portal)
+        self.assertIn("data-msv-theme-slot", portal)
+        self.assertIn('location = /ui-theme.css', self.gateway)
+        self.assertIn('location = /ui-theme.js', self.gateway)
+        self.assertIn('sub_filter \'</head>\'', self.proxy)
+        self.assertIn('data-msv-theme="adventure"', theme_css)
+        self.assertIn('[class*="_authCard_"]', theme_css)
+        self.assertIn('overflow-x: clip', theme_css)
+        self.assertIn('minisv.ui.theme', theme_js)
+        self.assertNotIn("work.cyberforker.com", theme_css + theme_js)
+
 
 if __name__ == "__main__":
     unittest.main()

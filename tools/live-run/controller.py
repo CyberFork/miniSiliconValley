@@ -24,13 +24,20 @@ from urllib.parse import parse_qs, quote, unquote, urlparse
 from urllib.request import Request, urlopen
 
 from classroom_api import ClassroomApiAdapter, ClassroomApiError
-from course import CourseRepository, DEFAULT_COURSE_ID, course_digest, validate_script
+from course import (
+    CourseRepository,
+    DEFAULT_COURSE_ID,
+    LEARNER_SEAT_IDS,
+    course_digest,
+    deal_course_deck,
+    validate_script,
+)
 
 
 ROOT = Path(__file__).resolve().parent
 STATIC = ROOT / "static"
 DEFAULT_STATE_DIR = Path("/tmp/msv-live-run-state")
-STATE_SCHEMA_VERSION = 3
+STATE_SCHEMA_VERSION = 4
 CONTROL_ROLES = frozenset({"admin", "mentor"})
 
 SEATS = [
@@ -201,6 +208,17 @@ class CourseController:
         self.state["courseId"] = self.script["course"]["id"]
         self.state["courseRevision"] = int((self.script.get("authoring") or {}).get("revision", 0))
         self.state["courseDigest"] = course_digest(self.script)
+        self.state.setdefault("courseVariant", (self.script.get("authoring") or {}).get("status", "published"))
+        self.state.setdefault("previewBlockIndex", self.state.get("currentBlockIndex", 0))
+        self.state.setdefault("courseDeals", {})
+        self.state.setdefault("refreshEpoch", 0)
+        self.state.setdefault("lastRefreshAt", None)
+        self.state.setdefault("lastRefreshError", None)
+        for deck in self.script["decks"]:
+            draw_index = next(i for i, block in enumerate(self.script["blocks"]) if block["id"] == deck["drawAtBlockId"])
+            block_state = self.state.get("blocks", [])[draw_index]
+            if int(block_state.get("attempts", 0)) > 0 or block_state.get("status") in {"awaiting-acceptance", "passed"}:
+                self._ensure_course_deal(deck["macroStepId"])
         if self.state.get("status") == "executing":
             index = min(int(self.state.get("currentBlockIndex", 0)), len(self.script["blocks"]) - 1)
             message = "控制器上次在执行中退出；课堂可能已有部分动作。请先核对现场，再点击错误重试。"
@@ -216,6 +234,7 @@ class CourseController:
                 lead = self.script["blocks"][self.state["currentBlockIndex"]]["leadMentorId"]
                 snapshot = self.adapter.snapshot(lead)
                 self.state["classroom"] = {**self._empty_snapshot(), **snapshot, **self.adapter.export_refs()}
+                self._overlay_course_cards(self.state["classroom"])
                 self._event("classroom.snapshot.refreshed", "已从真实课堂恢复身份、私密手牌与成长状态。")
             except Exception as exc:
                 self._event("classroom.snapshot.refresh-failed", f"启动时暂未刷新课堂快照：{safe_error(exc)}")
@@ -233,7 +252,7 @@ class CourseController:
         return self.repository.list_published()
 
     def _compatible(self, state: dict[str, Any] | None) -> bool:
-        if not state or state.get("schemaVersion") not in {1, 2, STATE_SCHEMA_VERSION}:
+        if not state or state.get("schemaVersion") not in {1, 2, 3, STATE_SCHEMA_VERSION}:
             return False
         expected_ids = [block["id"] for block in self.script["blocks"]]
         actual_ids = [block.get("id") for block in state.get("blocks", [])]
@@ -244,7 +263,7 @@ class CourseController:
             and actual_ids == expected_ids
             and isinstance(index, int)
             and 0 <= index < len(expected_ids)
-            and (state.get("schemaVersion") in {1, 2} or state.get("courseDigest") == course_digest(self.script))
+            and (state.get("schemaVersion") in {1, 2, 3} or state.get("courseDigest") == course_digest(self.script))
         )
 
     def _new_adapter(self, persisted: dict[str, Any] | None) -> ClassroomApiAdapter | None:
@@ -260,6 +279,7 @@ class CourseController:
             "courseId": self.script["course"]["id"],
             "courseRevision": int((self.script.get("authoring") or {}).get("revision", 0)),
             "courseDigest": course_digest(self.script),
+            "courseVariant": (self.script.get("authoring") or {}).get("status", "published"),
             "runId": f"run-{time.strftime('%Y%m%d-%H%M%S')}-{secrets.token_hex(3)}",
             "createdAt": now,
             "updatedAt": now,
@@ -267,7 +287,12 @@ class CourseController:
             "apiMode": "classroom-api" if self.api_factory else "verified-simulation",
             "status": "ready",
             "currentBlockIndex": 0,
+            "previewBlockIndex": 0,
             "lastCompletedBlockIndex": -1,
+            "courseDeals": {},
+            "refreshEpoch": 0,
+            "lastRefreshAt": None,
+            "lastRefreshError": None,
             "error": None,
             "classroom": classroom,
             "blocks": [
@@ -364,8 +389,120 @@ class CourseController:
             self._save()
             return self.public_state()
 
+    def _latest_course(self) -> dict[str, Any]:
+        """Load the newest valid author copy (draft first, then published)."""
+        return self.repository.load(self.script["course"]["id"], variant="draft")
+
+    def _course_update(self) -> dict[str, Any]:
+        """Return an editor/run revision comparison without mutating the Run."""
+        active_revision = int(self.state.get("courseRevision", 0))
+        active_digest = str(self.state.get("courseDigest") or course_digest(self.script))
+        try:
+            latest = self._latest_course()
+            latest_revision = int((latest.get("authoring") or {}).get("revision", 0))
+            latest_variant = (latest.get("authoring") or {}).get("status", "published")
+            latest_digest = course_digest(latest)
+            return {
+                "activeRevision": active_revision,
+                "activeDigest": active_digest[:16],
+                "activeVariant": self.state.get("courseVariant", "published"),
+                "latestRevision": latest_revision,
+                "latestDigest": latest_digest[:16],
+                "latestVariant": latest_variant,
+                "updateAvailable": latest_digest != active_digest,
+                "lastRefreshAt": self.state.get("lastRefreshAt"),
+                "lastRefreshError": self.state.get("lastRefreshError"),
+            }
+        except Exception as exc:
+            return {
+                "activeRevision": active_revision,
+                "activeDigest": active_digest[:16],
+                "activeVariant": self.state.get("courseVariant", "published"),
+                "latestRevision": None,
+                "latestDigest": None,
+                "latestVariant": None,
+                "updateAvailable": False,
+                "lastRefreshAt": self.state.get("lastRefreshAt"),
+                "lastRefreshError": f"读取最新课程失败：{safe_error(exc)}",
+            }
+
+    def refresh_course(self) -> dict[str, Any]:
+        """Explicitly hot-load the newest valid JSON into this Alpha Run.
+
+        This action preserves the Run id, classroom, real execution pointer,
+        submissions, money, reputation and existing deal positions.  It is
+        intentionally not called by editor save/publish: formal classrooms can
+        therefore never change content silently.
+        """
+        with self.lock:
+            if self.state["status"] == "executing":
+                raise ValueError("当前块仍在执行，不能刷新课程内容。")
+            try:
+                candidate = self._latest_course()
+                validate_script(candidate)
+                if candidate["course"]["id"] != self.script["course"]["id"]:
+                    raise ValueError("最新修订不属于当前课程。")
+                if [block["id"] for block in candidate["blocks"]] != [block["id"] for block in self.script["blocks"]]:
+                    raise ValueError("热刷新必须保持 B01—B13 稳定块 ID。")
+                if (
+                    self.state.get("classroom", {}).get("roomId")
+                    and candidate["case"]["campaignId"] != self.script["case"]["campaignId"]
+                ):
+                    raise ValueError("已创建真实课堂后不能更换运行流程底座；请只更新 JSON 卡组和课程内容。")
+
+                previous_script = self.script
+                previous_state = copy.deepcopy(self.state)
+                self.script = candidate
+                try:
+                    self._reconcile_course_deals()
+                    self.state["courseRevision"] = int((candidate.get("authoring") or {}).get("revision", 0))
+                    self.state["courseDigest"] = course_digest(candidate)
+                    self.state["courseVariant"] = (candidate.get("authoring") or {}).get("status", "published")
+                    self.state["previewBlockIndex"] = self.state["currentBlockIndex"]
+                    self.state["refreshEpoch"] = int(self.state.get("refreshEpoch", 0)) + 1
+                    self.state["lastRefreshAt"] = iso_now()
+                    self.state["lastRefreshError"] = None
+                    self._overlay_course_cards(self.state["classroom"])
+                    self._event("course.refreshed", f"已在原 Run 加载课程 r{self.state['courseRevision']}，真实进度与账本未回退。")
+                    self._hydrate_seats()
+                    self._save()
+                except Exception:
+                    self.script = previous_script
+                    self.state = previous_state
+                    raise
+                return self.public_state()
+            except Exception as exc:
+                self.state["lastRefreshError"] = safe_error(exc)
+                self._event("course.refresh.failed", f"课程刷新失败，已保留上一个完整版本：{safe_error(exc)}")
+                self._hydrate_seats()
+                self._save()
+                raise
+
+    def preview_back(self) -> dict[str, Any]:
+        """Show the previous block everywhere without undoing side effects."""
+        with self.lock:
+            if self.state["status"] == "executing": raise ValueError("执行中不能切换回看位置。")
+            current = int(self.state.get("previewBlockIndex", self.state["currentBlockIndex"]))
+            if current <= 0: raise ValueError("已经在第一块。")
+            self.state["previewBlockIndex"] = current - 1
+            self._event("preview.back", f"八席调试回看 {self.script['blocks'][current - 1]['id']}；真实执行记录未撤销。")
+            self._hydrate_seats(); self._save(); return self.public_state()
+
+    def preview_forward(self) -> dict[str, Any]:
+        """Move a preview back toward the real execution pointer."""
+        with self.lock:
+            if self.state["status"] == "executing": raise ValueError("执行中不能切换回看位置。")
+            current = int(self.state.get("previewBlockIndex", self.state["currentBlockIndex"]))
+            limit = int(self.state["currentBlockIndex"])
+            if current >= limit: raise ValueError("已回到真实当前块；要继续课程请执行或验收。")
+            self.state["previewBlockIndex"] = current + 1
+            self._event("preview.forward", f"八席调试前看 {self.script['blocks'][current + 1]['id']}；未产生新系统动作。")
+            self._hydrate_seats(); self._save(); return self.public_state()
+
     def execute_async(self) -> dict[str, Any]:
         with self.lock:
+            if self.state.get("previewBlockIndex", self.state["currentBlockIndex"]) != self.state["currentBlockIndex"]:
+                raise ValueError("当前在回看旧块。请先点“回看向前”返回真实当前块。")
             if self.state["status"] != "ready":
                 raise ValueError("只有就绪状态可以执行当前块；出错后请先点击“错误重试”。")
             index = self.state["currentBlockIndex"]
@@ -400,6 +537,8 @@ class CourseController:
                 if self.state["currentBlockIndex"] != index or self.state["status"] != "executing":
                     return
                 self.state["classroom"] = {**self._empty_snapshot(), **snapshot}
+                self._ensure_course_deal(block["macroStepId"])
+                self._overlay_course_cards(self.state["classroom"], block["macroStepId"])
                 if self.adapter:
                     self.state["classroom"].update(self.adapter.export_refs())
                 block_state = self.state["blocks"][index]
@@ -426,6 +565,8 @@ class CourseController:
 
     def accept(self) -> dict[str, Any]:
         with self.lock:
+            if self.state.get("previewBlockIndex", self.state["currentBlockIndex"]) != self.state["currentBlockIndex"]:
+                raise ValueError("回看只用于检查内容，不能验收。请先返回真实当前块。")
             if self.state["status"] != "awaiting-acceptance":
                 raise ValueError("当前块尚未执行成功，不能验收或前进。")
             index = self.state["currentBlockIndex"]
@@ -441,12 +582,15 @@ class CourseController:
                 self.state["blocks"][index + 1]["status"] = "ready"
                 self.state["status"] = "ready"
                 self._event("block.unlocked", f"已解锁 {self.state['blocks'][index + 1]['id']}；仍需手动点击执行。")
+            self.state["previewBlockIndex"] = self.state["currentBlockIndex"]
             self._hydrate_seats()
             self._save()
             return self.public_state()
 
     def retry(self) -> dict[str, Any]:
         with self.lock:
+            if self.state.get("previewBlockIndex", self.state["currentBlockIndex"]) != self.state["currentBlockIndex"]:
+                raise ValueError("回看状态不能重试系统动作。")
             if self.state["status"] != "error":
                 raise ValueError("只有错误状态可以重试。")
             index = self.state["currentBlockIndex"]
@@ -459,19 +603,89 @@ class CourseController:
             self._save()
             return self.public_state()
 
+    def _ensure_course_deal(self, macro_step_id: str) -> dict[str, list[str]]:
+        deals = self.state.setdefault("courseDeals", {})
+        existing = deals.get(macro_step_id)
+        if isinstance(existing, dict) and set(existing) == set(LEARNER_SEAT_IDS):
+            return existing
+        dealt = deal_course_deck(self.script, macro_step_id)
+        deal_ids = {seat_id: [card["id"] for card in cards] for seat_id, cards in dealt.items()}
+        deals[macro_step_id] = deal_ids
+        return deal_ids
+
+    def _reconcile_course_deals(self) -> None:
+        """Keep stable hands across content refresh, filling only removed IDs."""
+        deals = self.state.setdefault("courseDeals", {})
+        for macro_step_id, seat_hands in list(deals.items()):
+            deck = next((item for item in self.script["decks"] if item["macroStepId"] == macro_step_id), None)
+            if not deck:
+                deals.pop(macro_step_id, None)
+                continue
+            valid_ids = {card["id"] for card in deck["cards"]}
+            used: set[str] = set()
+            reconciled: dict[str, list[str]] = {}
+            for seat_id in LEARNER_SEAT_IDS:
+                raw = seat_hands.get(seat_id, []) if isinstance(seat_hands, dict) else []
+                kept = [card_id for card_id in raw if card_id in valid_ids and card_id not in used][:3]
+                used.update(kept); reconciled[seat_id] = kept
+            available = [card["id"] for card in deck["cards"] if card["id"] not in used]
+            secrets.SystemRandom().shuffle(available)
+            for seat_id in LEARNER_SEAT_IDS:
+                missing = 3 - len(reconciled[seat_id])
+                if missing:
+                    reconciled[seat_id].extend(available[:missing]); del available[:missing]
+            if any(len(hand) != 3 for hand in reconciled.values()):
+                raise ValueError(f"{macro_step_id} 卡组无法在刷新后保持四人每人三张。")
+            deals[macro_step_id] = reconciled
+
+    def _overlay_course_cards(self, classroom: dict[str, Any], macro_step_id: str | None = None) -> None:
+        """Project JSON-authored cards into learner-safe Alpha seat views."""
+        if not self.state.get("courseDeals"):
+            return
+        if macro_step_id is None:
+            display_index = min(int(self.state.get("previewBlockIndex", self.state["currentBlockIndex"])), len(self.script["blocks"]) - 1)
+            macro_step_id = self.script["blocks"][display_index]["macroStepId"]
+        hands = self.state["courseDeals"].get(macro_step_id)
+        if not isinstance(hands, dict):
+            return
+        deck = next(item for item in self.script["decks"] if item["macroStepId"] == macro_step_id)
+        by_id = {card["id"]: card for card in deck["cards"]}
+        views = classroom.setdefault("learnerViews", {})
+        phase = classroom.get("phase")
+        state_name = "held" if phase in {"lobby", "identity", "private-read", None} else "published"
+        for seat_id in LEARNER_SEAT_IDS:
+            view = views.setdefault(seat_id, {
+                "displayName": seat_id.replace("learner", "Young Builder "),
+                "reputation": 0, "walletTenths": 0, "unlockIds": [],
+                "identity": None, "scene": None, "chapterSteps": [],
+                "chapterDoneWhen": None, "realityMission": None, "challenge": None,
+            })
+            view["cards"] = [
+                {**copy.deepcopy(by_id[card_id]), "evidenceBoundary": by_id[card_id]["boundary"], "state": state_name}
+                for card_id in hands.get(seat_id, []) if card_id in by_id
+            ]
+        classroom["cardsPerLearner"] = [len(views[seat_id].get("cards", [])) for seat_id in LEARNER_SEAT_IDS]
+        classroom["uniqueDealtCards"] = len({card["id"] for seat_id in LEARNER_SEAT_IDS for card in views[seat_id].get("cards", [])})
+
     def public_state(self) -> dict[str, Any]:
         with self.lock:
-            return copy.deepcopy(self.state)
+            value = copy.deepcopy(self.state)
+            value["courseUpdate"] = self._course_update()
+            return value
 
     def _hydrate_seats(self) -> None:
-        index = min(self.state["currentBlockIndex"], len(self.script["blocks"]) - 1)
+        index = min(int(self.state.get("previewBlockIndex", self.state["currentBlockIndex"])), len(self.script["blocks"]) - 1)
         block = self.script["blocks"][index]
         macro = next(step for step in self.script["macroSteps"] if step["id"] == block["macroStepId"])
         status = self.state["status"]
+        is_preview = index != self.state["currentBlockIndex"]
+        self._overlay_course_cards(self.state["classroom"], block["macroStepId"])
         seats = []
         for definition in SEATS:
             task = block["seatTasks"][definition["id"]]
-            if status == "awaiting-acceptance":
+            if is_preview:
+                headline = f"调试回看 {block['id']} · 不撤销真实记录"
+            elif status == "awaiting-acceptance":
                 headline = "本块已同步 · 等待主控验收"
             elif status == "executing":
                 headline = "系统正在执行当前块"
@@ -501,6 +715,11 @@ class CourseController:
                 "studentPrompt": block["studentPrompt"] if definition["kind"] == "learner" else None,
                 "headline": headline,
                 "runStatus": status,
+                "isPreview": is_preview,
+                "executionBlockId": self.script["blocks"][self.state["currentBlockIndex"]]["id"],
+                "courseRevision": self.state.get("courseRevision", 0),
+                "courseDigest": str(self.state.get("courseDigest", ""))[:16],
+                "refreshEpoch": self.state.get("refreshEpoch", 0),
             })
         self.state["seats"] = seats
 
@@ -660,6 +879,15 @@ class LiveRunHandler(BaseHTTPRequestHandler):
             elif action == "retry":
                 data = self.server.controller.retry()
                 status = 200
+            elif action == "preview-back":
+                data = self.server.controller.preview_back()
+                status = 200
+            elif action == "preview-forward":
+                data = self.server.controller.preview_forward()
+                status = 200
+            elif action == "refresh-course":
+                data = self.server.controller.refresh_course()
+                status = 200
             elif action == "reset":
                 data = self.server.controller.reset()
                 status = 200
@@ -691,6 +919,8 @@ class LiveRunHandler(BaseHTTPRequestHandler):
                 "courseId": value["course"]["id"],
                 "macroSteps": len(value["macroSteps"]),
                 "blocks": len(value["blocks"]),
+                "decks": len(value["decks"]),
+                "cards": sum(len(deck["cards"]) for deck in value["decks"]),
             }
         if path == "/api/courses/save":
             value = payload.get("course")

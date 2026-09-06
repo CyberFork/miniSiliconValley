@@ -39,9 +39,22 @@ class CourseEditorTests(unittest.TestCase):
     def test_editor_assets_and_catalog_are_served(self):
         status, html = self.request("GET", "/editor/")
         self.assertEqual(status, 200); self.assertIn("课程编辑器", html)
+        self.assertIn("阶段卡组", html); self.assertIn("模拟 4 人发牌", html)
         status, body = self.request("GET", "/api/courses")
         self.assertEqual(status, 200)
         self.assertEqual({x["id"] for x in body["data"]["courses"]}, {"google-1995-2004", "eleme-2008-find-problem"})
+
+    def test_editor_javascript_exposes_card_crud_and_explicit_alpha_refresh(self):
+        status, javascript = self.request("GET", "/editor.js")
+        self.assertEqual(status, 200)
+        for marker in ("addCard", "data-card-action", "simulateDeal", "refresh-course", "Alpha Run"):
+            self.assertIn(marker, javascript)
+
+    def test_controller_exposes_preview_and_refresh_controls(self):
+        status, html = self.request("GET", "/")
+        self.assertEqual(status, 200)
+        for marker in ("previewBack", "previewForward", "refreshCourse", "versionPanel"):
+            self.assertIn(marker, html)
 
     def test_clone_draft_publish_and_runtime_discovery(self):
         _, cloned = self.request("POST", "/api/courses/clone", {
@@ -53,6 +66,7 @@ class CourseEditorTests(unittest.TestCase):
         value["course"]["description"] = "一份经过编辑的完整课程。"
         status, saved = self.request("POST", "/api/courses/save", {"course": value, "status": "published", "expectedRevision": 1})
         self.assertEqual(status, 200); self.assertEqual(saved["data"]["revision"], 2)
+        self.assertEqual(len(saved["data"]["course"]["decks"]), 5)
         self.assertIn("sample-course-2010", {x["id"] for x in self.repository.list_published()})
         status, loaded = self.request("GET", "/api/courses/sample-course-2010?variant=published")
         self.assertEqual(status, 200); self.assertEqual(loaded["data"]["course"]["course"]["description"], value["course"]["description"])

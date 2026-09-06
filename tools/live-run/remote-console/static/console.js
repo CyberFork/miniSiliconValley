@@ -301,7 +301,10 @@
     byId("courseBar").value = total ? Math.round((current / total) * 100) : 0;
     byId("blockNow").textContent = current || "—";
     byId("blockTotal").textContent = total || "—";
-    byId("macroStep").textContent = data.run?.macroStepName || data.run?.status || "等待连接…";
+    const revision = data.run?.courseRevision;
+    const sync = revision == null ? "" : ` · r${revision} · #${data.run?.refreshEpoch || 0}`;
+    const preview = data.run?.executionBlock && data.run.executionBlock !== current ? ` · 回看 B${String(current).padStart(2,"0")}，真实 B${String(data.run.executionBlock).padStart(2,"0")}` : "";
+    byId("macroStep").textContent = `${data.run?.macroStepName || data.run?.status || "等待连接…"}${sync}${preview}`;
     byId("claimCount").textContent = data.clientClaimCount ?? 0;
     byId("connText").textContent = data.connected ? "课程主控已连接" : "席位台在线 · 课程主控离线";
     byId("connDot").classList.toggle("off", !data.connected);

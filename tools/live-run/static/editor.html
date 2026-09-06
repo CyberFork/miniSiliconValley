@@ -7,6 +7,8 @@
   <title>课程编辑器 · Mini Silicon Valley</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../editor.css">
+  <link rel="stylesheet" href="/ui-theme.css?v=20260906-5">
+  <script src="/ui-theme.js?v=20260906-5"></script>
 </head>
 <body>
 <header class="topbar">
@@ -40,6 +42,7 @@
           <button id="publish" class="button primary">发布到主控</button>
         </div>
       </div>
+      <section id="alphaSync" class="alpha-sync" aria-live="polite"></section>
       <div class="mode-tabs" role="tablist">
         <button id="structuredTab" role="tab" aria-selected="true">结构化编辑</button>
         <button id="jsonTab" role="tab" aria-selected="false">JSON 源码</button>
@@ -47,6 +50,20 @@
       <div id="structuredPane">
         <section class="meta-card" id="metadataForm"></section>
         <nav id="stepTabs" class="step-tabs" aria-label="五大步骤"></nav>
+        <section class="deck-studio" aria-labelledby="deckTitle">
+          <div class="deck-head">
+            <div><span class="eyebrow">STAGE DECK · JSON 真值</span><h3 id="deckTitle">阶段卡组</h3><p id="deckSummary"></p></div>
+            <div class="deck-actions">
+              <button type="button" id="addCard" class="button secondary">新增卡</button>
+              <button type="button" id="simulateDeal" class="button ghost">模拟 4 人发牌</button>
+            </div>
+          </div>
+          <div class="deck-layout">
+            <nav id="deckCardList" class="deck-card-list" aria-label="本阶段卡牌"></nav>
+            <form id="deckCardForm" class="deck-card-form"></form>
+          </div>
+          <div id="dealPreview" class="deal-preview" hidden></div>
+        </section>
         <div class="block-layout">
           <nav id="blockList" class="block-list" aria-label="小步骤"></nav>
           <form id="blockForm" class="block-form"></form>

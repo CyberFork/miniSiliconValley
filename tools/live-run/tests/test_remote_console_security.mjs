@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync, chmodSync } from "nod
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { createRemoteConsoleServer } from "../remote-console/server.mjs";
+import { createRemoteConsoleServer, projectSeatState } from "../remote-console/server.mjs";
 
 function listen(server) {
   return new Promise((resolve) => server.listen(0, "127.0.0.1", () => resolve(server.address().port)));
@@ -88,4 +88,51 @@ test("CLI entrypoint starts when invoked through a release symlink", async () =>
     await new Promise((resolve) => child.once("exit", resolve));
     rmSync(root, { recursive: true, force: true });
   }
+});
+
+
+test("seat projection carries revision signal and never leaks another learner hand", () => {
+  const state = {
+    schemaVersion: 4, courseId: "google-1995-2004", runId: "run-1", updatedAt: "now",
+    version: 7, status: "ready", currentBlockIndex: 1, previewBlockIndex: 0,
+    lastCompletedBlockIndex: 0, courseRevision: 3, courseDigest: "abc123", courseVariant: "draft", refreshEpoch: 2,
+    seats: [
+      { id: "learner01", window: "W04", title: "Young Builder 01", kind: "learner", blockId: "B01" },
+      { id: "learner02", window: "W05", title: "Young Builder 02", kind: "learner", blockId: "B01" },
+    ],
+    classroom: {
+      roomId: "room", learnerViews: {
+        learner01: { displayName: "One", cards: [{ id: "private-one", title: "A", body: "one", sharePrompt: "share", sourceIds: ["src-1"], evidenceBoundary: "F" }] },
+        learner02: { displayName: "Two", cards: [{ id: "private-two", title: "B", body: "two", sharePrompt: "share", sourceIds: [], evidenceBoundary: "R" }] },
+      },
+    },
+  };
+  const projected = projectSeatState(state, "learner01");
+  assert.equal(projected.courseRevision, 3); assert.equal(projected.courseDigest, "abc123");
+  assert.equal(projected.previewBlockIndex, 0); assert.equal(projected.refreshEpoch, 2);
+  assert.deepEqual(Object.keys(projected.classroom.learnerViews), ["learner01"]);
+  assert.equal(projected.classroom.learnerViews.learner01.cards[0].id, "private-one");
+  assert.deepEqual(projected.classroom.learnerViews.learner01.cards[0].sourceIds, ["src-1"]);
+  assert.equal(JSON.stringify(projected).includes("private-two"), false);
+});
+
+test("console invalidates script cache when same course id gets a new digest", async () => {
+  let digest = "digest-one"; let scriptReads = 0;
+  const fetchImpl = async (url) => {
+    const path = new URL(url).pathname;
+    if (path.endsWith("/api/script")) scriptReads += 1;
+    const data = path.endsWith("/api/state")
+      ? { scriptId: "same-script", courseDigest: digest, status: "ready", currentBlockIndex: 0, previewBlockIndex: 0, seats: [] }
+      : { id: "same-script", course: { name: `Course ${digest}`, coverage: "5步" }, blocks: Array(13).fill({}) };
+    return new Response(JSON.stringify({ ok: true, data }), { status: 200, headers: { "Content-Type": "application/json" } });
+  };
+  const root = mkdtempSync(join(tmpdir(), "msv-console-cache-"));
+  const server = createRemoteConsoleServer({ controllerBase: "http://127.0.0.1:18790", controllerServiceKey: "k".repeat(48), fetchImpl, statePath: join(root, "claims.json") });
+  const port = await listen(server);
+  try {
+    await fetch(`http://127.0.0.1:${port}/api/console?clientId=cache_client_1234567890`);
+    digest = "digest-two";
+    const response = await fetch(`http://127.0.0.1:${port}/api/console?clientId=cache_client_1234567890`);
+    assert.equal(response.status, 200); assert.equal(scriptReads, 2);
+  } finally { await close(server); rmSync(root, { recursive: true, force: true }); }
 });

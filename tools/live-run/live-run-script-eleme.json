@@ -21,6 +21,630 @@
     "period": "2008—2009",
     "why": "第 1 步由教学团队史料驱动；第 2—5 步让学员在 2008 年约束下走完方案、MVP、市场和运营的玩家平行世界，全程与史实明确分层。"
   },
+  "sources": [
+    {
+      "id": "src-eleme-sjtu-youth-origin",
+      "title": "青年报：从交大宿舍出发的创业故事",
+      "organization": "上海交通大学青年网",
+      "url": "https://youth.sjtu.edu.cn/index_news/1446.html",
+      "kind": "university",
+      "accessed": "2026-09-01"
+    },
+    {
+      "id": "src-eleme-sjtu-mba-origin",
+      "title": "安泰 MBA 校友创业故事：张旭豪与饿了么",
+      "organization": "上海交通大学安泰经济与管理学院",
+      "url": "https://mba.sjtu.edu.cn/news/forums/15315.html",
+      "kind": "university",
+      "accessed": "2026-09-01"
+    },
+    {
+      "id": "src-eleme-sjtu-youth-process",
+      "title": "从电话订餐到网络平台的早期实践",
+      "organization": "上海交通大学青年网",
+      "url": "https://youth.sjtu.edu.cn/qc_hlzb/3249.html",
+      "kind": "university",
+      "accessed": "2026-09-01"
+    },
+    {
+      "id": "src-eleme-sjtu-news-2018",
+      "title": "交大学子创新创业案例：饿了么",
+      "organization": "上海交通大学新闻网",
+      "url": "https://news.sjtu.edu.cn/zhxw/20180405/25919.html",
+      "kind": "university",
+      "accessed": "2026-09-01"
+    }
+  ],
+  "decks": [
+    {
+      "id": "eleme-2008-find-problem-find-information",
+      "macroStepId": "find",
+      "drawAtBlockId": "B01",
+      "cardsPerLearner": 3,
+      "uniqueDeal": true,
+      "shuffle": true,
+      "cards": [
+        {
+          "id": "e08-f-01",
+          "boundary": "F",
+          "title": "F-01 · 2008 年开始尝试餐饮外送",
+          "body": "历史事实：上海交通大学公开资料记载，张旭豪等人在 2008 年开始餐饮外送业务与相关创业实践。",
+          "sharePrompt": "说清这条事实能证明“有人开始行动”，但不能证明所有学生都有同样需求。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-origin",
+            "src-eleme-sjtu-news-2018"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "e08-f-02",
+          "boundary": "F",
+          "title": "F-02 · 电话和餐厅信息是早期入口",
+          "body": "历史事实：交大公开叙事描述了团队走访餐厅、整理订餐信息，并用电话处理早期订餐。它不能自动证明每家餐厅流程相同。",
+          "sharePrompt": "把“电话订餐”拆成至少三个动作，再指出哪一步还缺真实用户记录。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-process"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "e08-r-01",
+          "boundary": "R",
+          "title": "R-01 · 手里只有几张旧菜单",
+          "body": "课堂模拟：一名学生晚上想订餐，桌上只有几张不同餐厅的旧菜单；不知道信息是否还有效。",
+          "sharePrompt": "先声明这是模拟场景，再说要找什么真人或记录才能把它变成事实证据。",
+          "sourceIds": [],
+          "credibility": "medium"
+        },
+        {
+          "id": "e08-r-02",
+          "boundary": "R",
+          "title": "R-02 · 今晚营业和配送范围未知",
+          "body": "课堂模拟：学生不知道餐厅今晚是否营业、是否愿意送到这栋宿舍，只能逐个确认。",
+          "sharePrompt": "演出一次逐个确认的过程，指出时间损失发生在哪一步。",
+          "sourceIds": [],
+          "credibility": "medium"
+        },
+        {
+          "id": "e08-r-03",
+          "boundary": "R",
+          "title": "R-03 · 餐厅同时顾堂食和电话",
+          "body": "课堂模拟：餐厅工作人员一边处理堂食，一边接电话、听菜名、记宿舍地址。",
+          "sharePrompt": "列出一次可能的错漏，但不要把“可能”说成已经发生。",
+          "sourceIds": [],
+          "credibility": "medium"
+        },
+        {
+          "id": "e08-r-04",
+          "boundary": "R",
+          "title": "R-04 · 多张订单需要排路线",
+          "body": "课堂模拟：配送者同时拿到多个地址和时间要求，需要决定先送哪一单。",
+          "sharePrompt": "说明配送者的任务与学生的任务哪里不同；不要把三方问题混成一句话。",
+          "sourceIds": [],
+          "credibility": "medium"
+        },
+        {
+          "id": "e08-c-01",
+          "boundary": "F",
+          "title": "C-01 · 早期不是先做网站",
+          "body": "历史行动：公开资料把 2008 年的早期实践放在网站正式启动之前。团队先做线下订餐与配送，不可倒推为“一开始已有成熟平台”。",
+          "sharePrompt": "说出它证明团队先观察了哪些动作，又不能证明哪种产品一定正确。",
+          "sourceIds": [
+            "src-eleme-sjtu-mba-origin",
+            "src-eleme-sjtu-news-2018"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "e08-c-02",
+          "boundary": "F",
+          "title": "C-02 · 先整理餐厅信息",
+          "body": "历史行动：公开叙事描述团队走访餐厅、记录订餐信息，并印发材料帮助学生找到入口。",
+          "sharePrompt": "分别说它能证明“信息有人用行动整理”，以及不能证明“所有信息都准确”。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-process"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "e08-c-03",
+          "boundary": "F",
+          "title": "C-03 · 设置统一联系电话",
+          "body": "历史行动：公开叙事记载团队设置宿舍订餐电话，由人员接单并调度。",
+          "sharePrompt": "指出统一电话减少了哪一步来回，也指出它可能新增哪一步人工压力。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-process"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "e08-c-04",
+          "boundary": "F",
+          "title": "C-04 · 人工接单并组织配送",
+          "body": "历史行动：早期流程需要人工接听、记录和调度配送。这是完整任务链的行动证据，不是规模化能力证明。",
+          "sharePrompt": "画出接电话到送达的动作链，再圈出最容易漏信息的一步。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-process"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "e08-c-05",
+          "boundary": "F",
+          "title": "C-05 · 创始成员亲自送餐",
+          "body": "历史行动：交大公开资料记载创始团队早期亲自参与送餐。它能帮助观察流程，不能证明这种方式可以无限扩大。",
+          "sharePrompt": "说出亲自送餐能看到的一条证据，以及它无法回答的一项规模问题。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-origin",
+            "src-eleme-sjtu-news-2018"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "e08-c-06",
+          "boundary": "F",
+          "title": "C-06 · 网站在 2009 年正式启动",
+          "body": "历史事实：上海交大安泰学院公开资料把饿了么网站正式启动放在 2009 年；不能把这一结果提前当作 2008 年的已知答案。",
+          "sharePrompt": "解释为什么知道后来有网站，也不能让团队跳过 2008 年的问题调查。",
+          "sourceIds": [
+            "src-eleme-sjtu-mba-origin"
+          ],
+          "credibility": "high"
+        }
+      ]
+    },
+    {
+      "id": "eleme-2008-find-problem-decide-information",
+      "macroStepId": "decide",
+      "drawAtBlockId": "B04",
+      "cardsPerLearner": 3,
+      "uniqueDeal": true,
+      "shuffle": true,
+      "cards": [
+        {
+          "id": "e08-decide-f01",
+          "boundary": "F",
+          "title": "F · 网站是在后面才出现的",
+          "body": "公开资料把正式网站启动放在 2009 年。2008 年做选择时，团队还不能把成熟网站当成现成答案。",
+          "sharePrompt": "告诉队友：这条事实限制了什么，但没有替我们选方案。",
+          "sourceIds": [
+            "src-eleme-sjtu-mba-origin"
+          ]
+        },
+        {
+          "id": "e08-decide-f02",
+          "boundary": "F",
+          "title": "F · 早期用统一电话接单",
+          "body": "公开叙事记载，团队设置订餐电话，由人接听、记录并安排配送。",
+          "sharePrompt": "画出统一电话少掉的一步，以及新增加的一步人工工作。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-process"
+          ]
+        },
+        {
+          "id": "e08-decide-f03",
+          "boundary": "F",
+          "title": "F · 先走访餐厅再整理信息",
+          "body": "公开资料描述了走访餐厅和整理订餐信息的行动，说明信息收集发生在复杂平台之前。",
+          "sharePrompt": "说出这条行动能支持哪条方案，又不能保证什么结果。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-process"
+          ]
+        },
+        {
+          "id": "e08-decide-r01",
+          "boundary": "R",
+          "title": "R · 桌上只有 10 枚资源币",
+          "body": "课堂模拟：做一个入口花 3 枚币，完成一次下单动作花 4 枚币，给出结果回执花 3 枚币；其他功能现在买不起。",
+          "sharePrompt": "用 10 枚币保住一单必须经过的三件事。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-decide-r02",
+          "boundary": "R",
+          "title": "R · 只服务一位宿舍同学",
+          "body": "课堂模拟：今晚只测试一名住在东区宿舍、想点晚饭的同学，不做全校平台。",
+          "sharePrompt": "把“大平台”改写成这名同学可以完成的一次动作。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-decide-r03",
+          "boundary": "R",
+          "title": "R · 餐厅听漏了楼栋",
+          "body": "课堂模拟：电话里菜名听清了，但楼栋和房间号只记到一半。",
+          "sharePrompt": "比较纸菜单、统一电话和简单网页，哪条路更早暴露这个问题。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-decide-g01",
+          "boundary": "G",
+          "title": "G · 简单网页也许能减少查菜单",
+          "body": "团队推测：把几家餐厅和菜品放到一个简单页面，可能减少学生来回翻菜单的时间。",
+          "sharePrompt": "先说“这是我们猜的”，再设计一个能让猜测失败的小测试。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-decide-g02",
+          "boundary": "G",
+          "title": "G · 统一电话也许只是转移麻烦",
+          "body": "团队推测：一个号码方便学生，却可能把大量确认工作压给接线的人。",
+          "sharePrompt": "说清谁少做了什么、谁又多做了什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-decide-g03",
+          "boundary": "G",
+          "title": "G · 纸菜单可能是最快的第一版",
+          "body": "团队推测：一张更新过的菜单也许比做网页更快得到第一次真实反馈。",
+          "sharePrompt": "提出一个今晚就能比较纸菜单和网页的办法。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-decide-u01",
+          "boundary": "U",
+          "title": "U · 旧菜单到底多常见",
+          "body": "当前未知：我们还没有真实记录说明学生碰到旧菜单的频率。",
+          "sharePrompt": "说出要问几个人、记录什么，才能继续判断。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-decide-u02",
+          "boundary": "U",
+          "title": "U · 学生愿不愿意付配送费",
+          "body": "当前未知：没有证据说明这名学生愿意为省事支付多少钱。",
+          "sharePrompt": "设计一个不诱导回答的价格问题。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-decide-u03",
+          "boundary": "U",
+          "title": "U · 餐厅愿意怎样更新信息",
+          "body": "当前未知：餐厅愿不愿意每天告诉我们售罄和营业变化，还没有被问过。",
+          "sharePrompt": "说出要找哪位餐厅工作人员问哪一个具体问题。",
+          "sourceIds": []
+        }
+      ]
+    },
+    {
+      "id": "eleme-2008-find-problem-build-information",
+      "macroStepId": "build",
+      "drawAtBlockId": "B06",
+      "cardsPerLearner": 3,
+      "uniqueDeal": true,
+      "shuffle": true,
+      "cards": [
+        {
+          "id": "e08-build-f01",
+          "boundary": "F",
+          "title": "F · 早期流程靠人接听和记录",
+          "body": "公开资料描述了电话接单和人工安排。这说明第一版可以先跑通动作，不等自动化系统齐全。",
+          "sharePrompt": "圈出必须由人完成的输入、动作和回执。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-process"
+          ]
+        },
+        {
+          "id": "e08-build-f02",
+          "boundary": "F",
+          "title": "F · 创始成员亲自送过餐",
+          "body": "上海交大公开资料记载，创始团队早期亲自参与配送。亲自做能看见流程，但不能证明可以无限扩张。",
+          "sharePrompt": "说出亲自送一单能观察什么、不能回答什么。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-origin",
+            "src-eleme-sjtu-news-2018"
+          ]
+        },
+        {
+          "id": "e08-build-f03",
+          "boundary": "F",
+          "title": "F · 2009 年才正式启动网站",
+          "body": "公开资料把网站正式启动放在 2009 年，说明 2008 年的 V0 不必假装已有成熟平台。",
+          "sharePrompt": "提醒团队只搭能让一单跑通的版本。",
+          "sourceIds": [
+            "src-eleme-sjtu-mba-origin"
+          ]
+        },
+        {
+          "id": "e08-build-r01",
+          "boundary": "R",
+          "title": "R · 测试者不能听你解释",
+          "body": "课堂模拟：队友拿到你们的纸卡、电话脚本或页面后，制作者必须安静，看他能否自己开始。",
+          "sharePrompt": "记录测试者第一次停住的位置，不要马上教他。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-build-r02",
+          "boundary": "R",
+          "title": "R · 一道菜已经卖完",
+          "body": "课堂模拟：菜单上的招牌饭今晚售罄，但 V0 仍显示可以下单。",
+          "sharePrompt": "只改一处，让用户尽早知道卖完并能继续选择。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-build-r03",
+          "boundary": "R",
+          "title": "R · 宿舍地址被记错",
+          "body": "课堂模拟：订单写成“东 3-502”，配送者走到了“东 5-302”。",
+          "sharePrompt": "找出是哪一个输入或复述步骤让错误漏过去。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-build-g01",
+          "boundary": "G",
+          "title": "G · 确认回执可能减少焦虑",
+          "body": "团队推测：明确告诉学生“已接单、预计几点送到”，可能减少重复打电话。",
+          "sharePrompt": "让一名测试者比较有回执和没回执的感受与行为。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-build-g02",
+          "boundary": "G",
+          "title": "G · 分开填写楼栋和房号可能少出错",
+          "body": "团队推测：把地址拆成楼栋、楼层、房间三格，可能比一长串口述更清楚。",
+          "sharePrompt": "设计两轮测试，只改地址输入这一处。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-build-g03",
+          "boundary": "G",
+          "title": "G · 先限制一栋楼可能更稳",
+          "body": "团队推测：V1 先只接一栋宿舍的订单，可能更容易按时送达。",
+          "sharePrompt": "说明怎样记录是否更稳，而不是只凭感觉。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-build-u01",
+          "boundary": "U",
+          "title": "U · 最常见的失败在哪一步",
+          "body": "当前未知：我们还没有足够测试记录说明查菜、下单、确认、送达哪一步最容易失败。",
+          "sharePrompt": "做一张四步记录表，每次只记第一次失败。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-build-u02",
+          "boundary": "U",
+          "title": "U · 订单最少要填哪些信息",
+          "body": "当前未知：菜品、数量、楼栋、房间、电话里哪些是不可缺的，还没经过真实测试。",
+          "sharePrompt": "让测试者少填一项，看哪一项会让订单无法继续。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-build-u03",
+          "boundary": "U",
+          "title": "U · 陌生同学能否自己完成",
+          "body": "当前未知：参与设计的队友会自动补全步骤，不能代表第一次见到 V0 的人。",
+          "sharePrompt": "找一名不知道答案的人做无讲解测试。",
+          "sourceIds": []
+        }
+      ]
+    },
+    {
+      "id": "eleme-2008-find-problem-market-information",
+      "macroStepId": "market",
+      "drawAtBlockId": "B09",
+      "cardsPerLearner": 3,
+      "uniqueDeal": true,
+      "shuffle": true,
+      "cards": [
+        {
+          "id": "e08-market-f01",
+          "boundary": "F",
+          "title": "F · 故事从校园餐饮外送开始",
+          "body": "上海交大资料把早期创业实践放在校园餐饮外送场景，而不是一开始服务所有城市用户。",
+          "sharePrompt": "用这条事实约束第一群用户的范围。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-origin",
+            "src-eleme-sjtu-news-2018"
+          ]
+        },
+        {
+          "id": "e08-market-f02",
+          "boundary": "F",
+          "title": "F · 团队曾走访餐厅",
+          "body": "公开叙事描述了团队走访餐厅、收集并整理订餐信息。",
+          "sharePrompt": "说出面对面走访能获得什么一手信息。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-process"
+          ]
+        },
+        {
+          "id": "e08-market-f03",
+          "boundary": "F",
+          "title": "F · 早期印发过订餐信息",
+          "body": "公开资料记载团队整理并印发材料，帮助学生找到订餐入口。",
+          "sharePrompt": "区分“发出了材料”和“用户真的下单”这两个证据。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-process"
+          ]
+        },
+        {
+          "id": "e08-market-r01",
+          "boundary": "R",
+          "title": "R · 今晚只能选一栋宿舍",
+          "body": "课堂模拟：团队只有 30 分钟和一张海报，只能去一栋楼找到第一批测试者。",
+          "sharePrompt": "说出楼栋、时段和这些人正在做什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-market-r02",
+          "boundary": "R",
+          "title": "R · 只有十秒介绍机会",
+          "body": "课堂模拟：路过的同学只愿意听十秒；不能讲完整商业计划。",
+          "sharePrompt": "用“给谁—什么麻烦—得到什么结果”说一句话。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-market-r03",
+          "boundary": "R",
+          "title": "R · 第一位同学拒绝了",
+          "body": "课堂模拟：同学说“我习惯直接打熟悉餐厅的电话”，不愿试。",
+          "sharePrompt": "原样记下拒绝理由，不要和他争辩。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-market-g01",
+          "boundary": "G",
+          "title": "G · 晚饭前的宿舍可能更容易找到人",
+          "body": "团队推测：晚饭前在宿舍楼下，比白天在教室更容易遇到正在决定吃什么的人。",
+          "sharePrompt": "说出今晚如何验证这个时段猜测。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-market-g02",
+          "boundary": "G",
+          "title": "G · “少打几个电话”可能是有效承诺",
+          "body": "团队推测：比起“餐厅更多”，“少打几个电话就知道结果”可能更贴近学生任务。",
+          "sharePrompt": "把两种说法各讲给一人，记录谁愿意开始。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-market-g03",
+          "boundary": "G",
+          "title": "G · 餐厅信息表可能成为第一渠道",
+          "body": "团队推测：一张清楚、及时的信息表可能比品牌口号更能让第一批同学尝试。",
+          "sharePrompt": "定义一次可观察的“开始使用”。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-market-u01",
+          "boundary": "U",
+          "title": "U · 一栋楼里有多少目标同学",
+          "body": "当前未知：没有真实计数说明今晚这栋楼有多少人正在找晚饭。",
+          "sharePrompt": "设计一个 15 分钟可完成的现场计数。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-market-u02",
+          "boundary": "U",
+          "title": "U · 听到承诺后有多少人会开始",
+          "body": "当前未知：我们没有触达、开始、完成三段漏斗数据。",
+          "sharePrompt": "画三个格子，每遇到一人就记在哪一步停住。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-market-u03",
+          "boundary": "U",
+          "title": "U · 找到一位新用户要花多少",
+          "body": "当前未知：海报、走访和电话各自花多少时间与资源，没有被记录。",
+          "sharePrompt": "给每次触达记时间和资源币，算出一次完成的成本。",
+          "sourceIds": []
+        }
+      ]
+    },
+    {
+      "id": "eleme-2008-find-problem-operate-information",
+      "macroStepId": "operate",
+      "drawAtBlockId": "B11",
+      "cardsPerLearner": 3,
+      "uniqueDeal": true,
+      "shuffle": true,
+      "cards": [
+        {
+          "id": "e08-operate-f01",
+          "boundary": "F",
+          "title": "F · 早期订单由人工接听和调度",
+          "body": "公开资料说明早期流程需要人接单、记录并组织配送，运营动作本身就是产品的一部分。",
+          "sharePrompt": "把从请求到送达写成换个人也能跟的步骤。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-process"
+          ]
+        },
+        {
+          "id": "e08-operate-f02",
+          "boundary": "F",
+          "title": "F · 创始团队亲自参与配送",
+          "body": "公开资料记载创始成员亲自送餐。这能帮助发现问题，却不能自动证明长期成本可承受。",
+          "sharePrompt": "指出亲自做与稳定经营之间还缺哪项数据。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-origin",
+            "src-eleme-sjtu-news-2018"
+          ]
+        },
+        {
+          "id": "e08-operate-f03",
+          "boundary": "F",
+          "title": "F · 网站启动是后续行动",
+          "body": "公开资料把网站正式启动放在 2009 年；网站出现不等于接单、配送和售后会自动完成。",
+          "sharePrompt": "说出网站之外仍需有人负责的两步。",
+          "sourceIds": [
+            "src-eleme-sjtu-mba-origin"
+          ]
+        },
+        {
+          "id": "e08-operate-r01",
+          "boundary": "R",
+          "title": "R · 六张订单同时进来",
+          "body": "课堂模拟：十分钟内收到六张订单，只有两名配送者，所有订单不可能同时送达。",
+          "sharePrompt": "先限量或排序，并告诉受影响的人下一次更新时间。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-operate-r02",
+          "boundary": "R",
+          "title": "R · 一位学生投诉送晚了",
+          "body": "课堂模拟：订单比承诺晚到二十分钟，学生追问发生了什么。",
+          "sharePrompt": "先说明影响和止损，再记录原因，不要只道歉。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-operate-r03",
+          "boundary": "R",
+          "title": "R · 新人只拿到一张 SOP",
+          "body": "课堂模拟：没有参与设计的队友只看流程卡处理一单，原作者不能在旁边提醒。",
+          "sharePrompt": "记录新人在哪一步停住，再只改 SOP 的一处。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-operate-g01",
+          "boundary": "G",
+          "title": "G · 同时接四单可能是当前上限",
+          "body": "团队推测：按现在的人手和路线，同时接四单还能保持承诺，更多就会失控。",
+          "sharePrompt": "用一轮模拟订单测试上限，并写清停止接单条件。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-operate-g02",
+          "boundary": "G",
+          "title": "G · 提前通知延误可能保护信任",
+          "body": "团队推测：比起沉默，提前说明延误和新时间可能让用户更愿意继续等待。",
+          "sharePrompt": "比较两种通知方式，记录用户下一步行为。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-operate-g03",
+          "boundary": "G",
+          "title": "G · 团队需要留钱才能跑下一轮",
+          "body": "团队推测：收入不能全部分到个人钱包，必须留下部分支付下一轮材料与配送成本。",
+          "sharePrompt": "给出一笔可守恒的分配，并解释团队为什么留这笔钱。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-operate-u01",
+          "boundary": "U",
+          "title": "U · 每完成一单到底赚还是亏",
+          "body": "当前未知：收入、餐费、材料、配送时间和退款还没有放进同一本账。",
+          "sharePrompt": "把每笔流入流出写到同一张账本，算出单笔结果。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-operate-u02",
+          "boundary": "U",
+          "title": "U · 两个人最多稳定送几单",
+          "body": "当前未知：没有多轮记录说明人手和路线的稳定容量。",
+          "sharePrompt": "连续跑两轮，在相同时间内记录完成、延误和取消。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-operate-u03",
+          "boundary": "U",
+          "title": "U · 用户会不会再来一次",
+          "body": "当前未知：一次完成不等于会复用，还没有第二次选择的证据。",
+          "sharePrompt": "约定下一次真实任务，在不提醒的情况下观察他是否回来。",
+          "sourceIds": []
+        }
+      ]
+    }
+  ],
   "formula": {
     "oneWorld": "真实科技史驱动的有限开放世界创业学习 RPG",
     "twoDualTracks": [

@@ -1,0 +1,73 @@
+{
+  "receiptVersion": 1,
+  "completedAt": "2026-09-06T12:33:17+08:00",
+  "todos": ["T-071", "T-072"],
+  "release": {
+    "host": "hecate-work",
+    "publicOrigin": "https://minisv.vip",
+    "releaseId": "20260906T042434Z-course-decks-live-sync",
+    "overlaySha256": "4cb80037d2d1ed563cee61fe49a582cfab23790947348733d9e0a2f4fb81c053"
+  },
+  "coursePackages": {
+    "google-1995-2004": {"macroSteps": 5, "blocks": 13, "decks": 5, "cards": 60},
+    "eleme-2008-find-problem": {"macroSteps": 5, "blocks": 13, "decks": 5, "cards": 60},
+    "dealContract": {"learners": 4, "cardsPerLearner": 3, "uniqueCardsPerStage": 12, "roleIndependent": true}
+  },
+  "alphaContract": {
+    "editorSaveAutoMutatesRun": false,
+    "explicitRefreshRequired": true,
+    "refreshPreserves": ["runId", "executionPointer", "classroom", "submissions", "scores", "reputation", "personalWallet", "teamTreasury", "existingHands"],
+    "previewBackForwardHasSideEffects": false,
+    "seatVersionFields": ["courseRevision", "courseDigest", "refreshEpoch"]
+  },
+  "automatedValidation": {
+    "pythonLiveRun": {"tests": 28, "passed": 28},
+    "nodeRemoteConsole": {"tests": 6, "passed": 6},
+    "pythonDeployment": {"tests": 13, "passed": 13},
+    "nodeThemeRuntime": {"tests": 1, "passed": 1},
+    "browserLocal": {
+      "passed": true,
+      "revision": 1,
+      "refreshEpoch": 1,
+      "runPreserved": true,
+      "decks": 5,
+      "cards": 60,
+      "deal": "4x3 unique",
+      "previewDoesNotMoveExecution": true
+    },
+    "browserProductionReadOnly": {
+      "passed": true,
+      "heroGeometryEqualAcrossThemes": true,
+      "controllerControls": ["previewBack", "previewForward", "refreshCourse", "execute", "accept"],
+      "editorStageTabs": 5,
+      "editorCardsInSelectedStage": 12,
+      "simulatedHands": 4,
+      "simulatedDealUnique": true
+    }
+  },
+  "publicSmoke": {
+    "/": 200,
+    "/world/": 200,
+    "/framework/": 200,
+    "/parents/": 200,
+    "/workshop/": 200,
+    "/alpha/": 200,
+    "/control/": 303,
+    "/control/editor/": 303,
+    "/classroom": 307,
+    "/auth/login": 200,
+    "/healthz": 200,
+    "/control/api/bootstrap": 401,
+    "/control/api/script": 401
+  },
+  "productionRunReadOnlyCheck": {
+    "schemaVersion": 4,
+    "courseId": "eleme-2008-find-problem",
+    "status": "awaiting-acceptance",
+    "courseRevision": 0,
+    "allSeatVersionsEqual": true,
+    "currentStageHands": [3, 3, 3, 3],
+    "currentStageUniqueCards": 12,
+    "mutatedByAcceptanceCheck": false
+  }
+}

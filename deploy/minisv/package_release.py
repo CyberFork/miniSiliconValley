@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import shutil
 import sys
 from datetime import datetime, timezone
@@ -13,6 +14,8 @@ from pathlib import Path
 TEXT_SUFFIXES = {".html", ".css", ".js", ".mjs", ".json", ".svg", ".md", ".txt", ".webmanifest"}
 REQUIRED_PAGES = ("index.html", "world/index.html", "framework/index.html", "parents/index.html", "workshop/index.html")
 FORBIDDEN = ("work.cyberforker.com", "192.168.", "127.0.0.1:18765", "/msv/", r"\/msv\/")
+THEME_VERSION = "20260906-5"
+THEME_ASSETS = f'<link rel="stylesheet" href="/ui-theme.css?v={THEME_VERSION}"><script src="/ui-theme.js?v={THEME_VERSION}"></script>'
 
 
 def copy_entry(source: Path, target: Path) -> None:
@@ -56,6 +59,16 @@ def rewrite_text(text: str) -> str:
     return text.replace("https://work.cyberforker.com", "https://minisv.vip").replace("work.cyberforker.com", "minisv.vip")
 
 
+def inject_theme_assets(text: str) -> str:
+    if "/ui-theme.js" in text:
+        text = re.sub(r"/ui-theme\.css(?:\?v=[A-Za-z0-9._-]+)?", f"/ui-theme.css?v={THEME_VERSION}", text)
+        text = re.sub(r"/ui-theme\.js(?:\?v=[A-Za-z0-9._-]+)?", f"/ui-theme.js?v={THEME_VERSION}", text)
+        return text
+    if "</head>" not in text:
+        return text
+    return text.replace("</head>", f"{THEME_ASSETS}</head>", 1)
+
+
 def transform_tree(root: Path) -> None:
     for path in sorted(root.rglob("*")):
         if not path.is_file() or path.suffix.lower() not in TEXT_SUFFIXES:
@@ -65,6 +78,8 @@ def transform_tree(root: Path) -> None:
         except UnicodeDecodeError:
             continue
         changed = rewrite_text(original)
+        if path.suffix.lower() == ".html":
+            changed = inject_theme_assets(changed)
         if changed != original:
             path.write_text(changed, encoding="utf-8")
 

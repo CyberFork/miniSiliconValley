@@ -13,7 +13,9 @@
 - `courses/course.schema.json`：Course Package v1 JSON Schema。
 - `courses/course-template.json`：中性完整模板。
 
-编辑器支持结构化编辑、JSON 源码、导入、导出、检查、草稿、发布与克隆。草稿不会进入上课选课区；发布版只由新 Run 或重置 Run 加载。活动 Run 把开课时的 JSON 固定到 `active-course.json`，服务重启不会中途换稿。
+编辑器支持结构化编辑、五阶段卡组 CRUD/来源/预览/4×3 模拟发牌、JSON 源码、导入、导出、检查、草稿、发布与克隆。每门课的 `sources`＋5 套 `decks` 是学员手牌内容真值；Google 与饿了么均为 5 套、60 张。
+
+正式课堂不会静默换稿。Alpha 会提示存在新修订，导师点击“全部刷新 Alpha”后在原 Run 加载最新完整草稿或发布版；Run、真实进度、RP、钱包、团队资金与手牌位置保留。“回看”只改变八席显示，不撤销副作用。
 
 生产课程数据位于 Hecate 的 `~/Services/minisv/data/courses/{drafts,published,history}`，不随 release 被覆盖。完整 SOP：[`../../docs/COURSE_PACKAGE_SOP.md`](../../docs/COURSE_PACKAGE_SOP.md)。
 

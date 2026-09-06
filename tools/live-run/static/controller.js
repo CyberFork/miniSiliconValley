@@ -5,6 +5,7 @@
   let courses = [];
   let script;
   let state;
+  let loadedDigest = "";
   const APP_BASE = new URL(".", window.location.href);
   const $ = (selector) => document.querySelector(selector);
   const esc = (value) => String(value ?? "").replace(
@@ -100,7 +101,9 @@
     const envelope = await response.json();
     if (!response.ok || !envelope.ok) throw new Error(envelope.error?.message || "操作失败");
     state = envelope.data;
-    if (!script || state.scriptId !== script.id) script = await get("api/script");
+    if (!script || state.scriptId !== script.id || loadedDigest !== state.courseDigest) {
+      script = await get("api/script"); loadedDigest = state.courseDigest;
+    }
     render();
   }
 
@@ -113,7 +116,13 @@
     return `<section class="script-section"><div class="label">${esc(FIELD[key])}</div>${content(value)}</section>`;
   }
 
-  function instruction(status, block) {
+  function instruction(status, block, isPreview = false) {
+    if (isPreview) {
+      return {
+        title: `调试回看：${block.id} 只重现内容，不撤销真实动作`,
+        body: "八个席位已同步到这一块供检查。抽卡、提交、RP、资金和账本全部保留；回到真实当前块后才能执行或验收。",
+      };
+    }
     if (status === "ready") {
       return {
         title: `现在：先读 ${block.id}，再点击“执行当前块”`,
@@ -181,13 +190,17 @@
   }
 
   function render() {
-    const index = state.currentBlockIndex;
+    const index = Number.isInteger(state.previewBlockIndex) ? state.previewBlockIndex : state.currentBlockIndex;
+    const isPreview = index !== state.currentBlockIndex;
     const block = script.blocks[index];
     const macro = script.macroSteps.find((item) => item.id === block.macroStepId);
     const lead = script.formula.fourMentors.find((item) => item.id === block.leadMentorId);
-    const guide = instruction(state.status, block);
+    const guide = instruction(state.status, block, isPreview);
     $("#runStatus").textContent = STATUS[state.status] || state.status;
     $("#runStatus").dataset.status = state.status;
+    const update = state.courseUpdate || {};
+    $("#versionPanel").dataset.pending = String(Boolean(update.updateAvailable));
+    $("#versionPanel").innerHTML = `<div><b>当前 Run · r${esc(update.activeRevision ?? state.courseRevision ?? 0)}</b><span>${esc(update.activeDigest || String(state.courseDigest || "").slice(0,16))} · ${esc(update.activeVariant || state.courseVariant || "published")}</span></div><div><b>编辑器最新 · ${update.latestRevision == null ? "读取失败" : `r${esc(update.latestRevision)}`}</b><span>${esc(update.latestDigest || "—")} ${update.updateAvailable ? "· 有更新待加载" : "· 已一致"}</span></div><div><b>真实位置 ${esc(script.blocks[state.currentBlockIndex]?.id)}</b><span>${isPreview ? `正在回看 ${esc(block.id)} · 未回滚数据` : "当前显示与真实位置一致"} · 刷新信号 ${esc(state.refreshEpoch || 0)}</span></div>`;
     renderCoursePicker();
     renderNavigation(block, index);
     $("#block").innerHTML = `
@@ -203,9 +216,13 @@
       ].map((key) => section(key, block[key])).join("")}</div>
     `;
 
-    $("#execute").disabled = state.status !== "ready";
-    $("#accept").disabled = state.status !== "awaiting-acceptance";
-    $("#retry").disabled = state.status !== "error";
+    $("#previewBack").disabled = state.status === "executing" || index <= 0;
+    $("#previewForward").disabled = state.status === "executing" || index >= state.currentBlockIndex;
+    $("#refreshCourse").disabled = state.status === "executing";
+    $("#refreshCourse").classList.toggle("pending", Boolean(update.updateAvailable));
+    $("#execute").disabled = isPreview || state.status !== "ready";
+    $("#accept").disabled = isPreview || state.status !== "awaiting-acceptance";
+    $("#retry").disabled = isPreview || state.status !== "error";
     const error = typeof state.error === "string" ? state.error : state.error?.message;
     $("#message").textContent = error || (state.status === "awaiting-acceptance" ? "系统同步完成，但课程还没有前进：请先完成现场验收。" : "");
     $("#message").className = error ? "error" : "";
@@ -218,11 +235,14 @@
       courses = data.courseCatalog;
       script = data.script;
       state = data.state;
+      loadedDigest = state.courseDigest;
       render();
       setInterval(async () => {
         try {
           const nextState = await get("api/state");
-          if (!script || nextState.scriptId !== script.id) script = await get("api/script");
+          if (!script || nextState.scriptId !== script.id || loadedDigest !== nextState.courseDigest) {
+            script = await get("api/script"); loadedDigest = nextState.courseDigest;
+          }
           state = nextState;
           render();
         } catch {
@@ -237,6 +257,12 @@
   }
 
   [["execute", "execute"], ["accept", "accept"], ["retry", "retry"]].forEach(([id, action]) => {
+    $("#" + id).onclick = () => control(action).catch((error) => {
+      $("#message").textContent = error.message;
+      $("#message").className = "error";
+    });
+  });
+  [["previewBack", "preview-back"], ["previewForward", "preview-forward"], ["refreshCourse", "refresh-course"]].forEach(([id, action]) => {
     $("#" + id).onclick = () => control(action).catch((error) => {
       $("#message").textContent = error.message;
       $("#message").className = "error";

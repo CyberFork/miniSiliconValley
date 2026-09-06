@@ -152,7 +152,12 @@ export function projectSeatState(state, seatId) {
     version: state.version,
     status: state.status,
     currentBlockIndex: state.currentBlockIndex,
+    previewBlockIndex: state.previewBlockIndex,
     lastCompletedBlockIndex: state.lastCompletedBlockIndex,
+    courseRevision: state.courseRevision,
+    courseDigest: state.courseDigest,
+    courseVariant: state.courseVariant,
+    refreshEpoch: state.refreshEpoch,
     classroom,
     seats: [{ ...seat }],
   };
@@ -167,7 +172,7 @@ function projectLearnerView(view) {
     recentWallet: view.recentWallet ? pick(view.recentWallet, ["amountTenths", "direction", "reason"]) : null,
     identity: view.identity ? pick(view.identity, ["name", "publicGoal", "ability", "privateConcern"]) : null,
     cards: Array.isArray(view.cards) ? view.cards.map((card) => pick(card, [
-      "id", "title", "body", "sharePrompt", "credibility", "evidenceBoundary", "state",
+      "id", "title", "body", "sharePrompt", "sourceIds", "credibility", "evidenceBoundary", "state",
     ])) : [],
     realityMission: view.realityMission ? pick(view.realityMission, ["title", "deliverable"]) : null,
     challenge: view.challenge ? pick(view.challenge, ["round", "title", "prompt", "pressure"]) : null,
@@ -193,7 +198,7 @@ export function createRemoteConsoleServer({
 } = {}) {
   let lastControllerErrorLoggedAt = 0;
   let cachedScript = null;
-  let cachedScriptId = null;
+  let cachedScriptKey = null;
   const getControllerJson = async (path) => {
     const headers = controllerServiceKey ? { "X-Live-Run-Service-Key": controllerServiceKey } : {};
     const response = await fetchImpl(new URL(path, controllerBase), {
@@ -218,9 +223,10 @@ export function createRemoteConsoleServer({
         let script = null;
         try {
           state = await getControllerJson("/api/state");
-          if (!cachedScript || cachedScriptId !== state.scriptId) {
+          const scriptKey = `${state.scriptId || ""}:${state.courseDigest || ""}`;
+          if (!cachedScript || cachedScriptKey !== scriptKey) {
             cachedScript = await getControllerJson("/api/script");
-            cachedScriptId = state.scriptId;
+            cachedScriptKey = scriptKey;
           }
           script = cachedScript;
         } catch (error) {
@@ -261,9 +267,13 @@ export function createRemoteConsoleServer({
           course: script ? { name: script.course.name, coverage: script.course.coverage } : null,
           run: state ? {
             status: state.status,
-            currentBlock: state.currentBlockIndex + 1,
+            currentBlock: (Number.isInteger(state.previewBlockIndex) ? state.previewBlockIndex : state.currentBlockIndex) + 1,
+            executionBlock: state.currentBlockIndex + 1,
             totalBlocks: state.seats?.[0]?.blockCount || script?.blocks?.length || 13,
             macroStepName: state.seats?.[0]?.macroStepName || null,
+            courseRevision: state.courseRevision,
+            courseDigest: String(state.courseDigest || "").slice(0, 16),
+            refreshEpoch: state.refreshEpoch || 0,
           } : null,
           seats,
           clientClaimCount: [...claims.values()].filter((claim) => claim.isMine).length,
