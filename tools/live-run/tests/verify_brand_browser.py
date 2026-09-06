@@ -11,13 +11,14 @@ from playwright.sync_api import sync_playwright
 
 
 CHROME = Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
-ROUTES = ("/", "/auth/register/", "/auth/recover/", "/qa/", "/brand-contract-missing/")
+ROUTES = ("/", "/auth/register/", "/auth/recover/", "/parents/", "/brand-contract-missing/")
 VIEWPORTS = ((320, 760), (390, 844), (768, 1024), (1440, 900))
+BRAND_SELECTOR = 'a[href="/"]:has(img[src*="favicon.svg"])'
 
 
 def snapshot(page) -> dict:
     return page.evaluate(
-        """() => { const link=document.querySelector('.msv-brand-home'), img=link?.querySelector('img');
+        """() => { const link=document.querySelector('a[href="/"]:has(img[src*="favicon.svg"])'), img=link?.querySelector('img');
         if(!link||!img)return null; const a=link.getBoundingClientRect(), b=img.getBoundingClientRect();
         return {href:link.getAttribute('href'),aria:link.getAttribute('aria-label'),tag:link.tagName,
           innerWidth,rootWidth:document.documentElement.scrollWidth,bodyWidth:document.body.scrollWidth,
@@ -44,7 +45,7 @@ def main() -> None:
                 page.set_viewport_size({"width": width, "height": height})
                 response = page.goto(urljoin(base, route.lstrip("/")), wait_until="networkidle")
                 assert response and response.status in ({404} if "missing" in route else {200}), (route, response.status if response else None)
-                page.wait_for_selector(".msv-brand-home img")
+                page.wait_for_selector(BRAND_SELECTOR)
                 value = snapshot(page)
                 assert value and value["tag"] == "A"
                 assert value["href"] == "/" and value["aria"] == "返回 Mini Silicon Valley 主页"
@@ -63,7 +64,7 @@ def main() -> None:
         # the current tab; this is not a decorative div or JS-only action.
         page.set_viewport_size({"width": 390, "height": 844})
         page.goto(urljoin(base, "auth/register/"), wait_until="networkidle")
-        page.locator(".msv-brand-home").focus()
+        page.locator(BRAND_SELECTOR).focus()
         page.keyboard.press("Enter")
         page.wait_for_url(urljoin(base, ""))
         assert page.url.rstrip("/") == base.rstrip("/")

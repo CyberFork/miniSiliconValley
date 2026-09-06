@@ -9,6 +9,7 @@ const root = resolve(import.meta.dirname, "..");
 const dist = resolve(root, "dist");
 const output = resolve(dist, "minisv-static");
 process.env.MSV_SITE_ORIGIN = "https://minisv.vip";
+process.env.MSV_QA_CANONICAL_URL = "https://minisv.vip/parents/";
 
 type StaticWorker = {
   fetch(
@@ -34,17 +35,24 @@ async function render(worker: StaticWorker, pathname: string) {
 
 await rm(output, { recursive: true, force: true });
 await mkdir(resolve(output, "world"), { recursive: true });
+await mkdir(resolve(output, "parents"), { recursive: true });
 
 const workerUrl = `${pathToFileURL(resolve(dist, "server", "index.js")).href}?minisv-static=${Date.now()}`;
 const { default: worker } = await import(workerUrl) as { default: StaticWorker };
 
 const worldHtml = await render(worker, "/");
+const parentsHtml = await render(worker, "/qa/");
 
 requireCondition(worldHtml.includes('href="/course/"'), "world topbar is missing the stable /course/ route");
 requireCondition(!worldHtml.includes('type="button">课程大纲</button>'), "world still exposes the retired in-memory course view");
+requireCondition(parentsHtml.includes('class="msv-brand-home '), "parents page is missing the shared brand/home component");
+requireCondition(parentsHtml.includes('href="/"'), "parents page is missing the root home link");
+requireCondition(parentsHtml.includes('https://minisv.vip/parents/'), "parents page is missing its native canonical URL");
+requireCondition(!parentsHtml.includes("work.cyberforker.com"), "parents page contains the retired Work origin");
 
 const files = [
   [resolve(output, "world", "index.html"), worldHtml],
+  [resolve(output, "parents", "index.html"), parentsHtml],
 ] as const;
 
 for (const [path, content] of files) await writeFile(path, content, "utf8");

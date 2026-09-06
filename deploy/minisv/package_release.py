@@ -278,6 +278,10 @@ def build(
     # Current main owns the public world shell. The course route is copied later
     # as an opaque artifact from the fixed chj checkout.
     copy_entry(app_static / "world" / "index.html", output / "world" / "index.html")
+    # Parent Q&A must be rendered from the same current application build as
+    # the authentication and classroom surfaces. Reusing legacy qa.html here
+    # silently dropped the shared brand/home component from new releases.
+    copy_entry(app_static / "parents" / "index.html", output / "parents" / "index.html")
 
     # Workshop remains a coherent relative-path bundle under /workshop/.
     workshop = output / "workshop"

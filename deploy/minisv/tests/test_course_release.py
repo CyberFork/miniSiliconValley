@@ -58,6 +58,7 @@ class CourseReleaseTests(unittest.TestCase):
                 client / "_next",
                 client / "assets",
                 static / "world",
+                static / "parents",
                 course / "_next",
                 course / "assets",
                 portal,
@@ -75,6 +76,7 @@ class CourseReleaseTests(unittest.TestCase):
                 (legacy / name).write_text(value)
             (client / "favicon.svg").write_text("<svg xmlns='http://www.w3.org/2000/svg'/>")
             (static / "world" / "index.html").write_text('<html><head></head><body><a href="/course/">课程大纲</a>current world</body></html>')
+            (static / "parents" / "index.html").write_text('<html><head></head><body><a class="msv-brand-home" href="/"><img src="/favicon.svg">current parents</a></body></html>')
             course_html = (
                 '<html><head><link rel="stylesheet" href="/course/_next/chj.css"></head>'
                 '<body><h1>青少年AI创业营</h1><b>MINI硅谷</b>'
@@ -100,6 +102,7 @@ class CourseReleaseTests(unittest.TestCase):
             MODULE.build(legacy, client, static, course, portal, output, "t077-test", main_sha=main_sha)
 
             self.assertIn("current world", (output / "world" / "index.html").read_text())
+            self.assertIn("current parents", (output / "parents" / "index.html").read_text())
             self.assertNotIn('msv-course-nav-link', (output / "framework" / "index.html").read_text())
             self.assertNotIn('msv-course-nav-link', (output / "parents" / "index.html").read_text())
             self.assertIn('link.href = "/course/"', (output / "ui-theme.js").read_text())

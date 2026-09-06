@@ -18,7 +18,10 @@ EXPECTED = {
     "/parents/": 200,
     "/workshop/": 200,
     "/classroom/": 307,
-    "/auth/login": 200,
+    "/auth/login": 308,
+    "/auth/login/": 200,
+    "/auth/register/": 200,
+    "/auth/recover/": 200,
     "/alpha/": 200,
     "/control/": 303,
     "/healthz": 200,
@@ -75,6 +78,8 @@ def main() -> None:
             raise SystemExit(f"FAIL {path}: expected {expected}, got {status}")
         if headers.get("x-minisv-origin") != "hecate":
             raise SystemExit(f"FAIL {path}: response did not originate at Hecate")
+        if path == "/auth/login" and headers.get("location") != "/auth/login/":
+            raise SystemExit("FAIL /auth/login: canonical trailing-slash redirect is invalid")
         if path == "/release.json":
             release = json.loads(body)
             if release.get("origin") != "hecate" or release.get("canonicalOrigin") != args.base:
@@ -93,7 +98,7 @@ def main() -> None:
                 raise SystemExit("FAIL /course/: incomplete colleague-owned course site")
             if "/ui-theme.js" in text or "data-course-outline-schema" in text:
                 raise SystemExit("FAIL /course/: colleague-owned course site was rewritten or decorated")
-        if path in {"/", "/framework/", "/workshop/", "/alpha/", "/auth/login"}:
+        if path in {"/", "/framework/", "/workshop/", "/alpha/", "/auth/login/", "/auth/register/", "/auth/recover/"}:
             text = body.decode("utf-8", "replace")
             if 'href="/"' not in text or '/favicon.svg' not in text:
                 raise SystemExit(f"FAIL {path}: shared brand/home contract is missing")
