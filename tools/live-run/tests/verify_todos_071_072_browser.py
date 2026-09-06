@@ -34,8 +34,10 @@ def main() -> None:
                 browser = playwright.chromium.launch(**launch)
                 editor = browser.new_page(viewport={"width": 1440, "height": 1050})
                 editor.goto(base + "editor/")
+                editor.wait_for_selector("#cardsTab")
+                editor.click("#cardsTab")
                 editor.wait_for_selector("#deckCardList button")
-                assert editor.locator("#deckCardList button").count() == 12
+                assert editor.locator("#deckCardList button").count() == 60
                 expect(editor.locator("#deckSummary")).to_contain_text("4 人每人 3 张")
                 editor.click("#simulateDeal")
                 assert editor.locator(".deal-hands > section").count() == 4

@@ -6,14 +6,10 @@ const seatId=aliases[requested]||requested,byId=id=>document.getElementById(id);
 function stateUrl(){const query=new URLSearchParams({seat:seatId});return new URL(`api/state?${query}`,new URL('.',location.href))}
 function stateHeaders(){return{'X-MSV-Client-ID':capabilityParams.get('clientId')||'','X-MSV-Seat-Lease':capabilityParams.get('lease')||''}}
 const statusLabels={ready:'等待主控执行',executing:'系统同步中','awaiting-acceptance':'现场行动时间',error:'本块已停住',completed:'课程已完成'};
- const boundaryLabels={F:'F 有来源',R:'R 课堂模拟',G:'G 我们猜的',U:'U 还不知道'};
- const boundaryNotes={F:'可查来源',R:'不是史实',G:'需要验证',U:'继续调查'};
-const cardStates={held:'在我手中',unread:'未读',read:'已读',published:'已向团队讲出'};
- function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+ const CardView=window.MsvCardView;
+ if(!CardView)throw new Error('共享卡片渲染器未加载');
+	 const {escapeHtml:esc,expandBoundaryText,renderLearnerCard}=CardView;
  function items(lines){return lines.filter(Boolean).map(x=>`<li>${x}</li>`).join('')}
- function expandBoundaryText(v){return String(v??'').replaceAll('F／R／G／U','F 有来源｜R 课堂模拟｜G 我们猜的｜U 还不知道').replaceAll('F/R/G/U','F 有来源｜R 课堂模拟｜G 我们猜的｜U 还不知道').replace(/有来源的\s*F(?!\s*有来源)/gu,'F 有来源').replace(/课堂模拟\s*R(?!\s*课堂模拟)/gu,'R 课堂模拟').replace(/F\s*卡(?!有来源)/gu,'F 有来源卡').replace(/R\s*卡(?!课堂模拟)/gu,'R 课堂模拟卡').replace(/标(?:为)?\s*R(?!\s*课堂模拟)/gu,'标为 R 课堂模拟').replace(/贴成\s*G(?!\s*我们猜的)/gu,'贴成 G 我们猜的').replace(/F(?=\s*[，。；、／/])/gu,'F 有来源').replace(/R(?=\s*[，。；、／/])/gu,'R 课堂模拟').replace(/G(?=\s*(?:[，。；、／/]|或|与|和))/gu,'G 我们猜的').replace(/U(?=\s*(?:[，。；、／/]|或|与|和|$))/gu,'U 还不知道').replace(/(?<![A-Za-z0-9.&-])F(?![A-Za-z0-9.&-]|\s*有来源)/gu,'F 有来源').replace(/(?<![A-Za-z0-9.&-])R(?![A-Za-z0-9.&-]|\s*课堂模拟)/gu,'R 课堂模拟').replace(/(?<![A-Za-z0-9.&-])G(?![A-Za-z0-9.&-]|\s*我们猜的)/gu,'G 我们猜的').replace(/(?<![A-Za-z0-9.&-])U(?![A-Za-z0-9.&-]|\s*还不知道)/gu,'U 还不知道')}
- function cardBoundary(card){const explicit=String(card?.evidenceBoundary||'').toUpperCase();if(boundaryLabels[explicit])return explicit;const prefix=String(card?.title||'').match(/^\s*([FRGU])-\d+/iu)?.[1]?.toUpperCase();if(prefix&&boundaryLabels[prefix])return prefix;const text=`${card?.body||''} ${card?.sharePrompt||''}`;if(/玩家模拟|课堂模拟|不是史实/u.test(text))return'R';if(/推测|猜测|待验证/u.test(text))return'G';if(/未知|还不知道|无法回答/u.test(text))return'U';if(/来源|公开资料|历史边界/u.test(text))return'F';return'U'}
- function cleanCardTitle(v){return String(v??'').replace(/^\s*(?:[FRGU](?:-\d+)?|C-\d+)\s*·\s*/u,'').trim()}
 function readyTask(v,view,data){if(data.status!=='ready')return v.task;if(v.blockOrder===1&&!view)return'先把纸和笔放在手边。不要猜公司结局，等老师发出身份和三张私密卡。';return`先看看上一步留下的结果。老师说“开始”后，再做：${v.task}`}
 function renderLearner(data,v,c){
  const view=c.learnerViews?.[v.id]||null,identity=view?.identity,lens=v.learnerLens||{};
@@ -25,7 +21,7 @@ function renderLearner(data,v,c){
  if(view?.recentReputation)facts.push(`<div class="fact-label">最近一次成长</div>+${esc(view.recentReputation.points)} RP · ${esc(expandBoundaryText(view.recentReputation.reason))}`);
  else if(known)facts.push(`<div class="fact-label">我的成长记录</div>当前 ${esc(view.reputation)} RP；新 RP 只会在导师指出具体作品后记录。`);
  if(view?.recentWallet){const sign=view.recentWallet.direction==='in'?'+':'-';facts.push(`<div class="fact-label">最近一笔个人资金</div>${sign}${(view.recentWallet.amountTenths/10).toFixed(1)} C · ${esc(expandBoundaryText(view.recentWallet.reason))}`)}
- for(const [index,card] of (view?.cards||[]).entries()){const boundary=cardBoundary(card),sources=Array.isArray(card.sourceIds)?card.sourceIds:[];facts.push(`<article class="private-card"><small>私密卡 ${index+1} · ${esc(boundaryLabels[boundary])} · ${esc(boundaryNotes[boundary])} · ${esc(cardStates[card.state]||'待确认')}</small><b>${esc(cleanCardTitle(card.title))}</b><p>${esc(expandBoundaryText(card.body))}</p><em>${esc(expandBoundaryText(card.sharePrompt))}</em>${boundary==='F'?`<small>来源编号：${esc(sources.join(' · ')||'缺失，请告知导师')}</small>`:''}</article>`)}
+ for(const [index,card] of (view?.cards||[]).entries())facts.push(renderLearnerCard(card,index,{state:card.state}));
  byId('facts').innerHTML=items(facts)||'<li>主控执行第一块后，这里会出现你的身份和三张随机私密卡。</li>';
  byId('teamworkTitle').textContent='和队友怎么配合';byId('teamwork').innerHTML=items([`<b>我要说</b>${esc(expandBoundaryText(lens.say||'用自己的话讲出你掌握的信息。'))}`,`<b>我要问</b>${esc(expandBoundaryText(lens.ask||'听队友说完，再追问一件不清楚的事。'))}`,`<b>完成后</b>${esc(expandBoundaryText(lens.done||'让导师看见一个具体结果。'))}`]);
  byId('chipsTitle').textContent='我已经拥有';const chips=[`${view?.cards?.length||0}/3 私密卡`,`${view?.unlockIds?.length||0} 项解锁`,'一票团队发言权'];byId('chips').innerHTML=chips.map((x,i)=>`<span class="chip ${i===0?'hot':''}">${esc(x)}</span>`).join('');

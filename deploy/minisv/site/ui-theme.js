@@ -8,7 +8,7 @@
   function safeRead() {
     try {
       return window.localStorage.getItem(STORAGE_KEY);
-    } catch (_error) {
+    } catch {
       return null;
     }
   }
@@ -16,7 +16,7 @@
   function safeWrite(value) {
     try {
       window.localStorage.setItem(STORAGE_KEY, value);
-    } catch (_error) {
+    } catch {
       // The switch still works for this page when storage is unavailable.
     }
   }

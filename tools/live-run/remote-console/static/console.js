@@ -19,7 +19,9 @@
     "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;",
   })[character]);
   function normalizeNickname(value) {
-    return String(value ?? "").replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 24);
+    return [...String(value ?? "")]
+      .filter((character) => character.charCodeAt(0) >= 32 && character.charCodeAt(0) !== 127)
+      .join("").trim().slice(0, 24);
   }
 
   function toast(message) {

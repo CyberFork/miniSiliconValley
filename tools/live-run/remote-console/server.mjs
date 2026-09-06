@@ -324,6 +324,7 @@ export function createRemoteConsoleServer({
           ["/seat.html", [seatStaticDir, "seat.html"]],
           ["/seat.css", [seatStaticDir, "seat.css"]],
           ["/seat.js", [seatStaticDir, "seat.js"]],
+          ["/card-view.js", [seatStaticDir, "card-view.js"]],
         ]);
         const target = staticFiles.get(url.pathname);
         if (target) return fileResponse(response, join(...target));
@@ -371,7 +372,9 @@ function optionalClientId(value) {
 
 function validateNickname(value) {
   if (typeof value !== "string") throw new ClaimError("NICKNAME_REQUIRED", "请输入测试昵称。", 400);
-  const nickname = value.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 24);
+  const nickname = [...value]
+    .filter((character) => character.charCodeAt(0) >= 32 && character.charCodeAt(0) !== 127)
+    .join("").trim().slice(0, 24);
   if (nickname.length < 1) throw new ClaimError("NICKNAME_REQUIRED", "请输入测试昵称。", 400);
   return nickname;
 }

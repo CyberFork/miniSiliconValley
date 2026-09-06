@@ -1,0 +1,173 @@
+{
+  "receiptVersion": 1,
+  "completedAt": "2026-09-06T14:33:28+08:00",
+  "todo": "T-074",
+  "release": {
+    "host": "hecate-work",
+    "publicOrigin": "https://minisv.vip",
+    "releaseId": "20260906T062724Z-t074-card-studio-r1",
+    "archiveSha256": "4238583762278861b4b0324ee19a3bc73ff805d79419deb4cd9d5cdc97b9cc76",
+    "editorBuild": "t074-card-studio-r1",
+    "courseSchemaVersion": 1
+  },
+  "coursePackages": {
+    "google-1995-2004": {
+      "macroSteps": 5,
+      "blocks": 13,
+      "decks": 5,
+      "cards": 60
+    },
+    "eleme-2008-find-problem": {
+      "macroSteps": 5,
+      "blocks": 13,
+      "decks": 5,
+      "cards": 60
+    },
+    "publicationGate": {
+      "exactDecks": 5,
+      "minimumCardsPerDeck": 12,
+      "factCardsRequireValidSources": true,
+      "stableCardIdsMustBeUnique": true
+    }
+  },
+  "editorCapabilities": {
+    "primaryWorkspaces": [
+      "课程结构",
+      "抽卡内容",
+      "JSON 源码"
+    ],
+    "fullTextFields": [
+      "title",
+      "body",
+      "sharePrompt",
+      "cardId",
+      "sourceId",
+      "sourceTitle",
+      "sourceOrganization",
+      "sourceUrl"
+    ],
+    "filters": [
+      "macroStep",
+      "F/R/G/U",
+      "sourcePresence",
+      "currentAlphaDeal"
+    ],
+    "sharedLearnerRenderer": true,
+    "currentAlphaHandMap": "4 learners x 3 stable IDs",
+    "appendOnlyHistoryRestore": true,
+    "draftSaveAutoRefreshesAlpha": false,
+    "explicitAlphaRefreshRequired": true
+  },
+  "automatedValidation": {
+    "pythonDeployment": {
+      "tests": 14,
+      "passed": 14
+    },
+    "pythonLiveRun": {
+      "tests": 33,
+      "passed": 33
+    },
+    "nodeThemeRuntime": {
+      "tests": 1,
+      "passed": 1
+    },
+    "nodeCardRendererAndRemoteConsole": {
+      "tests": 8,
+      "passed": 8
+    },
+    "webApplication": {
+      "typecheck": "passed",
+      "lint": "passed",
+      "productionBuild": "passed",
+      "tests": 23,
+      "passed": 23
+    },
+    "browserIsolatedMutationE2E": {
+      "passed": true,
+      "specifiedCards": [
+        "e08-c-05",
+        "e08-f-02",
+        "e08-r-04"
+      ],
+      "fullTextSearch": true,
+      "boundaryFilter": true,
+      "learnerEquivalentPreview": true,
+      "alphaHands": "4x3 stable IDs",
+      "savedWithoutSilentRefresh": true,
+      "explicitRefreshPreservedRun": true,
+      "historyRollbackAsNewRevision": true,
+      "finalRevision": 2,
+      "refreshEpoch": 2,
+      "mobileNoOverflow": true
+    },
+    "browserLayout": {
+      "passed": true,
+      "viewports": [1660, 1366, 1100, 900, 768, 430],
+      "horizontalOverflow": false,
+      "classicAdventureSameGeometry": true
+    }
+  },
+  "productionReadOnlyAcceptance": {
+    "passed": true,
+    "mutations": 0,
+    "authenticatedEditor": true,
+    "activeCourse": "eleme-2008-find-problem",
+    "package": {
+      "macroSteps": 5,
+      "blocks": 13,
+      "decks": 5,
+      "cards": 60
+    },
+    "specifiedCardsFound": [
+      "e08-c-05",
+      "e08-f-02",
+      "e08-r-04"
+    ],
+    "rBoundaryCards": 16,
+    "currentAlphaHands": {
+      "learners": 4,
+      "cardsPerLearner": 3,
+      "stableIds": 12
+    },
+    "factSourcesVisible": true,
+    "simulationDisclaimerVisible": true,
+    "classicAdventureSameGeometry": true,
+    "desktopNoOverflow": true,
+    "mobileViewport": 390,
+    "mobileNoOverflow": true,
+    "credentialsOrSessionsRecorded": false
+  },
+  "productionRunPreservation": {
+    "releaseSwitchChangedRun": false,
+    "runId": "run-20260905-150001-a80c1b",
+    "courseId": "eleme-2008-find-problem",
+    "currentBlockIndex": 0,
+    "status": "awaiting-acceptance",
+    "mentorSeats": 4,
+    "learnerSeats": 4,
+    "teamTreasuryTenths": 100,
+    "courseDealsDigest": "856dfdea7551ebcc",
+    "courseRevision": 0,
+    "refreshEpoch": 0
+  },
+  "publicSmoke": {
+    "/healthz": 200,
+    "/": 200,
+    "/world/": 200,
+    "/framework/": 200,
+    "/parents/": 200,
+    "/workshop/": 200,
+    "/classroom/": 307,
+    "/alpha/": 200,
+    "/control/": 303,
+    "/control/editor/": 303,
+    "/alpha/card-view.js": 200,
+    "/control/api/bootstrap": 401
+  },
+  "operations": {
+    "cloudflaredBootstrapFirstAttempt": "launchctl error 5",
+    "recovery": "bootout, bootstrap, enable and kickstart",
+    "finalTunnelState": "running",
+    "finalHealth": "MINISV_HECATE_HEALTHY"
+  }
+}

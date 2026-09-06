@@ -12,6 +12,7 @@ import threading
 import time
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parent
 COURSE_ASSETS = ROOT / "courses"
@@ -22,6 +23,10 @@ STEP_BLOCKS = (("B01", "B02", "B03"), ("B04", "B05"), ("B06", "B07", "B08"), ("B
 DECK_DRAW_BLOCKS = ("B01", "B04", "B06", "B09", "B11")
 LEARNER_SEAT_IDS = ("learner01", "learner02", "learner03", "learner04")
 EVIDENCE_BOUNDARIES = frozenset({"F", "R", "G", "U"})
+COURSE_SCHEMA_VERSION = 1
+BASELINE_DECK_COUNT = len(STEP_IDS)
+BASELINE_CARDS_PER_DECK = len(LEARNER_SEAT_IDS) * 3
+BASELINE_CARD_COUNT = BASELINE_DECK_COUNT * BASELINE_CARDS_PER_DECK
 SEAT_IDS = ("mentor01", "mentor02", "mentor03", "mentor04", "learner01", "learner02", "learner03", "learner04")
 API_ACTIONS = (
     "room-and-deal", "read-and-publish", "finish-find-chapter",
@@ -69,7 +74,7 @@ def validate_script(script: Any) -> dict[str, Any]:
     script = _object(script, "$")
     for key in ("schemaVersion", "id", "title", "course", "case", "sources", "decks", "formula", "macroSteps", "blocks", "rules"):
         if key not in script: raise _error(f"$.{key}", "missing required field")
-    if script["schemaVersion"] != 1: raise _error("$.schemaVersion", "must equal 1")
+    if script["schemaVersion"] != COURSE_SCHEMA_VERSION: raise _error("$.schemaVersion", f"must equal {COURSE_SCHEMA_VERSION}")
     _string(script["id"], "$.id"); _string(script["title"], "$.title")
 
     course = _object(script["course"], "$.course")
@@ -96,6 +101,9 @@ def validate_script(script: Any) -> dict[str, Any]:
         path = f"$.sources[{index}]"; source = _object(value, path)
         for key in ("id", "title", "organization", "url", "kind", "accessed"):
             _string(source.get(key), f"{path}.{key}")
+        parsed_url = urlparse(source["url"])
+        if parsed_url.scheme not in {"https", "http"} or not parsed_url.netloc:
+            raise _error(f"{path}.url", "must be an absolute http(s) source URL")
         source_id = source["id"]
         if source_id in source_ids: raise _error(f"{path}.id", "must be unique")
         source_ids.add(source_id)
@@ -250,6 +258,29 @@ def course_digest(value: dict[str, Any]) -> str:
     return hashlib.sha256(_canonical_bytes(value)).hexdigest()
 
 
+def course_manifest(value: dict[str, Any]) -> dict[str, Any]:
+    """Return machine-readable package diagnostics for authoring clients.
+
+    Callers load course values through :func:`validate_script`; this helper is
+    deliberately side-effect free so the API can expose counts and the exact
+    digest that the Alpha Run pins without inventing a second data model.
+    """
+    decks = value.get("decks") if isinstance(value, dict) else None
+    decks = decks if isinstance(decks, list) else []
+    card_counts = [len(deck.get("cards", [])) if isinstance(deck, dict) and isinstance(deck.get("cards"), list) else 0 for deck in decks]
+    return {
+        "schemaVersion": value.get("schemaVersion") if isinstance(value, dict) else None,
+        "macroStepCount": len(value.get("macroSteps", [])) if isinstance(value, dict) and isinstance(value.get("macroSteps"), list) else 0,
+        "blockCount": len(value.get("blocks", [])) if isinstance(value, dict) and isinstance(value.get("blocks"), list) else 0,
+        "deckCount": len(decks),
+        "cardCount": sum(card_counts),
+        "cardsPerDeck": card_counts,
+        "minimumCardsPerDeck": BASELINE_CARDS_PER_DECK,
+        "minimumCardCount": BASELINE_CARD_COUNT,
+        "digest": course_digest(value),
+    }
+
+
 def _atomic_json(path: Path, value: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     temporary = path.with_name(f".{path.name}.{os.getpid()}.{secrets.token_hex(4)}.tmp")
@@ -320,7 +351,8 @@ class CourseRepository:
     @staticmethod
     def _metadata(value: dict[str, Any], *, source: str, status: str, has_draft: bool = False, published_revision: int = 0, draft_revision: int = 0) -> dict[str, Any]:
         course, case = value["course"], value["case"]
-        return {"id": course["id"], "name": course["name"], "title": case["name"], "period": course["period"], "coverage": course["coverage"], "description": course["description"], "status": status, "source": source, "runtimeCampaignId": case["campaignId"], "hasDraft": has_draft, "publishedRevision": published_revision, "draftRevision": draft_revision, "latestRevision": max(published_revision, draft_revision), "digest": course_digest(value)[:16]}
+        manifest = course_manifest(value)
+        return {"id": course["id"], "name": course["name"], "title": case["name"], "period": course["period"], "coverage": course["coverage"], "description": course["description"], "status": status, "source": source, "runtimeCampaignId": case["campaignId"], "hasDraft": has_draft, "publishedRevision": published_revision, "draftRevision": draft_revision, "latestRevision": max(published_revision, draft_revision), **manifest, "digest": manifest["digest"][:16]}
 
     def list_published(self) -> list[dict[str, Any]]:
         with self.lock:
@@ -366,6 +398,25 @@ class CourseRepository:
             if entry is None: raise ValueError(f"未知课程 id: {course_id!r}")
             return copy.deepcopy(entry[1])
 
+    def describe(self, course_id: str, *, variant: str = "draft") -> dict[str, Any]:
+        """Describe the exact draft/published value returned to an editor."""
+        with self.lock:
+            value = self.load(course_id, variant=variant)
+            catalog = next((item for item in self.list_for_editor()["courses"] if item["id"] == course_id), None)
+            source = catalog["source"] if catalog else "authored"
+            actual_variant = (value.get("authoring") or {}).get("status", "published")
+            manifest = course_manifest(value)
+            return {
+                **manifest,
+                "courseId": course_id,
+                "source": source,
+                "variant": actual_variant,
+                "revision": self._revision(value),
+                "publishedRevision": int(catalog["publishedRevision"]) if catalog else 0,
+                "draftRevision": int(catalog["draftRevision"]) if catalog else 0,
+                "digestShort": manifest["digest"][:16],
+            }
+
     def save(self, value: dict[str, Any], *, status: str, expected_revision: int) -> dict[str, Any]:
         if status not in AUTHORING_STATES: raise ValueError("保存状态只能是 draft 或 published。")
         if not self.user_dir: raise ValueError("课程仓库当前为只读。")
@@ -385,6 +436,73 @@ class CourseRepository:
                 draft_path = self._path(course_id, "drafts")
                 if draft_path.exists(): draft_path.unlink()
             return copy.deepcopy(candidate)
+
+    def list_history(self, course_id: str) -> list[dict[str, Any]]:
+        """List immutable authored snapshots without exposing filesystem paths."""
+        self._valid_id(course_id)
+        with self.lock:
+            result: list[dict[str, Any]] = []
+            # Revision zero is the immutable bundled baseline when one exists.
+            bundled = self._bundled().get(course_id)
+            if bundled:
+                value = bundled[1]; manifest = course_manifest(value)
+                result.append({
+                    "revision": 0, "status": "bundled", "updatedAt": None,
+                    "digest": manifest["digest"], "deckCount": manifest["deckCount"],
+                    "cardCount": manifest["cardCount"], "schemaVersion": manifest["schemaVersion"],
+                })
+            if not self.user_dir:
+                return result
+            history_dir = (self.user_dir / "history" / course_id).resolve()
+            expected_root = (self.user_dir / "history").resolve()
+            if history_dir.parent != expected_root or not history_dir.exists():
+                return result
+            pattern = re.compile(r"^r(\d{4,})-(draft|published)\.json$")
+            for path in sorted(history_dir.glob("r*-*.json")):
+                match = pattern.fullmatch(path.name)
+                if not match:
+                    continue
+                try:
+                    value = _read_json(path)
+                    if value["course"]["id"] != course_id:
+                        continue
+                except (OSError, ValueError):
+                    continue
+                manifest = course_manifest(value)
+                result.append({
+                    "revision": int(match.group(1)), "status": match.group(2),
+                    "updatedAt": (value.get("authoring") or {}).get("updatedAt"),
+                    "digest": manifest["digest"], "deckCount": manifest["deckCount"],
+                    "cardCount": manifest["cardCount"], "schemaVersion": manifest["schemaVersion"],
+                })
+            return sorted(result, key=lambda item: item["revision"], reverse=True)
+
+    def restore(self, course_id: str, source_revision: int, *, expected_revision: int) -> dict[str, Any]:
+        """Restore an immutable snapshot as a *new* draft revision.
+
+        History is never rewritten and an active Alpha Run is never touched;
+        the author must explicitly use the existing refresh action afterwards.
+        """
+        self._valid_id(course_id)
+        if not isinstance(source_revision, int) or source_revision < 0:
+            raise ValueError("sourceRevision 必须是非负整数。")
+        with self.lock:
+            if source_revision == 0:
+                bundled = self._bundled().get(course_id)
+                if not bundled:
+                    raise ValueError("这门课程没有可恢复的内置基线。")
+                value = copy.deepcopy(bundled[1])
+            else:
+                if not self.user_dir:
+                    raise ValueError("课程仓库当前为只读。")
+                history_dir = (self.user_dir / "history" / course_id).resolve()
+                matches = sorted(history_dir.glob(f"r{source_revision:04d}-*.json")) if history_dir.exists() else []
+                if len(matches) != 1:
+                    raise ValueError(f"找不到课程 {course_id} 的历史修订 r{source_revision}。")
+                value = _read_json(matches[0])
+                if value["course"]["id"] != course_id:
+                    raise ValueError("历史修订不属于当前课程。")
+            return self.save(value, status="draft", expected_revision=expected_revision)
 
     def clone(self, source_course_id: str, new_course_id: str, new_name: str) -> dict[str, Any]:
         self._valid_id(new_course_id); _string(new_name, "$.course.name")
@@ -446,7 +564,7 @@ def json_schema() -> dict[str, Any]:
         "type": "object", "additionalProperties": True,
         "required": ["schemaVersion", "id", "title", "course", "case", "sources", "decks", "formula", "macroSteps", "blocks", "rules"],
         "properties": {
-            "schemaVersion": {"const": 1}, "id": string, "title": string,
+            "schemaVersion": {"const": COURSE_SCHEMA_VERSION}, "id": string, "title": string,
             "course": {
                 "type": "object", "additionalProperties": True,
                 "required": ["id", "name", "period", "coverage", "description", "learnerName", "scriptId", "macroStepCount", "blockCount", "completeFiveStep"],

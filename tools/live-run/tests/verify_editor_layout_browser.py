@@ -82,6 +82,8 @@ def main() -> None:
                 browser = playwright.chromium.launch(**launch)
                 page = browser.new_page(viewport={"width": VIEWPORTS[0], "height": 1000})
                 page.goto(f"http://127.0.0.1:{server.server_port}/editor/", wait_until="networkidle")
+                page.wait_for_selector("#cardsTab")
+                page.click("#cardsTab")
                 page.wait_for_selector("#deckCardList button")
                 for width in VIEWPORTS:
                     page.set_viewport_size({"width": width, "height": 1000})

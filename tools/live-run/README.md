@@ -13,7 +13,7 @@
 - `courses/course.schema.json`：Course Package v1 JSON Schema。
 - `courses/course-template.json`：中性完整模板。
 
-编辑器支持结构化编辑、五阶段卡组 CRUD/来源/预览/4×3 模拟发牌、JSON 源码、导入、导出、检查、草稿、发布与克隆。每门课的 `sources`＋5 套 `decks` 是学员手牌内容真值；Google 与饿了么均为 5 套、60 张。
+编辑器提供“课程结构／抽卡内容／JSON 源码”三个一级工作区，支持 60 卡全文搜索与多维筛选、学员同款预览、当前 Alpha 4×3 手牌反查、卡组 CRUD/来源/模拟发牌、版本诊断、不可变历史恢复、导入、导出、检查、草稿、发布与克隆。每门课的 `sources`＋5 套 `decks` 是学员手牌内容真值；Google 与饿了么均为 5 套、60 张。
 
 正式课堂不会静默换稿。Alpha 会提示存在新修订，导师点击“全部刷新 Alpha”后在原 Run 加载最新完整草稿或发布版；Run、真实进度、RP、钱包、团队资金与手牌位置保留。“回看”只改变八席显示，不撤销副作用。
 
@@ -26,6 +26,7 @@ cd tools/live-run
 python3 course.py --write-json
 python3 -m py_compile course.py controller.py classroom_api.py
 node --check static/controller.js
+node --check static/card-view.js
 node --check static/editor.js
 PYTHONPATH=. python3 -m unittest discover -s tests -p 'test_*.py' -v
 ```

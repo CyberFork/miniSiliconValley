@@ -25,10 +25,12 @@ from urllib.request import Request, urlopen
 
 from classroom_api import ClassroomApiAdapter, ClassroomApiError
 from course import (
+    COURSE_SCHEMA_VERSION,
     CourseRepository,
     DEFAULT_COURSE_ID,
     LEARNER_SEAT_IDS,
     course_digest,
+    course_manifest,
     deal_course_deck,
     validate_script,
 )
@@ -38,6 +40,7 @@ ROOT = Path(__file__).resolve().parent
 STATIC = ROOT / "static"
 DEFAULT_STATE_DIR = Path("/tmp/msv-live-run-state")
 STATE_SCHEMA_VERSION = 4
+EDITOR_BUILD_ID = "t074-card-studio-r1"
 CONTROL_ROLES = frozenset({"admin", "mentor"})
 
 SEATS = [
@@ -765,7 +768,7 @@ class LiveRunServer(ThreadingHTTPServer):
         self.static_assets = {}
         for name in (
             "index.html", "styles.css", "controller.js", "editor.html", "editor.css", "editor.js",
-            "seat.html", "seat.css", "seat.js",
+            "seat.html", "seat.css", "seat.js", "card-view.js",
         ):
             target = STATIC / name
             data = target.read_bytes()
@@ -815,12 +818,23 @@ class LiveRunHandler(BaseHTTPRequestHandler):
             self._json(200, {"ok": True, "data": {
                 "token": self.server.control_token,
                 "courseCatalog": self.server.controller.courses,
+                "courseSchemaVersion": COURSE_SCHEMA_VERSION,
+                "editorBuild": EDITOR_BUILD_ID,
                 "script": self.server.controller.script,
                 "state": self.server.controller.public_state(),
             }})
             return
         if parsed.path == "/api/courses":
             self._json(200, {"ok": True, "data": self.server.controller.repository.list_for_editor()})
+            return
+        if parsed.path.startswith("/api/courses/") and parsed.path.endswith("/history"):
+            course_id = unquote(parsed.path.removeprefix("/api/courses/").removesuffix("/history").rstrip("/"))
+            try:
+                history = self.server.controller.repository.list_history(course_id)
+            except ValueError as exc:
+                self._json(404, {"ok": False, "error": {"code": "COURSE_NOT_FOUND", "message": str(exc)}})
+                return
+            self._json(200, {"ok": True, "data": {"courseId": course_id, "history": history}})
             return
         if parsed.path.startswith("/api/courses/"):
             course_id = unquote(parsed.path.removeprefix("/api/courses/"))
@@ -834,6 +848,7 @@ class LiveRunHandler(BaseHTTPRequestHandler):
                 "course": value,
                 "revision": int((value.get("authoring") or {}).get("revision", 0)),
                 "variant": (value.get("authoring") or {}).get("status", "published"),
+                "metadata": self.server.controller.repository.describe(course_id, variant=variant),
             }})
             return
         if parsed.path == "/api/state":
@@ -854,7 +869,7 @@ class LiveRunHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:  # noqa: N802
         parsed = urlparse(self.path)
-        allowed_paths = {"/api/control", "/api/courses/validate", "/api/courses/save", "/api/courses/clone"}
+        allowed_paths = {"/api/control", "/api/courses/validate", "/api/courses/save", "/api/courses/clone", "/api/courses/restore"}
         if parsed.path not in allowed_paths:
             self._json(404, {"ok": False, "error": {"code": "NOT_FOUND", "message": "没有这个控制入口。"}})
             return
@@ -927,13 +942,15 @@ class LiveRunHandler(BaseHTTPRequestHandler):
         if path == "/api/courses/validate":
             value = payload.get("course")
             validate_script(value)
+            manifest = course_manifest(value)
             return {
                 "valid": True,
                 "courseId": value["course"]["id"],
-                "macroSteps": len(value["macroSteps"]),
-                "blocks": len(value["blocks"]),
-                "decks": len(value["decks"]),
-                "cards": sum(len(deck["cards"]) for deck in value["decks"]),
+                "macroSteps": manifest["macroStepCount"],
+                "blocks": manifest["blockCount"],
+                "decks": manifest["deckCount"],
+                "cards": manifest["cardCount"],
+                "metadata": manifest,
             }
         if path == "/api/courses/save":
             value = payload.get("course")
@@ -944,6 +961,7 @@ class LiveRunHandler(BaseHTTPRequestHandler):
                 "course": saved,
                 "revision": saved["authoring"]["revision"],
                 "status": saved["authoring"]["status"],
+                "metadata": repository.describe(saved["course"]["id"], variant=saved["authoring"]["status"]),
                 "catalog": repository.list_for_editor(),
             }
         if path == "/api/courses/clone":
@@ -954,6 +972,19 @@ class LiveRunHandler(BaseHTTPRequestHandler):
                 "course": cloned,
                 "revision": cloned["authoring"]["revision"],
                 "status": "draft",
+                "metadata": repository.describe(cloned["course"]["id"], variant="draft"),
+                "catalog": repository.list_for_editor(),
+            }
+        if path == "/api/courses/restore":
+            restored = repository.restore(
+                payload.get("courseId"), payload.get("sourceRevision"),
+                expected_revision=payload.get("expectedRevision"),
+            )
+            return {
+                "course": restored,
+                "revision": restored["authoring"]["revision"],
+                "status": "draft",
+                "metadata": repository.describe(restored["course"]["id"], variant="draft"),
                 "catalog": repository.list_for_editor(),
             }
         raise ValueError("未知课程编辑动作。")
