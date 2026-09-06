@@ -12,10 +12,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 TEXT_SUFFIXES = {".html", ".css", ".js", ".mjs", ".json", ".svg", ".md", ".txt", ".webmanifest"}
-REQUIRED_PAGES = ("index.html", "world/index.html", "framework/index.html", "parents/index.html", "workshop/index.html")
+REQUIRED_PAGES = ("index.html", "world/index.html", "course/index.html", "framework/index.html", "parents/index.html", "workshop/index.html")
+PUBLIC_COURSE_NAV_PAGES = ("index.html", "world/index.html", "course/index.html")
 FORBIDDEN = ("work.cyberforker.com", "192.168.", "127.0.0.1:18765", "/msv/", r"\/msv\/")
-THEME_VERSION = "20260906-6"
+THEME_VERSION = "20260906-9"
 THEME_ASSETS = f'<link rel="stylesheet" href="/ui-theme.css?v={THEME_VERSION}"><script src="/ui-theme.js?v={THEME_VERSION}"></script>'
+CHJ_COURSE_UI_SHA = "679213a61b835335016eac7649213983a0e48489"
 
 
 def copy_entry(source: Path, target: Path) -> None:
@@ -84,10 +86,23 @@ def transform_tree(root: Path) -> None:
             path.write_text(changed, encoding="utf-8")
 
 
-def build(legacy: Path, app_client: Path, portal: Path, output: Path, release_id: str) -> None:
-    for source in (legacy, app_client, portal):
+def build(
+    legacy: Path,
+    app_client: Path,
+    app_static: Path,
+    portal: Path,
+    output: Path,
+    release_id: str,
+    *,
+    main_sha: str = "uncommitted",
+    chj_sha: str = CHJ_COURSE_UI_SHA,
+) -> None:
+    for source in (legacy, app_client, app_static, portal):
         if not source.is_dir():
             raise ValueError(f"required directory is missing: {source}")
+    for label, value in (("main SHA", main_sha), ("chj SHA", chj_sha)):
+        if value != "uncommitted" and not re.fullmatch(r"[0-9a-f]{40}", value):
+            raise ValueError(f"invalid {label}: {value}")
     if output.exists():
         raise ValueError(f"refusing to overwrite release output: {output}")
     output.mkdir(parents=True)
@@ -107,6 +122,11 @@ def build(legacy: Path, app_client: Path, portal: Path, output: Path, release_id
     for source_name, target_name in page_map.items():
         copy_entry(legacy / source_name, output / target_name)
 
+    # Current source owns the public world shell and the stable course route.
+    # These two HTML files share the app_client asset tree copied above.
+    for route in ("world", "course"):
+        copy_entry(app_static / route / "index.html", output / route / "index.html")
+
     # Workshop remains a coherent relative-path bundle under /workshop/.
     workshop = output / "workshop"
     workshop.mkdir()
@@ -124,14 +144,26 @@ def build(legacy: Path, app_client: Path, portal: Path, output: Path, release_id
         "service": "minisv", "release": release_id,
         "builtAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "origin": "hecate", "canonicalOrigin": "https://minisv.vip",
+        "features": ["stable-course-outline", "released-course-package-projection", "five-step-course-map"],
+        "sources": {"main": main_sha, "chjCourseUi": chj_sha},
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (output / "sitemap.json").write_text(json.dumps({"routes": [
-        "/", "/world/", "/classroom/", "/alpha/", "/control/", "/framework/", "/parents/", "/workshop/",
+        "/", "/world/", "/course/", "/classroom/", "/alpha/", "/control/", "/framework/", "/parents/", "/workshop/",
     ]}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     errors = []
     for relative in REQUIRED_PAGES:
         if not (output / relative).is_file(): errors.append(f"missing {relative}")
+    for relative in PUBLIC_COURSE_NAV_PAGES:
+        page = output / relative
+        if page.is_file() and not re.search(r'href=["\']/course/', page.read_text(encoding="utf-8")):
+            errors.append(f"missing stable course navigation in {relative}")
+    theme_script = output / "ui-theme.js"
+    if theme_script.is_file():
+        script_text = theme_script.read_text(encoding="utf-8")
+        for route in ("/framework/", "/parents/"):
+            if route not in script_text or 'href = "/course/"' not in script_text:
+                errors.append(f"missing runtime course navigation for {route}")
     for path in sorted(output.rglob("*")):
         if not path.is_file() or path.suffix.lower() not in TEXT_SUFFIXES: continue
         try: text = path.read_text(encoding="utf-8")
@@ -152,11 +184,18 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--legacy-root", required=True, type=Path)
     parser.add_argument("--app-client-root", required=True, type=Path)
+    parser.add_argument("--app-static-root", required=True, type=Path)
     parser.add_argument("--portal-root", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--release-id", required=True)
+    parser.add_argument("--main-sha", default="uncommitted")
+    parser.add_argument("--chj-sha", default=CHJ_COURSE_UI_SHA)
     args = parser.parse_args()
-    build(*(getattr(args, name) for name in ("legacy_root", "app_client_root", "portal_root", "output", "release_id")))
+    build(
+        *(getattr(args, name) for name in ("legacy_root", "app_client_root", "app_static_root", "portal_root", "output", "release_id")),
+        main_sha=args.main_sha,
+        chj_sha=args.chj_sha,
+    )
     print(f"MINISV_RELEASE_READY {args.release_id} {args.output}")
 
 

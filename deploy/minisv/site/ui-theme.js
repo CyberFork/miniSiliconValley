@@ -101,11 +101,31 @@
     setMode(root.dataset.msvTheme || requestedMode(), false);
   }
 
-  // Apply the stored mode before the body is parsed to avoid a light/dark flash.
-  root.dataset.msvTheme = requestedMode();
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", mountSwitcher, { once: true });
-  } else {
+  function mountCourseShortcut() {
+    if (document.getElementById("msv-course-shortcut")) return;
+    var pathname = window.location.pathname.replace(/\/+$/, "/");
+    if (["/framework/", "/parents/"].indexOf(pathname) === -1) return;
+    var link = document.createElement("a");
+    link.id = "msv-course-shortcut";
+    link.className = "msv-course-nav-link";
+    link.dataset.placement = "floating";
+    link.href = "/course/";
+    link.textContent = "课程大纲 ↗";
+    link.setAttribute("aria-label", "打开统一课程大纲");
+    document.body.appendChild(link);
+  }
+
+  function mountSharedUi() {
     mountSwitcher();
+    mountCourseShortcut();
+  }
+
+  // Do not mutate the root or insert the switcher before independently built
+  // React pages have hydrated. Both changes are mounted after window.load so
+  // the shared enhancement never invalidates server HTML.
+  if (document.readyState === "complete") {
+    window.setTimeout(mountSharedUi, 500);
+  } else {
+    window.addEventListener("load", function () { window.setTimeout(mountSharedUi, 500); }, { once: true });
   }
 })();

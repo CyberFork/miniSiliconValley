@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { publicPath } from "./lib/public-path";
 import "./globals.css";
 
-const siteOrigin = process.env.MSV_SITE_ORIGIN ?? "https://mini-silicon-valley-rpg.cyberforker.chatgpt.site";
+const siteOrigin = process.env.MSV_SITE_ORIGIN ?? "https://minisv.vip";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteOrigin),
@@ -33,7 +33,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" suppressHydrationWarning>
       <body>{children}</body>
     </html>
   );

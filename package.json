@@ -9,13 +9,15 @@
   "scripts": {
     "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext dev",
     "build": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext build",
+    "build:minisv-static": "MSV_SITE_ORIGIN=https://minisv.vip sh -c 'npm run build && tsx scripts/build-minisv-static.ts'",
+    "render:minisv-static": "tsx scripts/build-minisv-static.ts",
     "build:work": "MSV_PUBLIC_BASE=/msv/ MSV_SITE_ORIGIN=https://work.cyberforker.com MSV_CANONICAL_URL=https://work.cyberforker.com/msv/demo.html sh -c 'npm run build && tsx scripts/build-work-static.ts'",
     "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
     "typecheck": "tsc --noEmit --pretty false",
     "validate:data": "tsx scripts/validate-data.ts",
-    "test:unit": "node --import tsx --test tests/curriculum.test.ts tests/data-validate.test.ts tests/state.test.ts",
+    "test:unit": "node --import tsx --test tests/course-outline.test.ts tests/curriculum.test.ts tests/data-validate.test.ts tests/state.test.ts",
     "test:render": "npm run build && node --import tsx --test tests/render.test.ts",
-    "test": "npm run typecheck && npm run lint && npm run build && node --import tsx --test tests/curriculum.test.ts tests/data-validate.test.ts tests/interaction-contract.test.ts tests/mission-progress.test.ts tests/render.test.ts tests/state.test.ts",
+    "test": "npm run typecheck && npm run lint && npm run build && node --import tsx --test tests/course-outline.test.ts tests/curriculum.test.ts tests/data-validate.test.ts tests/interaction-contract.test.ts tests/mission-progress.test.ts tests/render.test.ts tests/state.test.ts",
     "test:work": "npm run typecheck && npm run lint && npm run build:work && node --import tsx --test tests/*.test.ts",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --max-warnings=0"
   },

@@ -10,7 +10,7 @@
 - 远程席位 console：`127.0.0.1:18791`
 - cloudflared metrics：`127.0.0.1:18792`
 
-Gateway 对外提供语义路由：`/`、`/world/`、`/classroom/`、`/alpha/`、`/control/`、`/framework/`、`/parents/`、`/workshop/`。旧 origin 兼容映射只能在网关内部使用，浏览器应只看到 `minisv.vip`。
+Gateway 对外提供语义路由：`/`、`/world/`、`/course/`、`/classroom/`、`/alpha/`、`/control/`、`/framework/`、`/parents/`、`/workshop/`。旧 origin 兼容映射只能在网关内部使用，浏览器应只看到 `minisv.vip`。
 
 ## 控制面
 
@@ -23,3 +23,8 @@ LIVE RUN controller 的浏览器端必须有 admin/mentor RBAC 会话。service 
 ## Course Package v1
 
 `/control/editor/` 与 `/control/` 由同一个 loopback LIVE RUN 服务提供，并复用课堂 HttpOnly Session 的 admin/mentor RBAC。编辑器只提交声明式 JSON：服务端校验 5×13 安全骨架、课程素材底座、八席任务与人工状态机，然后原子写入 `~/Services/minisv/data/courses/`。草稿、发布版、不可变历史修订分目录保存，release 切换不会覆盖课程数据。运行主控只发现已发布版本；活动 Run 保留内存中已加载的课程，重置/新 Run 才采纳新修订。
+
+
+## 统一课程大纲
+
+`/course/` 是唯一公开课程目录。它从 Course Package v1 的 Released 基线生成 5 步／13 Block 只读投影，展示 course ID、revision 和 digest；页面本身不维护第三份课程数据。`/course` 永久重定向到带斜杠地址，静态 HTML 由当前 main 构建生成并与 `/world/` 共用哈希客户端资源。课程、步骤、Block 选择使用 URL hash，支持分享、刷新和浏览器返回。

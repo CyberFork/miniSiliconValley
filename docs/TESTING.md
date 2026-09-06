@@ -12,7 +12,7 @@ npm test
 1. `npm run typecheck`：TypeScript strict 类型检查。
 2. `npm run lint`：ESLint，`--max-warnings=0`。
 3. `npm run build`：Vinext/Vite 生产构建。
-4. 核心质量闸执行 23 项确定性测试。
+4. 核心质量闸执行确定性数据、课程投影、SSR、交互和状态测试。
 
 Work 子路径部署质量闸：
 
@@ -32,12 +32,12 @@ npm run test:render
 
 ## 自动测试矩阵
 
-### `tests/curriculum.test.ts`
+### `tests/course-outline.test.ts` / `tests/curriculum.test.ts`
 
-- 锁定 0→1 六步名称、ID 和顺序。
-- 每条企业全流程必须完整覆盖六步。
-- 校验 18 个纵向案例和所有史实/战役外键。
-- 锁定顶栏入口、双轴切换、史实/战役操作与横向滚动契约。
+- 精确锁定 Google／饿了么 Course Package digest。
+- 校验五步、13 Block、5 卡组、四导师和学员不分 PDMO。
+- 历史世界只能通过真实 `/course/` 链接进入唯一课程大纲。
+- 旧六段素材索引继续通过数据完整性校验，但不再拥有公开入口。
 
 ### `tests/data-validate.test.ts`
 
@@ -93,13 +93,14 @@ npm run test:render
 
 Sites 构建规范不要求用浏览器截图作为发布前置；因此默认质量闸不依赖图形环境或网络，保持 CI 可重复。
 
-## 当前基线（2026-08-17）
+## T-077 浏览器矩阵
 
-```text
-TypeScript    PASS
-ESLint        PASS (0 warnings)
-Build         PASS
-Core tests    23 / 23 PASS
-Work tests    25 / 25 PASS
-Data report   0 errors / 0 warnings
-```
+`tools/live-run/tests/verify_course_outline_browser.py` 验证：
+
+- `/course/` 在 390、430、768、1440 px 无横向溢出；
+- 1671:941 地图比例不变，五个 Overlay 节点均在 Stage 内；
+- Google／饿了么切换、步骤／Block hash、刷新、前进／后退正确；
+- `/`、`/world/`、`/course/`、`/framework/`、`/parents/` 在手机和桌面都有可见 `/course/` 链接；
+- 无浏览器 `pageerror`，地图资源真实加载。
+
+部署测试还覆盖 `/course → /course/`、静态 release 组装、共享 UI runtime 版本一致性、manifest 和生产 smoke。最终精确计数与生产 release 见 `TODO_077_IMPLEMENTATION.md` 和发布回执。

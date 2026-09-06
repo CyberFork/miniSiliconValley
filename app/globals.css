@@ -215,30 +215,40 @@ li {
   display: flex;
   align-self: stretch;
   align-items: stretch;
+  min-width: 0;
+  max-width: 100%;
 }
 
-.primary-nav button {
+.primary-nav button,
+.primary-nav a {
   position: relative;
+  display: grid;
   min-width: 106px;
+  place-items: center;
   padding: 0 15px;
   color: #bdc8c7;
   background: transparent;
   border-inline-start: 1px solid #34454a;
   font-size: 13px;
   font-weight: 800;
+  text-decoration: none;
 }
 
-.primary-nav button:last-child {
+.primary-nav button:last-child,
+.primary-nav a:last-child {
   border-inline-end: 1px solid #34454a;
 }
 
 .primary-nav button:hover,
-.primary-nav button.is-active {
+.primary-nav button.is-active,
+.primary-nav a:hover,
+.primary-nav a[aria-current="page"] {
   color: var(--white);
   background: var(--ink-2);
 }
 
-.primary-nav button.is-active::after {
+.primary-nav button.is-active::after,
+.primary-nav a[aria-current="page"]::after {
   position: absolute;
   right: 16px;
   bottom: -4px;
@@ -904,6 +914,7 @@ li {
   position: relative;
   height: 42px;
   margin-top: 5px;
+  overflow: hidden;
 }
 
 .era-ticks button {
@@ -3638,7 +3649,8 @@ kbd {
     border-top: 1px solid #34454a;
   }
 
-  .primary-nav button {
+  .primary-nav button,
+  .primary-nav a {
     flex: 1 0 auto;
     min-height: 43px;
   }
@@ -3771,7 +3783,8 @@ kbd {
     display: none;
   }
 
-  .primary-nav button {
+  .primary-nav button,
+  .primary-nav a {
     min-width: 98px;
     padding-inline: 10px;
   }

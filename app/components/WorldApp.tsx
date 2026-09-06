@@ -42,9 +42,8 @@ import {
 import { MentorGuide } from "./MentorGuide";
 import { MissionPlayer } from "./MissionPlayer";
 import { Modal } from "./Modal";
-import { CurriculumOutline } from "./CurriculumOutline";
 
-type ViewId = "world" | "curriculum" | "missions" | "dossier" | "mentor";
+type ViewId = "world" | "missions" | "dossier" | "mentor";
 
 const CHECKPOINT_KEY = "msv-world-checkpoint-v1";
 const MAX_IMPORT_BYTES = 2 * 1024 * 1024;
@@ -213,14 +212,6 @@ export function WorldApp() {
     setState((current) => recordEventVisit(current, event.id));
   }
 
-  function openCurriculumEvent(eventId: string) {
-    const event = eventById.get(eventId);
-    if (!event) return;
-    changeYear(event.year);
-    setView("world");
-    openEvent(event);
-  }
-
   function launchMission(mission: MissionRecord) {
     missionReturnRef.current = { year: state.currentYear, mapView };
     setSelectedEventId(undefined);
@@ -370,9 +361,11 @@ export function WorldApp() {
           <span><b>MINI SILICON VALLEY</b><small>有限开放世界创业 RPG · v1.0</small></span>
         </button>
         <nav className="primary-nav" aria-label="主导航">
+          <button type="button" aria-current={view === "world" ? "page" : undefined} className={view === "world" ? "is-active" : ""} onClick={() => setView("world")}>
+            历史世界
+          </button>
+          <a href="/course/">课程大纲</a>
           {([
-            ["world", "历史世界"],
-            ["curriculum", "课程大纲"],
             ["missions", `互动战役 ${completedCount}/8`],
             ["dossier", "学习档案"],
             ["mentor", "DM 手册"],
@@ -495,7 +488,6 @@ export function WorldApp() {
           </main>
         ) : null}
 
-        {view === "curriculum" ? <CurriculumOutline onOpenEvent={openCurriculumEvent} onLaunchMission={(id) => { const mission = missionById.get(id); if (mission) launchMission(mission); }} /> : null}
         {view === "missions" ? <MissionLibrary state={state} onLaunch={launchMission} onJump={(year) => { changeYear(year); setView("world"); }} /> : null}
         {view === "dossier" ? <Dossier state={state} onExport={exportState} onImport={() => importRef.current?.click()} onCheckpoint={createCheckpoint} onRestore={restoreCheckpoint} onReset={resetState} onReplay={(id) => { const mission = missionById.get(id); if (mission) launchMission(mission); }} /> : null}
         {view === "mentor" ? <MentorGuide missions={missions} onLaunch={launchMission} /> : null}

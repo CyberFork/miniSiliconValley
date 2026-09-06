@@ -16,7 +16,7 @@ class GatewayContractTests(unittest.TestCase):
         cls.tunnel = (ROOT / "cloudflared" / "config.yml.template").read_text()
 
     def test_every_public_route_has_an_explicit_owner(self) -> None:
-        for route in ("world", "alpha", "control", "framework", "parents", "workshop"):
+        for route in ("world", "course", "alpha", "control", "framework", "parents", "workshop"):
             self.assertRegex(self.gateway, rf"location[^\n]* /{route}(?:[ /{{])")
         self.assertIn("^/(classroom|account)", self.gateway)
 
@@ -57,6 +57,14 @@ class GatewayContractTests(unittest.TestCase):
         self.assertIn("location = /portal.js", self.gateway)
         self.assertNotIn("静态导航", portal)
 
+    def test_public_portal_exposes_course_outline_as_a_top_level_route(self) -> None:
+        site = ROOT / "site"
+        portal = (site / "index.html").read_text()
+        self.assertIn('<a href="/course/">课程大纲</a>', portal)
+        self.assertIn('class="route route-course" href="/course/"', portal)
+        self.assertIn("location = /course", self.gateway)
+        self.assertIn("/course/index.html", self.gateway)
+
     def test_global_ui_comparison_assets_are_served_and_injected(self) -> None:
         site = ROOT / "site"
         if not site.is_dir():
@@ -78,6 +86,12 @@ class GatewayContractTests(unittest.TestCase):
         self.assertIn('dataset.placement = "floating"', theme_js)
         self.assertIn('minisv.ui.theme', theme_js)
         self.assertNotIn("work.cyberforker.com", theme_css + theme_js)
+
+        portal_version = re.search(r'/ui-theme\.js\?v=([A-Za-z0-9._-]+)', portal)
+        proxy_version = re.search(r'/ui-theme\.js\?v=([A-Za-z0-9._-]+)', self.proxy)
+        self.assertIsNotNone(portal_version)
+        self.assertIsNotNone(proxy_version)
+        self.assertEqual(portal_version.group(1), proxy_version.group(1), "静态页与 Classroom 必须命中同一套 UI runtime")
 
 
 if __name__ == "__main__":

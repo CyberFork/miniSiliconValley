@@ -41,7 +41,7 @@ cd $HOME/Services/minisv && /usr/local/bin/docker compose -f compose.yml up -d -
 ```sh
 $HOME/Services/minisv/current/ops/scripts/rollback-hecate.sh <KNOWN_GOOD_RELEASE_ID>
 ```
-确认健康检查及八个路由后再恢复流量；保留失败发布目录供审计。
+确认健康检查及全部语义路由（含 `/course/`）后再恢复流量；保留失败发布目录供审计。
 
 ## 灾备
 
@@ -55,3 +55,14 @@ $HOME/Services/minisv/current/ops/scripts/rollback-hecate.sh <KNOWN_GOOD_RELEASE
 - 查看已发布课程：登录导师账号后访问 `/control/api/courses`。
 - 直接放置文件前，先在 release 的 `live-run/` 目录执行 `python3 course.py --validate <file>`。
 - 无效的手工文件会出现在编辑器诊断区，但不会让内置 Google/饿了么课程或活动课堂下线。
+
+
+## 课程大纲检查
+
+```sh
+curl -fsS https://minisv.vip/course/ >/dev/null
+curl -sSI https://minisv.vip/course | grep -i '^location: /course/'
+python3 $HOME/Services/minisv/current/ops/scripts/public-smoke.py --base https://minisv.vip
+```
+
+大纲页必须显示与 Course Package 一致的 5 步、13 Block、course ID、revision 和 digest。它是只读发布投影；修改课程仍只能经 `/control/editor/` 的草稿、校验与发布流程完成。

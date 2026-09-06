@@ -1,73 +1,74 @@
-# 部署说明（DEPLOYMENT）
+# Mini Silicon Valley 部署说明
 
-## 平台
+## 唯一生产环境
 
-- 本项目使用 Next/Vinext，并由 OpenAI Sites 托管。
-- 正式公开入口：`https://mini-silicon-valley-rpg.cyberforker.chatgpt.site`
-- Work 演示入口：`https://work.cyberforker.com/msv/demo.html`
-- `.openai/hosting.json` 保存 Sites 项目标识及可选资源绑定；项目不使用 D1 或 R2。
-- 学员进度只保存在浏览器 `localStorage`，部署端不存储学员档案。
+- 正式域名：`https://minisv.vip`
+- 运行主机：Hecate Mac mini
+- 公网入口：Cloudflare Tunnel → loopback Nginx gateway
+- 不依赖 Windows 或局域网机器，不修改 `cyberforker.com` 的其他站点。
+
+主要路由：
+
+```text
+/                 公开总导航
+/world/           历史世界
+/course/          统一课程大纲
+/classroom/       账号与课堂
+/alpha/           八席课堂视图
+/control/         LIVE RUN 主控
+/control/editor/  课程编辑器
+/framework/       方法同步页
+/parents/         家长问答
+/workshop/        内容工坊
+```
 
 ## 发布前门禁
-
-在项目根目录执行：
 
 ```bash
 npm ci
 npm run validate:data
 npm test
+npm run build:minisv-static
+python3 -m unittest discover -s deploy/minisv/tests -p 'test_*.py'
+node deploy/minisv/tests/test_ui_theme_runtime.mjs
+python3 -m unittest discover -s tools/live-run/tests -p 'test_*.py'
 git diff --check
 ```
 
-只有四项全部通过，且 Git 工作树不含密钥、临时导出档案或调试文件，才可发布。
+浏览器验收用 `tools/live-run/tests/verify_course_outline_browser.py` 检查 390／430／768／1440 px 的课程页以及公共页面的统一课程入口。
 
-## Sites 正式发布流程
+## 组装 release
 
-1. 首次发布时创建一个 Sites 项目，并把返回的 `project_id` 原样写入 `.openai/hosting.json`；之后不得重复创建项目。
-2. 将通过门禁的完整源码提交到 Git，记录提交 SHA。
-3. 使用 Sites 返回的一次性凭证，以单条命令的 HTTP 授权头推送；不得把令牌写入 remote URL、Git config、日志或文件。
-4. 使用 Sites 插件自带的 `scripts/package-site.sh` 从已验证提交制作归档。
-5. 用同一个提交 SHA 和归档保存 Sites 版本并发起部署。
-6. 轮询部署状态至成功；本课程经需求方明确要求公开访问，因此完成后将访问级别设为 public。
-7. 对正式 URL 进行在线回归：入口、标题、四幅地图资源与核心交互脚本均应返回成功状态。
-
-## Work `/msv/demo.html` 发布流程
-
-### 构建与校验
+`deploy/minisv/package_release.py` 需要四类输入：
 
 ```bash
-npm run validate:data
-npm run test:work
+python3 deploy/minisv/package_release.py \
+  --legacy-root <既有静态产品根目录> \
+  --app-client-root dist/client \
+  --app-static-root dist/minisv-static \
+  --portal-root deploy/minisv/site \
+  --output <新 site 目录> \
+  --release-id <唯一 RELEASE_ID> \
+  --main-sha <已验证并提交的 40 位 main SHA>
 ```
 
-`build:work` 使用以下独立构建边界，不修改 Sites 版本：
+打包器合并当前 `/world/`、`/course/` 和既有 Classroom／Alpha／Editor／QA／Workshop，重写已退休路径，注入共享 UI，生成 `release.json`、`sitemap.json`、`MANIFEST.sha256`，并在发现缺页、旧公网地址或重复课程入口时失败。
 
-- Vite Base：`/msv/`
-- Canonical：`https://work.cyberforker.com/msv/demo.html`
-- 产物：`dist/work/msv/`
-- 入口：`dist/work/msv/demo.html`
-- 完整性清单：`dist/work/msv/demo-manifest.json`
+## Hecate 原子发布
 
-### 网关与发布原子性
+1. 以当前生产 release 为底座，替换本次验证后的 `site/`、`ops/`、`docs/`；运行态数据和 secrets 不进入压缩包。
+2. 将压缩包传到 Hecate。
+3. 使用私有环境变量执行 `ops/scripts/deploy-hecate.sh`。
+4. 脚本先验证 manifest、Python／Node／launchd 配置，再建立不可变 release，原子切换 `~/Services/minisv/current`。
+5. 发布后运行 loopback healthcheck、公开 smoke 和真实浏览器验收。
+6. 对比发布前后的 `run-state.json`，确保活动 Run、进度、RP、钱包、团队资金和手牌没有变化。
 
-1. 从远端 `site/current` 完整复制一个新 release，保留既有 `/msv/launch.html` 与其他产品路径。
-2. 只把 `dist/work/msv/` 覆盖到新 release 的 `msv/` 目录。
-3. 逐项验证远端文件与 `demo-manifest.json` 的字节数和 SHA-256。
-4. 将 `deploy/work-demo-location.conf` 的精确路由插入通用 `/msv/` 路由之前；不得覆盖服务器已有的 GolfNine 或 SFTPGo 配置。
-5. `nginx -t` 通过后原子切换 `site/current`，然后只重建 `work-sync-gateway`，使 Docker 重新解析 release 软链接。
-6. 验证 Demo、原 Workshop、其他静态页面和 SFTPGo fallback；失败时恢复上一 release 并重建网关。
-
-Demo 页面需要 React/Vinext 的内联启动脚本和动态位置样式，因此只对 `/msv/demo.html` 放开 `script-src/style-src 'unsafe-inline'`；原 Workshop 的严格 CSP 不变。图片与字体均限制为同源，本版本不发起应用网络请求。
+凭据只能来自 Hecate 的 `~/Services/minisv/secrets/` 或受控环境变量，不得写入仓库、命令回执或 URL。
 
 ## 回滚
 
-- 应用故障：在 Sites 中重新部署最近一个已通过门禁的版本。
-- 数据故障：回退到相应 Git 提交，重新运行 `npm test`，保存新版本后部署。
-- 浏览器档案异常：在“我的档案”中先导出检查点，再选择恢复或重置；服务端无需数据迁移。
+```bash
+~/Services/minisv/current/ops/scripts/rollback-hecate.sh <KNOWN_GOOD_RELEASE_ID>
+```
 
-## 故障排查
-
-- 地图缺失：核对 `public/assets/map-1939.webp`、`map-1968.webp`、`map-1998.webp`、`silicon-valley-base-map.webp` 是否进入发布归档。
-- 页面可访问但交互失效：查看构建产物中的客户端 chunk 是否为 200，并复跑 `npm test`。
-- 历史节点异常：执行 `npm run validate:data`，检查 ID、关系、来源与坐标引用。
-- 部署认证失败：重新获取 Sites 一次性凭证；不要把旧凭证固化为 Git remote。
+回滚只是切换到已验证的不可变 release；持久化账户、课堂和课程库不随静态 release 回退。回滚后必须重新执行健康检查和公共 smoke。

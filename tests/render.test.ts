@@ -2,12 +2,12 @@ import assert from "node:assert/strict";
 import { access, readFile, readdir } from "node:fs/promises";
 import test from "node:test";
 
-async function renderIndex() {
+async function renderPath(pathname = "/") {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
   const { default: worker } = await import(workerUrl.href);
 
   return worker.fetch(
-    new Request("http://localhost/", {
+    new Request(`http://localhost${pathname}`, {
       headers: { accept: "text/html" },
     }),
     {
@@ -77,6 +77,8 @@ function collectFilesForContentScan() {
     "../app/components/MissionPlayer.tsx",
     "../app/components/MentorGuide.tsx",
     "../app/components/Modal.tsx",
+    "../app/course/CourseOutlineApp.tsx",
+    "../app/lib/course-outline.ts",
   ];
 
   return candidates.map((relative) => new URL(relative, import.meta.url));
@@ -84,7 +86,7 @@ function collectFilesForContentScan() {
 
 
 test("server-rendered built HTML includes Mini Silicon Valley metadata and shell, excludes starter skeleton", async () => {
-  const response = await renderIndex();
+  const response = await renderPath();
   const html = await response.text();
 
   assert.equal(response.status, 200);
@@ -97,6 +99,33 @@ test("server-rendered built HTML includes Mini Silicon Valley metadata and shell
   assert.equal(/Your site is taking shape/i.test(html), false);
   assert.equal(/react-loading-skeleton/i.test(html), false);
   assert.equal(/codex-preview/i.test(html), false);
+});
+
+test("server-rendered course route exposes one stable five-step Course Package projection", async () => {
+  const response = await renderPath("/course/");
+  const html = await response.text();
+
+  assert.equal(response.status, 200);
+  assert.match(html, /<link rel="canonical" href="https:\/\/minisv\.vip\/course\/"/);
+  assert.match(html, /aria-current="page">课程大纲<\/a>/);
+  assert.equal((html.match(/data-step-id=/g) ?? []).length, 5);
+  assert.match(html, /data-course-steps="5"/);
+  assert.match(html, /data-course-blocks="13"/);
+  assert.match(html, /data-course-decks="5"/);
+  assert.match(html, /course-outline-world-map\.webp/);
+  assert.match(html, /找真问题/);
+  assert.match(html, /跑真运营/);
+  assert.match(html, /六分钟 Demo Day/);
+});
+
+test("course outline ships only optimized, correctly sized chj visual assets", async () => {
+  const map = await readFile(new URL("../public/assets/course-outline-world-map.webp", import.meta.url));
+  const icons = await readFile(new URL("../public/assets/course-outline-chapter-icons.webp", import.meta.url));
+
+  assert.deepEqual(getWebPDimensions(map), { width: 1671, height: 941 });
+  assert.deepEqual(getWebPDimensions(icons), { width: 633, height: 621 });
+  assert.ok(map.byteLength < 512_000, `课程地图未完成 Web 优化：${map.byteLength} bytes`);
+  assert.ok(icons.byteLength < 256_000, `章节图标未完成 Web 优化：${icons.byteLength} bytes`);
 });
 
 test("all map webp assets exist and share dimensions", async () => {

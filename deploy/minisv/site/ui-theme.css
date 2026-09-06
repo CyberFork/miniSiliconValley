@@ -15,6 +15,34 @@ body {
   max-width: 100%;
 }
 
+.msv-course-nav-link {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  color: #fffaf0 !important;
+  background: var(--msv-adventure-navy);
+  border: 1px solid var(--msv-adventure-mint) !important;
+  border-radius: 0 !important;
+  box-shadow: 3px 3px 0 var(--msv-adventure-yellow);
+  font: 800 11px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+  text-decoration: none !important;
+  white-space: nowrap;
+}
+
+.msv-course-nav-link:hover {
+  color: var(--msv-adventure-navy) !important;
+  background: var(--msv-adventure-yellow);
+}
+
+.msv-course-nav-link[data-placement="floating"] {
+  position: fixed;
+  z-index: 2147482999;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(142px, calc(env(safe-area-inset-right) + 142px));
+}
+
 .msv-ui-switch {
   position: relative;
   z-index: 2147483000;
@@ -259,6 +287,11 @@ html[data-msv-theme="adventure"][data-msv-surface="dark"] :is(.seat, .overview, 
 
   .msv-ui-switch[data-placement="floating"] {
     top: max(8px, env(safe-area-inset-top));
+    right: max(8px, env(safe-area-inset-right));
+  }
+
+  .msv-course-nav-link[data-placement="floating"] {
+    top: max(52px, calc(env(safe-area-inset-top) + 52px));
     right: max(8px, env(safe-area-inset-right));
   }
 

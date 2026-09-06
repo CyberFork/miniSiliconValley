@@ -32,7 +32,7 @@ class Element {
   }
 }
 
-function boot(search = "", stored = null) {
+function boot(search = "", stored = null, pathname = "/") {
   const root = new Element("html");
   const body = new Element("body");
   const callbacks = {};
@@ -49,11 +49,13 @@ function boot(search = "", stored = null) {
   };
   const events = [];
   const window = {
-    location: { search },
+    location: { search, pathname },
     localStorage: {
       getItem: (key) => storage.get(key) ?? null,
       setItem: (key, value) => storage.set(key, value),
     },
+    addEventListener: (name, handler) => { callbacks[name] = handler; },
+    setTimeout: (handler) => handler(),
     dispatchEvent: (event) => events.push(event),
   };
   const sourceCandidates = [
@@ -64,8 +66,16 @@ function boot(search = "", stored = null) {
   assert.ok(sourceUrl, "ui-theme.js must exist in source or release layout");
   const source = readFileSync(sourceUrl, "utf8");
   vm.runInNewContext(source, { document, window, URLSearchParams, CustomEvent: class { constructor(name, options) { this.type = name; this.detail = options.detail; } } });
-  callbacks.DOMContentLoaded();
+  callbacks.load();
   return { root, body, storage, events };
+}
+
+{
+  const runtime = boot("", null, "/framework/");
+  const shortcut = runtime.body.walk().find((item) => item.id === "msv-course-shortcut");
+  assert.ok(shortcut, "framework must receive a post-hydration course shortcut");
+  assert.equal(shortcut.href, "/course/");
+  assert.equal(shortcut.textContent, "课程大纲 ↗");
 }
 
 {

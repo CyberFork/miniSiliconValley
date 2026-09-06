@@ -4,12 +4,14 @@
 - **前端框架**：React + Next App Router，使用 `vinext` 进行构建。
 - **核心展示**：
   - 世界地图/时间轴/节点浏览：`app/components/WorldApp.tsx`
-  - 0→1 课程大纲：`app/components/CurriculumOutline.tsx`
+  - 稳定课程大纲：`app/course/`（`CourseOutlineApp` + Course Package 只读投影）
+  - 旧六段素材索引：`app/components/CurriculumOutline.tsx`（不再拥有公开入口，仅保留兼容资料）
   - 关卡交互：`app/components/MissionPlayer.tsx`
   - 学员档案页：`app/components/WorldApp.tsx` 内的 `Dossier`
   - DM 手册：`app/components/MentorGuide.tsx`
-- **数据层**：以 TypeScript 常量导出为主，不使用运行时后端数据库。
-- **持久化**：`localStorage` + JSON 文件导入导出（见下）。
+- **历史世界数据层**：以 TypeScript 常量导出为主。
+- **正式课件数据层**：`tools/live-run/*.json` 的 Course Package v1；`CourseRepository` 管理草稿、发布版与不可变历史。
+- **持久化**：历史世界使用 `localStorage`；课堂、账号、Course Package 与 LIVE RUN 使用 Hecate 上的服务数据目录。
 
 ## 二、数据流
 - `app/data/history.ts`
@@ -35,7 +37,8 @@
 ## 四、时间线两层分离
 - **ORIGINAL TIMELINE**：由 `historyCatalog.events` 与 `sources` 提供，不允许被游戏世界线覆盖。
 - **PLAYER TIMELINE**：保存在 `results`，由 `MissionPlayer` 决策与 `applyChoice` 生成。
-- **CURRICULUM MAPPING**：按项目六步重组史实，只读引用事件；`direct` 与 `course-analogy` 显式分层。
+- **COURSE PACKAGE PROJECTION**：`/course/` 将 Released 课程投影为五步／13 Block 地图；组件不复制课程真值。
+- **LEGACY CURRICULUM MAPPING**：旧六段素材索引仍可供内部参考，但不再拥有公开课程入口。
 - 课程 UI 中明确标注该边界：
   - Event 卡片 `EventDetail` 标注 `ORIGINAL TIMELINE`
   - 关卡结果页标注 `PARALLEL WORLD`
@@ -52,7 +55,7 @@
 - **时间轴播放/筛选**：`WorldApp` 的查询、标签筛选、时间变更。
 - **事件详情**：点击地图或列表 -> `EventDetail`。
 - **关卡入口**：地图高亮节点 -> `launchMission` -> `MissionPlayer`。
-- **课程目录**：顶栏“课程大纲” -> 纵向六步/企业全流程；史实按钮回到对应年份并打开事件，战役按钮直接进入 `MissionPlayer`。
+- **课程目录**：顶栏真实链接 `/course/` -> 选择 Google／饿了么 -> 五步地图 -> 13 Block -> 六分钟 Demo。课程／步骤／Block 写入可分享 hash。
 - **世界线归档**：`Dossier`（成绩、反思、现实承诺、导入导出）。
 - **DM 辅助**：`MentorGuide` 与页面内 runbook/protocol。
 
@@ -62,6 +65,7 @@
 - 地图支持指针拖动、滚轮、双指缩放、按钮缩放与归位；进入关卡前保存年份和地图视口，关闭后恢复。
 
 ## 八、部署入口
-- `app/page.tsx` 直接渲染 `WorldApp`，无 Starter/占位入口。
+- `app/page.tsx` 渲染历史世界；`app/course/page.tsx` 渲染稳定课程大纲，canonical 为 `https://minisv.vip/course/`。
+- `scripts/build-minisv-static.ts` 将两条路由服务端渲染为 Hecate 静态发布输入。
 - `.openai/hosting.json` 仅保存 Sites `project_id` 与可选逻辑绑定，不保存凭据。
 - 该站点不需要 D1/R2；生产包由 Vinext 输出 Cloudflare Workers 兼容的 `dist/server/index.js`。

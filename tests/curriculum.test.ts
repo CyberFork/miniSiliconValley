@@ -32,36 +32,37 @@ test("curriculum: six 0→1 stages and every company journey are complete", () =
   }
 });
 
-test("curriculum UI: top entry, dual-axis navigation and source actions remain explicit", async () => {
-  const [world, outline, css] = await Promise.all([
+test("curriculum UI: the historical world points to the single stable Course Package outline", async () => {
+  const [world, outline, projection, css] = await Promise.all([
     readFile(new URL("../app/components/WorldApp.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/components/CurriculumOutline.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+    readFile(new URL("../app/course/CourseOutlineApp.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/lib/course-outline.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/course/course-outline.module.css", import.meta.url), "utf8"),
   ]);
 
+  assert.ok(world.includes('<a href="/course/">课程大纲</a>'));
+  assert.doesNotMatch(world, /view === "curriculum"|setView\("curriculum"\)/);
+
   for (const token of [
-    '["curriculum", "课程大纲"]',
-    'view === "curriculum"',
-    "onOpenEvent={openCurriculumEvent}",
+    "找真问题",
+    "定真方案",
+    "做真产品",
+    "进真市场",
+    "跑真运营",
   ]) {
-    assert.ok(world.includes(token), `WorldApp 缺少课程入口契约：${token}`);
+    assert.ok(projection.includes(token), `Course Package 投影缺少统一课程契约：${token}`);
   }
 
   for (const token of [
-    "纵向六步",
-    "企业全流程",
-    "按阶段纵切",
-    "按项目横看",
-    "查看原始史实",
-    "进入历史战役",
-    "内容归集协议",
-    'role="tablist"',
-    'aria-selected={axis === "stages"}',
+    "六分钟 Demo Day",
+    'href="/course/" aria-current="page"',
+    'data-testid="course-map-stage"',
+    "Course Package",
   ]) {
-    assert.ok(outline.includes(token), `CurriculumOutline 缺少交互契约：${token}`);
+    assert.ok(outline.includes(token), `CourseOutlineApp 缺少统一课程契约：${token}`);
   }
 
-  assert.match(css, /\.curriculum-stage-layout\s*\{/);
-  assert.match(css, /\.company-journey-track\s*\{/);
-  assert.match(css, /overflow-x:\s*auto/);
+  assert.match(css, /aspect-ratio:\s*1671\s*\/\s*941/);
+  assert.match(css, /container-type:\s*inline-size/);
+  assert.match(css, /@media \(max-width: 620px\)/);
 });

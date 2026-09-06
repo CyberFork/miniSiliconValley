@@ -5,6 +5,7 @@
 旧 `work.cyberforker.com` 页面及 `/msv/...` 前缀不再作为用户入口；新入口统一为 `https://minisv.vip`：
 
 - 旧 demo/home → `/world/`
+- 统一课程大纲 → `/course/`
 - 旧 classroom → `/classroom/`
 - 旧 alpha → `/alpha/`
 - 旧 control → `/control/`

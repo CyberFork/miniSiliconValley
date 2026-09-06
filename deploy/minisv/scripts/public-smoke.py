@@ -12,6 +12,7 @@ from urllib.parse import urlsplit
 EXPECTED = {
     "/": 200,
     "/world/": 200,
+    "/course/": 200,
     "/framework/": 200,
     "/parents/": 200,
     "/workshop/": 200,
@@ -68,6 +69,11 @@ def main() -> None:
             release = json.loads(body)
             if release.get("origin") != "hecate" or release.get("canonicalOrigin") != args.base:
                 raise SystemExit("FAIL release.json: invalid production identity")
+        if path == "/course/":
+            text = body.decode("utf-8", "replace")
+            required = ("课程大纲", "找真问题", "跑真运营", "六分钟 Demo Day", "course-outline-world-map.webp")
+            if any(label not in text for label in required):
+                raise SystemExit("FAIL /course/: incomplete released course outline")
         print(f"OK {path} {status}")
     print("MINISV_PUBLIC_SMOKE_OK")
 
