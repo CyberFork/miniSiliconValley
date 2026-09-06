@@ -1,6 +1,6 @@
 # T-077｜统一课程大纲与 chj 视觉集成
 
-状态：已实现，等待本次发布回执写入
+状态：已实现、已发布、生产验收通过
 正式入口：<https://minisv.vip/course/>
 
 ## 1. 交付结果
@@ -82,4 +82,13 @@ Mini Silicon Valley 现在只有一个对外课程大纲入口：`/course/`。�
 - 无横向溢出、地图节点不漂移、图片加载、选中态、键盘语义、hash 分享和浏览器返回；
 - Alpha、Editor 和 CourseRepository 全套回归。
 
-生产 release、main 集成提交和回滚目标记录在本次发布回执中。
+## 7. 生产验收结论
+
+- Hecate release：`20260906T085800Z-t077-course-outline-r2`；
+- 回滚目标：`20260906T084404Z-t077-course-outline`（上一已验证 release）；
+- 核心 Web 测试：27／27；部署契约：17／17；LIVE RUN Python：33／33；
+- 生产 public smoke 全部通过；课程页四档视口和五个公共页面双断点浏览器验收通过；
+- 发布前后课程、执行位置、成员、手牌、RP、钱包和资金等玩法状态逐字段相同；控制器正常追加一条 `classroom.snapshot.refreshed` 审计事件，因此状态文件字节哈希按设计变化；
+- `release.json` 同时绑定 main 集成 SHA 与固定 chj SHA，归档哈希记录在部署回执。
+
+生产 release、main 集成提交、归档哈希和回滚目标记录在 `TODO_077_PRODUCTION_RECEIPT.json`。

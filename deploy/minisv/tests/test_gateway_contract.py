@@ -60,10 +60,12 @@ class GatewayContractTests(unittest.TestCase):
     def test_public_portal_exposes_course_outline_as_a_top_level_route(self) -> None:
         site = ROOT / "site"
         portal = (site / "index.html").read_text()
+        healthcheck = (ROOT / "scripts" / "healthcheck-hecate.sh").read_text()
         self.assertIn('<a href="/course/">课程大纲</a>', portal)
         self.assertIn('class="route route-course" href="/course/"', portal)
         self.assertIn("location = /course", self.gateway)
         self.assertIn("/course/index.html", self.gateway)
+        self.assertIn("probe /course/ 200", healthcheck)
 
     def test_global_ui_comparison_assets_are_served_and_injected(self) -> None:
         site = ROOT / "site"

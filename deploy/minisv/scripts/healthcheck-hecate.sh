@@ -12,6 +12,7 @@ probe() {
 probe /healthz 200
 probe / 200
 probe /world/ 200
+probe /course/ 200
 probe /framework/ 200
 probe /parents/ 200
 probe /workshop/ 200
