@@ -79,6 +79,7 @@ npm test
 - [课程大纲与归集指南](docs/CURRICULUM_OUTLINE.md) · [游戏设计](docs/GAME_DESIGN.md) · [DM 手册](docs/FACILITATOR_GUIDE.md) · [测试](docs/TESTING.md)
 - [课程语义](docs/COURSE_SEMANTICS.md) · [Course Registry 发布 SOP](docs/COURSE_REGISTRY_RELEASE_SOP.md) · [Workshop 基线 SOP](docs/WORKSHOP_RELEASED_BASELINE_SOP.md)
 - [品牌资产盘点](docs/BRAND_ASSET_INVENTORY.md)
+- [T-073—T-084 生产收口回执](docs/TODO_073_084_PRODUCTION_RECEIPT.md)
 - [部署](docs/DEPLOYMENT.md) · [Agentskill 审核](docs/SKILL_AUDIT.md)
 
 ## 项目边界

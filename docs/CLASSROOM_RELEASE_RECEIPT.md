@@ -1,10 +1,21 @@
 # Mini Silicon Valley Classroom 发布回执
 
-> 最新生产发布：2026-09-01（Asia/Shanghai）
-> 最新本地候选：2026-09-02，饿了么已从单章恢复为完整五步，尚未部署
-> 正式归属：Work 自托管；团队验收入口不是 ChatGPT Sites
+> 最新生产发布：2026-09-07（Asia/Shanghai）
+>
+> Hecate Release：`20260907T180022Z-truth-chain-final2`
+>
+> 权威域名：<https://minisv.vip/>；完整证据见 [T-073—T-084 生产收口回执](./TODO_073_084_PRODUCTION_RECEIPT.md)
 
-## 本地候选｜2026-09-02 饿了么完整五步恢复
+## 当前生产基线｜2026-09-07
+
+课程编辑器、Alpha 与正式 Classroom 已统一到不可变 Course Registry 真值链。饿了么完整五步课程已通过真实 Alpha 13／13 Block 验收并发布为 Released r9；新建正式课堂精确绑定同一 revision 与 digest。Workshop 已生成 Released 公开脱敏快照，公网内部 Registry 路由为 404，Hecate 重启后版本、验收记录和课堂绑定均保持不变。
+
+- 饿了么 Course digest：`5e18ab82b30cd6f61b37bb4d0d217c1ef3b2a795354a16d9a2ce3c6a5f4ab4e4`
+- Alpha Run：`run-20260907-014609-04bf7f`
+- Workshop snapshot digest：`93cf31150b241268c3ab6bdd76c1563dc9e8831774e9ccf8791e5b855e7c94cb`
+- 部署源码：`40c652b562a7634135ff645a9c3cddf32a9da784`
+
+## 历史候选记录｜2026-09-02 饿了么完整五步恢复
 
 本轮保留战役 ID `eleme-2008-find-problem`，但将其恢复为真正可连续推进的 5 章／13 块课程，而不再在“找真问题”后直接 Demo：
 
@@ -27,7 +38,7 @@
 - 九窗口：8 个手机视窗按 2 × 4 在 macOS 安全工作区 `52,33,1676×1084` 无重叠铺满，另有 1 个可置顶的 LIVE RUN SCRIPT 主控窗口。
 - 脱敏回执：[`REAL_ACCEPTANCE_ELEME_RECEIPT.json`](../tools/live-run/docs/REAL_ACCEPTANCE_ELEME_RECEIPT.json) 与 [`BROWSER_ACCEPTANCE_ELEME_RECEIPT.json`](../tools/live-run/docs/BROWSER_ACCEPTANCE_ELEME_RECEIPT.json)。
 
-当前本机已留在饿了么 B01 的“待人工验收”状态，方便团队从第一块开始人工验收。本节是本地候选回执；下方 2026-09-01 单章记录仅作历史审计，不代表当前源码能力。
+本节保留当时的本地候选记录，仅作历史审计；该候选现已被上方 2026-09-07 生产基线取代，下方 2026-09-01 单章记录也不代表当前源码能力。
 
 ## 0. 2026-09-01 饿了么 2008 单章课件与多战役框架
 

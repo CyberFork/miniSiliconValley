@@ -32,4 +32,13 @@
 - [x] T-076 Alpha 九窗口可读性
 - [x] T-082 Logo 与统一品牌入口
 - [x] T-081 Workshop Released 只读回写
-- [ ] 全量测试、Hecate 部署、生产验收与回执
+- [x] 全量测试、Hecate 部署、生产验收与回执
+
+## 完成回执
+
+- Hecate Release：`20260907T180022Z-truth-chain-final2`
+- 部署源码：`40c652b562a7634135ff645a9c3cddf32a9da784`
+- 饿了么 Released：r9，digest `5e18ab82b30cd6f61b37bb4d0d217c1ef3b2a795354a16d9a2ce3c6a5f4ab4e4`
+- Alpha 验收 Run：`run-20260907-014609-04bf7f`，13／13 Block 完成
+- Workshop 快照 digest：`93cf31150b241268c3ab6bdd76c1563dc9e8831774e9ccf8791e5b855e7c94cb`
+- 完整生产回执：[T-073—T-084 课程真值链生产收口回执](docs/TODO_073_084_PRODUCTION_RECEIPT.md)
