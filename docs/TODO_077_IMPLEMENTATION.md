@@ -1,6 +1,6 @@
 # T-077｜课程大纲改为 chj 原版独立站点
 
-状态：修正实施中
+状态：已修正、已发布、生产验收通过
 正式入口：<https://minisv.vip/course/>
 
 ## 1. 修正原因
@@ -76,4 +76,11 @@ main 中上一版新增的以下派生实现已删除：
 
 ## 8. 发布回执
 
-部署完成后记录新的 Hecate release、main 提交、课程 artifact 摘要、文件数、字节数、回滚目标和线上浏览器结果到 `TODO_077_PRODUCTION_RECEIPT.json`。
+- Hecate release：`20260906T100023Z-t077-chj-verbatim-r1`；
+- main 集成提交：`e4871ae25cc55f99efb985e2425070284587d369`；
+- 课程 artifact：`e39ebedc…f17b8f9`，103 个文件，114,365,669 bytes，`transformed=false`；
+- 生产浏览器四档视口与 8 项公共入口检查通过；
+- 发布前后玩法语义哈希一致；
+- 回滚目标：`20260906T085800Z-t077-course-outline-r2`。
+
+机器可读明细见 `TODO_077_PRODUCTION_RECEIPT.json`。

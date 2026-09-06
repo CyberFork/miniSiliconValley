@@ -1,73 +1,74 @@
 {
-  "receiptVersion": 1,
-  "completedAt": "2026-09-06T09:04:00Z",
+  "receiptVersion": 2,
+  "completedAt": "2026-09-06T10:20:57Z",
   "todo": "T-077",
+  "correction": "The colleague-owned chj site is deployed verbatim at /course/; the rejected main-authored projection was removed.",
   "release": {
-    "host": "hecate-work",
+    "host": "Hecate Mac mini",
     "publicOrigin": "https://minisv.vip",
-    "releaseId": "20260906T085800Z-t077-course-outline-r2",
-    "archiveSha256OnHecate": "b8ede74e7c15f1d87f444606d33526b2bfe8d58aec6ab7ab17a633819efde3bc",
-    "siteManifestSha256": "b18baf047ef49473a32aee7cab0be93a55dfdbb1117cb8756e698dee1c680963",
-    "previousRelease": "20260906T084404Z-t077-course-outline",
-    "rollbackCommand": "~/Services/minisv/current/ops/scripts/rollback-hecate.sh 20260906T084404Z-t077-course-outline"
+    "releaseId": "20260906T100023Z-t077-chj-verbatim-r1",
+    "archiveSha256OnHecate": "6701b936267debba36a02555a35e0ddc12d27bde6001af345671cc3445ecea58",
+    "siteManifestSha256": "c11d99fb960cf9b278d8d09b74c79e63fab10edca3ec59fecb1848b860925c90",
+    "previousRelease": "20260906T085800Z-t077-course-outline-r2",
+    "rollbackCommand": "~/Services/minisv/current/ops/scripts/rollback-hecate.sh 20260906T085800Z-t077-course-outline-r2"
   },
   "sources": {
-    "main": "b05964fac2660f1021a4159924b0e1536faf10e9",
-    "chjCourseUi": "679213a61b835335016eac7649213983a0e48489"
+    "main": "e4871ae25cc55f99efb985e2425070284587d369",
+    "chjRepository": "https://github.com/CyberFork/minisv.git",
+    "chjCourseUi": "679213a61b835335016eac7649213983a0e48489",
+    "chjCourseTree": "3a041c4714190cc026f6de8e06e15cec0e5f765d",
+    "sourceModified": false
   },
-  "courseOutline": {
+  "courseArtifact": {
     "url": "https://minisv.vip/course/",
     "canonical": "https://minisv.vip/course/",
-    "courses": [
-      {
-        "id": "eleme-2008-find-problem",
-        "revision": 0,
-        "digest": "407a24b43ead68ddccf0871fe7910ae21f1ca64ec4b7232a2bc0afeb2cfecb6c"
-      },
-      {
-        "id": "google-1995-2004",
-        "revision": 0,
-        "digest": "59e0ef603d97d72578913ec1ab20d055210190137bfb8f437a417e0102ed77cd"
-      }
-    ],
-    "macroSteps": 5,
-    "blocksPerCourse": 13,
-    "decksPerCourse": 5,
-    "mentorRoles": 4,
-    "learnersHaveFixedPdmoRoles": false,
-    "demoDayMinutes": 6
-  },
-  "assets": {
-    "courseHtmlSha256": "c23ae0fa8a613d260fa164a5598a6621603502952ab9c7f86cbb6f60901bca92",
-    "worldMapWebpSha256": "5f09be43bf4552dab1fe0bc60e17304e410923d7482611b3d4fc29b045dd02df",
-    "chapterIconsWebpSha256": "ed9ee235666310e70351adbc41197ccd43f33cea752709f1be88c736c122c862"
+    "sha256": "e39ebedc1b4b68230e551deeab9860ba6ce1a608c7b400d21c12d87f8f17b8f9",
+    "files": 103,
+    "bytes": 114365669,
+    "htmlSha256": "737dbcedb7649d303f05a601236eb230b007cb75fa57fb1897a87db6e0c4a3b8",
+    "transformed": false,
+    "sharedThemeInjected": false,
+    "copyDigestEqual": true,
+    "remoteDigestEqual": true
   },
   "validation": {
-    "coreWebTests": { "passed": 27, "failed": 0 },
+    "mainCoreWebTests": { "passed": 23, "failed": 0 },
     "deploymentContractTests": { "passed": 17, "failed": 0 },
     "liveRunPythonTests": { "passed": 33, "failed": 0 },
     "uiThemeRuntime": true,
+    "chj": {
+      "typecheck": true,
+      "lint": true,
+      "productionBuild": true,
+      "fullUpstreamTests": { "passed": 26, "failed": 1 },
+      "knownUpstreamFailure": "The fixed source test expects the removed phrase 外卖平台 in CourseOverview; source and test were intentionally left unchanged."
+    },
     "localBrowser": {
       "courseViewports": [390, 430, 768, 1440],
-      "publicNavigationChecks": 10,
-      "hashShareReloadAndBack": true,
-      "horizontalOverflow": false
+      "publicNavigationChecks": 8,
+      "homeStartOutlineAndReturn": true,
+      "outlineChapters": 9,
+      "outlinePhases": 4,
+      "assetLoads": true,
+      "pageErrors": 0
     },
     "productionSmoke": true,
     "productionBrowser": {
       "courseViewports": [390, 430, 768, 1440],
-      "publicNavigationChecks": 10,
-      "pageErrors": 0,
-      "horizontalOverflow": false
+      "publicNavigationChecks": 8,
+      "homeStartOutlineAndReturn": true,
+      "assetLoads": true,
+      "pageErrors": 0
     }
   },
   "runState": {
-    "beforeSha256": "6e349d4f6bb3e5198321c9f0cf182516cbcd77e8c1672bb45f30aa8f67692242",
-    "afterSha256": "e7ae566fdf05262d171e23aae4c5ba65f427566156adfa1f383bc2176d5594ea",
+    "beforeGameplaySha256": "7a3e82be16826ddab31935a43e6b9fb83b643eb51f62931c6b71f9c68247cb18",
+    "afterGameplaySha256": "7a3e82be16826ddab31935a43e6b9fb83b643eb51f62931c6b71f9c68247cb18",
     "gameplayStateEqual": true,
-    "auditEventsAdded": 2,
-    "auditEventType": "classroom.snapshot.refreshed",
-    "explanation": "两次受控 release 切换各追加一条课堂快照恢复审计事件；课程、执行位置、成员、手牌、RP、钱包和资金逐字段相同。"
+    "auditEventsAdded": 1,
+    "versionBefore": 20,
+    "versionAfter": 21,
+    "explanation": "The controlled service restart appended one classroom snapshot audit event; course, progress, seats, cards, RP, wallets, and team funds stayed identical."
   },
   "security": {
     "secretsInRepository": false,
