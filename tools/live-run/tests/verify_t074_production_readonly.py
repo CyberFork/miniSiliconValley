@@ -45,6 +45,30 @@ def assert_same_geometry(before: dict, after: dict) -> None:
                 raise AssertionError(f"theme geometry drift: {region}.{dimension}={delta}")
 
 
+def structure_geometry(page) -> dict:
+    return page.evaluate("""() => {
+      const rect = (selector) => {
+        const value = document.querySelector(selector).getBoundingClientRect();
+        return {x:value.x, y:value.y, width:value.width, height:value.height,
+                right:value.right, bottom:value.bottom};
+      };
+      const list = rect('.block-list');
+      const form = rect('.block-form');
+      const buttons = [...document.querySelectorAll('.block-list button')].map((element) => {
+        const value = element.getBoundingClientRect();
+        return {x:value.x, right:value.right};
+      });
+      const stacked = form.y > list.y + 1;
+      return {
+        list, form, stacked,
+        separated: stacked ? list.bottom <= form.y + 1 : list.right <= form.x + 1,
+        buttonOverflow: stacked ? 0 : buttons.filter((button) =>
+          button.x < list.x - 1 || button.right > list.right + 1
+        ).length
+      };
+    }""")
+
+
 def main() -> None:
     if not USERNAME or not PASSWORD:
         raise SystemExit("Set MSV_QA_USERNAME and MSV_QA_PASSWORD; values are never logged.")
@@ -80,6 +104,18 @@ def main() -> None:
         active_course = page.locator('[data-course][aria-current="true"]').get_attribute("data-course")
         if active_course != "eleme-2008-find-problem":
             raise AssertionError(f"unexpected active course: {active_course}")
+
+        page.locator('#msv-ui-switch [data-theme="classic"]').click()
+        classic_structure = structure_geometry(page)
+        page.locator('#msv-ui-switch [data-theme="adventure"]').click()
+        adventure_structure = structure_geometry(page)
+        for current in (classic_structure, adventure_structure):
+            if not current["separated"] or current["buttonOverflow"]:
+                raise AssertionError("course block list overlaps the structured editor form")
+        for region in ("list", "form"):
+            for dimension in ("x", "y", "width", "height", "right", "bottom"):
+                if abs(classic_structure[region][dimension] - adventure_structure[region][dimension]) > 1:
+                    raise AssertionError(f"structured editor theme drift: {region}.{dimension}")
 
         page.click("#cardsTab")
         page.wait_for_selector("#deckCardList button")
@@ -164,6 +200,7 @@ def main() -> None:
             "rBoundaryCards": role_play_count,
             "alphaHands": {"learners": 4, "cardsPerLearner": 3, "stableIds": len(hand_ids)},
             "preview": {"sharedRenderer": True, "factSourcesVisible": True, "simulationDisclaimerVisible": True},
+            "structure": {"blockListSeparated": True, "buttonsContained": True, "sameThemeGeometry": True},
             "themes": {"classicAdventureSameGeometry": True, "desktopNoOverflow": True},
             "mobile": {"width": 390, "noOverflow": True, "previewVisible": True},
             "historyEntries": api["history"]["length"],

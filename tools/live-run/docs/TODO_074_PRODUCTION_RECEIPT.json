@@ -1,12 +1,12 @@
 {
   "receiptVersion": 1,
-  "completedAt": "2026-09-06T14:33:28+08:00",
+  "completedAt": "2026-09-06T14:55:08+08:00",
   "todo": "T-074",
   "release": {
     "host": "hecate-work",
     "publicOrigin": "https://minisv.vip",
-    "releaseId": "20260906T062724Z-t074-card-studio-r1",
-    "archiveSha256": "4238583762278861b4b0324ee19a3bc73ff805d79419deb4cd9d5cdc97b9cc76",
+    "releaseId": "20260906T064756Z-t074-layout-r2",
+    "archiveSha256": "04bdd97eb0b7b8ef4cbba07253ed4ea7c27ffeaa7674c11b7b004ff405aec612",
     "editorBuild": "t074-card-studio-r1",
     "courseSchemaVersion": 1
   },
@@ -104,6 +104,8 @@
       "passed": true,
       "viewports": [1660, 1366, 1100, 900, 768, 430],
       "horizontalOverflow": false,
+      "structureBlockListOverlap": false,
+      "structureButtonsContainedInDesktopTrack": true,
       "classicAdventureSameGeometry": true
     }
   },
@@ -131,6 +133,11 @@
     },
     "factSourcesVisible": true,
     "simulationDisclaimerVisible": true,
+    "structuredEditor": {
+      "blockListSeparatedFromForm": true,
+      "buttonsContainedInTrack": true,
+      "classicAdventureSameGeometry": true
+    },
     "classicAdventureSameGeometry": true,
     "desktopNoOverflow": true,
     "mobileViewport": 390,

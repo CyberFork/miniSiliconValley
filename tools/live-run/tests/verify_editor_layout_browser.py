@@ -66,6 +66,44 @@ def same_geometry(first: dict, second: dict) -> bool:
     return True
 
 
+def structure_snapshot(page) -> dict:
+    return page.evaluate(
+        """() => {
+          const rect = (selector) => {
+            const value = document.querySelector(selector).getBoundingClientRect();
+            return {x:value.x, y:value.y, width:value.width, height:value.height,
+                    right:value.right, bottom:value.bottom};
+          };
+          const layout = rect('.block-layout');
+          const list = rect('.block-list');
+          const form = rect('.block-form');
+          const buttons = [...document.querySelectorAll('.block-list button')].map((element) => {
+            const value = element.getBoundingClientRect();
+            return {x:value.x, y:value.y, right:value.right, bottom:value.bottom, width:value.width};
+          });
+          const stacked = form.y > list.y + 1;
+          const buttonOverflow = stacked ? [] : buttons.filter((button) =>
+            button.x < list.x - 1 || button.right > list.right + 1
+          );
+          return {
+            innerWidth, bodyScrollWidth:document.body.scrollWidth,
+            rootScrollWidth:document.documentElement.scrollWidth,
+            workspace:rect('.workspace'), layout, list, form, buttons,
+            stacked, buttonOverflow,
+            separated: stacked ? list.bottom <= form.y + 1 : list.right <= form.x + 1,
+          };
+        }"""
+    )
+
+
+def same_structure_geometry(first: dict, second: dict) -> bool:
+    for selector in ("workspace", "layout", "list", "form"):
+        for key in ("x", "y", "width", "height", "right", "bottom"):
+            if abs(first[selector][key] - second[selector][key]) > 0.25:
+                return False
+    return first["stacked"] == second["stacked"]
+
+
 def main() -> None:
     result: dict[str, object] = {"ok": False, "viewports": {}}
     with tempfile.TemporaryDirectory() as temp:
@@ -83,6 +121,33 @@ def main() -> None:
                 page = browser.new_page(viewport={"width": VIEWPORTS[0], "height": 1000})
                 page.goto(f"http://127.0.0.1:{server.server_port}/editor/", wait_until="networkidle")
                 page.wait_for_selector("#cardsTab")
+
+                # The structure pane has its own nested grid. A nowrap block
+                # title previously forced buttons beyond the 170px track and
+                # painted them over the form without increasing body scrollWidth.
+                for width in VIEWPORTS:
+                    page.set_viewport_size({"width": width, "height": 1000})
+                    page.locator("#msv-ui-switch [data-theme=classic]").click()
+                    page.wait_for_timeout(40)
+                    classic_structure = structure_snapshot(page)
+                    page.locator("#msv-ui-switch [data-theme=adventure]").click()
+                    page.wait_for_timeout(40)
+                    adventure_structure = structure_snapshot(page)
+                    for current in (classic_structure, adventure_structure):
+                        assert current["bodyScrollWidth"] <= current["innerWidth"] + 1
+                        assert current["rootScrollWidth"] <= current["innerWidth"] + 1
+                        assert current["layout"]["right"] <= current["innerWidth"] + 1
+                        assert current["form"]["right"] <= current["layout"]["right"] + 1
+                        assert current["separated"], f"block list overlaps form at {width}px"
+                        assert not current["buttonOverflow"], f"block button escapes track at {width}px"
+                    assert same_structure_geometry(classic_structure, adventure_structure)
+                    if adventure_structure["workspace"]["width"] <= 780:
+                        assert adventure_structure["stacked"], f"structure controls must stack at {width}px"
+                    result["viewports"].setdefault(str(width), {}).update({
+                        "structureNoOverlap": True,
+                        "structureStacked": adventure_structure["stacked"],
+                    })
+
                 page.click("#cardsTab")
                 page.wait_for_selector("#deckCardList button")
                 for width in VIEWPORTS:
@@ -106,12 +171,12 @@ def main() -> None:
                     assert same_geometry(classic, adventure)
                     if adventure["workspace"]["width"] <= 780:
                         assert adventure["deckStacked"], f"deck controls must stack at {width}px"
-                    result["viewports"][str(width)] = {
+                    result["viewports"][str(width)].update({
                         "noOverflow": True,
                         "noRail": True,
                         "sameThemeGeometry": True,
                         "deckStacked": adventure["deckStacked"],
-                    }
+                    })
                 browser.close()
                 result["ok"] = True
         finally:

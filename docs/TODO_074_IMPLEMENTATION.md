@@ -100,7 +100,20 @@ API 与编辑器同时显示并校验：
 
 自动化浏览器已覆盖：搜索三卡、F/R 预览、边界筛选、4×3 当前手牌、编辑已发卡、保存不静默生效、显式刷新保留 Run、恢复 r0 为新 revision、再次刷新、移动端无横向溢出。
 
-## 8. 测试命令
+## 8. 结构编辑区布局收口
+
+课程块标题原本使用 `white-space: nowrap`，而左侧 Grid 子项保留了浏览器默认的 intrinsic minimum size。标题较长时，按钮虽不会增加页面 `scrollWidth`，却会越过左侧轨道并绘制在右侧表单上。
+
+已从布局根上修复：
+
+- `.block-layout`、两个 Grid 子项和块按钮明确允许收缩；
+- 按钮宽度严格受左侧轨道约束，多余文字在按钮内截断，不再盖住表单；
+- 桌面轨道使用 `clamp(170px, 22%, 220px)`，有空间时提高可读性，窄宽度时稳定收缩；
+- 容器进入单列时仍保留横向可滑动的块选择器。
+
+布局测试现在直接测量左侧按钮、轨道和右侧表单的矩形关系，而不只检查页面是否出现滚动条。
+
+## 9. 测试命令
 
 ```bash
 cd tools/live-run
@@ -115,7 +128,7 @@ PYTHONPATH=. python3 tests/verify_t074_browser.py
 PYTHONPATH=. python3 tests/verify_editor_layout_browser.py
 # 生产只读验收；凭据只经环境变量传入，不会写入日志或回执。
 MSV_QA_USERNAME='...' MSV_QA_PASSWORD='...' \
-MSV_QA_RELEASE='20260906T062724Z-t074-card-studio-r1' \
+MSV_QA_RELEASE='20260906T064756Z-t074-layout-r2' \
 PYTHONPATH=. python3 tests/verify_t074_production_readonly.py
 ```
 
