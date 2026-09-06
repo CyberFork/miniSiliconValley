@@ -69,11 +69,17 @@ def main() -> None:
             release = json.loads(body)
             if release.get("origin") != "hecate" or release.get("canonicalOrigin") != args.base:
                 raise SystemExit("FAIL release.json: invalid production identity")
+            if release.get("sources", {}).get("chjCourseUi") != "679213a61b835335016eac7649213983a0e48489":
+                raise SystemExit("FAIL release.json: /course/ is not pinned to the approved chj commit")
+            if release.get("courseArtifact", {}).get("transformed") is not False:
+                raise SystemExit("FAIL release.json: chj course artifact was transformed")
         if path == "/course/":
             text = body.decode("utf-8", "replace")
-            required = ("课程大纲", "找真问题", "跑真运营", "六分钟 Demo Day", "course-outline-world-map.webp")
+            required = ("青少年AI创业营", "MINI硅谷", "/course/_next/", "/course/assets/home-workbench.png")
             if any(label not in text for label in required):
-                raise SystemExit("FAIL /course/: incomplete released course outline")
+                raise SystemExit("FAIL /course/: incomplete colleague-owned course site")
+            if "/ui-theme.js" in text or "data-course-outline-schema" in text:
+                raise SystemExit("FAIL /course/: colleague-owned course site was rewritten or decorated")
         print(f"OK {path} {status}")
     print("MINISV_PUBLIC_SMOKE_OK")
 

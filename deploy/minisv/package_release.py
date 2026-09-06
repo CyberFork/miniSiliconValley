@@ -13,11 +13,12 @@ from pathlib import Path
 
 TEXT_SUFFIXES = {".html", ".css", ".js", ".mjs", ".json", ".svg", ".md", ".txt", ".webmanifest"}
 REQUIRED_PAGES = ("index.html", "world/index.html", "course/index.html", "framework/index.html", "parents/index.html", "workshop/index.html")
-PUBLIC_COURSE_NAV_PAGES = ("index.html", "world/index.html", "course/index.html")
+PUBLIC_COURSE_NAV_PAGES = ("index.html", "world/index.html")
 FORBIDDEN = ("work.cyberforker.com", "192.168.", "127.0.0.1:18765", "/msv/", r"\/msv\/")
 THEME_VERSION = "20260906-9"
 THEME_ASSETS = f'<link rel="stylesheet" href="/ui-theme.css?v={THEME_VERSION}"><script src="/ui-theme.js?v={THEME_VERSION}"></script>'
 CHJ_COURSE_UI_SHA = "679213a61b835335016eac7649213983a0e48489"
+CHJ_COURSE_UI_TREE = "3a041c4714190cc026f6de8e06e15cec0e5f765d"
 
 
 def copy_entry(source: Path, target: Path) -> None:
@@ -86,23 +87,43 @@ def transform_tree(root: Path) -> None:
             path.write_text(changed, encoding="utf-8")
 
 
+def tree_digest(root: Path) -> tuple[str, int, int]:
+    """Hash a directory without changing a byte in it."""
+    digest = hashlib.sha256()
+    files = 0
+    total_bytes = 0
+    for path in sorted(item for item in root.rglob("*") if item.is_file()):
+        relative = path.relative_to(root).as_posix().encode("utf-8")
+        content = path.read_bytes()
+        digest.update(len(relative).to_bytes(8, "big"))
+        digest.update(relative)
+        digest.update(len(content).to_bytes(8, "big"))
+        digest.update(content)
+        files += 1
+        total_bytes += len(content)
+    return digest.hexdigest(), files, total_bytes
+
+
 def build(
     legacy: Path,
     app_client: Path,
     app_static: Path,
+    course_static: Path,
     portal: Path,
     output: Path,
     release_id: str,
     *,
     main_sha: str = "uncommitted",
     chj_sha: str = CHJ_COURSE_UI_SHA,
+    chj_tree: str = CHJ_COURSE_UI_TREE,
 ) -> None:
-    for source in (legacy, app_client, app_static, portal):
+    for source in (legacy, app_client, app_static, course_static, portal):
         if not source.is_dir():
             raise ValueError(f"required directory is missing: {source}")
-    for label, value in (("main SHA", main_sha), ("chj SHA", chj_sha)):
+    for label, value in (("main SHA", main_sha), ("chj SHA", chj_sha), ("chj tree", chj_tree)):
         if value != "uncommitted" and not re.fullmatch(r"[0-9a-f]{40}", value):
             raise ValueError(f"invalid {label}: {value}")
+    course_source_digest, course_source_files, course_source_bytes = tree_digest(course_static)
     if output.exists():
         raise ValueError(f"refusing to overwrite release output: {output}")
     output.mkdir(parents=True)
@@ -122,10 +143,9 @@ def build(
     for source_name, target_name in page_map.items():
         copy_entry(legacy / source_name, output / target_name)
 
-    # Current source owns the public world shell and the stable course route.
-    # These two HTML files share the app_client asset tree copied above.
-    for route in ("world", "course"):
-        copy_entry(app_static / route / "index.html", output / route / "index.html")
+    # Current main owns the public world shell. The course route is copied later
+    # as an opaque artifact from the fixed chj checkout.
+    copy_entry(app_static / "world" / "index.html", output / "world" / "index.html")
 
     # Workshop remains a coherent relative-path bundle under /workshop/.
     workshop = output / "workshop"
@@ -140,12 +160,31 @@ def build(
     for item in portal.iterdir(): copy_entry(item, output / item.name)
     transform_tree(output)
 
+    # Never pass the colleague-owned course build through rewrite_text() or the
+    # shared theme injector. It is an independently built, immutable subsite.
+    copy_entry(course_static, output / "course")
+    course_output_digest, course_output_files, course_output_bytes = tree_digest(output / "course")
+    if (course_output_digest, course_output_files, course_output_bytes) != (
+        course_source_digest, course_source_files, course_source_bytes
+    ):
+        raise ValueError("opaque chj course copy changed during release assembly")
+
     (output / "release.json").write_text(json.dumps({
         "service": "minisv", "release": release_id,
         "builtAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "origin": "hecate", "canonicalOrigin": "https://minisv.vip",
-        "features": ["stable-course-outline", "released-course-package-projection", "five-step-course-map"],
-        "sources": {"main": main_sha, "chjCourseUi": chj_sha},
+        "features": ["stable-course-route", "verbatim-chj-course-site", "opaque-course-bundle"],
+        "sources": {
+            "main": main_sha,
+            "chjCourseUi": chj_sha,
+            "chjCourseTree": chj_tree,
+        },
+        "courseArtifact": {
+            "sha256": course_source_digest,
+            "files": course_source_files,
+            "bytes": course_source_bytes,
+            "transformed": False,
+        },
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (output / "sitemap.json").write_text(json.dumps({"routes": [
         "/", "/world/", "/course/", "/classroom/", "/alpha/", "/control/", "/framework/", "/parents/", "/workshop/",
@@ -158,6 +197,14 @@ def build(
         page = output / relative
         if page.is_file() and not re.search(r'href=["\']/course/', page.read_text(encoding="utf-8")):
             errors.append(f"missing stable course navigation in {relative}")
+    course_page = output / "course" / "index.html"
+    if course_page.is_file():
+        course_text = course_page.read_text(encoding="utf-8")
+        for marker in ("青少年AI创业营", "MINI硅谷", "/course/_next/", "/course/assets/home-workbench.png"):
+            if marker not in course_text:
+                errors.append(f"opaque chj course is missing marker {marker!r}")
+        if "/ui-theme.js" in course_text or "data-course-outline-schema" in course_text:
+            errors.append("opaque chj course was replaced or decorated by the main application")
     theme_script = output / "ui-theme.js"
     if theme_script.is_file():
         script_text = theme_script.read_text(encoding="utf-8")
@@ -185,16 +232,19 @@ def main() -> None:
     parser.add_argument("--legacy-root", required=True, type=Path)
     parser.add_argument("--app-client-root", required=True, type=Path)
     parser.add_argument("--app-static-root", required=True, type=Path)
+    parser.add_argument("--course-static-root", required=True, type=Path)
     parser.add_argument("--portal-root", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--release-id", required=True)
     parser.add_argument("--main-sha", default="uncommitted")
     parser.add_argument("--chj-sha", default=CHJ_COURSE_UI_SHA)
+    parser.add_argument("--chj-tree", default=CHJ_COURSE_UI_TREE)
     args = parser.parse_args()
     build(
-        *(getattr(args, name) for name in ("legacy_root", "app_client_root", "app_static_root", "portal_root", "output", "release_id")),
+        *(getattr(args, name) for name in ("legacy_root", "app_client_root", "app_static_root", "course_static_root", "portal_root", "output", "release_id")),
         main_sha=args.main_sha,
         chj_sha=args.chj_sha,
+        chj_tree=args.chj_tree,
     )
     print(f"MINISV_RELEASE_READY {args.release_id} {args.output}")
 

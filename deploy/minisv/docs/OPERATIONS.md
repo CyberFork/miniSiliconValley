@@ -65,4 +65,4 @@ curl -sSI https://minisv.vip/course | grep -i '^location: /course/'
 python3 $HOME/Services/minisv/current/ops/scripts/public-smoke.py --base https://minisv.vip
 ```
 
-大纲页必须显示与 Course Package 一致的 5 步、13 Block、course ID、revision 和 digest。它是只读发布投影；修改课程仍只能经 `/control/editor/` 的草稿、校验与发布流程完成。
+大纲页必须显示同事原版首页“青少年AI创业营”，资源只从 `/course/_next/` 与 `/course/assets/` 加载，且 HTML 不含主站 `/ui-theme.js`。`release.json` 的 `sources.chjCourseUi`、`sources.chjCourseTree` 与 `courseArtifact.transformed=false` 是不可变校验。若需要改页面内容，应由同事在其仓库提交新版本，再重新审计并更新固定 SHA；禁止在发布目录直接修改。

@@ -32,37 +32,9 @@ test("curriculum: six 0→1 stages and every company journey are complete", () =
   }
 });
 
-test("curriculum UI: the historical world points to the single stable Course Package outline", async () => {
-  const [world, outline, projection, css] = await Promise.all([
-    readFile(new URL("../app/components/WorldApp.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/course/CourseOutlineApp.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/lib/course-outline.ts", import.meta.url), "utf8"),
-    readFile(new URL("../app/course/course-outline.module.css", import.meta.url), "utf8"),
-  ]);
+test("curriculum UI: the historical world points to the independent course site", async () => {
+  const world = await readFile(new URL("../app/components/WorldApp.tsx", import.meta.url), "utf8");
 
   assert.ok(world.includes('<a href="/course/">课程大纲</a>'));
   assert.doesNotMatch(world, /view === "curriculum"|setView\("curriculum"\)/);
-
-  for (const token of [
-    "找真问题",
-    "定真方案",
-    "做真产品",
-    "进真市场",
-    "跑真运营",
-  ]) {
-    assert.ok(projection.includes(token), `Course Package 投影缺少统一课程契约：${token}`);
-  }
-
-  for (const token of [
-    "六分钟 Demo Day",
-    'href="/course/" aria-current="page"',
-    'data-testid="course-map-stage"',
-    "Course Package",
-  ]) {
-    assert.ok(outline.includes(token), `CourseOutlineApp 缺少统一课程契约：${token}`);
-  }
-
-  assert.match(css, /aspect-ratio:\s*1671\s*\/\s*941/);
-  assert.match(css, /container-type:\s*inline-size/);
-  assert.match(css, /@media \(max-width: 620px\)/);
 });

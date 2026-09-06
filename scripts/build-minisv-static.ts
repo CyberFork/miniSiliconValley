@@ -34,27 +34,17 @@ async function render(worker: StaticWorker, pathname: string) {
 
 await rm(output, { recursive: true, force: true });
 await mkdir(resolve(output, "world"), { recursive: true });
-await mkdir(resolve(output, "course"), { recursive: true });
 
 const workerUrl = `${pathToFileURL(resolve(dist, "server", "index.js")).href}?minisv-static=${Date.now()}`;
 const { default: worker } = await import(workerUrl) as { default: StaticWorker };
 
-const [worldHtml, courseHtml] = await Promise.all([
-  render(worker, "/"),
-  render(worker, "/course/"),
-]);
+const worldHtml = await render(worker, "/");
 
 requireCondition(worldHtml.includes('href="/course/"'), "world topbar is missing the stable /course/ route");
 requireCondition(!worldHtml.includes('type="button">课程大纲</button>'), "world still exposes the retired in-memory course view");
-requireCondition(courseHtml.includes('<link rel="canonical" href="https://minisv.vip/course/"'), "course canonical URL is missing");
-requireCondition(courseHtml.includes("course-outline-world-map.webp"), "course map asset is missing");
-requireCondition((courseHtml.match(/data-step-id=/g) ?? []).length === 5, "course map must render exactly five step nodes");
-requireCondition(courseHtml.includes('data-course-steps="5"') && courseHtml.includes('data-course-blocks="13"') && courseHtml.includes('data-course-decks="5"'), "course package diagnostics are incomplete");
-requireCondition(courseHtml.includes("找真问题") && courseHtml.includes("跑真运营") && courseHtml.includes("六分钟 Demo Day"), "course truth is incomplete");
 
 const files = [
   [resolve(output, "world", "index.html"), worldHtml],
-  [resolve(output, "course", "index.html"), courseHtml],
 ] as const;
 
 for (const [path, content] of files) await writeFile(path, content, "utf8");

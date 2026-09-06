@@ -4,7 +4,8 @@
 - **前端框架**：React + Next App Router，使用 `vinext` 进行构建。
 - **核心展示**：
   - 世界地图/时间轴/节点浏览：`app/components/WorldApp.tsx`
-  - 稳定课程大纲：`app/course/`（`CourseOutlineApp` + Course Package 只读投影）
+  - 历史世界顶部栏：真实链接 `/course/`
+  - 课程大纲子站：同事仓库 `CyberFork/minisv@679213a…` 的原样构建产物，由发布管线挂载，不在 main 中复制组件或文案
   - 旧六段素材索引：`app/components/CurriculumOutline.tsx`（不再拥有公开入口，仅保留兼容资料）
   - 关卡交互：`app/components/MissionPlayer.tsx`
   - 学员档案页：`app/components/WorldApp.tsx` 内的 `Dossier`
@@ -37,7 +38,7 @@
 ## 四、时间线两层分离
 - **ORIGINAL TIMELINE**：由 `historyCatalog.events` 与 `sources` 提供，不允许被游戏世界线覆盖。
 - **PLAYER TIMELINE**：保存在 `results`，由 `MissionPlayer` 决策与 `applyChoice` 生成。
-- **COURSE PACKAGE PROJECTION**：`/course/` 将 Released 课程投影为五步／13 Block 地图；组件不复制课程真值。
+- **COLLEAGUE COURSE SITE**：`/course/` 是固定 chj 提交的独立、不可变构建产物；main 只提供入口和托管，不改写其课程结构。
 - **LEGACY CURRICULUM MAPPING**：旧六段素材索引仍可供内部参考，但不再拥有公开课程入口。
 - 课程 UI 中明确标注该边界：
   - Event 卡片 `EventDetail` 标注 `ORIGINAL TIMELINE`
@@ -55,7 +56,7 @@
 - **时间轴播放/筛选**：`WorldApp` 的查询、标签筛选、时间变更。
 - **事件详情**：点击地图或列表 -> `EventDetail`。
 - **关卡入口**：地图高亮节点 -> `launchMission` -> `MissionPlayer`。
-- **课程目录**：顶栏真实链接 `/course/` -> 选择 Google／饿了么 -> 五步地图 -> 13 Block -> 六分钟 Demo。课程／步骤／Block 写入可分享 hash。
+- **课程目录**：顶栏真实链接 `/course/` -> 进入同事原版课程首页和课程大纲；其内部导航、章节结构和文案保持源提交行为。
 - **世界线归档**：`Dossier`（成绩、反思、现实承诺、导入导出）。
 - **DM 辅助**：`MentorGuide` 与页面内 runbook/protocol。
 
@@ -65,7 +66,7 @@
 - 地图支持指针拖动、滚轮、双指缩放、按钮缩放与归位；进入关卡前保存年份和地图视口，关闭后恢复。
 
 ## 八、部署入口
-- `app/page.tsx` 渲染历史世界；`app/course/page.tsx` 渲染稳定课程大纲，canonical 为 `https://minisv.vip/course/`。
-- `scripts/build-minisv-static.ts` 将两条路由服务端渲染为 Hecate 静态发布输入。
+- `app/page.tsx` 渲染历史世界；`scripts/build-minisv-static.ts` 只导出 `/world/`。
+- `deploy/minisv/scripts/build-chj-course.sh` 校验 chj HEAD、Git tree 和干净工作树，再用环境变量构建 `/course/`；整个课程产物在 main 的路径重写和主题注入完成后才按字节复制。
 - `.openai/hosting.json` 仅保存 Sites `project_id` 与可选逻辑绑定，不保存凭据。
 - 该站点不需要 D1/R2；生产包由 Vinext 输出 Cloudflare Workers 兼容的 `dist/server/index.js`。

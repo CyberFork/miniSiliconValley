@@ -12,7 +12,7 @@
 ```text
 /                 公开总导航
 /world/           历史世界
-/course/          统一课程大纲
+/course/          同事原版课程站（固定 chj 提交，独立构建）
 /classroom/       账号与课堂
 /alpha/           八席课堂视图
 /control/         LIVE RUN 主控
@@ -29,30 +29,32 @@ npm ci
 npm run validate:data
 npm test
 npm run build:minisv-static
+deploy/minisv/scripts/build-chj-course.sh <chj-checkout> <course-output>
 python3 -m unittest discover -s deploy/minisv/tests -p 'test_*.py'
 node deploy/minisv/tests/test_ui_theme_runtime.mjs
 python3 -m unittest discover -s tools/live-run/tests -p 'test_*.py'
 git diff --check
 ```
 
-浏览器验收用 `tools/live-run/tests/verify_course_outline_browser.py` 检查 390／430／768／1440 px 的课程页以及公共页面的统一课程入口。
+chj checkout 必须精确位于提交 `679213a61b835335016eac7649213983a0e48489`，Git tree 为 `3a041c4714190cc026f6de8e06e15cec0e5f765d`，且工作树为空。脚本只通过仓库已支持的 `MSV_PUBLIC_BASE`、`MSV_SITE_ORIGIN`、`MSV_CANONICAL_URL` 环境变量适配部署路径，不编辑同事源码。浏览器验收用 `tools/live-run/tests/verify_course_outline_browser.py` 检查原版首页、内部课程大纲、四档视口和公共入口。
 
 ## 组装 release
 
-`deploy/minisv/package_release.py` 需要四类输入：
+`deploy/minisv/package_release.py` 需要五类输入：
 
 ```bash
 python3 deploy/minisv/package_release.py \
   --legacy-root <既有静态产品根目录> \
   --app-client-root dist/client \
   --app-static-root dist/minisv-static \
+  --course-static-root <原样 chj 课程构建目录> \
   --portal-root deploy/minisv/site \
   --output <新 site 目录> \
   --release-id <唯一 RELEASE_ID> \
   --main-sha <已验证并提交的 40 位 main SHA>
 ```
 
-打包器合并当前 `/world/`、`/course/` 和既有 Classroom／Alpha／Editor／QA／Workshop，重写已退休路径，注入共享 UI，生成 `release.json`、`sitemap.json`、`MANIFEST.sha256`，并在发现缺页、旧公网地址或重复课程入口时失败。
+打包器先组装 `/world/` 与既有 Classroom／Alpha／Editor／QA／Workshop，重写已退休路径并注入共享 UI；最后才把 chj 课程目录按字节复制到 `/course/`。课程目录前后 tree digest、文件数和字节数必须一致，且不得出现共享主题或先前自制课程页标识。产物生成 `release.json`、`sitemap.json`、`MANIFEST.sha256`。
 
 ## Hecate 原子发布
 

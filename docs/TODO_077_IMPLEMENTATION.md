@@ -1,94 +1,79 @@
-# T-077｜统一课程大纲与 chj 视觉集成
+# T-077｜课程大纲改为 chj 原版独立站点
 
-状态：已实现、已发布、生产验收通过
+状态：修正实施中
 正式入口：<https://minisv.vip/course/>
 
-## 1. 交付结果
+## 1. 修正原因
 
-Mini Silicon Valley 现在只有一个对外课程大纲入口：`/course/`。它是可直接访问、刷新、复制和浏览器前进／后退的稳定页面，而不是 `WorldApp` 内存中的临时 View。
+上一版错误地把“集成 chj 课程 UI”解释成了“抽取视觉资产，并由 main 重新编写一套课程页面”。这改变了同事已经完成的页面结构、文案、交互和视觉，也把 Course Package 的 5×13 结构强行投影到同事作品中，不符合“原模原样部署”的要求。
 
-入口已经连接到：
+修正后的边界非常明确：
 
-- 公开总导航 `/`；
-- 历史世界 `/world/`；
-- 课程页自身导航；
-- 方法页 `/framework/` 与家长页 `/parents/` 的共享导航增强。
+- main 只提供顶部“课程大纲”入口、`/course/` 路由和 Hecate 托管；
+- 页面本身完整来自同事仓库，不在 main 中复制、翻译、优化或重写；
+- 课程编辑器、Alpha、Classroom 和 Course Package 继续保持原有职责，不再被拿来改造该页面；
+- 若同事页面后续要改，必须先在同事仓库形成新提交，再重新固定、测试和发布。
 
-`/framework/` 仍负责团队方法同步，不再冒充课程目录；旧的 `CurriculumOutline` 不再从公开世界页渲染，因此不存在两个“课程大纲”入口争夺课程真值。
+## 2. 不可变来源
 
-## 2. chj 集成边界
+```text
+仓库      CyberFork/minisv
+分支快照  chj
+commit    679213a61b835335016eac7649213983a0e48489
+Git tree  3a041c4714190cc026f6de8e06e15cec0e5f765d
+```
 
-候选仓库和版本已经固定：
+构建脚本在开始和结束时都检查 HEAD、Git tree 与空工作树。任何本地源码修改都会立即终止构建。
 
-- 仓库：`CyberFork/minisv`
-- 分支：`chj`
-- 审计 SHA：`679213a61b835335016eac7649213983a0e48489`
+## 3. 原样构建方式
 
-没有把 chj 整分支覆盖 main。文件审计确认 chj 是独立产品分支，包含 108 MB 资产和旧的 4 步／9 章／15 分钟等口径。此次只吸收它的像素地图视觉语言和两张实际使用的图片：
+同事仓库自身已经支持 `MSV_PUBLIC_BASE`、`MSV_SITE_ORIGIN` 和 `MSV_CANONICAL_URL`。发布只设置：
 
-- `course-outline-world-map.webp`：1671×941，约 479 KiB；
-- `course-outline-chapter-icons.webp`：633×621，约 224 KiB。
+```text
+MSV_PUBLIC_BASE=/course/
+MSV_SITE_ORIGIN=https://minisv.vip
+MSV_CANONICAL_URL=https://minisv.vip/course/
+```
 
-两张图片由原始 PNG 转为 WebP；未引入 chj 的压缩交付物、部署配置、未使用 Overview 大图或任何凭据。
+随后执行同事项目自身的类型检查、Lint 和 Vinext 生产构建。外部渲染器只调用原构建 worker 的 `/`，再把完整 `dist/client` 与服务端生成的 HTML 放入暂存目录；不修改任何 HTML、CSS、JavaScript、图片或源文件。
 
-## 3. 课程数据主棍
+## 4. 防止二次改写
 
-课程页不维护第三份章节文案。`app/lib/course-outline.ts` 只把现有 Course Package v1 的 Released 内置基线投影成只读页面：
+`package_release.py` 的处理顺序是：
 
-- 饿了么：`eleme-2008-find-problem`，r0；
-- Google：`google-1995-2004`，r0；
-- 每课固定 5 大步、13 Block、5 卡组；
-- 五步：找真问题 → 定真方案 → 做真产品 → 进真市场 → 跑真运营；
-- P／D／M／O 是产品、开发、市场、运营四导师，不是四名学员角色；
-- 六分钟 Demo Day 位于第五步之后，是终局，不是第六步。
+1. 组装 main 的世界页和既有公共页面；
+2. 对这些 main 页面执行旧路径迁移和共享主题注入；
+3. 上述改写全部结束后，才将 chj 暂存目录复制到 `site/course/`；
+4. 比较复制前后的目录 SHA-256、文件数和总字节数；
+5. 检查原版标识、`/course/_next/`、`/course/assets/`，并拒绝 `/ui-theme.js` 和旧自制页面标识。
 
-页面显示 `courseId / revision / SHA-256 digest`，便于和 Editor、Alpha 以及 Classroom 对照。摘要、任务、导师顺序、双轨、三玩法和学员视角全部从课程 JSON 生成。
+所以 `/course/` 是一个不透明、不可变的子站，不会再被主站“顺手优化”。
 
-当前投影使用仓库内置 Released r0 基线；后续由 Editor 发布的新 revision 仍按既有规则供新 Run／重置 Run 使用，不会静默热切换正在进行的课堂。
+## 5. 已撤销的错误实现
 
-## 4. 路由和交互
+main 中上一版新增的以下派生实现已删除：
 
-- 正式 URL：`/course/`；`/course` 由网关 308 到带斜杠地址。
-- `next.config.ts` 使用 `trailingSlash`，页面 canonical 固定为 `https://minisv.vip/course/`。
-- 课程、步骤、Block 选择写入 URL hash，例如：
-  `/course/#course=google-1995-2004&step=build&block=B07`。
-- hash 可分享、刷新恢复，并原生支持前进／后退；不会触发静态 RSC 请求。
-- 地图使用 1671:941 固定比例 Stage；五个按钮 Overlay 与背景一起缩放，移动端另有真实 HTML 步骤导航。
-- 学员详情优先呈现“你在哪里、要说什么、可以问什么、怎样过关”；复杂方法只留给导师。
+- `app/course/` 自制课程页面；
+- `app/lib/course-outline.ts` 课程投影；
+- 两张二次转码的 chj WebP；
+- 针对自制五步页面的测试和浏览器验收。
 
-## 5. 发布结构
+历史世界仍保留真实 `<a href="/course/">课程大纲</a>`，公共首页、方法页和家长页也继续指向同一 URL。
 
-`npm run build:minisv-static` 从当前 Vinext build 服务端渲染：
+## 6. 验收范围
 
-- `dist/minisv-static/world/index.html`
-- `dist/minisv-static/course/index.html`
+- 同事源码：HEAD 与 Git tree 固定，构建前后工作树为空；
+- 同事项目：TypeScript、ESLint、Vinext build；
+- 产物：canonical 为 `https://minisv.vip/course/`，脚本、样式和图片都使用 `/course/` 前缀；
+- 字节一致性：进入 release 前后课程目录摘要、文件数、字节数完全一致；
+- 浏览器：390、430、768、1440 px 显示原版首页；“课程大纲”“开始”“返回首页”可用；原版 9 章／4 阶段可见；资源加载成功且无 pageerror；
+- 回归：主站、世界、课堂、Alpha、主控、编辑器、方法、家长和工坊路由继续可用；
+- 生产：只部署到 Hecate 的 `minisv.vip`，不修改 `cyberforker.com`。
 
-`deploy/minisv/package_release.py` 使用 `--app-static-root` 将这两个当前页面与既有 Classroom、Alpha、Editor、QA、Workshop 一起组装进同一原子 release。打包器会拒绝：
+## 7. 上游测试说明
 
-- 缺少 `/course/`；
-- 公开首页／世界／课程页缺少统一入口；
-- 方法页／家长页缺少共享课程快捷入口；
-- 产物残留旧域名、局域网地址或 `/msv/` 路径。
+固定 chj 提交的完整 `npm test` 当前结果为 26/27：类型检查、Lint、构建和其余 26 项均通过；唯一失败是同事测试仍断言课程总览包含“外卖平台”，而固定提交页面已不含该字符串。因为本任务要求不改同事内容，本次不会为了让断言变绿而修改其源码或测试。部署门禁独立执行类型、Lint、生产构建、原样产物校验和真实浏览器交互。
 
-## 6. 验收矩阵
+## 8. 发布回执
 
-自动化覆盖：
-
-- TypeScript、ESLint、Vinext build 和核心单元／渲染／交互测试；
-- Course Package 两门课程的精确 digest、5×13、四导师、学员不分 PDMO；
-- release 打包、网关路由、共享 UI runtime 和 manifest；
-- 课程页 390／430／768／1440 px；
-- 公开页 `/`、`/world/`、`/course/`、`/framework/`、`/parents/` 在 390／1440 px；
-- 无横向溢出、地图节点不漂移、图片加载、选中态、键盘语义、hash 分享和浏览器返回；
-- Alpha、Editor 和 CourseRepository 全套回归。
-
-## 7. 生产验收结论
-
-- Hecate release：`20260906T085800Z-t077-course-outline-r2`；
-- 回滚目标：`20260906T084404Z-t077-course-outline`（上一已验证 release）；
-- 核心 Web 测试：27／27；部署契约：17／17；LIVE RUN Python：33／33；
-- 生产 public smoke 全部通过；课程页四档视口和五个公共页面双断点浏览器验收通过；
-- 发布前后课程、执行位置、成员、手牌、RP、钱包和资金等玩法状态逐字段相同；控制器正常追加一条 `classroom.snapshot.refreshed` 审计事件，因此状态文件字节哈希按设计变化；
-- `release.json` 同时绑定 main 集成 SHA 与固定 chj SHA，归档哈希记录在部署回执。
-
-生产 release、main 集成提交、归档哈希和回滚目标记录在 `TODO_077_PRODUCTION_RECEIPT.json`。
+部署完成后记录新的 Hecate release、main 提交、课程 artifact 摘要、文件数、字节数、回滚目标和线上浏览器结果到 `TODO_077_PRODUCTION_RECEIPT.json`。

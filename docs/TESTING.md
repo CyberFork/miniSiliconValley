@@ -12,7 +12,7 @@ npm test
 1. `npm run typecheck`：TypeScript strict 类型检查。
 2. `npm run lint`：ESLint，`--max-warnings=0`。
 3. `npm run build`：Vinext/Vite 生产构建。
-4. 核心质量闸执行确定性数据、课程投影、SSR、交互和状态测试。
+4. 核心质量闸执行确定性数据、SSR、交互和状态测试。
 
 Work 子路径部署质量闸：
 
@@ -32,12 +32,10 @@ npm run test:render
 
 ## 自动测试矩阵
 
-### `tests/course-outline.test.ts` / `tests/curriculum.test.ts`
+### `tests/curriculum.test.ts`
 
-- 精确锁定 Google／饿了么 Course Package digest。
-- 校验五步、13 Block、5 卡组、四导师和学员不分 PDMO。
-- 历史世界只能通过真实 `/course/` 链接进入唯一课程大纲。
-- 旧六段素材索引继续通过数据完整性校验，但不再拥有公开入口。
+- 旧六段素材索引继续通过数据完整性校验。
+- 历史世界只能通过真实 `/course/` 链接进入独立课程站，不保留第二套内存入口。
 
 ### `tests/data-validate.test.ts`
 
@@ -93,14 +91,22 @@ npm run test:render
 
 Sites 构建规范不要求用浏览器截图作为发布前置；因此默认质量闸不依赖图形环境或网络，保持 CI 可重复。
 
-## T-077 浏览器矩阵
+## T-077 原样课程站验收
+
+先运行：
+
+```bash
+deploy/minisv/scripts/build-chj-course.sh <chj-checkout> <course-output>
+```
+
+该门禁检查固定 commit、Git tree、干净工作树、类型、Lint、生产构建、`/course/` 资源前缀及 canonical。发布打包测试还逐文件比较输入和 `site/course/`，证明主站路径重写与主题注入没有触碰同事产物。
 
 `tools/live-run/tests/verify_course_outline_browser.py` 验证：
 
-- `/course/` 在 390、430、768、1440 px 无横向溢出；
-- 1671:941 地图比例不变，五个 Overlay 节点均在 Stage 内；
-- Google／饿了么切换、步骤／Block hash、刷新、前进／后退正确；
-- `/`、`/world/`、`/course/`、`/framework/`、`/parents/` 在手机和桌面都有可见 `/course/` 链接；
-- 无浏览器 `pageerror`，地图资源真实加载。
+- `/course/` 在 390、430、768、1440 px 正常载入同事原版“青少年AI创业营”首页；
+- 工作台图片和 `/course/_next/` 客户端代码真实加载，不出现主站主题脚本；
+- “课程大纲”和“开始”都进入原版 9 章／4 阶段页面，返回首页可用；
+- `/`、`/world/`、`/framework/`、`/parents/` 在手机和桌面都有可见 `/course/` 入口；
+- 无浏览器 `pageerror`。
 
-部署测试还覆盖 `/course → /course/`、静态 release 组装、共享 UI runtime 版本一致性、manifest 和生产 smoke。最终精确计数与生产 release 见 `TODO_077_IMPLEMENTATION.md` 和发布回执。
+部署测试还覆盖 `/course → /course/`、不透明目录复制、固定 chj 身份、manifest 和生产 smoke。最终版本见 `TODO_077_IMPLEMENTATION.md` 和发布回执。
