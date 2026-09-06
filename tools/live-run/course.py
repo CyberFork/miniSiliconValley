@@ -272,6 +272,18 @@ def course_digest(value: dict[str, Any]) -> str:
     return hashlib.sha256(_canonical_bytes(content)).hexdigest()
 
 
+def legacy_course_digest(value: dict[str, Any]) -> str:
+    """Return the pre-T083 digest used by already-running classrooms.
+
+    Before T-083, mutable ``authoring`` metadata participated in the digest.
+    The controller accepts this value only while loading persisted Run state,
+    then atomically rewrites the state with :func:`course_digest`.  Keeping the
+    compatibility calculation explicit prevents a deploy from discarding an
+    in-progress classroom merely because the digest contract was corrected.
+    """
+    return hashlib.sha256(_canonical_bytes(value)).hexdigest()
+
+
 def course_manifest(value: dict[str, Any]) -> dict[str, Any]:
     """Return machine-readable package diagnostics for authoring clients.
 

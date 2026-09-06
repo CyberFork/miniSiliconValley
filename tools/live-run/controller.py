@@ -32,6 +32,7 @@ from course import (
     course_digest,
     course_manifest,
     deal_course_deck,
+    legacy_course_digest,
     validate_script,
 )
 
@@ -260,13 +261,15 @@ class CourseController:
         expected_ids = [block["id"] for block in self.script["blocks"]]
         actual_ids = [block.get("id") for block in state.get("blocks", [])]
         index = state.get("currentBlockIndex")
+        persisted_digest = state.get("courseDigest")
+        compatible_digests = {course_digest(self.script), legacy_course_digest(self.script)}
         return bool(
             state.get("scriptId") == self.script["id"]
             and state.get("courseId", DEFAULT_COURSE_ID) == self.script["course"]["id"]
             and actual_ids == expected_ids
             and isinstance(index, int)
             and 0 <= index < len(expected_ids)
-            and (state.get("schemaVersion") in {1, 2, 3} or state.get("courseDigest") == course_digest(self.script))
+            and (state.get("schemaVersion") in {1, 2, 3} or persisted_digest in compatible_digests)
         )
 
     def _new_adapter(self, persisted: dict[str, Any] | None) -> ClassroomApiAdapter | None:

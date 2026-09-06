@@ -134,6 +134,7 @@ python3 tools/live-run/tests/verify_todos_071_072_browser.py
 - 所见字段反查唯一 Course Package 路径，输入后所有受影响窗口同步；派生字段只读。
 - 五种画布布局、底部可调中控、撤销／重做与粘性保存可用。
 - 保存 Candidate 不改变活动 Run；Released API 拒绝无 Candidate、非 exact digest 和未完成验收。
+- T-083 前旧 digest 的活动 Run 在升级重启后保持 Run ID、当前 Block、状态与尝试次数，不得静默新建课堂。
 - 真实 seat 与 controller 复用共享渲染器，同时不显示编辑控件或预览模拟状态。
 - 1440／1180／768／430／390 px 无横向溢出、无过小基础字号。
 

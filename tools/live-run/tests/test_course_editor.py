@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from controller import CourseController, LiveRunServer  # noqa: E402
-from course import CourseRepository, course_digest  # noqa: E402
+from course import CourseRepository, course_digest, legacy_course_digest  # noqa: E402
 
 
 class CourseEditorTests(unittest.TestCase):
@@ -130,6 +130,32 @@ class CourseEditorTests(unittest.TestCase):
         self.assertEqual(restarted.script["course"]["description"], original)
         restarted.reset()
         self.assertEqual(restarted.script["course"]["description"], edited["course"]["description"])
+
+    def test_pre_t083_digest_migrates_without_resetting_active_run(self):
+        state_path = Path(self.tmp.name) / "run-state.json"
+        state = json.loads(state_path.read_text())
+        active_script = json.loads(json.dumps(self.controller.script, ensure_ascii=False))
+        active_script["authoring"] = {"status": "draft", "revision": 8, "updatedAt": "2026-09-06T00:00:00Z"}
+        self.controller.script_store.write(active_script)
+        legacy_digest = legacy_course_digest(active_script)
+        self.assertNotEqual(legacy_digest, course_digest(active_script))
+        state.update({
+            "courseDigest": legacy_digest,
+            "runId": "run-preserve-across-t083",
+            "status": "awaiting-acceptance",
+            "currentBlockIndex": 4,
+            "previewBlockIndex": 4,
+        })
+        state["blocks"][4]["status"] = "awaiting-acceptance"
+        state["blocks"][4]["attempts"] = 1
+        state_path.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n")
+
+        restarted = CourseController(state_path, course_repository=self.repository)
+        self.assertEqual(restarted.state["runId"], "run-preserve-across-t083")
+        self.assertEqual(restarted.state["status"], "awaiting-acceptance")
+        self.assertEqual(restarted.state["currentBlockIndex"], 4)
+        self.assertEqual(restarted.state["blocks"][4]["attempts"], 1)
+        self.assertEqual(restarted.state["courseDigest"], course_digest(active_script))
 
 
 if __name__ == "__main__":

@@ -119,6 +119,7 @@ Released revision + 同一 content digest
 - 当前 Alpha 必须加载同一课程、同一完整 digest，并处于 `completed`。
 - 回执必须绑定当前 Alpha `runId` 和完整 digest。
 - `authoring` 中的 revision、状态、时间和回执是注册元数据，不参与内容 digest；因此 Candidate 与其 Released 副本共享同一内容身份。
+- 控制器兼容读取 T-083 之前包含 `authoring` 的旧 digest，并在原 Run ID、进度、状态和账本不变的前提下迁移为新内容 digest；升级不能把进行中的课堂重置成新 Run。
 - 既有正式课堂仍锁定原版本；发布不做静默热切换。
 
 ## 7. 关键实现文件
@@ -141,6 +142,7 @@ Released revision + 同一 content digest
 - 默认九视窗、五种画布、原子跳块、可见字段即时编辑、稳定卡 ID、派生只读、撤销重做和 Candidate 保存。
 - 保存 Candidate 前后活动 Run ID、digest 和执行指针不变。
 - 服务端拒绝无 Candidate、错误 digest、错误 Run 或未完成 Alpha 的发布。
+- 旧 digest 的活动 Run 在控制器重启后保持同一 Run ID、当前 Block、待验收状态和尝试次数，并原地迁移 digest。
 - 真实席位和真实中控确实走共享渲染器，运行态不出现编辑路径或模拟按钮。
 - 1440、1180、768、430、390 px 无页面横向溢出，席位基础字号不低于 13 px。
 - 既有 T-071／072、T-074 编辑器、Alpha 刷新、卡牌搜索和布局回归继续通过。
