@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import http.client
 import json
 import ssl
@@ -22,7 +23,16 @@ EXPECTED = {
     "/control/": 303,
     "/healthz": 200,
     "/release.json": 200,
+    "/favicon.svg": 200,
+    "/og.png": 200,
+    "/workshop/confirmed-baseline.json": 200,
+    "/this-worldline-does-not-exist": 404,
 }
+
+
+def sha256(value: object) -> str:
+    encoded = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def request(base: str, path: str) -> tuple[int, bytes, dict[str, str]]:
@@ -73,6 +83,9 @@ def main() -> None:
                 raise SystemExit("FAIL release.json: /course/ is not pinned to the approved chj commit")
             if release.get("courseArtifact", {}).get("transformed") is not False:
                 raise SystemExit("FAIL release.json: chj course artifact was transformed")
+            for feature in ("shared-brand-home", "released-workshop-snapshot"):
+                if feature not in release.get("features", []):
+                    raise SystemExit(f"FAIL release.json: missing {feature}")
         if path == "/course/":
             text = body.decode("utf-8", "replace")
             required = ("青少年AI创业营", "MINI硅谷", "/course/_next/", "/course/assets/home-workbench.png")
@@ -80,6 +93,33 @@ def main() -> None:
                 raise SystemExit("FAIL /course/: incomplete colleague-owned course site")
             if "/ui-theme.js" in text or "data-course-outline-schema" in text:
                 raise SystemExit("FAIL /course/: colleague-owned course site was rewritten or decorated")
+        if path in {"/", "/framework/", "/workshop/", "/alpha/", "/auth/login"}:
+            text = body.decode("utf-8", "replace")
+            if 'href="/"' not in text or '/favicon.svg' not in text:
+                raise SystemExit(f"FAIL {path}: shared brand/home contract is missing")
+        if path == "/workshop/":
+            text = body.decode("utf-8", "replace")
+            for marker in ("msv-workshop-released-baseline", 'data-panel="baseline"', "baseline.js", "baseline.css"):
+                if marker not in text:
+                    raise SystemExit(f"FAIL /workshop/: missing {marker}")
+        if path == "/workshop/confirmed-baseline.json":
+            snapshot = json.loads(body)
+            integrity = snapshot.pop("integrity", None)
+            if not isinstance(integrity, dict) or integrity.get("algorithm") != "sha256" or integrity.get("digest") != sha256(snapshot):
+                raise SystemExit("FAIL Workshop snapshot: integrity mismatch")
+            courses = snapshot.get("courses", [])
+            if snapshot.get("scope") != "public-redacted-summary" or snapshot.get("source", {}).get("channel") != "released":
+                raise SystemExit("FAIL Workshop snapshot: not a redacted Released projection")
+            if not courses or any(len(course.get("macroSteps", [])) != 5 or len(course.get("blocks", [])) != 13 or len(course.get("deckSummary", [])) != 5 for course in courses):
+                raise SystemExit("FAIL Workshop snapshot: incomplete five-step course projection")
+            serialized = json.dumps(snapshot, ensure_ascii=False)
+            for forbidden in ('"mentorScript"', '"seatTasks"', '"walletTenths"', '"teamTreasuryTenths"', '"lease":'):
+                if forbidden in serialized:
+                    raise SystemExit(f"FAIL Workshop snapshot: leaked {forbidden}")
+        if path == "/this-worldline-does-not-exist":
+            text = body.decode("utf-8", "replace")
+            if "WORLDLINE NOT FOUND" not in text or 'href="/"' not in text or "/favicon.svg" not in text:
+                raise SystemExit("FAIL custom 404: branded recovery path is missing")
         print(f"OK {path} {status}")
     print("MINISV_PUBLIC_SMOKE_OK")
 

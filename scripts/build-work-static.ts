@@ -53,6 +53,8 @@ await writeFile(resolve(output, "demo.html"), html, "utf8");
 await cp(resolve(client, "_next"), resolve(output, "_next"), { recursive: true });
 await cp(resolve(client, "assets"), resolve(output, "assets"), { recursive: true });
 await cp(resolve(client, "favicon.svg"), resolve(output, "favicon.svg"));
+await cp(resolve(root, "deploy", "minisv", "site", "site.webmanifest"), resolve(output, "site.webmanifest"));
+await cp(resolve(client, "og.png"), resolve(output, "og.png"));
 
 const files = await collectFiles(output);
 const manifest = {

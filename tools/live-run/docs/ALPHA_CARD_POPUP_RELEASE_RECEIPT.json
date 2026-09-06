@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-09-04T01:38:20Z",
+  "target": "https://work.cyberforker.com/msv/alpha/",
+  "releaseId": "alpha-20260904T013737Z-card-popup-e3f2a312",
+  "previousReleaseId": "alpha-20260904T010234Z-identity-dialog-f56509d3",
+  "controllerConnected": true,
+  "verified": {
+    "seatCount": 8,
+    "claimOpensIndependentPopup": true,
+    "popupIsDifferentWindowFromConsole": true,
+    "popupUsesStablePerSeatName": true,
+    "reopenReusesExistingPopup": true,
+    "popupOpenerIsNull": true,
+    "popupWidth": 440,
+    "popupHeight": 600,
+    "loadingCardServed": true,
+    "nicknameSubmitPreservesPopupGesture": true,
+    "failedClaimClosesLoadingCard": true,
+    "blockedPopupKeepsManualOpenFallback": true,
+    "productionClaimReleased": true,
+    "claimsBefore": 0,
+    "claimsAfter": 0,
+    "privilegedRoutesReturn404": true,
+    "localAndPublicHashesMatch": true
+  },
+  "tests": {
+    "functionalPython": "30/30 passed",
+    "remoteConsoleNode": "5/5 passed",
+    "localChromePopupAcceptance": "passed",
+    "productionChromePopupAcceptance": "passed",
+    "browser": "Chrome/151.0.7922.176"
+  },
+  "artifacts": {
+    "indexSha256": "fc78364041983a9d07b31c514fc94947e29127acc80f00c2235b6be68ff1ea84",
+    "consoleCssSha256": "d403e0b1345ded5d90d3690bdcdd2a2db8c53b241c7c8d128a4c311528860991",
+    "consoleJsSha256": "e3f2a31258d7c750ae765976d6fe5c874ef2fb8ae91488875ebd86e26935fb39",
+    "loadingCardSha256": "074e151b582388b60670e102b283f9ad2d32dda0640e4440b7a0a15e0ca2ace6",
+    "seatJsSha256": "95d434ee272bba768e5ae23609a1beb0a94268e1301047c95f55ce6d6a6ee458",
+    "consoleScreenshot": "assets/alpha-card-popup-console.png",
+    "mobileScreenshot": "assets/alpha-card-popup-mobile.png",
+    "seatCardScreenshot": "assets/alpha-seat-card-popup.png",
+    "browserReceipt": "ALPHA_CARD_POPUP_BROWSER_RECEIPT.json"
+  }
+}

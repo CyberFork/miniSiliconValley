@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-09-04T01:19:28Z",
+  "target": "https://work.cyberforker.com/msv/alpha/",
+  "releaseId": "alpha-20260904T010234Z-identity-dialog-f56509d3",
+  "previousReleaseId": "alpha-20260903T222117Z",
+  "controllerConnected": true,
+  "verified": {
+    "seatCount": 8,
+    "appNicknameDialog": true,
+    "appGlobalResetDialog": true,
+    "blankAndWhitespaceRejectedInline": true,
+    "dialogRetryContinuesOriginalClaim": true,
+    "claimedTitleFormat": "角色 · 昵称",
+    "renameVisibleToSecondClient": true,
+    "renamePreservesLease": true,
+    "nativeDialogsObserved": 0,
+    "localControllerDialogsLoaded": true,
+    "localRunIdentityPreserved": true,
+    "productionClaimReleased": true,
+    "claimsBefore": 0,
+    "claimsAfter": 0,
+    "privilegedRoutesReturn404": true,
+    "localAndPublicHashesMatch": true
+  },
+  "tests": {
+    "functionalPython": "30/30 passed",
+    "remoteConsoleNode": "5/5 passed",
+    "controllerHttpPython": "5/5 passed",
+    "isolatedChromeE2E": "passed",
+    "productionChromeSmoke": "passed",
+    "browser": "Chrome/151.0.7922.176"
+  },
+  "artifacts": {
+    "indexSha256": "fc78364041983a9d07b31c514fc94947e29127acc80f00c2235b6be68ff1ea84",
+    "consoleCssSha256": "6902774fcc46d426da693ab074f370ebe8b9047478834b14947625eaac8e2b2b",
+    "consoleJsSha256": "f56509d3f0122735ec95fe5d73eff8220f06550374894694b5561a91050c7ab9",
+    "seatJsSha256": "95d434ee272bba768e5ae23609a1beb0a94268e1301047c95f55ce6d6a6ee458",
+    "productionScreenshot": "assets/alpha-production-role-nickname.png",
+    "nicknameDialogScreenshot": "assets/alpha-nickname-dialog.png",
+    "controllerDialogScreenshot": "assets/live-run-confirm-dialog.png"
+  }
+}

@@ -9,21 +9,35 @@
   "scripts": {
     "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext dev",
     "build": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext build",
-    "build:minisv-static": "MSV_SITE_ORIGIN=https://minisv.vip sh -c 'npm run build && tsx scripts/build-minisv-static.ts'",
+    "build:minisv-app": "MSV_SELF_HOSTED_AUTH=app-session MSV_PUBLIC_BASE=/ MSV_APP_BASE_PATH=/ MSV_SITE_ORIGIN=https://minisv.vip MSV_CANONICAL_URL=https://minisv.vip/world/ MSV_123456_CANONICAL_URL=https://minisv.vip/framework/ MSV_QA_CANONICAL_URL=https://minisv.vip/parents/ NEXT_PUBLIC_MSV_QA_API_URL=/api/qa NEXT_PUBLIC_MSV_CLASSROOM_URL=/classroom/ NEXT_PUBLIC_MSV_ACCOUNT_URL=/account/ NEXT_PUBLIC_MSV_WORLD_URL=/world/ npm run build",
+    "build:minisv-static": "npm run build:minisv-app && tsx scripts/build-minisv-static.ts",
     "render:minisv-static": "tsx scripts/build-minisv-static.ts",
-    "build:work": "MSV_PUBLIC_BASE=/msv/ MSV_SITE_ORIGIN=https://work.cyberforker.com MSV_CANONICAL_URL=https://work.cyberforker.com/msv/demo.html sh -c 'npm run build && tsx scripts/build-work-static.ts'",
+    "build:work": "MSV_PUBLIC_BASE=/msv/ MSV_SITE_ORIGIN=https://work.cyberforker.com MSV_CANONICAL_URL=https://work.cyberforker.com/msv/demo.html MSV_QA_CANONICAL_URL=https://work.cyberforker.com/msv/qa.html NEXT_PUBLIC_MSV_QA_API_URL=/msv/api/qa NEXT_PUBLIC_MSV_CLASSROOM_URL=/msv/demo/app/classroom NEXT_PUBLIC_MSV_WORLD_URL=/msv/demo.html sh -c 'npm run build && tsx scripts/build-work-static.ts'",
     "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
     "typecheck": "tsc --noEmit --pretty false",
     "validate:data": "tsx scripts/validate-data.ts",
     "test:unit": "node --import tsx --test tests/curriculum.test.ts tests/data-validate.test.ts tests/state.test.ts",
     "test:render": "npm run build && node --import tsx --test tests/render.test.ts",
-    "test": "npm run typecheck && npm run lint && npm run build && node --import tsx --test tests/curriculum.test.ts tests/data-validate.test.ts tests/interaction-contract.test.ts tests/mission-progress.test.ts tests/render.test.ts tests/state.test.ts",
-    "test:work": "npm run typecheck && npm run lint && npm run build:work && node --import tsx --test tests/*.test.ts",
-    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --max-warnings=0"
+    "test": "npm run typecheck && npm run lint && npm run build && node --import tsx --test tests/brand-contract.test.ts tests/curriculum.test.ts tests/data-validate.test.ts tests/interaction-contract.test.ts tests/mission-progress.test.ts tests/render.test.ts tests/state.test.ts",
+    "test:work": "npm run typecheck && npm run lint && npm run build:work && npm run build:parent-qa && tsx scripts/build-work-qa-static.ts && node --import tsx --test tests/*.test.ts",
+    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --max-warnings=0",
+    "build:work-qa": "MSV_PUBLIC_BASE=/msv/ MSV_SITE_ORIGIN=https://work.cyberforker.com MSV_QA_CANONICAL_URL=https://work.cyberforker.com/msv/qa.html NEXT_PUBLIC_MSV_QA_API_URL=/msv/api/qa NEXT_PUBLIC_MSV_CLASSROOM_URL=/msv/demo/app/classroom NEXT_PUBLIC_MSV_WORLD_URL=/msv/demo.html sh -c 'npm run build && tsx scripts/build-work-qa-static.ts'",
+    "build:work-app": "MSV_SELF_HOSTED_AUTH=app-session MSV_PUBLIC_BASE=/msv/demo/app/ MSV_APP_BASE_PATH=/msv/demo/app MSV_SITE_ORIGIN=https://work.cyberforker.com MSV_CANONICAL_URL=https://work.cyberforker.com/msv/demo/app MSV_123456_CANONICAL_URL=https://work.cyberforker.com/msv/demo/app/123456 MSV_QA_CANONICAL_URL=https://work.cyberforker.com/msv/qa.html NEXT_PUBLIC_MSV_QA_API_URL=/msv/api/qa NEXT_PUBLIC_MSV_CLASSROOM_URL=/msv/demo/app/classroom NEXT_PUBLIC_MSV_ACCOUNT_URL=/msv/demo/app/account NEXT_PUBLIC_MSV_WORLD_URL=/msv/demo/app/ npm run build",
+    "build:parent-qa": "tsx scripts/build-parent-qa.ts",
+    "db:generate": "drizzle-kit generate",
+    "auth:seed": "tsx scripts/generate-auth-seed.ts",
+    "test:classroom": "node --import tsx --test tests/classroom-*.test.ts",
+    "test:parent-qa": "npm run build:parent-qa && npm run build:work-qa && node --import tsx --test tests/parent-qa.test.ts tests/parent-qa-static.test.ts",
+    "test:classroom:e2e": "tsx scripts/test-classroom-e2e.ts",
+    "test:work-app": "npm run typecheck && npm run lint && npm run build:work-app && tsx scripts/test-work-app-smoke.ts",
+    "test:minisv-app": "npm run typecheck && npm run lint && npm run build:minisv-app && MSV_APP_SMOKE_TARGET=minisv tsx scripts/test-work-app-smoke.ts",
+    "test:portal:live": "node scripts/test-msv-portal-live.mjs",
+    "test:release": "npm test && npm run test:classroom:e2e && npm run test:work && npm run test:work-app && npm run test:minisv-app"
   },
   "dependencies": {
     "react": "19.2.6",
-    "react-dom": "19.2.6"
+    "react-dom": "19.2.6",
+    "drizzle-orm": "^0.45.2"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.37.1",
@@ -47,7 +61,9 @@
     "typescript-eslint": "8.59.3",
     "vinext": "1.0.0-beta.2",
     "vite": "8.0.13",
-    "wrangler": "4.92.0"
+    "wrangler": "4.92.0",
+    "@cloudflare/workers-types": "^4.20260702.1",
+    "drizzle-kit": "^0.31.10"
   },
   "type": "module"
 }

@@ -1,11 +1,18 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { ensureClassroomSchema, getClassroomDb } from "../db";
+import { authenticateSession } from "./lib/auth-store";
+import type { AuthRole } from "./lib/auth-model";
+import { publicPath } from "./lib/public-path";
 
 export type ChatGPTUser = {
   userId: string;
+  username: string;
   displayName: string;
   email: string;
   fullName: string | null;
+  role: AuthRole | null;
+  sessionId: string | null;
 };
 
 const USER_ID_HEADER = "oai-authenticated-user-id";
@@ -20,6 +27,21 @@ const CALLBACK_PATH = "/callback";
 
 export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
   const requestHeaders = await headers();
+  if (process.env.MSV_SELF_HOSTED_AUTH === "app-session") {
+    const db = getClassroomDb();
+    await ensureClassroomSchema(db);
+    const session = await authenticateSession(db, requestHeaders.get("cookie"));
+    if (!session) return null;
+    return {
+      userId: session.userId,
+      username: session.username,
+      displayName: session.displayName,
+      email: `${session.username}@minisv.vip`,
+      fullName: session.displayName,
+      role: session.role,
+      sessionId: session.sessionId,
+    };
+  }
   const userId = requestHeaders.get(USER_ID_HEADER);
   const email = requestHeaders.get(USER_EMAIL_HEADER);
   if (!userId || !email) return null;
@@ -33,9 +55,12 @@ export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
 
   return {
     userId,
+    username: email.split("@", 1)[0] || userId,
     displayName: fullName ?? email,
     email,
     fullName,
+    role: null,
+    sessionId: null,
   };
 }
 
@@ -50,11 +75,15 @@ export async function requireChatGPTUser(
 
 export function chatGPTSignInPath(returnTo: string): string {
   const safeReturnTo = safeRelativeReturnPath(returnTo);
+  if (process.env.MSV_SELF_HOSTED_AUTH === "app-session") {
+    return `${publicPath("/auth/login")}?returnTo=${encodeURIComponent(safeReturnTo)}`;
+  }
   return `${SIGN_IN_PATH}?return_to=${encodeURIComponent(safeReturnTo)}`;
 }
 
 export function chatGPTSignOutPath(returnTo = "/"): string {
   const safeReturnTo = safeRelativeReturnPath(returnTo);
+  if (process.env.MSV_SELF_HOSTED_AUTH === "app-session") return publicPath("/auth/logout");
   return `${SIGN_OUT_PATH}?return_to=${encodeURIComponent(safeReturnTo)}`;
 }
 
@@ -75,11 +104,15 @@ function safeRelativeReturnPath(value: string): string {
 
 function isReservedAuthPath(pathname: string): boolean {
   return (
+    pathname === "/auth" || pathname.startsWith("/auth/") ||
     pathname === SIGN_IN_PATH ||
     pathname === SIGN_OUT_PATH ||
     pathname === CALLBACK_PATH
   );
 }
+
+export const getAppUser = getChatGPTUser;
+export const requireAppUser = requireChatGPTUser;
 
 function safeDecodeURIComponent(value: string): string | null {
   try {

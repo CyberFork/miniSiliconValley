@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-09-04T02:51:42Z",
+  "target": "https://work.cyberforker.com/msv/alpha/",
+  "releaseId": "alpha-20260904T025123Z-controller-entry-9948db0a",
+  "previousReleaseId": "alpha-20260904T013737Z-card-popup-e3f2a312",
+  "controllerConnected": true,
+  "verified": {
+    "entryVisibleAtTopRight": true,
+    "entryLabel": "打开主控",
+    "controllerReached": true,
+    "controllerTitle": "LIVE RUN SCRIPT",
+    "independentPopup": true,
+    "stableWindowReused": true,
+    "openerIsNull": true,
+    "loopbackOnly": true,
+    "privilegedRoutesReturn404": true,
+    "localAndPublicHashesMatch": true,
+    "claimsBefore": 0,
+    "claimsAfter": 0,
+    "coursePreserved": "饿了么｜五步创业闭环",
+    "currentBlockPreserved": 1
+  },
+  "tests": {
+    "remoteConsoleNode": "5/5 passed",
+    "localChromeControllerEntry": "passed",
+    "productionChromeControllerEntry": "passed",
+    "browser": "Chrome/151.0.7922.176"
+  },
+  "artifacts": {
+    "indexSha256": "62a032dc4ddc4e820ed1b8152cc2c9909f28f96da0c23fc8ae588c45e49378e7",
+    "consoleCssSha256": "91e13d32b6734124023413615bd953c7cd3e9314229e26b55905c40085ddf745",
+    "consoleJsSha256": "9948db0a35d67c28ef5686d91132850660c0785a9e0d058fe78652576c900ed1",
+    "browserReceipt": "ALPHA_CONTROLLER_ENTRY_BROWSER_RECEIPT.json",
+    "screenshot": "assets/alpha-controller-entry.png"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "manifest_version": 3,
+  "name": "MSV LIVE RUN 2x4 Grid",
+  "version": "1.0.0",
+  "description": "Open exactly four mentor and four learner phone views without overlap.",
+  "permissions": ["windows", "system.display", "storage"],
+  "background": { "service_worker": "service-worker.js" },
+  "action": { "default_title": "重新排列 8 个 LIVE RUN 视窗" }
+}

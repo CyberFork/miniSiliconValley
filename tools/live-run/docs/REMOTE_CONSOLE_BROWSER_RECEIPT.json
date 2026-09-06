@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-09-03T10:43:15.298114+00:00",
+  "target": "http://127.0.0.1:18766/",
+  "browser": "Edg/152.0.4191.53",
+  "title": "Mini Silicon Valley｜内部测试席位控制台",
+  "connection": "课程主控已连接",
+  "course": "饿了么｜五步创业闭环",
+  "coverage": "完整课程 · 5 步 / 13 块",
+  "seatCards": 8,
+  "windowIdsVisible": true,
+  "claimRendered": true,
+  "releaseRendered": true,
+  "mobileViewport": {
+    "innerWidth": 390,
+    "scrollWidth": 390,
+    "seatCards": 8,
+    "gridColumns": "358px",
+    "noHorizontalOverflow": true
+  },
+  "screenshot": "docs/assets/remote-console-eight-seats.png",
+  "mobileScreenshot": "docs/assets/remote-console-mobile.png",
+  "containsCredentialsOrCapabilities": false
+}

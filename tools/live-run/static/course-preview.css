@@ -5,3 +5,43 @@
 .shared-controller{min-width:0}.shared-controller .surface-editable{color:inherit}.shared-controller .surface-editable:hover,.shared-controller .surface-editable:focus-visible{outline-color:#e0b83f}.shared-controller .surface-edit-hint{z-index:1}.shared-controller .surface-value>p,.shared-controller .surface-editable>p{margin:.4em 0 0;white-space:pre-wrap}.shared-controller .block-head .surface-value>p,.shared-controller .block-head .surface-editable>p{margin:.12em 0;font-size:24px;font-weight:800;line-height:1.15}.shared-controller .block-meta .surface-value>p,.shared-controller .block-meta .surface-editable>p{margin:0}.shared-controller .learner-brief>.surface-editable>p,.shared-controller .learner-brief>.surface-value>p{font-size:18px}.shared-controller .next-action>.surface-derived{padding:0}.shared-controller .next-action>.surface-derived strong{display:block;font-size:18px}.shared-controller .next-action>.surface-derived p{margin:.35em 0 0}.shared-controller .mode-row>.surface-editable{display:flex;flex-wrap:wrap;gap:6px}.shared-controller .script-section>.surface-editable{margin-top:6px}.shared-controller .script-section ol{margin:0;padding-left:1.3em}.controller-contract{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.controller-contract>div{padding:11px;border:1px solid #d8cfbd;background:#fffaf0}.controller-contract>div:before{display:block;color:#68717d;font-size:10px;font-weight:800;text-transform:uppercase}.controller-contract>div:first-child:before{content:"本步核心问题"}.controller-contract>div:last-child:before{content:"本步完成门槛"}.controller-version{display:flex;justify-content:space-between;gap:12px;margin-top:12px;padding-top:10px;border-top:1px solid #d8cfbd;color:#68717d;font:10px ui-monospace,monospace}
 body>.msv-seat-surface,body>#seatApp{min-height:100vh}body>#seatApp{display:block}body>#seatApp>.msv-seat-surface{min-height:calc(100vh - 28px)}
 @media(max-width:700px){.controller-contract{grid-template-columns:1fr}.shared-controller .block-head .surface-value>p,.shared-controller .block-head .surface-editable>p{font-size:20px}}
+
+/* T-076 · production Alpha seats favour three-second classroom legibility.
+   Editor miniatures keep their denser preview geometry via data-preview=true. */
+body>#seatApp>.msv-seat-surface{min-height:calc(100dvh - 60px)}
+.msv-seat-surface[data-preview="false"]{gap:11px;padding:15px;font-size:16px;line-height:1.55}
+.msv-seat-surface[data-preview="false"] .surface-kicker{font-size:11px}
+.msv-seat-surface[data-preview="false"] .surface-header .surface-value>p{font-size:26px;line-height:1.12}
+.msv-seat-surface[data-preview="false"] .surface-subidentity{font-size:14px;line-height:1.45}
+.msv-seat-surface[data-preview="false"] .surface-window{min-width:72px;min-height:44px;padding:11px 8px;font-size:12px}
+.msv-seat-surface[data-preview="false"] .surface-phase{min-height:48px;padding:11px 13px}
+.msv-seat-surface[data-preview="false"] .surface-phase b{font-size:16px}
+.msv-seat-surface[data-preview="false"] .surface-phase span{font-size:11px}
+.msv-seat-surface[data-preview="false"] .surface-card{padding:14px}
+.msv-seat-surface[data-preview="false"] .surface-card h2{font-size:12px;line-height:1.35}
+.msv-seat-surface[data-preview="false"] .surface-mission>.surface-value>p{font-size:20px;line-height:1.45}
+.msv-seat-surface[data-preview="false"] .surface-mission>.surface-value+.surface-value>p{font-size:16px;line-height:1.55}
+.msv-seat-surface[data-preview="false"] .surface-result p{font-size:16px;line-height:1.5}
+.msv-seat-surface[data-preview="false"] .surface-metric>b{font-size:20px}
+.msv-seat-surface[data-preview="false"] .surface-metric>span{font-size:12px}
+.msv-seat-surface[data-preview="false"] .surface-metric{padding:10px}
+.msv-seat-surface[data-preview="false"] .surface-list-label{font-size:11px}
+.msv-seat-surface[data-preview="false"] .surface-card li p,
+.msv-seat-surface[data-preview="false"] .surface-card li li{font-size:16px;line-height:1.55}
+.msv-seat-surface[data-preview="false"] .surface-card li>.surface-value{padding:10px 11px}
+.msv-seat-surface[data-preview="false"] .surface-card .private-card{padding:11px}
+.msv-seat-surface[data-preview="false"] .surface-card .private-card-meta,
+.msv-seat-surface[data-preview="false"] .surface-card .private-card small{font-size:11px}
+.msv-seat-surface[data-preview="false"] .surface-card .private-card>b{font-size:17px}
+.msv-seat-surface[data-preview="false"] .surface-card .private-card>p{font-size:16px;line-height:1.55}
+.msv-seat-surface[data-preview="false"] .surface-card .private-card>em{font-size:14px;line-height:1.5}
+.msv-seat-surface[data-preview="false"] .surface-card .private-card em span{font-size:10px}
+.msv-seat-surface[data-preview="false"] .surface-chip{min-height:34px;padding:7px 9px;font-size:12px}
+.msv-seat-surface[data-preview="false"] .surface-footer{font-size:10px;line-height:1.45}
+@media(max-width:430px){
+  .msv-seat-surface[data-preview="false"]{padding:12px}
+  .msv-seat-surface[data-preview="false"] .surface-header .surface-value>p{font-size:23px}
+  .msv-seat-surface[data-preview="false"] .surface-metrics{gap:4px}
+  .msv-seat-surface[data-preview="false"] .surface-metric{padding:8px}
+  .msv-seat-surface[data-preview="false"] .surface-metric>b{font-size:18px}
+}

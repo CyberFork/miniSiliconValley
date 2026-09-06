@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "deployedAt": "2026-09-04T06:21:17+08:00",
+  "target": "https://work.cyberforker.com/msv/alpha",
+  "canonicalRedirect": {
+    "from": "/msv/alpha",
+    "status": 308,
+    "to": "/msv/alpha/"
+  },
+  "topology": [
+    "Cloudflare Tunnel",
+    "hecate-work work-sync-gateway",
+    "192.168.50.243:18766",
+    "Windows loopback reverse tunnel",
+    "Mac controller 127.0.0.1:18765"
+  ],
+  "windows": {
+    "activeRelease": "alpha-20260903T222117Z",
+    "previousRelease": "alpha-20260903T221833Z",
+    "scheduledTask": "MSV-Live-Run-Console",
+    "taskState": "Running",
+    "controllerConnected": true
+  },
+  "gateway": {
+    "nginxConfigTest": "passed",
+    "backup": "~/Services/work-sync/gateway/default.conf.before-alpha-20260903T221824Z",
+    "locationSha256": "7b39cf1a99ff4b471da0508bab48195d730f660a460955138664c36a3c2815cd",
+    "httpMapSha256": "940f16af6bb70bf7aea93fed6d70a56542e8be9e60e70b6659706c3463d1f739",
+    "writeThrottle": "30 requests/minute with burst 16; GET polling excluded",
+    "accessLog": "off for /msv/alpha/"
+  },
+  "releaseHashesMatched": true,
+  "security": {
+    "applicationLoginRequired": false,
+    "cloudflareAccessConfigured": false,
+    "seatCapabilityTransport": "URL fragment to request headers; excluded from request URLs",
+    "seatProjection": "one seat per response; learner sees only own learnerView",
+    "privilegedRoutes": {
+      "/api/bootstrap": 404,
+      "/api/script": 404,
+      "/api/control": 404
+    },
+    "responseHeaders": [
+      "Cache-Control: no-store",
+      "Content-Security-Policy",
+      "X-Frame-Options: DENY",
+      "X-Robots-Tag: noindex, nofollow, noarchive"
+    ]
+  },
+  "acceptance": {
+    "publicHttpAndApi": "passed",
+    "fourConcurrentClientsEightSeats": "passed",
+    "twelveUniquePrivateCards": "passed",
+    "desktopEdgeOriginPath": "passed",
+    "mobile390NoHorizontalOverflow": "passed",
+    "claimsAfterAcceptance": 0,
+    "courseAfterAcceptance": "饿了么｜五步创业闭环 · ready · 1/13"
+  },
+  "containsCredentialsOrCapabilities": false
+}

@@ -5,17 +5,18 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>课程编辑器 · Mini Silicon Valley</title>
-  <link rel="icon" href="data:,">
+  <link rel="icon" href="/favicon.svg">
   <link rel="stylesheet" href="../editor.css?v=20260906-9">
   <link rel="stylesheet" href="../course-preview.css?v=20260906-9">
-  <link rel="stylesheet" href="/ui-theme.css?v=20260906-6">
-  <script src="/ui-theme.js?v=20260906-6"></script>
+  <link rel="stylesheet" href="/ui-theme.css?v=20260906-9">
+  <script src="/ui-theme.js?v=20260906-9"></script>
 </head>
 <body>
 <header class="topbar">
-  <a class="back" href="../">← LIVE RUN 主控</a>
+  <div class="topbar-start"><a class="msv-static-brand msv-static-brand--mark" href="/" aria-label="返回 Mini Silicon Valley 主页"><img src="/favicon.svg" alt="" width="64" height="64"></a><a class="back" href="../">← LIVE RUN 主控</a></div>
   <div><span class="eyebrow">NINE-PANE COURSE STUDIO · 所见即所得</span><h1>课程编排工作台</h1></div>
   <div class="topbar-actions">
+    <button type="button" id="topbarLibrary" class="button topbar-library" aria-expanded="true" aria-controls="libraryContent">课程库</button>
     <div class="save-state" id="saveState" data-state="loading">正在载入</div>
     <div data-msv-theme-slot></div>
   </div>
@@ -24,14 +25,16 @@
   <b>固定骨架</b><span>一世界</span><span>两双轨</span><span>三玩法</span><span>四导师</span><span>五大步</span><span>十三小块</span><span>六分钟 Demo</span>
 </section>
 <main class="studio">
-  <aside class="library panel">
-    <div class="panel-head"><div><span class="eyebrow">COURSE LIBRARY</span><h2>课程库</h2></div><div class="panel-head-actions"><button id="closeLibrary" class="icon-button subtle" title="收起课程库" aria-label="收起课程库">←</button><button id="newCourse" class="icon-button" title="从现有课件创建" aria-label="从现有课件创建">＋</button></div></div>
-    <p class="hint">选择唯一 Course Package。保存生成 Candidate；不会自动改变正在排练或正式运行的课堂。</p>
-    <div id="courseList" class="course-list"></div>
-    <div id="diagnostics" class="diagnostics" hidden></div>
-    <div class="library-actions">
-      <label class="button secondary" for="importFile">导入 JSON</label><input id="importFile" type="file" accept="application/json,.json" hidden>
-      <button id="download" class="button ghost" disabled>导出 JSON</button>
+  <aside id="courseLibrary" class="library panel" aria-label="课程库">
+    <div class="panel-head"><div><span class="eyebrow">COURSE LIBRARY</span><h2>课程库</h2></div><div class="panel-head-actions"><button type="button" id="closeLibrary" class="icon-button subtle" title="收起课程库" aria-label="收起课程库" aria-expanded="true" aria-controls="libraryContent">←</button><button type="button" id="newCourse" class="icon-button" title="从现有课件创建" aria-label="从现有课件创建">＋</button></div></div>
+    <div id="libraryContent">
+      <p class="hint">选择唯一 Course Package。保存生成 Candidate；不会自动改变正在排练或正式运行的课堂。</p>
+      <div id="courseList" class="course-list"></div>
+      <div id="diagnostics" class="diagnostics" hidden></div>
+      <div class="library-actions">
+        <label class="button secondary" for="importFile">导入 JSON</label><input id="importFile" type="file" accept="application/json,.json" hidden>
+        <button id="download" class="button ghost" disabled>导出 JSON</button>
+      </div>
     </div>
   </aside>
 
@@ -41,7 +44,7 @@
       <div class="workspace-head">
         <div><span class="eyebrow" id="courseKicker"></span><h2 id="courseTitle"></h2><p id="revisionLine"></p></div>
         <div class="toolbar">
-          <button id="openLibrary" class="button ghost">课程库</button>
+          <button id="openLibrary" class="button ghost" aria-expanded="true" aria-controls="libraryContent">课程库</button>
           <button id="validate" class="button ghost">检查结构</button>
           <button id="historyButton" class="button ghost">版本历史</button>
           <button id="saveDraft" class="button secondary" data-save-course>保存 Candidate</button>
@@ -184,6 +187,7 @@
     <p class="guide-note">课程 ID、5×13 顺序、API 动作和人工验收状态机由系统锁定，避免编辑内容时破坏课堂运行。</p>
   </aside>
 </main>
+<button type="button" id="libraryBackdrop" class="library-backdrop" aria-label="关闭课程库" hidden></button>
 <p id="toast" class="toast" role="status" aria-live="polite"></p>
 <dialog id="cloneDialog" class="dialog">
   <form method="dialog" id="cloneForm">

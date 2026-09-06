@@ -280,7 +280,7 @@
       <div class="surface-progress" style="--block-count:${total}">${progress}</div>
       <section class="surface-card surface-mission"><h2>${esc(view.taskTitle)}</h2>${maybe(view.task, view.taskPath, "此刻唯一任务")}${maybe(view.action, view.actionPath, "当前情境 / 行动提示")}<div class="surface-result ${esc(view.resultState || "")}">${maybe(view.result, view.resultPath, "完成标准 / 徽标")}</div></section>
       <div class="surface-metrics">${metricHtml}</div>
-      <section class="surface-card"><h2>${esc(view.factsTitle)}</h2><ul>${facts}${cards}</ul></section>
+      <section class="surface-card"><h2>${esc(view.factsTitle)}</h2>${view.boundaryGuide ? `<p class="surface-boundary-guide">线索标签：${esc(view.boundaryGuide)}</p>` : ""}<ul>${facts}${cards}</ul></section>
       <section class="surface-card"><h2>${esc(view.teamworkTitle)}</h2><ul>${teamwork}</ul></section>
       <section class="surface-card"><h2>${esc(view.chipsTitle)}</h2><div class="surface-chips">${(view.chips || []).map((chip, index) => `<span class="surface-chip ${index === 0 ? "hot" : ""}">${esc(chip)}</span>`).join("")}</div></section>
       <footer class="surface-footer"><span>${esc(view.footerLeft)}</span><span>${esc(view.footerRight)}</span></footer>

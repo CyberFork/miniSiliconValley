@@ -1,0 +1,70 @@
+import assert from "node:assert/strict";
+import { readFileSync, readdirSync } from "node:fs";
+import test from "node:test";
+import { CLASSROOM_SCHEMA_STATEMENTS } from "../db/schema-statements";
+
+const tables = [
+  "auth_users", "auth_sessions", "auth_codes", "auth_invitations", "auth_recovery_codes", "auth_reset_tokens", "auth_rate_limits", "auth_security_events",
+  "profiles", "rooms", "teams", "memberships", "card_grants", "intelligence_nodes", "intelligence_edges",
+  "challenge_runs", "challenge_actions", "reputation_entries", "ledger_accounts", "ledger_transactions",
+  "team_assets", "purchase_proposals", "purchase_votes", "gratitude_votes", "worldline_entries", "audit_events",
+  "team_access_ids", "team_join_requests",
+  "course_versions", "course_release_pointers", "room_course_bindings", "alpha_run_rooms", "course_registry_events",
+];
+const migrationNames = readdirSync(new URL("../drizzle/", import.meta.url)).filter((name) => /^\d{4}_.*\.sql$/.test(name)).sort();
+assert.ok(migrationNames.length >= 2, "classroom and auth migrations are required");
+const migration = migrationNames.map((name) => readFileSync(new URL(`../drizzle/${name}`, import.meta.url), "utf8")).join("\n");
+const hosting = JSON.parse(readFileSync(new URL("../.openai/hosting.json", import.meta.url), "utf8")) as { d1?: string | null };
+const worker = readFileSync(new URL("../worker/index.ts", import.meta.url), "utf8");
+const store = readFileSync(new URL("../app/lib/classroom-store.ts", import.meta.url), "utf8");
+
+test("initial D1 migration contains the complete classroom domain", () => {
+  for (const table of tables) assert.match(migration, new RegExp("CREATE TABLE `" + table + "`"), `missing table ${table}`);
+  assert.equal((migration.match(/CREATE TABLE/g) ?? []).length, tables.length);
+  assert.match(migration, /`chapter_id` text NOT NULL[\s\S]*CREATE UNIQUE INDEX `uidx_ledger_transactions_idempotency`/);
+  assert.match(migration, /CONSTRAINT "chk_ledger_accounts_non_negative" CHECK\("ledger_accounts"\."balance_tenths" >= 0\)/);
+  assert.match(migration, /uidx_memberships_team_seat/);
+  assert.match(migration, /uidx_memberships_team_pdmo/);
+  assert.match(migration, /uidx_reputation_evidence_dimension/);
+  assert.match(migration, /`paused` integer DEFAULT false NOT NULL/);
+  assert.match(migration, /`phase_deadline_at` text/);
+});
+
+test("runtime schema bootstrap is idempotent and exactly mirrors the migration", () => {
+  assert.ok(CLASSROOM_SCHEMA_STATEMENTS.length >= tables.length);
+  for (const table of tables) assert.ok(CLASSROOM_SCHEMA_STATEMENTS.some((statement) => statement.includes(`CREATE TABLE IF NOT EXISTS \`${table}\``)));
+  for (const statement of CLASSROOM_SCHEMA_STATEMENTS) {
+    if (/^UPDATE\s/i.test(statement)) {
+      assert.match(statement, /WHERE [\s\S]*IS NULL/i, "data retirement updates must be guarded and repeatable");
+    } else {
+      assert.match(statement, /IF NOT EXISTS/, "DDL bootstrap must be repeatable");
+    }
+  }
+});
+
+test("simplified account and team migration retires old credentials without deleting audit history", () => {
+  assert.match(migration, /CREATE TABLE `auth_reset_tokens`/);
+  assert.match(migration, /CREATE TABLE `team_access_ids`/);
+  assert.match(migration, /CREATE TABLE `team_join_requests`/);
+  assert.match(migration, /UPDATE `auth_codes`\s+SET `consumed_at` =/);
+  assert.match(migration, /UPDATE `auth_recovery_codes`\s+SET `consumed_at` =/);
+  assert.match(migration, /UPDATE `auth_invitations`\s+SET `revoked_at` =/);
+  assert.doesNotMatch(migration, /DROP TABLE\s+(?:auth_codes|auth_recovery_codes|auth_invitations)/i);
+});
+
+test("hosting and worker expose the logical DB binding", () => {
+  assert.equal(hosting.d1, "DB");
+  assert.match(worker, /DB: D1Database/);
+});
+
+test("store enforces server-side membership, DM gates, atomic ledger and privacy projection", () => {
+  assert.match(store, /requireMembership\(db, roomId, user\.userId\)/);
+  assert.match(store, /function requireDm/);
+  assert.match(store, /await db\.batch\(statements\)/);
+  assert.match(store, /idempotency_key/);
+  assert.match(store, /balance_tenths = balance_tenths -/);
+  assert.match(store, /publicChapter: Omit<ClassroomChapter, "identities" \| "infoCards" \| "historyReveal" \| "dm" \| "challenges">/);
+  assert.match(store, /dm: viewer\.role === "dm" \? chapter\.dm : null/);
+  assert.match(store, /viewer\.role === "learner" \? toStudentInfoCard\(card\) : card/);
+  assert.doesNotMatch(store, /SELECT \* FROM profiles/);
+});

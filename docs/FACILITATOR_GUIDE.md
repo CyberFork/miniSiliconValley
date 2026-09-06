@@ -1,5 +1,9 @@
 # DM/导师课堂手册（FACILITATOR_GUIDE）
 
+> 配套文档：正式课堂请从 [DM／导师完整操作手册](DM_MENTOR_MANUAL.md) 开始；
+> 课堂账户与成员操作见 [管理员与 DM 界面操作手册](ADMIN_DM_UI_OPERATION_MANUAL.md)，
+> 经济与道具裁决见 [游戏经济与产品规格](GAME_ECONOMY_AND_PRODUCT_SPEC.md)。
+
 ## 课堂边界（必须讲明）
 - `ORIGINAL TIMELINE` 不可改写：史实只读。
 - `PLAYER TIMELINE` 可改写：世界线是教学模拟。

@@ -125,8 +125,10 @@ class AlphaLiveSyncTests(unittest.TestCase):
 
     def test_invalid_latest_file_keeps_last_complete_course(self):
         before_script = copy.deepcopy(self.controller.script); before_digest = self.controller.public_state()["courseDigest"]
-        draft = self.root / "courses" / "drafts" / "google-1995-2004.json"
-        draft.write_text('{"broken": true}\n')
+        edited = self.repository.load("google-1995-2004", variant="candidate")
+        ref = self.repository.save_candidate(edited, expected_revision=0)
+        candidate_file = self.root / "courses" / "registry" / "revisions" / "google-1995-2004" / f"r{ref['revision']:04d}.json"
+        candidate_file.write_text('{"broken": true}\n')
         with self.assertRaises(ValueError): self.controller.refresh_course()
         after = self.controller.public_state()
         self.assertEqual(self.controller.script, before_script)
@@ -145,10 +147,10 @@ class AlphaLiveSyncTests(unittest.TestCase):
         all_ids = [card_id for hand in refreshed["courseDeals"]["find"].values() for card_id in hand]
         self.assertNotIn(removed, all_ids); self.assertEqual(len(all_ids), 12); self.assertEqual(len(set(all_ids)), 12)
 
-    def test_cloned_course_can_replace_cards_publish_and_start_isolated_run(self):
+    def test_cloned_course_can_replace_cards_and_start_isolated_alpha_run(self):
         cloned = self.repository.clone("google-1995-2004", "custom-history-2012", "自定义历史课")
         cloned["decks"][0]["cards"][0].update({"id": "custom-card-001", "boundary": "U", "title": "U · 自定义未知", "body": "这是克隆课程自己的新线索。", "sharePrompt": "告诉队友还需要调查什么。", "sourceIds": []})
-        self.repository.save(cloned, status="published", expected_revision=1)
+        self.repository.save(cloned, status="candidate", expected_revision=1)
         selected = self.controller.select_course("custom-history-2012")
         self.assertEqual(selected["courseId"], "custom-history-2012")
         self.controller.execute_async(); state = self.wait_for("awaiting-acceptance")

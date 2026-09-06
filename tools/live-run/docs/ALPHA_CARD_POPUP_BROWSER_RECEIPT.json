@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-09-04T01:38:20.053001+00:00",
+  "target": "https://work.cyberforker.com/msv/alpha/",
+  "browser": "Chrome/151.0.7922.176",
+  "title": "Mini Silicon Valley｜内部测试席位控制台",
+  "connection": "课程主控已连接",
+  "course": "饿了么｜五步创业闭环",
+  "coverage": "完整课程 · 5 步 / 13 块",
+  "seatCards": 8,
+  "windowIdsVisible": true,
+  "claimRendered": true,
+  "releaseRendered": true,
+  "nicknameDialogValidated": true,
+  "nicknameWhitespaceRejectedInline": true,
+  "claimedRoleIncludesNickname": true,
+  "nicknameRenameVisibleToOtherClient": true,
+  "seatOpenedAsIndependentPopup": true,
+  "seatPopupReusedByStableName": true,
+  "seatPopupOpenerIsNull": true,
+  "seatPopupBounds": {
+    "left": 180,
+    "top": 0,
+    "width": 440,
+    "height": 600,
+    "windowState": "normal"
+  },
+  "resetDialogValidated": false,
+  "globalResetSkippedForSharedDeployment": true,
+  "nativeDialogsObserved": 0,
+  "mobileViewport": {
+    "innerWidth": 390,
+    "scrollWidth": 390,
+    "seatCards": 8,
+    "gridColumns": "358px",
+    "noHorizontalOverflow": true
+  },
+  "screenshot": "tools/live-run/docs/assets/alpha-card-popup-console.png",
+  "mobileScreenshot": "tools/live-run/docs/assets/alpha-card-popup-mobile.png",
+  "popupScreenshot": "tools/live-run/docs/assets/alpha-seat-card-popup.png",
+  "containsCredentialsOrCapabilities": false
+}

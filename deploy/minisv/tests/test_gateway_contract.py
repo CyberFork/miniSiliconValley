@@ -39,9 +39,12 @@ class GatewayContractTests(unittest.TestCase):
         self.assertIn('$http_x_forwarded_proto = "http"', self.gateway)
         self.assertIn("return 308 https://minisv.vip$request_uri", self.gateway)
 
-    def test_old_origin_exists_only_in_internal_classroom_adapter(self) -> None:
+    def test_classroom_adapter_is_native_to_the_public_origin(self) -> None:
         self.assertNotIn("work.cyberforker.com", self.gateway)
-        self.assertIn("work.cyberforker.com", self.proxy)
+        self.assertNotIn("work.cyberforker.com", self.proxy)
+        self.assertNotIn("/msv/demo/app", self.proxy)
+        self.assertIn("proxy_set_header Host minisv.vip", self.proxy)
+        self.assertIn("proxy_set_header X-Forwarded-Host minisv.vip", self.proxy)
 
     def test_portal_reports_live_hecate_health_instead_of_static_status(self) -> None:
         site = ROOT / "site"
@@ -66,6 +69,15 @@ class GatewayContractTests(unittest.TestCase):
         self.assertIn("location = /course", self.gateway)
         self.assertIn("/course/index.html", self.gateway)
         self.assertIn("probe /course/ 200", healthcheck)
+
+    def test_retired_numeric_entry_redirects_to_framework_with_both_slash_forms(self) -> None:
+        self.assertRegex(self.gateway, r"location = /123456 \{ return 308 /framework/")
+        self.assertRegex(self.gateway, r"location = /123456/ \{ return 308 /framework/")
+
+    def test_map_hotspot_interaction_lifts_active_tooltip(self) -> None:
+        css = (ROOT.parent.parent / "app" / "globals.css").read_text()
+        self.assertRegex(css, r"\.map-hotspot:hover,\s*\.map-hotspot:focus-visible,\s*\.map-hotspot:active")
+        self.assertIn("z-index: 30", css)
 
     def test_global_ui_comparison_assets_are_served_and_injected(self) -> None:
         site = ROOT / "site"

@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "kind": "msv-live-run-browser-wall-acceptance",
+  "verifiedAt": "2026-09-02T13:12:12.986788Z",
+  "courseId": "eleme-2008-find-problem",
+  "scriptId": "msv-eleme-five-step-live-run-v2",
+  "blockCount": 13,
+  "pageTargets": 9,
+  "seatWindows": 8,
+  "controllerWindows": 1,
+  "layout": {
+    "rows": 2,
+    "columns": 4,
+    "noOverlap": true,
+    "safeWorkAreaEdgeToEdge": true,
+    "workArea": {
+      "left": 52,
+      "top": 33,
+      "width": 1676,
+      "height": 1084
+    }
+  },
+  "learners": {
+    "learner01": {
+      "identity": "AI 守门员",
+      "privateCardCount": 3,
+      "growthHud": true
+    },
+    "learner02": {
+      "identity": "把问题写具体的人",
+      "privateCardCount": 3,
+      "growthHud": true
+    },
+    "learner03": {
+      "identity": "把讨论拉回任务的人",
+      "privateCardCount": 3,
+      "growthHud": true
+    },
+    "learner04": {
+      "identity": "线索查证员",
+      "privateCardCount": 3,
+      "growthHud": true
+    }
+  },
+  "controllerManualGate": true,
+  "courseSelector": true
+}

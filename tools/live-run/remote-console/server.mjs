@@ -172,7 +172,10 @@ function projectLearnerView(view) {
     recentWallet: view.recentWallet ? pick(view.recentWallet, ["amountTenths", "direction", "reason"]) : null,
     identity: view.identity ? pick(view.identity, ["name", "publicGoal", "ability", "privateConcern"]) : null,
     cards: Array.isArray(view.cards) ? view.cards.map((card) => pick(card, [
-      "id", "title", "body", "sharePrompt", "sourceIds", "credibility", "evidenceBoundary", "state",
+      // Source identifiers remain sealed with the DM/history view.  Learners
+      // receive the readable evidence-boundary label, never internal source
+      // graph keys that could reveal the historical answer early.
+      "id", "title", "body", "sharePrompt", "credibility", "evidenceBoundary", "state",
     ])) : [],
     realityMission: view.realityMission ? pick(view.realityMission, ["title", "deliverable"]) : null,
     challenge: view.challenge ? pick(view.challenge, ["round", "title", "prompt", "pressure"]) : null,

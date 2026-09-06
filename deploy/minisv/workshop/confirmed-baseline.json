@@ -1,0 +1,1115 @@
+{
+  "snapshotVersion": 1,
+  "generatedAt": "2026-09-06T08:00:00Z",
+  "generatedBy": "t081-release-exporter",
+  "scope": "public-redacted-summary",
+  "source": {
+    "registry": "course-registry",
+    "channel": "released",
+    "courseCount": 2,
+    "aggregateDigest": "7b4b9726cb5bf5ffdac4e57e900b25f97918859997f17d05105118623792a0ef"
+  },
+  "confirmedFramework": {
+    "oneWorld": "真实科技史驱动的有限开放世界创业学习 RPG",
+    "twoTracks": [
+      "历史情境轨",
+      "现实项目轨"
+    ],
+    "threeEngines": [
+      "毛线式：获取与交换信息",
+      "美式：情境挑战与共同攻坚",
+      "德式：资源经营与长期反馈"
+    ],
+    "fourMentors": [
+      "产品",
+      "开发",
+      "市场",
+      "运营"
+    ],
+    "fiveSteps": [
+      "找真问题",
+      "定真方案",
+      "做真产品",
+      "进真市场",
+      "跑真运营"
+    ],
+    "sixMinuteFinale": "Demo Day 是六分钟真实发布，不是笔试。",
+    "learnerRole": "学员统一为 Young Builder；不固定分成 P/D/M/O。"
+  },
+  "mentorRoles": [
+    {
+      "id": "mentor01",
+      "code": "P",
+      "name": "产品导师",
+      "responsibility": "找真问题与定真方案；主 DM 负责全场节奏。"
+    },
+    {
+      "id": "mentor02",
+      "code": "D",
+      "name": "开发导师",
+      "responsibility": "做真产品；把方案转成可测试 MVP。"
+    },
+    {
+      "id": "mentor03",
+      "code": "M",
+      "name": "市场导师",
+      "responsibility": "进真市场；验证触达、采用与交换。"
+    },
+    {
+      "id": "mentor04",
+      "code": "O",
+      "name": "运营导师",
+      "responsibility": "跑真运营；建立交付、反馈、迭代与品牌闭环。"
+    }
+  ],
+  "courses": [
+    {
+      "courseId": "eleme-2008-find-problem",
+      "schemaVersion": 1,
+      "revision": 0,
+      "digest": "407a24b43ead68ddccf0871fe7910ae21f1ca64ec4b7232a2bc0afeb2cfecb6c",
+      "status": "released",
+      "releasedAt": null,
+      "title": "饿了么｜五步创业闭环",
+      "caseName": "饿了么：2008 宿舍订餐五步创业战役",
+      "period": "2008—2009",
+      "summary": "从 2008 年宿舍订餐麻烦出发，完成问题、方案、MVP、市场、运营与六分钟 Demo Day。",
+      "macroSteps": [
+        {
+          "id": "find",
+          "order": 1,
+          "name": "找真问题",
+          "mentorSequence": [
+            "mentor01"
+          ],
+          "question": "我们看见的是抱怨、解决方案冲动，还是一个值得验证的真实问题？",
+          "exitGate": "明确谁在什么场景完成什么任务、卡在哪里、造成什么损失；至少两条来源证据并保留一个未知点。",
+          "blocks": [
+            "B01",
+            "B02",
+            "B03"
+          ]
+        },
+        {
+          "id": "decide",
+          "order": 2,
+          "name": "定真方案",
+          "mentorSequence": [
+            "mentor01",
+            "mentor02"
+          ],
+          "question": "哪一条路径既创造真实价值，又能在本轮资源内被验证？",
+          "exitGate": "P 先完成价值取舍，再把唯一方案赌注交给 D 完成可做性裁剪；同一时刻只有一名导师主讲。",
+          "blocks": [
+            "B04",
+            "B05"
+          ]
+        },
+        {
+          "id": "build",
+          "order": 3,
+          "name": "做真产品",
+          "mentorSequence": [
+            "mentor02"
+          ],
+          "question": "用户能否不靠讲解，亲手完成一次关键任务？",
+          "exitGate": "存在可操作 MVP、首轮试用记录、压力后的第二版，以及被证据解释的一项改动。",
+          "blocks": [
+            "B06",
+            "B07",
+            "B08"
+          ]
+        },
+        {
+          "id": "market",
+          "order": 4,
+          "name": "进真市场",
+          "mentorSequence": [
+            "mentor03"
+          ],
+          "question": "第一批用户是谁、在哪里、为什么现在愿意试？",
+          "exitGate": "锁定窄人群，完成一句可验证承诺和一次真实渠道实验；记录同意、拒绝及理由。",
+          "blocks": [
+            "B09",
+            "B10"
+          ]
+        },
+        {
+          "id": "operate",
+          "order": 5,
+          "name": "跑真运营",
+          "mentorSequence": [
+            "mentor04"
+          ],
+          "question": "团队能否稳定交付，而不靠某一个人临场救火？",
+          "exitGate": "SOP、订单/服务记录、成本收入、反馈留存、下一轮指标齐全，并完成六分钟 Demo。",
+          "blocks": [
+            "B11",
+            "B12",
+            "B13"
+          ]
+        }
+      ],
+      "blocks": [
+        {
+          "id": "B01",
+          "order": 1,
+          "macroStepId": "find",
+          "title": "进入 2008：宿舍现场与随机线索",
+          "leadMentorId": "mentor01",
+          "suggestedMinutes": 8,
+          "gameModes": [
+            "american",
+            "yarn"
+          ],
+          "studentOutcome": "你写出一张具体问题卡，并保留至少一个不知道的地方。",
+          "evidenceGate": [
+            "导师席 4、学员席 4",
+            "四人各有三张随机私密卡且 12 张不重复",
+            "每人指出一个具体动作或阻力",
+            "没有把产品答案当问题"
+          ]
+        },
+        {
+          "id": "B02",
+          "order": 2,
+          "macroStepId": "find",
+          "title": "毛线调查：三方麻烦、问题池与 AI 守界",
+          "leadMentorId": "mentor01",
+          "suggestedMinutes": 14,
+          "gameModes": [
+            "yarn"
+          ],
+          "studentOutcome": "四个人都讲过，桌上有四张以上具体问题卡，AI 没有替你们选答案。",
+          "evidenceGate": [
+            "四人都讲过且各至少公开一张",
+            "问题池不少于四张",
+            "学生、餐厅、配送者三方没有混成一句",
+            "AI 没有推荐产品或替团队选答案"
+          ]
+        },
+        {
+          "id": "B03",
+          "order": 3,
+          "macroStepId": "find",
+          "title": "候选真问题：五项筛选、反证计划与历史揭晓",
+          "leadMentorId": "mentor01",
+          "suggestedMinutes": 12,
+          "gameModes": [
+            "yarn",
+            "american",
+            "euro"
+          ],
+          "studentOutcome": "团队先冻结一张候选卡，再揭晓历史；完成找真问题，进入定真方案。",
+          "evidenceGate": [
+            "候选卡包含人物／场景／任务／阻力／影响",
+            "至少两条有来源线索",
+            "明确未知点、真人对象和可推翻条件",
+            "先冻结后揭晓",
+            "四人反思和现实行动齐全"
+          ]
+        },
+        {
+          "id": "B04",
+          "order": 4,
+          "macroStepId": "decide",
+          "title": "三条路：传单、统一电话，还是简单网页",
+          "leadMentorId": "mentor01",
+          "suggestedMinutes": 7,
+          "gameModes": [
+            "american",
+            "yarn"
+          ],
+          "studentOutcome": "三条路都被比过，团队只选一条，其他两条留下放弃理由。",
+          "evidenceGate": [
+            "候选方案≥3",
+            "至少一项非软件路径",
+            "唯一入选方案明确用户结果",
+            "落选原因可追溯"
+          ]
+        },
+        {
+          "id": "B05",
+          "order": 5,
+          "macroStepId": "decide",
+          "title": "十枚资源币：裁成一单跑通的 MVP",
+          "leadMentorId": "mentor02",
+          "suggestedMinutes": 7,
+          "gameModes": [
+            "euro",
+            "american"
+          ],
+          "studentOutcome": "资源没有透支，至少删掉一项功能，并得到一张可交给 D 导师的 MVP 赌注卡。",
+          "evidenceGate": [
+            "入口/动作/结果齐全",
+            "预算不为负",
+            "至少删除一项功能",
+            "压力后核心结果保持",
+            "P→D 移交可追溯"
+          ]
+        },
+        {
+          "id": "B06",
+          "order": 6,
+          "macroStepId": "build",
+          "title": "搭出 V0：让同学亲手完成一次订餐",
+          "leadMentorId": "mentor02",
+          "suggestedMinutes": 10,
+          "gameModes": [
+            "euro"
+          ],
+          "studentOutcome": "有一个真能动手操作的 V0，测试者完成或明确卡在某一步，V0 被保存。",
+          "evidenceGate": [
+            "存在可操作入口",
+            "用户完成或明确卡在关键动作",
+            "V0 留档",
+            "所有功能可追到当前问题"
+          ]
+        },
+        {
+          "id": "B07",
+          "order": 7,
+          "macroStepId": "build",
+          "title": "突发两轮：菜单过期、地址听错、送达延误",
+          "leadMentorId": "mentor02",
+          "suggestedMinutes": 8,
+          "gameModes": [
+            "american"
+          ],
+          "studentOutcome": "四人两轮行动都交齐，第二轮只改一处，成功和失败都有记录。",
+          "evidenceGate": [
+            "四人第一轮行动齐全",
+            "四人第二轮行动齐全",
+            "每项有目标/方法/证据/资源/成功信号/停止条件",
+            "贡献角色全部为 TEAM"
+          ]
+        },
+        {
+          "id": "B08",
+          "order": 8,
+          "macroStepId": "build",
+          "title": "只改一处：冻结订餐 MVP V1",
+          "leadMentorId": "mentor02",
+          "suggestedMinutes": 6,
+          "gameModes": [
+            "yarn",
+            "euro"
+          ],
+          "studentOutcome": "V0/V1 差异看得见，改动能指回用户行为，其他想法没有悄悄混进来。",
+          "evidenceGate": [
+            "一条可追溯迭代因果链",
+            "V0/V1 差异可见",
+            "先冻结后揭晓",
+            "四人现实行动齐全"
+          ]
+        },
+        {
+          "id": "B09",
+          "order": 9,
+          "macroStepId": "market",
+          "title": "只选第一群：哪栋宿舍、哪个时段",
+          "leadMentorId": "mentor03",
+          "suggestedMinutes": 8,
+          "gameModes": [
+            "euro",
+            "yarn"
+          ],
+          "studentOutcome": "只锁定一群可到达的人，买一个渠道，并写出‘给谁—任务—结果’十秒承诺。",
+          "evidenceGate": [
+            "用户群不是‘所有人’",
+            "可说出线下/线上触达位置",
+            "已记录渠道成本",
+            "承诺包含用户/任务/结果"
+          ]
+        },
+        {
+          "id": "B10",
+          "order": 10,
+          "macroStepId": "market",
+          "title": "第一次触达：拿到一份同意或拒绝",
+          "leadMentorId": "mentor03",
+          "suggestedMinutes": 8,
+          "gameModes": [
+            "american",
+            "euro"
+          ],
+          "studentOutcome": "有一次真人触达或明确标为“R 课堂模拟”的模拟，漏斗、原话和下一步理由都被记下。",
+          "evidenceGate": [
+            "至少一次真实/明确标注模拟的触达",
+            "同意或拒绝结果可见",
+            "漏斗数字完整",
+            "下一步选择有理由"
+          ]
+        },
+        {
+          "id": "B11",
+          "order": 11,
+          "macroStepId": "operate",
+          "title": "把一单写成换个人也能照做的 SOP",
+          "leadMentorId": "mentor04",
+          "suggestedMinutes": 9,
+          "gameModes": [
+            "euro",
+            "yarn"
+          ],
+          "studentOutcome": "从学生请求到送达和反馈都有负责人、完成标准和至少一条异常路径。",
+          "evidenceGate": [
+            "用户进入到反馈闭环完整",
+            "每一步有负责人和完成标准",
+            "至少一条异常路径",
+            "陌生队员可按纸完成走查"
+          ]
+        },
+        {
+          "id": "B12",
+          "order": 12,
+          "macroStepId": "operate",
+          "title": "经营一轮：订单、成本、反馈和个人钱包",
+          "leadMentorId": "mentor04",
+          "suggestedMinutes": 9,
+          "gameModes": [
+            "american",
+            "euro",
+            "yarn"
+          ],
+          "studentOutcome": "订单可追溯，账本守恒，四人 RP 有理由、钱包有分配、团队还有余额，下轮只改一件事。",
+          "evidenceGate": [
+            "订单/服务状态可追溯",
+            "收入成本守恒且不重复入账",
+            "四名学员的 RP 都绑定具体作品理由",
+            "四个个人钱包均收到分配且团队资金仍大于零",
+            "故障有影响范围/止损/通知/恢复",
+            "下一轮只有一项动作和一个指标",
+            "四人反思齐全"
+          ]
+        },
+        {
+          "id": "B13",
+          "order": 13,
+          "macroStepId": "operate",
+          "title": "六分钟 Demo Day：从宿舍麻烦到稳定交付",
+          "leadMentorId": "mentor04",
+          "suggestedMinutes": 6,
+          "gameModes": [
+            "yarn",
+            "american",
+            "euro"
+          ],
+          "studentOutcome": "六段共 360 秒，问题、取舍、MVP、市场、SOP/账本和下一步全部出现，课程 completed。",
+          "evidenceGate": [
+            "六段均有内容且总时长 360 秒",
+            "至少一次真实操作",
+            "至少一条用户/市场证据",
+            "账本/运营指标可见",
+            "下一步请求具体",
+            "API 房间最终为 completed"
+          ]
+        }
+      ],
+      "deckSummary": [
+        {
+          "id": "eleme-2008-find-problem-find-information",
+          "macroStepId": "find",
+          "drawAtBlockId": "B01",
+          "cardCount": 12,
+          "cardsPerLearner": 3,
+          "boundaryCounts": {
+            "F": 8,
+            "R": 4,
+            "G": 0,
+            "U": 0
+          },
+          "factCardsWithSources": 8,
+          "stableCardIds": [
+            "e08-f-01",
+            "e08-f-02",
+            "e08-r-01",
+            "e08-r-02",
+            "e08-r-03",
+            "e08-r-04",
+            "e08-c-01",
+            "e08-c-02",
+            "e08-c-03",
+            "e08-c-04",
+            "e08-c-05",
+            "e08-c-06"
+          ]
+        },
+        {
+          "id": "eleme-2008-find-problem-decide-information",
+          "macroStepId": "decide",
+          "drawAtBlockId": "B04",
+          "cardCount": 12,
+          "cardsPerLearner": 3,
+          "boundaryCounts": {
+            "F": 3,
+            "R": 3,
+            "G": 3,
+            "U": 3
+          },
+          "factCardsWithSources": 3,
+          "stableCardIds": [
+            "e08-decide-f01",
+            "e08-decide-f02",
+            "e08-decide-f03",
+            "e08-decide-r01",
+            "e08-decide-r02",
+            "e08-decide-r03",
+            "e08-decide-g01",
+            "e08-decide-g02",
+            "e08-decide-g03",
+            "e08-decide-u01",
+            "e08-decide-u02",
+            "e08-decide-u03"
+          ]
+        },
+        {
+          "id": "eleme-2008-find-problem-build-information",
+          "macroStepId": "build",
+          "drawAtBlockId": "B06",
+          "cardCount": 12,
+          "cardsPerLearner": 3,
+          "boundaryCounts": {
+            "F": 3,
+            "R": 3,
+            "G": 3,
+            "U": 3
+          },
+          "factCardsWithSources": 3,
+          "stableCardIds": [
+            "e08-build-f01",
+            "e08-build-f02",
+            "e08-build-f03",
+            "e08-build-r01",
+            "e08-build-r02",
+            "e08-build-r03",
+            "e08-build-g01",
+            "e08-build-g02",
+            "e08-build-g03",
+            "e08-build-u01",
+            "e08-build-u02",
+            "e08-build-u03"
+          ]
+        },
+        {
+          "id": "eleme-2008-find-problem-market-information",
+          "macroStepId": "market",
+          "drawAtBlockId": "B09",
+          "cardCount": 12,
+          "cardsPerLearner": 3,
+          "boundaryCounts": {
+            "F": 3,
+            "R": 3,
+            "G": 3,
+            "U": 3
+          },
+          "factCardsWithSources": 3,
+          "stableCardIds": [
+            "e08-market-f01",
+            "e08-market-f02",
+            "e08-market-f03",
+            "e08-market-r01",
+            "e08-market-r02",
+            "e08-market-r03",
+            "e08-market-g01",
+            "e08-market-g02",
+            "e08-market-g03",
+            "e08-market-u01",
+            "e08-market-u02",
+            "e08-market-u03"
+          ]
+        },
+        {
+          "id": "eleme-2008-find-problem-operate-information",
+          "macroStepId": "operate",
+          "drawAtBlockId": "B11",
+          "cardCount": 12,
+          "cardsPerLearner": 3,
+          "boundaryCounts": {
+            "F": 3,
+            "R": 3,
+            "G": 3,
+            "U": 3
+          },
+          "factCardsWithSources": 3,
+          "stableCardIds": [
+            "e08-operate-f01",
+            "e08-operate-f02",
+            "e08-operate-f03",
+            "e08-operate-r01",
+            "e08-operate-r02",
+            "e08-operate-r03",
+            "e08-operate-g01",
+            "e08-operate-g02",
+            "e08-operate-g03",
+            "e08-operate-u01",
+            "e08-operate-u02",
+            "e08-operate-u03"
+          ]
+        }
+      ],
+      "sourceSummary": {
+        "count": 4,
+        "organizations": [
+          "上海交通大学安泰经济与管理学院",
+          "上海交通大学新闻网",
+          "上海交通大学青年网"
+        ],
+        "kinds": [
+          "university"
+        ],
+        "factCardCount": 20,
+        "factCardsWithSources": 20
+      }
+    },
+    {
+      "courseId": "google-1995-2004",
+      "schemaVersion": 1,
+      "revision": 0,
+      "digest": "59e0ef603d97d72578913ec1ab20d055210190137bfb8f437a417e0102ed77cd",
+      "status": "released",
+      "releasedAt": null,
+      "title": "Google｜五步创业闭环",
+      "caseName": "Google 1995—2004 五章战役",
+      "period": "1995—2004",
+      "summary": "从搜索问题进入产品、开发、市场、运营与六分钟 Demo Day。",
+      "macroSteps": [
+        {
+          "id": "find",
+          "order": 1,
+          "name": "找真问题",
+          "mentorSequence": [
+            "mentor01"
+          ],
+          "question": "我们看见的是抱怨、解决方案冲动，还是一个值得验证的真实问题？",
+          "exitGate": "明确谁在什么场景完成什么任务、卡在哪里、造成什么损失；至少两条来源证据并保留一个未知点。",
+          "blocks": [
+            "B01",
+            "B02",
+            "B03"
+          ]
+        },
+        {
+          "id": "decide",
+          "order": 2,
+          "name": "定真方案",
+          "mentorSequence": [
+            "mentor01",
+            "mentor02"
+          ],
+          "question": "哪一条路径既创造真实价值，又能在本轮资源内被验证？",
+          "exitGate": "P 先完成价值取舍，再把唯一方案赌注交给 D 完成可做性裁剪；同一时刻只有一名导师主讲。",
+          "blocks": [
+            "B04",
+            "B05"
+          ]
+        },
+        {
+          "id": "build",
+          "order": 3,
+          "name": "做真产品",
+          "mentorSequence": [
+            "mentor02"
+          ],
+          "question": "用户能否不靠讲解，亲手完成一次关键任务？",
+          "exitGate": "存在可操作 MVP、首轮试用记录、压力后的第二版，以及被证据解释的一项改动。",
+          "blocks": [
+            "B06",
+            "B07",
+            "B08"
+          ]
+        },
+        {
+          "id": "market",
+          "order": 4,
+          "name": "进真市场",
+          "mentorSequence": [
+            "mentor03"
+          ],
+          "question": "第一批用户是谁、在哪里、为什么现在愿意试？",
+          "exitGate": "锁定窄人群，完成一句可验证承诺和一次真实渠道实验；记录同意、拒绝及理由。",
+          "blocks": [
+            "B09",
+            "B10"
+          ]
+        },
+        {
+          "id": "operate",
+          "order": 5,
+          "name": "跑真运营",
+          "mentorSequence": [
+            "mentor04"
+          ],
+          "question": "团队能否稳定交付，而不靠某一个人临场救火？",
+          "exitGate": "SOP、订单/服务记录、成本收入、反馈留存、下一轮指标齐全，并完成六分钟 Demo。",
+          "blocks": [
+            "B11",
+            "B12",
+            "B13"
+          ]
+        }
+      ],
+      "blocks": [
+        {
+          "id": "B01",
+          "order": 1,
+          "macroStepId": "find",
+          "title": "进入 1995：随机身份与信息卡",
+          "leadMentorId": "mentor01",
+          "suggestedMinutes": 6,
+          "gameModes": [
+            "american",
+            "yarn"
+          ],
+          "studentOutcome": "你能指出卡里的一个人、一个场景或一项损失，并说出一个还不知道的问题。",
+          "evidenceGate": [
+            "导师席=4、学员席=4",
+            "每名学员恰好三张卡",
+            "12 张卡去重后仍为 12",
+            "学员未被标记为 P/D/M/O"
+          ]
+        },
+        {
+          "id": "B02",
+          "order": 2,
+          "macroStepId": "find",
+          "title": "毛线交换：把孤立线索讲给队友",
+          "leadMentorId": "mentor01",
+          "suggestedMinutes": 8,
+          "gameModes": [
+            "yarn"
+          ],
+          "studentOutcome": "四个人都讲过，至少三张卡被连起来，而且有人说出了一处矛盾或空白。",
+          "evidenceGate": [
+            "12 张卡均已阅读",
+            "四人各至少公开一张",
+            "至少两条有来源卡进入团队情报池",
+            "至少一次‘它不能证明什么’记录"
+          ]
+        },
+        {
+          "id": "B03",
+          "order": 3,
+          "macroStepId": "find",
+          "title": "证据成网：锁定一个可推翻的真问题",
+          "leadMentorId": "mentor01",
+          "suggestedMinutes": 8,
+          "gameModes": [
+            "yarn",
+            "american"
+          ],
+          "studentOutcome": "全队能用五句话讲清谁、卡点、损失、证据、未知和下一次验证。",
+          "evidenceGate": [
+            "来源节点≥2",
+            "包含用户、损失、约束和限制关系",
+            "问题陈述五要素齐全",
+            "四人贡献均为 TEAM",
+            "历史在冻结后才揭晓"
+          ]
+        },
+        {
+          "id": "B04",
+          "order": 4,
+          "macroStepId": "decide",
+          "title": "P 决策：先选值得做的价值赌注",
+          "leadMentorId": "mentor01",
+          "suggestedMinutes": 7,
+          "gameModes": [
+            "american",
+            "yarn"
+          ],
+          "studentOutcome": "只留下一个方案；落选方案和落选理由也被写下来。",
+          "evidenceGate": [
+            "候选方案≥3",
+            "至少一项非软件路径",
+            "唯一入选方案明确用户结果",
+            "落选原因可追溯"
+          ]
+        },
+        {
+          "id": "B05",
+          "order": 5,
+          "macroStepId": "decide",
+          "title": "D 接棒：裁成做得出来的 MVP 赌注",
+          "leadMentorId": "mentor02",
+          "suggestedMinutes": 7,
+          "gameModes": [
+            "euro",
+            "american"
+          ],
+          "studentOutcome": "桌上有一张只含入口、关键动作、结果的 MVP 图，花费不超过 10 枚资源币。",
+          "evidenceGate": [
+            "入口/动作/结果齐全",
+            "预算不为负",
+            "至少删除一项功能",
+            "压力后核心结果保持",
+            "P→D 移交可追溯"
+          ]
+        },
+        {
+          "id": "B06",
+          "order": 6,
+          "macroStepId": "build",
+          "title": "搭出第一版：让用户真的按一下",
+          "leadMentorId": "mentor02",
+          "suggestedMinutes": 10,
+          "gameModes": [
+            "euro"
+          ],
+          "studentOutcome": "另一位同学能从入口走到结果；卡住也算完成，但必须留下具体位置。",
+          "evidenceGate": [
+            "存在可操作入口",
+            "用户完成或明确卡在关键动作",
+            "V0 留档",
+            "所有功能可追到当前问题"
+          ]
+        },
+        {
+          "id": "B07",
+          "order": 7,
+          "macroStepId": "build",
+          "title": "压力两轮：故障后仍保住核心结果",
+          "leadMentorId": "mentor02",
+          "suggestedMinutes": 8,
+          "gameModes": [
+            "american"
+          ],
+          "studentOutcome": "同一个用户再走一次流程，能看到改前与改后的差别。",
+          "evidenceGate": [
+            "四人第一轮行动齐全",
+            "四人第二轮行动齐全",
+            "每项有目标/方法/证据/资源/成功信号/停止条件",
+            "贡献角色全部为 TEAM"
+          ]
+        },
+        {
+          "id": "B08",
+          "order": 8,
+          "macroStepId": "build",
+          "title": "只改一处：冻结 MVP V1 并对照历史",
+          "leadMentorId": "mentor02",
+          "suggestedMinutes": 6,
+          "gameModes": [
+            "yarn",
+            "euro"
+          ],
+          "studentOutcome": "V1 被拍照或保存；有一项已改、两项未改，以及下一次行动。",
+          "evidenceGate": [
+            "一条可追溯迭代因果链",
+            "V0/V1 差异可见",
+            "先冻结后揭晓",
+            "四人现实行动齐全"
+          ]
+        },
+        {
+          "id": "B09",
+          "order": 9,
+          "macroStepId": "market",
+          "title": "只选第一群：用户、品牌与十秒承诺",
+          "leadMentorId": "mentor03",
+          "suggestedMinutes": 8,
+          "gameModes": [
+            "euro",
+            "yarn"
+          ],
+          "studentOutcome": "只选中一类具体用户、一个能到达他们的地方和一句十秒邀请。",
+          "evidenceGate": [
+            "用户群不是‘所有人’",
+            "可说出线下/线上触达位置",
+            "已记录渠道成本",
+            "承诺包含用户/任务/结果"
+          ]
+        },
+        {
+          "id": "B10",
+          "order": 10,
+          "macroStepId": "market",
+          "title": "真实触达：拿到第一份同意或拒绝",
+          "leadMentorId": "mentor03",
+          "suggestedMinutes": 8,
+          "gameModes": [
+            "american",
+            "euro"
+          ],
+          "studentOutcome": "记下一次同意或拒绝、对方的原话和团队下一步要改或不改什么。",
+          "evidenceGate": [
+            "至少一次真实/明确标注模拟的触达",
+            "同意或拒绝结果可见",
+            "漏斗数字完整",
+            "下一步选择有理由"
+          ]
+        },
+        {
+          "id": "B11",
+          "order": 11,
+          "macroStepId": "operate",
+          "title": "把一次成功写成任何人都能照做的 SOP",
+          "leadMentorId": "mentor04",
+          "suggestedMinutes": 9,
+          "gameModes": [
+            "euro",
+            "yarn"
+          ],
+          "studentOutcome": "不靠原作者提醒，新值班员能照着 SOP 走完一张测试订单。",
+          "evidenceGate": [
+            "用户进入到反馈闭环完整",
+            "每一步有负责人和完成标准",
+            "至少一条异常路径",
+            "陌生队员可按纸完成走查"
+          ]
+        },
+        {
+          "id": "B12",
+          "order": 12,
+          "macroStepId": "operate",
+          "title": "经营一轮：订单、成本、反馈和下一次迭代",
+          "leadMentorId": "mentor04",
+          "suggestedMinutes": 9,
+          "gameModes": [
+            "american",
+            "euro",
+            "yarn"
+          ],
+          "studentOutcome": "订单、收入、成本、等待、反馈都有记录；每人看见自己的 RP 与钱包，团队仍留有资金，并只选一个下轮动作。",
+          "evidenceGate": [
+            "订单/服务状态可追溯",
+            "收入成本守恒且不重复入账",
+            "四名学员的 RP 都绑定具体作品理由",
+            "四个个人钱包均收到分配且团队资金仍大于零",
+            "故障有影响范围/止损/通知/恢复",
+            "下一轮只有一项动作和一个指标",
+            "四人反思齐全"
+          ]
+        },
+        {
+          "id": "B13",
+          "order": 13,
+          "macroStepId": "operate",
+          "title": "六分钟 Demo Day：把完整闭环交给真实观众",
+          "leadMentorId": "mentor04",
+          "suggestedMinutes": 6,
+          "gameModes": [
+            "yarn",
+            "american",
+            "euro"
+          ],
+          "studentOutcome": "六段都在时限内，观众完成一次操作，并听到一项下一步指标和请求。",
+          "evidenceGate": [
+            "六段均有内容且总时长 360 秒",
+            "至少一次真实操作",
+            "至少一条用户/市场证据",
+            "账本/运营指标可见",
+            "下一步请求具体",
+            "API 房间最终为 completed"
+          ]
+        }
+      ],
+      "deckSummary": [
+        {
+          "id": "google-1995-2004-find-information",
+          "macroStepId": "find",
+          "drawAtBlockId": "B01",
+          "cardCount": 12,
+          "cardsPerLearner": 3,
+          "boundaryCounts": {
+            "F": 6,
+            "R": 0,
+            "G": 6,
+            "U": 0
+          },
+          "factCardsWithSources": 6,
+          "stableCardIds": [
+            "g95-p-01",
+            "g95-p-02",
+            "g95-p-03",
+            "g95-d-01",
+            "g95-d-02",
+            "g95-d-03",
+            "g95-m-01",
+            "g95-m-02",
+            "g95-m-03",
+            "g95-o-01",
+            "g95-o-02",
+            "g95-o-03"
+          ]
+        },
+        {
+          "id": "google-1995-2004-decide-information",
+          "macroStepId": "decide",
+          "drawAtBlockId": "B04",
+          "cardCount": 12,
+          "cardsPerLearner": 3,
+          "boundaryCounts": {
+            "F": 7,
+            "R": 0,
+            "G": 5,
+            "U": 0
+          },
+          "factCardsWithSources": 7,
+          "stableCardIds": [
+            "g97-p-01",
+            "g97-p-02",
+            "g97-p-03",
+            "g97-d-01",
+            "g97-d-02",
+            "g97-d-03",
+            "g97-m-01",
+            "g97-m-02",
+            "g97-m-03",
+            "g97-o-01",
+            "g97-o-02",
+            "g97-o-03"
+          ]
+        },
+        {
+          "id": "google-1995-2004-build-information",
+          "macroStepId": "build",
+          "drawAtBlockId": "B06",
+          "cardCount": 12,
+          "cardsPerLearner": 3,
+          "boundaryCounts": {
+            "F": 6,
+            "R": 0,
+            "G": 6,
+            "U": 0
+          },
+          "factCardsWithSources": 6,
+          "stableCardIds": [
+            "g98-p-01",
+            "g98-p-02",
+            "g98-p-03",
+            "g98-d-01",
+            "g98-d-02",
+            "g98-d-03",
+            "g98-m-01",
+            "g98-m-02",
+            "g98-m-03",
+            "g98-o-01",
+            "g98-o-02",
+            "g98-o-03"
+          ]
+        },
+        {
+          "id": "google-1995-2004-market-information",
+          "macroStepId": "market",
+          "drawAtBlockId": "B09",
+          "cardCount": 12,
+          "cardsPerLearner": 3,
+          "boundaryCounts": {
+            "F": 7,
+            "R": 0,
+            "G": 5,
+            "U": 0
+          },
+          "factCardsWithSources": 7,
+          "stableCardIds": [
+            "g00-p-01",
+            "g00-p-02",
+            "g00-p-03",
+            "g00-d-01",
+            "g00-d-02",
+            "g00-d-03",
+            "g00-m-01",
+            "g00-m-02",
+            "g00-m-03",
+            "g00-o-01",
+            "g00-o-02",
+            "g00-o-03"
+          ]
+        },
+        {
+          "id": "google-1995-2004-operate-information",
+          "macroStepId": "operate",
+          "drawAtBlockId": "B11",
+          "cardCount": 12,
+          "cardsPerLearner": 3,
+          "boundaryCounts": {
+            "F": 8,
+            "R": 0,
+            "G": 4,
+            "U": 0
+          },
+          "factCardsWithSources": 8,
+          "stableCardIds": [
+            "g03-p-01",
+            "g03-p-02",
+            "g03-p-03",
+            "g03-d-01",
+            "g03-d-02",
+            "g03-d-03",
+            "g03-m-01",
+            "g03-m-02",
+            "g03-m-03",
+            "g03-o-01",
+            "g03-o-02",
+            "g03-o-03"
+          ]
+        }
+      ],
+      "sourceSummary": {
+        "count": 7,
+        "organizations": [
+          "Google",
+          "Google Ads",
+          "Google Research",
+          "Stanford Engineering",
+          "Stanford InfoLab",
+          "Stanford University",
+          "U.S. Securities and Exchange Commission"
+        ],
+        "kinds": [
+          "company-history",
+          "official",
+          "research-paper",
+          "university"
+        ],
+        "factCardCount": 34,
+        "factCardsWithSources": 34
+      }
+    }
+  ],
+  "acceptedDecisions": [
+    {
+      "id": "T-073",
+      "decision": "PDMO 是四类导师横向专业分工；学员不固定分角。"
+    },
+    {
+      "id": "T-075",
+      "decision": "Course Registry 的 exact Released revision/digest 是正式课堂唯一课程真值。"
+    },
+    {
+      "id": "T-076",
+      "decision": "学员界面先给具体行动；抽象方法与复杂判断留给导师分层解释。"
+    },
+    {
+      "id": "T-080",
+      "decision": "课程编辑只保存完整 Candidate；不会静默热更新 Alpha 或 Classroom。"
+    }
+  ],
+  "acceptanceReceipts": [
+    {
+      "todoId": "T-071",
+      "summary": "五步骤卡组进入 Course Package，并通过结构与随机发牌验收。"
+    },
+    {
+      "todoId": "T-072",
+      "summary": "编辑器到 Alpha 的显式刷新边界通过验收。"
+    },
+    {
+      "todoId": "T-074",
+      "summary": "卡组编辑、学员预览和 Alpha 同步验收通过。"
+    },
+    {
+      "todoId": "T-075",
+      "summary": "Candidate → Alpha exact ref → Released → Classroom 单一真值链通过测试。"
+    }
+  ],
+  "redaction": {
+    "included": "公开框架、步骤、Block 目标、卡组统计、来源统计与稳定卡牌 ID",
+    "excluded": "卡牌正文、导师脚本、账号、私密手牌、Run/Room 状态、RP、钱包、账本、Token 与服务器路径"
+  },
+  "integrity": {
+    "algorithm": "sha256",
+    "digest": "d89e2afd10528418587628675a831f0247fcdb111d4f944e368fcc454efe9d0d"
+  }
+}

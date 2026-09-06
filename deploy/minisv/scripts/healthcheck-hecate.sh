@@ -16,6 +16,9 @@ probe /course/ 200
 probe /framework/ 200
 probe /parents/ 200
 probe /workshop/ 200
+probe /workshop/confirmed-baseline.json 200
+probe /favicon.svg 200
+probe /this-worldline-does-not-exist 404
 probe /classroom/ 307
 probe /alpha/ 200
 probe /control/ 303

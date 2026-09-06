@@ -151,6 +151,95 @@ li {
   background-image: none;
 }
 
+/* T-082: one controlled mark and one home-navigation contract across React UI. */
+.msv-brand-home {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 44px;
+  align-items: center;
+  gap: 12px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.msv-brand-home__mark {
+  display: block;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  object-fit: contain;
+}
+
+.msv-brand-home__copy {
+  display: block;
+  min-width: 0;
+}
+
+.msv-brand-home__copy strong,
+.msv-brand-home__copy small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.msv-brand-home__copy strong {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.msv-brand-home__copy small {
+  margin-top: 2px;
+  color: #aab8b8;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 9px;
+  letter-spacing: .1em;
+}
+
+.msv-brand-home--mark {
+  width: 44px;
+  min-width: 44px;
+}
+
+.msv-brand-home:focus-visible {
+  outline: 3px solid var(--mustard, #e0b83f);
+  outline-offset: 4px;
+}
+
+.msv-not-found {
+  display: grid;
+  min-height: 100svh;
+  align-content: start;
+  gap: clamp(70px, 14vw, 160px);
+  padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(40px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  color: var(--paper);
+  background: var(--ink);
+}
+
+.msv-not-found > section {
+  width: min(760px, 100%);
+  margin: 0 auto;
+}
+
+.msv-not-found > section > span {
+  color: var(--mustard);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+
+.msv-not-found h1 {
+  margin: 16px 0;
+  font-family: var(--font-display);
+  font-size: clamp(50px, 10vw, 104px);
+  line-height: .95;
+}
+
+.msv-not-found p { color: #bcc8c6; font-size: 17px; }
+.msv-not-found section > a { display: inline-flex; min-height: 48px; align-items: center; margin-top: 20px; padding: 0 20px; color: var(--ink); background: var(--mustard); font-weight: 900; text-decoration: none; }
+
 .topbar {
   position: sticky;
   z-index: 80;
@@ -173,25 +262,10 @@ li {
   color: inherit;
   text-align: left;
   background: transparent;
+  text-decoration: none;
 }
 
-.brand-pixel {
-  display: grid;
-  flex: 0 0 45px;
-  width: 45px;
-  height: 45px;
-  place-items: center;
-  color: var(--paper);
-  background: var(--coral);
-  border: 2px solid var(--paper);
-  box-shadow: 3px 3px 0 #000;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 900;
-  letter-spacing: -1px;
-}
-
-.brand-lockup b {
+.brand-lockup strong {
   display: block;
   overflow: hidden;
   font-family: var(--font-display);
@@ -676,6 +750,13 @@ li {
   color: var(--white);
   background: transparent;
   transform: translate(-50%, -50%);
+}
+
+/* Lift the active hotspot above its neighbours so its tooltip remains readable. */
+.map-hotspot:hover,
+.map-hotspot:focus-visible,
+.map-hotspot:active {
+  z-index: 30;
 }
 
 .hotspot-core {
@@ -2744,7 +2825,7 @@ kbd {
 
 .company-journey-track {
   display: grid;
-  grid-template-columns: repeat(6, minmax(248px, 1fr));
+  grid-template-columns: repeat(5, minmax(248px, 1fr));
   gap: 9px;
   margin: 22px -2px 0;
   padding: 2px 2px 16px;
@@ -2890,6 +2971,53 @@ kbd {
   font-family: var(--font-mono);
   font-size: 8px;
   font-weight: 800;
+}
+
+.curriculum-finale,
+.journey-finale {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px 18px;
+  margin-top: 20px;
+  padding: 18px;
+  color: var(--paper);
+  background: var(--ink);
+  border: 3px solid var(--ink);
+  box-shadow: 5px 5px 0 var(--mustard);
+}
+
+.curriculum-finale > span,
+.journey-finale > span {
+  grid-row: 1 / span 2;
+  padding: 9px 11px;
+  color: var(--ink);
+  background: var(--mustard);
+  border: 2px solid var(--paper);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.curriculum-finale h3,
+.journey-finale h4,
+.curriculum-finale p,
+.journey-finale p {
+  margin: 0;
+}
+
+.curriculum-finale h3,
+.journey-finale h4 {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 3vw, 30px);
+}
+
+.curriculum-finale p,
+.journey-finale p {
+  color: #c9d4d2;
+  font-size: 11px;
+  line-height: 1.55;
 }
 
 .journey-boundary {

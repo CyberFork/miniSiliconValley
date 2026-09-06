@@ -11,7 +11,7 @@ import secrets
 import threading
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parent
@@ -37,7 +37,7 @@ API_ACTIONS = (
 )
 GAME_MODES = frozenset({"yarn", "american", "euro"})
 SPOTLIGHT_STATES = frozenset({"active", "support", "standby"})
-AUTHORING_STATES = frozenset({"draft", "published"})
+AUTHORING_STATES = frozenset({"draft", "published", "candidate", "released", "retired"})
 SUPPORTED_RUNTIME_CAMPAIGNS = frozenset({"google-1995-2004", "eleme-2008-find-problem"})
 BUNDLED_FILES = (ROOT / "live-run-script.json", ROOT / "live-run-script-eleme.json")
 
@@ -326,14 +326,22 @@ def _read_json(path: Path) -> dict[str, Any]:
 
 
 class CourseRepository:
-    """Discover bundled courses plus durable draft/published author copies."""
+    """Immutable Course Registry shared by authoring, Alpha and Classroom.
+
+    Course bodies live once under ``registry/revisions``.  Candidate approval
+    and production release only create metadata or move atomic pointers; they
+    never rewrite an already-addressable revision.  The old ``drafts`` /
+    ``published`` / ``history`` layout remains a read-compatible migration
+    source, but all new writes use the registry.
+    """
     def __init__(self, user_dir: Path | None = None, bundled_files: tuple[Path, ...] = BUNDLED_FILES) -> None:
         self.user_dir = user_dir.expanduser().resolve() if user_dir else None
         self.bundled_files = tuple(path.resolve() for path in bundled_files)
         self.lock = threading.RLock()
         if self.user_dir:
-            for name in ("drafts", "published", "history"):
+            for name in ("registry/revisions", "registry/pointers", "registry/approvals", "registry/events"):
                 path = self.user_dir / name; path.mkdir(parents=True, exist_ok=True, mode=0o700); os.chmod(path, 0o700)
+            self._migrate_legacy()
 
     @staticmethod
     def _valid_id(course_id: str) -> str:
@@ -347,6 +355,126 @@ class CourseRepository:
         if path.parent != (self.user_dir / variant).resolve(): raise ValueError("课程文件路径越界。")
         return path
 
+    def _revision_dir(self, course_id: str) -> Path:
+        self._valid_id(course_id)
+        if not self.user_dir: raise ValueError("课程仓库当前为只读。")
+        path = (self.user_dir / "registry" / "revisions" / course_id).resolve()
+        root = (self.user_dir / "registry" / "revisions").resolve()
+        if path.parent != root: raise ValueError("课程修订路径越界。")
+        return path
+
+    def _revision_path(self, course_id: str, revision: int) -> Path:
+        if not isinstance(revision, int) or revision < 1: raise ValueError("revision 必须是正整数；内置 r0 不写入用户仓库。")
+        return self._revision_dir(course_id) / f"r{revision:04d}.json"
+
+    def _pointer_path(self, course_id: str) -> Path:
+        self._valid_id(course_id)
+        if not self.user_dir: raise ValueError("课程仓库当前为只读。")
+        return (self.user_dir / "registry" / "pointers" / f"{course_id}.json").resolve()
+
+    def _approval_path(self, course_id: str, revision: int) -> Path:
+        return (self.user_dir / "registry" / "approvals" / course_id / f"r{revision:04d}.json").resolve()  # type: ignore[operator]
+
+    @staticmethod
+    def _ref(value: dict[str, Any], *, status: str) -> dict[str, Any]:
+        authoring = value.get("authoring") if isinstance(value.get("authoring"), dict) else {}
+        return {
+            "courseId": value["course"]["id"],
+            "schemaVersion": value["schemaVersion"],
+            "revision": int(authoring.get("revision", 0)),
+            "digest": course_digest(value),
+            "status": status,
+            "createdAt": authoring.get("createdAt") or authoring.get("updatedAt"),
+            "createdBy": authoring.get("createdBy"),
+        }
+
+    def _read_pointer(self, course_id: str) -> dict[str, Any]:
+        if not self.user_dir: return {"schemaVersion": 1, "courseId": course_id, "candidate": None, "released": None, "retired": None}
+        path = self._pointer_path(course_id)
+        if not path.exists(): return {"schemaVersion": 1, "courseId": course_id, "candidate": None, "released": None, "retired": None}
+        try: value = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc: raise ValueError(f"课程指针损坏：{course_id}") from exc
+        if value.get("courseId") != course_id: raise ValueError(f"课程指针归属错误：{course_id}")
+        return value
+
+    def _write_pointer(self, course_id: str, pointer: dict[str, Any]) -> None:
+        pointer = {**pointer, "schemaVersion": 1, "courseId": course_id, "updatedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+        _atomic_json(self._pointer_path(course_id), pointer)
+
+    def _write_event(self, event: dict[str, Any]) -> None:
+        if not self.user_dir: return
+        now = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+        path = self.user_dir / "registry" / "events" / f"{now}-{secrets.token_hex(5)}.json"
+        _atomic_json(path, {"schemaVersion": 1, "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), **event})
+
+    def _write_revision_once(self, course_id: str, revision: int, value: dict[str, Any]) -> None:
+        path = self._revision_path(course_id, revision)
+        path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        if path.exists():
+            existing = _read_json(path)
+            if _canonical_bytes(existing) != _canonical_bytes(value):
+                raise ValueError(f"不可变课程修订已存在且内容不同：{course_id} r{revision}")
+            return
+        temporary = path.with_name(f".{path.name}.{os.getpid()}.{secrets.token_hex(4)}.tmp")
+        descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        try:
+            with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+                json.dump(value, handle, ensure_ascii=False, indent=2); handle.write("\n"); handle.flush(); os.fsync(handle.fileno())
+            # Link fails rather than replacing if another writer won the race.
+            try: os.link(temporary, path)
+            except FileExistsError:
+                existing = _read_json(path)
+                if _canonical_bytes(existing) != _canonical_bytes(value):
+                    raise ValueError(f"并发写入产生了不同的课程修订：{course_id} r{revision}")
+            finally: temporary.unlink(missing_ok=True)
+        finally:
+            temporary.unlink(missing_ok=True)
+
+    def _migrate_legacy(self) -> None:
+        """Import old mutable files once, preserving their revision numbers.
+
+        Migration is deliberately idempotent.  Legacy files stay untouched for
+        rollback/read compatibility, but no post-migration write targets them.
+        """
+        if not self.user_dir: return
+        candidates: dict[str, dict[str, Any]] = {}
+        released: dict[str, dict[str, Any]] = {}
+        history_root = self.user_dir / "history"
+        if history_root.exists():
+            pattern = re.compile(r"^r(\d+)-(draft|published)\.json$")
+            for path in sorted(history_root.glob("*/r*-*.json")):
+                match = pattern.fullmatch(path.name)
+                if not match: continue
+                try: value = _read_json(path)
+                except (OSError, ValueError): continue
+                course_id, revision, old_status = value["course"]["id"], int(match.group(1)), match.group(2)
+                if revision <= 0: continue
+                try: self._write_revision_once(course_id, revision, value)
+                except ValueError: continue
+                ref = self._ref(value, status="candidate" if old_status == "draft" else "released")
+                ref["revision"] = revision
+                target = candidates if old_status == "draft" else released
+                if revision >= int(target.get(course_id, {}).get("revision", -1)): target[course_id] = ref
+        for folder, status, target in (("drafts", "candidate", candidates), ("published", "released", released)):
+            root = self.user_dir / folder
+            if not root.exists(): continue
+            for path in sorted(root.glob("*.json")):
+                try: value = _read_json(path)
+                except (OSError, ValueError): continue
+                course_id = value["course"]["id"]
+                if path.stem != course_id: continue
+                revision = max(1, self._revision(value))
+                try: self._write_revision_once(course_id, revision, value)
+                except ValueError: continue
+                ref = self._ref(value, status=status); ref["revision"] = revision
+                if revision >= int(target.get(course_id, {}).get("revision", -1)): target[course_id] = ref
+        for course_id in sorted(set(candidates) | set(released)):
+            pointer = self._read_pointer(course_id)
+            changed = False
+            if not pointer.get("candidate") and candidates.get(course_id): pointer["candidate"] = candidates[course_id]; changed = True
+            if not pointer.get("released") and released.get(course_id): pointer["released"] = released[course_id]; changed = True
+            if changed: self._write_pointer(course_id, pointer)
+
     def _bundled(self) -> dict[str, tuple[Path, dict[str, Any]]]:
         result = {}
         for path in self.bundled_files:
@@ -355,136 +483,239 @@ class CourseRepository:
             result[course_id] = (path, value)
         return result
 
-    def _published(self) -> dict[str, tuple[Path, dict[str, Any], str]]:
-        values = {course_id: (path, value, "bundled") for course_id, (path, value) in self._bundled().items()}
-        if self.user_dir:
-            for path in sorted((self.user_dir / "published").glob("*.json")):
-                try:
-                    value = _read_json(path); course_id = value["course"]["id"]
-                    if path.stem != course_id: raise _error(f"file:{path.name}", "filename must match $.course.id")
-                except (OSError, ValueError):
-                    # One hand-edited broken override must never take the two
-                    # known-good built-ins or the active classroom offline.
-                    continue
-                values[course_id] = (path, value, "authored")
-        return values
-
     @staticmethod
     def _revision(value: dict[str, Any]) -> int:
         authoring = value.get("authoring")
         return int(authoring.get("revision", 0)) if isinstance(authoring, dict) else 0
 
     @staticmethod
-    def _metadata(value: dict[str, Any], *, source: str, status: str, has_draft: bool = False, published_revision: int = 0, draft_revision: int = 0) -> dict[str, Any]:
+    def _metadata(value: dict[str, Any], *, source: str, status: str, candidate_ref: dict[str, Any] | None = None, released_ref: dict[str, Any] | None = None, approval: dict[str, Any] | None = None) -> dict[str, Any]:
         course, case = value["course"], value["case"]
         manifest = course_manifest(value)
-        return {"id": course["id"], "name": course["name"], "title": case["name"], "period": course["period"], "coverage": course["coverage"], "description": course["description"], "status": status, "source": source, "runtimeCampaignId": case["campaignId"], "hasDraft": has_draft, "publishedRevision": published_revision, "draftRevision": draft_revision, "latestRevision": max(published_revision, draft_revision), **manifest, "digest": manifest["digest"][:16]}
+        cr = int(candidate_ref.get("revision", 0)) if candidate_ref else 0
+        rr = int(released_ref.get("revision", 0)) if released_ref else 0
+        return {"id": course["id"], "name": course["name"], "title": case["name"], "period": course["period"], "coverage": course["coverage"], "description": course["description"], "status": status, "source": source, "runtimeCampaignId": case["campaignId"], "hasDraft": bool(candidate_ref and (not released_ref or candidate_ref.get("digest") != released_ref.get("digest"))), "hasCandidate": bool(candidate_ref), "candidateRevision": cr, "releasedRevision": rr, "publishedRevision": rr, "draftRevision": cr, "latestRevision": max(cr, rr), "candidateRef": copy.deepcopy(candidate_ref), "releasedRef": copy.deepcopy(released_ref), "approval": copy.deepcopy(approval), **manifest, "digest": manifest["digest"][:16]}
+
+    def _all_course_ids(self) -> set[str]:
+        ids = set(self._bundled())
+        if self.user_dir:
+            ids.update(path.stem for path in (self.user_dir / "registry" / "pointers").glob("*.json"))
+            ids.update(path.name for path in (self.user_dir / "registry" / "revisions").iterdir() if path.is_dir())
+        return ids
+
+    def _bundled_ref(self, course_id: str, *, status: str = "released") -> dict[str, Any] | None:
+        bundled = self._bundled().get(course_id)
+        if not bundled: return None
+        ref = self._ref(bundled[1], status=status); ref.update({"revision": 0, "createdBy": "bundled"})
+        return ref
+
+    def current_ref(self, course_id: str, channel: str = "released") -> dict[str, Any]:
+        if not isinstance(course_id, str) or not COURSE_ID_PATTERN.fullmatch(course_id):
+            raise ValueError(f"未知课程 id: {course_id!r}")
+        if channel in {"draft", "candidate", "alpha"}: channel = "candidate"
+        elif channel in {"published", "released", "production"}: channel = "released"
+        else: raise ValueError("课程通道只能是 candidate 或 released。")
+        with self.lock:
+            pointer = self._read_pointer(self._valid_id(course_id))
+            ref = pointer.get(channel)
+            if not ref and channel == "candidate": ref = pointer.get("released")
+            if not ref: ref = self._bundled_ref(course_id, status=channel)
+            if not ref: raise ValueError(f"未知课程 id: {course_id!r}")
+            return copy.deepcopy(ref)
+
+    def load_ref(self, course_id: str, revision: int, digest: str | None = None) -> dict[str, Any]:
+        self._valid_id(course_id)
+        with self.lock:
+            if revision == 0:
+                bundled = self._bundled().get(course_id)
+                if not bundled: raise ValueError(f"课程 {course_id} 没有内置 r0。")
+                value = bundled[1]
+            else:
+                if not self.user_dir: raise ValueError("课程仓库当前为只读。")
+                path = self._revision_path(course_id, revision)
+                if not path.exists(): raise ValueError(f"找不到课程 {course_id} r{revision}。")
+                value = _read_json(path)
+            actual = course_digest(value)
+            if digest is not None and digest != actual: raise ValueError(f"课程引用 digest 不匹配：{course_id} r{revision}。")
+            return copy.deepcopy(value)
 
     def list_published(self) -> list[dict[str, Any]]:
         with self.lock:
-            published = self._published(); result = []
-            for course_id, (_, value, source) in published.items():
-                revision, draft_revision = self._revision(value), 0
-                if self.user_dir:
-                    draft_path = self._path(course_id, "drafts")
-                    if draft_path.exists(): draft_revision = self._revision(_read_json(draft_path))
-                result.append(self._metadata(value, source=source, status="published", has_draft=draft_revision > 0, published_revision=revision, draft_revision=draft_revision))
+            result = []
+            for course_id in sorted(self._all_course_ids()):
+                try: released_ref = self.current_ref(course_id, "released"); value = self.load_ref(course_id, released_ref["revision"], released_ref["digest"])
+                except ValueError: continue
+                try: candidate_ref = self.current_ref(course_id, "candidate")
+                except ValueError: candidate_ref = None
+                result.append(self._metadata(value, source="bundled" if released_ref["revision"] == 0 else "authored", status="released", candidate_ref=candidate_ref, released_ref=released_ref, approval=self.approval_for_ref(released_ref)))
             return sorted(result, key=lambda item: (item["source"] != "bundled", item["name"], item["id"]))
 
     def list_for_editor(self) -> dict[str, Any]:
         with self.lock:
-            published = self._published(); drafts = {}; diagnostics = []
-            if self.user_dir:
-                for variant in ("drafts", "published"):
-                    for path in sorted((self.user_dir / variant).glob("*.json")):
-                        try:
-                            value = _read_json(path)
-                            if path.stem != value["course"]["id"]: raise _error(f"file:{path.name}", "filename must match $.course.id")
-                            if variant == "drafts": drafts[value["course"]["id"]] = (path, value)
-                        except (OSError, ValueError) as exc: diagnostics.append({"file": f"{variant}/{path.name}", "message": str(exc)})
-            result = []
-            for course_id in sorted(set(published) | set(drafts)):
-                pub, draft = published.get(course_id), drafts.get(course_id)
-                value = draft[1] if draft else pub[1]; source = pub[2] if pub else "authored"
-                pr = self._revision(pub[1]) if pub else 0; dr = self._revision(draft[1]) if draft else 0
-                result.append(self._metadata(value, source=source, status="draft" if draft else "published", has_draft=bool(draft), published_revision=pr, draft_revision=dr))
+            result, diagnostics = [], []
+            for course_id in sorted(self._all_course_ids()):
+                try:
+                    candidate_ref = self.current_ref(course_id, "candidate")
+                    try: released_ref = self.current_ref(course_id, "released")
+                    except ValueError: released_ref = None
+                    value = self.load_ref(course_id, candidate_ref["revision"], candidate_ref["digest"])
+                    status = "released" if released_ref and released_ref["digest"] == candidate_ref["digest"] and released_ref["revision"] == candidate_ref["revision"] else "candidate"
+                    result.append(self._metadata(value, source="bundled" if candidate_ref["revision"] == 0 else "authored", status=status, candidate_ref=candidate_ref, released_ref=released_ref, approval=self.approval_for_ref(candidate_ref)))
+                except (OSError, ValueError) as exc: diagnostics.append({"file": f"registry/{course_id}", "message": str(exc)})
             return {"courses": result, "diagnostics": diagnostics}
 
     def load(self, course_id: str, *, variant: str = "published") -> dict[str, Any]:
-        if not isinstance(course_id, str) or not COURSE_ID_PATTERN.fullmatch(course_id):
-            raise ValueError(f"未知课程 id: {course_id!r}")
-        with self.lock:
-            if variant == "draft":
-                if self.user_dir:
-                    path = self._path(course_id, "drafts")
-                    if path.exists(): return copy.deepcopy(_read_json(path))
-                variant = "published"
-            if variant != "published": raise ValueError("课程版本只能是 draft 或 published。")
-            entry = self._published().get(course_id)
-            if entry is None: raise ValueError(f"未知课程 id: {course_id!r}")
-            return copy.deepcopy(entry[1])
+        ref = self.current_ref(course_id, variant)
+        return self.load_ref(course_id, int(ref["revision"]), str(ref["digest"]))
 
     def describe(self, course_id: str, *, variant: str = "draft") -> dict[str, Any]:
-        """Describe the exact draft/published value returned to an editor."""
+        """Describe the exact immutable value returned to an editor."""
         with self.lock:
-            value = self.load(course_id, variant=variant)
-            catalog = next((item for item in self.list_for_editor()["courses"] if item["id"] == course_id), None)
-            source = catalog["source"] if catalog else "authored"
-            actual_variant = (value.get("authoring") or {}).get("status", "published")
+            channel = "candidate" if variant in {"draft", "candidate", "alpha"} else "released"
+            ref = self.current_ref(course_id, channel); value = self.load_ref(course_id, ref["revision"], ref["digest"])
+            try: candidate_ref = self.current_ref(course_id, "candidate")
+            except ValueError: candidate_ref = None
+            try: released_ref = self.current_ref(course_id, "released")
+            except ValueError: released_ref = None
             manifest = course_manifest(value)
             return {
                 **manifest,
                 "courseId": course_id,
-                "source": source,
-                "variant": actual_variant,
-                "revision": self._revision(value),
-                "publishedRevision": int(catalog["publishedRevision"]) if catalog else 0,
-                "draftRevision": int(catalog["draftRevision"]) if catalog else 0,
+                "source": "bundled" if ref["revision"] == 0 else "authored",
+                "variant": channel,
+                "status": ref["status"],
+                "revision": int(ref["revision"]),
+                "publishedRevision": int(released_ref["revision"]) if released_ref else 0,
+                "draftRevision": int(candidate_ref["revision"]) if candidate_ref else 0,
+                "candidateRevision": int(candidate_ref["revision"]) if candidate_ref else 0,
+                "releasedRevision": int(released_ref["revision"]) if released_ref else 0,
+                "candidateRef": candidate_ref,
+                "releasedRef": released_ref,
+                "approval": self.approval_for_ref(ref),
                 "digestShort": manifest["digest"][:16],
             }
 
     def save(self, value: dict[str, Any], *, status: str, expected_revision: int) -> dict[str, Any]:
-        if status not in AUTHORING_STATES: raise ValueError("保存状态只能是 draft 或 published。")
+        if status not in {"draft", "candidate"}:
+            raise ValueError("保存只生成 Candidate；正式发布必须通过 exact Alpha 验收后移动 Released 指针。")
+        saved = self.save_candidate(value, expected_revision=expected_revision)
+        return self.load_ref(saved["courseId"], saved["revision"], saved["digest"])
+
+    def _latest_revision(self, course_id: str) -> int:
+        latest = 0
+        if self.user_dir:
+            root = self._revision_dir(course_id)
+            if root.exists():
+                for path in root.glob("r*.json"):
+                    match = re.fullmatch(r"r(\d+)\.json", path.name)
+                    if match: latest = max(latest, int(match.group(1)))
+        return latest
+
+    def save_candidate(self, value: dict[str, Any], expected_revision: int | None = None, *, actor: str = "course-editor") -> dict[str, Any]:
         if not self.user_dir: raise ValueError("课程仓库当前为只读。")
-        if not isinstance(expected_revision, int) or expected_revision < 0: raise ValueError("expectedRevision 必须是非负整数。")
         candidate = copy.deepcopy(value); validate_script(candidate); course_id = self._valid_id(candidate["course"]["id"])
         with self.lock:
-            existing = next((item for item in self.list_for_editor()["courses"] if item["id"] == course_id), None)
-            latest = int(existing["latestRevision"]) if existing else 0
-            if expected_revision != latest: raise ValueError(f"课程已被其他人更新：当前修订为 {latest}，你的基线为 {expected_revision}。请重新载入。")
-            revision = latest + 1
-            candidate["authoring"] = {**(candidate.get("authoring") if isinstance(candidate.get("authoring"), dict) else {}), "status": status, "revision": revision, "updatedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+            latest = self._latest_revision(course_id)
+            if expected_revision is not None and expected_revision != latest:
+                raise ValueError(f"课程已被其他人更新：当前修订为 {latest}，你的基线为 {expected_revision}。请重新载入。")
+            revision = latest + 1; now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+            candidate["authoring"] = {"status": "candidate", "revision": revision, "createdAt": now, "updatedAt": now, "createdBy": actor}
             validate_script(candidate)
-            target = self._path(course_id, "drafts" if status == "draft" else "published")
-            history = self.user_dir / "history" / course_id / f"r{revision:04d}-{status}.json"
-            _atomic_json(target, candidate); _atomic_json(history, candidate)
-            if status == "published":
-                draft_path = self._path(course_id, "drafts")
-                if draft_path.exists(): draft_path.unlink()
-            return copy.deepcopy(candidate)
+            self._write_revision_once(course_id, revision, candidate)
+            ref = self._ref(candidate, status="candidate")
+            pointer = self._read_pointer(course_id); pointer["candidate"] = ref; self._write_pointer(course_id, pointer)
+            self._write_event({"type": "candidate.saved", "actor": actor, "courseRef": ref})
+            return copy.deepcopy(ref)
+
+    def approval_for_ref(self, ref: dict[str, Any] | None) -> dict[str, Any] | None:
+        if not ref or not self.user_dir or int(ref.get("revision", 0)) <= 0: return None
+        path = self._approval_path(str(ref["courseId"]), int(ref["revision"]))
+        if not path.exists(): return None
+        try: value = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError): return None
+        return value if value.get("digest") == ref.get("digest") else None
+
+    def approve(self, course_id: str, revision: int, digest: str, run_id: str, run_digest: str, *, checks: dict[str, Any] | None = None, actor: str = "alpha-dm") -> dict[str, Any]:
+        with self.lock:
+            if revision <= 0: raise ValueError("内置 r0 已是发布基线；只有新 Candidate 可以生成 Alpha 验收回执。")
+            current = self.current_ref(course_id, "candidate")
+            if current["revision"] != revision or current["digest"] != digest:
+                raise ValueError("Alpha 验收只能绑定当前 exact Candidate；内容变化后旧回执自动失效。")
+            if run_digest != digest: raise ValueError("Alpha Run digest 与 Candidate digest 不匹配。")
+            if not isinstance(run_id, str) or not run_id.strip(): raise ValueError("Alpha 验收缺少 runId。")
+            value = self.load_ref(course_id, revision, digest)
+            manifest = course_manifest(value); now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+            approval = {
+                "schemaVersion": 1, "courseId": course_id, "revision": revision, "digest": digest,
+                "status": "approved", "runId": run_id, "runDigest": run_digest,
+                "acceptedAt": now, "acceptedBy": actor,
+                "checks": checks or {"macroSteps": manifest["macroStepCount"], "blocks": manifest["blockCount"], "decks": manifest["deckCount"], "cards": manifest["cardCount"]},
+            }
+            path = self._approval_path(course_id, revision); path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+            if path.exists():
+                existing = json.loads(path.read_text(encoding="utf-8"))
+                if existing.get("digest") != digest or existing.get("runId") != run_id:
+                    raise ValueError("这个 Candidate 已有另一份不可变验收回执。")
+                return existing
+            _atomic_json(path, approval)
+            self._write_event({"type": "candidate.approved", "actor": actor, "courseRef": current, "runId": run_id})
+            return copy.deepcopy(approval)
+
+    def release(
+        self,
+        course_id: str,
+        revision: int,
+        digest: str,
+        *,
+        actor: str = "course-editor",
+        before_pointer: Callable[[dict[str, Any], dict[str, Any], dict[str, Any]], None] | None = None,
+    ) -> dict[str, Any]:
+        with self.lock:
+            current = self.current_ref(course_id, "candidate")
+            if current["revision"] != revision or current["digest"] != digest:
+                raise ValueError("正式发布目标不是当前 exact Candidate。")
+            approval = self.approval_for_ref(current)
+            if not approval or approval.get("status") != "approved":
+                raise ValueError("正式发布需要当前 exact Candidate 的 Alpha 验收回执。")
+            # Verify the immutable body before moving the production pointer.
+            value = self.load_ref(course_id, revision, digest)
+            released = {**current, "status": "released", "releasedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "releasedBy": actor, "approvalRunId": approval["runId"]}
+            # Production Classroom must acknowledge the exact package before
+            # the file registry moves its Released pointer. A network or D1
+            # failure therefore leaves both production pointers on the last
+            # known-good version rather than publishing a split-brain release.
+            if before_pointer:
+                before_pointer(copy.deepcopy(value), copy.deepcopy(released), copy.deepcopy(approval))
+            pointer = self._read_pointer(course_id); previous = pointer.get("released"); pointer["released"] = released; self._write_pointer(course_id, pointer)
+            self._write_event({"type": "course.released", "actor": actor, "courseRef": released, "previousReleased": previous, "approvalRunId": approval["runId"]})
+            return copy.deepcopy(released)
 
     def list_history(self, course_id: str) -> list[dict[str, Any]]:
         """List immutable authored snapshots without exposing filesystem paths."""
         self._valid_id(course_id)
         with self.lock:
             result: list[dict[str, Any]] = []
+            candidate = None; released = None
+            try: candidate = self.current_ref(course_id, "candidate")
+            except ValueError: pass
+            try: released = self.current_ref(course_id, "released")
+            except ValueError: pass
             # Revision zero is the immutable bundled baseline when one exists.
             bundled = self._bundled().get(course_id)
             if bundled:
                 value = bundled[1]; manifest = course_manifest(value)
                 result.append({
-                    "revision": 0, "status": "bundled", "updatedAt": None,
+                    "revision": 0, "status": "released" if released and released["revision"] == 0 else "bundled", "updatedAt": None,
                     "digest": manifest["digest"], "deckCount": manifest["deckCount"],
                     "cardCount": manifest["cardCount"], "schemaVersion": manifest["schemaVersion"],
                 })
             if not self.user_dir:
                 return result
-            history_dir = (self.user_dir / "history" / course_id).resolve()
-            expected_root = (self.user_dir / "history").resolve()
-            if history_dir.parent != expected_root or not history_dir.exists():
+            history_dir = self._revision_dir(course_id)
+            if not history_dir.exists():
                 return result
-            pattern = re.compile(r"^r(\d{4,})-(draft|published)\.json$")
-            for path in sorted(history_dir.glob("r*-*.json")):
+            pattern = re.compile(r"^r(\d{4,})\.json$")
+            for path in sorted(history_dir.glob("r*.json")):
                 match = pattern.fullmatch(path.name)
                 if not match:
                     continue
@@ -495,16 +726,19 @@ class CourseRepository:
                 except (OSError, ValueError):
                     continue
                 manifest = course_manifest(value)
+                revision = int(match.group(1)); ref = {"courseId": course_id, "revision": revision, "digest": manifest["digest"]}
+                is_released = bool(released and released["revision"] == revision and released["digest"] == manifest["digest"])
+                is_candidate = bool(candidate and candidate["revision"] == revision and candidate["digest"] == manifest["digest"])
                 result.append({
-                    "revision": int(match.group(1)), "status": match.group(2),
-                    "updatedAt": (value.get("authoring") or {}).get("updatedAt"),
+                    "revision": revision, "status": "released" if is_released else "candidate" if is_candidate else "superseded",
+                    "approved": bool(self.approval_for_ref(ref)), "updatedAt": (value.get("authoring") or {}).get("updatedAt"),
                     "digest": manifest["digest"], "deckCount": manifest["deckCount"],
                     "cardCount": manifest["cardCount"], "schemaVersion": manifest["schemaVersion"],
                 })
             return sorted(result, key=lambda item: item["revision"], reverse=True)
 
     def restore(self, course_id: str, source_revision: int, *, expected_revision: int) -> dict[str, Any]:
-        """Restore an immutable snapshot as a *new* draft revision.
+        """Restore an immutable snapshot as a *new* Candidate revision.
 
         History is never rewritten and an active Alpha Run is never touched;
         the author must explicitly use the existing refresh action afterwards.
@@ -521,24 +755,20 @@ class CourseRepository:
             else:
                 if not self.user_dir:
                     raise ValueError("课程仓库当前为只读。")
-                history_dir = (self.user_dir / "history" / course_id).resolve()
-                matches = sorted(history_dir.glob(f"r{source_revision:04d}-*.json")) if history_dir.exists() else []
-                if len(matches) != 1:
-                    raise ValueError(f"找不到课程 {course_id} 的历史修订 r{source_revision}。")
-                value = _read_json(matches[0])
-                if value["course"]["id"] != course_id:
-                    raise ValueError("历史修订不属于当前课程。")
-            return self.save(value, status="draft", expected_revision=expected_revision)
+                value = self.load_ref(course_id, source_revision)
+            ref = self.save_candidate(value, expected_revision=expected_revision, actor="history-restore")
+            return self.load_ref(course_id, ref["revision"], ref["digest"])
 
     def clone(self, source_course_id: str, new_course_id: str, new_name: str) -> dict[str, Any]:
         self._valid_id(new_course_id); _string(new_name, "$.course.name")
         with self.lock:
             if any(item["id"] == new_course_id for item in self.list_for_editor()["courses"]): raise ValueError("这个课程 ID 已经存在。")
-            value = self.load(source_course_id)
+            value = self.load(source_course_id, variant="released")
             value["course"].update({"id": new_course_id, "name": new_name.strip(), "scriptId": f"{new_course_id}-live-run-v1"})
             value["id"] = f"{new_course_id}-live-run-v1"; value["title"] = f"Mini Silicon Valley｜{new_name.strip()}｜LIVE RUN SCRIPT"
-            value["authoring"] = {"status": "draft", "revision": 0}
-            return self.save(value, status="draft", expected_revision=0)
+            value.pop("authoring", None)
+            ref = self.save_candidate(value, expected_revision=0, actor="course-clone")
+            return self.load_ref(new_course_id, ref["revision"], ref["digest"])
 
 
 DEFAULT_REPOSITORY = CourseRepository()

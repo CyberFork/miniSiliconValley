@@ -37,8 +37,8 @@
 
 ### Curriculum 结构（0→1 教学组织）
 - `CurriculumCatalog`：
-  - `stages`：固定顺序的六个 `CurriculumStage`
-  - `companyJourneys`：按同一企业横向组织的六步流程
+  - `stages`：当前五个学习步骤（旧版六步字段仅作兼容读取）
+  - `companyJourneys`：按同一企业横向组织的当前五步流程与独立 Demo Day
   - `contributionProtocol`：内容同事新增材料时的八项必填字段
   - `nonNegotiables`：史实边界、实操闭环、VC 与 Demo Day 原则
 - `CurriculumStage`：核心问题、学习目标、行动、交付物、门槛和跨企业案例。
@@ -82,13 +82,13 @@
 - 重玩同一关会替换旧 `MissionResult`；总资源由初始值与所有当前 `delta` 重算，不能靠反复重玩刷资源。
 - 存档版本必须匹配：`DATA_SCHEMA_VERSION`（当前为 `1`）。
 - 导入时拒绝危险键、未知 Schema；限制文本/数组长度、去重任务，并重算而非相信外部 `resources`。
-- 项目六步必须按 `find-problem → validate-problem → design-solution → mvp-vc → operate-brand → demo-day` 排列。
-- 每个阶段至少 3 个历史案例；每条企业流程必须完整覆盖六步。
+- 当前课程语义为五步：找真问题 → 定真方案 → 做真产品 → 进真市场 → 跑真运营；Demo Day 独立为六分钟终局。旧版六步排列仅保留在历史兼容资料中。
+- 每个当前步骤至少 3 个历史案例；企业流程覆盖五步并单列 Demo Day。
 - 课程案例必须引用已有史实事件；新事实先进入来源治理流程，再进入课程大纲。
 
 ## 5) 数据文件路径
 - `app/data/history.ts`：原始时间线实体和事件生成。
 - `app/data/missions.ts`：8 个课程关卡。
-- `app/data/curriculum.ts`：项目六步、案例、企业流程与归集协议。
+- `app/data/curriculum.ts`：课程案例、企业流程与归集协议（兼容历史旧版六步字段）。
 - `app/lib/state.ts`：状态读写与解析。
 - `app/lib/validate.ts`：一致性校验。

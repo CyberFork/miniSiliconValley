@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "kind": "msv-live-run-real-api-acceptance",
+  "startedAt": "2026-09-02T13:11:08.247933Z",
+  "completedAt": "2026-09-02T13:11:12.983951Z",
+  "runId": "run-20260902-211108-8e52b1",
+  "courseId": "eleme-2008-find-problem",
+  "scriptId": "msv-eleme-five-step-live-run-v2",
+  "roomId": "a0c78fca-07ac-4b71-8780-19be49c54065",
+  "teamPublicId": "TEAM-6JGZ2526",
+  "apiMode": "classroom-api",
+  "verified": {
+    "macroSteps": 5,
+    "manualBlocks": 13,
+    "mentorCount": 4,
+    "learnerCount": 4,
+    "uniqueDealtCards": 12,
+    "learnerPdmoCount": 0,
+    "individualRp": {
+      "learner01": 10,
+      "learner02": 10,
+      "learner03": 10,
+      "learner04": 10
+    },
+    "personalWalletTenths": {
+      "learner01": 10,
+      "learner02": 10,
+      "learner03": 10,
+      "learner04": 10
+    },
+    "teamTreasuryTenths": 345,
+    "completed": true
+  },
+  "blocks": [
+    {
+      "id": "B01",
+      "manualGateVerified": true,
+      "elapsedSeconds": 0.628,
+      "roomPhaseAfterExecute": "identity"
+    },
+    {
+      "id": "B02",
+      "manualGateVerified": true,
+      "elapsedSeconds": 0.212,
+      "roomPhaseAfterExecute": "intel-network"
+    },
+    {
+      "id": "B03",
+      "manualGateVerified": true,
+      "elapsedSeconds": 0.417,
+      "roomPhaseAfterExecute": "lobby"
+    },
+    {
+      "id": "B04",
+      "manualGateVerified": true,
+      "elapsedSeconds": 0.417,
+      "roomPhaseAfterExecute": "pdmo"
+    },
+    {
+      "id": "B05",
+      "manualGateVerified": true,
+      "elapsedSeconds": 0.421,
+      "roomPhaseAfterExecute": "lobby"
+    },
+    {
+      "id": "B06",
+      "manualGateVerified": true,
+      "elapsedSeconds": 0.422,
+      "roomPhaseAfterExecute": "pdmo"
+    },
+    {
+      "id": "B07",
+      "manualGateVerified": true,
+      "elapsedSeconds": 0.313,
+      "roomPhaseAfterExecute": "growth"
+    },
+    {
+      "id": "B08",
+      "manualGateVerified": true,
+      "elapsedSeconds": 0.212,
+      "roomPhaseAfterExecute": "lobby"
+    },
+    {
+      "id": "B09",
+      "manualGateVerified": true,
+      "elapsedSeconds": 0.422,
+      "roomPhaseAfterExecute": "pdmo"
+    },
+    {
+      "id": "B10",
+      "manualGateVerified": true,
+      "elapsedSeconds": 0.317,
+      "roomPhaseAfterExecute": "lobby"
+    },
+    {
+      "id": "B11",
+      "manualGateVerified": true,
+      "elapsedSeconds": 0.418,
+      "roomPhaseAfterExecute": "pdmo"
+    },
+    {
+      "id": "B12",
+      "manualGateVerified": true,
+      "elapsedSeconds": 0.421,
+      "roomPhaseAfterExecute": "debrief"
+    },
+    {
+      "id": "B13",
+      "manualGateVerified": true,
+      "elapsedSeconds": 0.107,
+      "roomPhaseAfterExecute": "completed"
+    }
+  ]
+}

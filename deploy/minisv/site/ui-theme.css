@@ -7,7 +7,50 @@
   --msv-adventure-mint-dark: #267a73;
   --msv-adventure-yellow: #f0bd42;
   --msv-adventure-red: #b94231;
+  /* Business-state colours are semantic invariants, not theme decoration. */
+  --msv-status-success: #2f897f;
+  --msv-status-warning: #b57c00;
+  --msv-status-danger: #b94231;
+  --msv-status-info: #355d83;
+  --msv-text-on-dark: #fff5db;
+  --msv-text-secondary-on-dark: #b9c8c8;
+  --msv-surface-dark: #071720;
+  --msv-panel-dark: #11272e;
   --msv-pixel-shadow: 5px 5px 0 var(--msv-adventure-navy);
+}
+
+/* T-082 shared static brand primitive. The image source is always /favicon.svg. */
+.msv-static-brand {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 44px;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  font-weight: 900;
+  line-height: 1.15;
+  text-decoration: none;
+}
+
+.msv-static-brand img {
+  display: block;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  object-fit: contain;
+}
+
+.msv-static-brand > span,
+.msv-static-brand strong,
+.msv-static-brand small { display: block; min-width: 0; }
+.msv-static-brand strong { letter-spacing: .07em; }
+.msv-static-brand small { margin-top: 3px; opacity: .72; font-size: 10px; font-weight: 700; letter-spacing: .08em; }
+.msv-static-brand--mark { width: 44px; min-width: 44px; gap: 0; }
+.msv-static-brand:focus-visible { outline: 3px solid var(--msv-status-warning, #e0b83f); outline-offset: 4px; }
+
+@media (max-width: 390px) {
+  .msv-static-brand img { width: 40px; height: 40px; flex-basis: 40px; }
+  .msv-static-brand--mark { width: 40px; min-width: 40px; }
 }
 
 html,
@@ -75,7 +118,7 @@ body {
 .msv-ui-switch button {
   appearance: none;
   min-width: 46px;
-  min-height: 30px;
+  min-height: 44px;
   margin: 0;
   padding: 6px 9px;
   color: #aebdc0;
@@ -113,7 +156,9 @@ body {
  * Adventure is an additive theme. Classic intentionally has no overrides so
  * the accepted UI remains byte-for-byte in control when the switch is off.
  */
-html[data-msv-theme="adventure"] {
+/* Light products can adopt the Adventure palette. Dark operational surfaces
+ * own component-scoped text/surface tokens and must never inherit light ink. */
+html[data-msv-theme="adventure"][data-msv-surface="light"] {
   --ink: var(--msv-adventure-ink);
   --ink-2: #24414b;
   --navy: var(--msv-adventure-navy);
@@ -126,7 +171,6 @@ html[data-msv-theme="adventure"] {
   --gold: var(--msv-adventure-yellow);
   --teal: var(--msv-adventure-mint);
   --mint: var(--msv-adventure-mint);
-  --coral: var(--msv-adventure-mint);
   --danger: var(--msv-adventure-red);
   --shadow-pixel: var(--msv-pixel-shadow);
 }
@@ -269,6 +313,13 @@ html[data-msv-theme="adventure"][data-msv-surface="dark"] body {
   background-size: 20px 20px, 20px 20px, auto;
 }
 
+html[data-msv-surface="dark"] {
+  --msv-text-primary-dark: var(--msv-text-on-dark);
+  --msv-text-secondary-dark: var(--msv-text-secondary-on-dark);
+  --msv-background-dark: var(--msv-surface-dark);
+  --msv-card-dark: var(--msv-panel-dark);
+}
+
 html[data-msv-theme="adventure"][data-msv-surface="dark"] :is(.seat, .overview, .card, .launch-card) {
   border-color: var(--msv-adventure-mint);
   border-radius: 0;
@@ -280,7 +331,7 @@ html[data-msv-theme="adventure"][data-msv-surface="dark"] :is(.seat, .overview, 
 }
 
 @media (max-width: 480px) {
-  .msv-ui-switch {
+  .msv-ui-switch[data-placement="floating"] {
     transform: scale(.9);
     transform-origin: top right;
   }

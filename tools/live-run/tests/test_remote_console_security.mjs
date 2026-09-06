@@ -112,7 +112,8 @@ test("seat projection carries revision signal and never leaks another learner ha
   assert.equal(projected.previewBlockIndex, 0); assert.equal(projected.refreshEpoch, 2);
   assert.deepEqual(Object.keys(projected.classroom.learnerViews), ["learner01"]);
   assert.equal(projected.classroom.learnerViews.learner01.cards[0].id, "private-one");
-  assert.deepEqual(projected.classroom.learnerViews.learner01.cards[0].sourceIds, ["src-1"]);
+  assert.equal("sourceIds" in projected.classroom.learnerViews.learner01.cards[0], false, "sealed source ids must remain facilitator-only before history reveal");
+  assert.equal(projected.classroom.learnerViews.learner01.cards[0].evidenceBoundary, "F");
   assert.equal(JSON.stringify(projected).includes("private-two"), false);
 });
 

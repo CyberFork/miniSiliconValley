@@ -182,12 +182,11 @@ export interface MissionRecord {
 }
 
 export type ProjectStageId =
-  | "find-problem"
-  | "validate-problem"
-  | "design-solution"
-  | "mvp-vc"
-  | "operate-brand"
-  | "demo-day";
+  | "find"
+  | "decide"
+  | "build"
+  | "market"
+  | "operate";
 
 export type CurriculumMappingKind = "direct" | "course-analogy";
 
@@ -214,6 +213,8 @@ export interface CurriculumStage {
   artifacts: string[];
   completionGate: string[];
   examples: CurriculumExample[];
+  leadMentor: "P" | "D" | "M" | "O";
+  supportMentors: Array<"P" | "D" | "M" | "O">;
 }
 
 export interface CompanyJourneyStep {
@@ -234,6 +235,17 @@ export interface CompanyJourney {
   summary: string;
   missionId?: string;
   steps: CompanyJourneyStep[];
+  finale: Omit<CompanyJourneyStep, "stageId">;
+}
+
+export interface CurriculumFinale {
+  id: "demo-day";
+  title: string;
+  englishTitle: string;
+  durationSeconds: 360;
+  promise: string;
+  requirements: string[];
+  examples: CurriculumExample[];
 }
 
 export interface CurriculumContributionField {
@@ -245,6 +257,7 @@ export interface CurriculumContributionField {
 export interface CurriculumCatalog {
   schemaVersion: typeof CURRICULUM_SCHEMA_VERSION;
   stages: CurriculumStage[];
+  finale: CurriculumFinale;
   companyJourneys: CompanyJourney[];
   contributionProtocol: CurriculumContributionField[];
   nonNegotiables: string[];

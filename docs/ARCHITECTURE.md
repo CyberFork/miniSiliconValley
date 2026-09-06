@@ -21,7 +21,7 @@
 - `app/data/missions.ts`
   - 导出 `missions`，按 `order` 表示 8 个课程关卡。
 - `app/data/curriculum.ts`
-  - 导出 `curriculumCatalog`，包括项目六步、18 个纵向历史案例、企业全流程和内容归集协议。
+  - 导出 `curriculumCatalog`，包括当前五步、18 个纵向历史案例、企业流程、独立 Demo Day 和内容归集协议；旧版六步仅作兼容资料。
   - 只保存教学组织和史实外键；事实正文仍由 `historyCatalog.events` 提供，避免复制后漂移。
 - `WorldApp` 渲染时从 `historyCatalog` + `missions` 建立索引 Map。
 - 用户动作只更新前端 `PlayerState`，在状态变更后通过 `serializeState` 写入 `localStorage`。
@@ -49,7 +49,7 @@
 - `app/lib/validate.ts`
   - `validateCatalog`：校验实体 ID 唯一性、外键完整性、坐标范围、年份范围、基础数据量阈值。
   - `validateMissions`：校验每关卡证据/路径/复盘/现实任务等完整性。
-  - `validateCurriculum`：校验六步顺序、案例数量、企业流程完整性、史实/战役外键和八项归集字段。
+  - `validateCurriculum`：校验当前五步顺序、案例数量、企业流程完整性、史实/战役外键和八项归集字段。
 - `npm run validate:data` 在命令行运行三类校验；`npm test` 还覆盖类型、静态规则、生产构建、存档安全和服务端渲染。
 
 ## 六、关键路径和组件责任

@@ -2,3 +2,37 @@
 dialog{border:1px solid #47616b;border-top:4px solid var(--g);background:linear-gradient(145deg,#142129,var(--p));color:var(--t);padding:26px;width:min(440px,calc(100vw - 32px));max-height:calc(100dvh - 32px);box-shadow:0 22px 70px #000d}dialog::backdrop{background:#04080bcc;backdrop-filter:blur(3px)}dialog small{display:block;color:var(--g);font-weight:700}dialog h2{margin:7px 0 0;font-size:24px}dialog p{color:var(--m);margin:10px 0 20px}dialog label{display:flex;justify-content:space-between;gap:12px;margin-top:16px;color:var(--t);font-size:13px;letter-spacing:0}dialog label span{color:var(--m);font-size:11px}dialog label code{color:var(--g);font:11px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}dialog input{display:block;width:100%;min-height:44px;margin-top:8px;padding:10px 12px;background:var(--bg);border:1px solid #47616b;color:var(--t);font:inherit}dialog input:focus{outline:2px solid var(--g);outline-offset:1px;border-color:var(--g)}.dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}.dialog-actions button{min-height:42px;padding:9px 16px}.dialog-cancel{border-color:#47616b;color:var(--m)}.dialog-error{min-height:21px;color:var(--c);margin-top:8px;font-size:12px}.danger{color:var(--c);border-color:#a75650}@media(max-width:430px){dialog{padding:20px}dialog label{display:block}dialog label span,dialog label code{display:block;margin-top:3px}.dialog-actions{display:grid;grid-template-columns:1fr 1fr}.dialog-actions button{width:100%}}
 .launch-page{min-height:100dvh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 0,#1a3038,#0b1116 56%)}.launch-card{width:min(100%,360px);border:1px solid #47616b;border-top:5px solid var(--g);background:linear-gradient(145deg,#142129,var(--p));padding:32px;box-shadow:0 22px 70px #000d}.launch-card small{display:block;color:var(--g);font-weight:700}.launch-card h1{font-size:27px;margin:10px 0}.launch-card p{color:var(--m);margin:0 0 22px}.launch-pulse{height:5px;overflow:hidden;background:var(--l)}.launch-pulse::after{content:"";display:block;width:45%;height:100%;background:var(--te);animation:launch 1s ease-in-out infinite alternate}@keyframes launch{from{transform:translateX(-10%)}to{transform:translateX(145%)}}@media(prefers-reduced-motion:reduce){.launch-pulse::after{animation:none;width:100%}}
 .controller-access{display:flex;align-items:center;justify-content:flex-end;gap:12px}.controller-access #connection{min-width:0}.controller-access #controllerBtn{min-height:38px;padding:7px 13px;border-color:var(--g);color:var(--g);font-weight:700;white-space:nowrap}.controller-access #controllerBtn:hover{background:#d7ad5717}@media(max-width:600px){.controller-access{width:100%;justify-content:space-between;flex-wrap:wrap}.controller-access #controllerBtn{margin-left:auto}}
+
+/* T-076 · readable, touch-safe Alpha console from phone to projector. */
+button{min-height:44px;min-width:44px;padding:9px 12px;font-size:14px}
+#refreshBtn{width:44px;height:44px;padding:0}
+#editNick{min-height:44px;padding:8px 0;font-size:14px}
+.seat h3{font-size:18px;line-height:1.3}.seat-status{font-size:15px;line-height:1.45}
+.seat-top{font-size:12px}.legend{font-size:14px}
+.connection-message{font-size:15px}
+.launch-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}
+.launch-toolbar>a{flex:0 0 auto}
+.launch-toolbar [data-msv-theme-slot]{display:flex;min-width:0;justify-content:flex-end}
+@media(max-width:900px){
+  .shell{padding:20px 18px}
+  header{align-items:flex-start;flex-wrap:wrap}
+  .controller-access{width:100%;justify-content:space-between;flex-wrap:wrap}
+  .overview{grid-template-columns:1fr}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:640px){
+  .shell{padding:16px 12px}
+  .grid{grid-template-columns:1fr}
+  .heading,footer{align-items:flex-start;flex-direction:column;gap:10px}
+  .controller-access{align-items:flex-start}
+  .controller-access #connection{flex:1 1 210px}
+  .controller-access #controllerBtn{margin-left:0;white-space:normal}
+  aside{font-size:15px;line-height:1.55}
+}
+@media(max-width:430px){
+  .launch-card{padding:22px 18px}
+  .launch-toolbar{align-items:flex-start}
+}
+.console-identity{display:flex;min-width:0;align-items:center;gap:12px}
+.console-identity>div{min-width:0}
+@media(max-width:640px){.console-identity{width:100%}}

@@ -10,6 +10,7 @@ import hmac
 import json
 import mimetypes
 import os
+import re
 import secrets
 import sys
 import threading
@@ -58,11 +59,11 @@ SEATS = [
 SIM_EFFECTS = {
     "room-and-deal": {"chapterOrder": 1, "phase": "identity", "mentorCount": 4, "learnerCount": 4, "cardsPerLearner": [3, 3, 3, 3], "uniqueDealtCards": 12},
     "read-and-publish": {"phase": "intel-network", "publishedCards": 12},
-    "finish-find-chapter": {"chapterOrder": 2, "phase": "lobby", "intelligenceNodes": 4, "intelligenceEdges": 2, "challengeActions": 4, "allChallengeActionsTeam": True, "historyRevealed": False},
+    "finish-find-chapter": {"chapterOrder": 2, "phase": "lobby", "intelligenceNodes": 4, "intelligenceEdges": 2, "challengeActions": 4, "allChallengeActionsUnlabeled": True, "historyRevealed": False},
     "prepare-decide-value": {"chapterOrder": 2, "phase": "pdmo", "publishedCards": 12, "intelligenceNodes": 4, "intelligenceEdges": 2},
     "finish-decide-chapter": {"chapterOrder": 3, "phase": "lobby", "challengeActions": 4, "teamTreasuryTenths": 65},
     "prepare-build-mvp": {"chapterOrder": 3, "phase": "pdmo", "publishedCards": 12, "intelligenceNodes": 4, "intelligenceEdges": 2},
-    "run-build-pressure": {"phase": "growth", "challengeRound": 2, "challengeActions": 4, "allChallengeActionsTeam": True, "teamTreasuryTenths": 130},
+    "run-build-pressure": {"phase": "growth", "challengeRound": 2, "challengeActions": 4, "allChallengeActionsUnlabeled": True, "teamTreasuryTenths": 130},
     "finish-build-chapter": {"chapterOrder": 4, "phase": "lobby", "worldlineEntries": 8},
     "prepare-market": {"chapterOrder": 4, "phase": "pdmo", "publishedCards": 12, "intelligenceNodes": 4, "intelligenceEdges": 2},
     "finish-market-chapter": {"chapterOrder": 5, "phase": "lobby", "teamTreasuryTenths": 195, "worldlineEntries": 12},
@@ -200,7 +201,9 @@ class CourseController:
         else:
             if selected not in known_courses:
                 selected = DEFAULT_COURSE_ID
-            self.script = self.repository.load(selected)
+            # A newly created Alpha Run always starts on the current immutable
+            # Candidate.  Production Classroom reads the Released pointer.
+            self.script = self.repository.load(selected, variant="candidate")
         validate_script(self.script)
         self.lock = threading.RLock()
         self.api_factory = api_factory
@@ -212,7 +215,7 @@ class CourseController:
         self.state["courseId"] = self.script["course"]["id"]
         self.state["courseRevision"] = int((self.script.get("authoring") or {}).get("revision", 0))
         self.state["courseDigest"] = course_digest(self.script)
-        self.state.setdefault("courseVariant", (self.script.get("authoring") or {}).get("status", "published"))
+        self.state.setdefault("courseVariant", (self.script.get("authoring") or {}).get("status", "candidate"))
         self.state.setdefault("previewBlockIndex", self.state.get("currentBlockIndex", 0))
         self.state.setdefault("courseDeals", {})
         self.state.setdefault("refreshEpoch", 0)
@@ -247,13 +250,13 @@ class CourseController:
 
     @property
     def courses(self) -> list[dict[str, Any]]:
-        """Published catalogue is discovered on every request.
+        """Alpha candidate catalogue is discovered on every request.
 
         This makes a newly published JSON package appear in the controller
         without restarting the classroom service, while the active Run keeps
         its already-loaded immutable script object.
         """
-        return self.repository.list_published()
+        return self.repository.list_for_editor()["courses"]
 
     def _compatible(self, state: dict[str, Any] | None) -> bool:
         if not state or state.get("schemaVersion") not in {1, 2, 3, STATE_SCHEMA_VERSION}:
@@ -273,7 +276,7 @@ class CourseController:
         )
 
     def _new_adapter(self, persisted: dict[str, Any] | None) -> ClassroomApiAdapter | None:
-        return self.api_factory(persisted, self.script["case"]["campaignId"]) if self.api_factory else None
+        return self.api_factory(persisted, self.script["course"]["id"]) if self.api_factory else None
 
     def _new_state(self) -> dict[str, Any]:
         now = iso_now()
@@ -285,7 +288,7 @@ class CourseController:
             "courseId": self.script["course"]["id"],
             "courseRevision": int((self.script.get("authoring") or {}).get("revision", 0)),
             "courseDigest": course_digest(self.script),
-            "courseVariant": (self.script.get("authoring") or {}).get("status", "published"),
+            "courseVariant": "candidate",
             "runId": f"run-{time.strftime('%Y%m%d-%H%M%S')}-{secrets.token_hex(3)}",
             "createdAt": now,
             "updatedAt": now,
@@ -323,7 +326,7 @@ class CourseController:
             "roomVersion": 0,
             "mentorCount": 0,
             "learnerCount": 0,
-            "learnerPdmoCount": 0,
+            "learnerPdmoFields": 0,
             "cardsPerLearner": [0, 0, 0, 0],
             "uniqueDealtCards": 0,
             "publishedCards": 0,
@@ -331,7 +334,7 @@ class CourseController:
             "intelligenceEdges": 0,
             "challengeRound": None,
             "challengeActions": 0,
-            "allChallengeActionsTeam": True,
+            "allChallengeActionsUnlabeled": True,
             "teamTreasuryTenths": 0,
             "chapterRevenueTenths": 0,
             "chapterCostTenths": 0,
@@ -365,7 +368,7 @@ class CourseController:
             if started and not confirm_reset:
                 raise ValueError("当前课程已经开始；切换会创建一场全新的 Run，请先明确确认。")
 
-            candidate = self.repository.load(course_id)
+            candidate = self.repository.load(course_id, variant="candidate")
             validate_script(candidate)
             previous_script = self.script
             self.script = candidate
@@ -386,9 +389,8 @@ class CourseController:
         with self.lock:
             if self.state["status"] == "executing":
                 raise ValueError("当前块仍在执行，不能中途重置。请等它进入待验收或错误状态。")
-            # A reset is also the explicit moment at which the currently
-            # selected course may adopt a newly published JSON revision.
-            self.script = self.repository.load(self.script["course"]["id"])
+            # A reset explicitly starts a new Alpha run on current Candidate.
+            self.script = self.repository.load(self.script["course"]["id"], variant="candidate")
             self.state = self._new_state()
             self.adapter = self._new_adapter(None)
             self._hydrate_seats()
@@ -396,8 +398,8 @@ class CourseController:
             return self.public_state()
 
     def _latest_course(self) -> dict[str, Any]:
-        """Load the newest valid author copy (draft first, then published)."""
-        return self.repository.load(self.script["course"]["id"], variant="draft")
+        """Load the current immutable Candidate (Released fallback at r0)."""
+        return self.repository.load(self.script["course"]["id"], variant="candidate")
 
     def _course_update(self) -> dict[str, Any]:
         """Return an editor/run revision comparison without mutating the Run."""
@@ -406,7 +408,7 @@ class CourseController:
         try:
             latest = self._latest_course()
             latest_revision = int((latest.get("authoring") or {}).get("revision", 0))
-            latest_variant = (latest.get("authoring") or {}).get("status", "published")
+            latest_variant = "candidate"
             latest_digest = course_digest(latest)
             return {
                 "activeRevision": active_revision,
@@ -458,12 +460,42 @@ class CourseController:
 
                 previous_script = self.script
                 previous_state = copy.deepcopy(self.state)
+                previous_ref = {
+                    "courseId": previous_script["course"]["id"],
+                    "schemaVersion": previous_script["schemaVersion"],
+                    "revision": int(previous_state.get("courseRevision", 0)),
+                    "digest": str(previous_state.get("courseDigest", course_digest(previous_script))),
+                    "status": "candidate" if int(previous_state.get("courseRevision", 0)) > 0 else "released",
+                    "createdAt": (previous_script.get("authoring") or {}).get("createdAt"),
+                    "createdBy": (previous_script.get("authoring") or {}).get("createdBy"),
+                }
+                candidate_ref = {
+                    "courseId": candidate["course"]["id"],
+                    "schemaVersion": candidate["schemaVersion"],
+                    "revision": int((candidate.get("authoring") or {}).get("revision", 0)),
+                    "digest": course_digest(candidate),
+                    "status": "candidate" if int((candidate.get("authoring") or {}).get("revision", 0)) > 0 else "released",
+                    "createdAt": (candidate.get("authoring") or {}).get("createdAt"),
+                    "createdBy": (candidate.get("authoring") or {}).get("createdBy"),
+                }
                 self.script = candidate
+                rebound = False
                 try:
                     self._reconcile_course_deals()
-                    self.state["courseRevision"] = int((candidate.get("authoring") or {}).get("revision", 0))
-                    self.state["courseDigest"] = course_digest(candidate)
-                    self.state["courseVariant"] = (candidate.get("authoring") or {}).get("status", "published")
+                    # The real Classroom room must follow the exact same
+                    # Candidate as all eight Alpha views.  The server-side
+                    # compare-and-swap preserves all Run state and prevents a
+                    # stale controller from silently rebinding the room.
+                    if self.adapter and self.adapter.room_id:
+                        self.adapter.rebind_alpha_course(
+                            copy.deepcopy(candidate), candidate_ref, previous_ref, self.run_id,
+                        )
+                        rebound = True
+                    elif self.adapter:
+                        self.adapter.configure_alpha_course(copy.deepcopy(candidate), candidate_ref, self.run_id)
+                    self.state["courseRevision"] = candidate_ref["revision"]
+                    self.state["courseDigest"] = candidate_ref["digest"]
+                    self.state["courseVariant"] = "candidate"
                     self.state["previewBlockIndex"] = self.state["currentBlockIndex"]
                     self.state["refreshEpoch"] = int(self.state.get("refreshEpoch", 0)) + 1
                     self.state["lastRefreshAt"] = iso_now()
@@ -473,8 +505,23 @@ class CourseController:
                     self._hydrate_seats()
                     self._save()
                 except Exception:
+                    if rebound and self.adapter:
+                        try:
+                            self.adapter.rebind_alpha_course(
+                                copy.deepcopy(previous_script), previous_ref, candidate_ref, self.run_id,
+                            )
+                        except Exception as compensation_error:
+                            # Do not hide a cross-system inconsistency.  This
+                            # survives in the Run event log and blocks further
+                            # blind progress until an operator retries.
+                            self._event(
+                                "course.refresh.compensation-failed",
+                                f"课堂绑定补偿失败：{safe_error(compensation_error)}",
+                            )
                     self.script = previous_script
                     self.state = previous_state
+                    if self.adapter:
+                        self.adapter.configure_alpha_course(previous_script, previous_ref, self.run_id)
                     raise
                 return self.public_state()
             except Exception as exc:
@@ -529,6 +576,19 @@ class CourseController:
         block = self.script["blocks"][index]
         try:
             if self.adapter:
+                self.adapter.configure_alpha_course(
+                    copy.deepcopy(self.script),
+                    {
+                        "courseId": self.script["course"]["id"],
+                        "schemaVersion": self.script["schemaVersion"],
+                        "revision": int(self.state.get("courseRevision", 0)),
+                        "digest": str(self.state.get("courseDigest", course_digest(self.script))),
+                        "status": "candidate" if int(self.state.get("courseRevision", 0)) > 0 else "released",
+                        "createdAt": (self.script.get("authoring") or {}).get("createdAt"),
+                        "createdBy": (self.script.get("authoring") or {}).get("createdBy"),
+                    },
+                    self.state["runId"],
+                )
                 snapshot = self.adapter.execute(block["apiAction"], block)
             else:
                 time.sleep(0.08)
@@ -583,6 +643,26 @@ class CourseController:
             self._event("block.accepted", f"人工验收通过 {block_state['id']}。")
             if index == len(self.script["blocks"]) - 1:
                 self.state["status"] = "completed"
+                # Completion is the acceptance event, not a release.  Persist
+                # an exact receipt so later publication cannot approve a
+                # different revision that merely shares a course name.
+                revision = int(self.state.get("courseRevision", 0))
+                digest = str(self.state.get("courseDigest") or course_digest(self.script))
+                if revision > 0:
+                    approval = self.repository.approve(
+                        self.script["course"]["id"], revision, digest,
+                        self.state["runId"], digest,
+                        checks={
+                            "macroSteps": len(self.script["macroSteps"]),
+                            "blocks": len(self.script["blocks"]),
+                            "decks": len(self.script["decks"]),
+                            "cards": sum(len(deck["cards"]) for deck in self.script["decks"]),
+                            "manualAcceptance": True,
+                            "allBlocksPassed": all(item.get("status") == "passed" for item in self.state["blocks"]),
+                        },
+                    )
+                    self.state["courseApproval"] = approval
+                    self._event("candidate.approved", f"Alpha 已验收 exact Candidate r{revision} / {digest[:16]}。")
             else:
                 self.state["currentBlockIndex"] = index + 1
                 self.state["blocks"][index + 1]["status"] = "ready"
@@ -790,6 +870,9 @@ class LiveRunServer(ThreadingHTTPServer):
                     mime = mimetypes.guess_type(target.name)[0] or "application/octet-stream"
                     self.static_assets[f"/{name}"] = (target.read_bytes(), mime)
             break
+        favicon = ROOT.parents[1] / "public" / "favicon.svg"
+        if favicon.is_file():
+            self.static_assets["/favicon.svg"] = (favicon.read_bytes(), "image/svg+xml")
 
 
 class LiveRunHandler(BaseHTTPRequestHandler):
@@ -840,18 +923,28 @@ class LiveRunHandler(BaseHTTPRequestHandler):
             self._json(200, {"ok": True, "data": {"courseId": course_id, "history": history}})
             return
         if parsed.path.startswith("/api/courses/"):
-            course_id = unquote(parsed.path.removeprefix("/api/courses/"))
-            variant = parse_qs(parsed.query).get("variant", ["draft"])[0]
+            remainder = unquote(parsed.path.removeprefix("/api/courses/"))
+            exact_match = re.fullmatch(r"([^/]+)/revisions/(\d+)", remainder)
+            course_id = exact_match.group(1) if exact_match else remainder
+            query = parse_qs(parsed.query)
+            variant = query.get("channel", query.get("variant", ["candidate"]))[0]
             try:
-                value = self.server.controller.repository.load(course_id, variant=variant)
+                if exact_match:
+                    revision = int(exact_match.group(2)); digest = query.get("digest", [None])[0]
+                    value = self.server.controller.repository.load_ref(course_id, revision, digest)
+                    metadata = self.server.controller.repository.describe(course_id, variant=variant)
+                    metadata = {**metadata, "revision": revision, "digest": course_digest(value), "digestShort": course_digest(value)[:16], "exact": True}
+                else:
+                    value = self.server.controller.repository.load(course_id, variant=variant)
+                    metadata = self.server.controller.repository.describe(course_id, variant=variant)
             except ValueError as exc:
                 self._json(404, {"ok": False, "error": {"code": "COURSE_NOT_FOUND", "message": str(exc)}})
                 return
             self._json(200, {"ok": True, "data": {
                 "course": value,
-                "revision": int((value.get("authoring") or {}).get("revision", 0)),
-                "variant": (value.get("authoring") or {}).get("status", "published"),
-                "metadata": self.server.controller.repository.describe(course_id, variant=variant),
+                "revision": int(metadata["revision"]),
+                "variant": metadata.get("variant", variant),
+                "metadata": metadata,
             }})
             return
         if parsed.path == "/api/state":
@@ -872,7 +965,7 @@ class LiveRunHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:  # noqa: N802
         parsed = urlparse(self.path)
-        allowed_paths = {"/api/control", "/api/courses/validate", "/api/courses/save", "/api/courses/clone", "/api/courses/restore"}
+        allowed_paths = {"/api/control", "/api/courses/validate", "/api/courses/save", "/api/courses/release", "/api/courses/clone", "/api/courses/restore"}
         if parsed.path not in allowed_paths:
             self._json(404, {"ok": False, "error": {"code": "NOT_FOUND", "message": "没有这个控制入口。"}})
             return
@@ -957,44 +1050,50 @@ class LiveRunHandler(BaseHTTPRequestHandler):
             }
         if path == "/api/courses/save":
             value = payload.get("course")
-            status = payload.get("status")
             expected = payload.get("expectedRevision")
-            if status == "published":
-                validate_script(value)
-                approval = payload.get("approval")
-                digest = course_digest(value)
-                course_id = value["course"]["id"]
-                catalog_item = next(
-                    (item for item in repository.list_for_editor()["courses"] if item["id"] == course_id),
-                    None,
-                )
-                if not catalog_item or not catalog_item.get("hasDraft"):
-                    raise ValueError("正式发布必须来自已保存的 Candidate，不能跳过 Candidate 直接发布。")
-                candidate = repository.load(course_id, variant="draft")
-                if course_digest(candidate) != digest or expected != int((candidate.get("authoring") or {}).get("revision", -1)):
-                    raise ValueError("待发布内容不是当前 exact Candidate；请重新载入并验收同一 digest。")
-                state = self.server.controller.public_state()
-                if not isinstance(approval, dict):
-                    raise ValueError("正式发布必须附带 Alpha exact Candidate 验收回执。")
-                if approval.get("runId") != state.get("runId") or approval.get("digest") != digest:
-                    raise ValueError("验收回执与当前 Candidate digest 或 Alpha Run 不匹配。")
-                if state.get("courseId") != value["course"]["id"] or state.get("courseDigest") != digest:
-                    raise ValueError("Alpha 尚未加载这个 exact Candidate；请先明确刷新并完成测试。")
-                if state.get("status") != "completed" or approval.get("status") != "completed":
-                    raise ValueError("Alpha 尚未完成 13 个 Block 的人工验收，不能发布正式课堂。")
-                value = copy.deepcopy(value)
-                value.setdefault("authoring", {})["approval"] = {
-                    "runId": state["runId"], "digest": digest,
-                    "acceptedAt": state.get("updatedAt") or iso_now(),
-                    "blockCount": len(value["blocks"]), "status": "approved",
-                }
-            saved = repository.save(value, status=status, expected_revision=expected)
+            # ``status=draft`` is accepted only as a wire-compatibility alias;
+            # every save now creates an immutable Candidate.
+            status = payload.get("status", "candidate")
+            if status not in {"draft", "candidate"}:
+                raise ValueError("保存不会发布正式课堂；请使用独立的 Released 发布动作。")
+            ref = repository.save_candidate(value, expected_revision=expected)
+            saved = repository.load_ref(ref["courseId"], ref["revision"], ref["digest"])
             return {
                 "course": saved,
-                "revision": saved["authoring"]["revision"],
-                "status": saved["authoring"]["status"],
-                "metadata": repository.describe(saved["course"]["id"], variant=saved["authoring"]["status"]),
+                "revision": ref["revision"],
+                "status": "candidate",
+                "metadata": repository.describe(saved["course"]["id"], variant="candidate"),
                 "catalog": repository.list_for_editor(),
+            }
+        if path == "/api/courses/release":
+            course_id = payload.get("courseId"); revision = payload.get("revision"); digest = payload.get("digest")
+            if not isinstance(course_id, str) or not isinstance(revision, int) or not isinstance(digest, str):
+                raise ValueError("发布必须提供 courseId、revision 和完整 digest。")
+            state = self.server.controller.public_state()
+            if state.get("courseId") != course_id or state.get("courseRevision") != revision or state.get("courseDigest") != digest:
+                raise ValueError("Alpha 当前运行的不是待发布 exact Candidate。")
+            if state.get("status") != "completed":
+                raise ValueError("Alpha 尚未完成 13 个 Block 的逐块人工验收。")
+            # The final manual ``accept`` action must already have persisted an
+            # immutable approval.  Release is intentionally unable to mint its
+            # own receipt from an arbitrary completed-looking client state.
+            publish_to_classroom = None
+            if self.server.controller.adapter:
+                if not self.server.authorizer:
+                    raise ValueError("正式课堂课程注册表未配置 service key，禁止产生不完整发布。")
+                publish_to_classroom = lambda course, ref, approval: self.server.controller.adapter.publish_course_release(  # noqa: E731
+                    course, ref, approval, self.server.authorizer.service_key,
+                )
+            released = repository.release(
+                course_id,
+                revision,
+                digest,
+                before_pointer=publish_to_classroom,
+            )
+            value = repository.load_ref(course_id, revision, digest)
+            return {
+                "course": value, "revision": revision, "status": "released", "releasedRef": released,
+                "metadata": repository.describe(course_id, variant="released"), "catalog": repository.list_for_editor(),
             }
         if path == "/api/courses/clone":
             cloned = repository.clone(
@@ -1187,24 +1286,28 @@ def main() -> None:
     state_path = args.state_dir / "run-state.json"
     if args.fresh and state_path.exists():
         state_path.rename(args.state_dir / f"run-state-{int(time.time())}.bak.json")
-    api_factory = None
-    if args.api_base or args.accounts:
-        if not args.api_base or not args.accounts:
-            raise SystemExit("--api-base and --accounts must be provided together")
-        account_path = args.accounts.resolve()
-        api_factory = lambda persisted, campaign_id: ClassroomApiAdapter(  # noqa: E731
-            args.api_base, account_path, persisted, campaign_id=campaign_id,
-        )
-    course_dir = args.course_dir or (args.state_dir.parent / "courses")
-    repository = CourseRepository(user_dir=course_dir)
-    controller = CourseController(state_path, api_factory=api_factory, course_repository=repository)
-    token = secrets.token_urlsafe(32)
     authorizer = None
     if args.auth_session_url:
         try:
             authorizer = SessionAuthorizer(args.auth_session_url, args.service_key_file)
         except (OSError, ValueError) as exc:
             raise SystemExit(f"controller authorization configuration is invalid: {exc}") from exc
+    api_factory = None
+    if args.api_base or args.accounts:
+        if not args.api_base or not args.accounts:
+            raise SystemExit("--api-base and --accounts must be provided together")
+        account_path = args.accounts.resolve()
+        api_factory = lambda persisted, campaign_id: ClassroomApiAdapter(  # noqa: E731
+            args.api_base,
+            account_path,
+            persisted,
+            campaign_id=campaign_id,
+            service_key=authorizer.service_key if authorizer else None,
+        )
+    course_dir = args.course_dir or (args.state_dir.parent / "courses")
+    repository = CourseRepository(user_dir=course_dir)
+    controller = CourseController(state_path, api_factory=api_factory, course_repository=repository)
+    token = secrets.token_urlsafe(32)
     server = LiveRunServer(
         (args.host, args.port),
         controller,

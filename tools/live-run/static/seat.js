@@ -8,6 +8,8 @@
   const seatId = aliases[requested] || requested;
   const app = document.getElementById("seatApp");
   const Preview = window.MsvCoursePreview;
+  const cleanCardTitle = window.MsvCardView.cleanCardTitle;
+  const EVIDENCE_BOUNDARY_GUIDE = "F 有来源｜R 课堂模拟｜G 我们猜的｜U 还不知道";
   if (!Preview) throw new Error("共享席位渲染器未加载");
 
   function stateUrl() {
@@ -18,12 +20,14 @@
   }
   function render(data) {
     const model = Preview.runtimeSeatView(data, seatId);
+    if (model.kind === "learner") model.boundaryGuide = EVIDENCE_BOUNDARY_GUIDE;
+    if (model.kind === "learner") model.cards = (model.cards || []).map((card) => ({...card, title: cleanCardTitle(card.title)}));
     document.title = `${model.window} · ${model.title}`;
     app.innerHTML = Preview.renderSeatSurface(model, {editable: false});
   }
   function renderError(error) {
     const prefix = /领取|失效|LEASE/u.test(error.message) ? "请返回测试席位控制台重新领取：" : "1 秒后自动重连：";
-    app.innerHTML = `<article class="msv-seat-surface"><section class="surface-card"><h2>席位暂不可用</h2><p>${window.MsvCardView.escapeHtml(prefix + error.message)}</p></section></article>`;
+    app.innerHTML = `<article class="msv-seat-surface" data-preview="false"><section class="surface-card"><h2>席位暂不可用</h2><p>${window.MsvCardView.escapeHtml(prefix + error.message)}</p></section></article>`;
   }
   async function refresh() {
     try {

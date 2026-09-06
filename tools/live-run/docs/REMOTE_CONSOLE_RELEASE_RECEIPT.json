@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-09-03T10:51:25.225972+00:00",
+  "target": "http://192.168.50.243:18766/",
+  "networkBoundary": {
+    "scope": "LAN only",
+    "allowedSubnet": "192.168.50.0/24",
+    "listen": "0.0.0.0:18766",
+    "publicInternetExposure": false
+  },
+  "deployment": {
+    "host": "192.168.50.243",
+    "service": "MSV-Live-Run-Console",
+    "serviceState": "Running",
+    "activeReleaseId": "20260903T105105Z",
+    "previousReleaseId": "20260903T102829Z",
+    "node": "v24.19.0",
+    "stateDirectoryAclProtected": true,
+    "statePrincipals": [
+      "SYSTEM",
+      "Administrators"
+    ],
+    "sha256": {
+      "server.mjs": "1ed78b15e2b035b30ce34bcb015db33e2a38d9188088c3019e311c36062b69da",
+      "console.js": "22a23e3b352833b4bdd2c619977ce949adafeada56edf1ed453353b4022c5f22",
+      "console.css": "d7cdf73b872dcfed56ebad99befa37cb7cb82e5cd1ca248c4fd39e5ac4263e24",
+      "seat.js": "7bbe279769f8565967eb32179dc36ef561dfa7cdcb3dad51fe373ea366d47b4c"
+    },
+    "remoteServerHashMatches": true
+  },
+  "controllerTunnel": {
+    "service": "com.cyberforker.msv-live-run-tunnel",
+    "state": "running",
+    "remoteListen": "127.0.0.1:18765",
+    "controlPlaneLanExposed": false
+  },
+  "runtime": {
+    "controllerConnected": true,
+    "course": {
+      "name": "饿了么｜五步创业闭环",
+      "coverage": "完整课程 · 5 步 / 13 块"
+    },
+    "run": {
+      "status": "ready",
+      "currentBlock": 1,
+      "totalBlocks": 13,
+      "macroStepName": "找真问题"
+    },
+    "seatCount": 8,
+    "claimedSeatsAfterAcceptance": 0
+  },
+  "verified": {
+    "pythonUnitTests": 32,
+    "nodeRemoteConsoleSubtests": 3,
+    "gridMathLayouts": 5,
+    "fourConcurrentBrowsers": true,
+    "twoSeatsPerBrowser": true,
+    "allEightSeats": true,
+    "twelveUniqueLearnerCardsThroughIsolatedProjections": true,
+    "privilegedLanRoutesBlocked": true,
+    "claimSurvivesServiceRestart": true,
+    "rollbackFrom": "20260903T181500Z",
+    "rollbackTo": "20260903T101202Z",
+    "rollbackHealthPassed": true,
+    "desktopBrowserPassed": true,
+    "mobile390NoHorizontalOverflow": true,
+    "browserClaimAndRelease": true
+  },
+  "evidence": {
+    "multiClient": "REMOTE_CONSOLE_ACCEPTANCE_RECEIPT.json",
+    "browser": "REMOTE_CONSOLE_BROWSER_RECEIPT.json",
+    "desktopScreenshot": "assets/remote-console-eight-seats.png",
+    "mobileScreenshot": "assets/remote-console-mobile.png"
+  },
+  "containsCredentialsOrCapabilities": false
+}

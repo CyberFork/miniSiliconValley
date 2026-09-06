@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-09-03T10:49:32.081935+00:00",
+  "target": "http://192.168.50.243:18766",
+  "controllerConnected": true,
+  "course": {
+    "name": "饿了么｜五步创业闭环",
+    "coverage": "完整课程 · 5 步 / 13 块"
+  },
+  "run": {
+    "status": "awaiting-acceptance",
+    "currentBlock": 1,
+    "totalBlocks": 13,
+    "macroStepName": "找真问题",
+    "runId": "run-20260903-184930-869c5e"
+  },
+  "seatCount": 8,
+  "windowIds": [
+    "W00",
+    "W01",
+    "W02",
+    "W03",
+    "W04",
+    "W05",
+    "W06",
+    "W07"
+  ],
+  "simulatedBrowsers": 4,
+  "maxSeatsPerBrowser": 2,
+  "allSeatsClaimedConcurrently": true,
+  "conflictCode": "SEAT_BUSY",
+  "serverSideSeatProjections": [
+    {
+      "seatId": "mentor01",
+      "returnedSeatCount": 1,
+      "learnerViewKeys": [],
+      "privateCardCount": 0
+    },
+    {
+      "seatId": "learner01",
+      "returnedSeatCount": 1,
+      "learnerViewKeys": [
+        "learner01"
+      ],
+      "privateCardCount": 3
+    },
+    {
+      "seatId": "mentor02",
+      "returnedSeatCount": 1,
+      "learnerViewKeys": [],
+      "privateCardCount": 0
+    },
+    {
+      "seatId": "learner02",
+      "returnedSeatCount": 1,
+      "learnerViewKeys": [
+        "learner02"
+      ],
+      "privateCardCount": 3
+    },
+    {
+      "seatId": "mentor03",
+      "returnedSeatCount": 1,
+      "learnerViewKeys": [],
+      "privateCardCount": 0
+    },
+    {
+      "seatId": "learner03",
+      "returnedSeatCount": 1,
+      "learnerViewKeys": [
+        "learner03"
+      ],
+      "privateCardCount": 3
+    },
+    {
+      "seatId": "mentor04",
+      "returnedSeatCount": 1,
+      "learnerViewKeys": [],
+      "privateCardCount": 0
+    },
+    {
+      "seatId": "learner04",
+      "returnedSeatCount": 1,
+      "learnerViewKeys": [
+        "learner04"
+      ],
+      "privateCardCount": 3
+    }
+  ],
+  "uniquePrivateCards": 12,
+  "privilegedRoutesBlocked": {
+    "GET /api/bootstrap": 404,
+    "GET /api/script": 404,
+    "POST /api/control": 404
+  },
+  "containsCredentialsOrCapabilities": false
+}

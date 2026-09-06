@@ -19,12 +19,11 @@ PHASES = [
     "pdmo", "challenge-one", "challenge-two", "growth", "history", "debrief", "completed",
 ]
 
-# The compiled classroom Worker still validates the former build-time origin.
-# These values are used only on the Hecate loopback hop to 127.0.0.1:18787;
-# Gateway rewrites every browser-facing URL, redirect and Cookie to minisv.vip.
-# Do not use this compatibility origin as a public entry point.
-WORKER_COMPAT_ORIGIN = "https://work.cyberforker.com"
-WORKER_COMPAT_HOST = "work.cyberforker.com"
+# The controller reaches the Classroom Worker only over Hecate loopback, but
+# the Worker is built natively for the public first-party origin.  These headers
+# reproduce the trusted gateway hop without reviving the retired Work prefix.
+CLASSROOM_ORIGIN = "https://minisv.vip"
+CLASSROOM_HOST = "minisv.vip"
 
 
 def learner_evidence_boundary(card: dict[str, Any]) -> str:
@@ -67,7 +66,7 @@ class Account:
 
 
 class HttpSession:
-    def __init__(self, base_url: str, prefix: str = "/msv/demo/app") -> None:
+    def __init__(self, base_url: str, prefix: str = "") -> None:
         parsed = urlparse(base_url)
         if parsed.scheme not in {"http", "https"} or not parsed.hostname:
             raise ValueError(f"invalid classroom base URL: {base_url}")
@@ -78,7 +77,15 @@ class HttpSession:
         self.forwarded_prefix = prefix.rstrip("/")
         self.cookie: str | None = None
 
-    def request(self, method: str, path: str, body: Any | None = None, expected: int = 200) -> Any:
+    def request(
+        self,
+        method: str,
+        path: str,
+        body: Any | None = None,
+        expected: int = 200,
+        *,
+        extra_headers: dict[str, str] | None = None,
+    ) -> Any:
         connection_class = http.client.HTTPSConnection if self.scheme == "https" else http.client.HTTPConnection
         kwargs: dict[str, Any] = {"timeout": 25}
         if self.scheme == "https":
@@ -87,18 +94,21 @@ class HttpSession:
         payload = None if body is None else json.dumps(body, ensure_ascii=False).encode("utf-8")
         headers = {
             "Accept": "application/json",
-            "Host": WORKER_COMPAT_HOST,
-            "X-Forwarded-Host": WORKER_COMPAT_HOST,
+            "Host": CLASSROOM_HOST,
+            "X-Forwarded-Host": CLASSROOM_HOST,
             "X-Forwarded-Proto": "https",
-            "X-Forwarded-Prefix": self.forwarded_prefix,
             "User-Agent": "MSV-Live-Run-Controller/1.0",
         }
+        if self.forwarded_prefix:
+            headers["X-Forwarded-Prefix"] = self.forwarded_prefix
         if payload is not None:
             headers["Content-Type"] = "application/json"
-            headers["Origin"] = WORKER_COMPAT_ORIGIN
+            headers["Origin"] = CLASSROOM_ORIGIN
             headers["Content-Length"] = str(len(payload))
         if self.cookie:
             headers["Cookie"] = self.cookie
+        if extra_headers:
+            headers.update(extra_headers)
         try:
             connection.request(method, f"{self.base_path}{path}", body=payload, headers=headers)
             response = connection.getresponse()
@@ -139,10 +149,15 @@ class ClassroomApiAdapter:
         persisted: dict[str, Any] | None = None,
         *,
         campaign_id: str = "google-1995-2004",
+        service_key: str | None = None,
     ) -> None:
         self.base_url = base_url
         self.accounts_path = accounts_path
         self.campaign_id = campaign_id
+        self.service_key = service_key
+        self.course_package: dict[str, Any] | None = None
+        self.course_ref: dict[str, Any] | None = None
+        self.alpha_run_id: str | None = None
         self.accounts = self._load_accounts(accounts_path)
         self.sessions = {account.seat_id: HttpSession(base_url) for account in self.accounts}
         self.room_id: str | None = (persisted or {}).get("roomId")
@@ -170,7 +185,92 @@ class ClassroomApiAdapter:
         return accounts
 
     def export_refs(self) -> dict[str, Any]:
-        return {"roomId": self.room_id, "teamPublicId": self.team_public_id, "teamId": self.team_id}
+        return {
+            "roomId": self.room_id,
+            "teamPublicId": self.team_public_id,
+            "teamId": self.team_id,
+            "courseRef": self.course_ref,
+        }
+
+    def configure_alpha_course(
+        self,
+        course: dict[str, Any],
+        course_ref: dict[str, Any],
+        run_id: str,
+    ) -> None:
+        self.course_package = course
+        self.course_ref = course_ref
+        self.alpha_run_id = run_id
+
+    def rebind_alpha_course(
+        self,
+        course: dict[str, Any],
+        course_ref: dict[str, Any],
+        expected_ref: dict[str, Any],
+        run_id: str,
+    ) -> dict[str, Any]:
+        """Explicitly move an existing Alpha room to one exact Candidate.
+
+        The Classroom endpoint changes only the immutable course binding and
+        card ids that disappeared from the new deck.  Membership, execution
+        position, submissions and every ledger remain untouched.  Passing the
+        previous exact ref gives the operation compare-and-swap semantics so a
+        stale controller cannot overwrite a newer refresh.
+        """
+        if not self.service_key or len(self.service_key) < 32:
+            raise ClassroomApiError("course registry service key is invalid")
+        if not self.room_id:
+            raise ClassroomApiError("room has not been created")
+        data = HttpSession(self.base_url).request(
+            "POST",
+            "/api/internal/course-registry/alpha-rebind",
+            {
+                "runId": run_id,
+                "roomId": self.room_id,
+                "course": course,
+                "ref": course_ref,
+                "expectedRef": expected_ref,
+            },
+            extra_headers={"X-MSV-Course-Registry-Key": self.service_key},
+        )
+        actual = data.get("courseRef") if isinstance(data, dict) else None
+        if not isinstance(actual, dict):
+            raise ClassroomApiError("Classroom did not return the rebound course reference")
+        for key in ("courseId", "revision", "digest"):
+            if actual.get(key) != course_ref.get(key):
+                raise ClassroomApiError(f"Classroom Alpha reference mismatch: {key}")
+        self.configure_alpha_course(course, course_ref, run_id)
+        return data
+
+    def publish_course_release(
+        self,
+        course: dict[str, Any],
+        released_ref: dict[str, Any],
+        approval: dict[str, Any],
+        service_key: str,
+    ) -> dict[str, Any]:
+        """Atomically register one exact Released package in Classroom D1.
+
+        This call uses a fresh session without any learner/mentor cookie. The
+        public gateway rejects the endpoint; only the controller's Hecate
+        loopback URL and the shared 32+ character service key can reach it.
+        """
+        if not isinstance(service_key, str) or len(service_key) < 32:
+            raise ClassroomApiError("course registry service key is invalid")
+        session = HttpSession(self.base_url)
+        data = session.request(
+            "POST",
+            "/api/internal/course-registry/release",
+            {"course": course, "ref": released_ref, "approval": approval},
+            extra_headers={"X-MSV-Course-Registry-Key": service_key},
+        )
+        actual = data.get("releasedRef") if isinstance(data, dict) else None
+        if not isinstance(actual, dict):
+            raise ClassroomApiError("Classroom did not return a Released course reference")
+        for key in ("courseId", "revision", "digest"):
+            if actual.get(key) != released_ref.get(key):
+                raise ClassroomApiError(f"Classroom Released reference mismatch: {key}")
+        return actual
 
     def login_all(self) -> None:
         if self.logged_in:
@@ -198,14 +298,14 @@ class ClassroomApiAdapter:
             "room-and-deal": lambda: self._room_and_deal(lead),
             "read-and-publish": self._read_and_publish,
             "finish-find-chapter": lambda: self._network_problem_challenge_finish(lead),
-            "prepare-decide-value": lambda: self._prepare_chapter_to_pdmo(lead),
+            "prepare-decide-value": lambda: self._prepare_chapter_to_team_plan(lead),
             "finish-decide-chapter": lambda: self._challenge_and_finish(lead),
-            "prepare-build-mvp": lambda: self._prepare_chapter_to_pdmo(lead),
+            "prepare-build-mvp": lambda: self._prepare_chapter_to_team_plan(lead),
             "run-build-pressure": lambda: self._run_challenge_to_growth(lead),
             "finish-build-chapter": lambda: self._finish_from_growth(lead, advance=True),
-            "prepare-market": lambda: self._prepare_chapter_to_pdmo(lead),
+            "prepare-market": lambda: self._prepare_chapter_to_team_plan(lead),
             "finish-market-chapter": lambda: self._challenge_and_finish(lead),
-            "prepare-operations": lambda: self._prepare_chapter_to_pdmo(lead),
+            "prepare-operations": lambda: self._prepare_chapter_to_team_plan(lead),
             "run-operations-and-freeze": lambda: self._challenge_then_finish_final(lead),
             "submit-demo-and-complete": lambda: self._submit_demo(lead),
         }
@@ -249,10 +349,25 @@ class ClassroomApiAdapter:
                 "google-1995-2004": "Google 五步创业闭环",
                 "eleme-2008-find-problem": "2008 宿舍订餐五步创业闭环",
             }
-            created = self._session(mentor).request("POST", "/api/classroom/rooms", {
-                "title": f"LIVE RUN {labels.get(self.campaign_id, self.campaign_id)} {time.strftime('%m%d-%H%M')}",
-                "campaignId": self.campaign_id,
-            })
+            title = f"LIVE RUN {labels.get(self.campaign_id, self.campaign_id)} {time.strftime('%m%d-%H%M')}"
+            if self.service_key and self.course_package and self.course_ref and self.alpha_run_id:
+                created = HttpSession(self.base_url).request(
+                    "POST",
+                    "/api/internal/course-registry/alpha-room",
+                    {
+                        "title": title,
+                        "runId": self.alpha_run_id,
+                        "dmUsername": self.accounts[0].username,
+                        "course": self.course_package,
+                        "ref": self.course_ref,
+                    },
+                    extra_headers={"X-MSV-Course-Registry-Key": self.service_key},
+                )
+            else:
+                created = self._session(mentor).request("POST", "/api/classroom/rooms", {
+                    "title": title,
+                    "campaignId": self.campaign_id,
+                })
             self.room_id = created["roomId"]
             self.team_public_id = created["teamPublicId"]
             for account in self.accounts[1:4]:
@@ -279,8 +394,8 @@ class ClassroomApiAdapter:
             raise ClassroomApiError("expected four room facilitators")
         if len([m for m in members if m["role"] == "learner"]) != 4:
             raise ClassroomApiError("expected four learners")
-        if any(m.get("pdmoRole") for m in members if m["role"] == "learner"):
-            raise ClassroomApiError("learners must not be assigned P/D/M/O")
+        if any("pdmoRole" in m or "supportCommitment" in m for m in members if m["role"] == "learner"):
+            raise ClassroomApiError("learner API must not expose P/D/M/O assignment fields")
         learner_rooms = [self._room(f"learner{i:02d}") for i in range(1, 5)]
         card_ids = [card["id"] for state in learner_rooms for card in state["myCards"]]
         if len(card_ids) != 12 or len(set(card_ids)) != 12:
@@ -360,12 +475,12 @@ class ClassroomApiAdapter:
             })
             self._next(mentor)
         if self._room(mentor)["room"]["phase"] != "pdmo":
-            raise ClassroomApiError("expected pdmo handoff phase")
+            raise ClassroomApiError("expected team-plan handoff phase")
         members = self._room(mentor)["members"]
-        if any(member.get("pdmoRole") for member in members if member["role"] == "learner"):
-            raise ClassroomApiError("student P/D/M/O must remain optional and unused in this run")
+        if any("pdmoRole" in member or "supportCommitment" in member for member in members if member["role"] == "learner"):
+            raise ClassroomApiError("learner P/D/M/O assignment fields must not exist")
 
-    def _prepare_chapter_to_pdmo(self, mentor: str) -> None:
+    def _prepare_chapter_to_team_plan(self, mentor: str) -> None:
         if self._room(mentor)["room"]["phase"] == "lobby":
             self._action(mentor, {"type": "assign-and-deal"})
         self._assert_roster_and_deal()
@@ -419,8 +534,8 @@ class ClassroomApiAdapter:
         # rounds.  The gate concerns the four contributions in the current
         # round, not the eight historical rows across rounds one and two.
         actions = [action for action in challenge.get("actions", []) if action.get("round") == current_round]
-        if len(actions) != 4 or any(action.get("pdmo_role") != "TEAM" for action in actions):
-            raise ClassroomApiError("challenge contributions must be recorded as four TEAM actions")
+        if len(actions) != 4 or any("pdmo_role" in action for action in actions):
+            raise ClassroomApiError("challenge contributions must be four unlabeled Young Builder actions")
         learner_members = [member for member in state["members"] if member["role"] == "learner"]
         for member in learner_members:
             try:
@@ -570,7 +685,7 @@ class ClassroomApiAdapter:
             "roomVersion": int(state["room"].get("version", 0)),
             "mentorCount": len([member for member in state["members"] if member["role"] == "dm"]),
             "learnerCount": len([member for member in state["members"] if member["role"] == "learner"]),
-            "learnerPdmoCount": len([member for member in state["members"] if member["role"] == "learner" and member.get("pdmoRole")]),
+            "learnerPdmoFields": len([member for member in state["members"] if member["role"] == "learner" and ("pdmoRole" in member or "supportCommitment" in member)]),
             "cardsPerLearner": [len(item["myCards"]) for item in learner_states],
             "uniqueDealtCards": len({card["id"] for item in learner_states for card in item["myCards"]}),
             "publishedCards": len(state["intelligence"]["publishedCards"]),
@@ -578,7 +693,7 @@ class ClassroomApiAdapter:
             "intelligenceEdges": len(state["intelligence"]["edges"]),
             "challengeRound": challenge.get("round"),
             "challengeActions": len(current_actions),
-            "allChallengeActionsTeam": all(action.get("pdmo_role") == "TEAM" for action in current_actions),
+            "allChallengeActionsUnlabeled": all("pdmo_role" not in action for action in current_actions),
             "teamTreasuryTenths": economy.get("teamTreasuryTenths", 0),
             "chapterRevenueTenths": economy.get("chapterRevenueTenths", 0),
             "chapterCostTenths": economy.get("chapterCostTenths", 0),

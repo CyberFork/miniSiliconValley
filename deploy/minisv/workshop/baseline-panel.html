@@ -1,0 +1,65 @@
+<section class="workspace-section baseline-workspace" data-panel="baseline" aria-labelledby="baselineTitle" hidden>
+  <div class="section-heading baseline-heading">
+    <div><p class="eyebrow">RELEASED BASELINE · 只读投影</p><h1 id="baselineTitle">已确认基线与变更回流</h1><p>这里读取 Course Registry 的 exact Released revision / digest。基线不能原地改写；讨论只生成变更请求，再回到课程编辑器经历 Candidate → Alpha → Released。</p></div>
+    <span class="baseline-scope">PUBLIC · 已脱敏</span>
+  </div>
+
+  <section class="baseline-source" aria-label="基线版本来源">
+    <div><small>当前会议基线</small><strong id="baselineCurrentSource">尚未载入</strong><span id="baselineCurrentTime">等待人工确认</span></div>
+    <div><small>课程源最新 Released</small><strong id="baselineLatestSource">正在核验…</strong><span id="baselineLatestTime">—</span></div>
+    <div><small>同步状态</small><strong id="baselineLoadState" data-state="loading">读取中</strong><span>失败时继续使用上一版</span></div>
+    <label>查看课程<select id="baselineCourseSelect" aria-label="选择已确认课程"></select></label>
+  </section>
+  <div id="baselineError" class="baseline-error" role="alert" hidden></div>
+
+  <div class="baseline-actions">
+    <button class="button button--quiet" id="reloadBaselineSource" type="button">重新核验课程源</button>
+    <button class="button button--secondary" id="previewBaselineDiff" type="button" disabled>预览差异</button>
+    <button class="button button--primary" id="applyBaselineUpdate" type="button" disabled>刷新已确认基线</button>
+    <span>不会写入 Candidate、Alpha、Classroom、账本或手牌。</span>
+  </div>
+
+  <section class="baseline-diff" id="baselineDiff" aria-live="polite">
+    <b>差异尚未审阅</b><span>先点击“预览差异”；只有结构完整、digest 正确且不倒退的 Released 快照才能进入确认。</span>
+  </section>
+
+  <div class="baseline-summary-grid">
+    <article class="baseline-card baseline-locked">
+      <div class="baseline-card-head"><div><small>01 · CONFIRMED</small><h2>已确认基线</h2></div><span>🔒 只读</span></div>
+      <div id="baselineFramework" class="baseline-framework"><p>人工载入快照后显示 1·2·3·4·5·6 框架。</p></div>
+      <div id="baselineSteps" class="baseline-steps"></div>
+      <div id="baselineDecks" class="baseline-decks"></div>
+    </article>
+
+    <article class="baseline-card">
+      <div class="baseline-card-head"><div><small>02 · DISCUSSING</small><h2>讨论中提案</h2></div><span id="baselineProposalCount">0</span></div>
+      <form id="baselineProposalForm" class="baseline-form">
+        <label>提案标题<input id="baselineProposalTitle" maxlength="100" required placeholder="例如：把 B06 的验收动作改得更具体"></label>
+        <label>希望改变什么<textarea id="baselineProposalBody" maxlength="1200" required placeholder="写清当前问题、建议变化和验证方法；不会直接修改课程。"></textarea></label>
+        <label>负责人<input id="baselineProposalOwner" maxlength="60" required placeholder="姓名或团队角色"></label>
+        <button class="button button--secondary" type="submit">创建绑定当前 digest 的提案</button>
+      </form>
+      <div id="baselineProposalList" class="baseline-list"></div>
+    </article>
+
+    <article class="baseline-card">
+      <div class="baseline-card-head"><div><small>03 · MEETING DECISIONS</small><h2>会议决议</h2></div><span id="baselineDecisionCount">0</span></div>
+      <label class="baseline-actor">本次操作人<input id="baselineActor" maxlength="60" placeholder="记录谁作出决定"></label>
+      <p class="baseline-help">对提案明确选择“同意回流”或“拒绝”；决议与提案分开保存，更新基线时不会丢失。</p>
+      <div id="baselineDecisionList" class="baseline-list"></div>
+    </article>
+
+    <article class="baseline-card">
+      <div class="baseline-card-head"><div><small>04 · CHANGE REQUESTS</small><h2>待回流变更</h2></div><span id="baselineReturnCount">0</span></div>
+      <p class="baseline-help">这里只能导出结构化 Change Request。课程编辑器仍是唯一写入口；导入后必须重新走 Alpha 验收与 Released 发布。</p>
+      <div id="baselineReturnList" class="baseline-list"></div>
+      <button class="button button--primary" id="exportBaselineChanges" type="button" disabled>导出待回流变更 JSON</button>
+    </article>
+  </div>
+
+  <details class="baseline-audit"><summary>审计日志与数据边界</summary><p><b>公开快照已排除：</b>卡牌正文、导师脚本、账号、私密手牌、Run / Room 进度、RP、钱包、团队账本、令牌和服务器路径。</p><ol id="baselineAuditLog"></ol></details>
+
+  <dialog id="baselineConfirmDialog" class="baseline-dialog" aria-labelledby="baselineConfirmTitle">
+    <form method="dialog"><small>EXPLICIT BASELINE UPDATE</small><h2 id="baselineConfirmTitle">确认刷新已确认基线？</h2><p id="baselineConfirmSummary"></p><label>操作人<input id="baselineConfirmActor" maxlength="60" required></label><div><button class="button button--quiet" value="cancel">留下，继续审阅</button><button class="button button--primary" value="confirm">确认替换基线</button></div></form>
+  </dialog>
+</section>

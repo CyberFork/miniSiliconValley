@@ -24,6 +24,9 @@
   const MODE_NAMES = {yarn: "毛线式 · 获取交换信息", american: "美式 · 情境攻坚", euro: "德式 · 资源经营"};
   const MENTOR_NAMES = {mentor01: "P · 产品导师", mentor02: "D · 开发导师", mentor03: "M · 市场导师", mentor04: "O · 运营导师"};
   const SOURCE_NAMES = {bundled: "内置基线", authored: "团队课件"};
+  const LIBRARY_STORAGE_KEY = "minisv.course-editor.library-collapsed";
+  const compactLibraryMedia = window.matchMedia("(max-width: 1450px)");
+  const drawerLibraryMedia = window.matchMedia("(max-width: 1040px)");
 
   let token = "";
   let catalog = [];
@@ -54,6 +57,18 @@
   let savedSnapshot = "";
   let fieldSession = null;
   let savePromise = null;
+  let saveError = "";
+  let libraryPreference = null;
+  let libraryCollapsed = compactLibraryMedia.matches;
+  let libraryReturnFocus = null;
+
+  try {
+    const stored = window.localStorage.getItem(LIBRARY_STORAGE_KEY);
+    if (stored === "true" || stored === "false") {
+      libraryPreference = stored === "true";
+      libraryCollapsed = libraryPreference;
+    }
+  } catch { /* A blocked localStorage must never block authoring. */ }
 
   function endpoint(path) { return new URL(String(path).replace(/^\/+/, ""), BASE); }
   async function request(path, options = {}) {
@@ -89,6 +104,7 @@
   function setSaveState(value, state) { const node = $("#saveState"); node.textContent = value; node.dataset.state = state; }
   function markDirty(path = "") {
     dirty = true;
+    saveError = "";
     if (path) changedPaths.add(path);
     courseMeta = null;
     setSaveState("有未保存修改", "dirty");
@@ -107,6 +123,43 @@
   function syncRaw() { if (course) $("#rawJson").value = JSON.stringify(course, null, 2); }
   function catalogItem() { return catalog.find((item) => item.id === course?.course?.id) || null; }
 
+  function renderLibraryDisclosure() {
+    document.body.classList.toggle("library-collapsed", libraryCollapsed);
+    const content = $("#libraryContent");
+    content.hidden = libraryCollapsed;
+    const toggle = $("#closeLibrary");
+    toggle.setAttribute("aria-expanded", String(!libraryCollapsed));
+    toggle.setAttribute("aria-label", libraryCollapsed ? "展开课程库" : "收起课程库");
+    toggle.title = libraryCollapsed ? "展开课程库" : "收起课程库";
+    toggle.textContent = libraryCollapsed ? "→" : "←";
+    for (const selector of ["#openLibrary", "#topbarLibrary"]) {
+      const trigger = $(selector);
+      trigger.setAttribute("aria-expanded", String(!libraryCollapsed));
+      trigger.textContent = libraryCollapsed ? "展开课程库" : "收起课程库";
+    }
+    const drawerOpen = drawerLibraryMedia.matches && !libraryCollapsed;
+    document.body.classList.toggle("library-drawer-open", drawerOpen);
+    $("#libraryBackdrop").hidden = !drawerOpen;
+  }
+
+  function setLibraryCollapsed(collapsed, {persist = true, restoreFocus = false, trigger = null} = {}) {
+    libraryCollapsed = Boolean(collapsed);
+    if (!libraryCollapsed && trigger) libraryReturnFocus = trigger;
+    if (persist) {
+      libraryPreference = libraryCollapsed;
+      try { window.localStorage.setItem(LIBRARY_STORAGE_KEY, String(libraryCollapsed)); } catch { /* UI still works. */ }
+    }
+    renderLibraryDisclosure();
+    if (!libraryCollapsed && drawerLibraryMedia.matches) {
+      window.requestAnimationFrame(() => $("#closeLibrary").focus());
+    } else if (restoreFocus && libraryReturnFocus?.isConnected) {
+      window.requestAnimationFrame(() => libraryReturnFocus.focus());
+    }
+  }
+
+  function openLibrary(trigger) { setLibraryCollapsed(false, {trigger}); }
+  function closeLibrary({restoreFocus = false, persist = true} = {}) { setLibraryCollapsed(true, {persist, restoreFocus}); }
+
   async function loadCatalog() {
     const data = await request("api/courses");
     catalog = data.courses;
@@ -116,7 +169,7 @@
   function renderLibrary() {
     $("#courseList").innerHTML = catalog.map((item) => `<button class="course-item" data-course="${esc(item.id)}" aria-current="${course?.course?.id === item.id}">
       <b>${esc(item.name)}</b><small>${esc(item.period)} · ${esc(item.id)}</small>
-      <span>${item.deckCount || 0} 卡组 / ${item.cardCount || 0} 张卡 · ${item.hasDraft ? `Candidate r${item.draftRevision} · Released r${item.publishedRevision}` : `${SOURCE_NAMES[item.source] || "Released"} · r${item.publishedRevision}`}</span>
+      <span>${item.deckCount || 0} 卡组 / ${item.cardCount || 0} 张卡 · Candidate r${item.candidateRevision ?? item.draftRevision ?? 0} · Released r${item.releasedRevision ?? item.publishedRevision ?? 0}</span>
     </button>`).join("");
     document.querySelectorAll("[data-course]").forEach((button) => { button.onclick = () => {
       if (dirty) return toast("当前有未保存修改：请先保存 Candidate，再切换课程。", true);
@@ -130,7 +183,7 @@
   async function openCourse(courseId) {
     try {
       setSaveState("正在载入", "loading");
-      const data = await request(`api/courses/${encodeURIComponent(courseId)}?variant=draft`);
+      const data = await request(`api/courses/${encodeURIComponent(courseId)}?channel=candidate`);
       course = data.course;
       courseMeta = data.metadata || null;
       lastCandidateMeta = data.metadata || null;
@@ -149,13 +202,13 @@
       redoStack = [];
       changedPaths = new Set();
       savedSnapshot = JSON.stringify(course);
-      document.body.classList.add("library-collapsed");
+      if (drawerLibraryMedia.matches) closeLibrary({restoreFocus: true, persist: false});
       $("#emptyState").hidden = true;
       $("#editor").hidden = false;
       $("#download").disabled = false;
       resetCardFilters();
       renderAll();
-      setSaveState(data.variant === "draft" ? `Candidate r${revision} 已保存` : `Released r${revision}`, "saved");
+      setSaveState(`Candidate r${revision} 已载入`, "saved");
     } catch (error) {
       toast(error.message, true);
       setSaveState("载入失败", "error");
@@ -278,7 +331,7 @@
         ${field("交给队友时要说什么", `${dp}.sharePrompt`, {textarea: true, wide: true})}
       </div>
       <fieldset class="source-field"><legend>来源引用 ${card.boundary === "F" ? "· F 卡至少选 1 项" : "· 可留空"}</legend>${sourceChecks}</fieldset>
-      <div class="card-context-save"><span>保存会原子保存整门课程并生成新 Candidate；不会自动刷新 Alpha。</span><button type="button" class="button secondary" data-save-course>保存本次修改（整门课程）</button></div>`;
+      <div class="card-context-save" data-state="${saveError ? "error" : dirty ? "dirty" : "saved"}"><div><strong>保存整门 Course Package</strong><span id="cardSaveMeta">${saveError ? `上次保存失败：${esc(saveError)}；当前输入仍保留。` : dirty ? `Working Copy · ${changedPaths.size || 1} 处未保存 · 基线 Candidate r${revision}` : `Candidate r${revision} · digest ${esc(shortDigest(lastCandidateMeta?.digest || lastCandidateMeta?.digestShort || ""))}`}</span><small>一次保存包含五步、13 Block 和全部卡牌；不会自动刷新 Alpha。</small></div><button type="button" id="saveCardContext" class="button secondary" data-save-course data-save-context>保存整门课程</button></div>`;
     bindInputs($("#deckCardForm"), {card: true});
     $("#deckCardForm").querySelectorAll("[data-card-source]").forEach((input) => { input.onchange = () => {
       card.sourceIds = [...$("#deckCardForm").querySelectorAll("[data-card-source]:checked")].map((item) => item.dataset.cardSource);
@@ -497,7 +550,7 @@
     const source = courseMeta?.source || item?.source || "imported";
     node.innerHTML = `<div class="health-title"><span class="health-icon">${blocking ? "!" : "✓"}</span><div><b>${blocking ? "课程包不完整，已阻止发布" : dirty ? "完整课程包 · 有未保存修改" : "完整课程包 · 可以进入 Alpha"}</b><span>${blocking ? esc(health.issues[0]) : "5 步 / 13 块 / 每组至少 12 张；保存后仍需人工刷新 Alpha。"}</span></div></div>
       <div class="health-stats">
-        <div><b>${health.deckCount}/5</b><span>卡组</span></div><div><b>${health.cardCount}</b><span>卡牌（基线 60）</span></div><div><b>v${esc(course.schemaVersion)}</b><span>Schema</span></div><div><b>r${esc(revision)}</b><span>${(course.authoring?.status || courseMeta?.variant) === "draft" ? "Candidate" : "Released"}</span></div>
+        <div><b>${health.deckCount}/5</b><span>卡组</span></div><div><b>${health.cardCount}</b><span>卡牌（基线 60）</span></div><div><b>v${esc(course.schemaVersion)}</b><span>Schema</span></div><div><b>r${esc(revision)}</b><span>Candidate</span></div>
       </div>
       <details ${blocking ? "open" : ""}><summary>版本与数据诊断</summary><dl>
         <div><dt>编辑器资源</dt><dd>${esc(BUILD_ID)}</dd></div><div><dt>生产 release</dt><dd>${esc(releaseInfo?.release || "读取中")}</dd></div><div><dt>课程来源</dt><dd>${esc(SOURCE_NAMES[source] || source)}</dd></div><div><dt>课程 digest</dt><dd><code>${esc(digest)}</code></dd></div><div><dt>卡组分布</dt><dd>${esc(health.counts.join(" / ") || "—")}</dd></div><div><dt>Candidate / Released</dt><dd>r${esc(item?.draftRevision ?? 0)} / r${esc(item?.publishedRevision ?? 0)}</dd></div>
@@ -621,7 +674,7 @@
     const candidateDigest = lastCandidateMeta?.digest || "";
     const activeDigest = alphaState?.courseDigest || "";
     if (dirty) return {ok: false, reason: "先保存当前 Working Copy，生成不可变 Candidate。"};
-    if (!item?.hasDraft && lastCandidateMeta?.variant !== "draft") return {ok: false, reason: "当前没有待发布 Candidate；修改并保存后再验收。"};
+    if (!item?.candidateRef && !lastCandidateMeta?.candidateRef && revision <= 0) return {ok: false, reason: "当前没有待发布 Candidate；修改并保存后再验收。"};
     if (!alphaState || alphaState.courseId !== course?.course?.id) return {ok: false, reason: "Alpha 当前没有加载这门课程的 Candidate。"};
     if (!candidateDigest || shortDigest(candidateDigest) !== shortDigest(activeDigest)) return {ok: false, reason: "Alpha Active 与 Candidate digest 不一致；请明确刷新 Alpha。"};
     if (alphaState.status !== "completed") return {ok: false, reason: "exact Candidate 尚未完成 Alpha 全程验收。"};
@@ -631,7 +684,7 @@
     const node = $("#versionMatrix");
     if (!node || !course) return;
     const item = catalogItem();
-    const candidate = item?.hasDraft || lastCandidateMeta?.variant === "draft";
+    const candidate = Boolean(item?.candidateRef || lastCandidateMeta?.candidateRef || revision > 0);
     const alphaSameCourse = alphaState?.courseId === course.course.id;
     const candidateDigest = lastCandidateMeta?.digest || lastCandidateMeta?.digestShort || "";
     const alphaExact = alphaSameCourse && candidateDigest && shortDigest(candidateDigest) === shortDigest(alphaState?.courseDigest);
@@ -648,9 +701,22 @@
     document.querySelectorAll("[data-save-course]").forEach((button) => {
       button.disabled = !dirty || Boolean(savePromise) || inspectPackage().issues.length > 0;
       if (savePromise) button.textContent = "正在保存…";
+      else if (button.hasAttribute("data-save-context")) button.textContent = !dirty ? `Candidate r${revision} 已保存` : "保存整门课程";
       else if (!dirty) button.textContent = button.id === "saveCandidateDock" ? `Candidate r${revision} 已保存` : "保存 Candidate";
       else button.textContent = button.id === "saveCandidateDock" ? "保存整门课程" : "保存 Candidate";
     });
+    const cardMeta = $("#cardSaveMeta");
+    if (cardMeta) {
+      const dock = cardMeta.closest(".card-context-save");
+      dock.dataset.state = saveError ? "error" : savePromise ? "saving" : dirty ? "dirty" : "saved";
+      cardMeta.textContent = saveError
+        ? `上次保存失败：${saveError}；当前输入仍保留。`
+        : savePromise
+          ? `正在把完整 Working Copy 写成 Candidate r${revision + 1}…`
+          : dirty
+            ? `Working Copy · ${changedPaths.size || 1} 处未保存 · 基线 Candidate r${revision}`
+            : `Candidate r${revision} · digest ${lastCandidateMeta?.digest || lastCandidateMeta?.digestShort || "已保存"}`;
+    }
     $("#undoEdit").disabled = !undoStack.length || Boolean(savePromise);
     $("#redoEdit").disabled = !redoStack.length || Boolean(savePromise);
     renderVersionMatrix();
@@ -778,7 +844,7 @@
   function renderAll() {
     $("#courseKicker").textContent = `${course.course.id} · ${course.case.campaignId}`;
     $("#courseTitle").textContent = course.course.name;
-    $("#revisionLine").textContent = `当前基线 r${revision} · ${course.authoring?.status === "draft" ? "Candidate 可供 Alpha 显式加载" : "Released 正式版本"} · Working Copy 不会静默热更新任何 Run`;
+    $("#revisionLine").textContent = `当前基线 r${revision} · Candidate 可供 Alpha 显式加载 · Working Copy 不会静默热更新任何 Run`;
     renderMetadata(); renderSteps(); renderBlocks(); renderCardFilterSteps(); renderCardLibrary(); renderPackageHealth(); renderAlphaSync(); syncRaw(); renderLibrary(); setMode(mode);
     syncSaveControls();
   }
@@ -791,24 +857,28 @@
   }
   async function save(status) {
     if (savePromise) return savePromise;
-    if (status === "published" && inspectPackage().issues.length) return toast("课程包不完整，已阻止发布。请先查看顶部诊断。", true);
-    if (status === "published") {
+    const isRelease = status === "released";
+    if (isRelease && inspectPackage().issues.length) return toast("课程包不完整，已阻止发布。请先查看顶部诊断。", true);
+    if (isRelease) {
       const eligibility = releaseEligibility();
       if (!eligibility.ok) return toast(`不能发布正式课堂：${eligibility.reason}`, true);
     }
     savePromise = (async () => {
       try {
-        setSaveState(status === "published" ? "正在发布 Released" : "正在保存 Candidate", "loading");
+        saveError = "";
+        setSaveState(isRelease ? "正在移动 Released 指针" : "正在保存 Candidate", "loading");
         syncSaveControls();
-        const approval = status === "published" ? {runId: alphaState.runId, digest: alphaState.courseDigest, status: alphaState.status} : undefined;
-        const data = await post("api/courses/save", {course, status, expectedRevision: revision, approval});
+        const data = isRelease
+          ? await post("api/courses/release", {courseId: course.course.id, revision, digest: lastCandidateMeta?.digest || courseMeta?.digest})
+          : await post("api/courses/save", {course, status: "candidate", expectedRevision: revision});
         course = data.course; courseMeta = data.metadata || null; lastCandidateMeta = data.metadata || null; revision = data.revision; catalog = data.catalog.courses; diagnostics = data.catalog.diagnostics || []; dirty = false; changedPaths = new Set(); savedSnapshot = JSON.stringify(course);
         await refreshAlphaState(); renderAll();
-        setSaveState(status === "published" ? `Released r${revision}` : `Candidate r${revision} 已保存`, "saved");
-        toast(status === "published" ? "exact Candidate 已发布为 Released；既有课堂仍保持原绑定版本。" : `Candidate r${revision} 已保存。Alpha 只提示待加载；正式课堂完全不受影响。`);
+        setSaveState(isRelease ? `Released r${revision}` : `Candidate r${revision} 已保存`, "saved");
+        toast(isRelease ? "Released 指针已原子指向已验收的 exact Candidate；课程正文没有复制或改写，既有课堂保持原版本。" : `Candidate r${revision} 已保存。Alpha 只提示待加载；正式课堂完全不受影响。`);
         return data;
       } catch (error) {
-        setSaveState(status === "published" ? "发布失败" : "Candidate 保存失败", "error");
+        saveError = error.message || "未知保存错误";
+        setSaveState(isRelease ? "发布失败" : "Candidate 保存失败", "error");
         toast(error.message, true);
         return null;
       } finally {
@@ -846,7 +916,7 @@
       const data = await request(`api/courses/${encodeURIComponent(course.course.id)}/history`);
       const list = $("#historyList");
       list.innerHTML = data.history.length ? data.history.map((item) => `<article class="history-item">
-        <div><b>r${esc(item.revision)} · ${esc(item.status === "bundled" ? "内置基线" : item.status === "draft" ? "Candidate 快照" : "Released 快照")}</b><span>${esc(item.updatedAt || "随 release 提供")} · ${esc(item.deckCount)} 卡组 / ${esc(item.cardCount)} 张卡</span><code>${esc(item.digest.slice(0, 16))}</code></div>
+        <div><b>r${esc(item.revision)} · ${esc(item.status === "bundled" ? "内置基线" : item.status === "candidate" ? "当前 Candidate" : item.status === "released" ? "当前 Released" : "历史快照")}</b><span>${esc(item.updatedAt || "随 release 提供")} · ${esc(item.deckCount)} 卡组 / ${esc(item.cardCount)} 张卡${item.approved ? " · 已验收" : ""}</span><code>${esc(item.digest.slice(0, 16))}</code></div>
         ${item.revision === revision ? `<span class="current-revision">当前基线</span>` : `<button type="button" class="button ghost" data-restore-revision="${esc(item.revision)}">恢复为新 Candidate</button>`}
       </article>`).join("") : `<p>还没有历史修订。首次保存后会自动生成不可变快照。</p>`;
       list.querySelectorAll("[data-restore-revision]").forEach((button) => {
@@ -889,11 +959,13 @@
   $("#validate").onclick = validate;
   $("#historyButton").onclick = openHistory;
   $("#historyClose").onclick = () => $("#historyDialog").close();
-  $("#publish").onclick = () => save("published");
+  $("#publish").onclick = () => save("released");
   $("#undoEdit").onclick = undoEdit;
   $("#redoEdit").onclick = redoEdit;
-  $("#openLibrary").onclick = () => document.body.classList.remove("library-collapsed");
-  $("#closeLibrary").onclick = () => document.body.classList.add("library-collapsed");
+  $("#openLibrary").onclick = (event) => libraryCollapsed ? openLibrary(event.currentTarget) : closeLibrary();
+  $("#topbarLibrary").onclick = (event) => libraryCollapsed ? openLibrary(event.currentTarget) : closeLibrary();
+  $("#closeLibrary").onclick = (event) => libraryCollapsed ? openLibrary(event.currentTarget) : closeLibrary({restoreFocus: drawerLibraryMedia.matches});
+  $("#libraryBackdrop").onclick = () => closeLibrary({restoreFocus: true});
   $("#fieldClose").onclick = () => $("#fieldDialog").close();
   $("#previousBlock").onclick = () => selectedBlock(activeBlock - 1);
   $("#nextBlock").onclick = () => selectedBlock(activeBlock + 1);
@@ -951,7 +1023,14 @@
     if (command && event.key.toLowerCase() === "s") { event.preventDefault(); if (dirty) save("draft"); }
     if (command && event.key.toLowerCase() === "z" && !event.shiftKey && !$("#fieldDialog").open) { event.preventDefault(); undoEdit(); }
     if (command && (event.key.toLowerCase() === "y" || (event.key.toLowerCase() === "z" && event.shiftKey)) && !$("#fieldDialog").open) { event.preventDefault(); redoEdit(); }
+    if (event.key === "Escape" && drawerLibraryMedia.matches && !libraryCollapsed) { event.preventDefault(); closeLibrary({restoreFocus: true}); }
   });
+  compactLibraryMedia.addEventListener("change", (event) => {
+    if (libraryPreference === null) setLibraryCollapsed(event.matches, {persist: false});
+    else renderLibraryDisclosure();
+  });
+  drawerLibraryMedia.addEventListener("change", renderLibraryDisclosure);
   window.addEventListener("beforeunload", (event) => { if (dirty) { event.preventDefault(); event.returnValue = ""; } });
+  renderLibraryDisclosure();
   init();
 })();

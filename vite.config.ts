@@ -16,9 +16,23 @@ if (!publicBase.startsWith("/") || !publicBase.endsWith("/") || publicBase.inclu
   throw new Error(`MSV_PUBLIC_BASE must be a normalized absolute path ending in /: ${publicBase}`);
 }
 
+const runtimeVars: Record<string, string> = {};
+for (const key of [
+  "MSV_SELF_HOSTED_AUTH",
+  "MSV_APP_BASE_PATH",
+  "MSV_SITE_ORIGIN",
+  "MSV_CANONICAL_URL",
+  "MSV_123456_CANONICAL_URL",
+  "MSV_COURSE_REGISTRY_URL",
+  "MSV_COURSE_REGISTRY_KEY",
+]) {
+  if (process.env[key]) runtimeVars[key] = process.env[key]!;
+}
+
 const localBindingConfig = {
   main: "./worker/index.ts",
   compatibility_flags: ["nodejs_compat"],
+  vars: runtimeVars,
   d1_databases: d1
     ? [
         {
@@ -59,6 +73,9 @@ export default defineConfig(async () => {
       cloudflare({
         viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
         config: localBindingConfig,
+        persistState: process.env.MSV_PERSIST_PATH
+          ? { path: process.env.MSV_PERSIST_PATH }
+          : undefined,
       }),
     ],
   };

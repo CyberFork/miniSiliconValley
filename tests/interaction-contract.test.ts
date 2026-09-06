@@ -86,8 +86,19 @@ test("world UI contract retains timeline, keyboard, search, map pointer/pinch/wh
   assert.match(openEventHandler, /recordEventVisit\(current, event\.id\)/, "打开地图节点应只登记访问记录");
   assert.doesNotMatch(openEventHandler, /currentYear/, "打开地图节点不得改写当前时间轴年份");
   assert.doesNotMatch(world, /result\.evidenceIds\.join/, "学习档案不得暴露内部证据 ID");
-  assert.match(world, /<a href="\/course\/">课程大纲<\/a>/, "历史世界必须用稳定链接进入课程大纲");
+  assert.match(world, /<a href=\{publicPath\("\/course\/"\)\}>课程大纲<\/a>/, "历史世界必须用部署基址下的稳定链接进入课程大纲");
   assert.doesNotMatch(world, /view === "curriculum"|setView\("curriculum"\)|import \{ CurriculumOutline \}/, "不得保留第二套内存课程入口");
+});
+
+test("map tooltip raises the whole interacted hotspot above neighbouring stacking contexts", async () => {
+  const styles = await source("../app/globals.css");
+  assert.match(
+    styles,
+    /\.map-hotspot:hover,\s*\.map-hotspot:focus-visible,\s*\.map-hotspot:active\s*\{\s*z-index:\s*30\s*;?\s*\}/,
+    "必须提升 map-hotspot 父容器；只提高 tooltip 子元素无法越过兄弟 stacking context",
+  );
+  assert.match(styles, /\.map-viewport\s*\{[^}]*overflow:\s*hidden/, "地图视口仍应裁切视口外内容");
+  assert.match(styles, /\.hotspot-label\s*\{[^}]*pointer-events:\s*none/, "提示卡不得拦截节点点击");
 });
 
 test("modal contract traps focus, closes safely and exposes dialog semantics", async () => {

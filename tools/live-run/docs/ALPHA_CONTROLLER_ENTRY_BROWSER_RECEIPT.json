@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-09-04T02:51:42.940007+00:00",
+  "target": "https://work.cyberforker.com/msv/alpha/",
+  "browser": "Chrome/151.0.7922.176",
+  "buttonVisible": true,
+  "controllerReached": true,
+  "controllerTitle": "LIVE RUN SCRIPT",
+  "independentPopup": true,
+  "stableWindowReused": true,
+  "openerIsNull": true,
+  "popupBounds": {
+    "left": 24,
+    "top": 0,
+    "width": 752,
+    "height": 600,
+    "windowState": "normal"
+  },
+  "privilegedApiExposedByAlpha": false,
+  "containsCredentialsOrCapabilities": false,
+  "screenshot": "tools/live-run/docs/assets/alpha-controller-entry.png"
+}

@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://minisv.vip/workshop/workshop-snapshot.schema.json",
+  "title": "Mini Silicon Valley Workshop public released-baseline snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["snapshotVersion", "generatedAt", "generatedBy", "scope", "source", "confirmedFramework", "mentorRoles", "courses", "acceptedDecisions", "acceptanceReceipts", "redaction", "integrity"],
+  "properties": {
+    "snapshotVersion": { "const": 1 },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "generatedBy": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "scope": { "const": "public-redacted-summary" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["registry", "channel", "courseCount", "aggregateDigest"],
+      "properties": {
+        "registry": { "const": "course-registry" },
+        "channel": { "const": "released" },
+        "courseCount": { "type": "integer", "minimum": 1 },
+        "aggregateDigest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "confirmedFramework": { "type": "object" },
+    "mentorRoles": { "type": "array", "minItems": 4, "maxItems": 4 },
+    "courses": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/course" }
+    },
+    "acceptedDecisions": { "type": "array" },
+    "acceptanceReceipts": { "type": "array" },
+    "redaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["included", "excluded"],
+      "properties": { "included": { "type": "string" }, "excluded": { "type": "string" } }
+    },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "digest"],
+      "properties": { "algorithm": { "const": "sha256" }, "digest": { "$ref": "#/$defs/digest" } }
+    }
+  },
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "course": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["courseId", "schemaVersion", "revision", "digest", "status", "releasedAt", "title", "caseName", "period", "summary", "macroSteps", "blocks", "deckSummary", "sourceSummary"],
+      "properties": {
+        "courseId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{2,63}$" },
+        "schemaVersion": { "const": 1 },
+        "revision": { "type": "integer", "minimum": 0 },
+        "digest": { "$ref": "#/$defs/digest" },
+        "status": { "const": "released" },
+        "releasedAt": { "type": ["string", "null"] },
+        "title": { "type": "string" },
+        "caseName": { "type": "string" },
+        "period": { "type": "string" },
+        "summary": { "type": "string" },
+        "macroSteps": { "type": "array", "minItems": 5, "maxItems": 5 },
+        "blocks": { "type": "array", "minItems": 13, "maxItems": 13 },
+        "deckSummary": { "type": "array", "minItems": 5, "maxItems": 5 },
+        "sourceSummary": { "type": "object" }
+      }
+    }
+  }
+}

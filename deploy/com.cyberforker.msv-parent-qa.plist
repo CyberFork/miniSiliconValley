@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.cyberforker.msv-parent-qa</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/node</string>
+    <string>/Users/hecate/Services/msv-parent-qa/current/server.mjs</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/hecate/Services/msv-parent-qa/current</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key>
+    <string>/Users/hecate</string>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>NO_COLOR</key>
+    <string>1</string>
+    <key>QA_HOST</key>
+    <string>127.0.0.1</string>
+    <key>QA_AUTOSTART</key>
+    <string>1</string>
+    <key>QA_PORT</key>
+    <string>18789</string>
+    <key>QA_ENV_FILE</key>
+    <string>/Users/hecate/Services/msv-parent-qa/secrets/deepseek.env</string>
+    <key>QA_KNOWLEDGE_GAP_FILE</key>
+    <string>/Users/hecate/Services/msv-parent-qa/data/knowledge-gaps.ndjson</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ProcessType</key>
+  <string>Background</string>
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+  <key>StandardOutPath</key>
+  <string>/Users/hecate/Services/msv-parent-qa/logs/stdout.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/hecate/Services/msv-parent-qa/logs/stderr.log</string>
+</dict>
+</plist>

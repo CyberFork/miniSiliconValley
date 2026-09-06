@@ -56,27 +56,26 @@ class CourseEditorTests(unittest.TestCase):
         for marker in ("previewBack", "previewForward", "refreshCourse", "versionPanel"):
             self.assertIn(marker, html)
 
-    def test_clone_draft_publish_and_runtime_discovery(self):
+    def test_clone_candidate_and_alpha_runtime_discovery(self):
         _, cloned = self.request("POST", "/api/courses/clone", {
             "sourceCourseId": "google-1995-2004", "newCourseId": "sample-course-2010", "newName": "样例课程｜五步闭环",
         })
         value = cloned["data"]["course"]
-        self.assertEqual(value["authoring"]["status"], "draft")
+        self.assertEqual(value["authoring"]["status"], "candidate")
         self.assertNotIn("sample-course-2010", {x["id"] for x in self.repository.list_published()})
         value["course"]["description"] = "一份经过编辑的完整课程。"
-        saved = self.repository.save(value, status="published", expected_revision=1)
+        saved = self.repository.save(value, status="candidate", expected_revision=1)
         self.assertEqual(saved["authoring"]["revision"], 2)
         self.assertEqual(len(saved["decks"]), 5)
-        self.assertIn("sample-course-2010", {x["id"] for x in self.repository.list_published()})
-        status, loaded = self.request("GET", "/api/courses/sample-course-2010?variant=published")
+        self.assertIn("sample-course-2010", {x["id"] for x in self.repository.list_for_editor()["courses"]})
+        status, loaded = self.request("GET", "/api/courses/sample-course-2010?channel=candidate")
         self.assertEqual(status, 200); self.assertEqual(loaded["data"]["course"]["course"]["description"], value["course"]["description"])
 
     def test_formal_release_requires_completed_exact_candidate_receipt(self):
         base = self.repository.load("google-1995-2004")
         self.controller.state["status"] = "completed"
-        status, body = self.request("POST", "/api/courses/save", {
-            "course": base, "status": "published", "expectedRevision": 0,
-            "approval": {"runId": self.controller.state["runId"], "digest": course_digest(base), "status": "completed"},
+        status, body = self.request("POST", "/api/courses/release", {
+            "courseId": base["course"]["id"], "revision": 0, "digest": course_digest(base),
         })
         self.assertEqual(status, 409); self.assertIn("Candidate", body["error"]["message"])
 
@@ -86,26 +85,25 @@ class CourseEditorTests(unittest.TestCase):
         digest = course_digest(candidate)
         self.controller.refresh_course()
 
-        status, body = self.request("POST", "/api/courses/save", {
-            "course": candidate, "status": "published", "expectedRevision": 1,
+        status, body = self.request("POST", "/api/courses/release", {
+            "courseId": candidate["course"]["id"], "revision": 1, "digest": digest,
         })
         self.assertEqual(status, 409); self.assertIn("验收回执", body["error"]["message"])
 
         self.controller.state["status"] = "completed"
-        status, body = self.request("POST", "/api/courses/save", {
-            "course": candidate, "status": "published", "expectedRevision": 1,
-            "approval": {"runId": self.controller.state["runId"], "digest": "wrong", "status": "completed"},
+        status, body = self.request("POST", "/api/courses/release", {
+            "courseId": candidate["course"]["id"], "revision": 1, "digest": "wrong",
         })
-        self.assertEqual(status, 409); self.assertIn("不匹配", body["error"]["message"])
+        self.assertEqual(status, 409); self.assertIn("exact Candidate", body["error"]["message"])
 
-        status, body = self.request("POST", "/api/courses/save", {
-            "course": candidate, "status": "published", "expectedRevision": 1,
-            "approval": {"runId": self.controller.state["runId"], "digest": digest, "status": "completed"},
+        self.repository.approve(candidate["course"]["id"], 1, digest, self.controller.state["runId"], digest)
+        status, body = self.request("POST", "/api/courses/release", {
+            "courseId": candidate["course"]["id"], "revision": 1, "digest": digest,
         })
         self.assertEqual(status, 200)
         released = body["data"]["course"]
         self.assertEqual(course_digest(released), digest)
-        self.assertEqual(released["authoring"]["approval"]["digest"], digest)
+        self.assertEqual(body["data"]["releasedRef"]["digest"], digest)
 
     def test_invalid_json_path_and_revision_conflict_are_visible(self):
         value = self.repository.load("google-1995-2004")
@@ -125,7 +123,9 @@ class CourseEditorTests(unittest.TestCase):
         original = self.controller.script["course"]["description"]
         edited = self.repository.load("google-1995-2004")
         edited["course"]["description"] = "新发布版不应热替换正在上课的 Run。"
-        self.repository.save(edited, status="published", expected_revision=0)
+        ref = self.repository.save_candidate(edited, expected_revision=0)
+        self.repository.approve("google-1995-2004", ref["revision"], ref["digest"], "run-release-test", ref["digest"])
+        self.repository.release("google-1995-2004", ref["revision"], ref["digest"])
         restarted = CourseController(Path(self.tmp.name) / "run-state.json", course_repository=self.repository)
         self.assertEqual(restarted.script["course"]["description"], original)
         restarted.reset()

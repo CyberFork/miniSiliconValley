@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.cyberforker.msv-classroom</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/node</string>
+    <string>/Users/hecate/Services/msv-classroom/runtime/node_modules/wrangler/bin/wrangler.js</string>
+    <string>dev</string>
+    <string>--config</string>
+    <string>/Users/hecate/Services/msv-classroom/current/dist/server/wrangler.json</string>
+    <string>--env-file</string>
+    <string>/Users/hecate/Services/minisv/secrets/classroom.env</string>
+    <string>--persist-to</string>
+    <string>/Users/hecate/Services/msv-classroom/data</string>
+    <string>--ip</string>
+    <string>127.0.0.1</string>
+    <string>--port</string>
+    <string>18787</string>
+    <string>--no-show-interactive-dev-session</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/hecate/Services/msv-classroom/current/dist/server</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key>
+    <string>/Users/hecate</string>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>NO_COLOR</key>
+    <string>1</string>
+    <key>WRANGLER_SEND_METRICS</key>
+    <string>false</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ProcessType</key>
+  <string>Background</string>
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+  <key>StandardOutPath</key>
+  <string>/Users/hecate/Services/msv-classroom/logs/stdout.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/hecate/Services/msv-classroom/logs/stderr.log</string>
+</dict>
+</plist>

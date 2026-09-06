@@ -12,13 +12,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 TEXT_SUFFIXES = {".html", ".css", ".js", ".mjs", ".json", ".svg", ".md", ".txt", ".webmanifest"}
-REQUIRED_PAGES = ("index.html", "world/index.html", "course/index.html", "framework/index.html", "parents/index.html", "workshop/index.html")
+REQUIRED_PAGES = ("index.html", "404.html", "world/index.html", "course/index.html", "framework/index.html", "parents/index.html", "workshop/index.html")
 PUBLIC_COURSE_NAV_PAGES = ("index.html", "world/index.html")
 FORBIDDEN = ("work.cyberforker.com", "192.168.", "127.0.0.1:18765", "/msv/", r"\/msv\/")
 THEME_VERSION = "20260906-9"
 THEME_ASSETS = f'<link rel="stylesheet" href="/ui-theme.css?v={THEME_VERSION}"><script src="/ui-theme.js?v={THEME_VERSION}"></script>'
 CHJ_COURSE_UI_SHA = "679213a61b835335016eac7649213983a0e48489"
 CHJ_COURSE_UI_TREE = "3a041c4714190cc026f6de8e06e15cec0e5f765d"
+WORKSHOP_OVERLAY = Path(__file__).resolve().parent / "workshop"
+MAX_WORKSHOP_SNAPSHOT_BYTES = 1024 * 1024
 
 
 def copy_entry(source: Path, target: Path) -> None:
@@ -87,6 +89,135 @@ def transform_tree(root: Path) -> None:
             path.write_text(changed, encoding="utf-8")
 
 
+def normalize_framework_brand(page: Path) -> None:
+    """Upgrade only the owned framework shell; never touch opaque /course/."""
+    if not page.is_file():
+        return
+    text = page.read_text(encoding="utf-8")
+    if "COURSE SYSTEM" not in text:
+        return
+    text = text.replace(
+        'href="#top" aria-label="返回页面顶部"',
+        'href="/" aria-label="返回 Mini Silicon Valley 主页"',
+        1,
+    )
+    text = text.replace(
+        '<b>MSV</b><span>COURSE SYSTEM',
+        '<img src="/favicon.svg" alt="" width="44" height="44" style="width:44px;height:44px;object-fit:contain;flex:0 0 44px"><span>COURSE SYSTEM',
+        1,
+    )
+    page.write_text(text, encoding="utf-8")
+
+
+def canonical_digest(value: object) -> str:
+    body = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(body).hexdigest()
+
+
+def validate_workshop_snapshot(path: Path) -> dict:
+    if not path.is_file() or path.stat().st_size > MAX_WORKSHOP_SNAPSHOT_BYTES:
+        raise ValueError("Workshop snapshot is missing or exceeds 1 MiB")
+    try:
+        snapshot = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("Workshop snapshot is not valid UTF-8 JSON") from exc
+    if not isinstance(snapshot, dict) or snapshot.get("snapshotVersion") != 1 or snapshot.get("scope") != "public-redacted-summary":
+        raise ValueError("Workshop snapshot is not a public-redacted v1 projection")
+    source, courses = snapshot.get("source"), snapshot.get("courses")
+    if not isinstance(source, dict) or source.get("registry") != "course-registry" or source.get("channel") != "released":
+        raise ValueError("Workshop snapshot does not originate from Released")
+    if not isinstance(courses, list) or not courses or source.get("courseCount") != len(courses):
+        raise ValueError("Workshop snapshot course count is incomplete")
+    refs = []
+    for course in courses:
+        if not isinstance(course, dict) or course.get("status") != "released" or not re.fullmatch(r"[0-9a-f]{64}", str(course.get("digest", ""))):
+            raise ValueError("Workshop snapshot contains a non-Released course ref")
+        if not isinstance(course.get("revision"), int) or course["revision"] < 0:
+            raise ValueError("Workshop snapshot revision is invalid")
+        if [item.get("id") for item in course.get("macroSteps", [])] != ["find", "decide", "build", "market", "operate"]:
+            raise ValueError("Workshop snapshot does not use the confirmed five steps")
+        if len(course.get("blocks", [])) != 13 or [item.get("order") for item in course["blocks"]] != list(range(1, 14)):
+            raise ValueError("Workshop snapshot does not contain 13 ordered Blocks")
+        decks = course.get("deckSummary", [])
+        if len(decks) != 5 or any(item.get("cardCount", 0) < 12 for item in decks):
+            raise ValueError("Workshop snapshot card decks are incomplete")
+        refs.append({key: course[key] for key in ("courseId", "schemaVersion", "revision", "digest", "status")})
+    if source.get("aggregateDigest") != canonical_digest(refs):
+        raise ValueError("Workshop snapshot aggregate digest is invalid")
+    integrity = snapshot.get("integrity")
+    unsigned = {key: value for key, value in snapshot.items() if key != "integrity"}
+    if not isinstance(integrity, dict) or integrity.get("algorithm") != "sha256" or integrity.get("digest") != canonical_digest(unsigned):
+        raise ValueError("Workshop snapshot integrity digest is invalid")
+    serialized = json.dumps(snapshot, ensure_ascii=False)
+    for forbidden in ('"mentorScript"', '"seatTasks"', '"privateConcern"', '"walletTenths"', '"teamTreasuryTenths"', '"lease":'):
+        if forbidden in serialized:
+            raise ValueError(f"Workshop snapshot leaks private field {forbidden}")
+    return snapshot
+
+
+def apply_workshop_overlay(workshop: Path, snapshot_source: Path | None = None) -> None:
+    """Add the versioned Released-baseline projection without forking Workshop state."""
+    required = (
+        "baseline-panel.html", "baseline.css", "baseline.js",
+        "confirmed-baseline.json", "workshop-snapshot.schema.json",
+    )
+    source_snapshot = snapshot_source or (WORKSHOP_OVERLAY / "confirmed-baseline.json")
+    missing = [name for name in required if not ((source_snapshot if name == "confirmed-baseline.json" else WORKSHOP_OVERLAY / name)).is_file()]
+    if missing:
+        raise ValueError(f"Workshop overlay is incomplete: {', '.join(missing)}")
+    validate_workshop_snapshot(source_snapshot)
+    page = workshop / "index.html"
+    text = page.read_text(encoding="utf-8")
+    if "msv-workshop-released-baseline" in text:
+        raise ValueError("Workshop baseline overlay was applied twice")
+
+    # The public Snapshot is same-origin and redacted; all other network and
+    # embedding restrictions remain unchanged.
+    text = text.replace("connect-src 'none'", "connect-src 'self'", 1)
+    text = text.replace("img-src data:", "img-src 'self' data:", 1)
+    if 'rel="icon"' not in text:
+        text = text.replace("</title>", '</title>\n  <link rel="icon" href="/favicon.svg">', 1)
+
+    old_brand = re.compile(
+        r'<div class="brand-lockup"[^>]*>\s*<span class="brand-mark"[^>]*>MSV</span>\s*<span>(.*?)</span>\s*</div>\s*<div class="session-health">',
+        re.DOTALL,
+    )
+    replacement = (
+        '<a class="brand-lockup msv-static-brand" href="/" aria-label="返回 Mini Silicon Valley 主页">'
+        '<img src="/favicon.svg" alt="" width="64" height="64"><span>\\1</span></a>'
+        '\n    <div class="session-health" data-msv-theme-slot>'
+    )
+    text, brand_count = old_brand.subn(replacement, text, count=1)
+    if brand_count != 1:
+        raise ValueError("Workshop brand shell was not recognized")
+
+    nav_marker = '<button class="nav-item" type="button" data-section="decisions">'
+    nav_item = '<button class="nav-item" type="button" data-section="baseline"><span>01A</span>已确认基线 <b id="baselineNavBadge">R</b></button>\n        '
+    if nav_marker not in text:
+        raise ValueError("Workshop navigation marker is missing")
+    text = text.replace(nav_marker, nav_item + nav_marker, 1)
+
+    panel = (WORKSHOP_OVERLAY / "baseline-panel.html").read_text(encoding="utf-8")
+    main_end = "</main>"
+    if main_end not in text:
+        raise ValueError("Workshop workspace closing marker is missing")
+    text = text.replace(main_end, f"      <!-- msv-workshop-released-baseline -->\n      {panel}\n    {main_end}", 1)
+    text = text.replace("</head>", '  <link rel="stylesheet" href="baseline.css">\n</head>', 1)
+    text = text.replace("</body>", '  <script src="baseline.js"></script>\n</body>', 1)
+    page.write_text(text, encoding="utf-8")
+
+    for name in required[1:]:
+        copy_entry(source_snapshot if name == "confirmed-baseline.json" else WORKSHOP_OVERLAY / name, workshop / name)
+
+    verified = page.read_text(encoding="utf-8")
+    for marker in (
+        "msv-workshop-released-baseline", 'href="/" aria-label="返回 Mini Silicon Valley 主页"',
+        'src="/favicon.svg"', 'data-msv-theme-slot', 'data-panel="baseline"', 'src="baseline.js"', 'href="baseline.css"',
+    ):
+        if marker not in verified:
+            raise ValueError(f"Workshop overlay is missing marker {marker!r}")
+
+
 def tree_digest(root: Path) -> tuple[str, int, int]:
     """Hash a directory without changing a byte in it."""
     digest = hashlib.sha256()
@@ -116,6 +247,7 @@ def build(
     main_sha: str = "uncommitted",
     chj_sha: str = CHJ_COURSE_UI_SHA,
     chj_tree: str = CHJ_COURSE_UI_TREE,
+    workshop_snapshot: Path | None = None,
 ) -> None:
     for source in (legacy, app_client, app_static, course_static, portal):
         if not source.is_dir():
@@ -159,6 +291,8 @@ def build(
 
     for item in portal.iterdir(): copy_entry(item, output / item.name)
     transform_tree(output)
+    normalize_framework_brand(output / "framework" / "index.html")
+    apply_workshop_overlay(output / "workshop", workshop_snapshot)
 
     # Never pass the colleague-owned course build through rewrite_text() or the
     # shared theme injector. It is an independently built, immutable subsite.
@@ -173,7 +307,13 @@ def build(
         "service": "minisv", "release": release_id,
         "builtAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "origin": "hecate", "canonicalOrigin": "https://minisv.vip",
-        "features": ["stable-course-route", "verbatim-chj-course-site", "opaque-course-bundle"],
+        "features": [
+            "stable-course-route",
+            "verbatim-chj-course-site",
+            "opaque-course-bundle",
+            "shared-brand-home",
+            "released-workshop-snapshot",
+        ],
         "sources": {
             "main": main_sha,
             "chjCourseUi": chj_sha,
@@ -205,6 +345,11 @@ def build(
                 errors.append(f"opaque chj course is missing marker {marker!r}")
         if "/ui-theme.js" in course_text or "data-course-outline-schema" in course_text:
             errors.append("opaque chj course was replaced or decorated by the main application")
+    framework_page = output / "framework" / "index.html"
+    if framework_page.is_file() and "COURSE SYSTEM" in framework_page.read_text(encoding="utf-8"):
+        framework_text = framework_page.read_text(encoding="utf-8")
+        if 'href="/" aria-label="返回 Mini Silicon Valley 主页"' not in framework_text or 'src="/favicon.svg"' not in framework_text:
+            errors.append("framework is missing the shared brand/home contract")
     theme_script = output / "ui-theme.js"
     if theme_script.is_file():
         script_text = theme_script.read_text(encoding="utf-8")
@@ -239,12 +384,14 @@ def main() -> None:
     parser.add_argument("--main-sha", default="uncommitted")
     parser.add_argument("--chj-sha", default=CHJ_COURSE_UI_SHA)
     parser.add_argument("--chj-tree", default=CHJ_COURSE_UI_TREE)
+    parser.add_argument("--workshop-snapshot", type=Path, help="validated public-redacted snapshot exported from the current Hecate Released registry")
     args = parser.parse_args()
     build(
         *(getattr(args, name) for name in ("legacy_root", "app_client_root", "app_static_root", "course_static_root", "portal_root", "output", "release_id")),
         main_sha=args.main_sha,
         chj_sha=args.chj_sha,
         chj_tree=args.chj_tree,
+        workshop_snapshot=args.workshop_snapshot,
     )
     print(f"MINISV_RELEASE_READY {args.release_id} {args.output}")
 

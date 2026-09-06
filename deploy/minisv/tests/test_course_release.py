@@ -15,6 +15,24 @@ SPEC.loader.exec_module(MODULE)
 
 
 class CourseReleaseTests(unittest.TestCase):
+    def test_workshop_snapshot_rejects_tampering_and_private_runtime_fields(self) -> None:
+        source = MODULE.WORKSHOP_OVERLAY / "confirmed-baseline.json"
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "snapshot.json"
+            value = json.loads(source.read_text())
+            value["courses"][0]["title"] = "tampered"
+            path.write_text(json.dumps(value))
+            with self.assertRaisesRegex(ValueError, "integrity digest"):
+                MODULE.validate_workshop_snapshot(path)
+
+            value = json.loads(source.read_text())
+            value["lease"] = "must-not-leak"
+            unsigned = {key: item for key, item in value.items() if key != "integrity"}
+            value["integrity"] = {"algorithm": "sha256", "digest": MODULE.canonical_digest(unsigned)}
+            path.write_text(json.dumps(value))
+            with self.assertRaisesRegex(ValueError, "private field"):
+                MODULE.validate_workshop_snapshot(path)
+
     def test_release_rejects_untraceable_source_sha_before_writing_output(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -50,7 +68,7 @@ class CourseReleaseTests(unittest.TestCase):
             (legacy / "123456.html").write_text('<html><head></head><body><div class="_topActions_x_1"><a href="/world/">世界地图</a></div></body></html>')
             (legacy / "qa.html").write_text('<html><head></head><body><header><div class="_onlineBadge_x_1">在线</div></header></body></html>')
             for name, value in (
-                ("launch.html", "<html><head></head><body>workshop</body></html>"),
+                ("launch.html", """<html><head><meta http-equiv=\"Content-Security-Policy\" content=\"connect-src 'none'; img-src data:\"></head><body><header><div class=\"brand-lockup\" aria-label=\"Mini Silicon Valley 课程设计同步工坊\"><span class=\"brand-mark\" aria-hidden=\"true\">MSV</span><span><strong>Mini Silicon Valley</strong><small>COURSE SYSTEM</small></span></div><div class=\"session-health\"></div></header><nav><button class=\"nav-item\" type=\"button\" data-section=\"decisions\">决策</button></nav><main></main><script src=\"app.js\"></script></body></html>"""),
                 ("app.js", "void 0;"), ("styles.css", "body{}"),
                 ("public-deploy.js", "void 0;"), ("manifest.json", "{}"),
             ):
@@ -66,6 +84,7 @@ class CourseReleaseTests(unittest.TestCase):
             (course / "_next" / "chj.css").write_bytes(b"/* colleague bytes */")
             (course / "assets" / "home-workbench.png").write_bytes(b"\x89PNG\r\n\x1a\ncolleague")
             (portal / "index.html").write_text('<html><head></head><body><a href="/course/">课程大纲</a></body></html>')
+            (portal / "404.html").write_text('<html><head></head><body><a href="/">返回 Mini Silicon Valley 主页</a></body></html>')
             for name in ("portal.css", "portal.js", "ui-theme.css", "ui-theme.js", "robots.txt", "site.webmanifest"):
                 if name == "ui-theme.js":
                     value = 'var routes = ["/framework/", "/parents/"]; link.href = "/course/";'
@@ -91,12 +110,27 @@ class CourseReleaseTests(unittest.TestCase):
             }
             self.assertEqual(output_snapshot, source_snapshot)
             self.assertNotIn("/ui-theme.js", (output / "course" / "index.html").read_text())
+            workshop_html = (output / "workshop" / "index.html").read_text()
+            self.assertIn("msv-workshop-released-baseline", workshop_html)
+            self.assertIn('href="/" aria-label="返回 Mini Silicon Valley 主页"', workshop_html)
+            self.assertIn('src="/favicon.svg"', workshop_html)
+            self.assertIn("connect-src 'self'", workshop_html)
+            self.assertIn("img-src 'self' data:", workshop_html)
+            self.assertIn("data-msv-theme-slot", workshop_html)
+            self.assertIn('data-panel="baseline"', workshop_html)
+            for name in ("baseline.css", "baseline.js", "confirmed-baseline.json", "workshop-snapshot.schema.json"):
+                self.assertTrue((output / "workshop" / name).is_file(), name)
+            snapshot = json.loads((output / "workshop" / "confirmed-baseline.json").read_text())
+            self.assertEqual(snapshot["source"]["channel"], "released")
+            self.assertEqual(snapshot["scope"], "public-redacted-summary")
             self.assertIn("/course/", json.loads((output / "sitemap.json").read_text())["routes"])
             release = json.loads((output / "release.json").read_text())
             self.assertEqual(release["sources"]["main"], main_sha)
             self.assertEqual(release["sources"]["chjCourseUi"], MODULE.CHJ_COURSE_UI_SHA)
             self.assertEqual(release["sources"]["chjCourseTree"], MODULE.CHJ_COURSE_UI_TREE)
             self.assertIn("verbatim-chj-course-site", release["features"])
+            self.assertIn("shared-brand-home", release["features"])
+            self.assertIn("released-workshop-snapshot", release["features"])
             self.assertFalse(release["courseArtifact"]["transformed"])
             self.assertEqual(release["courseArtifact"]["files"], len(source_snapshot))
             self.assertTrue((output / "MANIFEST.sha256").is_file())

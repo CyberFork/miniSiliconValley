@@ -148,12 +148,11 @@ export function validateMissions(
 }
 
 const REQUIRED_PROJECT_STAGE_IDS: ProjectStageId[] = [
-  "find-problem",
-  "validate-problem",
-  "design-solution",
-  "mvp-vc",
-  "operate-brand",
-  "demo-day",
+  "find",
+  "decide",
+  "build",
+  "market",
+  "operate",
 ];
 
 export function validateCurriculum(
@@ -167,14 +166,17 @@ export function validateCurriculum(
   const missionIds = new Set(missions.map(({ id }) => id));
   const stageIds = curriculum.stages.map(({ id }) => id);
   const journeyIds = curriculum.companyJourneys.map(({ id }) => id);
-  const exampleIds = curriculum.stages.flatMap(({ examples }) => examples.map(({ id }) => id));
+  const exampleIds = [
+    ...curriculum.stages.flatMap(({ examples }) => examples.map(({ id }) => id)),
+    ...curriculum.finale.examples.map(({ id }) => id),
+  ];
   const contributionKeys = curriculum.contributionProtocol.map(({ key }) => key);
 
   if (curriculum.stages.length !== REQUIRED_PROJECT_STAGE_IDS.length) {
     errors.push(`课程阶段必须恰好为 ${REQUIRED_PROJECT_STAGE_IDS.length} 个`);
   }
   if (stageIds.join("|") !== REQUIRED_PROJECT_STAGE_IDS.join("|")) {
-    errors.push("课程阶段 ID 或顺序不符合 0→1 六步主线");
+    errors.push("课程阶段 ID 或顺序不符合 0→1 五步主线");
   }
   for (const [label, ids] of [
     ["课程阶段", stageIds],
@@ -191,6 +193,8 @@ export function validateCurriculum(
     if (!stage.title || !stage.englishTitle || !stage.promise || !stage.coreQuestion) {
       errors.push(`课程阶段 ${stage.id} 缺少标题、承诺或核心问题`);
     }
+    if (!(["P", "D", "M", "O"] as const).includes(stage.leadMentor)) errors.push(`课程阶段 ${stage.id} 缺少有效主导师`);
+    if (stage.supportMentors.some((mentor) => !(["P", "D", "M", "O"] as const).includes(mentor))) errors.push(`课程阶段 ${stage.id} 包含无效协作导师`);
     for (const [label, values] of [
       ["学习目标", stage.learningGoals],
       ["学员行动", stage.actions],
@@ -214,11 +218,21 @@ export function validateCurriculum(
     });
   });
 
+  if (curriculum.finale.id !== "demo-day" || curriculum.finale.durationSeconds !== 360) {
+    errors.push("Demo Day 必须是五步之后独立的六分钟终局");
+  }
+  if (curriculum.finale.requirements.length !== 4) errors.push("Demo Day 缺少完整发布要求");
+  curriculum.finale.examples.forEach((example) => {
+    if (!example.eventIds.length) errors.push(`终局案例 ${example.id} 没有史实锚点`);
+    example.eventIds.forEach((id) => { if (!eventIds.has(id)) errors.push(`终局案例 ${example.id} 引用缺失事件 ${id}`); });
+    if (example.missionId && !missionIds.has(example.missionId)) errors.push(`终局案例 ${example.id} 引用缺失关卡 ${example.missionId}`);
+  });
+
   if (!curriculum.companyJourneys.length) errors.push("课程大纲至少需要一条企业全流程");
   curriculum.companyJourneys.forEach((journey) => {
     const journeyStageIds = journey.steps.map(({ stageId }) => stageId);
     if (journeyStageIds.join("|") !== REQUIRED_PROJECT_STAGE_IDS.join("|")) {
-      errors.push(`企业流程 ${journey.id} 未完整覆盖并按序排列六步`);
+      errors.push(`企业流程 ${journey.id} 未完整覆盖并按序排列五步`);
     }
     if (journey.missionId && !missionIds.has(journey.missionId)) {
       errors.push(`企业流程 ${journey.id} 引用缺失关卡 ${journey.missionId}`);
@@ -230,6 +244,8 @@ export function validateCurriculum(
       });
       if (!step.teachingUse.trim()) errors.push(`企业流程 ${journey.id}/${step.stageId} 缺少教学用法`);
     });
+    if (!journey.finale.eventIds.length || !journey.finale.teachingUse.trim()) errors.push(`企业流程 ${journey.id} 缺少独立 Demo Day 终局映射`);
+    journey.finale.eventIds.forEach((id) => { if (!eventIds.has(id)) errors.push(`企业流程 ${journey.id}/finale 引用缺失事件 ${id}`); });
   });
 
   if (curriculum.contributionProtocol.length < 8) errors.push("内容归集协议少于 8 个必填字段");
@@ -243,6 +259,7 @@ export function validateCurriculum(
       curriculumExample: exampleIds.length,
       companyJourney: curriculum.companyJourneys.length,
       companyJourneyStep: curriculum.companyJourneys.reduce((sum, journey) => sum + journey.steps.length, 0),
+      curriculumFinale: 1,
     },
   };
 }

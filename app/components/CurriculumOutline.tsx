@@ -38,7 +38,7 @@ export function CurriculumOutline({ onOpenEvent, onLaunchMission }: CurriculumOu
         <aside className="curriculum-coordinate" aria-label="课程双轴定位">
           <div><span>1 → ∞</span><b>历史世界</b><small>按时代、企业与事件温故</small></div>
           <i aria-hidden="true">×</i>
-          <div><span>0 → 1</span><b>项目主线</b><small>按六步完成真实项目</small></div>
+          <div><span>0 → 1</span><b>项目主线</b><small>五步闭环＋六分钟终局</small></div>
         </aside>
       </header>
 
@@ -57,7 +57,7 @@ export function CurriculumOutline({ onOpenEvent, onLaunchMission }: CurriculumOu
             className={axis === "stages" ? "is-active" : ""}
             onClick={() => setAxis("stages")}
           >
-            <span>纵向六步</span>
+            <span>纵向五步</span>
             <small>按阶段纵切 · 跨企业归集</small>
           </button>
           <button
@@ -70,19 +70,19 @@ export function CurriculumOutline({ onOpenEvent, onLaunchMission }: CurriculumOu
             onClick={() => setAxis("journeys")}
           >
             <span>企业全流程</span>
-            <small>按项目横看 · 六步完整闭环</small>
+            <small>按项目横看 · 五步完整闭环</small>
           </button>
         </div>
       </section>
 
       <section id="curriculum-stages-panel" role="tabpanel" className="curriculum-axis-panel" aria-labelledby="curriculum-axis-stages-tab" hidden={axis !== "stages"}>
           <header className="curriculum-panel-heading">
-            <div><p className="section-kicker">VERTICAL SLICES · 按阶段纵切</p><h2>六步项目主线</h2></div>
+            <div><p className="section-kicker">VERTICAL SLICES · 按阶段纵切</p><h2>五步项目主线</h2></div>
             <p>选择一个阶段，集中查看这一能力的目标、行动、交付物、完成门槛，以及跨企业历史案例。</p>
           </header>
 
           <div className="curriculum-stage-layout">
-            <div className="curriculum-stage-rail" role="tablist" aria-orientation="vertical" aria-label="六步项目阶段">
+            <div className="curriculum-stage-rail" role="tablist" aria-orientation="vertical" aria-label="五步项目阶段">
               {curriculumCatalog.stages.map((stage) => (
                 <button
                   key={stage.id}
@@ -103,11 +103,12 @@ export function CurriculumOutline({ onOpenEvent, onLaunchMission }: CurriculumOu
 
             <StagePanel stage={activeStage} onOpenEvent={onOpenEvent} onLaunchMission={onLaunchMission} />
           </div>
+          <FinalePanel />
         </section>
       <section id="curriculum-journeys-panel" role="tabpanel" className="curriculum-axis-panel" aria-labelledby="curriculum-axis-journeys-tab" hidden={axis !== "journeys"}>
           <header className="curriculum-panel-heading">
-            <div><p className="section-kicker">HORIZONTAL JOURNEYS · 按项目横看</p><h2>企业六步全流程</h2></div>
-            <p>一条横线追踪同一产品如何穿过六个阶段。首条完整样例使用 Google 搜索；后续企业按同一数据契约接入。</p>
+            <div><p className="section-kicker">HORIZONTAL JOURNEYS · 按项目横看</p><h2>企业五步全流程</h2></div>
+            <p>一条横线追踪同一产品如何穿过五个学习步骤；六分钟 Demo Day 单列为终局。首条完整样例使用 Google 搜索。</p>
           </header>
           {curriculumCatalog.companyJourneys.map((journey) => (
             <article key={journey.id} className="company-journey">
@@ -116,12 +117,13 @@ export function CurriculumOutline({ onOpenEvent, onLaunchMission }: CurriculumOu
                 <div><p>{journey.organization} · {journey.product} · {journey.period}</p><h3>{journey.title}</h3><span>{journey.summary}</span></div>
                 {journey.missionId ? <button type="button" className="pixel-button pixel-button--primary" onClick={() => onLaunchMission(journey.missionId!)}>进入历史战役 →</button> : null}
               </header>
-              <div className="company-journey-track" aria-label={`${journey.organization} 六步全流程`}>
+              <div className="company-journey-track" aria-label={`${journey.organization} 五步全流程`}>
                 {journey.steps.map((step, index) => (
                   <JourneyStepCard key={step.stageId} step={step} index={index} onOpenEvent={onOpenEvent} />
                 ))}
               </div>
-              <footer className="journey-boundary"><b>史实边界</b><span>卡片中的事件事实来自 Original Timeline；“课程映射”只说明如何用于教学，不宣称企业当年使用了这套六步术语。</span></footer>
+              <section className="journey-finale"><span>FINALE · 06:00</span><h4>{journey.finale.title}</h4><p>{journey.finale.teachingUse}</p></section>
+              <footer className="journey-boundary"><b>史实边界</b><span>卡片中的事件事实来自 Original Timeline；“课程映射”只说明如何用于教学，不宣称企业当年使用了这套五步术语或举行了课程式 Demo Day。</span></footer>
             </article>
           ))}
         </section>
@@ -136,7 +138,7 @@ function StagePanel({ stage, onOpenEvent, onLaunchMission }: { stage: Curriculum
     <article id="curriculum-stage-detail" role="tabpanel" aria-labelledby={`stage-tab-${stage.id}`} className={`curriculum-stage-panel stage-tone-${stage.order}`}>
       <header className="stage-panel-header">
         <div className="stage-number"><span>STEP</span><b>{stage.order.toString().padStart(2, "0")}</b></div>
-        <div><p>{stage.englishTitle}</p><h3>{stage.title}</h3><span>{stage.promise}</span></div>
+        <div><p>{stage.englishTitle}</p><h3>{stage.title}</h3><span>{stage.promise}</span><small>主导师 {stage.leadMentor} · 协作 {stage.supportMentors.join("＋") || "全体"}</small></div>
       </header>
 
       <blockquote className="stage-core-question"><span>本步唯一核心问题</span><p>{stage.coreQuestion}</p></blockquote>
@@ -158,6 +160,14 @@ function StagePanel({ stage, onOpenEvent, onLaunchMission }: { stage: Curriculum
       </section>
     </article>
   );
+}
+
+function FinalePanel() {
+  const finale = curriculumCatalog.finale;
+  return <aside className="curriculum-finale" aria-labelledby="curriculum-finale-title">
+    <div><span>FINALE · 06:00</span><h3 id="curriculum-finale-title">{finale.title}</h3><p>{finale.promise}</p></div>
+    <ol>{finale.requirements.map((requirement, index) => <li key={requirement}><b>{String(index + 1).padStart(2, "0")}</b>{requirement}</li>)}</ol>
+  </aside>;
 }
 
 function StageList({ label, eyebrow, items, emphasized = false }: { label: string; eyebrow: string; items: string[]; emphasized?: boolean }) {

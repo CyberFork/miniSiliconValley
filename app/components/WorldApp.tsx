@@ -21,6 +21,7 @@ import type {
   ResourceKey,
 } from "../lib/model";
 import { evidenceTitles } from "../lib/mission-progress";
+import { publicPath } from "../lib/public-path";
 import {
   applyChoice,
   createInitialState,
@@ -42,6 +43,7 @@ import {
 import { MentorGuide } from "./MentorGuide";
 import { MissionPlayer } from "./MissionPlayer";
 import { Modal } from "./Modal";
+import { BrandHomeLink } from "./BrandHomeLink";
 
 type ViewId = "world" | "missions" | "dossier" | "mentor";
 
@@ -356,15 +358,12 @@ export function WorldApp() {
     <div className="app-shell">
       <a className="skip-link" href="#main-content">跳到主内容</a>
       <header className="topbar">
-        <button className="brand-lockup" type="button" onClick={() => setView("world")} aria-label="返回迷你硅谷历史世界">
-          <span className="brand-pixel" aria-hidden="true">MSV</span>
-          <span><b>MINI SILICON VALLEY</b><small>有限开放世界创业 RPG · v1.0</small></span>
-        </button>
+        <BrandHomeLink className="brand-lockup" subtitle="有限开放世界创业 RPG · v1.0" />
         <nav className="primary-nav" aria-label="主导航">
           <button type="button" aria-current={view === "world" ? "page" : undefined} className={view === "world" ? "is-active" : ""} onClick={() => setView("world")}>
             历史世界
           </button>
-          <a href="/course/">课程大纲</a>
+          <a href={publicPath("/course/")}>课程大纲</a>
           {([
             ["missions", `互动战役 ${completedCount}/8`],
             ["dossier", "学习档案"],

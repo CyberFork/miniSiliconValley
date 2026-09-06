@@ -76,12 +76,35 @@ class UiThemeContractTests(unittest.TestCase):
         live_run = self.live_run_root()
         html = (live_run / "static" / "editor.html").read_text()
         styles = (live_run / "static" / "editor.css").read_text()
+        script = (live_run / "static" / "editor.js").read_text()
         self.assertIn("data-msv-theme-slot", html)
         self.assertIn(".topbar-actions", styles)
         self.assertIn("container:course-workspace / inline-size", styles)
         self.assertIn("@container course-workspace (max-width:780px)", styles)
         self.assertIn(".studio>*{min-width:0;max-width:100%}", styles)
         self.assertIn("[hidden]{display:none!important}", styles)
+
+        # T-079: one course-list DOM is disclosed as a real desktop rail or a
+        # modal drawer.  Selection, revision and unsaved state therefore stay
+        # in the same editor instance instead of being copied into a second UI.
+        self.assertEqual(html.count('id="courseList"'), 1)
+        for marker in ('id="courseLibrary"', 'id="libraryContent"', 'id="topbarLibrary"', 'id="libraryBackdrop"'):
+            self.assertIn(marker, html)
+        self.assertIn('aria-controls="libraryContent"', html)
+        self.assertIn('min-width:1041px', styles)
+        self.assertIn('width:min(380px,88vw)', styles)
+        self.assertIn('minisv.course-editor.library-collapsed', script)
+        self.assertIn('event.key === "Escape"', script)
+        self.assertIn('libraryReturnFocus.focus()', script)
+
+        # T-080: card authoring has an in-context, sticky action whose true
+        # transaction boundary is the complete immutable Candidate package.
+        self.assertIn('class="card-context-save"', script)
+        self.assertIn('data-save-context', script)
+        self.assertIn('保存整门 Course Package', script)
+        self.assertIn('不会自动刷新 Alpha', script)
+        self.assertIn('.card-context-save{position:sticky', styles)
+        self.assertIn('saveError = error.message', script)
 
     def test_adventure_hero_is_skin_only_and_cannot_change_geometry(self) -> None:
         styles = (self.site_root() / "ui-theme.css").read_text()

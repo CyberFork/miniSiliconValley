@@ -6,6 +6,7 @@ import json
 import sys
 import tempfile
 import threading
+import time
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
@@ -104,6 +105,58 @@ def same_structure_geometry(first: dict, second: dict) -> bool:
     return first["stacked"] == second["stacked"]
 
 
+def editor_identity(page) -> dict:
+    """State that a layout-only disclosure must never mutate."""
+    return page.evaluate(
+        """() => ({
+          course: document.querySelector('[data-course][aria-current="true"]')?.dataset.course || null,
+          revision: document.querySelector('#revisionLine')?.textContent || '',
+          saveState: document.querySelector('#saveState')?.dataset.state || '',
+          search: document.querySelector('#cardSearch')?.value || '',
+          selectedCard: document.querySelector('#deckCardList [aria-current="true"]')?.dataset.cardId || null,
+        })"""
+    )
+
+
+def library_snapshot(page) -> dict:
+    return page.evaluate(
+        """() => {
+          const library = document.querySelector('#courseLibrary');
+          const workspace = document.querySelector('.workspace');
+          const backdrop = document.querySelector('#libraryBackdrop');
+          const style = getComputedStyle(library);
+          const bodyStyle = getComputedStyle(document.body);
+          const rect = library.getBoundingClientRect();
+          return {
+            collapsed: document.body.classList.contains('library-collapsed'),
+            drawerOpen: document.body.classList.contains('library-drawer-open'),
+            libraryDisplay: style.display,
+            libraryPosition: style.position,
+            libraryWidth: rect.width,
+            workspaceWidth: workspace.getBoundingClientRect().width,
+            backdropHidden: backdrop.hidden,
+            bodyOverflow: bodyStyle.overflow,
+            courseListCount: document.querySelectorAll('#courseList').length,
+            expanded: document.querySelector('#topbarLibrary').getAttribute('aria-expanded'),
+          };
+        }"""
+    )
+
+
+def wait_js(page, expression: str, *, timeout: float = 5.0) -> None:
+    """Poll through CDP without Playwright's eval-based wait helper.
+
+    The production controller deliberately omits ``unsafe-eval`` from CSP, so
+    ``page.wait_for_function`` is expected to be blocked.
+    """
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if page.evaluate(f"() => Boolean({expression})"):
+            return
+        time.sleep(0.04)
+    raise AssertionError(f"browser condition timed out: {expression}")
+
+
 def main() -> None:
     result: dict[str, object] = {"ok": False, "viewports": {}}
     with tempfile.TemporaryDirectory() as temp:
@@ -121,6 +174,83 @@ def main() -> None:
                 page = browser.new_page(viewport={"width": VIEWPORTS[0], "height": 1000})
                 page.goto(f"http://127.0.0.1:{server.server_port}/editor/", wait_until="networkidle")
                 page.wait_for_selector("#cardsTab")
+
+                # Begin from the documented adaptive default, independent of a
+                # developer's persistent browser preference.
+                page.evaluate("localStorage.removeItem('minisv.course-editor.library-collapsed')")
+                page.reload(wait_until="networkidle")
+                page.wait_for_selector("#editor:not([hidden])")
+
+                # T-079 desktop: collapse the *real* course library to a 58px
+                # rail.  It must yield space to the editor and preserve every
+                # piece of authoring context across both toggle and reload.
+                expanded_library = library_snapshot(page)
+                expanded_identity = editor_identity(page)
+                assert not expanded_library["collapsed"]
+                page.click("#closeLibrary")
+                wait_js(page, "document.body.classList.contains('library-collapsed')")
+                collapsed_library = library_snapshot(page)
+                assert 46 <= collapsed_library["libraryWidth"] <= 70
+                assert collapsed_library["workspaceWidth"] > expanded_library["workspaceWidth"]
+                assert editor_identity(page) == expanded_identity
+                assert page.evaluate("localStorage.getItem('minisv.course-editor.library-collapsed')") == "true"
+                page.reload(wait_until="networkidle")
+                page.wait_for_selector("#editor:not([hidden])")
+                assert library_snapshot(page)["collapsed"], "desktop disclosure preference must survive reload"
+                assert editor_identity(page)["course"] == expanded_identity["course"]
+                page.click("#openLibrary")
+                wait_js(page, "!document.body.classList.contains('library-collapsed')")
+
+                # T-080: fail closed without discarding typed content, then
+                # save the whole Course Package as a new immutable Candidate.
+                # Merely saving must not refresh or move the running Alpha.
+                page.click("#cardsTab")
+                page.wait_for_selector("#deckCardForm textarea[data-path$='.body']")
+                body_field = page.locator("#deckCardForm textarea[data-path$='.body']").first
+                original_body = body_field.input_value()
+                changed_body = original_body + "【浏览器保存验收】"
+                alpha_before = page.evaluate("async () => (await (await fetch('../api/state', {cache:'no-store'})).json()).data")
+                body_field.fill(changed_body)
+                wait_js(page, "document.querySelector('#saveState')?.dataset.state === 'dirty'")
+                page.route(
+                    "**/api/courses/save",
+                    lambda route: route.fulfill(
+                        status=409,
+                        content_type="application/json",
+                        body=json.dumps({"ok": False, "error": {"code": "REVISION_CONFLICT", "message": "课程已被其他人更新；请重新载入或重试。"}}, ensure_ascii=False),
+                    ),
+                )
+                page.locator("#saveCardContext").scroll_into_view_if_needed()
+                save_box = page.locator("#saveCardContext").bounding_box()
+                assert save_box and 0 <= save_box["y"] < 1000 and save_box["y"] + save_box["height"] <= 1001
+                page.click("#saveCardContext")
+                wait_js(page, "document.querySelector('.card-context-save')?.dataset.state === 'error'")
+                assert body_field.input_value() == changed_body
+                assert "重新载入" in page.locator("#cardSaveMeta").inner_text()
+                page.unroute("**/api/courses/save")
+                page.click("#saveCardContext")
+                wait_js(page, "document.querySelector('#saveState')?.dataset.state === 'saved' && /Candidate r1/.test(document.querySelector('#saveState')?.textContent || '')")
+                alpha_after = page.evaluate("async () => (await (await fetch('../api/state', {cache:'no-store'})).json()).data")
+                for key in ("runId", "currentBlock", "courseRevision", "courseDigest", "refreshEpoch"):
+                    assert alpha_after.get(key) == alpha_before.get(key), f"Candidate save changed Alpha {key}"
+                page.reload(wait_until="networkidle")
+                page.wait_for_selector("#editor:not([hidden])")
+                page.click("#cardsTab")
+                page.wait_for_selector("#deckCardForm textarea[data-path$='.body']")
+                assert page.locator("#deckCardForm textarea[data-path$='.body']").first.input_value() == changed_body
+
+                result["courseLibrary"] = {
+                    "desktopRail": True,
+                    "preferencePersists": True,
+                    "singleCourseList": True,
+                }
+                result["cardSave"] = {
+                    "stickyActionVisible": True,
+                    "failureKeepsInput": True,
+                    "reloadKeepsCandidate": True,
+                    "alphaUnchanged": True,
+                }
+
                 page.click("#structuredTab")
 
                 # The structure pane has its own nested grid. A nowrap block
@@ -128,6 +258,8 @@ def main() -> None:
                 # painted them over the form without increasing body scrollWidth.
                 for width in VIEWPORTS:
                     page.set_viewport_size({"width": width, "height": 1000})
+                    if width <= 1040 and not library_snapshot(page)["collapsed"]:
+                        page.click("#closeLibrary")
                     page.locator("#msv-ui-switch [data-theme=classic]").click()
                     page.wait_for_timeout(40)
                     classic_structure = structure_snapshot(page)
@@ -149,10 +281,14 @@ def main() -> None:
                         "structureStacked": adventure_structure["stacked"],
                     })
 
+                if not library_snapshot(page)["collapsed"]:
+                    page.click("#closeLibrary")
                 page.click("#cardsTab")
                 page.wait_for_selector("#deckCardList button")
                 for width in VIEWPORTS:
                     page.set_viewport_size({"width": width, "height": 1000})
+                    if width <= 1040 and not library_snapshot(page)["collapsed"]:
+                        page.click("#closeLibrary")
                     page.locator("#msv-ui-switch [data-theme=classic]").click()
                     page.wait_for_timeout(40)
                     classic = snapshot(page)
@@ -178,6 +314,31 @@ def main() -> None:
                         "sameThemeGeometry": True,
                         "deckStacked": adventure["deckStacked"],
                     })
+
+                # T-079 tablet/phone: the same course-list becomes a modal
+                # drawer with a backdrop. Escape closes it and returns focus
+                # to the trigger; course/card/search context is unchanged.
+                page.fill("#cardSearch", "线索")
+                drawer_identity = editor_identity(page)
+                for width in (900, 768, 430):
+                    page.set_viewport_size({"width": width, "height": 900})
+                    if not library_snapshot(page)["collapsed"]:
+                        page.click("#closeLibrary")
+                    page.click("#topbarLibrary")
+                    wait_js(page, "document.body.classList.contains('library-drawer-open')")
+                    opened = library_snapshot(page)
+                    assert opened["libraryPosition"] == "fixed"
+                    assert not opened["backdropHidden"]
+                    assert opened["courseListCount"] == 1
+                    assert opened["bodyOverflow"] == "hidden"
+                    assert opened["libraryWidth"] <= width * 0.89
+                    assert editor_identity(page) == drawer_identity
+                    page.keyboard.press("Escape")
+                    wait_js(page, "document.body.classList.contains('library-collapsed')")
+                    page.wait_for_timeout(40)
+                    assert page.evaluate("document.activeElement?.id") == "topbarLibrary"
+                    assert editor_identity(page) == drawer_identity
+                    result["viewports"][str(width)]["libraryDrawer"] = True
                 browser.close()
                 result["ok"] = True
         finally:
