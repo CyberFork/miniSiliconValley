@@ -20,15 +20,30 @@ class DeployScriptContractTests(unittest.TestCase):
         for label in (
             "com.minisv.live-run-controller",
             "com.minisv.remote-console",
-            "com.minisv.cloudflared",
         ):
             self.assertIn(f"bootstrap_agent {label}", self.script)
 
-    def test_tunnel_restarts_after_local_stack_and_is_health_checked(self) -> None:
+    def test_healthy_tunnel_is_preserved_after_local_stack(self) -> None:
         gateway = self.script.index('$DOCKER compose -f compose.yml up -d --force-recreate gateway')
-        tunnel = self.script.index("bootstrap_agent com.minisv.cloudflared")
+        tunnel = self.script.rindex("\nensure_cloudflared\n")
         self.assertLess(gateway, tunnel)
+        self.assertIn("ensure_cloudflared()", self.script)
+        self.assertNotIn("bootstrap_agent com.minisv.cloudflared", self.script)
+        self.assertIn('[[ "$TUNNEL_RELOAD_REQUIRED" = 0 ]]', self.script)
+        self.assertIn('launchctl print "$DOMAIN/$label"', self.script)
         self.assertIn("http://127.0.0.1:18792/metrics", self.script)
+
+    def test_unhealthy_tunnel_recovery_waits_for_readiness(self) -> None:
+        self.assertIn('launchctl bootout "$DOMAIN/$label"', self.script)
+        self.assertIn("for readiness_attempt in {1..15}", self.script)
+        self.assertIn("cloudflared did not become ready after 10 attempts", self.script)
+
+    def test_tunnel_reload_is_driven_by_effective_input_changes(self) -> None:
+        self.assertIn("TUNNEL_RELOAD_REQUIRED=0", self.script)
+        self.assertIn('TUNNEL_RELOAD_REQUIRED=1', self.script)
+        self.assertIn('cmp -s "$MINISV_TUNNEL_CREDENTIAL_SOURCE" "$ROOT/secrets/tunnel-credentials.json"', self.script)
+        self.assertIn('cmp -s "$cloudflared_config_next" "$ROOT/cloudflared/config.yml"', self.script)
+        self.assertIn('cmp -s "$target_next" "$target"', self.script)
 
 
 if __name__ == "__main__":

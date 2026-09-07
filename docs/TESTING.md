@@ -150,3 +150,17 @@ python3 tools/live-run/tests/verify_t083_production_readonly.py
 ```
 
 脚本登录后只发送 `GET/HEAD/OPTIONS`，读取 `/control/api/bootstrap` 的 `editorBuild=t083-nine-pane-studio-r1`，并复验 Google 与饿了么的 5×13、9 窗、五种画布、确定性发牌、角色隔离、可见字段路径、派生只读及五档响应式布局。部署前后另以服务端状态文件的归一化玩法哈希证明 Run、进度、尝试次数、身份、手牌和账本未改变。
+
+## Alpha 席位生产验收
+
+远端席位服务的回归测试必须经过真实 `remote-console/server.mjs`，解析 `seat.html` 并逐项获取其相对 JS/CSS 依赖。不得用直接暴露源码目录的 fixture 替代该边界。
+
+每次 Alpha 相关发布后执行：
+
+```bash
+python3 deploy/minisv/scripts/public-smoke.py --base https://minisv.vip
+python3 tools/live-run/tests/verify_alpha_public_seat.py \
+  --base https://minisv.vip/alpha/
+```
+
+第二条命令会临时领取、渲染并释放一个空闲席位，要求没有加载占位残留、错误界面、失败资源或浏览器 console error。若八席都被真实用户占用，验收明确失败但不会抢占或重置任何席位。事故背景见 [`ALPHA_SEAT_LOADING_INCIDENT_2026-09-08.md`](ALPHA_SEAT_LOADING_INCIDENT_2026-09-08.md)。

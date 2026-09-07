@@ -65,6 +65,17 @@ python3 deploy/minisv/package_release.py \
 5. 发布后运行 loopback healthcheck、公开 smoke 和真实浏览器验收。
 6. 对比发布前后的 `run-state.json`，确保活动 Run、进度、RP、钱包、团队资金和手牌没有变化。
 
+Cloudflare Tunnel 是公网流量基础设施，不是普通应用发布单元。部署脚本会比较 credentials、渲染后的 config 与 launchd plist：输入未变化且 `127.0.0.1:18792/metrics` 健康时保留原进程；只有输入变化或服务不健康时才执行有界恢复。禁止为了“确保最新”而在每次应用发布中无条件重启 Tunnel。
+
+Alpha 发布还必须执行真实席位验收：
+
+```bash
+python3 tools/live-run/tests/verify_alpha_public_seat.py \
+  --base https://minisv.vip/alpha/
+```
+
+该脚本临时领取一个空闲席位，验证运行界面、资源请求和浏览器控制台，然后在 `finally` 中释放席位；它不会打印租约能力值。
+
 凭据只能来自 Hecate 的 `~/Services/minisv/secrets/` 或受控环境变量，不得写入仓库、命令回执或 URL。
 
 ## 回滚
@@ -74,3 +85,5 @@ python3 deploy/minisv/package_release.py \
 ```
 
 回滚只是切换到已验证的不可变 release；持久化账户、课堂和课程库不随静态 release 回退。回滚后必须重新执行健康检查和公共 smoke。
+
+故障分析与完整防复发门禁见 [`ALPHA_SEAT_LOADING_INCIDENT_2026-09-08.md`](ALPHA_SEAT_LOADING_INCIDENT_2026-09-08.md)。

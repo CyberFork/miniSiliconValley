@@ -13,7 +13,7 @@ export MINISV_TUNNEL_ID=<TUNNEL_ID>
 export MINISV_TUNNEL_CREDENTIAL_SOURCE=$HOME/.cloudflared/<TUNNEL_ID>.json
 ./scripts/deploy-hecate.sh
 ```
-脚本会校验 manifest、Python/Node/launchd 配置，复制 secrets（`0600`），原子更新 `current`，启动 launchd 与 `minisv-gateway`，并执行健康检查。
+脚本会校验 manifest、Python/Node/launchd 配置，复制 secrets（`0600`），原子更新 `current`，启动应用 launchd 与 `minisv-gateway`，并执行健康检查。若 Tunnel 的 credentials、config、plist 均未变化且 metrics 健康，脚本会保留现有 cloudflared 进程；只有配置变化或服务异常时才执行有界恢复，避免普通应用发布中断公网入口。
 
 ## 健康检查与观察
 
@@ -26,6 +26,8 @@ curl -fsS -H 'Host: minisv.vip' http://127.0.0.1:18780/healthz
 log stream --predicate 'process == "cloudflared"' --style compact
 ```
 日志目录为 `$HOME/Services/minisv/logs`；禁止写入 token、Cookie 或密码。
+
+公网 Alpha 验收必须再执行 `public-smoke.py` 与 `tools/live-run/tests/verify_alpha_public_seat.py`。后者只领取空闲席位，不抢占真实测试者，并在结束时释放临时租约。
 
 ## 重启
 

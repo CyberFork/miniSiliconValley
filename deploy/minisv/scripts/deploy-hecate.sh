@@ -17,6 +17,7 @@ DOCKER=/usr/local/bin/docker
 CURL=/usr/bin/curl
 UID_VALUE=$(id -u)
 DOMAIN="gui/$UID_VALUE"
+TUNNEL_RELOAD_REQUIRED=0
 
 bootstrap_agent() {
   local label=$1
@@ -41,6 +42,51 @@ bootstrap_agent() {
   done
   cat "$error_log" >&2
   echo "failed to bootstrap $label after 10 attempts" >&2
+  return 1
+}
+
+ensure_cloudflared() {
+  local label="com.minisv.cloudflared"
+  local plist="$HOME/Library/LaunchAgents/com.minisv.cloudflared.plist"
+  local error_log="$BACKUP/$label.bootstrap.log"
+
+  # The tunnel is the public traffic path, not an application release unit.
+  # Preserve a healthy process when its effective inputs did not change.
+  if [[ "$TUNNEL_RELOAD_REQUIRED" = 0 ]] \
+     && launchctl print "$DOMAIN/$label" >/dev/null 2>&1 \
+     && $CURL -fsS http://127.0.0.1:18792/metrics >/dev/null; then
+    echo "cloudflared preserved (healthy; effective inputs unchanged)"
+    return 0
+  fi
+
+  # A missing/unhealthy tunnel, or an intentional input change, is recovered
+  # as one bounded transaction. A bootstrap command returning success is not
+  # enough: metrics readiness is the acceptance condition for every attempt.
+  for attempt in {1..10}; do
+    launchctl bootout "$DOMAIN/$label" >/dev/null 2>&1 || true
+    sleep 2
+    : > "$error_log"
+    local loaded=0
+    if launchctl bootstrap "$DOMAIN" "$plist" 2>"$error_log"; then
+      loaded=1
+    elif launchctl print "$DOMAIN/$label" >/dev/null 2>&1; then
+      # launchd can return EIO even when it accepted the job.
+      loaded=1
+    fi
+    if [[ "$loaded" = 1 ]]; then
+      launchctl enable "$DOMAIN/$label"
+      for readiness_attempt in {1..15}; do
+        if launchctl print "$DOMAIN/$label" >/dev/null 2>&1 \
+           && $CURL -fsS http://127.0.0.1:18792/metrics >/dev/null; then
+          echo "cloudflared ready (attempt $attempt)"
+          return 0
+        fi
+        sleep 1
+      done
+    fi
+  done
+  sed -E '/token|credential/Id' "$error_log" >&2 || true
+  echo "cloudflared did not become ready after 10 attempts" >&2
   return 1
 }
 
@@ -81,6 +127,10 @@ for plist in "$INCOMING"/ops/launchd/*.plist; do plutil -lint "$plist" >/dev/nul
 mv "$INCOMING" "$TARGET"
 chmod -R go-w "$TARGET"
 
+if [[ ! -f "$ROOT/secrets/tunnel-credentials.json" ]] \
+   || ! cmp -s "$MINISV_TUNNEL_CREDENTIAL_SOURCE" "$ROOT/secrets/tunnel-credentials.json"; then
+  TUNNEL_RELOAD_REQUIRED=1
+fi
 /opt/homebrew/bin/python3 - "$MINISV_ACCOUNTS_SOURCE" "$ROOT/secrets/accounts.json" \
   "$MINISV_TUNNEL_CREDENTIAL_SOURCE" "$ROOT/secrets/tunnel-credentials.json" <<'PY'
 from pathlib import Path
@@ -104,25 +154,39 @@ chmod 600 "$ROOT/secrets/controller-service.key"
 cp "$TARGET/ops/compose.yml" "$ROOT/compose.yml"
 cp "$TARGET/ops/gateway/default.conf" "$ROOT/gateway/default.conf"
 cp "$TARGET/ops/gateway/app-proxy.conf" "$ROOT/gateway/app-proxy.conf"
-/opt/homebrew/bin/python3 - "$TARGET/ops/cloudflared/config.yml.template" "$ROOT/cloudflared/config.yml" "$HOME" "$MINISV_TUNNEL_ID" <<'PY'
+cloudflared_config_next="$ROOT/cloudflared/config.yml.next.$$"
+/opt/homebrew/bin/python3 - "$TARGET/ops/cloudflared/config.yml.template" "$cloudflared_config_next" "$HOME" "$MINISV_TUNNEL_ID" <<'PY'
 from pathlib import Path
 import sys
 source,target,home,tunnel_id=sys.argv[1:]
 value=Path(source).read_text().replace('__HOME__',home).replace('__TUNNEL_ID__',tunnel_id)
 Path(target).write_text(value)
 PY
-chmod 600 "$ROOT/cloudflared/config.yml"
+chmod 600 "$cloudflared_config_next"
+if [[ -f "$ROOT/cloudflared/config.yml" ]] && cmp -s "$cloudflared_config_next" "$ROOT/cloudflared/config.yml"; then
+  rm "$cloudflared_config_next"
+else
+  TUNNEL_RELOAD_REQUIRED=1
+  mv "$cloudflared_config_next" "$ROOT/cloudflared/config.yml"
+fi
 
 mkdir -p "$HOME/Library/LaunchAgents"
 for source in "$TARGET"/ops/launchd/*.plist; do
   target="$HOME/Library/LaunchAgents/$(basename "$source")"
-  /opt/homebrew/bin/python3 - "$source" "$target" "$HOME" <<'PY'
+  target_next="$target.next.$$"
+  /opt/homebrew/bin/python3 - "$source" "$target_next" "$HOME" <<'PY'
 from pathlib import Path
 import sys
 source,target,home=sys.argv[1:]
 Path(target).write_text(Path(source).read_text().replace('__HOME__',home))
 PY
-  chmod 600 "$target"
+  chmod 600 "$target_next"
+  if [[ -f "$target" ]] && cmp -s "$target_next" "$target"; then
+    rm "$target_next"
+  else
+    [[ "$(basename "$source")" = "com.minisv.cloudflared.plist" ]] && TUNNEL_RELOAD_REQUIRED=1
+    mv "$target_next" "$target"
+  fi
   plutil -lint "$target" >/dev/null
 done
 
@@ -135,9 +199,9 @@ cd "$ROOT"
 $DOCKER compose -f compose.yml config -q
 $DOCKER compose -f compose.yml up -d --force-recreate gateway
 
-# Keep the existing tunnel connected until the new controller, console and
-# gateway are ready; only then reload its plist with the same retry guard.
-bootstrap_agent com.minisv.cloudflared "$HOME/Library/LaunchAgents/com.minisv.cloudflared.plist"
+# Keep the public traffic path alive across ordinary application releases.
+# It is restarted only when unhealthy or when its effective inputs changed.
+ensure_cloudflared
 
 for attempt in {1..30}; do
   if $CURL -fsS http://127.0.0.1:18790/healthz >/dev/null \
