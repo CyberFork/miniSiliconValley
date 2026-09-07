@@ -100,5 +100,28 @@ python3 tools/live-run/tests/verify_alpha_public_seat.py \
 
 ## 最终发布回执
 
-最终不可变 release、源提交、Tunnel PID 保持情况、课程产物摘要和部署前后 Run 语义对比，在完成生产复验后记录于本节。
+- 不可变 release：`20260908T020916CST-alpha-seat-stability-r1`
+- 源提交：`c1bd2d172c50780ad3471245e935ed10f0cf8450`
+- 发布备份：`20260907T181114Z-20260908T020916CST-alpha-seat-stability-r1`
+- Tunnel PID：发布前后均为 `22789`，证明普通应用发布没有重启健康 Tunnel。
+- Run 玩法语义 SHA-256：发布前后均为 `da1bb478a6ffe2558d876b6ea34f8b2a1e3307206a044611aa0cea1666b431cc`。
+- 同事课程产物 SHA-256：仍为 `e39ebedc1b4b68230e551deeab9860ba6ce1a608c7b400d21c12d87f8f17b8f9`，`transformed=false`。
+- 临时验收席位：测试结束后 `Production Seat Smoke` 占用数为 0。
+- 安全响应头：公网 `seat.html` 只有一条 CSP，由 Hecate gateway 统一生成。
 
+最终自动验收：
+
+```text
+部署契约测试       25/25 通过
+LIVE RUN Python    77/77 通过
+remote console      5/5 通过
+TypeScript typecheck     通过
+ESLint（零 warning）     通过
+Hecate healthcheck       MINISV_HECATE_HEALTHY
+公网路由与资源 smoke     MINISV_PUBLIC_SMOKE_OK
+公网真实席位浏览器        ALPHA_PUBLIC_SEAT_OK
+失败资源                 0
+浏览器 console error     0
+```
+
+生产终态已满足：页面不再卡在“正在连接课堂…”，缺资源时也会进入可操作的明确失败态；公网、课程产物与活动 Run 均保持正常。
