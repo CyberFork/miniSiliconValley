@@ -18,6 +18,32 @@ CURL=/usr/bin/curl
 UID_VALUE=$(id -u)
 DOMAIN="gui/$UID_VALUE"
 
+bootstrap_agent() {
+  local label=$1
+  local plist=$2
+  local error_log="$BACKUP/$label.bootstrap.log"
+  launchctl bootout "$DOMAIN/$label" >/dev/null 2>&1 || true
+  # launchd can briefly retain a booted-out label and return EIO (5) when a
+  # rapid second deployment immediately bootstraps the replacement. Retry the
+  # real operation and also accept the service if launchd loaded it despite an
+  # ambiguous command result.
+  for attempt in {1..10}; do
+    if launchctl bootstrap "$DOMAIN" "$plist" 2>"$error_log"; then
+      launchctl enable "$DOMAIN/$label"
+      return 0
+    fi
+    if launchctl print "$DOMAIN/$label" >/dev/null 2>&1; then
+      launchctl enable "$DOMAIN/$label"
+      launchctl kickstart -k "$DOMAIN/$label"
+      return 0
+    fi
+    sleep 1
+  done
+  cat "$error_log" >&2
+  echo "failed to bootstrap $label after 10 attempts" >&2
+  return 1
+}
+
 [[ "$MINISV_RELEASE_ID" =~ '^[A-Za-z0-9._-]+$' ]] || { echo "invalid release id" >&2; exit 2; }
 [[ -f "$MINISV_RELEASE_ARCHIVE" && -f "$MINISV_ACCOUNTS_SOURCE" && -f "$MINISV_TUNNEL_CREDENTIAL_SOURCE" ]] || { echo "required deployment input missing" >&2; exit 2; }
 [[ -x "$DOCKER" && -x /opt/homebrew/bin/python3 && -x /opt/homebrew/bin/node && -x /opt/homebrew/bin/cloudflared ]] || { echo "required Hecate runtime missing" >&2; exit 2; }
@@ -102,24 +128,21 @@ done
 
 /opt/homebrew/bin/python3 "$TARGET/ops/scripts/switch-current.py" "$ROOT" "$MINISV_RELEASE_ID"
 
-for label in com.minisv.live-run-controller com.minisv.remote-console com.minisv.cloudflared; do
-  launchctl bootout "$DOMAIN/$label" >/dev/null 2>&1 || true
-done
-for label in com.minisv.live-run-controller com.minisv.remote-console; do
-  launchctl bootstrap "$DOMAIN" "$HOME/Library/LaunchAgents/$label.plist"
-  launchctl enable "$DOMAIN/$label"
-done
+bootstrap_agent com.minisv.live-run-controller "$HOME/Library/LaunchAgents/com.minisv.live-run-controller.plist"
+bootstrap_agent com.minisv.remote-console "$HOME/Library/LaunchAgents/com.minisv.remote-console.plist"
 
 cd "$ROOT"
 $DOCKER compose -f compose.yml config -q
 $DOCKER compose -f compose.yml up -d --force-recreate gateway
 
-launchctl bootstrap "$DOMAIN" "$HOME/Library/LaunchAgents/com.minisv.cloudflared.plist"
-launchctl enable "$DOMAIN/com.minisv.cloudflared"
+# Keep the existing tunnel connected until the new controller, console and
+# gateway are ready; only then reload its plist with the same retry guard.
+bootstrap_agent com.minisv.cloudflared "$HOME/Library/LaunchAgents/com.minisv.cloudflared.plist"
 
 for attempt in {1..30}; do
   if $CURL -fsS http://127.0.0.1:18790/healthz >/dev/null \
      && $CURL -fsS http://127.0.0.1:18791/healthz >/dev/null \
+     && $CURL -fsS http://127.0.0.1:18792/metrics >/dev/null \
      && $CURL -fsS -H 'Host: minisv.vip' http://127.0.0.1:18780/healthz >/dev/null; then
     break
   fi
