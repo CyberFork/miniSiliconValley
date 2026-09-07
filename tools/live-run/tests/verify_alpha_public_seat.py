@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import http.client
 import json
+import re
 import secrets
 import ssl
 from pathlib import Path
@@ -75,7 +76,9 @@ def main() -> None:
             console_errors: list[str] = []
             page.on("response", lambda response: bad_responses.append(urlsplit(response.url).path) if response.status >= 400 else None)
             page.on("console", lambda message: console_errors.append(message.text) if message.type == "error" else None)
-            page.goto(seat_url, wait_until="networkidle", timeout=20_000)
+            # The seat intentionally polls every 900 ms, so networkidle is not
+            # a valid readiness signal. DOM load plus the rendered surface is.
+            page.goto(seat_url, wait_until="domcontentloaded", timeout=20_000)
             page.wait_for_selector(".msv-seat-surface[data-preview='false']", timeout=15_000)
             visible = page.locator("#seatApp").inner_text()
             title = page.title()
@@ -85,12 +88,16 @@ def main() -> None:
                 "explicitError": "席位资源加载失败" in visible or "席位暂不可用" in visible,
                 "badResponses": sorted(set(bad_responses)),
                 "consoleErrorCount": len(console_errors),
+                "consoleErrors": [re.sub(r"#[^\s\"']+", "#[redacted]", item)[:300] for item in console_errors],
             }
             browser.close()
             if not browser_result["rendered"] or browser_result["explicitError"]:
                 raise RuntimeError("seat remained in loading/error state")
             if browser_result["badResponses"] or browser_result["consoleErrorCount"]:
-                raise RuntimeError("seat emitted failed resources or browser console errors")
+                raise RuntimeError(
+                    "seat emitted failed resources or browser console errors "
+                    f"paths={browser_result['badResponses']} consoleErrors={browser_result['consoleErrors']}"
+                )
     except Exception as exc:  # keep capability fragments out of CI output
         failure = f"{type(exc).__name__}: {str(exc).split('#', 1)[0]}"
     finally:

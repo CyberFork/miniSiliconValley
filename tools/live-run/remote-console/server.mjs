@@ -422,7 +422,10 @@ function fileResponse(response, path) {
   commonHeaders(response);
   response.setHeader("Content-Type", mime);
   response.setHeader("Content-Length", body.length);
-  response.setHeader("Content-Security-Policy", "default-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'");
+  // Shared course rendering uses a numeric CSS custom property for the block
+  // progress grid and the theme switch sets color-scheme on <html>. Allow
+  // style attributes while keeping scripts strictly same-origin.
+  response.setHeader("Content-Security-Policy", "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'");
   response.end(body);
 }
 

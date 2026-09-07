@@ -39,6 +39,15 @@ class GatewayContractTests(unittest.TestCase):
         self.assertIn('$http_x_forwarded_proto = "http"', self.gateway)
         self.assertIn("return 308 https://minisv.vip$request_uri", self.gateway)
 
+    def test_alpha_gateway_owns_one_non_conflicting_public_csp(self) -> None:
+        route = re.search(r"location \^~ /alpha/ \{(.*?)\n    \}", self.gateway, re.DOTALL)
+        self.assertIsNotNone(route)
+        for header in (
+            "Content-Security-Policy", "Referrer-Policy", "X-Content-Type-Options",
+            "X-Frame-Options", "X-Robots-Tag",
+        ):
+            self.assertIn(f"proxy_hide_header {header};", route.group(1))
+
     def test_classroom_adapter_is_native_to_the_public_origin(self) -> None:
         self.assertNotIn("work.cyberforker.com", self.gateway)
         self.assertNotIn("work.cyberforker.com", self.proxy)

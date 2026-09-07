@@ -306,6 +306,7 @@ test("remote HTTP console exposes eight safe seats while privileged controller r
     const page = await fetch(`${base}/`);
     assert.equal(page.status, 200);
     assert.match(page.headers.get("content-security-policy"), /default-src 'self'/);
+    assert.match(page.headers.get("content-security-policy"), /style-src 'self' 'unsafe-inline'/);
     assert.match(await page.text(), /4 导师＋4 学员/);
 
     const loadingPage = await fetch(`${base}/seat-loading.html?seat=W04`);
