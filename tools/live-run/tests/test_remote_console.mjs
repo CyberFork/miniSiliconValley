@@ -313,6 +313,25 @@ test("remote HTTP console exposes eight safe seats while privileged controller r
     assert.match(loadingPage.headers.get("content-security-policy"), /default-src 'self'/);
     assert.match(await loadingPage.text(), /正在准备席位卡片/);
     assert.match(await (await fetch(`${base}/seat-loading.html?seat=W04`)).text(), /自动进入你的私人课堂视角/);
+
+    // Exercise the real remote-console static boundary instead of a browser
+    // fixture that serves source files independently. Every relative script
+    // and stylesheet referenced by the seat document must be reachable from
+    // the same reverse-proxy prefix with an executable MIME type.
+    const seatPage = await fetch(`${base}/seat.html?seat=learner01`);
+    assert.equal(seatPage.status, 200);
+    const seatHtml = await seatPage.text();
+    const dependencies = [...seatHtml.matchAll(/(?:src|href)="([^"#?]+)(?:\?[^"#]*)?"/g)]
+      .map((match) => match[1])
+      .filter((value) => !value.startsWith("/"));
+    assert.deepEqual(dependencies, ["seat.css", "course-preview.css", "card-view.js", "course-preview.js", "seat.js"]);
+    for (const dependency of dependencies) {
+      const asset = await fetch(`${base}/${dependency}`);
+      assert.equal(asset.status, 200, `seat dependency ${dependency} must be served by the remote console`);
+      const contentType = asset.headers.get("content-type") || "";
+      assert.match(contentType, dependency.endsWith(".js") ? /javascript/ : /text\/css/);
+      assert.ok((await asset.text()).length > 100, `${dependency} must not be a JSON 404 envelope`);
+    }
   } finally {
     await close(consoleServer);
     await close(controller);

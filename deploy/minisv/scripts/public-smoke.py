@@ -23,6 +23,10 @@ EXPECTED = {
     "/auth/register/": 200,
     "/auth/recover/": 200,
     "/alpha/": 200,
+    "/alpha/seat.html": 200,
+    "/alpha/seat.js": 200,
+    "/alpha/course-preview.js": 200,
+    "/alpha/course-preview.css": 200,
     "/control/": 303,
     "/healthz": 200,
     "/release.json": 200,
@@ -102,6 +106,17 @@ def main() -> None:
             text = body.decode("utf-8", "replace")
             if 'href="/"' not in text or '/favicon.svg' not in text:
                 raise SystemExit(f"FAIL {path}: shared brand/home contract is missing")
+        if path == "/alpha/seat.html":
+            text = body.decode("utf-8", "replace")
+            for dependency in ("seat.js", "course-preview.js", "course-preview.css"):
+                if dependency not in text:
+                    raise SystemExit(f"FAIL Alpha seat: missing dependency {dependency}")
+        if path in {"/alpha/seat.js", "/alpha/course-preview.js"}:
+            if "javascript" not in headers.get("content-type", "") or len(body) < 100:
+                raise SystemExit(f"FAIL {path}: not an executable JavaScript asset")
+        if path == "/alpha/course-preview.css":
+            if "text/css" not in headers.get("content-type", "") or len(body) < 100:
+                raise SystemExit("FAIL Alpha seat: course-preview.css is unavailable")
         if path == "/workshop/":
             text = body.decode("utf-8", "replace")
             for marker in ("msv-workshop-released-baseline", 'data-panel="baseline"', "baseline.js", "baseline.css"):

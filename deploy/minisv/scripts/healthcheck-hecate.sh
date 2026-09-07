@@ -21,6 +21,10 @@ probe /favicon.svg 200
 probe /this-worldline-does-not-exist 404
 probe /classroom/ 307
 probe /alpha/ 200
+probe /alpha/seat.html 200
+probe /alpha/seat.js 200
+probe /alpha/course-preview.js 200
+probe /alpha/course-preview.css 200
 probe /control/ 303
 # Public console must never proxy controller secrets.
 probe /alpha/api/bootstrap 404

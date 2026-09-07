@@ -10,6 +10,10 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_STATIC = join(HERE, "static");
 const BUNDLED_SEAT_STATIC = join(HERE, "seat-static");
 const DEFAULT_SEAT_STATIC = existsSync(BUNDLED_SEAT_STATIC) ? BUNDLED_SEAT_STATIC : join(HERE, "..", "static");
+// Keep the complete browser seat bundle at the public capability boundary.
+// A contract test parses seat.html and fetches every relative dependency, so
+// adding a new script or stylesheet cannot silently strand the loading shell.
+const SEAT_STATIC_FILES = ["seat.html", "seat.css", "seat.js", "card-view.js", "course-preview.css", "course-preview.js"];
 const SEAT_IDS = ["mentor01", "mentor02", "mentor03", "mentor04", "learner01", "learner02", "learner03", "learner04"];
 const FALLBACK_SEATS = [
   ["mentor01", "W00", "主 DM · 产品导师", "mentor"],
@@ -324,10 +328,7 @@ export function createRemoteConsoleServer({
           ["/console.css", [staticDir, "console.css"]],
           ["/console.js", [staticDir, "console.js"]],
           ["/seat-loading.html", [staticDir, "seat-loading.html"]],
-          ["/seat.html", [seatStaticDir, "seat.html"]],
-          ["/seat.css", [seatStaticDir, "seat.css"]],
-          ["/seat.js", [seatStaticDir, "seat.js"]],
-          ["/card-view.js", [seatStaticDir, "card-view.js"]],
+          ...SEAT_STATIC_FILES.map((name) => [`/${name}`, [seatStaticDir, name]]),
         ]);
         const target = staticFiles.get(url.pathname);
         if (target) return fileResponse(response, join(...target));

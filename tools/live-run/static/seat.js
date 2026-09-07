@@ -8,9 +8,15 @@
   const seatId = aliases[requested] || requested;
   const app = document.getElementById("seatApp");
   const Preview = window.MsvCoursePreview;
-  const cleanCardTitle = window.MsvCardView.cleanCardTitle;
+  const CardView = window.MsvCardView;
   const EVIDENCE_BOUNDARY_GUIDE = "F 有来源｜R 课堂模拟｜G 我们猜的｜U 还不知道";
-  if (!Preview) throw new Error("共享席位渲染器未加载");
+  if (!app) return;
+  if (!Preview || !CardView) {
+    document.title = "席位资源加载失败";
+    app.innerHTML = '<article class="msv-seat-surface" data-preview="false"><section class="surface-card"><h2>席位资源加载失败</h2><p>页面资源没有完整到达。请刷新一次；如果仍失败，请返回 Alpha 席位台重新打开。</p></section></article>';
+    return;
+  }
+  const cleanCardTitle = CardView.cleanCardTitle;
 
   function stateUrl() {
     return new URL(`api/state?${new URLSearchParams({seat: seatId})}`, new URL(".", location.href));
@@ -27,7 +33,7 @@
   }
   function renderError(error) {
     const prefix = /领取|失效|LEASE/u.test(error.message) ? "请返回测试席位控制台重新领取：" : "1 秒后自动重连：";
-    app.innerHTML = `<article class="msv-seat-surface" data-preview="false"><section class="surface-card"><h2>席位暂不可用</h2><p>${window.MsvCardView.escapeHtml(prefix + error.message)}</p></section></article>`;
+    app.innerHTML = `<article class="msv-seat-surface" data-preview="false"><section class="surface-card"><h2>席位暂不可用</h2><p>${CardView.escapeHtml(prefix + error.message)}</p></section></article>`;
   }
   async function refresh() {
     try {

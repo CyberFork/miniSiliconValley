@@ -706,8 +706,11 @@
       "properties": {
         "status": {
           "enum": [
+            "candidate",
             "draft",
-            "published"
+            "published",
+            "released",
+            "retired"
           ]
         },
         "revision": {
