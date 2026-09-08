@@ -1,6 +1,8 @@
 # Course Studio 发布说明
 
-> **Legacy（T-085 已替代）**：旧固定九视窗 `/control/editor` 已由 `/studio/editor/` 和页内动态 `4 + N + 1` 取代。现行流程见 [Course Platform SOP](COURSE_PLATFORM_SOP.md)。
+> **2026-09-08 修正**：T-085 只替换旧路由、鉴权、Alpha/Run 和版本后端，不替换原有完整编辑体验。`/studio/editor/` 已恢复课程库、5×13 时序轴、可视化直改、抽卡、JSON、版本历史及页内动态 `4 + N + 1`；约束见 [编辑器不可退化约束](COURSE_STUDIO_EDITOR_GUARDRAILS.md)。
+>
+> 下方记录保留为旧 `/control/editor/` 的历史发布证据，不代表当前生产路由。
 
 
 发布：`20260906T064756Z-t074-layout-r2`

@@ -1,0 +1,360 @@
+:root {
+  --msv-adventure-navy: #102b46;
+  --msv-adventure-ink: #172b36;
+  --msv-adventure-paper: #f8efd8;
+  --msv-adventure-paper-2: #fffaf0;
+  --msv-adventure-mint: #43a99c;
+  --msv-adventure-mint-dark: #267a73;
+  --msv-adventure-yellow: #f0bd42;
+  --msv-adventure-red: #b94231;
+  /* Business-state colours are semantic invariants, not theme decoration. */
+  --msv-status-success: #2f897f;
+  --msv-status-warning: #b57c00;
+  --msv-status-danger: #b94231;
+  --msv-status-info: #355d83;
+  --msv-text-on-dark: #fff5db;
+  --msv-text-secondary-on-dark: #b9c8c8;
+  --msv-surface-dark: #071720;
+  --msv-panel-dark: #11272e;
+  --msv-pixel-shadow: 5px 5px 0 var(--msv-adventure-navy);
+}
+
+/* T-082 shared static brand primitive. The image source is always /favicon.svg. */
+.msv-static-brand {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 44px;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  font-weight: 900;
+  line-height: 1.15;
+  text-decoration: none;
+}
+
+.msv-static-brand img {
+  display: block;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  object-fit: contain;
+}
+
+.msv-static-brand > span,
+.msv-static-brand strong,
+.msv-static-brand small { display: block; min-width: 0; }
+.msv-static-brand strong { letter-spacing: .07em; }
+.msv-static-brand small { margin-top: 3px; opacity: .72; font-size: 10px; font-weight: 700; letter-spacing: .08em; }
+.msv-static-brand--mark { width: 44px; min-width: 44px; gap: 0; }
+.msv-static-brand:focus-visible { outline: 3px solid var(--msv-status-warning, #e0b83f); outline-offset: 4px; }
+
+@media (max-width: 390px) {
+  .msv-static-brand img { width: 40px; height: 40px; flex-basis: 40px; }
+  .msv-static-brand--mark { width: 40px; min-width: 40px; }
+}
+
+html,
+body {
+  max-width: 100%;
+}
+
+.msv-course-nav-link {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  color: #fffaf0 !important;
+  background: var(--msv-adventure-navy);
+  border: 1px solid var(--msv-adventure-mint) !important;
+  border-radius: 0 !important;
+  box-shadow: 3px 3px 0 var(--msv-adventure-yellow);
+  font: 800 11px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+  text-decoration: none !important;
+  white-space: nowrap;
+}
+
+.msv-course-nav-link:hover {
+  color: var(--msv-adventure-navy) !important;
+  background: var(--msv-adventure-yellow);
+}
+
+.msv-course-nav-link[data-placement="floating"] {
+  position: fixed;
+  z-index: 2147482999;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(142px, calc(env(safe-area-inset-right) + 142px));
+}
+
+.msv-ui-switch {
+  position: relative;
+  z-index: 2147483000;
+  display: inline-grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  gap: 2px;
+  min-width: max-content;
+  padding: 3px;
+  color: #dfe9e8;
+  background: #071b2a;
+  border: 1px solid #5c747d;
+  box-shadow: 3px 3px 0 #0005;
+  font: 700 11px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0;
+}
+
+.msv-ui-switch[data-placement="floating"] {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+}
+
+.msv-ui-switch__label {
+  padding: 0 6px;
+  color: var(--msv-adventure-yellow);
+  letter-spacing: .12em;
+}
+
+.msv-ui-switch button {
+  appearance: none;
+  min-width: 46px;
+  min-height: 44px;
+  margin: 0;
+  padding: 6px 9px;
+  color: #aebdc0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.msv-ui-switch button[aria-pressed="true"] {
+  color: #071b2a;
+  background: var(--msv-adventure-yellow);
+}
+
+.msv-ui-switch button:focus-visible {
+  outline: 3px solid var(--msv-adventure-mint);
+  outline-offset: 2px;
+}
+
+.msv-ui-switch .sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/*
+ * Adventure is an additive theme. Classic intentionally has no overrides so
+ * the accepted UI remains byte-for-byte in control when the switch is off.
+ */
+/* Light products can adopt the Adventure palette. Dark operational surfaces
+ * own component-scoped text/surface tokens and must never inherit light ink. */
+html[data-msv-theme="adventure"][data-msv-surface="light"] {
+  --ink: var(--msv-adventure-ink);
+  --ink-2: #24414b;
+  --navy: var(--msv-adventure-navy);
+  --navy2: #183d5f;
+  --paper: var(--msv-adventure-paper);
+  --paper-2: #ead9b6;
+  --cream: var(--msv-adventure-paper);
+  --white: var(--msv-adventure-paper-2);
+  --mustard: var(--msv-adventure-yellow);
+  --gold: var(--msv-adventure-yellow);
+  --teal: var(--msv-adventure-mint);
+  --mint: var(--msv-adventure-mint);
+  --danger: var(--msv-adventure-red);
+  --shadow-pixel: var(--msv-pixel-shadow);
+}
+
+html[data-msv-theme="adventure"][data-msv-surface="light"] body,
+html[data-msv-theme="adventure"] .app-shell {
+  background-color: var(--msv-adventure-paper);
+  background-image:
+    linear-gradient(#183d5f10 1px, transparent 1px),
+    linear-gradient(90deg, #183d5f10 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+html[data-msv-theme="adventure"] :is(.brand-mark, .brand-pixel, .button, .route, .panel, .card, .modal-panel, dialog) {
+  border-radius: 0 !important;
+}
+
+html[data-msv-theme="adventure"] :is(.route, .panel, .card, .modal-panel) {
+  box-shadow: 5px 5px 0 #102b4626;
+}
+
+html[data-msv-theme="adventure"] :is(.button.primary, button.primary):not(.danger) {
+  color: #fff;
+  background: var(--msv-adventure-navy);
+  border-color: var(--msv-adventure-navy);
+  box-shadow: 4px 4px 0 var(--msv-adventure-mint);
+}
+
+html[data-msv-theme="adventure"] :is(.button.primary, button.primary):not(.danger):hover {
+  color: #08222b;
+  background: var(--msv-adventure-yellow);
+}
+
+html[data-msv-theme="adventure"] .topbar {
+  border-bottom-color: var(--msv-adventure-mint);
+}
+
+html[data-msv-theme="adventure"] .eyebrow,
+html[data-msv-theme="adventure"] .section-kicker,
+html[data-msv-theme="adventure"] .route-no {
+  color: var(--msv-adventure-mint-dark);
+}
+
+html[data-msv-theme="adventure"] .hero-card {
+  color: #fff;
+  background:
+    linear-gradient(90deg, #102b46f0 0 43%, #102b4670 72%, #102b4620),
+    url("/assets/silicon-valley-base-map.webp") center / cover;
+  outline: 3px solid var(--msv-adventure-navy);
+  box-shadow: 12px 12px 0 var(--msv-adventure-yellow);
+}
+
+html[data-msv-theme="adventure"] .hero-card .orbit {
+  border-radius: 0;
+  background: #071b2add;
+  border-color: var(--msv-adventure-mint);
+}
+
+html[data-msv-theme="adventure"] .route:hover {
+  box-shadow: 8px 8px 0 var(--msv-adventure-yellow);
+}
+
+/* Auth/Classroom use CSS modules, so stable semantic class-name fragments are
+ * used instead of build hashes. This keeps the alternative skin deployable
+ * without forking authentication logic. */
+html[data-msv-theme="adventure"] [class*="_authPage_"] {
+  background: var(--msv-adventure-paper);
+}
+
+html[data-msv-theme="adventure"] [class*="_authNav_"] {
+  border-bottom-color: var(--msv-adventure-mint);
+}
+
+html[data-msv-theme="adventure"] [class*="_storyPanel_"] {
+  background-color: #092331;
+  background-image:
+    linear-gradient(90deg, #092331f5 0 56%, #092331c8),
+    url("/assets/silicon-valley-base-map.webp");
+  background-position: center;
+  background-size: cover;
+  border-right-color: var(--msv-adventure-navy);
+}
+
+html[data-msv-theme="adventure"] [class*="_storyCopy_"] {
+  text-shadow: 0 2px 0 #071720;
+}
+
+html[data-msv-theme="adventure"] [class*="_storyCopy_"] :is(h1, strong),
+html[data-msv-theme="adventure"] [class*="_kicker_"] {
+  color: var(--msv-adventure-yellow);
+}
+
+html[data-msv-theme="adventure"] [class*="_formPanel_"] {
+  background-color: var(--msv-adventure-paper);
+  background-image:
+    linear-gradient(#183d5f10 1px, transparent 1px),
+    linear-gradient(90deg, #183d5f10 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+html[data-msv-theme="adventure"] [class*="_authCard_"] {
+  background: #fffaf0ed;
+  border-color: var(--msv-adventure-navy);
+  box-shadow: 8px 8px 0 var(--msv-adventure-mint);
+}
+
+html[data-msv-theme="adventure"] [class*="_authForm_"] :is(input, select, textarea) {
+  border-color: var(--msv-adventure-navy);
+  border-radius: 0;
+  background: var(--msv-adventure-paper-2);
+}
+
+html[data-msv-theme="adventure"] [class*="_authForm_"] :is(input, select, textarea):focus {
+  outline: 3px solid var(--msv-adventure-yellow);
+  outline-offset: 2px;
+}
+
+html[data-msv-theme="adventure"] [class*="_primaryButton_"] {
+  color: #fff;
+  background: var(--msv-adventure-navy);
+  border-color: var(--msv-adventure-navy);
+  border-radius: 0;
+  box-shadow: 5px 5px 0 var(--msv-adventure-mint);
+}
+
+html[data-msv-theme="adventure"] :is(.map-workbench, .intel-dock, .timeline-console, .event-ledger, .mission-shell) {
+  border-color: var(--msv-adventure-navy);
+}
+
+html[data-msv-theme="adventure"] :is(.map-hotspot, .play-button, .mission-card, .archive-card) {
+  filter: saturate(1.08) contrast(1.03);
+}
+
+html[data-msv-theme="adventure"][data-msv-surface="dark"] body {
+  background-color: #071720;
+  background-image:
+    linear-gradient(#43a99c0d 1px, transparent 1px),
+    linear-gradient(90deg, #43a99c0d 1px, transparent 1px),
+    radial-gradient(circle at 85% 0, #1a3540, #071118 52%);
+  background-size: 20px 20px, 20px 20px, auto;
+}
+
+html[data-msv-surface="dark"] {
+  --msv-text-primary-dark: var(--msv-text-on-dark);
+  --msv-text-secondary-dark: var(--msv-text-secondary-on-dark);
+  --msv-background-dark: var(--msv-surface-dark);
+  --msv-card-dark: var(--msv-panel-dark);
+}
+
+html[data-msv-theme="adventure"][data-msv-surface="dark"] :is(.seat, .overview, .card, .launch-card) {
+  border-color: var(--msv-adventure-mint);
+  border-radius: 0;
+  box-shadow: 4px 4px 0 #0008;
+}
+
+@media (max-width: 860px) {
+  .msv-ui-switch[data-placement="inline"] .msv-ui-switch__label { display: none; }
+}
+
+@media (max-width: 480px) {
+  .msv-ui-switch[data-placement="floating"] {
+    transform: scale(.9);
+    transform-origin: top right;
+  }
+
+  .msv-ui-switch[data-placement="floating"] {
+    top: max(8px, env(safe-area-inset-top));
+    right: max(8px, env(safe-area-inset-right));
+  }
+
+  .msv-course-nav-link[data-placement="floating"] {
+    top: max(52px, calc(env(safe-area-inset-top) + 52px));
+    right: max(8px, env(safe-area-inset-right));
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-msv-theme="adventure"] *,
+  html[data-msv-theme="adventure"] *::before,
+  html[data-msv-theme="adventure"] *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

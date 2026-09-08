@@ -35,7 +35,7 @@ export default function StudioApp({ section, user }: { section: StudioSection; u
   return <main className={styles.page}>
     <header className={styles.topbar}><BrandHomeLink className={styles.brand} title="Course Studio" /><div className={styles.user}><span><b>{user.displayName}</b><small>{user.role === "admin" ? "平台管理员" : "课程导师"}</small></span><Link href="/classroom/">进入课堂</Link></div></header>
     <div className={styles.shell}>
-      <nav className={styles.nav} aria-label="Course Studio"><p className={styles.navLabel}>COURSE FACTORY</p>{NAV.map((item) => <Link key={item.id} href={item.href} data-active={section === item.id}><span>{item.code}</span>{item.label}</Link>)}</nav>
+      <nav className={styles.nav} aria-label="Course Studio"><p className={styles.navLabel}>COURSE FACTORY</p>{NAV.map((item) => item.id === "editor" ? <a key={item.id} href={item.href} data-active={section === item.id}><span>{item.code}</span>{item.label}</a> : <Link key={item.id} href={item.href} data-active={section === item.id}><span>{item.code}</span>{item.label}</Link>)}</nav>
       <section className={styles.content}>
         {error && <div className={styles.error} role="alert">{error}</div>}{notice && <div className={styles.notice} role="status">{notice}</div>}
         {loading && !data ? <div className={styles.loading}>正在读取唯一课程真值…</div> : data ? <>
@@ -61,7 +61,7 @@ function StudioHome({ data }: { data: Bootstrap }) {
   const blockSummary = blockCounts.length === 1 ? `${blockCounts[0]} 个 Block` : `${blockCounts.join("／")} 个 Block`;
   return <><Heading eyebrow="COURSE STUDIO · FACTORY CONTROL" title="课程工厂">从一份 CourseDefinition 保存 Candidate，用真实 Test Classroom 验收，再发布为不会影响既有课堂的 Released 版本。</Heading>
     <div className={styles.overviewGrid}>
-      <article className={styles.overviewCard}><b>DEFINE · {courseCount} COURSES</b><h2>编辑唯一课程真值</h2><p>五步骤、{blockSummary}、导师任务、学员视角、卡组和人数策略都从同一个 JSON 产生。</p><Link href="/studio/editor/">打开编辑器 →</Link></article>
+      <article className={styles.overviewCard}><b>DEFINE · {courseCount} COURSES</b><h2>编辑唯一课程真值</h2><p>五步骤、{blockSummary}、导师任务、学员视角、卡组和人数策略都从同一个 JSON 产生。</p><a href="/studio/editor/">打开编辑器 →</a></article>
       <article className={styles.overviewCard}><b>TEST · {candidateCount} CANDIDATES</b><h2>直接看 4 + N + 1</h2><p>在当前页切换课程允许的人数、Block 和固定 seed；容量不足会指出具体卡组缺口。</p><Link href="/studio/preview/">打开只读预览 →</Link></article>
       <article className={styles.overviewCard}><b>SHIP · {data.courseware.length} COURSEWARE</b><h2>真实课堂后再发布</h2><p>Test 与 Production 共用工厂、API、界面和状态机。只有 exact 验收回执能解锁正式发布。</p><Link href="/studio/releases/">查看发布门 →</Link></article>
     </div>

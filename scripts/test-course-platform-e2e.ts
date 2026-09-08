@@ -99,8 +99,26 @@ try {
   assert.deepEqual(initial.courseware.map((item) => item.mentorRole), ["P", "D", "M", "O"]);
   assert.ok(initial.courseware.every((item) => item.releasedRevision !== null && item.releasedDigest));
 
+  const anonymousEditor = await fetch(`${internalBase}/studio/editor/`, {
+    headers: proxyHeaders(), redirect: "manual", signal: AbortSignal.timeout(20_000),
+  });
+  assert.ok([302, 303, 307, 308].includes(anonymousEditor.status));
+  assert.match(anonymousEditor.headers.get("location") ?? "", /\/auth\/login.*returnTo/);
+  const editorPage = await get("/studio/editor/", adminCookie);
+  assert.equal(editorPage.status, 200);
+  const editorHtml = await editorPage.text();
+  for (const marker of ["课程编排工作台", "COURSE LIBRARY", "全课程时序轴", "多角色直改", "抽卡内容", "课程中控视窗"]) {
+    assert.ok(editorHtml.includes(marker), `restored editor missing ${marker}`);
+  }
+  assert.ok(editorHtml.includes("/studio/editor-assets/editor.js"));
+  assert.equal((await get("/studio/editor-assets/editor.js", adminCookie)).status, 200);
+  assert.equal((await get("/studio/editor-assets/course-preview.js", adminCookie)).status, 200);
+
   const google = initial.versions.find((item) => item.ref.courseId === "google-1995-2004" && item.released);
   assert.ok(google);
+  const validatedWorkingCopy = await postData<{ macroSteps: number; blocks: number; decks: number; cards: number; metadata: { digest: string } }>("/api/studio/validate", { course: google.course }, adminCookie);
+  assert.deepEqual([validatedWorkingCopy.macroSteps, validatedWorkingCopy.blocks, validatedWorkingCopy.decks, validatedWorkingCopy.cards], [5, 13, 5, 60]);
+  assert.match(validatedWorkingCopy.metadata.digest, /^[0-9a-f]{64}$/);
   const candidateBody = structuredClone(google.course);
   candidateBody.title = `${candidateBody.title} · E2E Candidate`;
   const candidate = await postData<ExactRef>("/api/studio/candidates", { course: candidateBody }, adminCookie);

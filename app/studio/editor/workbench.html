@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>课程编辑器 · Mini Silicon Valley</title>
+  <link rel="icon" href="/favicon.svg">
+  <link rel="stylesheet" href="/studio/editor-assets/editor.css?v=t085-editor-r3">
+  <link rel="stylesheet" href="/studio/editor-assets/course-preview.css?v=t085-editor-r3">
+  <link rel="stylesheet" href="/studio/editor-assets/ui-theme.css?v=t085-editor-r3">
+  <script src="/studio/editor-assets/ui-theme.js?v=t085-editor-r3"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-start"><a class="msv-static-brand msv-static-brand--mark" href="/" aria-label="返回 Mini Silicon Valley 主页"><img src="/favicon.svg" alt="" width="64" height="64"></a><a class="back" href="/studio/">← COURSE STUDIO</a></div>
+  <div><span class="eyebrow">COURSE STUDIO · 所见即所得 · 直接修改</span><h1>课程编排工作台</h1></div>
+  <div class="topbar-actions">
+    <button type="button" id="topbarLibrary" class="button topbar-library" aria-expanded="true" aria-controls="libraryContent">课程库</button>
+    <span class="editor-user" aria-label="当前编辑者">__MSV_EDITOR_USER__</span><div class="save-state" id="saveState" data-state="loading">正在载入</div>
+    <div data-msv-theme-slot></div>
+  </div>
+</header>
+<section class="standard" aria-label="课程标准框架">
+  <b>固定骨架</b><span>一世界</span><span>两双轨</span><span>三玩法</span><span>四导师</span><span>五大步</span><span>十三小块</span><span>六分钟 Demo</span>
+</section>
+<main class="studio">
+  <aside id="courseLibrary" class="library panel" aria-label="课程库">
+    <div class="panel-head"><div><span class="eyebrow">COURSE LIBRARY</span><h2>课程库</h2></div><div class="panel-head-actions"><button type="button" id="closeLibrary" class="icon-button subtle" title="收起课程库" aria-label="收起课程库" aria-expanded="true" aria-controls="libraryContent">←</button><button type="button" id="newCourse" class="icon-button" title="从现有课件创建" aria-label="从现有课件创建">＋</button></div></div>
+    <div id="libraryContent">
+      <p class="hint">选择唯一 CourseDefinition。这里直接修改完整课程；保存生成不可变 Candidate，不会改变已经开始的课堂。</p>
+      <div id="courseList" class="course-list"></div>
+      <div id="diagnostics" class="diagnostics" hidden></div>
+      <div class="library-actions">
+        <label class="button secondary" for="importFile">导入 JSON</label><input id="importFile" type="file" accept="application/json,.json" hidden>
+        <button id="download" class="button ghost" disabled>导出 JSON</button>
+      </div>
+    </div>
+  </aside>
+
+  <section class="workspace panel">
+    <div id="emptyState" class="empty-state"><b>选择一门课程开始</b><p>可以编辑 Google、饿了么，或点击左上角 ＋ 克隆一门完整课程。</p></div>
+    <div id="editor" hidden>
+      <div class="workspace-head">
+        <div><span class="eyebrow" id="courseKicker"></span><h2 id="courseTitle"></h2><p id="revisionLine"></p></div>
+        <div class="toolbar">
+          <button id="openLibrary" class="button ghost" aria-expanded="true" aria-controls="libraryContent">课程库</button>
+          <button id="validate" class="button ghost">检查结构</button>
+          <button id="historyButton" class="button ghost">版本历史</button>
+          <button id="saveDraft" class="button secondary" data-save-course>保存 Candidate</button>
+          <button id="publish" class="button primary">测试与发布</button>
+        </div>
+      </div>
+
+      <section class="candidate-dock" aria-label="课程版本与保存状态">
+        <div class="version-matrix" id="versionMatrix" aria-live="polite"></div>
+        <div class="candidate-actions">
+          <button type="button" id="undoEdit" class="button ghost" disabled title="撤销上一次可视化修改">↶ 撤销</button>
+          <button type="button" id="redoEdit" class="button ghost" disabled title="恢复上一次可视化修改">↷ 重做</button>
+          <button type="button" id="saveCandidateDock" class="button secondary" data-save-course>保存整门课程</button>
+        </div>
+      </section>
+
+      <section id="packageHealth" class="package-health" aria-live="polite"></section>
+      <section id="alphaSync" class="alpha-sync" aria-live="polite" aria-label="Test Classroom 与发布状态"></section>
+
+      <div class="mode-tabs" role="tablist" aria-label="课程编辑模式">
+        <button id="studioTab" role="tab" aria-controls="studioPane" aria-selected="true"><span>多角色直改</span><small>4 + N + 1</small></button>
+        <button id="structuredTab" role="tab" aria-controls="structuredPane" aria-selected="false">高级结构</button>
+        <button id="cardsTab" role="tab" aria-controls="cardsPane" aria-selected="false"><span>抽卡内容</span><small id="cardsTabCount">—</small></button>
+        <button id="jsonTab" role="tab" aria-controls="jsonPane" aria-selected="false">JSON 源码</button>
+      </div>
+
+      <div id="studioPane" role="tabpanel">
+        <section id="studioCourseIdentity" class="studio-course-identity" aria-label="当前课程与大步的可视化编辑入口"></section>
+        <section class="studio-mode-boundary" aria-label="工作台模式边界">
+          <div><span class="eyebrow">WORKING COPY → PREVIEW STATE</span><b>当前：编辑预览</b><p>所有角色视图直接读取本页 Working Copy；点击虚线字段即可修改唯一源。这里只做安全预览，不读取真实账号、手牌或账本。</p></div>
+          <div class="runtime-modes" role="group" aria-label="工作台数据模式"><button type="button" aria-pressed="true">Working Copy</button><a href="/classroom/">真实 Test Classroom ↗</a><a href="/studio/releases/">验收与发布 ↗</a></div>
+        </section>
+
+        <section class="course-timeline-shell" aria-labelledby="timelineTitle">
+          <div class="timeline-toolbar"><div><span class="eyebrow">FULL COURSE TIMELINE · 5 × 13</span><h3 id="timelineTitle">全课程时序轴</h3></div><div class="timeline-actions"><button type="button" id="previousBlock" class="button ghost">← 上一块</button><button type="button" id="nextBlock" class="button ghost">下一块 →</button><label>密度<select id="timelineDensity"><option value="compact">全课程</option><option value="comfortable">舒适</option><option value="detail">详细</option></select></label><label class="check-control"><input id="onlyWarnings" type="checkbox">只看警告</label></div></div>
+          <div id="courseTimeline" class="course-timeline" data-density="compact"></div>
+        </section>
+
+        <section class="preview-toolbar" aria-label="动态多角色预览控制">
+          <div class="layout-modes" role="group" aria-label="画布布局">
+            <button type="button" data-layout="overview" aria-pressed="true">全席总览</button>
+            <button type="button" data-layout="mentors" aria-pressed="false">只看导师</button>
+            <button type="button" data-layout="learners" aria-pressed="false">只看学员</button>
+            <button type="button" data-layout="focus" aria-pressed="false">单窗精编</button>
+            <button type="button" data-layout="compare" aria-pressed="false">双窗对照</button>
+          </div>
+          <div class="preview-scenario"><label>学员人数<input id="previewLearnerCount" type="number" min="1" max="24" step="1" value="4" aria-label="预览学员人数"></label>
+            <label>焦点 A<select id="focusSeatA"></select></label>
+            <label id="focusBLabel" hidden>对照 B<select id="focusSeatB"></select></label>
+            <label>预览状态<select id="previewRunStatus"><option value="ready">待执行</option><option value="executing">同步中</option><option value="awaiting-acceptance">待人工验收</option><option value="error">错误停住</option><option value="completed">全程完成</option></select></label>
+            <label>随机 seed<input id="previewSeed" value="MSV-PREVIEW-01" autocomplete="off" spellcheck="false"></label>
+            <button type="button" id="nextSeed" class="button ghost">换一组牌</button>
+          </div>
+        </section>
+
+        <div class="preview-legend"><span><i class="editable-dot"></i>虚线提示：点击即改 Course Package</span><span><i class="derived-dot"></i>“只读·模拟”：派生状态，永不保存</span><strong id="projectionStamp">准备投影</strong></div>
+        <section id="seatPreviewGrid" class="seat-preview-grid" data-layout="overview" aria-label="四导师与动态学员同步预览"></section>
+
+        <section class="controller-preview-shell" id="controllerShell" aria-labelledby="controllerPreviewTitle">
+          <div class="controller-preview-head"><div><span class="eyebrow">PANE 09 · COURSE CONTROLLER</span><h3 id="controllerPreviewTitle">课程中控视窗</h3></div><div><label>高度 <input id="controllerHeight" type="range" min="320" max="900" step="20" value="600"></label><button type="button" id="toggleController" class="button ghost" aria-expanded="true">收起中控</button></div></div>
+          <article id="previewController" class="controller-preview"></article>
+        </section>
+      </div>
+
+      <div id="structuredPane" role="tabpanel" hidden>
+        <section class="meta-card" id="metadataForm"></section>
+        <nav id="stepTabs" class="step-tabs" aria-label="五大步骤"></nav>
+        <div class="block-layout">
+          <nav id="blockList" class="block-list" aria-label="小步骤"></nav>
+          <form id="blockForm" class="block-form"></form>
+        </div>
+      </div>
+
+      <div id="cardsPane" role="tabpanel" hidden>
+        <section class="card-library-head">
+          <div><span class="eyebrow">DRAW CARD LIBRARY · 学员私密卡真值</span><h3>全课程抽卡内容</h3><p id="cardLibrarySummary">从学员看到的一句话，直接反查五步中的稳定卡牌。</p></div>
+          <div class="deck-actions">
+            <button type="button" id="addCard" class="button secondary">在当前步骤新增卡</button>
+            <button type="button" id="simulateDeal" class="button ghost">模拟当前人数发牌</button>
+          </div>
+        </section>
+
+        <section class="card-filters" aria-label="卡牌搜索与筛选">
+          <label class="search-field"><span>全文搜索</span><input id="cardSearch" type="search" autocomplete="off" placeholder="搜标题、正文、分享提示、卡牌 ID 或来源"></label>
+          <label><span>所属步骤</span><select id="cardStepFilter"><option value="">全部五步</option></select></label>
+          <label><span>证据边界</span><select id="cardBoundaryFilter"><option value="">F / R / G / U 全部</option><option value="F">F 有来源</option><option value="R">R 课堂模拟</option><option value="G">G 我们猜的</option><option value="U">U 还不知道</option></select></label>
+          <label><span>来源状态</span><select id="cardSourceFilter"><option value="">全部</option><option value="with">有来源</option><option value="without">无来源</option></select></label>
+          <label><span>当前模拟发牌</span><select id="cardAlphaFilter"><option value="">全部</option><option value="dealt">本次已抽到</option><option value="undealt">本次未抽到</option></select></label>
+          <button type="button" id="resetCardFilters" class="button ghost">清空筛选</button>
+        </section>
+
+        <section class="card-studio" aria-label="卡牌库与学员预览">
+          <div class="card-results-column">
+            <div class="results-head"><b id="cardResultCount">0 张卡</b><span id="cardSearchStatus" aria-live="polite">显示全部</span></div>
+            <nav id="deckCardList" class="deck-card-list" aria-label="搜索结果"></nav>
+          </div>
+          <div class="card-detail-column">
+            <div class="selected-deck-head">
+              <div><span class="eyebrow">SELECTED STAGE DECK</span><h3 id="deckTitle">阶段卡组</h3><p id="deckSummary"></p></div>
+            </div>
+            <div class="card-authoring-grid">
+              <form id="deckCardForm" class="deck-card-form"></form>
+              <aside class="learner-preview" aria-labelledby="learnerPreviewTitle">
+                <div class="preview-head">
+                  <div><span class="eyebrow">LEARNER-EQUIVALENT PREVIEW</span><h3 id="learnerPreviewTitle">学员最终看到什么</h3></div>
+                  <label>卡片状态<select id="previewState"><option value="held">在我手中</option><option value="unread" selected>未读</option><option value="read">已读</option><option value="published">已向团队讲出</option></select></label>
+                </div>
+                <p class="preview-note">下方与正式学员席位共用同一渲染器。内部卡牌 ID 和标题前缀不会暴露给学员。</p>
+                <div id="learnerCardPreview" class="learner-card-preview"></div>
+                <div id="learnerSourcePreview" class="learner-source-preview"></div>
+              </aside>
+            </div>
+          </div>
+        </section>
+
+        <section id="alphaHands" class="alpha-hands" aria-labelledby="alphaHandsTitle" aria-label="本页模拟发牌结果"></section>
+        <div id="dealPreview" class="deal-preview" hidden></div>
+      </div>
+
+      <div id="jsonPane" role="tabpanel" hidden>
+        <div class="raw-toolbar"><p>完整 JSON 是运行真值。点击“格式化并应用”后，课程结构和抽卡内容会一起同步。</p><button id="applyJson" class="button secondary">格式化并应用</button></div>
+        <textarea id="rawJson" class="raw-json" spellcheck="false" aria-label="课程 JSON"></textarea>
+      </div>
+    </div>
+  </section>
+
+  <aside class="guide panel">
+    <span class="eyebrow">AUTHORING SOP · 不靠猜</span><h2>制作一门可运行课程</h2>
+    <ol>
+      <li><b>先看完整性</b><small>顶部必须显示 5 卡组、5×13 完整结构，并覆盖课程声明的最多学员人数。</small></li>
+      <li><b>再写课程结构</b><small>五步十三块，每块只给学员一个眼前动作。</small></li>
+      <li><b>进入抽卡内容</b><small>用全文搜索反查卡牌，不必翻 JSON。</small></li>
+      <li><b>守住证据边界</b><small>F 有来源；R 明说课堂模拟；G 待验证；U 继续调查。</small></li>
+      <li><b>看学员同款预览</b><small>确认初中生读得懂，不把导师方法论压给学员。</small></li>
+      <li><b>检查模拟手牌</b><small>按当前学员人数和 seed 检查每个人实际能看到的卡片。</small></li>
+      <li><b>保存不等于生效</b><small>保存 Candidate 后，正在运行的课堂仍使用锁定旧版。</small></li>
+      <li><b>真实测试再发布</b><small>Candidate 必须在 Test Classroom 完成验收；Production 绝不静默更新。</small></li>
+    </ol>
+    <div class="boundary"><b>证据边界</b><p>F 有来源｜R 课堂模拟｜G 我们猜的｜U 还不知道。历史事实与玩家平行世界始终分开写。</p></div>
+    <p class="guide-note">课程 ID、5×13 顺序、API 动作和发布状态机由系统校验，避免编辑内容时破坏课堂运行。</p>
+  </aside>
+</main>
+<button type="button" id="libraryBackdrop" class="library-backdrop" aria-label="关闭课程库" hidden></button>
+<p id="toast" class="toast" role="status" aria-live="polite"></p>
+<dialog id="cloneDialog" class="dialog">
+  <form method="dialog" id="cloneForm">
+    <span class="eyebrow">CREATE COURSE</span><h2>从完整课件克隆</h2>
+    <label>课程底稿<select id="cloneSource"></select></label>
+    <label>新课程 ID<small>小写英文、数字和连字符；创建后不再修改。</small><input id="cloneId" required pattern="[a-z0-9][a-z0-9-]{2,63}" placeholder="example-2010"></label>
+    <label>课程名称<input id="cloneName" required placeholder="案例名｜五步创业闭环"></label>
+    <div class="dialog-actions"><button type="button" id="cloneCancel" class="button ghost">取消</button><button type="submit" class="button primary">创建 Candidate</button></div>
+  </form>
+</dialog>
+<dialog id="historyDialog" class="dialog history-dialog">
+  <form method="dialog">
+    <div class="dialog-title"><div><span class="eyebrow">IMMUTABLE HISTORY · SAFE RESTORE</span><h2>课程版本历史</h2></div><button type="button" id="historyClose" class="button ghost">关闭</button></div>
+    <p>恢复不会覆盖旧历史，也不会改变任何运行中课堂；所选快照先载入 Working Copy，确认后再保存为新 Candidate。</p>
+    <div id="historyList" class="history-list"></div>
+  </form>
+</dialog>
+<dialog id="fieldDialog" class="dialog field-dialog" aria-labelledby="fieldDialogTitle">
+  <form method="dialog" id="fieldForm">
+    <div class="dialog-title"><div><span class="eyebrow">VISIBLE ELEMENT → UNIQUE SOURCE PATH</span><h2 id="fieldDialogTitle">编辑课程字段</h2></div><button type="button" id="fieldClose" class="button ghost">关闭</button></div>
+    <div class="field-path"><span>Course Package 路径</span><code id="fieldPath"></code><small id="fieldCardId"></small></div>
+    <label id="fieldValueLabel">字段内容<span id="fieldControl"></span></label>
+    <p id="fieldHelp" class="field-help"></p>
+    <div class="impact-report" id="impactReport" role="status"></div>
+  </form>
+</dialog>
+<script src="/studio/editor-assets/card-view.js?v=t085-editor-r3"></script>
+<script src="/studio/editor-assets/course-preview.js?v=t085-editor-r3"></script>
+<script src="/studio/editor-assets/editor.js?v=t085-editor-r3"></script>
+</body>
+</html>

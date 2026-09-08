@@ -157,6 +157,8 @@ ClassroomFactory 创建实例时选择实际学员人数，并必须校验：
 
 ## 6. Course Studio 视图
 
+完整编辑交互的不可退化约束见 [Course Studio 编辑器不可退化约束](COURSE_STUDIO_EDITOR_GUARDRAILS.md)。底层版本架构升级不得替换已经成熟的可视化直改工作台。
+
 ### Editor
 
 - 唯一写入口。
