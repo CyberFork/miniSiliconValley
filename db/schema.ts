@@ -527,6 +527,85 @@ export const courseTestReceipts = sqliteTable(
   ],
 );
 
+/**
+ * Human approval of the side-effect-free 4 + N + 1 projection. Validity is
+ * derived from the current exact Candidate/Released pointer plus the current
+ * projector/build versions; immutable rows are never rewritten as "valid".
+ */
+export const courseViewAcceptanceReceipts = sqliteTable(
+  "course_view_acceptance_receipts",
+  {
+    id: text("id").primaryKey(),
+    receiptSchemaVersion: integer("receipt_schema_version").notNull(),
+    courseId: text("course_id").notNull(),
+    revision: integer("revision").notNull(),
+    digest: text("digest").notNull(),
+    status: text("status").notNull(),
+    scenariosJson: text("scenarios_json").notNull(),
+    checksJson: text("checks_json").notNull(),
+    projectorVersion: text("projector_version").notNull(),
+    appBuildId: text("app_build_id").notNull(),
+    reviewerProfileId: text("reviewer_profile_id").notNull().references(() => profiles.id),
+    acceptedAt: text("accepted_at").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("uidx_course_view_acceptance_exact").on(table.courseId, table.revision, table.digest, table.projectorVersion, table.appBuildId),
+    index("idx_course_view_acceptance_status_time").on(table.status, table.createdAt),
+  ],
+);
+
+/** Exact receipt from a completed real Test Classroom UI run. */
+export const courseUiAcceptanceReceipts = sqliteTable(
+  "course_ui_acceptance_receipts",
+  {
+    id: text("id").primaryKey(),
+    receiptSchemaVersion: integer("receipt_schema_version").notNull(),
+    roomId: text("room_id").notNull().references(() => rooms.id, { onDelete: "cascade" }),
+    viewReceiptId: text("view_receipt_id").notNull().references(() => courseViewAcceptanceReceipts.id),
+    courseId: text("course_id").notNull(),
+    revision: integer("revision").notNull(),
+    digest: text("digest").notNull(),
+    learnerCount: integer("learner_count").notNull(),
+    dealSeed: text("deal_seed").notNull(),
+    resetGeneration: integer("reset_generation").notNull(),
+    stateMachineVersion: integer("state_machine_version").notNull(),
+    coursewareBundleDigest: text("courseware_bundle_digest").notNull(),
+    coursewareRefsJson: text("courseware_refs_json").notNull(),
+    mentorMembershipsJson: text("mentor_memberships_json").notNull(),
+    learnerMembershipsJson: text("learner_memberships_json").notNull(),
+    adminDmJson: text("admin_dm_json").notNull(),
+    checksJson: text("checks_json").notNull(),
+    clientMatrixJson: text("client_matrix_json").notNull(),
+    appBuildId: text("app_build_id").notNull(),
+    auditSummaryJson: text("audit_summary_json").notNull(),
+    status: text("status").notNull(),
+    acceptedAt: text("accepted_at").notNull(),
+    acceptedByProfileId: text("accepted_by_profile_id").notNull().references(() => profiles.id),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("uidx_course_ui_acceptance_run").on(table.roomId, table.resetGeneration, table.courseId, table.revision, table.digest, table.coursewareBundleDigest, table.appBuildId),
+    index("idx_course_ui_acceptance_exact").on(table.courseId, table.revision, table.digest, table.status, table.acceptedAt),
+  ],
+);
+
+/** Binds every Test/Production instance to the receipts that admitted it. */
+export const classroomAcceptanceBindings = sqliteTable(
+  "classroom_acceptance_bindings",
+  {
+    roomId: text("room_id").primaryKey().references(() => rooms.id, { onDelete: "cascade" }),
+    viewReceiptId: text("view_receipt_id").notNull().references(() => courseViewAcceptanceReceipts.id),
+    uiReceiptId: text("ui_receipt_id").references(() => courseUiAcceptanceReceipts.id),
+    boundAt: text("bound_at").notNull(),
+    boundByProfileId: text("bound_by_profile_id").notNull().references(() => profiles.id),
+  },
+  (table) => [
+    index("idx_classroom_acceptance_view").on(table.viewReceiptId),
+    index("idx_classroom_acceptance_ui").on(table.uiReceiptId),
+  ],
+);
+
 export const coursewarePackages = sqliteTable(
   "courseware_packages",
   {

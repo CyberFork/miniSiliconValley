@@ -6,9 +6,9 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>课程编辑器 · Mini Silicon Valley</title>
   <link rel="icon" href="/favicon.svg">
-  <link rel="stylesheet" href="/studio/editor-assets/editor.css?v=t085-editor-r3">
-  <link rel="stylesheet" href="/studio/editor-assets/course-preview.css?v=t085-editor-r3">
-  <link rel="stylesheet" href="/studio/editor-assets/ui-theme.css?v=t085-editor-r5">
+  <link rel="stylesheet" href="/studio/editor-assets/editor.css?v=t086-acceptance-r1">
+  <link rel="stylesheet" href="/studio/editor-assets/course-preview.css?v=t086-acceptance-r1">
+  <link rel="stylesheet" href="/studio/editor-assets/ui-theme.css?v=t086-acceptance-r1">
 </head>
 <body>
 <header class="topbar">
@@ -46,7 +46,7 @@
           <button id="validate" class="button ghost">检查结构</button>
           <button id="historyButton" class="button ghost">版本历史</button>
           <button id="saveDraft" class="button secondary" data-save-course>保存 Candidate</button>
-          <button id="publish" class="button primary">测试与发布</button>
+          <button id="publish" class="button primary">验收与发布</button>
         </div>
       </div>
 
@@ -60,7 +60,7 @@
       </section>
 
       <section id="packageHealth" class="package-health" aria-live="polite"></section>
-      <section id="alphaSync" class="alpha-sync" aria-live="polite" aria-label="Test Classroom 与发布状态"></section>
+      <section id="alphaSync" class="alpha-sync" aria-live="polite" aria-label="多角色视图验收、真实 UI 验收与发布状态"></section>
 
       <div class="mode-tabs" role="tablist" aria-label="课程编辑模式">
         <button id="studioTab" role="tab" aria-controls="studioPane" aria-selected="true"><span>多角色直改</span><small>4 + N + 1</small></button>
@@ -73,7 +73,7 @@
         <section id="studioCourseIdentity" class="studio-course-identity" aria-label="当前课程与大步的可视化编辑入口"></section>
         <section class="studio-mode-boundary" aria-label="工作台模式边界">
           <div><span class="eyebrow">WORKING COPY → PREVIEW STATE</span><b>当前：编辑预览</b><p>所有角色视图直接读取本页 Working Copy；点击虚线字段即可修改唯一源。这里只做安全预览，不读取真实账号、手牌或账本。</p></div>
-          <div class="runtime-modes" role="group" aria-label="工作台数据模式"><button type="button" aria-pressed="true">Working Copy</button><a href="/classroom/">真实 Test Classroom ↗</a><a href="/studio/releases/">验收与发布 ↗</a></div>
+          <div class="runtime-modes" role="group" aria-label="工作台数据模式"><button type="button" aria-pressed="true">Working Copy</button><a href="/studio/preview/">多角色视图验收 ↗</a><a href="/studio/releases/">验收与发布 ↗</a></div>
         </section>
 
         <section class="course-timeline-shell" aria-labelledby="timelineTitle">
@@ -179,7 +179,7 @@
       <li><b>看学员同款预览</b><small>确认初中生读得懂，不把导师方法论压给学员。</small></li>
       <li><b>检查模拟手牌</b><small>按当前学员人数和 seed 检查每个人实际能看到的卡片。</small></li>
       <li><b>保存不等于生效</b><small>保存 Candidate 后，正在运行的课堂仍使用锁定旧版。</small></li>
-      <li><b>真实测试再发布</b><small>Candidate 必须在 Test Classroom 完成验收；Production 绝不静默更新。</small></li>
+      <li><b>两次验收再发布</b><small>Candidate 先完成多角色视图验收，再在真实 Test Classroom 完成 UI 验收；Production 绝不静默更新。</small></li>
     </ol>
     <div class="boundary"><b>证据边界</b><p>F 有来源｜R 课堂模拟｜G 我们猜的｜U 还不知道。历史事实与玩家平行世界始终分开写。</p></div>
     <p class="guide-note">课程 ID、5×13 顺序、API 动作和发布状态机由系统校验，避免编辑内容时破坏课堂运行。</p>

@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const BUILD_ID = "t085-restored-direct-editor-r4";
+  const BUILD_ID = "t086-two-stage-acceptance-r1";
   const $ = (selector) => document.querySelector(selector);
   const CardView = window.MsvCardView;
   if (!CardView) throw new Error("共享卡片渲染器未加载，无法安全预览学员卡片。");
@@ -26,7 +26,7 @@
   const compactLibraryMedia = window.matchMedia("(max-width: 1450px)");
   const drawerLibraryMedia = window.matchMedia("(max-width: 1040px)");
 
-  let studioData = {versions: [], courseware: [], receipts: []};
+  let studioData = {versions: [], courseware: [], viewReceipts: [], uiReceipts: [], acceptanceClassrooms: []};
   let catalog = [];
   let diagnostics = [];
   let course = null;
@@ -127,9 +127,23 @@
     const versions = versionsFor(courseId);
     return versions.find((item) => item.candidate) || versions.find((item) => item.released) || versions[0] || null;
   }
-  function exactReceipt(ref) {
+  function exactViewReceipt(ref) {
     if (!ref) return null;
-    return studioData.receipts.find((item) => item.course_id === ref.courseId && Number(item.revision) === Number(ref.revision) && item.digest === ref.digest && item.status === "accepted") || null;
+    return studioData.viewReceipts.find((item) => item.valid && item.courseRef?.courseId === ref.courseId && Number(item.courseRef?.revision) === Number(ref.revision) && item.courseRef?.digest === ref.digest) || null;
+  }
+  function exactUiReceipt(ref, viewReceiptId) {
+    if (!ref || !viewReceiptId) return null;
+    return studioData.uiReceipts.find((item) => item.valid && item.viewReceiptId === viewReceiptId && item.courseRef?.courseId === ref.courseId && Number(item.courseRef?.revision) === Number(ref.revision) && item.courseRef?.digest === ref.digest) || null;
+  }
+  function acceptancePreviewUrl(ref) {
+    if (!ref) return "/studio/preview/";
+    const query = new URLSearchParams({course: ref.courseId, revision: String(ref.revision), digest: ref.digest});
+    return `/studio/preview/?${query.toString()}`;
+  }
+  function testFactoryUrl(ref, viewReceiptId) {
+    if (!ref || !viewReceiptId) return "/classroom/#factory";
+    const query = new URLSearchParams({environment: "test", course: ref.courseId, revision: String(ref.revision), digest: ref.digest, viewReceipt: viewReceiptId});
+    return `/classroom/?${query.toString()}#factory`;
   }
   function metadataFor(version) {
     if (!version) return null;
@@ -610,14 +624,26 @@
         <div><dt>编辑器资源</dt><dd>${esc(BUILD_ID)}</dd></div><div><dt>生产 release</dt><dd>${esc(releaseInfo?.release || "读取中")}</dd></div><div><dt>课程来源</dt><dd>${esc(SOURCE_NAMES[source] || source)}</dd></div><div><dt>课程 digest</dt><dd><code>${esc(digest)}</code></dd></div><div><dt>卡组分布</dt><dd>${esc(health.counts.join(" / ") || "—")}</dd></div><div><dt>Candidate / Released</dt><dd>${item?.candidateRevision == null ? "—" : `r${esc(item.candidateRevision)}`} / ${item?.releasedRevision == null ? "—" : `r${esc(item.releasedRevision)}`}</dd></div>
       </dl>${blocking ? `<ul>${health.issues.map((issue) => `<li>${esc(issue)}</li>`).join("")}</ul>` : ""}</details>`;
     $("#publish").disabled = blocking || dirty || !candidateVersion(course.course.id);
-    $("#publish").title = blocking ? health.issues.join("；") : dirty ? "请先保存 Candidate" : "进入真实测试、回执验收与发布工作台";
+    $("#publish").title = blocking ? health.issues.join("；") : dirty ? "请先保存 Candidate" : "进入两次验收与正式发布总闸门";
   }
   function renderAlphaSync() {
     const node = $("#alphaSync"); if (!node || !course) return;
     const candidate = candidateVersion(course.course.id);
-    const receipt = exactReceipt(candidate?.ref);
-    node.dataset.state = dirty ? "pending" : receipt ? "same" : candidate ? "pending" : "mismatch";
-    node.innerHTML = `<div><b>${dirty ? "Working Copy 尚未保存" : receipt ? "exact Candidate 已通过真实 Test Classroom" : candidate ? "Candidate 等待真实课堂验收" : "这门课还没有 Candidate"}</b><span>${candidate ? `Candidate r${candidate.ref.revision} · ${esc(shortDigest(candidate.ref.digest))}` : "保存后生成不可变 Candidate"}${receipt ? ` · 回执 ${esc(String(receipt.id))}` : ""}</span><small>${dirty ? "本页预览已更新，但任何课堂都不会读取未保存内容。" : receipt ? "可进入发布工作台确认 Released 指针；已经开始的课堂仍保持原版本。" : "在课堂工厂用 exact Candidate 创建 Test Classroom，跑完后人工签收。"}</small></div><div class="sync-actions"><a class="button ghost" href="/classroom/">创建 Test Classroom</a><a class="button secondary" href="/studio/releases/">验收与发布</a></div>`;
+    const viewReceipt = exactViewReceipt(candidate?.ref);
+    const uiReceipt = exactUiReceipt(candidate?.ref, viewReceipt?.receiptId);
+    node.dataset.state = dirty ? "pending" : uiReceipt ? "same" : candidate ? "pending" : "mismatch";
+    const title = dirty ? "Working Copy 尚未保存"
+      : uiReceipt ? "exact Candidate 已通过两次验收"
+        : viewReceipt ? "视图验收已通过，等待真实课堂 UI 验收"
+          : candidate ? "Candidate 等待多角色视图验收" : "这门课还没有 Candidate";
+    const detail = dirty ? "本页即时画面只辅助编辑；任何验收与课堂都不会读取未保存内容。"
+      : uiReceipt ? "ViewAcceptanceReceipt 与 UiAcceptanceReceipt 均有效；可进入总闸门发布。"
+        : viewReceipt ? "下一步用这张 ViewAcceptanceReceipt 创建真实 Test Classroom，完整运行后签发 UI 回执。"
+          : candidate ? "下一步亲自遍历全部 Block 与支持人数，签发 ViewAcceptanceReceipt。" : "保存后生成不可变 Candidate，再进入多角色视图验收。";
+    const receiptText = uiReceipt ? ` · UI ${esc(String(uiReceipt.receiptId).slice(0, 12))}` : viewReceipt ? ` · VIEW ${esc(String(viewReceipt.receiptId).slice(0, 12))}` : "";
+    const primaryHref = viewReceipt ? testFactoryUrl(candidate.ref, viewReceipt.receiptId) : acceptancePreviewUrl(candidate?.ref);
+    const primaryLabel = viewReceipt ? "创建 UI 验收课堂" : "前往多角色视图验收";
+    node.innerHTML = `<div><b>${title}</b><span>${candidate ? `Candidate r${candidate.ref.revision} · ${esc(shortDigest(candidate.ref.digest))}` : "保存后生成不可变 Candidate"}${receiptText}</span><small>${detail}</small></div><div class="sync-actions"><a class="button ghost" href="${esc(primaryHref)}">${primaryLabel}</a><a class="button secondary" href="/studio/releases/">验收与发布</a></div>`;
   }
 
   function shortDigest(value) { return String(value || "—").slice(0, 16); }
@@ -717,21 +743,25 @@
     if (dirty) return {ok: false, reason: "先保存当前 Working Copy，生成不可变 Candidate。"};
     const candidate = candidateVersion(course?.course?.id);
     if (!candidate) return {ok: false, reason: "当前没有 Candidate；请先修改并保存。"};
-    const receipt = exactReceipt(candidate.ref);
-    if (!receipt) return {ok: false, reason: "exact Candidate 尚未在真实 Test Classroom 完成验收。"};
-    return {ok: true, reason: `回执 ${receipt.id} 已验收 exact digest。`};
+    const viewReceipt = exactViewReceipt(candidate.ref);
+    if (!viewReceipt) return {ok: false, reason: "exact Candidate 尚未完成多角色视图验收。"};
+    const uiReceipt = exactUiReceipt(candidate.ref, viewReceipt.receiptId);
+    if (!uiReceipt) return {ok: false, reason: "exact Candidate 尚未在真实 Test Classroom 完成 UI 验收。"};
+    return {ok: true, reason: `两级回执 ${viewReceipt.receiptId} / ${uiReceipt.receiptId} 均有效。`};
   }
   function renderVersionMatrix() {
     const node = $("#versionMatrix");
     if (!node || !course) return;
     const candidate = candidateVersion(course.course.id);
     const released = releasedVersion(course.course.id);
-    const receipt = exactReceipt(candidate?.ref);
+    const viewReceipt = exactViewReceipt(candidate?.ref);
+    const uiReceipt = exactUiReceipt(candidate?.ref, viewReceipt?.receiptId);
     const eligibility = releaseEligibility();
     node.innerHTML = `
       <div class="version-cell" data-state="${dirty ? "warning" : "ok"}"><b>Working Copy</b><span>${dirty ? `${changedPaths.size || 1} 处未保存` : "与已存版本一致"}</span></div>
       <div class="version-cell" data-state="${candidate ? "active" : ""}"><b>Candidate ${candidate ? `r${candidate.ref.revision}` : "—"}</b><span>${candidate ? shortDigest(candidate.ref.digest) : "保存后生成"}</span></div>
-      <div class="version-cell" data-state="${receipt ? "ok" : candidate ? "warning" : ""}"><b>Test Classroom</b><span>${receipt ? `回执 ${String(receipt.id).slice(0, 12)}` : candidate ? "等待 exact 验收" : "先保存 Candidate"}</span></div>
+      <div class="version-cell" data-state="${viewReceipt ? "ok" : candidate ? "warning" : ""}"><b>View 验收</b><span>${viewReceipt ? String(viewReceipt.receiptId).slice(0, 12) : candidate ? "等待多角色验收" : "先保存 Candidate"}</span></div>
+      <div class="version-cell" data-state="${uiReceipt ? "ok" : viewReceipt ? "warning" : ""}"><b>UI 验收</b><span>${uiReceipt ? String(uiReceipt.receiptId).slice(0, 12) : viewReceipt ? "等待真实 Test" : "先通过 View"}</span></div>
       <div class="version-cell" data-state="${released ? "ok" : ""}"><b>Released ${released ? `r${released.ref.revision}` : "—"}</b><span>${released ? shortDigest(released.ref.digest) : "正式课堂暂无版本"}</span></div>`;
     const publish = $("#publish");
     if (publish) { publish.disabled = !candidate || dirty || inspectPackage().issues.length > 0; publish.title = eligibility.reason; }
@@ -915,7 +945,7 @@
         dirty = false; changedPaths = new Set(); savedSnapshot = JSON.stringify(course); undoStack = []; redoStack = [];
         renderAll();
         setSaveState(`Candidate r${revision} 已保存`, "saved");
-        toast(`Candidate r${revision} 已保存。下一步请用真实 Test Classroom 验收；已开始的课堂完全不受影响。`);
+        toast(`Candidate r${revision} 已保存。下一步前往多角色视图验收；已开始的课堂完全不受影响。`);
         return ref;
       } catch (error) {
         saveError = error.message || "未知保存错误";
@@ -958,7 +988,7 @@
       const history = versionsFor(course.course.id);
       const list = $("#historyList");
       list.innerHTML = history.length ? history.map((item) => `<article class="history-item">
-        <div><b>r${esc(item.ref.revision)} · ${esc(item.candidate ? "当前 Candidate" : item.released ? "当前 Released" : item.ref.createdBy === "bundled" ? "内置基线" : "不可变快照")}</b><span>${esc(item.ref.createdAt || "时间未记录")} · ${esc(item.course.decks.length)} 卡组 / ${esc(item.course.decks.reduce((total, deck) => total + deck.cards.length, 0))} 张卡${exactReceipt(item.ref) ? " · 已验收" : ""}</span><code>${esc(item.ref.digest.slice(0, 16))}</code></div>
+        <div><b>r${esc(item.ref.revision)} · ${esc(item.candidate ? "当前 Candidate" : item.released ? "当前 Released" : item.ref.createdBy === "bundled" ? "内置基线" : "不可变快照")}</b><span>${esc(item.ref.createdAt || "时间未记录")} · ${esc(item.course.decks.length)} 卡组 / ${esc(item.course.decks.reduce((total, deck) => total + deck.cards.length, 0))} 张卡${exactViewReceipt(item.ref) ? " · View 已验收" : ""}${exactUiReceipt(item.ref, exactViewReceipt(item.ref)?.receiptId) ? " · UI 已验收" : ""}</span><code>${esc(item.ref.digest.slice(0, 16))}</code></div>
         ${item.ref.revision === revision && item.ref.digest === courseMeta?.digest ? `<span class="current-revision">当前基线</span>` : `<button type="button" class="button ghost" data-restore-revision="${esc(item.ref.revision)}" data-restore-digest="${esc(item.ref.digest)}">载入为 Working Copy</button>`}
       </article>`).join("") : `<p>还没有历史修订。首次保存后会自动生成不可变快照。</p>`;
       list.querySelectorAll("[data-restore-revision]").forEach((button) => {

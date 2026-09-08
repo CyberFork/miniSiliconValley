@@ -51,6 +51,10 @@ test("the restored editor speaks only to the versioned Studio API", () => {
   assert.match(js, /undoStack/);
   assert.match(js, /restoredFrom/);
   assert.match(js, /window\.location\.assign\("\/studio\/releases\/"\)/);
+  assert.match(js, /exactViewReceipt/);
+  assert.match(js, /exactUiReceipt/);
+  assert.match(js, /前往多角色视图验收/);
+  assert.doesNotMatch(js, /studioData\.receipts/);
 
   const route = source("app/api/studio/validate/route.ts");
   assert.match(route, /requireStudioRole\(user\)/);

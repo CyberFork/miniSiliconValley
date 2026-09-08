@@ -1,6 +1,6 @@
-# 终极管理员／DM 导师主持人操作手册（T-085）
+# 终极管理员／DM 导师主持人操作手册（T-086）
 
-> 本手册逐项对应当前 T-085 界面。完整发布链与异常处理见 [Course Platform 操作 SOP](COURSE_PLATFORM_SOP.md)。
+> 本手册逐项对应当前 T-086 界面。完整发布链与异常处理见 [Course Platform 操作 SOP](COURSE_PLATFORM_SOP.md)。
 
 ## 1. 先分清三种身份
 
@@ -55,7 +55,7 @@
 7. 在“四套 exact 导师课件”分别选择 P／D／M／O 课件 revision。
 8. 为学员 1…N 选择 N 个不同 learner 账号。
 9. 点击“创建 Test Classroom →”。系统用一次原子事务生成课堂、团队、`4＋N` 个 Membership、四套课件绑定、中控和初始牌。
-10. 在“我的 Classroom”打开新课堂，记住它的独立路径 `/classroom/{id}/`。
+10. 在“课堂中心”的对应 TEST／PRODUCTION 分组打开新课堂，记住它的独立路径 `/classroom/{id}/`。
 
 若创建失败，不要绕过校验。界面会明确指出重复导师、人数不符、卡组容量不足、课件缺失或版本不可用。
 
@@ -137,6 +137,6 @@ Admin DM 打开 `/classroom/{id}/control`。LIVE RUN SCRIPT 是唯一推进主�
 ## 11. 下课收尾
 
 1. 确认最后一个 Block 已“完成整门课程”。
-2. 记录 Classroom ID、CourseRelease revision/digest、四套课件 revision/digest 和 Test receipt（如为测试课）。
+2. 记录 Classroom ID、CourseRelease revision/digest、四套课件 revision/digest、ViewAcceptanceReceipt 与 UiAcceptanceReceipt（如为验收课堂）。
 3. 检查每位学员的最终作品、个人 RP／钱包与团队资金来自服务端账本。
 4. 保留 Production 课堂作为不可变审计记录；下一次开课用 Factory 创建新实例。

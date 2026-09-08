@@ -6,10 +6,10 @@
   // unsafe on a real network: the main editor may execute before its projectors exist.
   // Keep this list sequential and make this loader the only editor script entry.
   const ASSETS = [
-    "/studio/editor-assets/ui-theme.js?v=t085-editor-r5",
-    "/studio/editor-assets/card-view.js?v=t085-editor-r5",
-    "/studio/editor-assets/course-preview.js?v=t085-editor-r5",
-    "/studio/editor-assets/editor.js?v=t085-editor-r5",
+    "/studio/editor-assets/ui-theme.js?v=t086-acceptance-r1",
+    "/studio/editor-assets/card-view.js?v=t086-acceptance-r1",
+    "/studio/editor-assets/course-preview.js?v=t086-acceptance-r1",
+    "/studio/editor-assets/editor.js?v=t086-acceptance-r1",
   ];
 
   if (window.__MSV_EDITOR_BOOT_PROMISE__) return;

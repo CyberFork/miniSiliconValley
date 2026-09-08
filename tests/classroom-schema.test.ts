@@ -14,6 +14,7 @@ const tables = [
   "courseware_release_pointers", "room_courseware_bindings", "classroom_instances", "classroom_mentor_seats",
   "classroom_permissions", "classroom_controller_states", "classroom_factory_events",
   "classroom_block_submissions", "classroom_wallet_balances",
+  "course_view_acceptance_receipts", "course_ui_acceptance_receipts", "classroom_acceptance_bindings",
 ];
 const migrationNames = readdirSync(new URL("../drizzle/", import.meta.url)).filter((name) => /^\d{4}_.*\.sql$/.test(name)).sort();
 assert.ok(migrationNames.length >= 2, "classroom and auth migrations are required");
@@ -55,6 +56,9 @@ test("unified course factory keeps release, courseware, permissions and controll
     "uidx_classroom_permissions_grant",
     "classroom_controller_states",
     "chk_classroom_wallet_non_negative",
+    "uidx_course_view_acceptance_exact",
+    "uidx_course_ui_acceptance_run",
+    "idx_classroom_acceptance_view",
   ]) assert.match(migration, new RegExp(marker));
   assert.match(migration, /CHECK \(`environment` in \('test', 'production'\)\)/);
   assert.match(migration, /CHECK \(`mentor_role` in \('P', 'D', 'M', 'O'\)\)/);

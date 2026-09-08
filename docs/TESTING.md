@@ -1,6 +1,8 @@
-# Mini Silicon Valley 测试与验收
+# Mini Silicon Valley 测试与验收（T-086）
 
-## 1. 快速平台闸
+## 1. 自动化总闸
+
+开发时最短闭环：
 
 ```bash
 npm run typecheck
@@ -10,50 +12,134 @@ npm run build:minisv-app
 npm run test:course-platform:e2e
 ```
 
-`npm run test:minisv-app` 串联上述核心步骤并执行应用 smoke。
+一次执行核心应用闸：
 
-## 2. T-085 自动验收矩阵
-
-### CourseDefinition 与 `4 + N + 1`
-
-- 同一投影器生成 4 位导师、N 位学员和 1 个中控。
-- N=2/4/6 的席位数、任务、固定 seed 和手牌确定性。
-- `unique-within-step` 不重复发牌；`repeat-when-needed` 只在显式配置时重复。
-- 人数越界、卡数不足或动态任务模板缺失给出精确缺口。
-- 声明的 `maxCount` 无法实例化时阻止 Released。
-
-### 工厂、权限与隐私
-
-- Test/Production 共用 `ClassroomFactory` 和 state machine version。
-- Test 接受 Candidate 或 Released；Production 只接受 Released。
-- P/D/M/O 恰好四个不同导师账号；学员账号数等于 N。
-- Admin DM 是独立权限；平台 admin 不自动获得某课堂访问权。
-- 一次性初始密码未修改前，所有 Studio/Classroom 数据 API 返回 `PASSWORD_CHANGE_REQUIRED`。
-- 学员响应无中控验收条件和导师脚本；每个学员只收到自己的持久化卡牌。
-- `/screen` 专用 allow-list 不含 `myView/privateCards/privateScript/submissions/economy/accounts/courseware`。
-- 导师课件库不向学员开放。
-
-### 版本与发布链
-
-真实 HTTP+D1 E2E 必须证明：
-
-```text
-Candidate
-  → Test Classroom 完成 13 Block
-  → 完整验收清单
-  → 重复签收仍返回同一个持久 receipt id
-  → Released
-  → Production
+```bash
+npm run test:minisv-app
 ```
 
-还要验证：
+它覆盖类型、Lint、领域／路由契约、生产构建、应用 smoke 和真实 HTTP + D1 课程平台 E2E。
 
-- inline HTML 课件可创建、exact 预览、发布和绑定。
-- Production 开始后，后续课程 Candidate、课件新版本和 Test reset 对其 exact 引用与 ControllerState 零副作用。
+## 2. 两次验收、一次发布
+
+自动化必须证明以下顺序不可绕过：
+
+```text
+Candidate exact revision/digest
+  → ViewAcceptanceReceipt
+  → TEST Classroom 完成全部 Block
+  → 14 项 UI 检查
+  → UiAcceptanceReceipt
+  → Released
+  → PRODUCTION Classroom
+```
+
+### ViewAcceptanceReceipt
+
+- 只读取已保存 Candidate，不读取浏览器 Working Copy。
+- 使用共享 `buildStudioProjection()` 遍历全部 Block 和课程声明的每个支持人数。
+- 校验 `4 + N + 1` 视图、动态任务、卡牌容量、固定 seed、不重复发牌和私密卡分配。
+- exact revision／digest、projector version 或 app build 不一致时失效。
+- 未发布 Candidate 被新 Candidate 取代后，旧回执失效。
+- 当前 Released 可继续保留其 exact 有效回执。
+- 重复签发同一业务指纹返回同一持久 receipt id。
+
+### UiAcceptanceReceipt
+
+- 只能由完成全部 Block 的 TEST Classroom 签发。
+- 14 个必检项缺一即拒绝。
+- 锁定 exact Candidate、View 回执、Test Classroom、N、seed、reset generation、state machine、4 + N Membership、Admin DM 和四套课件。
+- 保存 browser／platform／viewport client matrix、app build、操作者和审计摘要。
+- TEST reset 后历史回执保留但立即失效，课堂当前 binding 被清空。
+- 重复签发同一业务指纹返回同一持久 receipt id。
+
+### Released 与 Production
+
+- 缺少任一有效回执时不能 Released。
+- Production 只能选择 Released。
+- Production 只能复用 UiAcceptanceReceipt 中四套 exact 且已发布课件；不能静默替换“最新版”。
+- 课件 bundle digest 采用 canonical 字段顺序，API 与 D1 的对象插入顺序不得改变结果。
+- Production 创建后，Studio 新 Candidate、课件新版本和 TEST reset 对其 exact 引用及 ControllerState 零副作用。
 - Production reset 返回 `PRODUCTION_RESET_FORBIDDEN`。
-- N=6 的 18 张手牌在六个账号之间隔离且唯一。
 
-### 部署包
+## 3. 课程工厂、权限与隐私
+
+- Test／Production 共用 `ClassroomFactory`、页面、API 和 state machine version。
+- 两种环境都要求有效 ViewAcceptanceReceipt。
+- Test 接受 Candidate 或 Released；Production 额外要求有效 UiAcceptanceReceipt。
+- P／D／M／O 恰好四个不同导师账号；学员账号数等于 N。
+- Admin DM 是独立课堂权限；平台 admin 不自动获得所有课堂访问权。
+- Account 可通过 Membership 加入多个 Classroom。
+- 首次密码未修改前，Studio／Classroom 数据 API 返回 `PASSWORD_CHANGE_REQUIRED`。
+- 学员只收到自己的任务、持久化私密卡、提交、RP 与钱包。
+- `/screen` 专用 allow-list 不包含 `myView/privateCards/privateScript/submissions/economy/accounts/courseware`。
+- 导师课件库和播放页不向学员开放。
+- 过期 ControllerState version 的并发写入必须返回冲突，不得覆盖新状态。
+
+## 4. 动态 `4 + N + 1`
+
+- N=2／4／6 的席位数、任务、固定 seed 与发牌均可确定性投影。
+- `unique-within-step` 不重复发牌；`repeat-when-needed` 只在显式配置时重复。
+- N=2 不显示虚假学员；N=6 的 18 张手牌在六个账号之间隔离且唯一。
+- 人数越界、动态任务模板缺失或卡牌容量不足时显示精确缺口。
+- 声明的 `maxCount` 无法实例化时不能签 View 回执、创建 Test 或 Released。
+
+## 5. HTTP + D1 E2E 场景
+
+`scripts/test-course-platform-e2e.ts` 使用隔离 D1 和真实路由运行：
+
+1. 保存 Candidate 并签 View 回执。
+2. 证明伪造 View 回执不能创建 Test。
+3. 创建绑定四套 exact 课件的 TEST。
+4. 触发真实并发 409，并在完整运行前测试 reset。
+5. 推进并接受全部 13 Block。
+6. 证明不完整的 14 项检查不能签收。
+7. 签发并重复签发 Ui 回执，验证持久 id 与 classroom binding。
+8. 证明缺少 UI 回执不能发布。
+9. 使用双回执发布 Released。
+10. 用同一组 exact 课件创建 PRODUCTION。
+11. reset TEST，验证 UI 回执失效而 PRODUCTION 不漂移。
+12. 新 Candidate 使旧未发布 Candidate 的 View 回执失效。
+13. 构造容量不足课程，证明 View／Test 失败关闭。
+14. 验证 N=6、动态任务、手牌隔离、Admin DM 权限与数据隔离。
+
+成功标记包含：
+
+```text
+COURSE_PLATFORM_E2E_PASS t086=view-receipt+ui-receipt+release-gates
+```
+
+## 6. 浏览器验收
+
+至少使用桌面和 390px 手机视口，以管理员、导师和学员真实会话检查：
+
+### Studio
+
+- 分组导航依次显示“课程生产／资源管理／课堂交付”。
+- Editor 保留可视化直改工作台，不退化为只读卡片或只能改原始 JSON。
+- 保存 Candidate 后出现“前往多角色视图验收”。
+- Preview 显示 exact revision／digest，能遍历全部 Block 和支持人数；未遍历完整时不能签收。
+- Releases 显示 Candidate、View 回执、TEST、UI 回执、课件、Released 与“下一步主操作”。
+- `/course/` 始终标记“导师课件播放”。
+
+### Classroom
+
+- `/classroom/` 分为 `TEST · UI 验收课堂` 与 `PRODUCTION · 正式课堂`。
+- Test Factory 只列出有有效 View 回执的版本。
+- Production Factory 只列出有两张有效回执的 Released，并锁定验收过的课件。
+- 导师、N 学员、Admin DM 和 screen 分别只看到权限允许内容。
+- 中控能执行、收齐、退回／重试、接受、推进和完成。
+- 完成后显示 14 项真实 UI 清单；签收后显示 receipt id 与发布入口。
+- TEST 有 reset；PRODUCTION 永远不显示 reset。
+- 页面无横向遮挡、控件重叠、按钮无响应、资源 404 或 console error。
+
+### 路由
+
+- `/alpha/`、`/control/`、`/control/editor/` 返回 410。
+- `/api/internal/*` 公网返回 404。
+- 新导航不出现退休入口。
+
+## 7. 部署包与发布演练
 
 ```bash
 python3 -m unittest discover -s deploy/minisv/tests -p 'test_*.py'
@@ -61,37 +147,23 @@ node deploy/minisv/tests/test_ui_theme_runtime.mjs
 zsh -n deploy/minisv/scripts/*.sh
 ```
 
-覆盖：manifest 完整清单、篡改拒绝、secret/symlink 拒绝、统一 app+site+ops、固定 P 课件身份、gateway 路由、真实 Origin 透传、旧全局端口退休、原子切换和失败回滚契约。
+覆盖 manifest 完整清单、篡改／secret／symlink 拒绝、统一 app + site + ops、固定 P 课件身份、gateway、Origin 透传、原子切换和失败回滚。
 
-## 3. 真实 release drill
+每次生产发布必须：
 
-每次生产发布前必须从干净构建执行一次完整组装：
+1. 执行 `build:minisv-app` 与 `render:minisv-static`。
+2. 从固定 commit／tree 的干净 chj checkout 构建 P 导师原版课件。
+3. 运行 `package_release.py` 和 `package_bundle.py --archive`。
+4. 从 archive 解包并复验根 manifest、site manifest 和 worker 配置。
+5. 确认包内无 secrets、SQLite、运行数据或 symlink。
+6. 原子部署到 Hecate 后执行远端健康检查和 `public-smoke.py`。
+7. 用域名复验 Studio／Classroom 鉴权、退休路由、CSP 与静态资源。
 
-1. `build:minisv-app` 与 `render:minisv-static`。
-2. 从固定 commit/tree 的干净 chj checkout 构建 P 课件。
-3. 运行 `package_release.py`。
-4. 运行 `package_bundle.py --archive`。
-5. 从 archive 解包到新目录，复验根 manifest、site manifest 和 app worker 配置。
-6. 确认包内无 secrets、SQLite、运行数据或 symlink。
-
-## 4. 浏览器验收
-
-至少使用桌面和 390px 手机视口，分别以管理员／导师／学员登录：
-
-- Studio Editor：切换课程、Block、2/4/6 人、seed；无横向遮挡；错误 JSON 不崩溃且不伪装成功。
-- Preview：页内呈现 `4 + N + 1`，没有独立九窗口依赖。
-- Courseware：创建 HTML、打开 exact revision、发布；同事 P 课件从独立原版页面打开。
-- Classroom：创建 Test、首次改密、不同角色进入、提交、逐块推进、投屏、成员管理、reset。
-- Release：验收回执出现后发布；Production 只能选择 Released，且无 reset。
-- 退休入口：`/alpha/`、`/control/` 为 410；`/api/internal/*` 公网 404。
-
-浏览器 console error、资源 404、私密字段越权、内容横溢、按钮无响应或版本静默漂移均视为失败。
-
-## 5. 完整兼容回归
+## 8. 完整兼容回归
 
 ```bash
 npm run validate:data
 npm run test:release
 ```
 
-它覆盖历史世界、Work 旧构建、Parent Q&A 和旧资料兼容。历史测试名称里出现“课程大纲”不代表 `/course/` 当前语义；当前路由权威以本文件和 `COURSE_PLATFORM_ARCHITECTURE.md` 为准。
+它额外覆盖历史世界、Work 旧构建、Parent Q&A 和旧资料兼容。历史文档中的“课程大纲”或旧 Classroom 路由不是现行语义；以本文件、`COURSE_PLATFORM_ARCHITECTURE.md` 与 `MSV_SITE_MAP.md` 为准。

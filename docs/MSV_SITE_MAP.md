@@ -1,4 +1,4 @@
-# Mini Silicon Valley 网站地图（T-085）
+# Mini Silicon Valley 网站地图（T-086）
 
 ## 公开静态入口
 
@@ -7,25 +7,53 @@
 - `/framework/`：一世界、两条双轨、三玩法、四导师、五步骤、六分钟 Demo。
 - `/parents/`：家长问答。
 - `/workshop/`：内容工坊只读 Released 基线与既有创作工具。
-- `/courseware/product-mentor-foundations/`：同事原版 P 导师课件，不是课程大纲。
+- `/courseware/product-mentor-foundations/`：同事原版 P 导师课件，不是完整课程大纲。
 
-## 登录后应用
+## 登录与账户
 
 - `/auth/login`：第一方账号登录。
 - `/account`：首次改密与账户安全。
-- `/classroom/`：我的课堂与 Classroom Factory（导师／管理员）。
-- `/classroom/{id}/`：当前登录人的角色视图。
-- `/classroom/{id}/control`：该课堂 Admin DM 中控。
-- `/classroom/{id}/screen`：成员可打开的脱敏共同投屏。
-- `/classroom/{id}/members`：该课堂 Admin DM 成员与权限管理。
-- `/studio/`、`/studio/editor/`、`/studio/preview/`、`/studio/courseware/`、`/studio/releases/`：导师／管理员 Course Studio。
-- `/course/`、`/course/{slug}/`：导师／管理员课件库与播放器。
+
+## Course Studio：课程生产
+
+```text
+课程生产
+/studio/             00 课程工作台；显示两次验收、一次发布的完整状态
+/studio/editor/      01 课程编辑器；CourseDefinition 唯一写入口
+/studio/preview/     02 多角色视图验收；签发 ViewAcceptanceReceipt
+/studio/releases/    03 验收与发布；两级 exact 回执总闸门
+
+资源管理
+/studio/courseware/  04 导师课件库；创建、版本化与发布 P/D/M/O 课件
+/course/             05 导师课件播放；只播放 exact 课件版本
+
+课堂交付
+/classroom/          06 课堂中心；ClassroomFactory 与用户课堂列表
+```
+
+“UI 预览”不是独立路由。它直接创建并进入真实 TEST Classroom。
+
+## Classroom 实例
+
+- `/classroom/{id}/`：当前登录人的真实导师／学员席位。
+- `/classroom/{id}/control`：该实例的 Admin DM 中控、14 项 UI 验收与回执签发。
+- `/classroom/{id}/screen`：成员可打开的服务端脱敏共同投屏。
+- `/classroom/{id}/members`：该实例的成员、席位和 Admin DM 管理。
+
+`/classroom/` 永久分组显示：
+
+- `TEST · UI 验收课堂`：可重置，不进入正式学习档案。
+- `PRODUCTION · 正式课堂`：不可重置，只能使用 Released 课程及验收过的 exact 课件。
 
 ## API
 
 - `/api/auth/*`：会话、登录、首次改密等。
-- `/api/studio/*`：Candidate、课件、回执和发布；平台 mentor/admin。
-- `/api/platform/classrooms/*`：按 classroomId 的课堂、成员、中控、提交、screen 和 Test reset。
+- `/api/studio/bootstrap`：课程、Candidate／Released、两类回执、课件和验收课堂摘要。
+- `/api/studio/candidates`：保存不可变 Candidate。
+- `/api/studio/view-acceptance`：签发 exact ViewAcceptanceReceipt。
+- `/api/studio/releases`：使用两张有效回执发布 exact Candidate。
+- `/api/studio/courseware/*`：导师课件创建、版本化、预览与发布。
+- `/api/platform/classrooms/*`：课堂创建、成员、中控、提交、screen、TEST reset 与 UiAcceptanceReceipt。
 - `/api/qa`：限流的 Parent Q&A。
 
 ## 退休或内部边界

@@ -318,6 +318,18 @@ export function defaultCoursewareRefs(summaries: CoursewareSummary[]): ExactCour
 }
 
 export async function coursewareBundleDigest(refs: ExactCoursewareRef[]): Promise<string> {
-  const ordered = CLASSROOM_MENTOR_ROLES.map((role) => refs.find((ref) => ref.mentorRole === role));
+  // Never hash caller-dependent JavaScript property insertion order. Every
+  // producer (factory request, DB projection, receipt) is normalized to this
+  // exact field order before serialization.
+  const ordered = CLASSROOM_MENTOR_ROLES.map((role) => {
+    const ref = refs.find((item) => item.mentorRole === role);
+    return ref ? {
+      mentorRole: ref.mentorRole,
+      packageId: ref.packageId,
+      slug: ref.slug,
+      revision: ref.revision,
+      digest: ref.digest,
+    } : null;
+  });
   return sha256(JSON.stringify(ordered));
 }

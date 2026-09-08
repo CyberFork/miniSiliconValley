@@ -1,6 +1,6 @@
 # Mini Silicon Valley 架构说明
 
-本文件描述当前 T-085 架构。详细领域决策见 [COURSE_PLATFORM_ARCHITECTURE.md](COURSE_PLATFORM_ARCHITECTURE.md)。历史 Alpha、固定九弹窗和旧 Course Registry 文档仅供追溯，不再是运行规范。
+本文件描述当前 T-086 架构。详细领域决策见 [COURSE_PLATFORM_ARCHITECTURE.md](COURSE_PLATFORM_ARCHITECTURE.md)。历史 Alpha、固定九弹窗和旧 Course Registry 文档仅供追溯，不再是运行规范。
 
 ## 1. 三个产品面
 
@@ -15,8 +15,9 @@
 ```text
 CourseDefinition（D1 course_versions）
   → Candidate pointer
+  → exact ViewAcceptanceReceipt
   → exact Test Classroom + exact Courseware bindings
-  → accepted course_test_receipt
+  → exact UiAcceptanceReceipt
   → Released pointer
   → Production ClassroomInstance
 ```
@@ -34,7 +35,8 @@ CourseDefinition（D1 course_versions）
 - `ClassroomInstance`：环境、生命周期、课程引用、实际 N、独立 ControllerState。
 - `Membership`：账号与某个 Classroom 的导师席或学员席关联。
 - `ClassroomPermission(admin-dm)`：课堂级管理权限，不等同平台管理员或第五导师。
-- `CourseTestReceipt`：完成 Test 后对 exact course 和四件 exact courseware 的验收回执。
+- `ViewAcceptanceReceipt`：对 exact Candidate 的全部 Block、支持人数与共享投影结果验收。
+- `UiAcceptanceReceipt`：完成真实 Test 后，对 exact course、课堂成员、运行版本与四件 exact courseware 的 UI 验收回执。
 
 ## 4. 可见性与权限
 

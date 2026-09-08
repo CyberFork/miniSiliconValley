@@ -22,10 +22,11 @@ Mini Silicon Valley 是面向青少年的、由可核验科技史驱动的有限
 ```text
 CourseDefinition
   → 保存为不可变 Candidate
+  → Studio 多角色视图验收并签发 ViewAcceptanceReceipt
   → 用同一 ClassroomFactory 创建真实 Test Classroom
   → 4 位导师 + N 位学员走完同一 UI、API 与状态机
-  → Admin DM 签发 exact 验收回执
-  → 发布为 Released
+  → Admin DM 签发 exact UiAcceptanceReceipt
+  → 两张回执同时有效后发布为 Released
   → 创建不可重置的 Production Classroom
 ```
 
@@ -65,13 +66,15 @@ git diff --check
 
 - `app/lib/course-package.ts`：CourseDefinition schema 与 Google／饿了么内置定义。
 - `app/lib/course-platform.ts`：无副作用 `4 + N + 1` 投影、动态人数和发牌容量校验。
-- `app/lib/course-registry.ts`：Candidate、验收回执和 Released exact 版本链。
+- `app/lib/course-registry.ts`：Candidate、Released 与双回执发布门禁。
+- `app/lib/course-acceptance.ts`：View／UI 两类 exact 验收回执、有效性与失效规则。
 - `app/lib/courseware-store.ts`：导师 HTML 课件、不可变版本和发布指针。
 - `app/lib/classroom-factory.ts`：唯一 ClassroomFactory 与状态机。
 - `app/lib/classroom-platform-store.ts`：课堂实例、成员、私密手牌、提交、中控、Test reset 和审计。
-- `app/studio/`：Editor、Read Only Preview、课件库与发布管理。
+- `app/studio/`：Editor、多角色视图验收、导师课件库与验收发布。
 - `app/classroom/`：课堂工厂、角色 UI、中控、投屏和成员管理。
 - `drizzle/0004_unified_course_factory.sql`：统一课程工厂 D1 模型。
+- `drizzle/0005_two_stage_course_acceptance.sql`：两级验收回执与课堂绑定。
 - `deploy/minisv/package_bundle.py`：静态站、应用 worker 与 ops 的单一不可变发布包。
 - `scripts/test-course-platform-e2e.ts`：真实 D1／HTTP 端到端验收。
 

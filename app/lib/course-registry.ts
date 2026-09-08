@@ -9,6 +9,7 @@ import {
 } from "./course-package";
 import type { ClassroomCampaign } from "./classroom-model";
 import { resolveLearnerPolicy, validateCourseInstantiation } from "./course-platform";
+import { requireValidUiAcceptanceReceipt, requireValidViewAcceptanceReceipt } from "./course-acceptance";
 
 export interface CourseReleaseApproval {
   schemaVersion: number;
@@ -18,6 +19,9 @@ export interface CourseReleaseApproval {
   status: "approved";
   runId: string;
   runDigest: string;
+  viewReceiptId: string;
+  uiReceiptId: string;
+  coursewareBundleDigest: string;
   acceptedAt: string;
   acceptedBy: string;
   checks?: Record<string, unknown>;
@@ -130,7 +134,11 @@ export async function listStudioCourseVersions(db: ClassroomD1): Promise<StudioC
 
 export async function releaseTestedCourseCandidate(
   db: ClassroomD1,
-  input: { courseRef: Pick<CoursePackageRef, "courseId" | "revision" | "digest">; receiptId: string },
+  input: {
+    courseRef: Pick<CoursePackageRef, "courseId" | "revision" | "digest">;
+    viewReceiptId: string;
+    uiReceiptId: string;
+  },
   actor: string,
 ): Promise<CoursePackageRef> {
   const candidate = await db.prepare(
@@ -139,17 +147,8 @@ export async function releaseTestedCourseCandidate(
   if (!candidate || candidate.revision !== input.courseRef.revision || candidate.digest !== input.courseRef.digest) {
     throw new ClassroomError("CANDIDATE_EXACT_MISMATCH", "发布目标不是当前 exact Candidate。", 409);
   }
-  const receipt = await db.prepare(
-    `SELECT id, room_id, course_id, revision, digest, status, accepted_at, accepted_by_profile_id, checks_json
-     FROM course_test_receipts WHERE id = ?`,
-  ).bind(input.receiptId).first<{
-    id: string; room_id: string; course_id: string; revision: number; digest: string; status: string;
-    accepted_at: string | null; accepted_by_profile_id: string | null; checks_json: string;
-  }>();
-  if (
-    !receipt || receipt.status !== "accepted" || receipt.course_id !== input.courseRef.courseId
-    || receipt.revision !== input.courseRef.revision || receipt.digest !== input.courseRef.digest || !receipt.accepted_at
-  ) throw new ClassroomError("TEST_RECEIPT_EXACT_MISMATCH", "真实 Test Classroom 回执没有验收这个 exact Candidate。", 409);
+  const viewReceipt = await requireValidViewAcceptanceReceipt(db, input.courseRef, input.viewReceiptId);
+  const uiReceipt = await requireValidUiAcceptanceReceipt(db, input.courseRef, input.uiReceiptId, viewReceipt.receiptId);
   const course = await loadExactCoursePackage(db, input.courseRef);
   // A Candidate may be saved while an author is still filling a larger deck,
   // but a Released definition promises that every learner count in its stated
@@ -183,11 +182,14 @@ export async function releaseTestedCourseCandidate(
       revision: input.courseRef.revision,
       digest: input.courseRef.digest,
       status: "approved",
-      runId: receipt.room_id,
+      runId: uiReceipt.roomId,
       runDigest: input.courseRef.digest,
-      acceptedAt: receipt.accepted_at,
-      acceptedBy: receipt.accepted_by_profile_id ?? actor,
-      checks: JSON.parse(receipt.checks_json) as Record<string, unknown>,
+      viewReceiptId: viewReceipt.receiptId,
+      uiReceiptId: uiReceipt.receiptId,
+      coursewareBundleDigest: uiReceipt.coursewareBundleDigest,
+      acceptedAt: uiReceipt.acceptedAt,
+      acceptedBy: uiReceipt.acceptedByProfileId,
+      checks: uiReceipt.checks,
     },
   }, actor);
 }
@@ -283,6 +285,9 @@ async function publishReleasedCoursePackage(
     || approval.digest !== digest
     || approval.runDigest !== digest
     || !approval.runId
+    || !approval.viewReceiptId
+    || !approval.uiReceiptId
+    || !approval.coursewareBundleDigest
   ) {
     throw new ClassroomError("TEST_APPROVAL_MISMATCH", "Test Classroom 验收回执没有绑定这个 exact Candidate。", 409);
   }

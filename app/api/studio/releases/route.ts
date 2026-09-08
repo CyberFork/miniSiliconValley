@@ -10,7 +10,8 @@ export async function POST(request: Request): Promise<Response> {
     const raw = objectValue(await readPlatformJson(request));
     return releaseTestedCourseCandidate(db, {
       courseRef: parseCourseRef(raw.courseRef),
-      receiptId: stringValue(raw.receiptId, "receiptId", 128),
+      viewReceiptId: stringValue(raw.viewReceiptId, "viewReceiptId", 128),
+      uiReceiptId: stringValue(raw.uiReceiptId, "uiReceiptId", 128),
     }, user.userId);
   });
 }

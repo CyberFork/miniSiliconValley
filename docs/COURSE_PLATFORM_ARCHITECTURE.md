@@ -1,137 +1,154 @@
 # Mini Silicon Valley 课程平台架构
 
-> 状态：T-085 已实现的现行架构
-> 日期：2026-09-08
-> 实施总任务：T-085
+> 状态：T-086 已实现的现行架构
+> 日期：2026-09-09
+> 基础架构：T-085 统一课程工厂
+> 当前闭环：两次验收、一次发布
 
-## 1. 核心决策
+## 1. 不可跳过的生产线
 
-Mini Silicon Valley 只保留一份课程真值和一套课堂状态机，在此基础上提供两个环境：
-
-1. **Course Studio 内部课程开发环境**：课程编辑、多角色数据视图、课件库、Read Only 预览、校验与发布。
-2. **Classroom 正式课堂环境**：预创建账号、真实团队协作、角色化课堂 UI、投屏、每个课堂实例的独立中控与持久化状态。
-
-两个环境可以有不同的信息密度和 UI，但不得形成两份课程 JSON、两套推进规则或两套卡牌真值。
-
-## 2. 工厂模式类比
-
-课程开发环境产生的不是一场正在运行的课堂，而是可被实例化的版本化课程原型。
+Mini Silicon Valley 只保留一份可编辑课程真值、一套课堂工厂和一套运行状态机。课程从编辑到正式课堂必须依次经过两张可审计回执：
 
 ```text
-CourseDefinition            课程原型／类
-CourseRelease               已编译、不可变的类版本
-ClassroomFactory.create()   课堂实例创建器
-ClassroomInstance           一场具体的课堂实例
-ControllerState             该实例独立的运行状态
+CourseDefinition Working Copy
+  → Candidate CourseRelease（exact revision + digest）
+  → Studio 多角色视图验收
+  → ViewAcceptanceReceipt
+  → 真实 TEST Classroom 完整运行
+  → UiAcceptanceReceipt
+  → Released CourseRelease
+  → PRODUCTION ClassroomInstance
 ```
+
+这条链解决两个不同问题：
+
+- **ViewAcceptanceReceipt** 证明已保存 Candidate 在共享投影器中能覆盖全部 Block、全部支持人数、四导师、N 学员、卡牌与中控。
+- **UiAcceptanceReceipt** 证明该 exact Candidate 与四套 exact 导师课件已经在真实 TEST Classroom 的 UI、API、权限和状态机中走完。
+
+两张回执均为不可变证据，而不是可手改的布尔状态。服务端在创建课堂、签发回执和发布时都会重新核验 exact 引用。
+
+## 2. 三个产品面
+
+### Course Studio：课程生产
 
 ```text
-Course Studio
-  ↓ 编辑与保存
-Candidate CourseRelease
-  ↓ Classroom Test Instance 真实 UI 验收
-Approved Candidate
-  ↓ 发布
-Released CourseRelease
-  ↓ ClassroomFactory.create(config)
-Production ClassroomInstance
+/studio/             00 课程工作台
+/studio/editor/      01 课程编辑器
+/studio/preview/     02 多角色视图验收
+/studio/releases/    03 验收与发布
+/studio/courseware/  04 导师课件库
+/course/             05 导师课件播放
 ```
 
-Classroom 实例只持有 exact `courseId + revision + digest` 引用和自己的运行状态，不再复制一份可独立编辑的课程正文。
+- Editor 是 CourseDefinition 正文的唯一写入口。
+- Preview 只读已保存 Candidate，不读取浏览器未保存 Working Copy。
+- Releases 汇总 Candidate、两张回执、课件绑定、Released 与下一步主操作。
+- Courseware 是并行资源线，不是 CourseDefinition 的下一步骤。
+- `/course/` 只负责导师课件播放，不代表完整课程大纲。
 
-## 3. 目标路由
-
-### Course Studio（内部）
+### Classroom：真实课堂交付
 
 ```text
-/studio/             内部课程开发台
-/studio/editor/      课程编辑器和所见即所得视图
-/studio/preview/     已保存 Candidate 的 Read Only 多角色预览
-/studio/courseware/  P/D/M/O 导师课件库与上传管理
-/studio/releases/    Candidate、测试回执与 Released 管理
+/classroom/                        06 课堂中心与 ClassroomFactory
+/classroom/{classroomId}/          当前登录人的真实席位 UI
+/classroom/{classroomId}/control   该实例的 Admin DM 中控
+/classroom/{classroomId}/screen    脱敏共同投屏
+/classroom/{classroomId}/members   成员、席位与 Admin DM
 ```
 
-### 导师课件播放
+课堂中心永久分为：
 
-```text
-/course/             导师／管理员的已发布课件入口
-/course/{slug}/      一套 exact HTML 课件（导师／管理员）
-```
+- `TEST · UI 验收课堂`：可绑定 Candidate 或 Released，可重置，不进入正式学习档案。
+- `PRODUCTION · 正式课堂`：只能绑定 Released，不可重置，进入正式学习与审计。
 
-原先 `/course/` 中被称为“课程大纲”的内容已归类为 **P 产品导师课件之一**，静态原版位于 `/courseware/product-mentor-foundations/`，不再代表整个课程真值。
+所谓“UI 预览”就是一间真实 TEST Classroom。系统不维护第二套预览页面、API 或状态机。
 
-### Classroom（正式交付）
+### 历史世界：学习叙事
 
-```text
-/classroom/                        用户的课堂列表／今日课程
-/classroom/{classroomId}/          当前角色的真实课堂 UI
-/classroom/{classroomId}/control   该课堂的独立主控
-/classroom/{classroomId}/screen    课堂内共同投屏视图
-/classroom/{classroomId}/members   Admin DM 成员与账号管理
-```
+`/world/` 仍负责真实科技史、时间轴、地图和关卡入口。它消费发布后的课程内容，不拥有另一份可编辑课程真值。
 
-旧 `/control/`、`/control/editor/` 和 `/alpha/` 已退休并返回 410；新系统直接按 `/studio/` 和 `/classroom/` 的职责运行。
-
-## 4. 领域对象
+## 3. 领域对象
 
 ### CourseDefinition
 
 唯一可编辑课程原型，包含：
 
 - 一世界、两轨线、三玩法、四导师、五步骤、六分钟 Demo。
-- 五个 Macro Step 和所属 Block。
-- 中控脚本、导师任务、学员任务、验收条件和系统动作。
-- 卡组、卡牌、来源、F/R/G/U 边界和发牌策略。
-- 学员人数支持范围与默认值。
-- P/D/M/O 默认课件指向。
+- Macro Step、Block、中控脚本、P／D／M／O 导师任务与学员任务。
+- 卡组、卡牌、来源、F／R／G／U 边界和发牌策略。
+- `learnerPolicy`：支持人数、默认人数、每人手牌数与发牌规则。
+- P／D／M／O 默认课件引用。
 
 ### CourseRelease
 
-CourseDefinition 每次保存产生的不可变版本：
+每次保存产生不可变版本：
 
 ```json
 {
   "courseId": "eleme-five-step",
   "revision": 12,
-  "digest": "sha256:...",
+  "digest": "sha256:…",
   "status": "candidate"
 }
 ```
 
-对用户只暴露简化的“保存、测试、发布”流程，不要求用户管理独立 Draft 列表。
+同一正文可以复用相同 digest；不同正文必须产生新 revision／digest。发布只移动 Released pointer，不改写旧版本正文。
+
+### ViewAcceptanceReceipt
+
+签发条件：
+
+- 精确绑定 `courseId + revision + digest`。
+- 共享投影器成功覆盖课程声明的全部 Block 和每个支持人数。
+- 四导师、N 学员、动态任务、中控、卡组容量、稳定发牌和私密卡分配均通过。
+- 保存签发者、场景矩阵、检查结果、`projectorVersion`、`appBuildId` 与时间。
+
+有效性同时取决于：
+
+- 该 exact 版本仍是当前 Candidate 或 Released；
+- 当前投影器版本与构建兼容；
+- 回执结果为 passed。
+
+一个未发布 Candidate 被新 Candidate 替代后，旧 View 回执自动失效。当前 Released 的回执仍可用于其正式课堂。
+
+### UiAcceptanceReceipt
+
+签发条件：
+
+- 绑定 exact CourseRelease、有效 ViewAcceptanceReceipt 和一间 TEST Classroom。
+- TEST 已完成同一版本状态机的全部 Block。
+- 锁定学员人数、seed、reset generation、四导师 Membership、N 学员 Membership、Admin DM。
+- 锁定 P／D／M／O 四套 CoursewarePackage 的 exact revision／digest。
+- 14 项真实 UI 检查全部确认。
+- 保存浏览器／平台／视口矩阵、`appBuildId`、操作者、时间和审计摘要。
+
+TEST reset 不删除历史回执，但会增加 reset generation、解除当前课堂绑定并使旧回执失效。回执不能移植到另一间课堂或另一组课件。
 
 ### CoursewarePackage
 
-由导师创建或上传的 HTML 课件：
-
-- 拥有者账号、标题、slug、适用导师角色和版本。
-- 不要求建立 Block → Slide 细粒度映射。
-- 导师可以在任意时刻从自己的课堂角色卡打开已选课件。
-- 上传新内容自动产生新的不可变课件版本，不原地改写已开始课堂引用的版本。
+- 每个课件版本不可变，并拥有 canonical bundle digest。
+- digest 在哈希前按固定字段顺序规范化，不受 JavaScript 对象插入顺序影响。
+- TEST 可以绑定 Candidate 或 Released 课件版本。
+- PRODUCTION 只能绑定已发布、且与 UI 回执完全一致的四套 exact 版本。
 
 ### ClassroomInstance
 
-一场具体课堂，包含：
+- 只保存 exact 课程与课件引用，不复制可编辑正文。
+- 拥有独立 ControllerState、Membership、手牌、提交、RP、钱包、团队资金和审计。
+- `classroom_acceptance_bindings` 保存创建时使用的 View 回执与当前 UI 回执。
+- TEST 与 PRODUCTION 的数据和 ControllerState 以 classroomId 隔离。
 
-- `environment: test | production`。
-- exact CourseRelease 引用。
-- 课堂开始前选定的 P/D/M/O 课件版本。
-- 四个导师席位和可配置数量的学员席位。
-- 当前 Block、执行／验收状态、手牌、提交、RP、钱包、团队资金与审计日志。
-- 一个与本实例绑定的 ControllerState。
+### Account、Membership 与 Admin DM
 
-### Account 与 Membership
+- Account 可加入多个课堂，不嵌入某个课堂文档。
+- Membership 将账号绑定到课堂和导师／学员席位。
+- 四位导师分别承担 P／D／M／O；学员不固定为 P／D／M／O。
+- Admin DM 是课堂级权限，不是第五位导师；可授予某位导师或独立管理员。
+- 平台 admin 不自动穿透所有课堂，仍需要 Membership 或课堂 Admin DM 权限。
 
-- Account 是可在多个 Classroom 中复用的身份，不嵌入单个 Classroom 文档。
-- Membership 将账号绑定到某个 Classroom、Team 和席位。
-- 导师 Membership 可指定 P/D/M/O；一个导师账号可同时参与多个 Classroom。
-- Admin DM 是权限，不是第五个导师席位。它可分配给当前某位导师，也可分配给课堂外的独立账号。
+## 4. 共享投影与动态人数
 
-## 5. 可配置学员人数
-
-当前“4 导师＋4 学员＋1 中控”只是默认模板，不是永久数据假设。
-
-CourseDefinition 需要声明：
+课程声明：
 
 ```json
 {
@@ -145,97 +162,131 @@ CourseDefinition 需要声明：
 }
 ```
 
-ClassroomFactory 创建实例时选择实际学员人数，并必须校验：
+`buildStudioProjection()` 是 Editor 辅助视图和正式 Preview 验收的共享投影器。它必须证明：
 
-- 课程是否支持该人数。
-- 每阶段卡牌数是否满足 `learnerCount × cardsPerLearner` 的不重复发牌需求。
-- 八席任务中原本写死的 `learner01—learner04` 是否能由通用学员模板和必要的席位覆写生成。
-- 实际只有 2 名学员时，UI 不显示两个虚假学员，课程门槛不依赖未使用席位。
-- 设置 6 名学员时，Studio 预览和 Classroom 动态生成 6 个学员视图，并在发牌容量不足时阻止开课。
+- N=2 不生成虚假空席；N=6 能生成六份独立任务和私密视图。
+- 卡牌容量满足 `learnerCount × cardsPerLearner`。
+- `unique-within-step` 不重复发牌；固定 seed 的结果可复现。
+- 第五名以后使用通用学员任务模板，不能依赖写死的 learner01—learner04。
+- 任一声明支持人数无法实例化时，不能签发 View 回执。
 
-四个 P/D/M/O 导师席位仍是课程骨架。初期保持“一个 Classroom 实例＝一个学生团队”；四位导师通过多个 Membership 服务多个 Classroom。
+Preview 无副作用：不创建 Classroom、Membership、手牌、账本或审计记录。
 
-## 6. Course Studio 视图
+## 5. 同一课堂工厂与状态机
 
-完整编辑交互的不可退化约束见 [Course Studio 编辑器不可退化约束](COURSE_STUDIO_EDITOR_GUARDRAILS.md)。底层版本架构升级不得替换已经成熟的可视化直改工作台。
-
-### Editor
-
-- 唯一写入口。
-- 顶部显示五大步／Block 时序轴。
-- 中间显示 4 导师＋N 学员的所见即所得视图。
-- 底部显示课程中控视图。
-- 点击可见文案编辑唯一 CourseDefinition 字段；派生的 RP、钱包、进度和随机手牌状态不写回课程原型。
-
-### Preview
-
-- 与 Editor 在同一页面画布中直接展示，不再打开多个独立窗口。
-- 读取已保存 Candidate，课程内容 Read Only。
-- 可切换 Block、学员人数、固定发牌 seed 和预览状态。
-- 应与最终 Classroom 共用课程投影器和核心渲染组件，而不是再复制一套 Alpha UI。
-
-Studio 已接入第一方 HttpOnly Session、首次改密门禁和平台 `admin/mentor` RBAC；学员账号无法读取 Studio API。真实账号、回执和私密课件不得出现在无鉴权静态页面。
-
-## 7. Classroom 运行视图
-
-Classroom 只显示当前登录人应该看到的真实 UI：
-
-- **学员**：今日课程、当前任务、私密卡、协作、提交、RP、钱包与作品。
-- **P/D/M/O 导师**：当前任务、观察重点、专业线信息、团队状态和“打开我的课件”。
-- **Admin DM**：课堂主控、全角色状态、账号、Membership、异常处理和审计。
-- **课堂大屏**：全班共同内容，不暴露私密卡、导师讲稿、账号、个人钱包或未公开提交。
-
-导师课件可在任意时刻通过超链接新窗口打开，不由 Controller 自动翻页。
-
-## 8. Test 与 Production Classroom
-
-Studio Preview 只能验证数据投影，不能代替真实 Classroom UI 测试。Classroom 运行时因此支持两种实例模式：
-
-### Test ClassroomInstance
-
-- 使用与正式课堂完全相同的 UI、API 和状态机。
-- 可绑定 Candidate。
-- 使用测试账号；所有运行记录以独立 Test Classroom `roomId` 隔离，并明确标记 `environment=test`。
-- 可重置，不进入正式学习档案与统计。
-- 可用多个隔离浏览器会话分别验收四导师、动态 N 学员、Admin DM 和共同投屏视角。
-
-### Production ClassroomInstance
-
-- 只能绑定 Released CourseRelease。
-- 课堂开始后锁定 exact course 与 courseware revision/digest。
-- 运行数据进入正式档案、统计和审计。
-- 不得被 Studio 保存或发布新版本静默修改。
-
-Test 与 Production 是同一 ClassroomFactory 创建的两种实例，不是两套课堂系统。
-
-## 9. 账号与 Admin DM
-
-- 学员不自行注册和管理账号。
-- Admin DM 创建 Classroom 和 Team 后，批量创建或选择导师／学员账号，再分发简化登录凭据。
-- Admin DM 可在开课前调整 Membership、授予／撤销本课堂 Admin DM，并为课堂预创建新账号；平台账号停用仍属于受控后台职责。
-- 密码只保存强哈希；预创建初始凭据仅显示一次，用户首次登录必须自行替换。遗失后由受控后台签发重置流程，不读取旧密码。
-- 系统级管理员和 Classroom 级 Admin DM 分开授权，避免任何 Classroom Admin 默认获得全站权限。
-
-## 10. 单一状态机
-
-所有 Test/Production ClassroomInstance 执行同一套版本化课堂状态机：
+Test 与 Production 均调用同一个 `ClassroomFactory.create()`，并执行同一个版本化状态机：
 
 ```text
 ready → executing → awaiting-acceptance → accepted → next block
-                            └→ rejected/retry
+                            └→ rejected / retry
 ```
 
-- 中控按 `classroomId` 读写 ControllerState，不再使用一个全局 Run 控制所有课堂。
-- CourseDefinition 声明规则；ClassroomInstance 仅保存当前运行状态和产生的课堂事件。
-- Studio Preview 使用无副作用 Preview Projector 生成同样的可见状态，但不写入 ControllerState。
+共同准入：
 
-## 11. 不可破坏的约束
+- exact CourseRelease 合法；
+- 学员人数、账号角色、导师唯一性和卡牌容量合法；
+- 有效 ViewAcceptanceReceipt 与 exact 课程一致。
 
-- 课程编辑器是唯一课程写入入口。
-- Studio 和 Classroom 不复制课程正文。
-- Test 与 Production 不共用运行数据、成员数据、账本或审计命名空间。
-- Admin DM 权限不等于 P/D/M/O 导师身份。
-- 学员数量不写死为 4，但实例化必须通过课程和发牌容量校验。
-- 课件不要求 Block 级自动翻页映射，但已开始课堂需要锁定课件版本。
-- 课堂大屏只是课堂内共享视图，不代表无鉴权公网发布。
-- 正式课堂必须在 Test Classroom 的真实 UI 验收后才能使用对应 Released digest。
+Production 额外准入：
+
+- 课程状态是 Released；
+- 有效 UiAcceptanceReceipt 与 exact 课程、View 回执和 Test Classroom 一致；
+- 计划绑定的四套课件与 UI 回执逐项相同且均已 Released。
+
+创建使用单次 D1 事务／batch 写入实例、成员、权限、课件与回执绑定，失败时不留下半个课堂。
+
+## 6. 14 项真实 UI 验收
+
+Admin DM 只有在 TEST 完成全部课程后，才能逐项确认并签发 UI 回执：
+
+1. TEST／PRODUCTION 使用同源运行时。
+2. Membership 与 RBAC 正确。
+3. 四导师任务与 exact 课件正确。
+4. 学员任务正确。
+5. 私密卡、RP 与钱包隔离。
+6. 公共投屏脱敏。
+7. Block 执行、退回、重试与推进正确。
+8. 五大步与全部 Block 完成。
+9. 刷新后状态恢复。
+10. 重新登录后身份与席位恢复。
+11. 并发版本冲突被拒绝并可恢复。
+12. TEST reset 行为正确。
+13. 手机、桌面和投屏布局通过。
+14. 运行中实例不受 Studio 后续保存影响，课程与课件 exact 引用不漂移。
+
+浏览器复选框只表达人工结果；签发 API 仍会校验课堂环境、生命周期、状态机、成员、课件、View 回执、reset generation 和构建版本。
+
+## 7. 失败关闭与失效规则
+
+以下情况必须返回结构化错误，不能静默降级：
+
+- Candidate／receipt 的 revision 或 digest 不一致。
+- View 回执缺失、过期、投影器不兼容或容量校验失败。
+- TEST 未完成或 14 项检查不全。
+- UI 回执来自另一课堂、另一 reset generation 或另一套课件。
+- PRODUCTION 绑定 Candidate、未发布课件或未经验收的课件。
+- 课堂开始后试图替换课程或课件版本。
+- 并发 ControllerState 写入使用旧 version。
+- 投屏载荷包含私密卡、导师讲稿、账号、钱包或未公开提交。
+
+失效不会篡改历史回执；系统通过当前 Candidate／Released pointer、投影器与构建版本、reset generation 和 exact digest 动态判断有效性。
+
+## 8. 权限与隐私边界
+
+- `/studio/*`、`/course/*`：平台 mentor／admin，且必须完成首次改密。
+- Classroom：仅该实例 Membership 或 Admin DM。
+- 学员只收到自己的任务、持久化手牌、提交、RP 与钱包。
+- 导师不接收其他导师不需要的私密脚本。
+- `/screen` 使用服务端 allow-list，不依赖 CSS 或客户端隐藏。
+- inline HTML 课件在不含 `allow-same-origin` 的 sandbox iframe 中播放。
+- 写 API 使用第一方 HttpOnly Session、同源 Origin 校验、服务端 RBAC 与审计。
+
+## 9. 数据模型与迁移
+
+T-086 新增：
+
+- `course_view_acceptance_receipts`
+- `course_ui_acceptance_receipts`
+- `classroom_acceptance_bindings`
+
+关键约束：
+
+- 两类回执按 exact 业务指纹唯一，重复签发返回同一持久 ID。
+- 所有引用均有外键和 digest 校验；课堂只能有一个当前 acceptance binding。
+- migration 幂等执行，失败不覆盖现有 D1 数据。
+- 既有 `course_test_receipts` 保留用于历史数据读取，但不再满足新的发布门禁。
+
+## 10. 生产拓扑与统一发布
+
+```text
+Cloudflare Tunnel
+  → 127.0.0.1:18780  Nginx gateway
+      ├─ current/site                 静态世界、门户、原版 P 导师课件
+      ├─ 127.0.0.1:18787             Vinext/Worker + D1-compatible data
+      └─ 127.0.0.1:18789             Parent Q&A
+127.0.0.1:18792                       cloudflared metrics
+```
+
+统一 release 同时包含 `site/`、`app/dist/`、`ops/`、根 manifest 和 `bundle.json`。运行数据与 secrets 永远位于 release 外；`~/Services/minisv/current` 原子切换到整包版本，避免静态 UI 与 API 跨构建。
+
+## 11. 退休入口与导航约束
+
+- `/alpha`、`/alpha/*`：410
+- `/control`、`/control/*`：410
+- `/api/classroom/*`：410
+- `/api/internal/*`：公网 404
+
+新导航不得再暴露这些路径。现行工作流只使用 `/studio/*`、`/course/*` 和 `/classroom/{classroomId}/*`。
+
+## 12. 不可破坏的架构约束
+
+- Editor 是课程正文唯一写入口，不能退化为仅编辑原始 JSON。
+- Preview 只验收已保存 Candidate，不能把 Working Copy 当成已验收版本。
+- Test 与 Production 共用工厂、UI、API 和状态机，但不共用运行数据。
+- 没有两张 exact 有效回执就不能 Released。
+- Production 必须复用 UI 验收过的四套 exact 课件。
+- Studio 保存、Preview、发布新版本或 TEST reset 对运行中 Production 零副作用。
+- 学员人数不写死为 4；必须由课程策略和实例人数动态投影。
+- 回执提供证据链，不能替代真实人工课堂验收。
+
+具体操作步骤见 [Course Platform SOP](COURSE_PLATFORM_SOP.md)，验证命令与矩阵见 [Testing](TESTING.md)。

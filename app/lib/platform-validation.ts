@@ -48,6 +48,10 @@ export function parseFactoryRequest(value: unknown): ClassroomFactoryRequest {
     title: stringValue(raw.title, "课堂名称", 128),
     learnerCount: integerValue(raw.learnerCount, "学员人数", 1, 24),
     courseRef: parseCourseRef(raw.courseRef),
+    viewAcceptanceReceiptId: stringValue(raw.viewAcceptanceReceiptId, "多角色视图验收回执", 128),
+    ...(raw.uiAcceptanceReceiptId == null
+      ? {}
+      : { uiAcceptanceReceiptId: stringValue(raw.uiAcceptanceReceiptId, "真实课堂 UI 验收回执", 128) }),
     coursewareRefs: courseware.map((item): ExactCoursewareRef => {
       const ref = objectValue(item, "coursewareRef");
       return {

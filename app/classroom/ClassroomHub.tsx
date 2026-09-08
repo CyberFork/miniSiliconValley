@@ -1,15 +1,17 @@
 "use client";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { BrandHomeLink } from "../components/BrandHomeLink";
+
+import type { IssuedManagedCredential } from "../lib/auth-model";
+import type { ClassroomInstanceSummary } from "../lib/classroom-platform-store";
+import type { UiAcceptanceReceipt, ViewAcceptanceReceipt } from "../lib/course-acceptance";
 import type { CoursePackage, CoursePackageRef } from "../lib/course-package";
 import type { CoursewareSummary } from "../lib/courseware-store";
-import type { ClassroomInstanceSummary } from "../lib/classroom-platform-store";
-import type { IssuedManagedCredential } from "../lib/auth-model";
-import styles from "./platform.module.css";
+import { BrandHomeLink } from "../components/BrandHomeLink";
 import factoryStyles from "./classroom-factory.module.css";
+import styles from "./platform.module.css";
 
 type Account = { userId: string; username: string; displayName: string; role: "admin" | "mentor" | "learner"; status: string };
 type StudioVersion = {
@@ -19,11 +21,24 @@ type StudioVersion = {
   course: CoursePackage;
   learnerPolicy: { defaultCount: number; minCount: number; maxCount: number; cardsPerLearner: number; dealPolicy: string };
 };
-type Bootstrap = { versions: StudioVersion[]; courseware: CoursewareSummary[] };
+type Bootstrap = {
+  versions: StudioVersion[];
+  courseware: CoursewareSummary[];
+  viewReceipts: ViewAcceptanceReceipt[];
+  uiReceipts: UiAcceptanceReceipt[];
+};
+type InitialCourse = {
+  courseId: string;
+  revision: number;
+  digest?: string;
+  environment?: "test" | "production";
+  viewReceiptId?: string;
+  uiReceiptId?: string;
+} | null;
 type HubProps = {
   user: { userId: string; displayName: string; role: string };
   signOutPath: string;
-  initialCourse: { courseId: string; revision: number } | null;
+  initialCourse: InitialCourse;
 };
 
 const MENTOR_ROLES = ["P", "D", "M", "O"] as const;
@@ -57,28 +72,43 @@ export default function ClassroomHub({ user, signOutPath, initialCourse }: HubPr
     }
   }, [user.role]);
 
-  useEffect(() => { const timer = window.setTimeout(() => { void load(); }, 0); return () => window.clearTimeout(timer); }, [load]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void load(); }, 0);
+    return () => window.clearTimeout(timer);
+  }, [load]);
 
+  const testRooms = rooms.filter((room) => room.environment === "test");
+  const productionRooms = rooms.filter((room) => room.environment === "production");
   return <main className={styles.page}>
     <header className={styles.top}>
-      <BrandHomeLink title="MSV CLASSROOM" subtitle="统一课堂运行平台" />
+      <BrandHomeLink title="MSV CLASSROOM" subtitle="课堂中心 · 单一真实运行时" />
       <nav aria-label="课堂导航">
-        {(user.role === "admin" || user.role === "mentor") && <Link href="/studio/">Course Studio</Link>}
-        {(user.role === "admin" || user.role === "mentor") && <Link href="/course/">导师课件</Link>}
+        {(user.role === "admin" || user.role === "mentor") && <Link href="/studio/">课程生产工作台</Link>}
+        {(user.role === "admin" || user.role === "mentor") && <Link href="/course/">导师课件播放</Link>}
         <a href={signOutPath}>退出</a>
       </nav>
     </header>
     <div className={styles.main}>
       <section className={styles.hero}>
-        <div><small>CLASSROOM FACTORY · TODAY</small><h1>今天的课堂</h1><p>每个课堂都有独立课程版本、成员、手牌、账本与中控。Test 和 Production 使用同一套真实界面与状态机。</p></div>
+        <div><small>CLASSROOM CENTER · TEST + PRODUCTION</small><h1>课堂中心</h1><p>UI 验收课堂和正式课堂使用同一套页面、API、权限与状态机；永久环境标识防止把测试数据误当成正式学习记录。</p></div>
         <div className={styles.identity}><b>{user.displayName}</b><span>{user.role === "admin" ? "平台管理员" : user.role === "mentor" ? "导师账号" : "Young Builder"}</span></div>
       </section>
       {error && <div className={styles.error} role="alert">{error}</div>}
       {notice && <div className={styles.notice} role="status">{notice}</div>}
-      <section className={styles.section}>
-        <header className={styles.sectionHeader}><div><h2>我的 Classroom</h2><p>同一导师账号可以进入多个课堂；列表只显示你的 Membership 或 Admin DM 权限。</p></div><b>{rooms.length} 场</b></header>
-        {loading ? <div className={styles.empty}>正在读取独立课堂实例…</div> : rooms.length ? <div className={styles.grid}>{rooms.map((room) => <RoomCard key={room.id} room={room} />)}</div> : <div className={styles.empty}>还没有分配给你的课堂。导师可在下方预创建账号并用课程工厂创建第一场。</div>}
-      </section>
+      {loading ? <div className={styles.empty}>正在读取彼此隔离的课堂实例…</div> : <>
+        <RoomGroup
+          title="UI 验收课堂"
+          environment="test"
+          rooms={testRooms}
+          description="TEST · 绑定已通过视图验收的 Candidate／Released；可重置，不进入正式学习档案。"
+        />
+        <RoomGroup
+          title="正式课堂"
+          environment="production"
+          rooms={productionRooms}
+          description="PRODUCTION · 只绑定 Released 与 UI 验收过的同一组 exact 课件；不可重置。"
+        />
+      </>}
       {(user.role === "admin" || user.role === "mentor") && bootstrap && <FactoryPanel
         bootstrap={bootstrap}
         accounts={accounts}
@@ -96,10 +126,22 @@ export default function ClassroomHub({ user, signOutPath, initialCourse }: HubPr
   </main>;
 }
 
+function RoomGroup({ title, environment, rooms, description }: {
+  title: string;
+  environment: "test" | "production";
+  rooms: ClassroomInstanceSummary[];
+  description: string;
+}) {
+  return <section className={styles.section} data-room-group={environment}>
+    <header className={styles.sectionHeader}><div><span className={styles.environmentBadge} data-env={environment}>{environment.toUpperCase()}</span><h2>{title}</h2><p>{description}</p></div><b>{rooms.length} 场</b></header>
+    {rooms.length ? <div className={styles.grid}>{rooms.map((room) => <RoomCard key={room.id} room={room} />)}</div> : <div className={styles.empty}>{environment === "test" ? "还没有分配给你的 UI 验收课堂。课程先通过多角色视图验收，才能在下方工厂创建。" : "还没有分配给你的正式课堂。Candidate 必须拿到两张有效回执并发布后才能创建。"}</div>}
+  </section>;
+}
+
 function RoomCard({ room }: { room: ClassroomInstanceSummary }) {
   const role = room.mentorRole ? `${room.mentorRole} 导师` : room.learnerSeat ? `学员 ${room.learnerSeat}` : room.isAdminDm ? "Admin DM" : "成员";
   return <article className={styles.room} data-env={room.environment}>
-    <div><small>{room.environment.toUpperCase()} · {room.lifecycle.toUpperCase()}</small><h3>{room.title}</h3><p>{role}{room.isAdminDm && room.mentorRole ? " · Admin DM" : ""}<br />课程：{room.courseRef.courseId} · r{room.courseRef.revision}</p></div>
+    <div><span className={styles.environmentBadge} data-env={room.environment}>{room.environment.toUpperCase()}</span><small>{room.lifecycle.toUpperCase()}</small><h3>{room.title}</h3><p>{role}{room.isAdminDm && room.mentorRole ? " · Admin DM" : ""}<br />课程：{room.courseRef.courseId} · r{room.courseRef.revision}</p></div>
     <div><div className={styles.roomMeta}><span>{room.controller.blockId}</span><span>{room.controller.state}</span><span>{room.learnerCount} 学员</span></div><Link href={`/classroom/${room.id}/`}>进入我的课堂 →</Link></div>
   </article>;
 }
@@ -109,26 +151,37 @@ function FactoryPanel({ bootstrap, accounts, currentUserId, currentUserRole, ini
   accounts: Account[];
   currentUserId: string;
   currentUserRole: string;
-  initialCourse: { courseId: string; revision: number } | null;
+  initialCourse: InitialCourse;
   onCreated: (message: string) => Promise<void>;
   onAccounts: (accounts: IssuedManagedCredential[]) => Promise<void>;
   onError: (message: string) => void;
 }) {
   const router = useRouter();
   const preferred = useMemo(() => preferredVersions(bootstrap.versions), [bootstrap.versions]);
-  const [environment, setEnvironment] = useState<"test" | "production">("test");
-  const eligible = preferred.filter((item) => environment === "test" ? item.candidate || item.released : item.released);
-  const linkedCourse = eligible.find((item) => item.ref.courseId === initialCourse?.courseId && item.ref.revision === initialCourse.revision);
+  const initialEnvironment = initialCourse?.environment ?? "test";
+  const [environment, setEnvironment] = useState<"test" | "production">(initialEnvironment);
+  const eligible = useMemo(() => preferred.filter((version) => {
+    const view = exactViewReceipt(bootstrap, version.ref);
+    if (!view) return false;
+    if (environment === "test") return version.candidate || version.released;
+    return version.released && exactUiReceipts(bootstrap, version.ref, view.receiptId).length > 0;
+  }), [bootstrap, environment, preferred]);
+  const linkedCourse = eligible.find((item) => matchesInitialCourse(item, initialCourse));
   const [courseKey, setCourseKey] = useState(linkedCourse ? versionKey(linkedCourse) : eligible[0] ? versionKey(eligible[0]) : "");
   const course = eligible.find((item) => versionKey(item) === courseKey) ?? eligible[0];
-  const [title, setTitle] = useState("Mini Silicon Valley 测试课堂");
+  const viewReceipt = course ? exactViewReceipt(bootstrap, course.ref) : undefined;
+  const uiReceiptOptions = course && viewReceipt ? exactUiReceipts(bootstrap, course.ref, viewReceipt.receiptId) : [];
+  const preferredUiReceipt = uiReceiptOptions.find((receipt) => receipt.receiptId === initialCourse?.uiReceiptId) ?? uiReceiptOptions[0];
+  const [uiReceiptId, setUiReceiptId] = useState(preferredUiReceipt?.receiptId ?? "");
+  const uiReceipt = uiReceiptOptions.find((receipt) => receipt.receiptId === uiReceiptId) ?? preferredUiReceipt;
+  const [title, setTitle] = useState(initialEnvironment === "test" ? "Mini Silicon Valley UI 验收课堂" : "Mini Silicon Valley 正式课堂");
   const [learnerCount, setLearnerCount] = useState(course?.learnerPolicy.defaultCount ?? 4);
   const mentors = accounts.filter((account) => account.role === "mentor" || account.role === "admin");
   const learners = accounts.filter((account) => account.role === "learner");
   const [mentorIds, setMentorIds] = useState<string[]>(() => MENTOR_ROLES.map((_, index) => mentors[index]?.userId ?? ""));
   const [learnerIds, setLearnerIds] = useState<string[]>(() => Array.from({ length: learnerCount }, (_, index) => learners[index]?.userId ?? ""));
   const [adminId, setAdminId] = useState(currentUserId);
-  const [coursewareKeys, setCoursewareKeys] = useState<Record<string, string>>(() => defaultCoursewareKeys(bootstrap.courseware, "test"));
+  const [coursewareKeys, setCoursewareKeys] = useState<Record<string, string>>(() => initialCoursewareKeys(bootstrap.courseware, initialEnvironment, preferredUiReceipt));
   const [busy, setBusy] = useState(false);
   const [credentials, setCredentials] = useState<IssuedManagedCredential[]>([]);
 
@@ -141,11 +194,10 @@ function FactoryPanel({ bootstrap, accounts, currentUserId, currentUserRole, ini
     const digest = useReleased ? item.releasedDigest : item.latestDigest;
     return revision === null || !digest ? null : { mentorRole: role, packageId: item.packageId, slug: item.slug, revision, digest };
   });
+  const coursewareMatchesReceipt = environment === "test" || Boolean(uiReceipt && coursewareRefs.every((ref) => ref && uiReceipt.coursewareRefs.some((accepted) => sameCoursewareRef(ref, accepted))));
 
   const createAccounts = async () => {
     setBusy(true); onError("");
-    // Millisecond precision prevents a second test roster in the same minute
-    // from colliding with the first one.
     const stamp = Date.now().toString(36).slice(-8);
     try {
       const issued = await api<IssuedManagedCredential[]>("/api/studio/accounts", {
@@ -164,48 +216,71 @@ function FactoryPanel({ bootstrap, accounts, currentUserId, currentUserRole, ini
   };
 
   const createClassroom = async () => {
-    if (!course) return onError("当前环境没有可用的课程版本。");
+    if (!course || !viewReceipt) return onError("当前环境没有通过多角色视图验收的课程版本。");
+    if (environment === "production" && !uiReceipt) return onError("正式课堂必须选择一张当前有效的真实 UI 验收回执。");
     if (mentorIds.some((id) => !id) || new Set(mentorIds).size !== 4) return onError("请为 P／D／M／O 选择四个不同导师账号。");
     if (learnerIds.some((id) => !id) || new Set(learnerIds).size !== learnerCount) return onError(`请为 ${learnerCount} 个学员席选择不同账号。`);
     if (coursewareRefs.some((item) => !item)) return onError("四位导师都必须有可用的 exact 课件版本。");
+    if (!coursewareMatchesReceipt) return onError("Production 必须绑定 UI 验收回执中同一组 exact P／D／M／O 课件；请先发布对应课件版本。");
     setBusy(true); onError("");
     try {
       const result = await api<{ classroomId: string; teamPublicId: string }>("/api/platform/classrooms", {
         method: "POST",
         body: JSON.stringify({
-          environment, title, learnerCount, courseRef: course.ref,
+          environment,
+          title,
+          learnerCount,
+          courseRef: course.ref,
+          viewAcceptanceReceiptId: viewReceipt.receiptId,
+          ...(environment === "production" && uiReceipt ? { uiAcceptanceReceiptId: uiReceipt.receiptId } : {}),
           mentorSeats: MENTOR_ROLES.map((mentorRole, index) => ({ mentorRole, profileId: mentorIds[index] })),
           learnerProfileIds: learnerIds,
           adminDmProfileIds: [adminId],
           coursewareRefs,
         }),
       });
-      await onCreated(`课堂已创建。队伍 ID：${result.teamPublicId}；课程与四套课件版本已锁定。`);
+      await onCreated(`${environment === "test" ? "UI 验收" : "正式"}课堂已创建。队伍 ID：${result.teamPublicId}；课程、回执与四套课件 exact 版本已锁定。`);
       router.push(`/classroom/${result.classroomId}/control`);
     } catch (cause) { onError(messageOf(cause)); }
     finally { setBusy(false); }
   };
 
   const chooseEnvironment = (nextEnvironment: "test" | "production") => {
-    const nextEligible = preferred.filter((item) => nextEnvironment === "test" ? item.candidate || item.released : item.released);
+    const nextEligible = preferred.filter((version) => {
+      const view = exactViewReceipt(bootstrap, version.ref);
+      return Boolean(view && (nextEnvironment === "test" ? version.candidate || version.released : version.released && exactUiReceipts(bootstrap, version.ref, view.receiptId).length));
+    });
     const nextCourse = nextEligible[0];
-    const nextCount = nextCourse
-      ? Math.min(nextCourse.learnerPolicy.maxCount, Math.max(nextCourse.learnerPolicy.minCount, learnerCount))
-      : learnerCount;
+    const nextView = nextCourse ? exactViewReceipt(bootstrap, nextCourse.ref) : undefined;
+    const nextUi = nextCourse && nextView ? exactUiReceipts(bootstrap, nextCourse.ref, nextView.receiptId)[0] : undefined;
+    const nextCount = nextCourse ? Math.min(nextCourse.learnerPolicy.maxCount, Math.max(nextCourse.learnerPolicy.minCount, learnerCount)) : learnerCount;
     setEnvironment(nextEnvironment);
+    setTitle(nextEnvironment === "test" ? "Mini Silicon Valley UI 验收课堂" : "Mini Silicon Valley 正式课堂");
     setCourseKey(nextCourse ? versionKey(nextCourse) : "");
+    setUiReceiptId(nextUi?.receiptId ?? "");
     setLearnerCount(nextCount);
     setLearnerIds((current) => resizeLearnerIds(current, nextCount, learners));
-    setCoursewareKeys(defaultCoursewareKeys(bootstrap.courseware, nextEnvironment));
+    setCoursewareKeys(initialCoursewareKeys(bootstrap.courseware, nextEnvironment, nextUi));
+    onError("");
   };
 
   const chooseCourse = (nextKey: string) => {
     const nextCourse = eligible.find((item) => versionKey(item) === nextKey);
     setCourseKey(nextKey);
     if (!nextCourse) return;
+    const nextView = exactViewReceipt(bootstrap, nextCourse.ref);
+    const nextUi = nextView ? exactUiReceipts(bootstrap, nextCourse.ref, nextView.receiptId)[0] : undefined;
+    setUiReceiptId(nextUi?.receiptId ?? "");
+    setCoursewareKeys(initialCoursewareKeys(bootstrap.courseware, environment, nextUi));
     const nextCount = Math.min(nextCourse.learnerPolicy.maxCount, Math.max(nextCourse.learnerPolicy.minCount, learnerCount));
     setLearnerCount(nextCount);
     setLearnerIds((current) => resizeLearnerIds(current, nextCount, learners));
+  };
+
+  const chooseUiReceipt = (receiptId: string) => {
+    const next = uiReceiptOptions.find((receipt) => receipt.receiptId === receiptId);
+    setUiReceiptId(receiptId);
+    setCoursewareKeys(initialCoursewareKeys(bootstrap.courseware, "production", next));
   };
 
   const chooseLearnerCount = (nextCount: number) => {
@@ -214,19 +289,22 @@ function FactoryPanel({ bootstrap, accounts, currentUserId, currentUserRole, ini
   };
 
   return <section className={styles.section} id="factory">
-    <header className={styles.sectionHeader}><div><h2>Classroom Factory</h2><p>账号先创建、实例再生成；Test／Production 只改变准入与数据策略，不改变课堂代码。</p></div></header>
+    <header className={styles.sectionHeader}><div><span className={styles.environmentBadge} data-env={environment}>{environment.toUpperCase()}</span><h2>Classroom Factory</h2><p>同一个工厂创建两种环境；服务器在事务开始前验证 exact 课程、两级回执和四套课件。</p></div></header>
     <div className={styles.factory}>
-      <aside className={styles.factoryAside}><small>ONE FACTORY · EXACT VERSIONS</small><h3>一次生成完整课堂</h3><ol><li>选择 Candidate 或 Released</li><li>设置真实学员数 N</li><li>绑定四位导师与四套课件</li><li>授予独立 Admin DM 权限</li><li>创建 4 + N Membership 与中控</li></ol><button type="button" onClick={createAccounts} disabled={busy}>一键生成 4＋{learnerCount} 个测试账号</button></aside>
+      <aside className={styles.factoryAside}><small>ONE FACTORY · EXACT GATES</small><h3>{environment === "test" ? "创建真实 UI 验收课堂" : "创建正式课堂"}</h3><ol>{environment === "test" ? <><li>仅列出具有有效 ViewAcceptanceReceipt 的版本</li><li>设置真实 N 与 4 + N 个成员</li><li>绑定计划投产的四套 exact 课件</li><li>完整运行后签发 UiAcceptanceReceipt</li></> : <><li>仅列出 Released + 有效 UiAcceptanceReceipt</li><li>课程 exact 版本与验收结果一致</li><li>四套课件必须已发布且与验收一致</li><li>Production 不提供重置</li></>}</ol><button type="button" onClick={createAccounts} disabled={busy}>一键生成 4＋{learnerCount} 个测试账号</button></aside>
       <div className={styles.factoryForm}>
-        <label>课堂环境<select value={environment} onChange={(event) => chooseEnvironment(event.target.value as "test" | "production")}><option value="test">Test · 可用 Candidate、可重置</option><option value="production">Production · 仅 Released、不可重置</option></select></label>
+        <label>课堂环境<select value={environment} onChange={(event) => chooseEnvironment(event.target.value as "test" | "production")}><option value="test">TEST · UI 验收课堂 · 可重置</option><option value="production">PRODUCTION · 正式课堂 · 不可重置</option></select></label>
         <label>课堂名称<input value={title} onChange={(event) => setTitle(event.target.value)} maxLength={128} /></label>
-        <label className={styles.wide}>课程 exact 版本<select value={course ? versionKey(course) : ""} onChange={(event) => chooseCourse(event.target.value)}>{eligible.map((item) => <option key={versionKey(item)} value={versionKey(item)}>{item.course.course.name} · r{item.ref.revision} · {item.candidate ? "Candidate" : "Released"}</option>)}</select></label>
+        <label className={styles.wide}>课程 exact 版本<select value={course ? versionKey(course) : ""} onChange={(event) => chooseCourse(event.target.value)}>{eligible.map((item) => <option key={versionKey(item)} value={versionKey(item)}>{item.course.course.name} · r{item.ref.revision} · {item.candidate ? "Candidate" : "Released"}</option>)}</select><small>{eligible.length ? `只显示已通过当前 ${environment === "test" ? "ViewAcceptanceReceipt" : "View + UiAcceptanceReceipt"} 门禁的版本。` : environment === "test" ? "没有可创建的版本：请先到多角色视图验收。" : "没有可创建的版本：请先完成 UI 验收并发布 Released。"}</small></label>
+        {course && viewReceipt && <div className={`${styles.acceptanceLock} ${styles.wide}`}><b>ViewAcceptanceReceipt</b><code>{viewReceipt.receiptId}</code><span>r{course.ref.revision} · {course.ref.digest}</span></div>}
+        {environment === "production" && <label className={styles.wide}>真实 UI 验收回执<select value={uiReceipt?.receiptId ?? ""} onChange={(event) => chooseUiReceipt(event.target.value)}>{uiReceiptOptions.map((receipt) => <option value={receipt.receiptId} key={receipt.receiptId}>{receipt.receiptId.slice(0, 12)}… · {receipt.learnerCount} 人 · {new Date(receipt.acceptedAt).toLocaleString("zh-CN")}</option>)}</select><small>选择回执后，下面四套课件会精确回填为当时测试的 revision／digest。</small></label>}
         <label>学员人数<select value={learnerCount} onChange={(event) => chooseLearnerCount(Number(event.target.value))}>{course ? Array.from({ length: course.learnerPolicy.maxCount - course.learnerPolicy.minCount + 1 }, (_, index) => course.learnerPolicy.minCount + index).map((count) => <option value={count} key={count}>{count} 名学员</option>) : null}</select></label>
         <label>Admin DM（权限，不占导师席）<select value={currentUserRole === "mentor" ? currentUserId : adminId} disabled={currentUserRole === "mentor"} onChange={(event) => setAdminId(event.target.value)}>{accounts.filter((item) => item.role === "admin" || item.role === "mentor").map((item) => <option key={item.userId} value={item.userId}>{item.displayName} · @{item.username}</option>)}</select><small>{currentUserRole === "mentor" ? "创建者将成为本课堂初始 Admin DM；开课前可再授权其他导师。" : "平台管理员可把初始 Admin DM 授予任一导师或管理员。"}</small></label>
         <div className={`${styles.mentorRows} ${styles.wide}`}><b>四个导师 Membership</b>{MENTOR_ROLES.map((role, index) => <div className={styles.mentorRow} key={role}><b>{role}</b><span>{ROLE_NAME[role]}导师</span><select aria-label={`${role} 导师账号`} value={mentorIds[index] ?? ""} onChange={(event) => setMentorIds((value) => value.map((id, at) => at === index ? event.target.value : id))}><option value="">请选择账号</option>{mentors.map((item) => <option key={item.userId} value={item.userId}>{item.displayName} · @{item.username}</option>)}</select></div>)}</div>
-        <div className={`${factoryStyles.coursewareRows} ${styles.wide}`}><b>四套 exact 导师课件</b>{MENTOR_ROLES.map((role) => <label key={role}><span>{role} · {ROLE_NAME[role]}</span><select aria-label={`${role} 导师课件`} value={coursewareKeys[role] ?? ""} onChange={(event) => setCoursewareKeys((value) => ({ ...value, [role]: event.target.value }))}><option value="">请选择课件</option>{(coursewareOptions[role] ?? []).map((item) => <option key={coursewareKey(item, environment)} value={coursewareKey(item, environment)}>{item.title} · r{environment === "production" ? item.releasedRevision : item.latestRevision}</option>)}</select></label>)}</div>
+        <div className={`${factoryStyles.coursewareRows} ${styles.wide}`}><b>四套 exact 导师课件</b>{MENTOR_ROLES.map((role) => <label key={role}><span>{role} · {ROLE_NAME[role]}</span><select aria-label={`${role} 导师课件`} value={coursewareKeys[role] ?? ""} onChange={(event) => setCoursewareKeys((value) => ({ ...value, [role]: event.target.value }))} disabled={environment === "production"}><option value="">请选择课件</option>{(coursewareOptions[role] ?? []).map((item) => <option key={coursewareKey(item, environment)} value={coursewareKey(item, environment)}>{item.title} · r{environment === "production" ? item.releasedRevision : item.latestRevision}</option>)}</select></label>)}</div>
+        {environment === "production" && !coursewareMatchesReceipt && <div className={`${styles.factoryGateError} ${styles.wide}`}>UI 验收所用课件尚未全部发布为相同 exact revision／digest。请先在导师课件库发布对应版本。</div>}
         <div className={`${styles.learnerRows} ${styles.wide}`}>{learnerIds.map((id, index) => <label key={index}>学员 {index + 1}<select aria-label={`学员 ${index + 1} 账号`} value={id} onChange={(event) => setLearnerIds((value) => value.map((item, at) => at === index ? event.target.value : item))}><option value="">请选择账号</option>{learners.map((item) => <option key={item.userId} value={item.userId}>{item.displayName} · @{item.username}</option>)}</select></label>)}</div>
-        <button className={`${styles.factoryButton} ${styles.wide}`} type="button" onClick={createClassroom} disabled={busy || !course}>{busy ? "正在执行不可变工厂事务…" : `创建 ${environment === "test" ? "Test" : "Production"} Classroom →`}</button>
+        <button className={`${styles.factoryButton} ${styles.wide}`} type="button" onClick={createClassroom} disabled={busy || !course || !viewReceipt || (environment === "production" && (!uiReceipt || !coursewareMatchesReceipt))}>{busy ? "正在执行不可变工厂事务…" : environment === "test" ? "创建真实 UI 验收课堂 →" : "创建 Production 正式课堂 →"}</button>
       </div>
     </div>
     {credentials.length > 0 && <CredentialReceipt credentials={credentials} />}
@@ -248,9 +326,40 @@ function preferredVersions(versions: StudioVersion[]): StudioVersion[] {
   });
 }
 
+function exactViewReceipt(bootstrap: Bootstrap, ref: CoursePackageRef) {
+  return bootstrap.viewReceipts.find((receipt) => receipt.valid && sameCourseRef(receipt.courseRef, ref));
+}
+
+function exactUiReceipts(bootstrap: Bootstrap, ref: CoursePackageRef, viewReceiptId: string) {
+  return bootstrap.uiReceipts.filter((receipt) => receipt.valid && receipt.viewReceiptId === viewReceiptId && sameCourseRef(receipt.courseRef, ref));
+}
+
+function matchesInitialCourse(version: StudioVersion, initial: InitialCourse) {
+  return Boolean(initial && version.ref.courseId === initial.courseId && version.ref.revision === initial.revision && (!initial.digest || version.ref.digest === initial.digest));
+}
+
+function sameCourseRef(left: Pick<CoursePackageRef, "courseId" | "revision" | "digest">, right: Pick<CoursePackageRef, "courseId" | "revision" | "digest">) {
+  return left.courseId === right.courseId && left.revision === right.revision && left.digest === right.digest;
+}
+
+function sameCoursewareRef(left: { mentorRole: string; packageId: string; revision: number; digest: string }, right: { mentorRole: string; packageId: string; revision: number; digest: string }) {
+  return left.mentorRole === right.mentorRole && left.packageId === right.packageId && left.revision === right.revision && left.digest === right.digest;
+}
+
 function versionKey(version: StudioVersion): string { return `${version.ref.courseId}:${version.ref.revision}:${version.ref.digest}`; }
 function coursewareKey(item: CoursewareSummary, environment: "test" | "production"): string {
   return `${item.packageId}:${environment === "production" ? item.releasedRevision : item.latestRevision}:${environment === "production" ? item.releasedDigest : item.latestDigest}`;
+}
+
+function initialCoursewareKeys(items: CoursewareSummary[], environment: "test" | "production", receipt?: UiAcceptanceReceipt): Record<string, string> {
+  if (environment === "production" && receipt) {
+    return Object.fromEntries(MENTOR_ROLES.map((role) => {
+      const accepted = receipt.coursewareRefs.find((ref) => ref.mentorRole === role);
+      const item = accepted ? items.find((entry) => entry.packageId === accepted.packageId && entry.releasedRevision === accepted.revision && entry.releasedDigest === accepted.digest) : undefined;
+      return [role, item ? coursewareKey(item, "production") : `missing:${accepted?.packageId ?? role}:${accepted?.revision ?? "?"}:${accepted?.digest ?? "?"}`];
+    }));
+  }
+  return defaultCoursewareKeys(items, environment);
 }
 
 function defaultCoursewareKeys(items: CoursewareSummary[], environment: "test" | "production"): Record<string, string> {

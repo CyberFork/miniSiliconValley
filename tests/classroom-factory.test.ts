@@ -8,6 +8,7 @@ import {
   controllerTransition,
   type ClassroomFactoryRequest,
 } from "../app/lib/classroom-factory";
+import { coursewareBundleDigest } from "../app/lib/courseware-store";
 
 const exactCandidate = {
   courseId: "google-1995-2004",
@@ -31,6 +32,7 @@ function request(overrides: Partial<ClassroomFactoryRequest> = {}): ClassroomFac
     title: "Factory acceptance",
     learnerCount: 4,
     courseRef: exactCandidate,
+    viewAcceptanceReceiptId: "view-acceptance-receipt",
     coursewareRefs: courseware,
     adminDmProfileIds: ["admin-external"],
     mentorSeats: [
@@ -46,13 +48,16 @@ function request(overrides: Partial<ClassroomFactoryRequest> = {}): ClassroomFac
 
 test("Test and Production use one factory plan and the same state-machine version", () => {
   const testPlan = buildClassroomFactoryPlan(request(), "factory-seed");
-  const productionPlan = buildClassroomFactoryPlan(request({ environment: "production", courseRef: exactReleased }), "factory-seed");
+  const productionPlan = buildClassroomFactoryPlan(request({ environment: "production", courseRef: exactReleased, uiAcceptanceReceiptId: "ui-acceptance-receipt" }), "factory-seed");
   assert.equal(testPlan.stateMachineVersion, productionPlan.stateMachineVersion);
   assert.equal(testPlan.initialControllerState.state, "ready");
   assert.equal(productionPlan.initialControllerState.state, "ready");
   assert.deepEqual(testPlan.mentorSeats.map((seat) => seat.mentorRole), ["P", "D", "M", "O"]);
   assert.equal(testPlan.learnerMemberships.length, 4);
   assert.equal(testPlan.adminPermissions.length, 1);
+  assert.equal(testPlan.viewAcceptanceReceiptId, "view-acceptance-receipt");
+  assert.equal(testPlan.uiAcceptanceReceiptId, null);
+  assert.equal(productionPlan.uiAcceptanceReceiptId, "ui-acceptance-receipt");
   assert.ok(!testPlan.mentorSeats.some((seat) => seat.profileId === "admin-external"));
 });
 
@@ -61,6 +66,21 @@ test("Production refuses Candidate and Test accepts Candidate", () => {
   assert.throws(
     () => assertClassroomFactoryRequest(request({ environment: "production", courseRef: exactCandidate })),
     /正式课堂只能绑定 Released/,
+  );
+  assert.throws(
+    () => assertClassroomFactoryRequest(request({ environment: "production", courseRef: exactReleased })),
+    /真实课堂 UI 验收回执/,
+  );
+  assert.throws(
+    () => assertClassroomFactoryRequest(request({ uiAcceptanceReceiptId: "ui-must-not-bind-to-test" })),
+    /Test Classroom 不应绑定/,
+  );
+});
+
+test("every classroom requires an exact ViewAcceptanceReceipt", () => {
+  assert.throws(
+    () => assertClassroomFactoryRequest({ ...request(), viewAcceptanceReceiptId: "" }),
+    /多角色视图验收回执/,
   );
 });
 
@@ -72,6 +92,17 @@ test("factory requires exact four distinct mentor roles and exact learner count"
 test("courseware binding is exact and covers P/D/M/O before creation", () => {
   assert.throws(() => assertClassroomFactoryRequest(request({ coursewareRefs: courseware.slice(0, 3) })), /四位导师都必须绑定 exact 课件版本/);
   assert.throws(() => assertClassroomFactoryRequest(request({ coursewareRefs: [{ ...courseware[0], digest: "bad" }, ...courseware.slice(1)] })), /课件 digest/);
+});
+
+test("courseware bundle digest is canonical across API and DB property order", async () => {
+  const databaseShaped = courseware.map((ref) => ({
+    mentorRole: ref.mentorRole,
+    packageId: ref.packageId,
+    revision: ref.revision,
+    digest: ref.digest,
+    slug: ref.slug,
+  }));
+  assert.equal(await coursewareBundleDigest(courseware), await coursewareBundleDigest(databaseShaped));
 });
 
 test("Admin DM is a permission and can overlap a mentor without creating a fifth role", () => {

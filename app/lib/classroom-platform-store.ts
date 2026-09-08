@@ -21,10 +21,16 @@ import {
 } from "./course-registry";
 import { projectCoursePackageToCampaign, type CoursePackageRef } from "./course-package";
 import {
-  coursewareBundleDigest,
   loadCoursewareExact,
   type CoursewareContent,
 } from "./courseware-store";
+import {
+  COURSE_ACCEPTANCE_APP_BUILD_ID,
+  recordUiAcceptanceReceipt,
+  requireValidUiAcceptanceReceipt,
+  requireValidViewAcceptanceReceipt,
+  type UiAcceptanceClient,
+} from "./course-acceptance";
 
 const TEAM_PUBLIC_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
@@ -39,6 +45,7 @@ export type ClassroomInstanceSummary = {
   mentorRole: ClassroomMentorRole | null;
   learnerSeat: number | null;
   isAdminDm: boolean;
+  acceptance: { viewReceiptId: string | null; uiReceiptId: string | null };
   updatedAt: string;
 };
 
@@ -110,6 +117,11 @@ export async function createClassroomInstance(
   if (request.environment === "production" && courseRef.status !== "released") {
     throw new ClassroomError("PRODUCTION_RELEASE_REQUIRED", "正式课堂只能绑定 Released 课程版本。", 409);
   }
+  const viewReceipt = await requireValidViewAcceptanceReceipt(
+    db,
+    courseRef,
+    request.viewAcceptanceReceiptId,
+  );
   const course = await loadExactCoursePackage(db, courseRef);
   assertCourseCanInstantiate(course, request.learnerCount);
   await validateAccountAssignments(db, request);
@@ -121,6 +133,15 @@ export async function createClassroomInstance(
     if (request.environment === "production" && !content.released) throw new ClassroomError("COURSEWARE_RELEASE_REQUIRED", `正式课堂的 ${role} 课件必须已发布。`, 409);
     trustedCourseware.push(toExactCoursewareRef(content));
   }
+  const uiReceipt = request.environment === "production"
+    ? await requireValidUiAcceptanceReceipt(
+        db,
+        courseRef,
+        request.uiAcceptanceReceiptId ?? "",
+        viewReceipt.receiptId,
+        trustedCourseware,
+      )
+    : null;
 
   const factorySeed = crypto.randomUUID();
   const plan = buildClassroomFactoryPlan({ ...request, courseRef, coursewareRefs: trustedCourseware }, factorySeed);
@@ -156,6 +177,11 @@ export async function createClassroomInstance(
        (room_id, state_machine_version, block_id, block_index, state, attempt, error_message, version, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, NULL, 1, ?, ?)`,
     ).bind(roomId, controller.stateMachineVersion, controller.blockId, controller.blockIndex, controller.state, controller.attempt, now, now),
+    db.prepare(
+      `INSERT INTO classroom_acceptance_bindings
+       (room_id, view_receipt_id, ui_receipt_id, bound_at, bound_by_profile_id)
+       VALUES (?, ?, ?, ?, ?)`,
+    ).bind(roomId, viewReceipt.receiptId, uiReceipt?.receiptId ?? null, now, actor.userId),
   ];
   for (const seat of mentorMemberships) {
     statements.push(
@@ -240,6 +266,8 @@ export async function createClassroomInstance(
       learnerCount: request.learnerCount,
       courseRef,
       coursewareRefs: trustedCourseware,
+      viewAcceptanceReceiptId: viewReceipt.receiptId,
+      uiAcceptanceReceiptId: uiReceipt?.receiptId ?? null,
       adminDmProfileIds: request.adminDmProfileIds,
     }, now),
   );
@@ -254,12 +282,14 @@ export async function listClassroomInstances(db: ClassroomD1, user: Authenticate
             CASE WHEN rp.course_id IS NULL THEN 0 ELSE 1 END AS course_released,
             cs.state_machine_version, cs.block_id, cs.block_index, cs.state, cs.attempt, cs.error_message, cs.version,
             ms.mentor_role, lm.seat AS learner_seat,
-            CASE WHEN cp.id IS NULL THEN 0 ELSE 1 END AS is_admin_dm
+            CASE WHEN cp.id IS NULL THEN 0 ELSE 1 END AS is_admin_dm,
+            ab.view_receipt_id, ab.ui_receipt_id
      FROM rooms r
      JOIN classroom_instances ci ON ci.room_id = r.id
      JOIN course_versions cv ON cv.course_id = ci.course_id AND cv.revision = ci.course_revision AND cv.digest = ci.course_digest
      LEFT JOIN course_release_pointers rp ON rp.course_id = ci.course_id AND rp.revision = ci.course_revision AND rp.digest = ci.course_digest
      JOIN classroom_controller_states cs ON cs.room_id = r.id
+     LEFT JOIN classroom_acceptance_bindings ab ON ab.room_id = r.id
      LEFT JOIN classroom_mentor_seats ms ON ms.room_id = r.id AND ms.profile_id = ?
      LEFT JOIN memberships lm ON lm.room_id = r.id AND lm.profile_id = ? AND lm.role = 'learner' AND lm.status = 'active'
      LEFT JOIN classroom_permissions cp ON cp.room_id = r.id AND cp.profile_id = ? AND cp.permission = 'admin-dm'
@@ -271,6 +301,7 @@ export async function listClassroomInstances(db: ClassroomD1, user: Authenticate
     state_machine_version: 1; block_id: string; block_index: number; state: ClassroomControllerState["state"];
     attempt: number; error_message: string | null; version: number; mentor_role: ClassroomMentorRole | null;
     learner_seat: number | null; is_admin_dm: number; course_released: number;
+    view_receipt_id: string | null; ui_receipt_id: string | null;
   }>();
   return (result.results ?? []).map((row) => ({
     id: row.id,
@@ -298,6 +329,7 @@ export async function listClassroomInstances(db: ClassroomD1, user: Authenticate
     mentorRole: row.mentor_role,
     learnerSeat: row.learner_seat,
     isAdminDm: Boolean(row.is_admin_dm),
+    acceptance: { viewReceiptId: row.view_receipt_id, uiReceiptId: row.ui_receipt_id },
     updatedAt: row.updated_at,
   }));
 }
@@ -563,6 +595,7 @@ export async function resetTestClassroom(db: ClassroomD1, user: AuthenticatedCla
     db.prepare(`UPDATE rooms SET phase = 'identity', chapter_id = ?, version = version + 1, paused = 0, paused_at = NULL, phase_deadline_at = NULL, player_timeline_frozen = 0, history_revealed = 0, updated_at = ? WHERE id = ?`).bind(campaign.chapters[0].id, now, roomId),
     db.prepare(`UPDATE classroom_controller_states SET block_id = ?, block_index = 0, state = 'ready', attempt = 1, error_message = NULL, version = version + 1, updated_at = ? WHERE room_id = ?`).bind(course.blocks[0].id, now, roomId),
     db.prepare(`UPDATE classroom_instances SET lifecycle = 'ready', reset_generation = reset_generation + 1, locked_at = NULL, started_at = NULL, completed_at = NULL, updated_at = ? WHERE room_id = ?`).bind(now, roomId),
+    db.prepare(`UPDATE classroom_acceptance_bindings SET ui_receipt_id = NULL WHERE room_id = ?`).bind(roomId),
   ];
   for (const learner of learners.results ?? []) {
     const identityId = campaign.chapters[0].identities[learner.seat - 1]?.id;
@@ -597,53 +630,68 @@ export async function acceptTestClassroom(
   user: AuthenticatedClassroomUser,
   roomId: string,
   checks: Record<string, unknown>,
-): Promise<{ receiptId: string; coursewareBundleDigest: string }> {
+  clientMatrix: UiAcceptanceClient[],
+) {
   await requireAdminDm(db, user.userId, roomId);
   const detail = await getClassroomInstance(db, user, roomId);
   if (detail.environment !== "test") throw new ClassroomError("TEST_CLASSROOM_REQUIRED", "只有 Test Classroom 可以生成验收回执。", 409);
   if (detail.controller.state !== "completed") throw new ClassroomError("TEST_NOT_COMPLETED", "请先用真实课堂 UI 完成全部 Block。", 409);
-  const requiredChecks = ["sameRuntimeUi", "pdmoMentors", "learnerPrivacy", "fiveStepCompletion", "exactVersions"] as const;
-  const missingChecks = requiredChecks.filter((key) => checks[key] !== true);
-  if (missingChecks.length) {
-    throw new ClassroomError(
-      "TEST_CHECKS_INCOMPLETE",
-      `请在真实 Test Classroom 中逐项确认验收：${missingChecks.join("、")}。`,
-      409,
-    );
-  }
   if (detail.mentors.length !== 4 || detail.learners.length !== detail.learnerCount || detail.courseware.length !== 4) {
     throw new ClassroomError("TEST_INSTANCE_INCOMPLETE", "课堂成员或四导师课件绑定不完整，不能签发验收回执。", 409);
   }
-  const bundleDigest = await coursewareBundleDigest(detail.courseware);
-  const now = new Date().toISOString();
-  const proposedReceiptId = crypto.randomUUID();
-  await db.prepare(
-    `INSERT INTO course_test_receipts
-     (id, room_id, course_id, revision, digest, courseware_bundle_digest, status, checks_json,
-      accepted_at, accepted_by_profile_id, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, 'accepted', ?, ?, ?, ?)
-     ON CONFLICT(course_id, revision, digest, courseware_bundle_digest, room_id) DO UPDATE SET
-       status = 'accepted', checks_json = excluded.checks_json, accepted_at = excluded.accepted_at,
-       accepted_by_profile_id = excluded.accepted_by_profile_id`,
-  ).bind(proposedReceiptId, roomId, detail.courseRef.courseId, detail.courseRef.revision, detail.courseRef.digest, bundleDigest, JSON.stringify(checks), now, user.userId, now).run();
-  // Re-accepting the same exact Test Classroom hits the unique receipt key.
-  // SQLite keeps the original primary id on that upsert, so return the id that
-  // is actually persisted rather than a fresh id that cannot unlock release.
-  const persisted = await db.prepare(
-    `SELECT id FROM course_test_receipts
-     WHERE course_id = ? AND revision = ? AND digest = ? AND courseware_bundle_digest = ? AND room_id = ?`,
-  ).bind(detail.courseRef.courseId, detail.courseRef.revision, detail.courseRef.digest, bundleDigest, roomId).first<{ id: string }>();
-  if (!persisted) throw new ClassroomError("TEST_RECEIPT_PERSIST_FAILED", "验收回执未能持久化，请重试。", 500);
-  return { receiptId: persisted.id, coursewareBundleDigest: bundleDigest };
-}
-
-export async function listCourseTestReceipts(db: ClassroomD1): Promise<Array<Record<string, unknown>>> {
-  const result = await db.prepare(
-    `SELECT id, room_id, course_id, revision, digest, courseware_bundle_digest, status, checks_json,
-            accepted_at, accepted_by_profile_id, created_at
-     FROM course_test_receipts ORDER BY created_at DESC LIMIT 100`,
-  ).all<Record<string, unknown>>();
-  return result.results ?? [];
+  const instance = await db.prepare(
+    `SELECT reset_generation, state_machine_version FROM classroom_instances WHERE room_id = ?`,
+  ).bind(roomId).first<{ reset_generation: number; state_machine_version: number }>();
+  const binding = await db.prepare(
+    `SELECT view_receipt_id FROM classroom_acceptance_bindings WHERE room_id = ?`,
+  ).bind(roomId).first<{ view_receipt_id: string }>();
+  if (!instance || !binding) throw new ClassroomError("TEST_ACCEPTANCE_BINDING_MISSING", "Test Classroom 缺少视图验收来源绑定。", 409);
+  const mentorRows = await db.prepare(
+    `SELECT s.mentor_role, s.membership_id, s.profile_id
+     FROM classroom_mentor_seats s WHERE s.room_id = ?
+     ORDER BY CASE s.mentor_role WHEN 'P' THEN 1 WHEN 'D' THEN 2 WHEN 'M' THEN 3 ELSE 4 END`,
+  ).bind(roomId).all<{ mentor_role: string; membership_id: string; profile_id: string }>();
+  const learnerRows = await db.prepare(
+    `SELECT seat, id AS membership_id, profile_id FROM memberships
+     WHERE room_id = ? AND role = 'learner' AND status = 'active' ORDER BY seat`,
+  ).bind(roomId).all<{ seat: number; membership_id: string; profile_id: string }>();
+  const adminRows = await db.prepare(
+    `SELECT profile_id FROM classroom_permissions
+     WHERE room_id = ? AND permission = 'admin-dm' ORDER BY profile_id`,
+  ).bind(roomId).all<{ profile_id: string }>();
+  const audit = await db.prepare(
+    `SELECT COUNT(*) AS event_count, MIN(created_at) AS first_event_at, MAX(created_at) AS last_event_at
+     FROM classroom_factory_events WHERE room_id = ?`,
+  ).bind(roomId).first<{ event_count: number; first_event_at: string | null; last_event_at: string | null }>();
+  const booleanChecks = Object.fromEntries(Object.entries(checks).map(([key, value]) => [key, value === true]));
+  const receipt = await recordUiAcceptanceReceipt(db, {
+    roomId,
+    viewReceiptId: binding.view_receipt_id,
+    courseRef: detail.courseRef,
+    learnerCount: detail.learnerCount,
+    dealSeed: `classroom:${roomId}`,
+    resetGeneration: instance.reset_generation,
+    stateMachineVersion: instance.state_machine_version,
+    coursewareRefs: detail.courseware,
+    mentorMemberships: (mentorRows.results ?? []).map((row) => ({ mentorRole: row.mentor_role, membershipId: row.membership_id, profileId: row.profile_id })),
+    learnerMemberships: (learnerRows.results ?? []).map((row) => ({ seat: row.seat, membershipId: row.membership_id, profileId: row.profile_id })),
+    adminDmProfileIds: (adminRows.results ?? []).map((row) => row.profile_id),
+    checks: booleanChecks,
+    clientMatrix,
+    auditSummary: {
+      eventCount: Number(audit?.event_count ?? 0),
+      firstEventAt: audit?.first_event_at ?? null,
+      lastEventAt: audit?.last_event_at ?? null,
+      controllerVersion: detail.controller.version,
+      appBuildId: COURSE_ACCEPTANCE_APP_BUILD_ID,
+    },
+  }, user.userId);
+  return {
+    receiptId: receipt.receiptId,
+    viewReceiptId: receipt.viewReceiptId,
+    coursewareBundleDigest: receipt.coursewareBundleDigest,
+    appBuildId: receipt.appBuildId,
+  };
 }
 
 export type AssignableClassroomAccount = {

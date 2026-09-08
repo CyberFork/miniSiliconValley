@@ -198,7 +198,7 @@ try {
   const sharedClassroom = await smokeFetch(`${internalBase}/classroom/?team=${created.teamPublicId}`, { headers: proxyHeaders(learnerCookie) });
   assert.equal(sharedClassroom.status, 200);
   const sharedClassroomHtml = await sharedClassroom.text();
-  assert.match(sharedClassroomHtml, /我的 Classroom/, "T-085 dashboard must render the learner's membership list");
+  assert.match(sharedClassroomHtml, /课堂中心/, "T-086 classroom route must render the unified Test + Production hub");
   assert.doesNotMatch(sharedClassroomHtml, /initialTeamPublicId/);
 
   const wrongTeamPublicId = "TEAM-MSVMENTO";

@@ -16,9 +16,20 @@ export default async function ClassroomPage({ searchParams }: { searchParams: Pr
   const query = await searchParams;
   const courseId = typeof query.course === "string" ? query.course : null;
   const revision = typeof query.revision === "string" && /^\d+$/.test(query.revision) ? Number(query.revision) : null;
+  const digest = typeof query.digest === "string" ? query.digest : undefined;
+  const environment = query.environment === "production" ? "production" : query.environment === "test" ? "test" : undefined;
+  const viewReceiptId = typeof query.viewReceipt === "string" ? query.viewReceipt : undefined;
+  const uiReceiptId = typeof query.uiReceipt === "string" ? query.uiReceipt : undefined;
   return <ClassroomHub
     user={{ userId: user.userId, displayName: user.displayName, role: user.role ?? "learner" }}
     signOutPath={chatGPTSignOutPath("/")}
-    initialCourse={courseId && revision !== null ? { courseId, revision } : null}
+    initialCourse={courseId && revision !== null ? {
+      courseId,
+      revision,
+      ...(digest ? { digest } : {}),
+      ...(environment ? { environment } : {}),
+      ...(viewReceiptId ? { viewReceiptId } : {}),
+      ...(uiReceiptId ? { uiReceiptId } : {}),
+    } : null}
   />;
 }

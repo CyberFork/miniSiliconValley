@@ -43,7 +43,9 @@ type CoursewareVersion = {
   packageId: string; slug: string; title: string; mentorRole: "P" | "D" | "M" | "O";
   revision: number; digest: string; released: boolean;
 };
-type Bootstrap = { user: { userId: string }; versions: Version[]; courseware: Courseware[] };
+type ViewReceipt = { receiptId: string; courseRef: ExactRef; projectorVersion: string; appBuildId: string; valid: boolean; invalidReasons: string[] };
+type UiReceipt = { receiptId: string; roomId: string; viewReceiptId: string; courseRef: ExactRef; coursewareBundleDigest: string; coursewareRefs: Detail["courseware"]; valid: boolean; invalidReasons: string[] };
+type Bootstrap = { user: { userId: string }; versions: Version[]; courseware: Courseware[]; viewReceipts: ViewReceipt[]; uiReceipts: UiReceipt[] };
 type Credential = { userId: string; username: string; role: "mentor" | "learner"; initialPassword: string; mustChangePassword: true };
 type Controller = { state: string; blockIndex: number; blockId: string; version: number };
 type Detail = {
@@ -58,6 +60,7 @@ type Detail = {
   mentors: unknown[];
   learners: unknown[];
   courseware: Array<{ mentorRole: "P" | "D" | "M" | "O"; packageId: string; slug: string; revision: number; digest: string }>;
+  acceptance: { viewReceiptId: string | null; uiReceiptId: string | null };
 };
 type Assignable = {
   userId: string;
@@ -140,6 +143,18 @@ try {
     revision: customOperationsCourseware.revision,
     digest: customOperationsCourseware.digest,
   }, adminCookie);
+  const testedCoursewareRefs = coursewareRefs(initial.courseware, "test").map((ref) => ref.mentorRole === "O" ? {
+    mentorRole: customOperationsCourseware.mentorRole,
+    packageId: customOperationsCourseware.packageId,
+    slug: customOperationsCourseware.slug,
+    revision: customOperationsCourseware.revision,
+    digest: customOperationsCourseware.digest,
+  } : ref);
+
+  const viewReceipt = await acceptView(candidate, candidateBody, adminCookie);
+  assert.equal(viewReceipt.valid, true);
+  assert.match(viewReceipt.receiptId, /^[0-9a-f-]{36}$/);
+  assert.match(viewReceipt.projectorVersion, /^course-projector-/);
 
   const credentials = await postData<Credential[]>("/api/studio/accounts", {
     accounts: [
@@ -152,16 +167,20 @@ try {
   const generatedMentors = credentials.filter((item) => item.role === "mentor");
   const generatedLearners = credentials.filter((item) => item.role === "learner");
 
-  const testRoom = await createClassroom({
+  const factoryBody = {
     environment: "test",
-    title: "T-085 exact Candidate E2E",
+    title: "T-086 two-stage exact Candidate E2E",
     learnerCount: 2,
     courseRef: candidate,
-    coursewareRefs: coursewareRefs(initial.courseware, "test"),
+    coursewareRefs: testedCoursewareRefs,
     adminDmProfileIds: [initial.user.userId],
     mentorSeats: mentorSeats(generatedMentors.map((item) => item.userId)),
     learnerProfileIds: generatedLearners.map((item) => item.userId),
-  }, adminCookie);
+  };
+  const missingViewGate = await post("/api/platform/classrooms", { ...factoryBody, viewAcceptanceReceiptId: "not-a-valid-view-receipt" }, adminCookie);
+  assert.equal(missingViewGate.status, 409);
+  assert.equal(((await missingViewGate.json()) as Envelope<never>).error?.code, "VIEW_ACCEPTANCE_RECEIPT_INVALID");
+  const testRoom = await createClassroom({ ...factoryBody, viewAcceptanceReceiptId: viewReceipt.receiptId }, adminCookie);
 
   const oneTimeLogin = await post("/api/auth/login", { username: generatedLearners[0].username, password: generatedLearners[0].initialPassword, remember: false });
   assert.equal(oneTimeLogin.status, 200, await oneTimeLogin.clone().text());
@@ -191,32 +210,46 @@ try {
   assert.equal(adminDetail.mentors.length, 4);
   assert.equal(adminDetail.courseware.length, 4);
   assert.ok(adminDetail.controlView);
+  assert.deepEqual(adminDetail.acceptance, { viewReceiptId: viewReceipt.receiptId, uiReceiptId: null });
 
-  const controller = await completeClassroom(testRoom.classroomId, adminDetail.controller, adminCookie);
+  const firstExecution = await control(testRoom.classroomId, adminDetail.controller.version, { type: "execute" }, adminCookie);
+  assert.equal(firstExecution.state, "executing");
+  const staleControllerMutation = await post(`/api/platform/classrooms/${testRoom.classroomId}/control`, { expectedVersion: adminDetail.controller.version, action: { type: "execute" } }, adminCookie);
+  assert.equal(staleControllerMutation.status, 409);
+  assert.equal(((await staleControllerMutation.json()) as Envelope<never>).error?.code, "CONTROLLER_VERSION_CONFLICT");
+  await postData(`/api/platform/classrooms/${testRoom.classroomId}/reset`, {}, adminCookie);
+  const verifiedReset = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}`, adminCookie);
+  assert.deepEqual({ lifecycle: verifiedReset.lifecycle, state: verifiedReset.controller.state, blockId: verifiedReset.controller.blockId }, { lifecycle: "ready", state: "ready", blockId: "B01" });
+
+  const blockedRelease = await post("/api/studio/releases", { courseRef: candidate, viewReceiptId: viewReceipt.receiptId, uiReceiptId: "missing-ui-receipt" }, adminCookie);
+  assert.equal(blockedRelease.status, 409);
+  assert.equal(((await blockedRelease.json()) as Envelope<never>).error?.code, "UI_ACCEPTANCE_RECEIPT_INVALID");
+
+  const controller = await completeClassroom(testRoom.classroomId, verifiedReset.controller, adminCookie);
   assert.equal(controller.state, "completed");
   assert.equal(controller.blockIndex, 12);
-  const incompleteReceipt = await post(`/api/platform/classrooms/${testRoom.classroomId}/receipt`, { checks: { sameRuntimeUi: true } }, adminCookie);
+  const incompleteReceipt = await post(`/api/platform/classrooms/${testRoom.classroomId}/receipt`, { checks: { sameRuntimeUi: true }, clientMatrix: acceptanceClients() }, adminCookie);
   assert.equal(incompleteReceipt.status, 409);
-  assert.equal(((await incompleteReceipt.json()) as Envelope<never>).error?.code, "TEST_CHECKS_INCOMPLETE");
-  const receipt = await postData<{ receiptId: string; coursewareBundleDigest: string }>(`/api/platform/classrooms/${testRoom.classroomId}/receipt`, { checks: { sameRuntimeUi: true, pdmoMentors: true, learnerPrivacy: true, fiveStepCompletion: true, exactVersions: true } }, adminCookie);
+  assert.equal(((await incompleteReceipt.json()) as Envelope<never>).error?.code, "UI_ACCEPTANCE_CHECKS_INCOMPLETE");
+  const receipt = await postData<{ receiptId: string; viewReceiptId: string; coursewareBundleDigest: string; appBuildId: string }>(`/api/platform/classrooms/${testRoom.classroomId}/receipt`, { checks: uiAcceptanceChecks(), clientMatrix: acceptanceClients() }, adminCookie);
   assert.match(receipt.coursewareBundleDigest, /^[0-9a-f]{64}$/);
-  const repeatedReceipt = await postData<{ receiptId: string; coursewareBundleDigest: string }>(`/api/platform/classrooms/${testRoom.classroomId}/receipt`, { checks: { sameRuntimeUi: true, pdmoMentors: true, learnerPrivacy: true, fiveStepCompletion: true, exactVersions: true } }, adminCookie);
+  assert.equal(receipt.viewReceiptId, viewReceipt.receiptId);
+  assert.match(receipt.appBuildId, /^minisv-t086-/);
+  const receiptBoundDetail = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}`, adminCookie);
+  assert.equal(receiptBoundDetail.acceptance.uiReceiptId, receipt.receiptId);
+  const repeatedReceipt = await postData<{ receiptId: string; coursewareBundleDigest: string }>(`/api/platform/classrooms/${testRoom.classroomId}/receipt`, { checks: uiAcceptanceChecks(), clientMatrix: acceptanceClients() }, adminCookie);
   assert.equal(repeatedReceipt.receiptId, receipt.receiptId, "re-accepting one exact Test Classroom must return the persisted receipt id");
-  const released = await postData<ExactRef>("/api/studio/releases", { courseRef: candidate, receiptId: repeatedReceipt.receiptId }, adminCookie);
+  const released = await postData<ExactRef>("/api/studio/releases", { courseRef: candidate, viewReceiptId: viewReceipt.receiptId, uiReceiptId: repeatedReceipt.receiptId }, adminCookie);
   assert.equal(released.status, "released");
 
-  const productionCoursewareRefs = coursewareRefs(initial.courseware, "production").map((ref) => ref.mentorRole === "O" ? {
-    mentorRole: customOperationsCourseware.mentorRole,
-    packageId: customOperationsCourseware.packageId,
-    slug: customOperationsCourseware.slug,
-    revision: customOperationsCourseware.revision,
-    digest: customOperationsCourseware.digest,
-  } : ref);
+  const productionCoursewareRefs = testedCoursewareRefs;
   const production = await createClassroom({
     environment: "production",
-    title: "T-085 immutable Production E2E",
+    title: "T-086 immutable Production E2E",
     learnerCount: 2,
     courseRef: released,
+    viewAcceptanceReceiptId: viewReceipt.receiptId,
+    uiAcceptanceReceiptId: receipt.receiptId,
     coursewareRefs: productionCoursewareRefs,
     adminDmProfileIds: [initial.user.userId],
     mentorSeats: mentorSeats(generatedMentors.map((item) => item.userId)),
@@ -232,6 +265,7 @@ try {
   nextCandidateBody.title = `${nextCandidateBody.title} · later edit`;
   const laterCandidate = await postData<ExactRef>("/api/studio/candidates", { course: nextCandidateBody }, adminCookie);
   assert.ok(laterCandidate.revision > released.revision);
+  const laterViewReceipt = await acceptView(laterCandidate, nextCandidateBody, adminCookie);
   const laterCourseware = await postData<CoursewareVersion>("/api/studio/courseware", {
     packageId: customOperationsCourseware.packageId,
     title: customOperationsCourseware.title,
@@ -241,6 +275,12 @@ try {
   }, adminCookie);
   assert.equal(laterCourseware.revision, 1);
   await postData(`/api/platform/classrooms/${testRoom.classroomId}/reset`, {}, adminCookie);
+  const resetTestDetail = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}`, adminCookie);
+  assert.equal(resetTestDetail.acceptance.uiReceiptId, null, "reset must detach the now-invalid UI receipt from the Test instance");
+  const afterResetBootstrap = await getData<Bootstrap>("/api/studio/bootstrap", adminCookie);
+  const invalidatedUiReceipt = afterResetBootstrap.uiReceipts.find((item) => item.receiptId === receipt.receiptId);
+  assert.equal(invalidatedUiReceipt?.valid, false);
+  assert.ok(invalidatedUiReceipt?.invalidReasons.some((reason) => reason.includes("重置")));
   const after = await getData<Detail>(`/api/platform/classrooms/${production.classroomId}`, adminCookie);
   assert.deepEqual({ ref: after.courseRef, courseware: after.courseware, controller: after.controller, lifecycle: after.lifecycle }, { ref: before.courseRef, courseware: before.courseware, controller: before.controller, lifecycle: before.lifecycle }, "Studio save, courseware update and Test reset must not mutate a running Production instance");
 
@@ -249,31 +289,40 @@ try {
   insufficientBody.learnerPolicy = { defaultCount: 4, minCount: 2, maxCount: 6, cardsPerLearner: 3, dealPolicy: "unique-within-step" };
   for (const block of insufficientBody.blocks) block.learnerTaskTemplate = { badge: "Young Builder", task: block.studentPrompt };
   const insufficientCandidate = await postData<ExactRef>("/api/studio/candidates", { course: insufficientBody }, adminCookie);
-  const insufficientRoom = await createClassroom({
+  const invalidatedViewState = await getData<Bootstrap>("/api/studio/bootstrap", adminCookie);
+  const staleLaterView = invalidatedViewState.viewReceipts.find((item) => item.receiptId === laterViewReceipt.receiptId);
+  assert.equal(staleLaterView?.valid, false, "saving a new Candidate must invalidate the superseded non-Released View receipt");
+  const refusedViewAcceptance = await post("/api/studio/view-acceptance", {
+    courseRef: insufficientCandidate,
+    reviewedBlockIds: insufficientBody.blocks.map((block) => block.id),
+    reviewedLearnerCounts: [2, 3, 4, 5, 6],
+  }, adminCookie);
+  assert.equal(refusedViewAcceptance.status, 409);
+  assert.equal(((await refusedViewAcceptance.json()) as Envelope<never>).error?.code, "VIEW_ACCEPTANCE_CAPACITY_INVALID");
+  const refusedTestCreation = await post("/api/platform/classrooms", {
     environment: "test",
-    title: "T-085 release capacity gate",
+    title: "T-086 view capacity gate",
     learnerCount: 2,
     courseRef: insufficientCandidate,
-    coursewareRefs: coursewareRefs(initial.courseware, "test"),
+    viewAcceptanceReceiptId: laterViewReceipt.receiptId,
+    coursewareRefs: testedCoursewareRefs,
     adminDmProfileIds: [initial.user.userId],
     mentorSeats: mentorSeats(generatedMentors.map((item) => item.userId)),
     learnerProfileIds: generatedLearners.map((item) => item.userId),
   }, adminCookie);
-  const insufficientDetail = await getData<Detail>(`/api/platform/classrooms/${insufficientRoom.classroomId}`, adminCookie);
-  await completeClassroom(insufficientRoom.classroomId, insufficientDetail.controller, adminCookie);
-  const insufficientReceipt = await postData<{ receiptId: string }>(`/api/platform/classrooms/${insufficientRoom.classroomId}/receipt`, { checks: { sameRuntimeUi: true, pdmoMentors: true, learnerPrivacy: true, fiveStepCompletion: true, exactVersions: true } }, adminCookie);
-  const refusedRelease = await post("/api/studio/releases", { courseRef: insufficientCandidate, receiptId: insufficientReceipt.receiptId }, adminCookie);
-  assert.equal(refusedRelease.status, 409);
-  assert.equal(((await refusedRelease.json()) as Envelope<never>).error?.code, "COURSE_RELEASE_CAPACITY_INVALID");
+  assert.equal(refusedTestCreation.status, 409);
+  assert.equal(((await refusedTestCreation.json()) as Envelope<never>).error?.code, "VIEW_ACCEPTANCE_RECEIPT_INVALID");
 
   const dynamicBody = expandForSix(structuredClone(nextCandidateBody));
   const dynamicCandidate = await postData<ExactRef>("/api/studio/candidates", { course: dynamicBody }, adminCookie);
+  const dynamicViewReceipt = await acceptView(dynamicCandidate, dynamicBody, adminCookie);
   const sixRoom = await createClassroom({
     environment: "test",
-    title: "T-085 six isolated learners E2E",
+    title: "T-086 six isolated learners E2E",
     learnerCount: 6,
     courseRef: dynamicCandidate,
-    coursewareRefs: coursewareRefs(initial.courseware, "test"),
+    viewAcceptanceReceiptId: dynamicViewReceipt.receiptId,
+    coursewareRefs: testedCoursewareRefs,
     adminDmProfileIds: [initial.user.userId],
     mentorSeats: mentorSeats(mentors.map((item) => item.username)),
     learnerProfileIds: learners.map((item) => item.username),
@@ -320,7 +369,8 @@ try {
     title: "Platform admin is not implicit Classroom Admin",
     learnerCount: 2,
     courseRef: dynamicCandidate,
-    coursewareRefs: coursewareRefs(initial.courseware, "test"),
+    viewAcceptanceReceiptId: dynamicViewReceipt.receiptId,
+    coursewareRefs: testedCoursewareRefs,
     adminDmProfileIds: [mentors[0].username],
     mentorSeats: mentorSeats(mentors.map((item) => item.username)),
     learnerProfileIds: learners.slice(0, 2).map((item) => item.username),
@@ -344,7 +394,7 @@ try {
     "the same account may explicitly hold Admin DM permission and one of the four mentor seats",
   );
 
-  console.log("COURSE_PLATFORM_E2E_PASS candidate=tested-released production=isolated courseware=versioned-locked learners=2,6 privateCards=18-unique-reset screen=redacted capacity=release-gated credentials=forced-change adminDm=self-factory-scoped-overlap");
+  console.log("COURSE_PLATFORM_E2E_PASS t086=view-receipt+ui-receipt+release-gates candidate=exact production=isolated-same-courseware reset=receipt-invalidated learners=2,6 privateCards=18-unique screen=redacted credentials=forced-change adminDm=scoped");
 } finally {
   if (server) {
     server.kill("SIGTERM");
@@ -383,6 +433,46 @@ function coursewareRefs(items: Courseware[], environment: "test" | "production")
     revision: environment === "production" ? item.releasedRevision! : item.latestRevision,
     digest: environment === "production" ? item.releasedDigest! : item.latestDigest,
   }));
+}
+
+function supportedLearnerCounts(course: CourseDefinition): number[] {
+  const policy = course.learnerPolicy ?? { minCount: 2, maxCount: 4 };
+  return Array.from({ length: policy.maxCount - policy.minCount + 1 }, (_, index) => policy.minCount + index);
+}
+
+function acceptView(ref: ExactRef, course: CourseDefinition, cookie: string): Promise<ViewReceipt> {
+  return postData<ViewReceipt>("/api/studio/view-acceptance", {
+    courseRef: ref,
+    reviewedBlockIds: course.blocks.map((block) => block.id),
+    reviewedLearnerCounts: supportedLearnerCounts(course),
+  }, cookie);
+}
+
+function uiAcceptanceChecks() {
+  return {
+    sameRuntimeUi: true,
+    membershipsAndRbac: true,
+    mentorTasksAndCourseware: true,
+    learnerTasks: true,
+    learnerPrivacy: true,
+    sharedScreenRedaction: true,
+    blockLifecycle: true,
+    fiveStepCompletion: true,
+    refreshAndRelogin: true,
+    concurrencyConflict: true,
+    testReset: true,
+    responsiveLayouts: true,
+    immutableRuntime: true,
+    exactVersions: true,
+  };
+}
+
+function acceptanceClients() {
+  return [
+    { browser: "Chromium E2E", platform: process.platform, viewport: { width: 390, height: 844 } },
+    { browser: "Chromium E2E", platform: process.platform, viewport: { width: 1440, height: 900 } },
+    { browser: "Chromium E2E", platform: process.platform, viewport: { width: 1920, height: 1080 } },
+  ];
 }
 
 async function createClassroom(body: Record<string, unknown>, cookie: string): Promise<{ classroomId: string; teamPublicId: string }> {

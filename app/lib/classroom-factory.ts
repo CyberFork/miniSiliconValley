@@ -20,6 +20,8 @@ export interface ClassroomFactoryRequest {
   title: string;
   learnerCount: number;
   courseRef: CoursePackageRef;
+  viewAcceptanceReceiptId: string;
+  uiAcceptanceReceiptId?: string;
   coursewareRefs: ExactCoursewareRef[];
   adminDmProfileIds: string[];
   mentorSeats: Array<{ mentorRole: ClassroomMentorRole; profileId: string }>;
@@ -53,6 +55,8 @@ export interface ClassroomFactoryPlan {
   title: string;
   learnerCount: number;
   courseRef: CoursePackageRef;
+  viewAcceptanceReceiptId: string;
+  uiAcceptanceReceiptId: string | null;
   coursewareRefs: ExactCoursewareRef[];
   mentorSeats: Array<{ mentorRole: ClassroomMentorRole; profileId: string; membershipKey: string }>;
   learnerMemberships: Array<{ profileId: string; seat: number; membershipKey: string }>;
@@ -83,8 +87,13 @@ export function assertClassroomFactoryRequest(input: ClassroomFactoryRequest): v
   identifier(input.courseRef.courseId, "courseId");
   if (!Number.isInteger(input.courseRef.revision) || input.courseRef.revision < 0) throw new Error("课程 revision 无效。");
   sha256(input.courseRef.digest, "课程 digest");
+  identifier(input.viewAcceptanceReceiptId, "多角色视图验收回执");
   if (input.environment === "production" && input.courseRef.status !== "released") {
     throw new Error("正式课堂只能绑定 Released 课程版本。");
+  }
+  if (input.environment === "production") identifier(input.uiAcceptanceReceiptId ?? "", "真实课堂 UI 验收回执");
+  if (input.environment === "test" && input.uiAcceptanceReceiptId) {
+    throw new Error("Test Classroom 不应绑定 Production 使用的 UI 验收回执。");
   }
   if (input.environment === "test" && input.courseRef.status !== "candidate" && input.courseRef.status !== "released") {
     throw new Error("测试课堂只能绑定 Candidate 或 Released 课程版本。");
@@ -133,6 +142,8 @@ export function buildClassroomFactoryPlan(input: ClassroomFactoryRequest, factor
     title: input.title.trim(),
     learnerCount: input.learnerCount,
     courseRef: structuredClone(input.courseRef),
+    viewAcceptanceReceiptId: input.viewAcceptanceReceiptId,
+    uiAcceptanceReceiptId: input.uiAcceptanceReceiptId ?? null,
     coursewareRefs: structuredClone(orderedCourseware),
     mentorSeats: orderedMentors.map((seat) => ({
       ...seat,

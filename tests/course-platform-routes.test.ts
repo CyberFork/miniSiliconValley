@@ -16,12 +16,43 @@ const required = [
   "app/classroom/[classroomId]/screen/page.tsx",
   "app/classroom/[classroomId]/members/page.tsx",
   "app/api/platform/classrooms/[classroomId]/screen/route.ts",
+  "app/api/studio/view-acceptance/route.ts",
+  "app/api/platform/classrooms/[classroomId]/receipt/route.ts",
 ];
 
 test("T-085 route surface exists and has no legacy navigation dependency", () => {
   for (const relative of required) assert.equal(existsSync(new URL(relative, root)), true, `missing ${relative}`);
   const routeSources = required.map((relative) => readFileSync(new URL(relative, root), "utf8")).join("\n");
   assert.doesNotMatch(routeSources, /href=["']\/(?:alpha|control)(?:\/|["'])/);
+});
+
+test("T-086 navigation names the two acceptance gates and keeps UI preview on real Test Classroom routes", () => {
+  const studio = readFileSync(new URL("app/studio/StudioApp.tsx", root), "utf8");
+  const editor = readFileSync(new URL("public/studio/editor-assets/editor.js", root), "utf8");
+  const classroom = readFileSync(new URL("app/classroom/ClassroomHub.tsx", root), "utf8");
+  const course = readFileSync(new URL("app/course/page.tsx", root), "utf8");
+  for (const marker of ["课程生产工作台", "多角色视图验收", "验收与发布", "导师课件库", "导师课件播放", "课堂中心"]) {
+    assert.match(studio + classroom + course, new RegExp(marker), `missing navigation label ${marker}`);
+  }
+  assert.match(studio, /ViewAcceptanceReceipt/);
+  assert.match(studio, /UiAcceptanceReceipt/);
+  assert.match(editor, /前往多角色视图验收/);
+  assert.match(classroom, /UI 验收课堂/);
+  assert.match(classroom, /PRODUCTION/);
+  assert.doesNotMatch(studio + editor + classroom, /href=["']\/ui-preview/);
+});
+
+test("T-086 release and factory APIs enforce two exact acceptance receipts", () => {
+  const registry = readFileSync(new URL("app/lib/course-registry.ts", root), "utf8");
+  const store = readFileSync(new URL("app/lib/classroom-platform-store.ts", root), "utf8");
+  const factory = readFileSync(new URL("app/lib/classroom-factory.ts", root), "utf8");
+  for (const marker of ["requireValidViewAcceptanceReceipt", "requireValidUiAcceptanceReceipt"]) {
+    assert.match(registry, new RegExp(marker));
+    assert.match(store, new RegExp(marker));
+  }
+  assert.match(factory, /viewAcceptanceReceiptId/);
+  assert.match(factory, /uiAcceptanceReceiptId/);
+  assert.match(store, /coursewareRefs: trustedCourseware/);
 });
 
 test("gateway owns Studio, Course and per-classroom app routes and retires global Alpha/Control", () => {

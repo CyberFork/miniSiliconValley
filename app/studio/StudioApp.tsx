@@ -1,49 +1,127 @@
 "use client";
-import Link from "next/link";
 
+import Link from "next/link";
 import { type ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { validateCoursePackage, type CoursePackage, type CoursePackageBlock, type CoursePackageRef } from "../lib/course-package";
+
+import { BrandHomeLink } from "../components/BrandHomeLink";
+import type {
+  AcceptanceClassroomSummary,
+  UiAcceptanceReceipt,
+  ViewAcceptanceReceipt,
+} from "../lib/course-acceptance";
+import type { CoursePackage, CoursePackageRef } from "../lib/course-package";
 import { buildStudioProjection, resolveLearnerPolicy, validateCourseInstantiation } from "../lib/course-platform";
 import type { CoursewareSummary } from "../lib/courseware-store";
-import { BrandHomeLink } from "../components/BrandHomeLink";
 import styles from "./studio.module.css";
 
 export type StudioSection = "home" | "editor" | "preview" | "courseware" | "releases";
-type Version = { ref: CoursePackageRef; candidate: boolean; released: boolean; course: CoursePackage; learnerPolicy: ReturnType<typeof resolveLearnerPolicy> };
-type Bootstrap = { user: { userId: string; displayName: string; role: string }; versions: Version[]; courseware: CoursewareSummary[]; receipts: Array<Record<string, unknown>> };
 
-const NAV: Array<{ id: StudioSection; href: string; code: string; label: string }> = [
-  { id: "home", href: "/studio/", code: "00", label: "工作台" },
-  { id: "editor", href: "/studio/editor/", code: "01", label: "课程编辑器" },
-  { id: "preview", href: "/studio/preview/", code: "02", label: "多角色预览" },
-  { id: "courseware", href: "/studio/courseware/", code: "03", label: "导师课件库" },
-  { id: "releases", href: "/studio/releases/", code: "04", label: "测试与发布" },
+type Version = {
+  ref: CoursePackageRef;
+  candidate: boolean;
+  released: boolean;
+  course: CoursePackage;
+  learnerPolicy: ReturnType<typeof resolveLearnerPolicy>;
+};
+
+type Bootstrap = {
+  user: { userId: string; displayName: string; role: string };
+  versions: Version[];
+  courseware: CoursewareSummary[];
+  viewReceipts: ViewAcceptanceReceipt[];
+  uiReceipts: UiAcceptanceReceipt[];
+  acceptanceClassrooms: AcceptanceClassroomSummary[];
+  acceptanceRuntime: { projectorVersion: string; appBuildId: string };
+};
+
+type InitialCourseRef = { courseId: string; revision: number; digest?: string } | null;
+
+const NAV_GROUPS: Array<{
+  label: string;
+  items: Array<{ id?: StudioSection; href: string; code: string; label: string }>;
+}> = [
+  {
+    label: "课程生产",
+    items: [
+      { id: "home", href: "/studio/", code: "00", label: "课程工作台" },
+      { id: "editor", href: "/studio/editor/", code: "01", label: "课程编辑器" },
+      { id: "preview", href: "/studio/preview/", code: "02", label: "多角色视图验收" },
+      { id: "releases", href: "/studio/releases/", code: "03", label: "验收与发布" },
+    ],
+  },
+  {
+    label: "资源管理",
+    items: [
+      { id: "courseware", href: "/studio/courseware/", code: "04", label: "导师课件库" },
+      { href: "/course/", code: "05", label: "导师课件播放" },
+    ],
+  },
+  {
+    label: "课堂交付",
+    items: [{ href: "/classroom/", code: "06", label: "课堂中心" }],
+  },
 ];
 
-export default function StudioApp({ section, user }: { section: StudioSection; user: { userId: string; displayName: string; role: string } }) {
+export default function StudioApp({
+  section,
+  user,
+  initialCourseRef = null,
+}: {
+  section: StudioSection;
+  user: { userId: string; displayName: string; role: string };
+  initialCourseRef?: InitialCourseRef;
+}) {
   const [data, setData] = useState<Bootstrap | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(true);
   const load = useCallback(async () => {
     setLoading(true);
-    try { setData(await api<Bootstrap>("/api/studio/bootstrap")); setError(""); }
-    catch (cause) { setError(messageOf(cause)); }
-    finally { setLoading(false); }
+    try {
+      setData(await api<Bootstrap>("/api/studio/bootstrap"));
+      setError("");
+    } catch (cause) {
+      setError(messageOf(cause));
+    } finally {
+      setLoading(false);
+    }
   }, []);
-  useEffect(() => { const timer = window.setTimeout(() => { void load(); }, 0); return () => window.clearTimeout(timer); }, [load]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void load(); }, 0);
+    return () => window.clearTimeout(timer);
+  }, [load]);
+
+  const changed = async (message: string) => {
+    setNotice(message);
+    await load();
+  };
+
   return <main className={styles.page}>
-    <header className={styles.topbar}><BrandHomeLink className={styles.brand} title="Course Studio" /><div className={styles.user}><span><b>{user.displayName}</b><small>{user.role === "admin" ? "平台管理员" : "课程导师"}</small></span><Link href="/classroom/">进入课堂</Link></div></header>
+    <header className={styles.topbar}>
+      <BrandHomeLink className={styles.brand} title="Course Studio" />
+      <div className={styles.user}>
+        <span><b>{user.displayName}</b><small>{user.role === "admin" ? "平台管理员" : "课程导师"}</small></span>
+        <Link href="/classroom/">课堂中心</Link>
+      </div>
+    </header>
     <div className={styles.shell}>
-      <nav className={styles.nav} aria-label="Course Studio"><p className={styles.navLabel}>COURSE FACTORY</p>{NAV.map((item) => item.id === "editor" ? <a key={item.id} href={item.href} data-active={section === item.id}><span>{item.code}</span>{item.label}</a> : <Link key={item.id} href={item.href} data-active={section === item.id}><span>{item.code}</span>{item.label}</Link>)}</nav>
+      <nav className={styles.nav} aria-label="Course Studio">
+        <p className={styles.navLabel}>COURSE FACTORY</p>
+        {NAV_GROUPS.map((group) => <div className={styles.navGroup} key={group.label}>
+          <b>{group.label}</b>
+          {group.items.map((item) => item.id === "editor"
+            ? <a key={item.href} href={item.href} data-active={section === item.id}><span>{item.code}</span>{item.label}</a>
+            : <Link key={item.href} href={item.href} data-active={item.id === section}><span>{item.code}</span>{item.label}</Link>)}
+        </div>)}
+      </nav>
       <section className={styles.content}>
-        {error && <div className={styles.error} role="alert">{error}</div>}{notice && <div className={styles.notice} role="status">{notice}</div>}
-        {loading && !data ? <div className={styles.loading}>正在读取唯一课程真值…</div> : data ? <>
+        {error && <div className={styles.error} role="alert">{error}</div>}
+        {notice && <div className={styles.notice} role="status">{notice}</div>}
+        {loading && !data ? <div className={styles.loading}>正在读取课程版本与两级验收门禁…</div> : data ? <>
           {section === "home" && <StudioHome data={data} />}
-          {section === "editor" && <CourseEditor data={data} mode="edit" onSaved={async () => { setNotice("Candidate 已保存为不可变版本。正在刷新版本列表…"); await load(); }} onError={setError} />}
-          {section === "preview" && <CourseEditor data={data} mode="preview" onSaved={load} onError={setError} />}
-          {section === "courseware" && <CoursewareLibrary data={data} onChanged={async (message) => { setNotice(message); await load(); }} onError={setError} />}
-          {section === "releases" && <Releases data={data} onChanged={async (message) => { setNotice(message); await load(); }} onError={setError} />}
+          {section === "preview" && <ViewAcceptance data={data} initialCourseRef={initialCourseRef} onAccepted={changed} onError={setError} />}
+          {section === "courseware" && <CoursewareLibrary data={data} onChanged={changed} onError={setError} />}
+          {section === "releases" && <Releases data={data} onChanged={changed} onError={setError} />}
         </> : null}
       </section>
     </div>
@@ -51,117 +129,152 @@ export default function StudioApp({ section, user }: { section: StudioSection; u
 }
 
 function Heading({ eyebrow, title, children }: { eyebrow: string; title: string; children: React.ReactNode }) {
-  return <div className={styles.heading}><div><small>{eyebrow}</small><h1>{title}</h1><p>{children}</p></div><span className={styles.status}>唯一课程真值 · ONLINE</span></div>;
+  return <div className={styles.heading}>
+    <div><small>{eyebrow}</small><h1>{title}</h1><p>{children}</p></div>
+    <span className={styles.status}>两次验收 · 一次发布</span>
+  </div>;
 }
 
 function StudioHome({ data }: { data: Bootstrap }) {
-  const courseCount = new Set(data.versions.map((version) => version.ref.courseId)).size;
-  const candidateCount = data.versions.filter((version) => version.candidate).length;
-  const blockCounts = [...new Set(preferredVersions(data.versions).map((version) => version.course.blocks.length))].sort((left, right) => left - right);
-  const blockSummary = blockCounts.length === 1 ? `${blockCounts[0]} 个 Block` : `${blockCounts.join("／")} 个 Block`;
-  return <><Heading eyebrow="COURSE STUDIO · FACTORY CONTROL" title="课程工厂">从一份 CourseDefinition 保存 Candidate，用真实 Test Classroom 验收，再发布为不会影响既有课堂的 Released 版本。</Heading>
+  const versions = preferredVersions(data.versions);
+  const candidateCount = versions.filter((version) => version.candidate).length;
+  const validViewCount = data.viewReceipts.filter((receipt) => receipt.valid).length;
+  const validUiCount = data.uiReceipts.filter((receipt) => receipt.valid).length;
+  return <>
+    <Heading eyebrow="COURSE STUDIO · DELIVERY PIPELINE" title="课程生产工作台">
+      一份 CourseDefinition 先验收多角色数据视图，再用真实 Test Classroom 验收 UI；两张 exact 回执齐全后才允许发布和创建正式课堂。
+    </Heading>
     <div className={styles.overviewGrid}>
-      <article className={styles.overviewCard}><b>DEFINE · {courseCount} COURSES</b><h2>编辑唯一课程真值</h2><p>五步骤、{blockSummary}、导师任务、学员视角、卡组和人数策略都从同一个 JSON 产生。</p><a href="/studio/editor/">打开编辑器 →</a></article>
-      <article className={styles.overviewCard}><b>TEST · {candidateCount} CANDIDATES</b><h2>直接看 4 + N + 1</h2><p>在当前页切换课程允许的人数、Block 和固定 seed；容量不足会指出具体卡组缺口。</p><Link href="/studio/preview/">打开只读预览 →</Link></article>
-      <article className={styles.overviewCard}><b>SHIP · {data.courseware.length} COURSEWARE</b><h2>真实课堂后再发布</h2><p>Test 与 Production 共用工厂、API、界面和状态机。只有 exact 验收回执能解锁正式发布。</p><Link href="/studio/releases/">查看发布门 →</Link></article>
+      <article className={styles.overviewCard}><b>01 · EDIT · {candidateCount} CANDIDATES</b><h2>编辑并保存 Candidate</h2><p>课程编辑器是唯一正文写入口。每次保存生成不可变 revision 与 digest，不热更新任何课堂。</p><a href="/studio/editor/">打开课程编辑器 →</a></article>
+      <article className={styles.overviewCard}><b>02 · VIEW · {validViewCount} PASSED</b><h2>验收 4 + N + 1</h2><p>逐 Block、逐支持人数检查四导师、N 学员、私密卡与中控投影，并签发 ViewAcceptanceReceipt。</p><Link href="/studio/preview/">开始多角色视图验收 →</Link></article>
+      <article className={styles.overviewCard}><b>03—05 · UI · {validUiCount} PASSED</b><h2>真实课堂后再发布</h2><p>创建 Test Classroom、跑完真实 UI、签发 UiAcceptanceReceipt，再推进 Released 与 Production。</p><Link href="/studio/releases/">打开验收与发布 →</Link></article>
     </div>
-    <section className={styles.panel}><h2>一条不可绕过的交付线</h2><div className={styles.flow}><span>CourseDefinition</span><i>→</i><span>Candidate</span><i>→</i><span>Test Classroom</span><i>→</i><span>验收回执</span><i>→</i><span>Released</span><i>→</i><span>Production Classroom</span></div></section>
+    <section className={styles.panel}>
+      <h2>不可跳过的生产线</h2>
+      <div className={styles.flow} aria-label="课程生产流程">
+        <span>① 编辑课程</span><i>→</i><span>② 验收多角色视图</span><i>→</i><span>③ 验收真实课堂 UI</span><i>→</i><span>④ 发布正式版本</span><i>→</i><span>⑤ 创建正式课堂</span>
+      </div>
+      <p className={styles.panelIntro}>导师课件库是并行资源线：四套 P／D／M／O exact 课件必须在创建 Test Classroom 前汇合。</p>
+    </section>
+    <PipelineList data={data} versions={versions} />
   </>;
 }
 
-function preferredVersions(versions: Version[]): Version[] {
-  const ids = [...new Set(versions.map((version) => version.ref.courseId))];
-  return ids.map((id) => versions.find((version) => version.ref.courseId === id && version.candidate) ?? versions.find((version) => version.ref.courseId === id && version.released) ?? versions.find((version) => version.ref.courseId === id)!).filter(Boolean);
+function PipelineList({ data, versions }: { data: Bootstrap; versions: Version[] }) {
+  return <section className={styles.panel}>
+    <h2>当前版本门禁</h2>
+    <div className={styles.pipelineList}>{versions.map((version) => {
+      const status = pipelineStatus(data, version);
+      return <article className={styles.pipelineRow} key={versionKey(version)}>
+        <div><b>{version.course.course.name}</b><small>{refLabel(version.ref)}</small></div>
+        <Gate passed={Boolean(status.view)} label="视图验收" />
+        <Gate passed={Boolean(status.ui)} label="UI 验收" />
+        <Gate passed={version.released} label="Released" />
+        <strong>{status.nextLabel}</strong>
+      </article>;
+    })}</div>
+  </section>;
 }
 
-function CourseEditor({ data, mode, onSaved, onError }: { data: Bootstrap; mode: "edit" | "preview"; onSaved: () => Promise<void>; onError: (value: string) => void }) {
+function ViewAcceptance({ data, initialCourseRef, onAccepted, onError }: {
+  data: Bootstrap;
+  initialCourseRef: InitialCourseRef;
+  onAccepted: (message: string) => Promise<void>;
+  onError: (value: string) => void;
+}) {
   const options = useMemo(() => preferredVersions(data.versions), [data.versions]);
-  const [courseId, setCourseId] = useState(options[0]?.ref.courseId ?? "");
-  const source = options.find((version) => version.ref.courseId === courseId) ?? options[0];
-  const [course, setCourse] = useState<CoursePackage | null>(() => source ? structuredClone(source.course) : null);
-  const [blockId, setBlockId] = useState("B01");
+  const initial = options.find((version) => matchesInitial(version, initialCourseRef)) ?? options[0];
+  const [courseKey, setCourseKey] = useState(initial ? versionKey(initial) : "");
+  const source = options.find((version) => versionKey(version) === courseKey) ?? options[0];
+  const [blockId, setBlockId] = useState(source?.course.blocks[0]?.id ?? "B01");
   const [learnerCount, setLearnerCount] = useState(source?.learnerPolicy.defaultCount ?? 4);
-  const [seed, setSeed] = useState("review-seed-2026");
-  const [raw, setRaw] = useState(course ? JSON.stringify(course, null, 2) : "");
-  const [rawError, setRawError] = useState("");
-  const [saving, setSaving] = useState(false);
-  const chooseCourse = (nextCourseId: string) => {
-    const nextSource = options.find((version) => version.ref.courseId === nextCourseId);
-    setCourseId(nextCourseId);
-    if (!nextSource) return;
-    const next = structuredClone(nextSource.course);
-    setCourse(next);
-    setRaw(JSON.stringify(next, null, 2));
-    setRawError("");
-    setBlockId("B01");
-    setLearnerCount(nextSource.learnerPolicy.defaultCount);
+  const [seed, setSeed] = useState(source ? `view-acceptance-${source.learnerPolicy.defaultCount}` : "view-acceptance-4");
+  const [reviewedBlocks, setReviewedBlocks] = useState<string[]>(source?.course.blocks[0]?.id ? [source.course.blocks[0].id] : []);
+  const [reviewedCounts, setReviewedCounts] = useState<number[]>(source ? [source.learnerPolicy.defaultCount] : []);
+  const [accepting, setAccepting] = useState(false);
+  if (!source) return <div className={styles.empty}>没有可验收的 Candidate 或 Released 课程版本。</div>;
+
+  const course = source.course;
+  const requiredCounts = Array.from({ length: source.learnerPolicy.maxCount - source.learnerPolicy.minCount + 1 }, (_, index) => source.learnerPolicy.minCount + index);
+  const existing = findViewReceipt(data, source.ref);
+  const validation = validateCourseInstantiation(course, learnerCount);
+  const projection = buildStudioProjection(course, { learnerCount, blockId, seed });
+  const blocksComplete = course.blocks.every((block) => reviewedBlocks.includes(block.id));
+  const countsComplete = requiredCounts.every((count) => reviewedCounts.includes(count));
+
+  const chooseVersion = (nextKey: string) => {
+    const next = options.find((version) => versionKey(version) === nextKey);
+    setCourseKey(nextKey);
+    if (!next) return;
+    const firstBlock = next.course.blocks[0]?.id ?? "B01";
+    setBlockId(firstBlock);
+    setLearnerCount(next.learnerPolicy.defaultCount);
+    setSeed(`view-acceptance-${next.learnerPolicy.defaultCount}`);
+    setReviewedBlocks(firstBlock ? [firstBlock] : []);
+    setReviewedCounts([next.learnerPolicy.defaultCount]);
+    onError("");
   };
-  const blocks: CoursePackageBlock[] = course && Array.isArray(course.blocks)
-    ? course.blocks.filter((item): item is CoursePackageBlock => Boolean(item) && typeof item === "object")
-    : [];
-  const block = blocks.find((item) => item?.id === blockId);
-  const fallbackPolicy = source?.learnerPolicy ?? { defaultCount: 4, minCount: 2, maxCount: 4, cardsPerLearner: 3, dealPolicy: "unique-within-step" as const };
-  const policy = course?.learnerPolicy
-    && Number.isInteger(course.learnerPolicy.minCount)
-    && Number.isInteger(course.learnerPolicy.maxCount)
-    ? course.learnerPolicy
-    : fallbackPolicy;
-  const quickCounts = policy ? [2, 4, 6].filter((count) => count >= policy.minCount && count <= policy.maxCount) : [];
-  const derived = useMemo(() => {
-    if (!course) return { course: null, projection: null, validation: null, error: "没有可预览的 CourseDefinition。" };
+  const chooseBlock = (nextBlockId: string) => {
+    setBlockId(nextBlockId);
+    setReviewedBlocks((current) => current.includes(nextBlockId) ? current : [...current, nextBlockId]);
+  };
+  const chooseCount = (count: number) => {
+    setLearnerCount(count);
+    setSeed(`view-acceptance-${count}`);
+    setReviewedCounts((current) => current.includes(count) ? current : [...current, count]);
+  };
+  const accept = async () => {
+    setAccepting(true);
+    onError("");
     try {
-      const validated = validateCoursePackage(course);
-      return {
-        course: validated,
-        projection: buildStudioProjection(validated, { learnerCount, blockId, seed }),
-        validation: validateCourseInstantiation(validated, learnerCount),
-        error: "",
-      };
+      const receipt = await api<ViewAcceptanceReceipt>("/api/studio/view-acceptance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ courseRef: source.ref, reviewedBlockIds: reviewedBlocks, reviewedLearnerCounts: reviewedCounts }),
+      });
+      await onAccepted(`多角色视图验收已通过：${receipt.receiptId}。下一步创建真实 UI 验收课堂。`);
     } catch (cause) {
-      return { course: null, projection: null, validation: null, error: messageOf(cause) };
+      onError(messageOf(cause));
+    } finally {
+      setAccepting(false);
     }
-  }, [course, learnerCount, blockId, seed]);
-  const projection = derived.projection;
-  const validation = derived.validation;
-  const updateBlock = (field: "title" | "studentPrompt" | "world" | "say" | "ask" | "done" | "task", value: string) => {
-    if (!course) return;
-    const next = structuredClone(course); const target = next.blocks.find((item) => item.id === blockId)!;
-    if (field === "title" || field === "studentPrompt") target[field] = value;
-    else if (field === "task") target.learnerTaskTemplate = { badge: target.learnerTaskTemplate?.badge ?? "Young Builder", task: value };
-    else target.learnerLens[field] = value;
-    setCourse(next); setRaw(JSON.stringify(next, null, 2));
   };
-  const enableDynamic = () => {
-    if (!course) return; const next = structuredClone(course);
-    next.learnerPolicy = { defaultCount: 4, minCount: 2, maxCount: 6, cardsPerLearner: 3, dealPolicy: "unique-within-step" };
-    for (const item of next.blocks) item.learnerTaskTemplate ??= { badge: "Young Builder", task: item.studentPrompt };
-    setCourse(next); setRaw(JSON.stringify(next, null, 2)); setLearnerCount(6);
-  };
-  if (!course) return <div className={styles.empty}>没有可编辑课程。</div>;
-  return <><Heading eyebrow={mode === "edit" ? "EDITOR · SINGLE WRITE PATH" : "READ ONLY PREVIEW · 4 + N + 1"} title={mode === "edit" ? "课程编辑器" : "多角色预览"}>{mode === "edit" ? "编辑可见文案时，学员视图和中控会立即从同一对象重算；保存只会生成新 Candidate，不会修改正在运行的课堂。" : "这里不写入数据。用与 Classroom 相同的投影器检查每个角色此刻究竟看见什么。"}</Heading>
+
+  return <>
+    <Heading eyebrow="VIEW ACCEPTANCE · SAVED CANDIDATE ONLY" title="多角色视图验收">
+      这里仅读取已保存的 exact 版本，不读取编辑器 Working Copy，也不写入课堂状态。亲自检查完全部 Block 与支持人数后，系统再重跑完整矩阵并签发不可变回执。
+    </Heading>
     <section className={styles.panel}>
+      <div className={styles.acceptanceHeader}>
+        <label className={styles.field}>验收课程 exact 版本<select value={versionKey(source)} onChange={(event) => chooseVersion(event.target.value)}>{options.map((version) => <option key={versionKey(version)} value={versionKey(version)}>{version.course.course.name} · r{version.ref.revision} · {version.candidate ? "Candidate" : "Released"}</option>)}</select></label>
+        <div className={styles.exactRef}><b>{source.candidate ? "CANDIDATE" : "RELEASED"} · r{source.ref.revision}</b><code>{source.ref.digest}</code><small>{data.acceptanceRuntime.projectorVersion} · {data.acceptanceRuntime.appBuildId}</small></div>
+      </div>
+      {existing ? <div className={styles.acceptedBanner}><b>✓ 视图验收已通过</b><span>{existing.receiptId} · {new Date(existing.acceptedAt).toLocaleString("zh-CN")}</span><Link href={factoryHref("test", source.ref, existing.receiptId)}>创建 UI 验收课堂 →</Link></div> : <div className={styles.reviewProgress}>
+        <div><b>{reviewedBlocks.length}/{course.blocks.length}</b><span>Block 已查看</span></div>
+        <div><b>{reviewedCounts.filter((count) => requiredCounts.includes(count)).length}/{requiredCounts.length}</b><span>人数场景已查看</span></div>
+        <div><b>{validation.ok ? "PASS" : "BLOCKED"}</b><span>当前投影</span></div>
+      </div>}
       <div className={styles.toolbar}>
-        <div className={styles.field}><label htmlFor="course-select">课程</label><select id="course-select" value={courseId} onChange={(event) => chooseCourse(event.target.value)}>{courseId && !options.some((item) => item.ref.courseId === courseId) && <option value={courseId}>导入待保存 · {courseId}</option>}{options.map((item) => <option key={item.ref.courseId} value={item.ref.courseId}>{item.course.title} · r{item.ref.revision}</option>)}</select></div>
-        <div className={styles.field}><label htmlFor="learner-count">预览学员人数</label><div className={styles.countButtons}>{quickCounts.map((count) => <button key={count} type="button" data-active={learnerCount === count} onClick={() => setLearnerCount(count)}>{count}</button>)}<input id="learner-count" aria-label="课程范围内的任意学员人数" type="number" min={policy?.minCount} max={policy?.maxCount} step="1" value={learnerCount} onChange={(event) => setLearnerCount(Number(event.target.value))} /></div><small>{policy?.minCount}—{policy?.maxCount} 人均可验证</small></div>
-        <div className={styles.field}><label htmlFor="preview-seed">发牌 seed</label><input id="preview-seed" value={seed} onChange={(event) => setSeed(event.target.value)} /></div>
-        {mode === "edit" && !course.learnerPolicy && blocks.length > 0 && <button className={styles.buttonSecondary} type="button" onClick={enableDynamic}>升级为 2—6 人课程</button>}
-        {mode === "edit" && <><button className={styles.button} type="button" disabled={saving || Boolean(derived.error) || Boolean(rawError)} onClick={async () => { setSaving(true); try { await api("/api/studio/candidates", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({course}) }); await onSaved(); } catch(cause){ onError(messageOf(cause)); } finally{ setSaving(false); } }}>{saving ? "保存中…" : "保存 Candidate"}</button><button className={styles.buttonSecondary} type="button" disabled={Boolean(rawError)} onClick={() => downloadJson(course)} >导出 JSON</button><label className={styles.buttonSecondary}>导入 JSON<input className="sr-only" type="file" accept="application/json,.json" onChange={(event) => void importJson(event, (next) => { setCourse(next); setRaw(JSON.stringify(next, null, 2)); setRawError(""); setCourseId(next.course?.id ?? ""); setBlockId(next.blocks?.[0]?.id ?? "B01"); setLearnerCount(resolveLearnerPolicy(next).defaultCount); }, onError)} /></label></>}
+        <div className={styles.field}><span className={styles.label}>必须查看的学员人数</span><div className={styles.countButtons}>{requiredCounts.map((count) => <button key={count} type="button" data-active={learnerCount === count} data-reviewed={reviewedCounts.includes(count)} onClick={() => chooseCount(count)}>{count}{reviewedCounts.includes(count) ? " ✓" : ""}</button>)}</div></div>
+        <div className={styles.field}><label htmlFor="view-seed">固定验收 seed</label><input id="view-seed" value={seed} readOnly /></div>
       </div>
-      <div className={styles.timeline} aria-label={`${blocks.length} 个课程 Block`}>{blocks.map((item) => <button key={item.id} type="button" data-active={item.id === blockId} onClick={() => setBlockId(item.id)}><b>{item.id} · STEP {item.macroStepOrder}</b><span>{item.title}</span></button>)}</div>
-      <div className={styles.workspace}>
-        {mode === "edit" && block?.learnerLens && <aside className={styles.editorForm}><h2>{block.id} · 当前块字段</h2><label>Block 名称<input value={block.title ?? ""} onChange={(event) => updateBlock("title", event.target.value)} /></label><label>给学员的任务<textarea value={block.studentPrompt ?? ""} onChange={(event) => updateBlock("studentPrompt", event.target.value)} /></label><label>所有动态学员的任务模板<textarea value={block.learnerTaskTemplate?.task ?? block.studentPrompt ?? ""} onChange={(event) => updateBlock("task", event.target.value)} /></label><label>进入什么世界<textarea value={block.learnerLens.world ?? ""} onChange={(event) => updateBlock("world", event.target.value)} /></label><label>要说什么<textarea value={block.learnerLens.say ?? ""} onChange={(event) => updateBlock("say", event.target.value)} /></label><label>要问什么<textarea value={block.learnerLens.ask ?? ""} onChange={(event) => updateBlock("ask", event.target.value)} /></label><label>做到什么算完成<textarea value={block.learnerLens.done ?? ""} onChange={(event) => updateBlock("done", event.target.value)} /></label></aside>}
-        <div className={styles.viewArea}>
-          {derived.error || rawError ? <div className={styles.validation} data-ok={false} role="alert"><strong>⚠ CourseDefinition 还不能预览或保存</strong><p>{rawError || derived.error}</p><p>继续在左侧字段或下方完整 JSON 中修正；系统会保留文本，不会用上一次有效数据假装成功。</p></div> : validation && <div className={styles.validation} data-ok={validation.ok}><strong>{validation.ok ? `✓ ${learnerCount} 人实例可创建` : `⚠ ${learnerCount} 人实例暂不可创建`}</strong>{!validation.ok && <ul>{validation.issues.map((issue) => <li key={`${issue.path}-${issue.code}`}>{issue.message}</li>)}</ul>}</div>}
-          {projection ? <Projection projection={projection} /> : <div className={styles.empty}>修正上方错误后，4 + N + 1 视图会从当前 JSON 重新生成。</div>}
-        </div>
+      <div className={styles.timeline} aria-label={`${course.blocks.length} 个课程 Block`}>{course.blocks.map((block) => <button key={block.id} type="button" data-active={block.id === blockId} data-reviewed={reviewedBlocks.includes(block.id)} onClick={() => chooseBlock(block.id)}><b>{block.id} · STEP {block.macroStepOrder}</b><span>{block.title}</span>{reviewedBlocks.includes(block.id) && <em>已查看</em>}</button>)}</div>
+      <div className={styles.validation} data-ok={validation.ok}><strong>{validation.ok ? `✓ ${learnerCount} 人投影通过容量校验` : `⚠ ${learnerCount} 人投影不能验收`}</strong>{!validation.ok && <ul>{validation.issues.map((issue) => <li key={`${issue.path}-${issue.code}`}>{issue.message}</li>)}</ul>}</div>
+      <Projection projection={projection} />
+      <div className={styles.acceptanceAction}>
+        <div><b>{existing ? "这张 exact 回执仍有效" : blocksComplete && countsComplete ? "人工遍历已完成，可以签发" : "还不能签发回执"}</b><p>{existing ? "Candidate digest 或投影器兼容版本变化后，系统会自动把旧回执标为失效。" : `还需查看 ${course.blocks.length - reviewedBlocks.length} 个 Block、${requiredCounts.filter((count) => !reviewedCounts.includes(count)).length} 个人数场景。`}</p></div>
+        {!existing && <button className={styles.button} type="button" disabled={accepting || !blocksComplete || !countsComplete || !validation.ok} onClick={accept}>{accepting ? "正在重跑完整矩阵…" : "确认并签发 ViewAcceptanceReceipt"}</button>}
       </div>
-      {mode === "edit" && <details className={styles.raw} open={Boolean(rawError || derived.error)}><summary>高级：直接编辑完整 JSON</summary>{rawError && <p className={styles.rawError} role="alert">{rawError}</p>}<textarea aria-label="完整课程 JSON" value={raw} onChange={(event) => { const value=event.target.value; setRaw(value); try { const parsed=JSON.parse(value) as unknown;if(!parsed||typeof parsed!=="object"||Array.isArray(parsed))throw new Error("顶层必须是 JSON 对象。");setCourse(parsed as CoursePackage); setRawError(""); onError(""); } catch (cause) { setRawError(`JSON 语法错误：${messageOf(cause)}`); } }} /></details>}
     </section>
   </>;
 }
 
 function Projection({ projection }: { projection: ReturnType<typeof buildStudioProjection> }) {
-  return <div className={styles.viewGrid}>{projection.mentorViews.map((view) => <article className={styles.viewCard} data-active={view.activity === "active"} data-kind="mentor" key={view.seatId}><small>{view.seatId.toUpperCase()} · {view.mentorRole} 导师</small><h3>{view.label}</h3><span className={styles.badge}>{view.activity === "active" ? "本块主导" : view.activity === "support" ? "观察支援" : "待命"}</span><p>{view.task}</p></article>)}{projection.learnerViews.map((view) => <article className={styles.viewCard} data-kind="learner" key={view.seatId}><small>{view.seatId.toUpperCase()} · 私人任务视角</small><h3>{view.label}</h3><p>{view.task}</p><div className={styles.cards}>{view.privateCards.map((card) => <span key={card.id}>{card.boundary} · {card.title}</span>)}{!view.privateCards.length && <span>卡组容量不足：不会伪造手牌</span>}</div></article>)}<article className={styles.controller}><div><small>CONTROLLER · {projection.controllerView.blockId}</small><h3>{projection.controllerView.title}</h3><b>主导：{projection.controllerView.leadMentorId}</b></div><div><small>系统动作</small><ul>{projection.controllerView.systemActions.map((item) => <li key={item}>{item}</li>)}</ul></div><div><small>本块验收</small><ul>{projection.controllerView.acceptance.map((item) => <li key={item}>{item}</li>)}</ul></div></article></div>;
+  return <div className={styles.viewGrid}>
+    {projection.mentorViews.map((view) => <article className={styles.viewCard} data-active={view.activity === "active"} data-kind="mentor" key={view.seatId}><small>{view.seatId.toUpperCase()} · {view.mentorRole} 导师</small><h3>{view.label}</h3><span className={styles.badge}>{view.activity === "active" ? "本块主导" : view.activity === "support" ? "观察支援" : "待命"}</span><p>{view.task}</p></article>)}
+    {projection.learnerViews.map((view) => <article className={styles.viewCard} data-kind="learner" key={view.seatId}><small>{view.seatId.toUpperCase()} · 私人任务视角</small><h3>{view.label}</h3><p>{view.task}</p><div className={styles.cards}>{view.privateCards.map((card) => <span key={card.id}>{card.boundary} · {card.title}</span>)}{!view.privateCards.length && <span>卡组容量不足：不会伪造手牌</span>}</div></article>)}
+    <article className={styles.controller}><div><small>CONTROLLER · {projection.controllerView.blockId}</small><h3>{projection.controllerView.title}</h3><b>主导：{projection.controllerView.leadMentorId}</b></div><div><small>系统动作</small><ul>{projection.controllerView.systemActions.map((item) => <li key={item}>{item}</li>)}</ul></div><div><small>本块验收</small><ul>{projection.controllerView.acceptance.map((item) => <li key={item}>{item}</li>)}</ul></div></article>
+  </div>;
 }
 
 function CoursewareLibrary({ data, onChanged, onError }: { data: Bootstrap; onChanged: (message: string) => Promise<void>; onError: (value: string) => void }) {
@@ -170,9 +283,7 @@ function CoursewareLibrary({ data, onChanged, onError }: { data: Bootstrap; onCh
   const editable = data.courseware.filter((item) => item.contentKind === "inline-html" && (data.user.role === "admin" || item.ownerProfileId === data.user.userId));
   const choosePackage = (packageId: string) => {
     const item = editable.find((entry) => entry.packageId === packageId);
-    setForm(item
-      ? { packageId: item.packageId, title: item.title, slug: item.slug, mentorRole: item.mentorRole, html: "" }
-      : { packageId: "", title: "", slug: "", mentorRole: "P", html: "" });
+    setForm(item ? { packageId: item.packageId, title: item.title, slug: item.slug, mentorRole: item.mentorRole, html: "" } : { packageId: "", title: "", slug: "", mentorRole: "P", html: "" });
   };
   const save = async () => {
     setWorking(true);
@@ -182,17 +293,14 @@ function CoursewareLibrary({ data, onChanged, onError }: { data: Bootstrap; onCh
       await api("/api/studio/courseware", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const verb = form.packageId ? "新版本已保存" : "课件已创建";
       setForm({ packageId: "", title: "", slug: "", mentorRole: "P", html: "" });
-      await onChanged(`${verb}；发布前请先打开 exact 预览。`);
-    } catch (cause) {
-      onError(messageOf(cause));
-    } finally {
-      setWorking(false);
-    }
+      await onChanged(`${verb}；创建 UI 验收课堂前请打开 exact 预览。`);
+    } catch (cause) { onError(messageOf(cause)); }
+    finally { setWorking(false); }
   };
   return <>
-    <Heading eyebrow="COURSEWARE LIBRARY · EXACT VERSION" title="导师课件库">课件不是课程真值。它由 P／D／M／O 导师独立制作，在开课前绑定 exact 版本，课堂中可随时从角色卡打开。</Heading>
+    <Heading eyebrow="COURSEWARE LIBRARY · PARALLEL RESOURCE LINE" title="导师课件库">P／D／M／O 课件与 CourseDefinition 并行制作。Test Classroom 绑定 exact 版本；Production 必须复用经过 UI 验收且仍为 Released 的同一组版本。</Heading>
     <section className={styles.panel}>
-      <h2>已安装课件</h2>
+      <div className={styles.sectionTitle}><div><h2>已安装课件</h2><p>点击 exact 预览，打开的就是课堂导师会使用的版本。</p></div><Link href="/course/">进入导师课件播放 →</Link></div>
       <div className={styles.coursewareGrid}>{data.courseware.map((item) => {
         const canManage = data.user.role === "admin" || item.ownerProfileId === data.user.userId;
         return <article className={styles.coursewareCard} data-role={item.mentorRole} key={item.packageId}>
@@ -201,19 +309,14 @@ function CoursewareLibrary({ data, onChanged, onError }: { data: Bootstrap; onCh
           <div className={styles.actions}>
             <Link href={`/course/${item.slug}/?revision=${item.latestRevision}`} target="_blank" rel="noopener noreferrer">打开 exact 预览 ↗</Link>
             {canManage && item.contentKind === "inline-html" && <button className={styles.buttonSecondary} type="button" onClick={() => choosePackage(item.packageId)}>创建下一版本</button>}
-            {canManage && item.releasedRevision !== item.latestRevision && <button className={styles.button} type="button" onClick={async () => {
-              try {
-                await api("/api/studio/courseware/release", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ packageId: item.packageId, revision: item.latestRevision, digest: item.latestDigest }) });
-                await onChanged(`${item.title} r${item.latestRevision} 已发布。`);
-              } catch (cause) { onError(messageOf(cause)); }
-            }}>发布此版本</button>}
+            {canManage && item.releasedRevision !== item.latestRevision && <button className={styles.button} type="button" onClick={async () => { try { await api("/api/studio/courseware/release", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ packageId: item.packageId, revision: item.latestRevision, digest: item.latestDigest }) }); await onChanged(`${item.title} r${item.latestRevision} 已发布。`); } catch (cause) { onError(messageOf(cause)); } }}>发布此版本</button>}
           </div>
         </article>;
       })}</div>
     </section>
     <section className={styles.panel}>
       <h2>{form.packageId ? "为既有课件创建不可变新版本" : "上传一份新的单文件 HTML 课件"}</h2>
-      <p className={styles.panelIntro}>系统保存不可变版本并用隔离策略播放。支持 CSS 和页面内交互脚本；课件不能读取 MiniSV 账号或课堂数据。已绑定课堂不会跟随新版本变化。</p>
+      <p className={styles.panelIntro}>系统保存不可变版本并隔离播放；已绑定课堂不会跟随新版本变化。</p>
       <div className={styles.coursewareForm}>
         <label className={styles.wide}>操作方式<select value={form.packageId} onChange={(event) => choosePackage(event.target.value)}><option value="">创建一套新课件</option>{editable.map((item) => <option value={item.packageId} key={item.packageId}>更新：{item.title} · 当前 r{item.latestRevision}</option>)}</select></label>
         <label>导师角色<select disabled={Boolean(form.packageId)} value={form.mentorRole} onChange={(event) => setForm({ ...form, mentorRole: event.target.value })}><option value="P">P · 产品</option><option value="D">D · 开发</option><option value="M">M · 市场</option><option value="O">O · 运营</option></select></label>
@@ -226,12 +329,99 @@ function CoursewareLibrary({ data, onChanged, onError }: { data: Bootstrap; onCh
     </section>
   </>;
 }
+
 function Releases({ data, onChanged, onError }: { data: Bootstrap; onChanged: (message: string) => Promise<void>; onError: (value: string) => void }) {
-  return <><Heading eyebrow="RELEASE GATE · REAL CLASSROOM FIRST" title="测试与发布">Preview 只检查投影。Candidate 必须在真实 Test Classroom 中走完同一套 UI 和状态机，回执 exact 匹配后才能发布。</Heading><section className={styles.panel}><div className={styles.releaseGrid}>{data.versions.map((version) => { const receipt=data.receipts.find((item)=>item.course_id===version.ref.courseId&&item.revision===version.ref.revision&&item.digest===version.ref.digest&&item.status==="accepted"); return <article className={styles.releaseCard} key={`${version.ref.courseId}:${version.ref.revision}`}><header><div><small>{version.ref.courseId} · r{version.ref.revision}</small><h3>{version.course.title}</h3></div><span className={styles.badge}>{version.released?"RELEASED":version.candidate?"CANDIDATE":"HISTORY"}</span></header><p className={styles.meta}>{version.ref.digest}</p>{receipt?<div className={styles.receipt}>✓ Test Classroom 已验收<br /><small>{String(receipt.room_id)}</small></div>:version.candidate?<div className={styles.receipt}>等待真实 Test Classroom 完成并签发回执。</div>:null}<div className={styles.actions}>{version.candidate&&<Link href={`/classroom/?course=${encodeURIComponent(version.ref.courseId)}&revision=${version.ref.revision}`}>创建 Test Classroom →</Link>}{version.candidate&&receipt&&<button className={styles.button} type="button" onClick={async()=>{try{await api("/api/studio/releases",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({courseRef:version.ref,receiptId:receipt.id})});await onChanged(`${version.course.title} r${version.ref.revision} 已发布。`);}catch(cause){onError(messageOf(cause));}}}>发布到 Production</button>}</div></article>; })}</div></section></>;
+  const versions = preferredVersions(data.versions);
+  return <>
+    <Heading eyebrow="RELEASE GATE · TWO RECEIPTS" title="验收与发布">
+      这里是总闸门，不是另一个预览器。视图回执证明课程投影正确；UI 回执证明同一 Candidate 与四套 exact 课件已在真实 Test Classroom 中完整运行。
+    </Heading>
+    <section className={styles.panel}>
+      <div className={styles.releaseGrid}>{versions.map((version) => {
+        const status = pipelineStatus(data, version);
+        return <article className={styles.releaseCard} key={versionKey(version)}>
+          <header><div><small>{version.ref.courseId} · r{version.ref.revision}</small><h3>{version.course.course.name}</h3></div><span className={styles.badge}>{version.released ? "RELEASED" : "CANDIDATE"}</span></header>
+          <p className={styles.meta}>{version.ref.digest}</p>
+          <div className={styles.gateStack}>
+            <GateDetail index="1" label="多角色视图验收" passed={Boolean(status.view)} detail={status.view ? `${status.view.receiptId} · ${status.view.projectorVersion}` : "缺少当前 exact 版本的有效回执"} />
+            <GateDetail index="2" label="UI 验收课堂" passed={status.tests.length > 0} detail={status.tests.length ? `${status.tests.length} 场 Test · ${status.tests[0].lifecycle}` : "尚未创建"} />
+            <GateDetail index="3" label="真实 UI 验收回执" passed={Boolean(status.ui)} detail={status.ui ? `${status.ui.receiptId} · ${status.ui.learnerCount} 学员 · 4 套课件` : "尚未完成／回执已失效"} />
+            <GateDetail index="4" label="正式发布" passed={version.released} detail={version.released ? `Released r${version.ref.revision}` : "等待两级 exact 回执"} />
+            <GateDetail index="5" label="正式课堂" passed={status.production.length > 0} detail={`${status.production.length} 场 Production`} />
+          </div>
+          {status.ui && <details className={styles.receiptDetail}><summary>查看 UI 回执锁定的四套课件</summary>{status.ui.coursewareRefs.map((ref) => <code key={ref.mentorRole}>{ref.mentorRole} · {ref.slug} · r{ref.revision}<br />{ref.digest}</code>)}</details>}
+          <div className={styles.nextAction}><small>下一步主操作</small><b>{status.nextLabel}</b></div>
+          <div className={styles.actions}>
+            {!status.view && <Link href={previewHref(version.ref)}>前往多角色视图验收 →</Link>}
+            {status.view && status.tests.length === 0 && <Link href={factoryHref("test", version.ref, status.view.receiptId)}>创建 UI 验收课堂 →</Link>}
+            {status.view && status.tests.length > 0 && !status.ui && <Link href={`/classroom/${status.tests[0].roomId}/control`}>继续真实 UI 验收 →</Link>}
+            {status.view && status.ui && !version.released && <button className={styles.button} type="button" onClick={async () => { try { await api("/api/studio/releases", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ courseRef: version.ref, viewReceiptId: status.view!.receiptId, uiReceiptId: status.ui!.receiptId }) }); await onChanged(`${version.course.course.name} r${version.ref.revision} 已通过两级门禁并发布。`); } catch (cause) { onError(messageOf(cause)); } }}>发布为 Released</button>}
+            {status.view && status.ui && version.released && <Link href={factoryHref("production", version.ref, status.view.receiptId, status.ui.receiptId)}>创建 Production Classroom →</Link>}
+          </div>
+        </article>;
+      })}</div>
+    </section>
+  </>;
 }
 
-async function api<T=unknown>(url:string,init?:RequestInit):Promise<T>{const response=await fetch(url,{...init,credentials:"same-origin",headers:{Accept:"application/json",...(init?.headers??{})}});const body=await response.json() as {ok:boolean;data?:T;error?:{message?:string}};if(!response.ok||!body.ok)throw new Error(body.error?.message??"操作失败。");return body.data as T;}
-function messageOf(value:unknown){return value instanceof Error?value.message:"操作失败，请重试。";}
-function downloadJson(course:CoursePackage){const blob=new Blob([`${JSON.stringify(course,null,2)}\n`],{type:"application/json"});const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download=`${course.course?.id||"course-definition"}.json`;link.click();URL.revokeObjectURL(url);}
-async function importJson(event:ChangeEvent<HTMLInputElement>,onRead:(value:CoursePackage)=>void,onError:(value:string)=>void){const file=event.target.files?.[0];if(!file)return;try{const text=await file.text();const course=JSON.parse(text) as CoursePackage;if(!course||typeof course!=="object"||Array.isArray(course))throw new Error("顶层必须是 JSON 对象。");onRead(course);}catch(cause){onError(`导入失败：${messageOf(cause)}`);}finally{event.target.value="";}}
-async function readHtml(event:ChangeEvent<HTMLInputElement>,onRead:(value:string)=>void,onError:(value:string)=>void){const file=event.target.files?.[0];if(!file)return;try{onRead(await file.text());}catch(cause){onError(`读取失败：${messageOf(cause)}`);}finally{event.target.value="";}}
+function Gate({ passed, label }: { passed: boolean; label: string }) {
+  return <span className={styles.gate} data-passed={passed}>{passed ? "✓" : "○"} {label}</span>;
+}
+
+function GateDetail({ index, label, passed, detail }: { index: string; label: string; passed: boolean; detail: string }) {
+  return <div className={styles.gateDetail} data-passed={passed}><b>{passed ? "✓" : index}</b><span><strong>{label}</strong><small>{detail}</small></span></div>;
+}
+
+function preferredVersions(versions: Version[]): Version[] {
+  return [...new Set(versions.map((version) => version.ref.courseId))].flatMap((courseId) => {
+    const matching = versions.filter((version) => version.ref.courseId === courseId);
+    const candidate = matching.find((version) => version.candidate);
+    const released = matching.find((version) => version.released);
+    return [...(candidate ? [candidate] : []), ...(released && released !== candidate ? [released] : []), ...(!candidate && !released && matching[0] ? [matching[0]] : [])];
+  });
+}
+
+function pipelineStatus(data: Bootstrap, version: Version) {
+  const view = findViewReceipt(data, version.ref);
+  const tests = data.acceptanceClassrooms.filter((room) => room.environment === "test" && sameRef(room.courseRef, version.ref) && (!view || room.viewReceiptId === view.receiptId));
+  const ui = data.uiReceipts.find((receipt) => receipt.valid && sameRef(receipt.courseRef, version.ref) && (!view || receipt.viewReceiptId === view.receiptId));
+  const production = data.acceptanceClassrooms.filter((room) => room.environment === "production" && sameRef(room.courseRef, version.ref));
+  const nextLabel = !view ? "验收多角色视图" : !tests.length ? "创建真实 UI 验收课堂" : !ui ? "跑完 Test 并签发 UI 回执" : !version.released ? "发布为 Released" : "创建正式课堂";
+  return { view, tests, ui, production, nextLabel };
+}
+
+function findViewReceipt(data: Bootstrap, ref: Pick<CoursePackageRef, "courseId" | "revision" | "digest">) {
+  return data.viewReceipts.find((receipt) => receipt.valid && sameRef(receipt.courseRef, ref));
+}
+
+function sameRef(left: { courseId: string; revision: number; digest: string }, right: { courseId: string; revision: number; digest: string }) {
+  return left.courseId === right.courseId && left.revision === right.revision && left.digest === right.digest;
+}
+
+function matchesInitial(version: Version, initial: InitialCourseRef) {
+  return Boolean(initial && version.ref.courseId === initial.courseId && version.ref.revision === initial.revision && (!initial.digest || version.ref.digest === initial.digest));
+}
+
+function versionKey(version: Version): string { return `${version.ref.courseId}:${version.ref.revision}:${version.ref.digest}`; }
+function refLabel(ref: CoursePackageRef): string { return `r${ref.revision} · ${ref.digest.slice(0, 16)}…`; }
+function previewHref(ref: CoursePackageRef): string { return `/studio/preview/?course=${encodeURIComponent(ref.courseId)}&revision=${ref.revision}&digest=${encodeURIComponent(ref.digest)}`; }
+function factoryHref(environment: "test" | "production", ref: CoursePackageRef, viewReceiptId: string, uiReceiptId?: string): string {
+  const query = new URLSearchParams({ environment, course: ref.courseId, revision: String(ref.revision), digest: ref.digest, viewReceipt: viewReceiptId });
+  if (uiReceiptId) query.set("uiReceipt", uiReceiptId);
+  return `/classroom/?${query.toString()}#factory`;
+}
+
+async function api<T = unknown>(url: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(url, { ...init, credentials: "same-origin", headers: { Accept: "application/json", ...(init?.headers ?? {}) } });
+  const body = await response.json() as { ok: boolean; data?: T; error?: { message?: string; details?: unknown } };
+  if (!response.ok || !body.ok) throw new Error([body.error?.message ?? "操作失败。", ...(Array.isArray(body.error?.details) ? body.error.details.map(String) : [])].join("\n"));
+  return body.data as T;
+}
+function messageOf(value: unknown) { return value instanceof Error ? value.message : "操作失败，请重试。"; }
+async function readHtml(event: ChangeEvent<HTMLInputElement>, onRead: (value: string) => void, onError: (value: string) => void) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  try { onRead(await file.text()); }
+  catch (cause) { onError(`读取失败：${messageOf(cause)}`); }
+  finally { event.target.value = ""; }
+}

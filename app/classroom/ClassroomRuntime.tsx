@@ -9,13 +9,24 @@ import manageStyles from "./platform-manage.module.css";
 
 type RuntimeView = "seat" | "control" | "members";
 type RuntimeProps = { classroomId: string; view: RuntimeView; signOutPath?: string };
-type TestReceiptChecks = {
-  sameRuntimeUi: boolean;
-  pdmoMentors: boolean;
-  learnerPrivacy: boolean;
-  fiveStepCompletion: boolean;
-  exactVersions: boolean;
-};
+const UI_ACCEPTANCE_CHECKLIST = [
+  ["sameRuntimeUi", "Test 与 Production 使用同一套页面、API 与状态机"],
+  ["membershipsAndRbac", "四导师、N 学员、Admin DM 的 Membership 与 RBAC 均正确"],
+  ["mentorTasksAndCourseware", "四位导师各自看到正确任务与 exact 课件入口"],
+  ["learnerTasks", "每名学员都能看懂并完成当前私人任务"],
+  ["learnerPrivacy", "学员只看到自己的私密卡、RP 与个人钱包"],
+  ["sharedScreenRedaction", "公共投屏未泄漏手牌、讲稿、账号、钱包或未公开提交"],
+  ["blockLifecycle", "执行、提交、退回、重试、接受和推进均已实测"],
+  ["fiveStepCompletion", "五大步及全部 Block 已在真实 UI 中完整走完"],
+  ["refreshAndRelogin", "刷新和重新登录后，席位、手牌与课堂进度保持正确"],
+  ["concurrencyConflict", "旧版本并发操作被拒绝，没有覆盖较新的中控状态"],
+  ["testReset", "Test reset 已实测且只重置本课堂，不影响其他实例"],
+  ["responsiveLayouts", "手机、电脑与公共投屏尺寸均已人工检查"],
+  ["immutableRuntime", "Studio 后续保存没有热更新正在运行的课堂"],
+  ["exactVersions", "课程与 P／D／M／O 课件 revision／digest 与锁定值一致"],
+] as const;
+type TestReceiptCheckKey = (typeof UI_ACCEPTANCE_CHECKLIST)[number][0];
+type TestReceiptChecks = Record<TestReceiptCheckKey, boolean>;
 const STATE_LABEL: Record<string, string> = {
   ready: "等待主控开始", executing: "本块执行中", "awaiting-acceptance": "等待主控验收",
   accepted: "本块已通过", completed: "课程已完成", error: "需要主控处理",
@@ -59,7 +70,7 @@ export default function ClassroomRuntime({ classroomId, view, signOutPath = "/au
       {view === "seat" && <SeatView data={data} busy={busy} submit={(kind, text) => mutate(`/api/platform/classrooms/${classroomId}/submissions`, { kind, text }, "已保存到本课堂当前 Block。")} />}
       {view === "control" && <ControlView data={data} busy={busy} act={(action) => mutate(`/api/platform/classrooms/${classroomId}/control`, { expectedVersion: data.controller.version, action }, "主控已推进，所有成员会在下一次同步时看到变化。")}
         reset={() => mutate(`/api/platform/classrooms/${classroomId}/reset`, {}, "Test Classroom 已回到初始状态。")}
-        receipt={(checks) => mutate(`/api/platform/classrooms/${classroomId}/receipt`, { checks }, "exact Test 验收回执已生成；Course Studio 现在可以发布该 Candidate。")}
+        receipt={(checks) => mutate(`/api/platform/classrooms/${classroomId}/receipt`, { checks, clientMatrix: currentClientMatrix() }, "UiAcceptanceReceipt 已生成；返回 Course Studio 即可通过两级门禁发布该 Candidate。")}
       />}
       {view === "members" && <MembersView data={data} />}
     </div>
@@ -162,13 +173,7 @@ function ControlView({ data, busy, act, reset, receipt }: {
   reset: () => Promise<unknown>;
   receipt: (checks: TestReceiptChecks) => Promise<unknown>;
 }) {
-  const [receiptChecks, setReceiptChecks] = useState<TestReceiptChecks>({
-    sameRuntimeUi: false,
-    pdmoMentors: false,
-    learnerPrivacy: false,
-    fiveStepCompletion: false,
-    exactVersions: false,
-  });
+  const [receiptChecks, setReceiptChecks] = useState<TestReceiptChecks>(() => Object.fromEntries(UI_ACCEPTANCE_CHECKLIST.map(([key]) => [key, false])) as TestReceiptChecks);
   const control = data.controlView;
   if (!data.isAdminDm || !control) return <section className={styles.card}><h1>需要 Admin DM 权限</h1><p>导师席与 Admin DM 权限相互独立。请让本课堂管理员授予权限。</p></section>;
   const state = data.controller.state;
@@ -188,16 +193,11 @@ function ControlView({ data, busy, act, reset, receipt }: {
           {state === "executing" && <button className={styles.button} disabled={busy} onClick={() => act({ type: "submit-for-acceptance" })}>收齐现场结果，进入验收</button>}
           {state === "awaiting-acceptance" && <><button className={styles.button} disabled={busy} onClick={() => act({ type: "accept" })}>验收通过</button><button className={styles.danger} disabled={busy} onClick={() => act({ type: "reject", message: "证据还不够具体，请补充后重试。" })}>退回补证据</button></>}
           {state === "accepted" && (last ? <button className={styles.button} disabled={busy} onClick={() => act({ type: "complete" })}>完成整门课程</button> : <button className={styles.button} disabled={busy} onClick={() => act({ type: "advance" })}>进入下一 Block</button>)}
-          {state === "completed" && data.environment === "test" && <fieldset className={styles.receiptChecks}>
+          {state === "completed" && data.environment === "test" && data.acceptance.uiReceiptId && <div className={styles.receiptSuccess}><b>✓ UiAcceptanceReceipt 已签发</b><code>{data.acceptance.uiReceiptId}</code><br/><Link href="/studio/releases/">返回验收与发布 →</Link></div>}
+          {state === "completed" && data.environment === "test" && !data.acceptance.uiReceiptId && <fieldset className={styles.receiptChecks}>
             <legend>签发回执前，逐项确认真实课堂验收</legend>
-            {([
-              ["sameRuntimeUi", "Test 使用了与 Production 相同的页面、API 与状态机"],
-              ["pdmoMentors", "P／D／M／O 四导师席与课件入口均正确"],
-              ["learnerPrivacy", "学员只看到自己的私密卡，投屏未泄漏私密信息"],
-              ["fiveStepCompletion", "五大步／十三个 Block 已在真实 UI 中完整走完"],
-              ["exactVersions", "课程与四套课件的 revision／digest 与本课堂锁定值一致"],
-            ] as const).map(([key, label]) => <label key={key}><input type="checkbox" checked={receiptChecks[key]} onChange={(event) => setReceiptChecks((current) => ({ ...current, [key]: event.target.checked }))} />{label}</label>)}
-            <button className={styles.button} disabled={busy || Object.values(receiptChecks).some((value) => !value)} onClick={() => receipt(receiptChecks)}>生成 exact 验收回执</button>
+            {UI_ACCEPTANCE_CHECKLIST.map(([key, label]) => <label key={key}><input type="checkbox" checked={receiptChecks[key]} onChange={(event) => setReceiptChecks((current) => ({ ...current, [key]: event.target.checked }))} />{label}</label>)}
+            <button className={styles.button} disabled={busy || Object.values(receiptChecks).some((value) => !value)} onClick={() => receipt(receiptChecks)}>签发 UiAcceptanceReceipt</button>
           </fieldset>}
           {data.environment === "test" && <button className={styles.danger} disabled={busy} onClick={reset}>重置 Test 实例</button>}
         </div>
@@ -290,6 +290,15 @@ function SharedScreen({ data }: { data: ClassroomSharedScreenDetail }) {
 }
 
 function RuntimeError({ error }: { error: string }) { return <main className={styles.runtime}><div className={styles.runtimeMain}><div className={styles.error} role="alert"><b>无法进入课堂</b><p>{error}</p></div><Link className={styles.coursewareLink} href="/classroom/">返回我的课堂</Link></div></main>; }
+
+function currentClientMatrix() {
+  const navigatorWithClientHints = navigator as Navigator & { userAgentData?: { platform?: string } };
+  return [{
+    browser: navigator.userAgent.slice(0, 240),
+    platform: (navigatorWithClientHints.userAgentData?.platform || navigator.platform || "unknown").slice(0, 120),
+    viewport: { width: window.innerWidth, height: window.innerHeight },
+  }];
+}
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, { credentials: "same-origin", headers: init?.body ? { "content-type": "application/json", ...init.headers } : init?.headers, cache: "no-store", ...init });

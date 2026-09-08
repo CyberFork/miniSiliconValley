@@ -9,7 +9,7 @@ T-085 统一课程工厂时，曾把完整课程编辑器误替换成只读倾�
 
 以后必须把两层分开：
 
-- 底层采用 T-085：`CourseDefinition → Candidate → Test Classroom → Receipt → Released`。
+- 底层采用 T-085：`CourseDefinition → Candidate → ViewAcceptanceReceipt → Test Classroom → UiAcceptanceReceipt → Released`。
 - 上层保留成熟编辑方式：完整工作台、可视化直改、全课程导航、抽卡编辑、JSON 源码与版本历史。
 
 ## 编辑器主棍

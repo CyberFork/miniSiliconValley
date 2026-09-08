@@ -1,6 +1,6 @@
 # Course Registry 发布 SOP
 
-> **Legacy（T-085 已替代）**：旧 `/control`／Alpha 发布链已退休。现行流程是 `CourseDefinition → Candidate → 真实 Test Classroom → 验收回执 → Released → Production`，请使用 [Course Platform SOP](COURSE_PLATFORM_SOP.md)。下文只作历史审计。
+> **Legacy（T-085 已替代）**：旧 `/control`／Alpha 发布链已退休。现行流程是 `CourseDefinition → Candidate → ViewAcceptanceReceipt → 真实 Test Classroom → UiAcceptanceReceipt → Released → Production`，请使用 [Course Platform SOP](COURSE_PLATFORM_SOP.md)。下文只作历史审计。
 
 
 ## 目标
