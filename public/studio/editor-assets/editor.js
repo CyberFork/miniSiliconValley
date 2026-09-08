@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const BUILD_ID = "t085-restored-direct-editor-r3";
+  const BUILD_ID = "t085-restored-direct-editor-r4";
   const $ = (selector) => document.querySelector(selector);
   const CardView = window.MsvCardView;
   if (!CardView) throw new Error("共享卡片渲染器未加载，无法安全预览学员卡片。");

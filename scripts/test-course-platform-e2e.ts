@@ -110,9 +110,9 @@ try {
   for (const marker of ["课程编排工作台", "COURSE LIBRARY", "全课程时序轴", "多角色直改", "抽卡内容", "课程中控视窗"]) {
     assert.ok(editorHtml.includes(marker), `restored editor missing ${marker}`);
   }
-  assert.ok(editorHtml.includes("/studio/editor-assets/editor.js"));
-  assert.equal((await get("/studio/editor-assets/editor.js", adminCookie)).status, 200);
-  assert.equal((await get("/studio/editor-assets/course-preview.js", adminCookie)).status, 200);
+  assert.ok(editorHtml.includes("/studio/editor-assets/editor-loader.js"));
+  assert.doesNotMatch(editorHtml, /\/studio\/editor-assets\/(?:ui-theme|card-view|course-preview|editor)\.js/);
+  assert.equal((await get("/studio/editor-assets/editor-loader.js", adminCookie)).status, 200);
 
   const google = initial.versions.find((item) => item.ref.courseId === "google-1995-2004" && item.released);
   assert.ok(google);

@@ -1,6 +1,6 @@
 {
   "ok": true,
-  "base": "http://127.0.0.1:63849",
+  "base": "http://127.0.0.1:54002",
   "viewports": {
     "1440": {
       "innerWidth": 1440,
@@ -9,32 +9,32 @@
       "studio": {
         "left": 0,
         "right": 1440,
-        "top": 137,
-        "bottom": 3375.21875,
+        "top": 7,
+        "bottom": 3245.21875,
         "width": 1440,
         "height": 3238.21875
       },
       "library": {
         "left": 17.265625,
         "right": 75.265625,
-        "top": 159,
-        "bottom": 223,
+        "top": 29,
+        "bottom": 93,
         "width": 58,
         "height": 64
       },
       "workspace": {
         "left": 93.265625,
         "right": 1422.734375,
-        "top": 159,
-        "bottom": 2963.328125,
+        "top": 29,
+        "bottom": 2833.328125,
         "width": 1329.46875,
         "height": 2804.328125
       },
       "guide": {
         "left": 17.265625,
         "right": 1422.734375,
-        "top": 2981.328125,
-        "bottom": 3333.21875,
+        "top": 2851.328125,
+        "bottom": 3203.21875,
         "width": 1405.46875,
         "height": 351.890625
       }
@@ -46,8 +46,8 @@
       "studio": {
         "left": 0,
         "right": 1180,
-        "top": -383,
-        "bottom": 4068.65625,
+        "top": -427,
+        "bottom": 4024.65625,
         "width": 1180,
         "height": 4451.65625
       },
@@ -62,16 +62,16 @@
       "workspace": {
         "left": 90.15625,
         "right": 1165.84375,
-        "top": -361,
-        "bottom": 3656.765625,
+        "top": -405,
+        "bottom": 3612.765625,
         "width": 1075.6875,
         "height": 4017.765625
       },
       "guide": {
         "left": 14.15625,
         "right": 1165.84375,
-        "top": 3674.765625,
-        "bottom": 4026.65625,
+        "top": 3630.765625,
+        "bottom": 3982.65625,
         "width": 1151.6875,
         "height": 351.890625
       }
@@ -83,8 +83,8 @@
       "studio": {
         "left": 0,
         "right": 768,
-        "top": -474.5,
-        "bottom": 7617.046875,
+        "top": -497.5,
+        "bottom": 7594.046875,
         "width": 768,
         "height": 8091.546875
       },
@@ -99,16 +99,16 @@
       "workspace": {
         "left": 9.203125,
         "right": 758.796875,
-        "top": -452.5,
-        "bottom": 7133.15625,
+        "top": -475.5,
+        "bottom": 7110.15625,
         "width": 749.59375,
         "height": 7585.65625
       },
       "guide": {
         "left": 9.203125,
         "right": 758.796875,
-        "top": 7151.15625,
-        "bottom": 7575.046875,
+        "top": 7128.15625,
+        "bottom": 7552.046875,
         "width": 749.59375,
         "height": 423.890625
       }
@@ -120,8 +120,8 @@
       "studio": {
         "left": 0,
         "right": 430,
-        "top": -452.609375,
-        "bottom": 8649.203125,
+        "top": -460.609375,
+        "bottom": 8641.203125,
         "width": 430,
         "height": 9101.8125
       },
@@ -136,16 +136,16 @@
       "workspace": {
         "left": 5.15625,
         "right": 424.84375,
-        "top": -430.609375,
-        "bottom": 7851.8125,
+        "top": -438.609375,
+        "bottom": 7843.8125,
         "width": 419.6875,
         "height": 8282.421875
       },
       "guide": {
         "left": 5.15625,
         "right": 424.84375,
-        "top": 7869.8125,
-        "bottom": 8607.203125,
+        "top": 7861.8125,
+        "bottom": 8599.203125,
         "width": 419.6875,
         "height": 737.390625
       }
@@ -154,6 +154,13 @@
   "macroSteps": 5,
   "blocks": 13,
   "directEdit": true,
+  "assetLoadOrder": [
+    "editor-loader.js",
+    "ui-theme.js",
+    "card-view.js",
+    "course-preview.js",
+    "editor.js"
+  ],
   "modes": [
     "multi-role",
     "structure",

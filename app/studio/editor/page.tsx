@@ -34,9 +34,6 @@ export default async function CourseEditorPage() {
   return <>
     <style dangerouslySetInnerHTML={{ __html: `${editorStyles}\n${previewStyles}\n${themeStyles}` }} />
     <div className="editor-workbench-root" dangerouslySetInnerHTML={{ __html: markup }} />
-    <Script src="/studio/editor-assets/ui-theme.js?v=t085-editor-r3" strategy="afterInteractive" />
-    <Script src="/studio/editor-assets/card-view.js?v=t085-editor-r3" strategy="afterInteractive" />
-    <Script src="/studio/editor-assets/course-preview.js?v=t085-editor-r3" strategy="afterInteractive" />
-    <Script src="/studio/editor-assets/editor.js?v=t085-editor-r3" strategy="afterInteractive" />
+    <Script src="/studio/editor-assets/editor-loader.js?v=t085-editor-r4" strategy="afterInteractive" />
   </>;
 }

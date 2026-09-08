@@ -19,11 +19,25 @@ test("the full direct-edit Course Studio replaces the regressed summary-card edi
   assert.match(html, /id="seatPreviewGrid"/);
   assert.match(html, /id="previewController"/);
   assert.match(html, /id="fieldDialog"/);
+  assert.doesNotMatch(html, /<script[^>]+src="[^"]*\/studio\/editor-assets\/(?:ui-theme|card-view|course-preview|editor)\.js[^"]*"/);
 
   const page = source("app/studio/editor/page.tsx");
   assert.match(page, /workbench\.html\?raw/);
-  assert.match(page, /editor-assets\/editor\.js/);
+  assert.match(page, /editor-assets\/editor-loader\.js/);
+  assert.doesNotMatch(page, /\/studio\/editor-assets\/(?:ui-theme|card-view|course-preview|editor)\.js/);
   assert.match(page, /dangerouslySetInnerHTML/);
+});
+
+test("editor-loader script ordering and failure surface are explicit and deterministic", () => {
+  const loader = source("public/studio/editor-assets/editor-loader.js");
+  const phaseOrder = ["ui-theme.js", "card-view.js", "course-preview.js", "editor.js"];
+  const positions = phaseOrder.map((name) => loader.indexOf(name));
+  assert.ok(positions.every((index) => index >= 0), "editor loader is missing one or more ordered dependencies");
+  for (let index = 1; index < positions.length; index += 1) {
+    assert.ok(positions[index - 1] < positions[index], `loader order must be ${phaseOrder.join(" -> ")}`);
+  }
+  assert.match(loader, /error|catch|Promise\.allSettled|Promise\.all|finally/i);
+  assert.match(loader, /status|indicator|feedback|toast|banner|notice|aria-live/i);
 });
 
 test("the restored editor speaks only to the versioned Studio API", () => {

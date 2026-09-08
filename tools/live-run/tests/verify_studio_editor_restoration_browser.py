@@ -109,15 +109,43 @@ def main() -> None:
                     context = browser.new_context(viewport={"width": 1792, "height": 1100})
                     page = context.new_page()
                     errors: list[str] = []
+                    failed_requests: list[str] = []
+                    loaded_scripts: list[str] = []
                     page.on("pageerror", lambda error: errors.append(str(error)))
+                    page.on(
+                        "requestfailed",
+                        lambda request: (
+                            failed_requests.append(request.url)
+                            if "/studio/editor-assets/" in request.url
+                            and request.url.split("?")[0].endswith((".js", ".css"))
+                            else None
+                        ),
+                    )
+                    page.on(
+                        "response",
+                        lambda response: (
+                            loaded_scripts.append(response.url)
+                            if response.request.resource_type == "script"
+                            and "/studio/editor-assets/" in response.url
+                            and response.url.split("?")[0].endswith(
+                                tuple(["/ui-theme.js", "/card-view.js", "/course-preview.js", "/editor.js", "/editor-loader.js"])
+                            )
+                            else None
+                        ),
+                    )
                     page.goto(f"{base}/auth/login/?returnTo=%2Fstudio%2Feditor%2F", wait_until="networkidle")
                     page.locator('input[name="username"]').fill(USERNAME)
                     page.locator('input[name="password"]').fill(PASSWORD)
                     page.get_by_role("button", name="进入 Mini Silicon Valley").click()
                     page.wait_for_url("**/studio/editor/")
                     page.wait_for_selector("#editor:not([hidden])")
+                    assert not failed_requests, failed_requests
+                    normalized = [entry.split("?")[0].split("/")[-1] for entry in loaded_scripts]
+                    assert normalized == ["editor-loader.js", "ui-theme.js", "card-view.js", "course-preview.js", "editor.js"], normalized
 
                     expect(page.locator("h1")).to_contain_text("课程编排工作台")
+                    expect(page.locator("#editor")).to_be_visible()
+                    expect(page.locator("#fieldDialog")).to_be_hidden()
                     assert page.locator(".timeline-step").count() == 5
                     assert page.locator(".timeline-block").count() == 13
                     assert page.locator(".seat-preview-card").count() == 8
@@ -185,6 +213,7 @@ def main() -> None:
                     assert not errors, errors
                     result.update({
                         "ok": True, "macroSteps": 5, "blocks": 13, "directEdit": True,
+                        "assetLoadOrder": normalized,
                         "modes": ["multi-role", "structure", "cards", "json"],
                         "dynamicLearners": 6, "views": 11, "noHorizontalOverflow": True,
                         "screenshots": [str(QA / "editor-restored-desktop.png"), str(QA / "editor-restored-mobile.png")],
