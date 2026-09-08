@@ -1,6 +1,6 @@
 # Mini Silicon Valley 课程平台架构
 
-> 状态：T-086 已实现的现行架构
+> 状态：T-087 已实现的现行架构
 > 日期：2026-09-09
 > 基础架构：T-085 统一课程工厂
 > 当前闭环：两次验收、一次发布
@@ -53,7 +53,7 @@ CourseDefinition Working Copy
 /classroom/{classroomId}/          当前登录人的真实席位 UI
 /classroom/{classroomId}/control   该实例的 Admin DM 中控
 /classroom/{classroomId}/screen    脱敏共同投屏
-/classroom/{classroomId}/members   成员、席位与 Admin DM
+/classroom/{classroomId}/members   成员、席位、Admin DM 与 Test 身份管理
 ```
 
 课堂中心永久分为：
@@ -143,8 +143,10 @@ TEST reset 不删除历史回执，但会增加 reset generation、解除当前�
 - Account 可加入多个课堂，不嵌入某个课堂文档。
 - Membership 将账号绑定到课堂和导师／学员席位。
 - 四位导师分别承担 P／D／M／O；学员不固定为 P／D／M／O。
-- Admin DM 是课堂级权限，不是第五位导师；可授予某位导师或独立管理员。
+- ClassroomFactory 指定的第一位 Admin DM 是 Primary；它可以是导师或平台管理员，并拥有唯一委派能力。
+- Primary 只能把 Delegated Admin DM 授予有效导师。Delegated 可运行课堂但不能递归授予／撤销；权限按 Classroom 隔离。
 - 平台 admin 不自动穿透所有课堂，仍需要 Membership 或课堂 Admin DM 权限。
+- 平台 admin 若显式拥有 Test Classroom 的 Admin DM，可在真实 Session 上短时模拟该课堂非管理员成员；actor、effective identity 与 scope 始终同时保留。
 
 ## 4. 共享投影与动态人数
 
@@ -240,6 +242,8 @@ Admin DM 只有在 TEST 完成全部课程后，才能逐项确认并签发 UI �
 - `/screen` 使用服务端 allow-list，不依赖 CSS 或客户端隐藏。
 - inline HTML 课件在不含 `allow-same-origin` 的 sandbox iframe 中播放。
 - 写 API 使用第一方 HttpOnly Session、同源 Origin 校验、服务端 RBAC 与审计。
+- 普通账号切换先撤销服务端 Session；Test 模拟最长 30 分钟且仅限一间 Test Classroom。Production、Studio、Account、跨课堂与管理员目标失败关闭。
+- `classroom_admin_dm_grants` 是授权真值；旧 `classroom_permissions` 仅是迁移期回滚镜像，不参与新请求的 RBAC 判断。
 
 ## 9. 数据模型与迁移
 
@@ -255,6 +259,13 @@ T-086 新增：
 - 所有引用均有外键和 digest 校验；课堂只能有一个当前 acceptance binding。
 - migration 幂等执行，失败不覆盖现有 D1 数据。
 - 既有 `course_test_receipts` 保留用于历史数据读取，但不再满足新的发布门禁。
+
+T-087 新增：
+
+- `classroom_admin_dm_grants`
+- `auth_impersonations`
+
+迁移先把现有统一课堂的 owner 回填为 Primary，再把其他旧 Admin DM 回填为 Delegated；每课堂单一 active Primary 的唯一索引提供数据库级不变量，冲突安全 backfill 可重复执行且不会复活已撤销授权。模拟记录与真实 `auth_sessions` 级联，停用账号、重发凭据或撤销 Delegated 时主动结束。
 
 ## 10. 生产拓扑与统一发布
 

@@ -18,6 +18,11 @@ export interface AuthenticatedClassroomUser {
   username?: string;
   displayName: string;
   platformRole?: AuthRole | null;
+  actorProfileId?: string;
+  effectiveProfileId?: string;
+  impersonationId?: string | null;
+  impersonationClassroomId?: string | null;
+  impersonationExpiresAt?: string | null;
 }
 
 export interface ClassroomDashboardDto {

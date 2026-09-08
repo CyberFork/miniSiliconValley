@@ -1,0 +1,190 @@
+{
+  "ok": true,
+  "routes": [
+    {
+      "label": "课程工作台",
+      "href": "/studio/",
+      "domRole": "link",
+      "beforeUrl": "http://127.0.0.1:53082/studio/",
+      "beforeTitle": "课程生产工作台",
+      "afterUrl": "http://127.0.0.1:53082/studio/",
+      "afterTitle": "课程生产工作台",
+      "active": true,
+      "documentStatus": 200
+    },
+    {
+      "label": "多角色视图验收",
+      "href": "/studio/preview/",
+      "domRole": "link",
+      "beforeUrl": "http://127.0.0.1:53082/studio/",
+      "beforeTitle": "课程生产工作台",
+      "afterUrl": "http://127.0.0.1:53082/studio/preview/",
+      "afterTitle": "多角色视图验收",
+      "active": true,
+      "documentStatus": 200
+    },
+    {
+      "label": "验收与发布",
+      "href": "/studio/releases/",
+      "domRole": "link",
+      "beforeUrl": "http://127.0.0.1:53082/studio/",
+      "beforeTitle": "课程生产工作台",
+      "afterUrl": "http://127.0.0.1:53082/studio/releases/",
+      "afterTitle": "验收与发布",
+      "active": true,
+      "documentStatus": 200
+    },
+    {
+      "label": "导师课件库",
+      "href": "/studio/courseware/",
+      "domRole": "link",
+      "beforeUrl": "http://127.0.0.1:53082/studio/",
+      "beforeTitle": "课程生产工作台",
+      "afterUrl": "http://127.0.0.1:53082/studio/courseware/",
+      "afterTitle": "导师课件库",
+      "active": true,
+      "documentStatus": 200
+    }
+  ],
+  "protectedMenus": [
+    "/classroom/",
+    "/account/",
+    "/course/"
+  ],
+  "viewports": {
+    "1440": {
+      "innerWidth": 1440,
+      "body": 1440,
+      "root": 1440
+    },
+    "390": {
+      "innerWidth": 390,
+      "body": 390,
+      "root": 390
+    }
+  },
+  "credentialsPersisted": false,
+  "browser": {
+    "engine": "Chromium",
+    "version": "151.0.7922.176"
+  },
+  "account": {
+    "username": "t087-browser-6560d448",
+    "role": "admin"
+  },
+  "appBuildId": "minisv-t087-v1",
+  "editorRoute": {
+    "label": "课程编辑器",
+    "href": "/studio/editor/",
+    "domRole": "link",
+    "afterUrl": "http://127.0.0.1:53082/studio/editor/",
+    "afterTitle": "课程编排工作台",
+    "openMode": "Meta/Cmd new tab",
+    "fullWorkbenchPreserved": true
+  },
+  "noJavaScriptNavigation": true,
+  "authenticatedScreenshot": "docs/qa/t087-account-navigation/studio-account-menu.png",
+  "mouseNavigation": true,
+  "keyboardNavigation": true,
+  "newTabNavigation": true,
+  "accountMenu": true,
+  "serverLogout": true,
+  "pageErrors": 0,
+  "requestFailures": 0,
+  "serverErrors": 0,
+  "networkDocuments": [
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:53082/auth/login/?returnTo=%2Fstudio%2F"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:53082/studio/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:53082/studio/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:53082/studio/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:53082/studio/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:53082/studio/preview/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:53082/studio/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:53082/studio/releases/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:53082/studio/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:53082/studio/courseware/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:53082/studio/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:53082/studio/preview/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:53082/classroom/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:53082/account/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:53082/course/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:53082/studio/preview/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:53082/studio/"
+    },
+    {
+      "status": 308,
+      "url": "http://127.0.0.1:53082/auth/login?returnTo=%2Fstudio%2F&switched=1"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:53082/auth/login/?returnTo=%2Fstudio%2F&switched=1"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:53082/auth/login/?returnTo=%2Fstudio%2F"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:53082/studio/"
+    },
+    {
+      "status": 308,
+      "url": "http://127.0.0.1:53082/auth/login?signedOut=1"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:53082/auth/login/?signedOut=1"
+    }
+  ],
+  "screenshot": "docs/qa/t087-account-navigation/signed-out.png"
+}

@@ -11,12 +11,14 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   const params = await searchParams;
   const current = await getAppUser();
   if (!current || !current.role) redirect(chatGPTSignInPath("/account"));
+  if (current.impersonation) redirect(`/classroom/${encodeURIComponent(current.impersonation.classroomId)}/`);
   const user: AuthUser = {
     userId: current.userId,
     username: current.username,
     displayName: current.displayName,
     role: current.role,
     mustChangePassword: current.mustChangePassword,
+    impersonation: null,
   };
   const requested = typeof params.returnTo === "string" ? params.returnTo : "/classroom/";
   const returnTo = requested.startsWith("/") && !requested.startsWith("//") && !requested.startsWith("/auth") && !requested.startsWith("/account") ? requested : "/classroom/";

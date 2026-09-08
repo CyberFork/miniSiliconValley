@@ -61,15 +61,21 @@ type Detail = {
   learners: unknown[];
   courseware: Array<{ mentorRole: "P" | "D" | "M" | "O"; packageId: string; slug: string; revision: number; digest: string }>;
   acceptance: { viewReceiptId: string | null; uiReceiptId: string | null };
+  isAdminDm: boolean;
+  adminDmMode: "primary" | "delegated" | null;
+  canDelegateAdminDm: boolean;
+  viewer: { profileId: string; actorProfileId: string; impersonationId: string | null };
+  admins: Array<{ profileId: string; mode: "primary" | "delegated"; canDelegate: boolean }>;
 };
-type Assignable = {
+type TestIdentity = {
   userId: string;
   username: string;
-  displayName: string;
-  role: "admin" | "mentor" | "learner";
-  hasMembership: boolean;
-  hasAdminDm: boolean;
-  inClassroom: boolean;
+  role: "admin" | "mentor" | "learner" | "observer";
+  status: "active" | "disabled";
+  mentorRole: "P" | "D" | "M" | "O" | null;
+  learnerSeat: number | null;
+  adminDmMode: "primary" | "delegated" | null;
+  mustChangePassword: boolean;
 };
 
 try {
@@ -115,7 +121,21 @@ try {
   }
   assert.ok(editorHtml.includes("/studio/editor-assets/editor-loader.js"));
   assert.doesNotMatch(editorHtml, /\/studio\/editor-assets\/(?:ui-theme|card-view|course-preview|editor)\.js/);
+  assert.ok(editorHtml.includes("账户中心") && editorHtml.includes("切换账号") && editorHtml.includes("退出登录"));
   assert.equal((await get("/studio/editor-assets/editor-loader.js", adminCookie)).status, 200);
+  for (const [path, title] of [
+    ["/studio/", "课程生产工作台"],
+    ["/studio/preview/", "多角色视图验收"],
+    ["/studio/releases/", "验收与发布"],
+    ["/studio/courseware/", "导师课件库"],
+  ] as const) {
+    const response = await get(path, adminCookie);
+    assert.equal(response.status, 200, `${path} must be a directly addressable Studio route`);
+    const html = await response.text();
+    assert.ok(html.includes(title), `${path} missing route title ${title}`);
+    assert.ok(html.includes("href=\"/studio/editor/\"") && html.includes("href=\"/studio/preview/\"") && html.includes("href=\"/studio/releases/\""), `${path} must render real navigation hrefs`);
+    assert.ok(html.includes("账户中心") && html.includes("切换账号") && html.includes("退出登录"), `${path} missing unified account menu`);
+  }
 
   const google = initial.versions.find((item) => item.ref.courseId === "google-1995-2004" && item.released);
   assert.ok(google);
@@ -137,7 +157,10 @@ try {
   }, adminCookie);
   assert.equal(customOperationsCourseware.revision, 0);
   assert.equal(customOperationsCourseware.released, false);
-  assert.equal((await get(`/course/${customOperationsCourseware.slug}/?revision=0`, adminCookie)).status, 200);
+  const coursewarePage = await get(`/course/${customOperationsCourseware.slug}/?revision=0`, adminCookie);
+  assert.equal(coursewarePage.status, 200);
+  const coursewareHtml = await coursewarePage.text();
+  assert.ok(coursewareHtml.includes("账户中心") && coursewareHtml.includes("切换账号") && coursewareHtml.includes("退出登录"), "protected Courseware must keep the unified account menu");
   await postData("/api/studio/courseware/release", {
     packageId: customOperationsCourseware.packageId,
     revision: customOperationsCourseware.revision,
@@ -211,6 +234,71 @@ try {
   assert.equal(adminDetail.courseware.length, 4);
   assert.ok(adminDetail.controlView);
   assert.deepEqual(adminDetail.acceptance, { viewReceiptId: viewReceipt.receiptId, uiReceiptId: null });
+  assert.equal(adminDetail.adminDmMode, "primary");
+  assert.equal(adminDetail.canDelegateAdminDm, true);
+  assert.deepEqual(adminDetail.admins.map((item) => ({ mode: item.mode, canDelegate: item.canDelegate })), [{ mode: "primary", canDelegate: true }]);
+
+  const identities = await getData<TestIdentity[]>(`/api/platform/classrooms/${testRoom.classroomId}/test-identities`, adminCookie);
+  assert.equal(identities.length, 6);
+  assert.ok(identities.some((item) => item.mentorRole === "P"));
+  assert.ok(identities.some((item) => item.learnerSeat === 1));
+  assert.equal(identities.some((item) => item.role === "admin"), false);
+  const regenerated = await postData<{ status: string; credential?: Credential }>(`/api/platform/classrooms/${testRoom.classroomId}/test-identities`, {
+    action: "reset-credential",
+    targetProfileId: generatedLearners[1].userId,
+  }, adminCookie);
+  assert.equal(regenerated.status, "active");
+  assert.equal(regenerated.credential?.username, generatedLearners[1].username);
+  assert.ok((regenerated.credential?.initialPassword.length ?? 0) >= 20);
+  const oldCredentialRejected = await post("/api/auth/login", { username: generatedLearners[1].username, password: generatedLearners[1].initialPassword, remember: false });
+  assert.equal(oldCredentialRejected.status, 401);
+  const regeneratedLogin = await post("/api/auth/login", { username: generatedLearners[1].username, password: regenerated.credential!.initialPassword, remember: false });
+  assert.equal(regeneratedLogin.status, 200);
+  await postData(`/api/platform/classrooms/${testRoom.classroomId}/test-identities`, { action: "disable", targetProfileId: generatedLearners[1].userId }, adminCookie);
+  const disabledLogin = await post("/api/auth/login", { username: generatedLearners[1].username, password: regenerated.credential!.initialPassword, remember: false });
+  assert.equal(disabledLogin.status, 401);
+  await postData(`/api/platform/classrooms/${testRoom.classroomId}/test-identities`, { action: "activate", targetProfileId: generatedLearners[1].userId }, adminCookie);
+
+  const nonAdminImpersonation = await post("/api/auth/impersonation", { classroomId: testRoom.classroomId, effectiveProfileId: generatedLearners[0].userId }, learnerCookie);
+  assert.equal(nonAdminImpersonation.status, 403);
+  assert.equal(((await nonAdminImpersonation.json()) as Envelope<never>).error?.code, "PLATFORM_ADMIN_REQUIRED");
+  const adminTargetImpersonation = await post("/api/auth/impersonation", { classroomId: testRoom.classroomId, effectiveProfileId: initial.user.userId }, adminCookie);
+  assert.equal(adminTargetImpersonation.status, 403);
+  assert.equal(((await adminTargetImpersonation.json()) as Envelope<never>).error?.code, "IMPERSONATION_ADMIN_FORBIDDEN");
+
+  await postData("/api/auth/impersonation", { classroomId: testRoom.classroomId, effectiveProfileId: generatedLearners[0].userId }, adminCookie);
+  const impersonatedLearner = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}`, adminCookie);
+  assert.equal(impersonatedLearner.myView?.kind, "learner");
+  assert.equal(impersonatedLearner.viewer.actorProfileId, initial.user.userId);
+  assert.equal(impersonatedLearner.viewer.profileId, generatedLearners[0].userId);
+  assert.ok(impersonatedLearner.viewer.impersonationId);
+  const scopedRooms = await getData<Array<{ id: string; environment: string }>>("/api/platform/classrooms", adminCookie);
+  assert.deepEqual(scopedRooms.map((item) => item.id), [testRoom.classroomId]);
+  const impersonatedStudio = await get("/api/studio/bootstrap", adminCookie);
+  assert.equal(impersonatedStudio.status, 403);
+  assert.equal(((await impersonatedStudio.json()) as Envelope<never>).error?.code, "IMPERSONATION_STUDIO_FORBIDDEN");
+  await deleteData("/api/auth/impersonation", adminCookie);
+
+  await postData("/api/auth/impersonation", { classroomId: testRoom.classroomId, effectiveProfileId: generatedMentors[0].userId }, adminCookie);
+  const impersonatedMentor = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}`, adminCookie);
+  assert.equal(impersonatedMentor.myView?.kind, "mentor");
+  assert.equal(impersonatedMentor.isAdminDm, false);
+  await deleteData("/api/auth/impersonation", adminCookie);
+
+  await postData(`/api/platform/classrooms/${testRoom.classroomId}/members`, { type: "grant-admin-dm", profileId: generatedMentors[0].userId }, adminCookie);
+  await postData("/api/auth/impersonation", { classroomId: testRoom.classroomId, effectiveProfileId: generatedMentors[0].userId }, adminCookie);
+  const impersonatedDelegated = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}`, adminCookie);
+  assert.equal(impersonatedDelegated.adminDmMode, "delegated");
+  assert.equal(impersonatedDelegated.canDelegateAdminDm, false);
+  assert.ok(impersonatedDelegated.controlView);
+  const impersonatedDelegationAttempt = await post(`/api/platform/classrooms/${testRoom.classroomId}/members`, { type: "grant-admin-dm", profileId: generatedMentors[1].userId }, adminCookie);
+  assert.equal(impersonatedDelegationAttempt.status, 403);
+  assert.equal(((await impersonatedDelegationAttempt.json()) as Envelope<never>).error?.code, "ADMIN_DM_DELEGATION_REQUIRED");
+  const impersonatedAccountAttempt = await post(`/api/platform/classrooms/${testRoom.classroomId}/accounts`, { accounts: [{ username: `impersonation-forbidden-${suffix}`, displayName: "Forbidden", role: "learner" }] }, adminCookie);
+  assert.equal(impersonatedAccountAttempt.status, 403);
+  assert.equal(((await impersonatedAccountAttempt.json()) as Envelope<never>).error?.code, "IMPERSONATION_ACCOUNT_OPERATION_FORBIDDEN");
+  await deleteData("/api/auth/impersonation", adminCookie);
+  await postData(`/api/platform/classrooms/${testRoom.classroomId}/members`, { type: "revoke-admin-dm", profileId: generatedMentors[0].userId }, adminCookie);
 
   const firstExecution = await control(testRoom.classroomId, adminDetail.controller.version, { type: "execute" }, adminCookie);
   assert.equal(firstExecution.state, "executing");
@@ -234,7 +322,7 @@ try {
   const receipt = await postData<{ receiptId: string; viewReceiptId: string; coursewareBundleDigest: string; appBuildId: string }>(`/api/platform/classrooms/${testRoom.classroomId}/receipt`, { checks: uiAcceptanceChecks(), clientMatrix: acceptanceClients() }, adminCookie);
   assert.match(receipt.coursewareBundleDigest, /^[0-9a-f]{64}$/);
   assert.equal(receipt.viewReceiptId, viewReceipt.receiptId);
-  assert.match(receipt.appBuildId, /^minisv-t086-/);
+  assert.match(receipt.appBuildId, /^minisv-t087-/);
   const receiptBoundDetail = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}`, adminCookie);
   assert.equal(receiptBoundDetail.acceptance.uiReceiptId, receipt.receiptId);
   const repeatedReceipt = await postData<{ receiptId: string; coursewareBundleDigest: string }>(`/api/platform/classrooms/${testRoom.classroomId}/receipt`, { checks: uiAcceptanceChecks(), clientMatrix: acceptanceClients() }, adminCookie);
@@ -255,6 +343,9 @@ try {
     mentorSeats: mentorSeats(generatedMentors.map((item) => item.userId)),
     learnerProfileIds: generatedLearners.map((item) => item.userId),
   }, adminCookie);
+  const productionImpersonation = await post("/api/auth/impersonation", { classroomId: production.classroomId, effectiveProfileId: generatedLearners[0].userId }, adminCookie);
+  assert.equal(productionImpersonation.status, 403);
+  assert.equal(((await productionImpersonation.json()) as Envelope<never>).error?.code, "IMPERSONATION_PRODUCTION_FORBIDDEN");
   const before = await getData<Detail>(`/api/platform/classrooms/${production.classroomId}`, adminCookie);
   assert.deepEqual(before.courseware.find((item) => item.mentorRole === "O"), productionCoursewareRefs.find((item) => item.mentorRole === "O"));
   const forbiddenReset = await post(`/api/platform/classrooms/${production.classroomId}/reset`, {}, adminCookie);
@@ -378,23 +469,50 @@ try {
   assert.equal((await get(`/api/platform/classrooms/${hiddenAdminRoom.classroomId}`, adminCookie)).status, 403);
   assert.equal((await post(`/api/platform/classrooms/${hiddenAdminRoom.classroomId}/accounts`, { accounts: [{ username: `should-not-create-${suffix}`, displayName: "Forbidden", role: "learner" }] }, adminCookie)).status, 403);
 
-  await postData(`/api/platform/classrooms/${hiddenAdminRoom.classroomId}/members`, { type: "grant-admin-dm", profileId: initial.user.userId }, mentorCookie);
-  const externalAdminBeforeSeat = (await getData<Assignable[]>(`/api/platform/classrooms/${hiddenAdminRoom.classroomId}/members`, mentorCookie)).find((item) => item.userId === initial.user.userId);
-  assert.deepEqual(
-    { hasMembership: externalAdminBeforeSeat?.hasMembership, hasAdminDm: externalAdminBeforeSeat?.hasAdminDm, inClassroom: externalAdminBeforeSeat?.inClassroom },
-    { hasMembership: false, hasAdminDm: true, inClassroom: true },
-    "Admin DM permission must stay distinct from mentor/learner Membership",
-  );
-  assert.equal((await get(`/api/platform/classrooms/${hiddenAdminRoom.classroomId}`, adminCookie)).status, 200);
-  await postData(`/api/platform/classrooms/${hiddenAdminRoom.classroomId}/members`, { type: "replace-mentor", mentorRole: "D", profileId: initial.user.userId }, mentorCookie);
-  const externalAdminAfterSeat = (await getData<Assignable[]>(`/api/platform/classrooms/${hiddenAdminRoom.classroomId}/members`, mentorCookie)).find((item) => item.userId === initial.user.userId);
-  assert.deepEqual(
-    { hasMembership: externalAdminAfterSeat?.hasMembership, hasAdminDm: externalAdminAfterSeat?.hasAdminDm },
-    { hasMembership: true, hasAdminDm: true },
-    "the same account may explicitly hold Admin DM permission and one of the four mentor seats",
-  );
+  const ordinaryMentorCookie = await login(mentors[2].username, mentors[2].password);
+  const ordinaryMentorGrant = await post(`/api/platform/classrooms/${hiddenAdminRoom.classroomId}/members`, { type: "grant-admin-dm", profileId: mentors[2].username }, ordinaryMentorCookie);
+  assert.equal(ordinaryMentorGrant.status, 403, "a normal mentor cannot self-elevate to Admin DM");
+  assert.equal(((await ordinaryMentorGrant.json()) as Envelope<never>).error?.code, "ADMIN_DM_REQUIRED");
 
-  console.log("COURSE_PLATFORM_E2E_PASS t086=view-receipt+ui-receipt+release-gates candidate=exact production=isolated-same-courseware reset=receipt-invalidated learners=2,6 privateCards=18-unique screen=redacted credentials=forced-change adminDm=scoped");
+  const delegateCookie = await login(mentors[1].username, mentors[1].password);
+  const primarySelfGrant = await post(`/api/platform/classrooms/${hiddenAdminRoom.classroomId}/members`, { type: "grant-admin-dm", profileId: mentors[0].username }, mentorCookie);
+  assert.equal(primarySelfGrant.status, 403, "grant must never downgrade the immutable Primary Admin DM");
+  assert.equal(((await primarySelfGrant.json()) as Envelope<never>).error?.code, "ADMIN_DM_ALREADY_PRIMARY");
+  await Promise.all([
+    postData(`/api/platform/classrooms/${hiddenAdminRoom.classroomId}/members`, { type: "grant-admin-dm", profileId: mentors[1].username }, mentorCookie),
+    postData(`/api/platform/classrooms/${hiddenAdminRoom.classroomId}/members`, { type: "grant-admin-dm", profileId: mentors[1].username }, mentorCookie),
+  ]);
+  await postData(`/api/platform/classrooms/${hiddenAdminRoom.classroomId}/members`, { type: "grant-admin-dm", profileId: mentors[1].username }, mentorCookie);
+  const delegatedDetail = await getData<Detail>(`/api/platform/classrooms/${hiddenAdminRoom.classroomId}`, delegateCookie);
+  assert.equal(delegatedDetail.adminDmMode, "delegated");
+  assert.equal(delegatedDetail.canDelegateAdminDm, false);
+  assert.ok(delegatedDetail.controlView, "delegated Admin DM keeps operational classroom control");
+  assert.deepEqual(delegatedDetail.admins.map((item) => item.mode), ["primary", "delegated"]);
+  const delegatedGrant = await post(`/api/platform/classrooms/${hiddenAdminRoom.classroomId}/members`, { type: "grant-admin-dm", profileId: mentors[2].username }, delegateCookie);
+  assert.equal(delegatedGrant.status, 403);
+  assert.equal(((await delegatedGrant.json()) as Envelope<never>).error?.code, "ADMIN_DM_DELEGATION_REQUIRED");
+  const delegatedRevoke = await post(`/api/platform/classrooms/${hiddenAdminRoom.classroomId}/members`, { type: "revoke-admin-dm", profileId: mentors[0].username }, delegateCookie);
+  assert.equal(delegatedRevoke.status, 403);
+  assert.equal(((await delegatedRevoke.json()) as Envelope<never>).error?.code, "ADMIN_DM_DELEGATION_REQUIRED");
+  const primaryRevoke = await post(`/api/platform/classrooms/${hiddenAdminRoom.classroomId}/members`, { type: "revoke-admin-dm", profileId: mentors[0].username }, mentorCookie);
+  assert.equal(primaryRevoke.status, 403);
+  assert.equal(((await primaryRevoke.json()) as Envelope<never>).error?.code, "PRIMARY_ADMIN_DM_PROTECTED");
+  const crossRoomDelegation = await post(`/api/platform/classrooms/${testRoom.classroomId}/members`, { type: "grant-admin-dm", profileId: mentors[2].username }, delegateCookie);
+  assert.equal(crossRoomDelegation.status, 403);
+  await Promise.all([
+    postData(`/api/platform/classrooms/${hiddenAdminRoom.classroomId}/members`, { type: "revoke-admin-dm", profileId: mentors[1].username }, mentorCookie),
+    postData(`/api/platform/classrooms/${hiddenAdminRoom.classroomId}/members`, { type: "revoke-admin-dm", profileId: mentors[1].username }, mentorCookie),
+  ]);
+  await postData(`/api/platform/classrooms/${hiddenAdminRoom.classroomId}/members`, { type: "revoke-admin-dm", profileId: mentors[1].username }, mentorCookie);
+  const primaryAfterIdempotentRevoke = await getData<Detail>(`/api/platform/classrooms/${hiddenAdminRoom.classroomId}`, mentorCookie);
+  assert.deepEqual(primaryAfterIdempotentRevoke.admins.map((item) => item.mode), ["primary"], "repeated grant/revoke must preserve exactly one Primary Admin DM");
+  const revokedManagement = await get(`/api/platform/classrooms/${hiddenAdminRoom.classroomId}/members`, delegateCookie);
+  assert.equal(revokedManagement.status, 403, "revoked delegated permission must fail immediately even while mentor seat access remains");
+  const stillMentor = await getData<Detail>(`/api/platform/classrooms/${hiddenAdminRoom.classroomId}`, delegateCookie);
+  assert.equal(stillMentor.isAdminDm, false);
+  assert.equal(stillMentor.myView?.kind, "mentor");
+
+  console.log("COURSE_PLATFORM_E2E_PASS t086=view-receipt+ui-receipt+release-gates t087=navigation+account-menu+test-impersonation+nonrecursive-admin-dm candidate=exact production=isolated reset=receipt-invalidated learners=2,6 privateCards=18-unique screen=redacted");
 } finally {
   if (server) {
     server.kill("SIGTERM");
@@ -547,6 +665,19 @@ async function getData<T>(path: string, cookie: string): Promise<T> {
 
 async function postData<T = Record<string, unknown>>(path: string, body: unknown, cookie: string): Promise<T> {
   const response = await post(path, body, cookie);
+  const envelope = await response.json() as Envelope<T>;
+  assert.equal(response.status, 200, `${path}: ${JSON.stringify(envelope)}`);
+  assert.equal(envelope.ok, true, `${path}: ${JSON.stringify(envelope)}`);
+  assert.ok(envelope.data !== undefined);
+  return envelope.data;
+}
+
+async function deleteData<T = Record<string, unknown>>(path: string, cookie: string): Promise<T> {
+  const response = await fetch(`${internalBase}${path}`, {
+    method: "DELETE",
+    headers: { ...proxyHeaders(cookie), Origin: publicOrigin },
+    signal: AbortSignal.timeout(20_000),
+  });
   const envelope = await response.json() as Envelope<T>;
   assert.equal(response.status, 200, `${path}: ${JSON.stringify(envelope)}`);
   assert.equal(envelope.ok, true, `${path}: ${JSON.stringify(envelope)}`);

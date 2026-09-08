@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { chatGPTSignInPath, chatGPTSignOutPath, getChatGPTUser, requireCompletedPasswordSetup } from "../chatgpt-auth";
+import { chatGPTSignInPath, getChatGPTUser, requireCompletedPasswordSetup } from "../chatgpt-auth";
 import ClassroomHub from "./ClassroomHub";
 
 export const dynamic = "force-dynamic";
@@ -21,8 +21,7 @@ export default async function ClassroomPage({ searchParams }: { searchParams: Pr
   const viewReceiptId = typeof query.viewReceipt === "string" ? query.viewReceipt : undefined;
   const uiReceiptId = typeof query.uiReceipt === "string" ? query.uiReceipt : undefined;
   return <ClassroomHub
-    user={{ userId: user.userId, displayName: user.displayName, role: user.role ?? "learner" }}
-    signOutPath={chatGPTSignOutPath("/")}
+    user={{ userId: user.userId, username: user.username, displayName: user.displayName, role: user.role ?? "learner", impersonation: user.impersonation }}
     initialCourse={courseId && revision !== null ? {
       courseId,
       revision,

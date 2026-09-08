@@ -1,6 +1,6 @@
 # Mini Silicon Valley 架构说明
 
-本文件描述当前 T-086 架构。详细领域决策见 [COURSE_PLATFORM_ARCHITECTURE.md](COURSE_PLATFORM_ARCHITECTURE.md)。历史 Alpha、固定九弹窗和旧 Course Registry 文档仅供追溯，不再是运行规范。
+本文件描述当前 T-087 架构。详细领域决策见 [COURSE_PLATFORM_ARCHITECTURE.md](COURSE_PLATFORM_ARCHITECTURE.md)。历史 Alpha、固定九弹窗和旧 Course Registry 文档仅供追溯，不再是运行规范。
 
 ## 1. 三个产品面
 
@@ -34,7 +34,8 @@ CourseDefinition（D1 course_versions）
 - `CoursewarePackage/Version`：导师拥有的单文件 HTML 或固定静态 bundle；版本不可变。
 - `ClassroomInstance`：环境、生命周期、课程引用、实际 N、独立 ControllerState。
 - `Membership`：账号与某个 Classroom 的导师席或学员席关联。
-- `ClassroomPermission(admin-dm)`：课堂级管理权限，不等同平台管理员或第五导师。
+- `ClassroomAdminDmGrant`：课堂级 `primary | delegated` 管理授权；只有 Primary 具有委派能力，不等同平台管理员或第五导师。
+- `AuthImpersonation`：真实平台管理员会话上的短时 Test 身份覆盖；始终锁定一个 Test Classroom，并同时保留 actor/effective identity。
 - `ViewAcceptanceReceipt`：对 exact Candidate 的全部 Block、支持人数与共享投影结果验收。
 - `UiAcceptanceReceipt`：完成真实 Test 后，对 exact course、课堂成员、运行版本与四件 exact courseware 的 UI 验收回执。
 
@@ -47,6 +48,8 @@ CourseDefinition（D1 course_versions）
 - `/screen` 使用专门的 allow-list API，不从浏览器端隐藏私密字段。
 - `/course/` 与 `/course/{slug}/` 只对导师／管理员开放；inline HTML 在无 `allow-same-origin` 的 sandbox iframe 中播放。
 - 所有写 API 使用第一方 HttpOnly Session、首次改密门禁、同源 Origin 校验和服务端 RBAC。
+- Studio、Classroom、导师 Courseware 与 Account 使用同一个账号菜单；脱敏共同投屏是唯一例外。普通切换先撤销服务端 Session；Test 模拟只替换当前请求的 effective identity，不改 Cookie 中的真实 actor。
+- Admin DM 委派是非递归授权：Primary 可授予／撤销导师的 Delegated；Delegated 可运行课堂但无委派能力。旧的平面 `classroom_permissions` 仅作为迁移期回滚镜像，不参与授权判定。
 
 ## 5. 动态学员人数
 

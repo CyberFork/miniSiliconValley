@@ -1,11 +1,27 @@
 export type AuthRole = "admin" | "mentor" | "learner" | "observer";
 
+export type AuthIdentitySummary = {
+  userId: string;
+  username: string;
+  displayName: string;
+  role: AuthRole;
+};
+
+export type AuthImpersonationContext = {
+  id: string;
+  classroomId: string;
+  expiresAt: string;
+  actor: AuthIdentitySummary & { role: "admin" };
+  effective: AuthIdentitySummary & { role: Exclude<AuthRole, "admin"> };
+};
+
 export type AuthUser = {
   userId: string;
   username: string;
   displayName: string;
   role: AuthRole;
   mustChangePassword: boolean;
+  impersonation?: AuthImpersonationContext | null;
 };
 
 export type AuthSessionUser = AuthUser & {

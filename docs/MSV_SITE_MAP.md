@@ -1,4 +1,4 @@
-# Mini Silicon Valley 网站地图（T-086）
+# Mini Silicon Valley 网站地图（T-087）
 
 ## 公开静态入口
 
@@ -12,7 +12,8 @@
 ## 登录与账户
 
 - `/auth/login`：第一方账号登录。
-- `/account`：首次改密与账户安全。
+- `/account`：首次改密、账户安全与会话管理。
+- 所有登录后的 Studio、Classroom、导师 Courseware、Account 页面右上角使用同一个账号菜单，可进入账户中心、切换账号或安全退出。共同投屏 `/screen` 保持完全脱敏，不显示私人账号控件。
 
 ## Course Studio：课程生产
 
@@ -38,7 +39,7 @@
 - `/classroom/{id}/`：当前登录人的真实导师／学员席位。
 - `/classroom/{id}/control`：该实例的 Admin DM 中控、14 项 UI 验收与回执签发。
 - `/classroom/{id}/screen`：成员可打开的服务端脱敏共同投屏。
-- `/classroom/{id}/members`：该实例的成员、席位和 Admin DM 管理。
+- `/classroom/{id}/members`：该实例的成员、席位和 Primary／Delegated Admin DM 管理；符合条件的 Test Classroom 还提供测试账号管理与受限身份模拟。
 
 `/classroom/` 永久分组显示：
 
@@ -47,13 +48,14 @@
 
 ## API
 
-- `/api/auth/*`：会话、登录、首次改密等。
+- `/api/auth/*`：会话、登录、首次改密、服务端登出与 Test 身份模拟。
 - `/api/studio/bootstrap`：课程、Candidate／Released、两类回执、课件和验收课堂摘要。
 - `/api/studio/candidates`：保存不可变 Candidate。
 - `/api/studio/view-acceptance`：签发 exact ViewAcceptanceReceipt。
 - `/api/studio/releases`：使用两张有效回执发布 exact Candidate。
 - `/api/studio/courseware/*`：导师课件创建、版本化、预览与发布。
 - `/api/platform/classrooms/*`：课堂创建、成员、中控、提交、screen、TEST reset 与 UiAcceptanceReceipt。
+- `/api/platform/classrooms/{id}/test-identities`：仅真实平台管理员 + 本课堂 Admin DM 可用的 Test 账号状态、一次性凭据重发与身份入口；Production 失败关闭。
 - `/api/qa`：限流的 Parent Q&A。
 
 ## 退休或内部边界

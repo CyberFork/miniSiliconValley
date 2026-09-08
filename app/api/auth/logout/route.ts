@@ -10,7 +10,7 @@ export async function POST(request: Request): Promise<Response> {
     await revokeCurrentSession(db, request.headers.get("cookie"));
     return authResponse({ ok: true, data: { signedOut: true } }, 200, {
       "Set-Cookie": clearSessionCookie(),
-      "Clear-Site-Data": '"cache"',
+      "Clear-Site-Data": '"cache", "storage"',
     });
   });
 }

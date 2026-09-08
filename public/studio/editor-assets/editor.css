@@ -90,3 +90,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 @media(max-width:660px){.topbar{padding:14px 12px;gap:12px}.topbar-actions{align-items:flex-start}.standard{justify-content:flex-start}}
 .topbar-start{display:flex;min-width:0;align-items:center;gap:12px;flex-wrap:wrap}
 @media(max-width:660px){.topbar-start{width:100%}}
+
+/* T-087 unified account menu lives outside the raw workbench DOM. Reserve its
+   exact top-right footprint so editor controls never overlap it. */
+.editor-account-slot{position:fixed;z-index:80;top:16px;right:18px;max-width:min(420px,calc(100vw - 24px))}
+.editor-workbench-root>.topbar{padding-right:min(430px,31vw)}
+@media(max-width:980px){.editor-account-slot{top:12px}.editor-workbench-root>.topbar{padding-top:80px;padding-right:3vw}}
+@media(max-width:660px){.editor-account-slot{top:10px;right:10px}.editor-workbench-root>.topbar{padding-top:74px}}

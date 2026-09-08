@@ -6,7 +6,11 @@ import { buildStudioProjection, resolveLearnerPolicy, validateCourseInstantiatio
 import { coursewareBundleDigest } from "./courseware-store";
 
 export const COURSE_PROJECTOR_VERSION = "course-projector-v2";
-export const COURSE_ACCEPTANCE_APP_BUILD_ID = "minisv-t086-v1";
+// Bump whenever the real Classroom/Studio acceptance surface changes. T-087
+// adds actor/effective identity isolation and Primary/Delegated Admin DM
+// controls, so a receipt produced by the pre-T-087 UI must not unlock a new
+// Production Classroom.
+export const COURSE_ACCEPTANCE_APP_BUILD_ID = "minisv-t087-v1";
 export const COURSE_ACCEPTANCE_RECEIPT_SCHEMA_VERSION = 1;
 
 export const UI_ACCEPTANCE_REQUIRED_CHECKS = [

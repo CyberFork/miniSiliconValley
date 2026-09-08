@@ -2,13 +2,14 @@
 import Link from "next/link";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { AccountMenu, type AccountMenuUser } from "../components/AccountMenu";
 import type { ClassroomControllerAction } from "../lib/classroom-factory";
 import type { ClassroomInstanceDetail, ClassroomSharedScreenDetail } from "../lib/classroom-platform-store";
 import styles from "./platform.module.css";
 import manageStyles from "./platform-manage.module.css";
 
 type RuntimeView = "seat" | "control" | "members";
-type RuntimeProps = { classroomId: string; view: RuntimeView; signOutPath?: string };
+type RuntimeProps = { classroomId: string; view: RuntimeView; user: AccountMenuUser };
 const UI_ACCEPTANCE_CHECKLIST = [
   ["sameRuntimeUi", "Test 与 Production 使用同一套页面、API 与状态机"],
   ["membershipsAndRbac", "四导师、N 学员、Admin DM 的 Membership 与 RBAC 均正确"],
@@ -38,7 +39,7 @@ const BOUNDARY = {
   U: { short: "U 还不知道", title: "当前未知，需要调查" },
 } as const;
 
-export default function ClassroomRuntime({ classroomId, view, signOutPath = "/auth/logout" }: RuntimeProps) {
+export default function ClassroomRuntime({ classroomId, view, user }: RuntimeProps) {
   const [data, setData] = useState<ClassroomInstanceDetail | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -63,7 +64,7 @@ export default function ClassroomRuntime({ classroomId, view, signOutPath = "/au
   if (error && !data) return <RuntimeError error={error} />;
   if (!data) return <main className={styles.runtime}><div className={styles.runtimeMain}>正在连接这一个 Classroom 实例…</div></main>;
   return <main className={styles.runtime}>
-    <RuntimeTop data={data} classroomId={classroomId} signOutPath={signOutPath} />
+    <RuntimeTop data={data} classroomId={classroomId} user={user} />
     <div className={styles.runtimeMain}>
       {error && <div className={styles.error} role="alert">{error}</div>}
       {notice && <div className={styles.notice} role="status">{notice}</div>}
@@ -99,10 +100,24 @@ export function ClassroomScreenRuntime({ classroomId }: { classroomId: string })
   return <SharedScreen data={data} />;
 }
 
-function RuntimeTop({ data, classroomId, signOutPath }: { data: ClassroomInstanceDetail; classroomId: string; signOutPath: string }) {
+function RuntimeTop({ data, classroomId, user }: { data: ClassroomInstanceDetail; classroomId: string; user: AccountMenuUser }) {
+  const seatLabel = data.mentorRole
+    ? `${data.mentorRole} 导师${data.isAdminDm ? ` · ${data.adminDmMode === "primary" ? "Primary" : "Delegated"} Admin DM` : ""}`
+    : data.learnerSeat
+      ? `Young Builder ${data.learnerSeat}`
+      : data.isAdminDm
+        ? `${data.adminDmMode === "primary" ? "Primary" : "Delegated"} Admin DM`
+        : "课堂成员";
   return <header className={styles.runtimeTop}>
     <Link href="/classroom/"><b>MSV · {data.title}</b></Link>
-    <nav aria-label="课堂内导航"><Link href={`/classroom/${classroomId}/`}>我的席位</Link>{data.isAdminDm && <Link href={`/classroom/${classroomId}/control`}>主控</Link>}<a href={`/classroom/${classroomId}/screen`} target="_blank" rel="noreferrer">投屏</a>{data.isAdminDm && <Link href={`/classroom/${classroomId}/members`}>成员</Link>}<a href={signOutPath}>退出</a></nav>
+    <nav aria-label="课堂内导航"><Link href={`/classroom/${classroomId}/`}>我的席位</Link>{data.isAdminDm && <Link href={`/classroom/${classroomId}/control`}>主控</Link>}<a href={`/classroom/${classroomId}/screen`} target="_blank" rel="noreferrer">投屏</a>{data.isAdminDm && <Link href={`/classroom/${classroomId}/members`}>成员</Link>}<AccountMenu user={user} returnTo={`/classroom/${classroomId}/`} context={{
+      classroomId,
+      classroomTitle: data.title,
+      seatLabel,
+      testIdentityManagementHref: data.environment === "test" && data.isAdminDm && user.role === "admin" && !user.impersonation
+        ? `/classroom/${classroomId}/members#test-identities`
+        : null,
+    }} /></nav>
   </header>;
 }
 
@@ -153,7 +168,7 @@ function MentorView({ data, view, courseware }: {
   return <>
     <p>本块状态：<b>{view.activity === "active" ? "你主导" : view.activity === "support" ? "你观察支援" : "本块待命"}</b>。学生先经历，再由你命名方法。</p>
     <h3>导师私有提示</h3><ul>{view.privateScript.map((line) => <li key={line}>{line}</li>)}</ul>
-    {courseware && <a className={styles.coursewareLink} href={`/course/${courseware.slug}/?revision=${courseware.revision}`} target="_blank" rel="noreferrer">打开 {view.mentorRole} 导师 exact 课件 →</a>}
+    {courseware && !data.viewer.impersonationId && <a className={styles.coursewareLink} href={`/course/${courseware.slug}/?revision=${courseware.revision}`} target="_blank" rel="noreferrer">打开 {view.mentorRole} 导师 exact 课件 →</a>}
     <p>学员当前任务：{data.currentBlock.studentPrompt}</p>
   </>;
 }
@@ -212,9 +227,9 @@ function MembersView({ data }: { data: ClassroomInstanceDetail }) {
   return <><RuntimeHeading data={data} eyebrow="MEMBERSHIP · EXACT BINDINGS" /><div className={styles.membersGrid}>
     <section className={styles.membersList}><h2>P／D／M／O 导师席</h2><ul>{data.mentors.map((item) => <li key={item.mentorRole}><span><b>{item.mentorRole} · {item.displayName}</b><br /><code>{item.profileId}</code></span><a className={styles.coursewareLink} href={`/course/${item.courseware.slug}/?revision=${item.courseware.revision}`} target="_blank" rel="noreferrer">课件 r{item.courseware.revision}</a></li>)}</ul></section>
     <section className={styles.membersList}><h2>{data.learners.length}/{data.team.seatLimit} 学员 Membership</h2><ul>{data.learners.map((item) => <li key={item.profileId}><span><b>席位 {item.seat} · {item.displayName}</b><br /><code>{item.profileId}</code></span></li>)}</ul></section>
-    <section className={styles.membersList}><h2>Admin DM 权限</h2><p>权限与四导师席分离，不会产生第五位导师。</p><ul>{data.admins.map((item) => <li key={item.profileId}><span><b>{item.displayName}</b><br /><code>{item.profileId}</code></span></li>)}</ul></section>
+    <section className={styles.membersList}><h2>Admin DM 权限</h2><p>Primary 可以委派；Delegated 可以管理课堂，但不能继续授权。</p><ul>{data.admins.map((item) => <li key={item.profileId}><span><b>{item.displayName}</b><br /><code>{item.profileId}</code></span><span className={styles.state}>{item.mode === "primary" ? "PRIMARY · 可委派" : "DELEGATED · 不可转授"}</span></li>)}</ul></section>
     <section className={styles.membersList}><h2>锁定的版本</h2><ul><li><span><b>CourseRelease r{data.courseRef.revision}</b><br /><code>{data.courseRef.digest}</code></span></li>{data.courseware.map((item) => <li key={item.mentorRole}><span><b>{item.mentorRole} · {item.slug} · r{item.revision}</b><br /><code>{item.digest}</code></span></li>)}</ul></section>
-  </div><MemberActions data={data} /></>;
+  </div><MemberActions data={data} />{data.environment === "test" && data.viewer.platformRole === "admin" && !data.viewer.impersonationId && <TestIdentityManager data={data} />}</>;
 }
 
 type Assignable = {
@@ -245,8 +260,8 @@ function MemberActions({ data }: { data: ClassroomInstanceDetail }) {
   useEffect(() => { const timer = window.setTimeout(() => { void refresh(); }, 0); return () => window.clearTimeout(timer); }, [refresh]);
   const choices = useMemo(() => actionType === "replace-learner" ? accounts.filter((item) => item.role === "learner" && !item.hasMembership)
     : actionType === "replace-mentor" ? accounts.filter((item) => (item.role === "mentor" || item.role === "admin") && !item.hasMembership)
-      : actionType === "revoke-admin-dm" ? data.admins.map((item) => ({ userId: item.profileId, username: item.profileId, displayName: item.displayName, role: "mentor" as const, hasMembership: false, hasAdminDm: true, inClassroom: true }))
-        : accounts.filter((item) => (item.role === "mentor" || item.role === "admin") && !item.hasAdminDm), [accounts, actionType, data.admins]);
+      : actionType === "revoke-admin-dm" ? data.admins.filter((item) => item.mode === "delegated").map((item) => ({ userId: item.profileId, username: item.profileId, displayName: item.displayName, role: "mentor" as const, hasMembership: false, hasAdminDm: true, inClassroom: true }))
+        : accounts.filter((item) => item.role === "mentor" && !item.hasAdminDm), [accounts, actionType, data.admins]);
   const profileId = choices.some((item) => item.userId === selectedProfileId) ? selectedProfileId : choices[0]?.userId ?? "";
   const change = async () => {
     if (!profileId) return setMessage("请先选择目标账号。");
@@ -269,19 +284,90 @@ function MemberActions({ data }: { data: ClassroomInstanceDetail }) {
     } catch (cause) { setMessage(messageOf(cause)); }
     finally { setBusy(false); }
   };
+  const relinquish = async () => {
+    setBusy(true); setMessage("");
+    try {
+      await api(`/api/platform/classrooms/${data.id}/members`, { method: "POST", body: JSON.stringify({ type: "relinquish-admin-dm" }) });
+      window.location.replace(`/classroom/${data.id}/`);
+    } catch (cause) { setMessage(messageOf(cause)); setBusy(false); }
+  };
   return <section className={manageStyles.manage}>
-    <div><small className={styles.eyebrow}>ADMIN DM · MEMBERSHIP</small><h2>成员与权限操作</h2><p>导师／学员席只可在开课前替换；Admin DM 是独立权限。所有操作均写审计事件。</p>
-      <label>操作<select value={actionType} onChange={(event) => { setActionType(event.target.value as typeof actionType); setSelectedProfileId(""); }}><option value="replace-learner">替换学员席</option><option value="replace-mentor">替换导师席</option><option value="grant-admin-dm">授予 Admin DM</option><option value="revoke-admin-dm">撤销 Admin DM</option></select></label>
+    <div><small className={styles.eyebrow}>ADMIN DM · MEMBERSHIP</small><h2>成员与权限操作</h2><p>导师／学员席只可在开课前替换；{data.canDelegateAdminDm ? "你是 Primary Admin DM，可以委派导师。" : "你是 Delegated Admin DM，不能授予或撤销他人权限。"} 所有操作均写审计事件。</p>
+      <label>操作<select value={actionType} onChange={(event) => { setActionType(event.target.value as typeof actionType); setSelectedProfileId(""); }}><option value="replace-learner">替换学员席</option><option value="replace-mentor">替换导师席</option>{data.canDelegateAdminDm && <option value="grant-admin-dm">授予 Delegated Admin DM</option>}{data.canDelegateAdminDm && <option value="revoke-admin-dm">撤销 Delegated Admin DM</option>}</select></label>
       {actionType === "replace-learner" && <label>学员席<select value={seat} onChange={(event) => setSeat(Number(event.target.value))}>{data.learners.map((item) => <option key={item.seat} value={item.seat}>{item.seat} · {item.displayName}</option>)}</select></label>}
       {actionType === "replace-mentor" && <label>导师席<select value={mentorRole} onChange={(event) => setMentorRole(event.target.value as typeof mentorRole)}>{(["P", "D", "M", "O"] as const).map((role) => <option value={role} key={role}>{role} 导师</option>)}</select></label>}
       <label>目标账号<select value={profileId} onChange={(event) => setSelectedProfileId(event.target.value)}><option value="">请选择</option>{choices.map((item) => <option value={item.userId} key={item.userId}>{item.displayName} · @{item.username}</option>)}</select></label>
       <button className={styles.button} disabled={busy || !profileId} onClick={change}>确认操作</button>
+      {data.adminDmMode === "delegated" && !data.viewer.impersonationId && <button className={styles.danger} disabled={busy} onClick={() => void relinquish()}>退出本课堂 Admin DM</button>}
     </div>
-    <div><small className={styles.eyebrow}>ONE-TIME CREDENTIALS</small><h2>为本课堂创建账号</h2><p>账号属于平台，可继续加入其他课堂；创建不会自动占席，请再使用左侧操作绑定。</p>
+    {!data.viewer.impersonationId && <div><small className={styles.eyebrow}>ONE-TIME CREDENTIALS</small><h2>为本课堂创建账号</h2><p>账号属于平台，可继续加入其他课堂；创建不会自动占席，请再使用左侧操作绑定。</p>
       <label>角色<select value={newRole} onChange={(event) => setNewRole(event.target.value as typeof newRole)}><option value="learner">学员</option><option value="mentor">导师</option></select></label><label>数量<input type="number" min="1" max="12" value={newCount} onChange={(event) => setNewCount(Math.min(12, Math.max(1, Number(event.target.value))))} /></label><label>用户名开头<input value={prefix} onChange={(event) => setPrefix(event.target.value)} /></label><button className={styles.secondary} disabled={busy} onClick={create}>生成账号与一次性密码</button>
       {issued.length > 0 && <div className={styles.credentialGrid}>{issued.map((item) => <code key={item.username}>@{item.username}<br />{item.initialPassword}</code>)}</div>}
-    </div>
+    </div>}
     {message && <p className={manageStyles.message}>{message}</p>}
+  </section>;
+}
+
+type TestIdentity = {
+  userId: string;
+  username: string;
+  displayName: string;
+  role: "mentor" | "learner" | "observer";
+  status: "active" | "disabled";
+  mentorRole: "P" | "D" | "M" | "O" | null;
+  learnerSeat: number | null;
+  adminDmMode: "primary" | "delegated" | null;
+  mustChangePassword: boolean;
+  lastSeenAt: string | null;
+};
+
+function TestIdentityManager({ data }: { data: ClassroomInstanceDetail }) {
+  const [identities, setIdentities] = useState<TestIdentity[]>([]);
+  const [error, setError] = useState("");
+  const [busyId, setBusyId] = useState("");
+  const [credential, setCredential] = useState<{ username: string; initialPassword: string } | null>(null);
+  const loadIdentities = useCallback(async () => {
+    setIdentities(await api<TestIdentity[]>(`/api/platform/classrooms/${data.id}/test-identities`));
+  }, [data.id]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadIdentities().catch((cause) => setError(messageOf(cause)));
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [loadIdentities]);
+  const assume = async (identity: TestIdentity) => {
+    setBusyId(identity.userId); setError("");
+    try {
+      await api("/api/auth/impersonation", {
+        method: "POST",
+        body: JSON.stringify({ classroomId: data.id, effectiveProfileId: identity.userId }),
+      });
+      window.location.replace(`/classroom/${data.id}/`);
+    } catch (cause) { setError(messageOf(cause)); setBusyId(""); }
+  };
+  const manage = async (identity: TestIdentity, action: "disable" | "activate" | "reset-credential") => {
+    setBusyId(identity.userId); setError(""); setCredential(null);
+    try {
+      const result = await api<{ credential?: { username: string; initialPassword: string } }>(`/api/platform/classrooms/${data.id}/test-identities`, {
+        method: "POST",
+        body: JSON.stringify({ action, targetProfileId: identity.userId }),
+      });
+      if (result.credential) setCredential(result.credential);
+      await loadIdentities();
+    } catch (cause) { setError(messageOf(cause)); }
+    finally { setBusyId(""); }
+  };
+  return <section className={manageStyles.manage} id="test-identities">
+    <div className={manageStyles.identityManager}>
+      <small className={styles.eyebrow}>TEST ONLY · ACCOUNT ISOLATION</small><h2>切换测试身份</h2>
+      <p>保持真实管理员会话，仅在这一个 Test Classroom 内临时查看导师或学员视角。不会知道目标密码，也不能进入 Studio、账户中心、其他课堂或 Production。</p>
+      {error && <div className={styles.error} role="alert">{error}</div>}
+      {credential && <div className={manageStyles.oneTimeCredential} role="status"><b>一次性初始密码 · 仅显示这一次</b><code>@{credential.username}<br />{credential.initialPassword}</code><button type="button" onClick={() => { void navigator.clipboard.writeText(`${credential.username}\t${credential.initialPassword}`); }}>复制账号与密码</button><button type="button" onClick={() => setCredential(null)}>我已保存</button></div>}
+      <div className={manageStyles.identityGrid}>{identities.map((identity) => <article key={identity.userId}>
+        <div><b>{identity.displayName}</b><small>@{identity.username} · {identity.mentorRole ? `${identity.mentorRole} 导师` : identity.learnerSeat ? `Young Builder ${identity.learnerSeat}` : identity.role}{identity.adminDmMode ? ` · ${identity.adminDmMode === "primary" ? "Primary" : "Delegated"} Admin DM` : ""}</small><small>{identity.status === "active" ? "可登录" : "已停用"} · {identity.mustChangePassword ? "首次改密待完成" : "密码已启用"}{identity.lastSeenAt ? ` · 最近 ${new Date(identity.lastSeenAt).toLocaleString("zh-CN")}` : ""}</small></div>
+        <span className={manageStyles.identityActions}><button type="button" disabled={Boolean(busyId) || identity.status !== "active"} onClick={() => void assume(identity)}>{busyId === identity.userId ? "处理中…" : "以此身份进入"}</button><button type="button" disabled={Boolean(busyId) || identity.status !== "active"} onClick={() => void manage(identity, "reset-credential")}>重发一次性密码</button><button type="button" disabled={Boolean(busyId) || identity.adminDmMode === "primary"} onClick={() => void manage(identity, identity.status === "active" ? "disable" : "activate")}>{identity.status === "active" ? "停用" : "启用"}</button></span>
+      </article>)}</div>
+    </div>
   </section>;
 }
 

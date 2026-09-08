@@ -10,5 +10,6 @@ export default async function ClassroomScreenPage({ params }: { params: Promise<
   const returnTo = `/classroom/${encodeURIComponent(classroomId)}/screen`;
   if (!user) redirect(chatGPTSignInPath(returnTo));
   requireCompletedPasswordSetup(user, returnTo);
+  if (user.impersonation) redirect(`/classroom/${encodeURIComponent(user.impersonation.classroomId)}/`);
   return <ClassroomScreenRuntime classroomId={classroomId} />;
 }

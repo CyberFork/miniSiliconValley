@@ -29,9 +29,26 @@ export async function withClassroomApi<T>(
 
     const db = getClassroomDb();
     await ensureClassroomSchema(db);
+    if (identity.impersonation) {
+      throw new ClassroomError(
+        "IMPERSONATION_LEGACY_CLASSROOM_FORBIDDEN",
+        "测试身份只允许进入版本化 Test Classroom，不能访问旧课堂运行时。",
+        403,
+      );
+    }
     const data = await work({
       db,
-      user: { userId: identity.userId, username: identity.username, displayName: identity.displayName, platformRole: identity.role },
+      user: {
+        userId: identity.userId,
+        username: identity.username,
+        displayName: identity.displayName,
+        platformRole: identity.role,
+        actorProfileId: identity.userId,
+        effectiveProfileId: identity.userId,
+        impersonationId: null,
+        impersonationClassroomId: null,
+        impersonationExpiresAt: null,
+      },
     });
     return apiResponse({ ok: true, data }, 200);
   } catch (error) {

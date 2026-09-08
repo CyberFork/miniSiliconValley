@@ -1,5 +1,25 @@
 "use client";
+
 import Link from "next/link";
+
+import { AccountMenu, type AccountMenuUser } from "../../components/AccountMenu";
 import type { CoursewareContent } from "../../lib/courseware-store";
 import styles from "../course.module.css";
-export default function CoursewareFrame({item}:{item:CoursewareContent}){if(item.contentKind==="static-bundle"&&item.entryPath)return <main className={styles.viewer}><header className={styles.viewerHeader}><Link href="/course/">← 课件库</Link><b>Mini Silicon Valley · {item.mentorRole} 导师</b></header><div className={styles.viewerMeta}><small>EXACT COURSEWARE · r{item.revision} · {item.digest.slice(0,12)}</small><h1>{item.title}</h1></div><div className={styles.staticLaunch}><section><span className={styles.warning}>同事原版 · 逐字节保留</span><h2>在独立页面打开完整课件</h2><p>这套产品导师课件包含自己的图片、字体和交互资源。系统保持原版文件不变，并把当前课堂锁定到这一 exact 版本。</p><a className={styles.launch} href={item.entryPath}>进入全屏课件 →</a></section></div></main>;return <main className={styles.viewer}><header className={styles.viewerHeader}><Link href="/course/">← 课件库</Link><b>Mini Silicon Valley · {item.mentorRole} 导师</b></header><div className={styles.viewerMeta}><small>EXACT COURSEWARE · r{item.revision} · {item.digest.slice(0,12)}</small><h1>{item.title}</h1></div><iframe className={styles.frame} title={item.title} sandbox="allow-scripts" referrerPolicy="no-referrer" srcDoc={item.htmlContent??""}/></main>}
+
+export default function CoursewareFrame({ item, user }: { item: CoursewareContent; user: AccountMenuUser }) {
+  const header = <header className={styles.viewerHeader}>
+    <Link href="/course/">← 课件库</Link>
+    <b>Mini Silicon Valley · {item.mentorRole} 导师</b>
+    <AccountMenu user={user} returnTo={`/course/${encodeURIComponent(item.slug)}/?revision=${item.revision}`} />
+  </header>;
+  if (item.contentKind === "static-bundle" && item.entryPath) return <main className={styles.viewer}>
+    {header}
+    <div className={styles.viewerMeta}><small>EXACT COURSEWARE · r{item.revision} · {item.digest.slice(0, 12)}</small><h1>{item.title}</h1></div>
+    <div className={styles.staticLaunch}><section><span className={styles.warning}>同事原版 · 逐字节保留</span><h2>在独立页面打开完整课件</h2><p>这套产品导师课件包含自己的图片、字体和交互资源。系统保持原版文件不变，并把当前课堂锁定到这一 exact 版本。</p><a className={styles.launch} href={item.entryPath}>进入全屏课件 →</a></section></div>
+  </main>;
+  return <main className={styles.viewer}>
+    {header}
+    <div className={styles.viewerMeta}><small>EXACT COURSEWARE · r{item.revision} · {item.digest.slice(0, 12)}</small><h1>{item.title}</h1></div>
+    <iframe className={styles.frame} title={item.title} sandbox="allow-scripts" referrerPolicy="no-referrer" srcDoc={item.htmlContent ?? ""} />
+  </main>;
+}

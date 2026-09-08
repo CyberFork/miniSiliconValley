@@ -14,3 +14,13 @@
 .manage select, .manage input { min-height: 44px; padding: 8px 10px; border: 2px solid #476068; background: #fff; }
 .message { grid-column: 1 / -1; padding: 12px; color: #fff; background: #287d76; }
 @media (max-width: 700px) { .manage { grid-template-columns: 1fr; padding: 12px; } }
+.identityManager { grid-column: 1 / -1; }
+.identityGrid { display: grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap: 9px; margin-top: 8px; }
+.identityGrid article { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 10px; padding: 11px; color: #f8efd9; background: #172c35; border-left: 5px solid #43a99c; }
+.identityGrid article div { display: grid; min-width: 0; }
+.identityGrid article small { overflow: hidden; color: #b9c8c8; text-overflow: ellipsis; white-space: nowrap; }
+.identityGrid button { flex: 0 0 auto; min-height: 38px; padding: 6px 10px; color: #172c35; background: #e5b847; border: 0; font-weight: 900; }
+.identityGrid button:disabled { opacity: .55; }
+.identityActions { display: flex; flex: 0 0 auto; flex-wrap: wrap; justify-content: flex-end; gap: 5px; }
+.identityActions button:nth-child(2){color:#fff;background:#2f8178}.identityActions button:nth-child(3){color:#fff;background:#a34235}.oneTimeCredential{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:8px;padding:12px;color:#fff;background:#8e352c;border-left:7px solid #e5b847}.oneTimeCredential b{grid-column:1/-1}.oneTimeCredential code{padding:9px;color:#17272e;background:#fff4d6;overflow-wrap:anywhere}.oneTimeCredential button{min-height:38px;padding:6px 10px;font-weight:900}.oneTimeCredential button:last-child{color:#fff;background:transparent;border:1px solid #fff}
+@media(max-width:900px){.identityGrid article{align-items:stretch;flex-direction:column}.identityActions{justify-content:flex-start}.oneTimeCredential{grid-template-columns:1fr}.oneTimeCredential b{grid-column:auto}}

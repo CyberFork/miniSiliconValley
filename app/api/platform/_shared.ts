@@ -10,18 +10,59 @@ export async function withPlatformApi<T>(
   request: Request,
   work: (context: { db: ReturnType<typeof getClassroomDb>; user: AuthenticatedClassroomUser }) => Promise<T>,
 ): Promise<Response> {
+  let db: ReturnType<typeof getClassroomDb> | null = null;
+  let session: Awaited<ReturnType<typeof authenticateSession>> = null;
   try {
-    const db = getClassroomDb();
+    db = getClassroomDb();
     await ensureClassroomSchema(db);
-    const session = await authenticateSession(db, request.headers.get("cookie"));
+    session = await authenticateSession(db, request.headers.get("cookie"));
     if (!session) throw new ClassroomError("AUTH_REQUIRED", "请先登录 Mini Silicon Valley 账号。", 401);
     if (session.mustChangePassword) throw new ClassroomError("PASSWORD_CHANGE_REQUIRED", "请先在账户中心修改一次性初始密码。", 403);
     const data = await work({
       db,
-      user: { userId: session.userId, username: session.username, displayName: session.displayName, platformRole: session.role },
+      user: {
+        userId: session.userId,
+        username: session.username,
+        displayName: session.displayName,
+        platformRole: session.role,
+        actorProfileId: session.impersonation?.actor.userId ?? session.userId,
+        effectiveProfileId: session.userId,
+        impersonationId: session.impersonation?.id ?? null,
+        impersonationClassroomId: session.impersonation?.classroomId ?? null,
+        impersonationExpiresAt: session.impersonation?.expiresAt ?? null,
+      },
     });
     return response({ ok: true, data }, 200);
   } catch (error) {
+    if (db && session && (error instanceof ClassroomError || error instanceof AuthError) && error.status === 403) {
+      try {
+        const now = new Date().toISOString();
+        const actorProfileId = session.impersonation?.actor.userId ?? session.userId;
+        await db.prepare(
+          `INSERT INTO auth_security_events
+           (id, user_id, actor_user_id, action, detail_json, created_at)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+        ).bind(
+          crypto.randomUUID(),
+          session.userId,
+          actorProfileId,
+          session.impersonation ? "auth.impersonation.request-denied" : "auth.authorization.request-denied",
+          JSON.stringify({
+            impersonationId: session.impersonation?.id ?? null,
+            classroomId: session.impersonation?.classroomId ?? null,
+            actorProfileId,
+            effectiveProfileId: session.userId,
+            expiresAt: session.impersonation?.expiresAt ?? null,
+            method: request.method,
+            pathname: new URL(request.url).pathname,
+            errorCode: error.code,
+          }),
+          now,
+        ).run();
+      } catch (auditError) {
+        console.error("[platform-api-audit]", auditError);
+      }
+    }
     if (error instanceof ClassroomError || error instanceof AuthError) {
       return response({ ok: false, error: { code: error.code, message: error.message, ...(error instanceof ClassroomError && error.details ? { details: error.details } : {}) } }, error.status);
     }
@@ -44,11 +85,12 @@ export async function readPlatformJson(request: Request): Promise<unknown> {
 }
 
 export function requireStudioRole(user: AuthenticatedClassroomUser): void {
+  if (user.impersonationId) throw new ClassroomError("IMPERSONATION_STUDIO_FORBIDDEN", "测试身份仅限绑定的 Test Classroom；请先返回管理员身份再进入 Course Studio。", 403);
   if (user.platformRole !== "admin" && user.platformRole !== "mentor") throw new ClassroomError("STUDIO_ROLE_REQUIRED", "Course Studio 只对导师和管理员开放。", 403);
 }
 
 export function requirePlatformAdmin(user: AuthenticatedClassroomUser): void {
-  if (user.platformRole !== "admin") throw new ClassroomError("PLATFORM_ADMIN_REQUIRED", "此操作需要平台管理员权限。", 403);
+  if (user.impersonationId || user.platformRole !== "admin") throw new ClassroomError("PLATFORM_ADMIN_REQUIRED", "此操作需要真实登录的平台管理员权限。", 403);
 }
 
 function assertSameOrigin(request: Request): void {

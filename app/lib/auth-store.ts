@@ -8,6 +8,7 @@ import {
 } from "./auth-crypto";
 import { assertAuth, AuthError } from "./auth-errors";
 import type {
+  AuthImpersonationContext,
   AuthRole,
   IssuedManagedCredential,
   AuthSessionSummary,
@@ -23,6 +24,7 @@ const SESSION_TOUCH_MS = 5 * 60 * 1_000;
 const RESET_LINK_MS = 30 * 60 * 1_000;
 const RATE_WINDOW_MS = 15 * 60 * 1_000;
 const RATE_BLOCK_MS = 15 * 60 * 1_000;
+const IMPERSONATION_MS = 30 * 60 * 1_000;
 const DUMMY_SALT = "AAAAAAAAAAAAAAAAAAAAAA";
 const DUMMY_HASH = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 
@@ -58,6 +60,22 @@ type ResetTokenRow = UserRow & {
   reset_expires_at: string;
 };
 
+type ImpersonationRow = {
+  id: string;
+  classroom_id: string;
+  expires_at: string;
+  last_seen_at: string;
+  actor_user_id: string;
+  effective_user_id: string;
+  username: string;
+  display_name: string;
+  role: AuthRole;
+  status: "active" | "disabled";
+  environment: "test" | "production" | null;
+  has_scope: number;
+  actor_has_scope: number;
+};
+
 export type IssuedSession = {
   user: AuthSessionUser;
   token: string;
@@ -84,7 +102,253 @@ export async function authenticateSession(db: ClassroomD1, cookieHeader: string 
   if (Date.now() - Date.parse(row.last_seen_at) >= SESSION_TOUCH_MS) {
     await db.prepare(`UPDATE auth_sessions SET last_seen_at = ? WHERE id = ? AND revoked_at IS NULL`).bind(nowIso(), row.id).run();
   }
-  return sessionUser(row);
+  return resolveSessionIdentity(db, sessionUser(row));
+}
+
+/**
+ * Replace the effective identity of one real platform-admin session for a
+ * single Test Classroom.  The cookie and actor never change, and every later
+ * request revalidates the target, environment and Membership/DM grant.
+ */
+export async function startTestImpersonation(
+  db: ClassroomD1,
+  current: AuthSessionUser,
+  input: { classroomId: string; effectiveProfileId: string },
+): Promise<AuthImpersonationContext> {
+  if (current.impersonation || current.role !== "admin") {
+    await auditImpersonationDenied(db, current, input, "PLATFORM_ADMIN_REQUIRED");
+    throw new AuthError("PLATFORM_ADMIN_REQUIRED", "只有真实登录的平台管理员可以开始测试身份切换。", 403);
+  }
+  const classroomId = input.classroomId.trim();
+  const effectiveProfileId = input.effectiveProfileId.trim();
+  if (!classroomId || classroomId.length > 128 || !effectiveProfileId || effectiveProfileId.length > 128) {
+    await auditImpersonationDenied(db, current, input, "IMPERSONATION_INPUT_INVALID");
+    throw new AuthError("IMPERSONATION_INPUT_INVALID", "测试课堂或目标账号无效。", 400);
+  }
+  const target = await db.prepare(
+    `SELECT u.id, u.username, u.display_name, u.role, u.status, ci.environment,
+            CASE WHEN EXISTS (
+              SELECT 1 FROM memberships m
+              WHERE m.room_id = ci.room_id AND m.profile_id = u.id AND m.status = 'active'
+            ) OR EXISTS (
+              SELECT 1 FROM classroom_admin_dm_grants g
+              WHERE g.room_id = ci.room_id AND g.profile_id = u.id AND g.revoked_at IS NULL
+            ) THEN 1 ELSE 0 END AS has_scope
+     FROM classroom_instances ci
+     JOIN auth_users u ON u.id = ?
+     WHERE ci.room_id = ?
+       AND EXISTS (
+         SELECT 1 FROM classroom_admin_dm_grants actor_grant
+         WHERE actor_grant.room_id = ci.room_id AND actor_grant.profile_id = ?
+           AND actor_grant.revoked_at IS NULL
+       )`,
+  ).bind(effectiveProfileId, classroomId, current.userId).first<{
+    id: string;
+    username: string;
+    display_name: string;
+    role: AuthRole;
+    status: "active" | "disabled";
+    environment: "test" | "production";
+    has_scope: number;
+  }>();
+  if (!target) {
+    await auditImpersonationDenied(db, current, input, "CLASSROOM_OR_ACCOUNT_NOT_FOUND");
+    throw new AuthError("CLASSROOM_OR_ACCOUNT_NOT_FOUND", "没有找到这个测试课堂或目标账号。", 404);
+  }
+  if (target.environment !== "test") {
+    await auditImpersonationDenied(db, current, input, "IMPERSONATION_PRODUCTION_FORBIDDEN");
+    throw new AuthError("IMPERSONATION_PRODUCTION_FORBIDDEN", "测试身份不能进入 Production Classroom。", 403);
+  }
+  if (target.role === "admin") {
+    await auditImpersonationDenied(db, current, input, "IMPERSONATION_ADMIN_FORBIDDEN");
+    throw new AuthError("IMPERSONATION_ADMIN_FORBIDDEN", "不能模拟其他平台管理员。", 403);
+  }
+  if (target.status !== "active" || !target.has_scope) {
+    await auditImpersonationDenied(db, current, input, "IMPERSONATION_MEMBERSHIP_REQUIRED");
+    throw new AuthError("IMPERSONATION_MEMBERSHIP_REQUIRED", "目标账号不是这个 Test Classroom 的有效成员或 Admin DM。", 403);
+  }
+
+  const now = nowIso();
+  const expiresAt = new Date(Date.parse(now) + IMPERSONATION_MS).toISOString();
+  const id = crypto.randomUUID();
+  await db.batch([
+    db.prepare(
+      `UPDATE auth_impersonations SET revoked_at = ?, end_reason = 'replaced'
+       WHERE session_id = ? AND revoked_at IS NULL`,
+    ).bind(now, current.sessionId),
+    db.prepare(
+      `INSERT INTO auth_impersonations
+       (id, session_id, actor_user_id, effective_user_id, classroom_id, expires_at,
+        last_seen_at, revoked_at, end_reason, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?)`,
+    ).bind(id, current.sessionId, current.userId, target.id, classroomId, expiresAt, now, now),
+    securityEventStatement(db, target.id, current.userId, "auth.impersonation.started", {
+      impersonationId: id,
+      classroomId,
+      actorProfileId: current.userId,
+      effectiveProfileId: target.id,
+      expiresAt,
+    }, now),
+  ]);
+  return {
+    id,
+    classroomId,
+    expiresAt,
+    actor: identitySummary(current) as AuthImpersonationContext["actor"],
+    effective: {
+      userId: target.id,
+      username: target.username,
+      displayName: target.display_name,
+      role: target.role,
+    } as AuthImpersonationContext["effective"],
+  };
+}
+
+export async function stopTestImpersonation(
+  db: ClassroomD1,
+  current: AuthSessionUser,
+  reason: "returned" | "logout" = "returned",
+): Promise<boolean> {
+  const context = current.impersonation;
+  if (!context) return false;
+  const now = nowIso();
+  const result = await db.prepare(
+    `UPDATE auth_impersonations SET revoked_at = ?, end_reason = ?
+     WHERE id = ? AND session_id = ? AND actor_user_id = ? AND revoked_at IS NULL`,
+  ).bind(now, reason, context.id, current.sessionId, context.actor.userId).run();
+  const stopped = Number(result.meta?.changes ?? 0) === 1;
+  if (stopped) {
+    await securityEvent(db, context.effective.userId, context.actor.userId, "auth.impersonation.stopped", {
+      impersonationId: context.id,
+      classroomId: context.classroomId,
+      actorProfileId: context.actor.userId,
+      effectiveProfileId: context.effective.userId,
+      expiresAt: context.expiresAt,
+      reason,
+    });
+  }
+  return stopped;
+}
+
+async function resolveSessionIdentity(db: ClassroomD1, actor: AuthSessionUser): Promise<AuthSessionUser> {
+  const row = await db.prepare(
+    `SELECT i.id, i.classroom_id, i.expires_at, i.last_seen_at, i.actor_user_id, i.effective_user_id,
+            u.username, u.display_name, u.role, u.status, ci.environment,
+            CASE WHEN EXISTS (
+              SELECT 1 FROM memberships m
+              WHERE m.room_id = i.classroom_id AND m.profile_id = i.effective_user_id AND m.status = 'active'
+            ) OR EXISTS (
+              SELECT 1 FROM classroom_admin_dm_grants g
+              WHERE g.room_id = i.classroom_id AND g.profile_id = i.effective_user_id AND g.revoked_at IS NULL
+            ) THEN 1 ELSE 0 END AS has_scope,
+            CASE WHEN EXISTS (
+              SELECT 1 FROM classroom_admin_dm_grants actor_grant
+              WHERE actor_grant.room_id = i.classroom_id
+                AND actor_grant.profile_id = i.actor_user_id
+                AND actor_grant.revoked_at IS NULL
+                AND actor_grant.delegation_mode = 'primary'
+                AND actor_grant.can_delegate = 1
+            ) THEN 1 ELSE 0 END AS actor_has_scope
+     FROM auth_impersonations i
+     JOIN auth_users u ON u.id = i.effective_user_id
+     LEFT JOIN classroom_instances ci ON ci.room_id = i.classroom_id
+     WHERE i.session_id = ? AND i.revoked_at IS NULL
+     ORDER BY i.created_at DESC LIMIT 1`,
+  ).bind(actor.sessionId).first<ImpersonationRow>();
+  if (!row) return actor;
+
+  const reason = actor.role !== "admin" || row.actor_user_id !== actor.userId
+    ? "actor-invalid"
+    : !row.actor_has_scope
+      ? "actor-grant-revoked"
+      : row.role === "admin"
+        ? "admin-target-invalid"
+        : row.status !== "active"
+          ? "target-disabled"
+          : row.environment !== "test"
+            ? "test-scope-invalid"
+            : !row.has_scope
+              ? "membership-revoked"
+              : Date.parse(row.expires_at) <= Date.now()
+                ? "expired"
+                : null;
+  if (reason) {
+    await closeInvalidImpersonation(db, actor, row, reason);
+    return actor;
+  }
+  if (Date.now() - Date.parse(row.last_seen_at) >= SESSION_TOUCH_MS) {
+    await db.prepare(
+      `UPDATE auth_impersonations SET last_seen_at = ?
+       WHERE id = ? AND revoked_at IS NULL AND expires_at > ?`,
+    ).bind(nowIso(), row.id, nowIso()).run();
+  }
+  const context: AuthImpersonationContext = {
+    id: row.id,
+    classroomId: row.classroom_id,
+    expiresAt: row.expires_at,
+    actor: identitySummary(actor) as AuthImpersonationContext["actor"],
+    effective: {
+      userId: row.effective_user_id,
+      username: row.username,
+      displayName: row.display_name,
+      role: row.role,
+    } as AuthImpersonationContext["effective"],
+  };
+  return {
+    ...actor,
+    userId: row.effective_user_id,
+    username: row.username,
+    displayName: row.display_name,
+    role: row.role,
+    // An administrator may inspect an account that still has a one-time
+    // credential without learning or replacing that credential.
+    mustChangePassword: false,
+    impersonation: context,
+  };
+}
+
+async function closeInvalidImpersonation(
+  db: ClassroomD1,
+  actor: AuthSessionUser,
+  row: ImpersonationRow,
+  reason: string,
+): Promise<void> {
+  const now = nowIso();
+  const result = await db.prepare(
+    `UPDATE auth_impersonations SET revoked_at = ?, end_reason = ? WHERE id = ? AND revoked_at IS NULL`,
+  ).bind(now, reason, row.id).run();
+  if (Number(result.meta?.changes ?? 0) === 1) {
+    await securityEvent(db, row.effective_user_id, actor.userId, "auth.impersonation.ended", {
+      impersonationId: row.id,
+      classroomId: row.classroom_id,
+      actorProfileId: actor.userId,
+      effectiveProfileId: row.effective_user_id,
+      expiresAt: row.expires_at,
+      reason,
+    });
+  }
+}
+
+async function auditImpersonationDenied(
+  db: ClassroomD1,
+  current: AuthSessionUser,
+  input: { classroomId: string; effectiveProfileId: string },
+  reason: string,
+): Promise<void> {
+  const actor = current.impersonation?.actor ?? identitySummary(current);
+  await securityEvent(db, null, actor.userId, "auth.impersonation.denied", {
+    classroomId: input.classroomId.slice(0, 128),
+    requestedEffectiveProfileId: input.effectiveProfileId.slice(0, 128),
+    actorProfileId: actor.userId,
+    currentEffectiveProfileId: current.userId,
+    impersonationId: current.impersonation?.id ?? null,
+    expiresAt: current.impersonation?.expiresAt ?? null,
+    reason,
+  });
+}
+
+function identitySummary(user: Pick<AuthSessionUser, "userId" | "username" | "displayName" | "role">) {
+  return { userId: user.userId, username: user.username, displayName: user.displayName, role: user.role };
 }
 
 export async function loginWithPassword(
@@ -172,7 +436,8 @@ export async function createManagedUsers(
   assertAuth(inputs.length >= 1 && inputs.length <= 24, "ACCOUNT_BATCH_SIZE_INVALID", "一次可以创建 1—24 个账号。", 400);
   if (roomId) {
     const permission = await db.prepare(
-      `SELECT id FROM classroom_permissions WHERE room_id = ? AND profile_id = ? AND permission = 'admin-dm'`,
+      `SELECT id FROM classroom_admin_dm_grants
+       WHERE room_id = ? AND profile_id = ? AND revoked_at IS NULL`,
     ).bind(roomId, actor.userId).first<{ id: string }>();
     assertAuth(permission, "CLASSROOM_ADMIN_REQUIRED", "此操作需要本课堂 Admin DM 权限。", 403);
   } else {
@@ -233,12 +498,110 @@ export async function createManagedUsers(
   }));
 }
 
+export type TestIdentityAccountAction = "disable" | "activate" | "reset-credential";
+
+/**
+ * Audited platform-admin recovery for an explicitly administered Test
+ * Classroom. It never accepts an administrator target and never writes a
+ * clear credential to storage or audit logs.
+ */
+export async function manageTestClassroomIdentity(
+  db: ClassroomD1,
+  actor: { userId: string; platformRole?: AuthRole | null; impersonationId?: string | null },
+  input: { classroomId: string; targetProfileId: string; action: TestIdentityAccountAction },
+): Promise<{
+  action: TestIdentityAccountAction;
+  status: "active" | "disabled";
+  credential?: IssuedManagedCredential;
+}> {
+  assertAuth(!actor.impersonationId && actor.platformRole === "admin", "PLATFORM_ADMIN_REQUIRED", "只有真实登录的平台管理员可以管理测试账号。", 403);
+  const classroomId = input.classroomId.trim();
+  const targetProfileId = input.targetProfileId.trim();
+  assertAuth(classroomId && classroomId.length <= 128 && targetProfileId && targetProfileId.length <= 128, "TEST_IDENTITY_INPUT_INVALID", "测试课堂或目标账号无效。", 400);
+  const target = await db.prepare(
+    `SELECT u.id, u.username, u.display_name, u.role, u.status, ci.environment,
+            target_grant.delegation_mode AS admin_dm_mode,
+            CASE WHEN actor_grant.id IS NULL THEN 0 ELSE 1 END AS actor_is_admin_dm,
+            CASE WHEN m.id IS NOT NULL OR target_grant.id IS NOT NULL THEN 1 ELSE 0 END AS target_has_scope
+     FROM classroom_instances ci
+     JOIN auth_users u ON u.id = ?
+     LEFT JOIN memberships m
+       ON m.room_id = ci.room_id AND m.profile_id = u.id AND m.status = 'active'
+     LEFT JOIN classroom_admin_dm_grants target_grant
+       ON target_grant.room_id = ci.room_id AND target_grant.profile_id = u.id AND target_grant.revoked_at IS NULL
+     LEFT JOIN classroom_admin_dm_grants actor_grant
+       ON actor_grant.room_id = ci.room_id AND actor_grant.profile_id = ? AND actor_grant.revoked_at IS NULL
+     WHERE ci.room_id = ?`,
+  ).bind(targetProfileId, actor.userId, classroomId).first<{
+    id: string;
+    username: string;
+    display_name: string;
+    role: AuthRole;
+    status: "active" | "disabled";
+    environment: "test" | "production";
+    admin_dm_mode: "primary" | "delegated" | null;
+    actor_is_admin_dm: number;
+    target_has_scope: number;
+  }>();
+  assertAuth(target, "TEST_IDENTITY_NOT_FOUND", "没有找到这个课堂测试账号。", 404);
+  assertAuth(target.environment === "test", "TEST_CLASSROOM_REQUIRED", "账号恢复只能用于 Test Classroom。", 403);
+  assertAuth(target.actor_is_admin_dm, "CLASSROOM_ADMIN_REQUIRED", "平台管理员必须显式拥有本课堂 Admin DM 权限。", 403);
+  assertAuth(target.role !== "admin" && target.target_has_scope, "TEST_IDENTITY_TARGET_FORBIDDEN", "目标必须是本 Test Classroom 的非管理员成员。", 403);
+  if (input.action === "disable") {
+    assertAuth(target.admin_dm_mode !== "primary", "PRIMARY_ADMIN_DM_DISABLE_FORBIDDEN", "不能停用本课堂 Primary Admin DM。", 403);
+    const now = nowIso();
+    await db.batch([
+      db.prepare(`UPDATE auth_users SET status = 'disabled', updated_at = ? WHERE id = ?`).bind(now, target.id),
+      db.prepare(`UPDATE auth_sessions SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL`).bind(now, target.id),
+      db.prepare(`UPDATE auth_impersonations SET revoked_at = ?, end_reason = 'target-disabled' WHERE effective_user_id = ? AND revoked_at IS NULL`).bind(now, target.id),
+      securityEventStatement(db, target.id, actor.userId, "auth.test-identity.disabled", { classroomId }, now),
+    ]);
+    return { action: input.action, status: "disabled" };
+  }
+  if (input.action === "activate") {
+    const now = nowIso();
+    await db.batch([
+      db.prepare(`UPDATE auth_users SET status = 'active', updated_at = ? WHERE id = ?`).bind(now, target.id),
+      securityEventStatement(db, target.id, actor.userId, "auth.test-identity.activated", { classroomId }, now),
+    ]);
+    return { action: input.action, status: "active" };
+  }
+  assertAuth(input.action === "reset-credential", "TEST_IDENTITY_ACTION_INVALID", "未知测试账号操作。", 400);
+  assertAuth(target.status === "active", "TEST_IDENTITY_DISABLED", "请先启用账号，再生成一次性凭据。", 409);
+  const initialPassword = `Msv!${randomSecret(18)}`;
+  const password = await createPasswordDigest(initialPassword);
+  const now = nowIso();
+  await db.batch([
+    db.prepare(
+      `UPDATE auth_users SET password_hash = ?, password_salt = ?, password_iterations = ?,
+       password_changed_at = ?, must_change_password = 1, updated_at = ? WHERE id = ?`,
+    ).bind(password.hash, password.salt, password.iterations, now, now, target.id),
+    db.prepare(`UPDATE auth_sessions SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL`).bind(now, target.id),
+    db.prepare(`UPDATE auth_impersonations SET revoked_at = ?, end_reason = 'credential-reset' WHERE effective_user_id = ? AND revoked_at IS NULL`).bind(now, target.id),
+    db.prepare(`UPDATE auth_reset_tokens SET consumed_at = ? WHERE user_id = ? AND consumed_at IS NULL`).bind(now, target.id),
+    securityEventStatement(db, target.id, actor.userId, "auth.test-credential.regenerated", { classroomId }, now),
+  ]);
+  return {
+    action: input.action,
+    status: "active",
+    credential: {
+      userId: target.id,
+      username: target.username,
+      displayName: target.display_name,
+      role: target.role as Exclude<AuthRole, "admin">,
+      initialPassword,
+      mustChangePassword: true,
+    },
+  };
+}
+
 /** Returns the clear token exactly once; D1 stores only its SHA-256 digest. */
 export async function issuePasswordResetToken(
   db: ClassroomD1,
   actor: AuthSessionUser,
   username: string,
 ): Promise<{ username: string; displayName: string; token: string; expiresAt: string }> {
+  requireDirectSession(actor);
   requireManager(actor);
   const target = await getUserByUsername(db, username);
   assertAuth(target && target.status === "active", "USER_NOT_FOUND", "没有找到可用的学员账号。", 404);
@@ -347,6 +710,7 @@ export async function updateOwnProfile(
   current: AuthSessionUser,
   input: { displayName?: string; currentPassword?: string; newPassword?: string },
 ): Promise<void> {
+  requireDirectSession(current);
   const user = await getUserById(db, current.userId);
   assertAuth(user && user.status === "active", "AUTH_REQUIRED", "当前账号不可用，请重新登录。", 401);
   const now = nowIso();
@@ -376,6 +740,7 @@ export async function updateOwnProfile(
 }
 
 export async function listOwnSessions(db: ClassroomD1, current: AuthSessionUser): Promise<AuthSessionSummary[]> {
+  if (current.impersonation) return [];
   const result = await db.prepare(
     `SELECT id, user_agent, remember, expires_at, last_seen_at, created_at
      FROM auth_sessions WHERE user_id = ? AND revoked_at IS NULL AND expires_at > ?
@@ -394,6 +759,7 @@ export async function listOwnSessions(db: ClassroomD1, current: AuthSessionUser)
 }
 
 export async function revokeSession(db: ClassroomD1, current: AuthSessionUser, sessionId: string): Promise<boolean> {
+  requireDirectSession(current);
   const result = await db.prepare(
     `UPDATE auth_sessions SET revoked_at = ? WHERE id = ? AND user_id = ? AND revoked_at IS NULL`,
   ).bind(nowIso(), sessionId, current.userId).run();
@@ -404,7 +770,14 @@ export async function revokeCurrentSession(db: ClassroomD1, cookieHeader: string
   const token = readCookie(cookieHeader, SESSION_COOKIE);
   if (!token) return;
   const tokenHash = await hashSecret(token);
-  await db.prepare(`UPDATE auth_sessions SET revoked_at = ? WHERE token_hash = ? AND revoked_at IS NULL`).bind(nowIso(), tokenHash).run();
+  const now = nowIso();
+  await db.batch([
+    db.prepare(
+      `UPDATE auth_impersonations SET revoked_at = ?, end_reason = 'logout'
+       WHERE session_id IN (SELECT id FROM auth_sessions WHERE token_hash = ?) AND revoked_at IS NULL`,
+    ).bind(now, tokenHash),
+    db.prepare(`UPDATE auth_sessions SET revoked_at = ? WHERE token_hash = ? AND revoked_at IS NULL`).bind(now, tokenHash),
+  ]);
 }
 
 /** Learner lookup for the deliberately small DM password-assistance console. */
@@ -413,6 +786,7 @@ export async function listManagedUsers(
   actor: AuthSessionUser,
   query = "",
 ): Promise<ManagedAuthUser[]> {
+  requireDirectSession(actor);
   requireManager(actor);
   const normalized = query.trim().toLowerCase().slice(0, 80);
   const values: unknown[] = [nowIso()];
@@ -471,6 +845,7 @@ export async function setManagedUserStatus(
   targetId: string,
   status: "active" | "disabled",
 ): Promise<void> {
+  requireDirectSession(actor);
   assertAuth(actor.role === "admin", "ADMIN_REQUIRED", "只有管理员可以停用或恢复账号。", 403);
   assertAuth(targetId !== actor.userId, "SELF_DISABLE_FORBIDDEN", "不能停用当前登录的管理员账号。", 400);
   const target = await getUserById(db, targetId);
@@ -503,6 +878,15 @@ export function clearSessionCookie(): string {
 
 export function requireManager(user: AuthSessionUser): void {
   assertAuth(user.role === "admin" || user.role === "mentor", "MANAGER_REQUIRED", "此操作需要导师或管理员权限。", 403);
+}
+
+function requireDirectSession(user: AuthSessionUser): void {
+  assertAuth(
+    !user.impersonation,
+    "IMPERSONATION_ACCOUNT_OPERATION_FORBIDDEN",
+    "测试身份不能修改账号、安全设置或其他账号；请先返回真实管理员身份。",
+    403,
+  );
 }
 
 async function mentorCanManageLearner(db: ClassroomD1, mentorId: string, learnerId: string): Promise<boolean> {
@@ -584,6 +968,7 @@ function sessionUser(row: SessionRow): AuthSessionUser {
   return {
     userId: row.user_id, username: row.username, displayName: row.display_name, role: row.role,
     mustChangePassword: Boolean(row.must_change_password), sessionId: row.id, sessionExpiresAt: row.expires_at,
+    impersonation: null,
   };
 }
 
@@ -591,6 +976,7 @@ function sessionUserFrom(user: UserRow, session: NewSession): AuthSessionUser {
   return {
     userId: user.id, username: user.username, displayName: user.display_name, role: user.role,
     mustChangePassword: Boolean(user.must_change_password), sessionId: session.id, sessionExpiresAt: session.expiresAt,
+    impersonation: null,
   };
 }
 

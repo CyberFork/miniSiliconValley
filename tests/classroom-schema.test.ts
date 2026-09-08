@@ -12,9 +12,10 @@ const tables = [
   "course_versions", "course_release_pointers", "room_course_bindings", "alpha_run_rooms", "course_registry_events",
   "course_candidate_pointers", "course_test_receipts", "courseware_packages", "courseware_versions",
   "courseware_release_pointers", "room_courseware_bindings", "classroom_instances", "classroom_mentor_seats",
-  "classroom_permissions", "classroom_controller_states", "classroom_factory_events",
+  "classroom_permissions", "classroom_admin_dm_grants", "classroom_controller_states", "classroom_factory_events",
   "classroom_block_submissions", "classroom_wallet_balances",
   "course_view_acceptance_receipts", "course_ui_acceptance_receipts", "classroom_acceptance_bindings",
+  "auth_impersonations",
 ];
 const migrationNames = readdirSync(new URL("../drizzle/", import.meta.url)).filter((name) => /^\d{4}_.*\.sql$/.test(name)).sort();
 assert.ok(migrationNames.length >= 2, "classroom and auth migrations are required");
@@ -39,10 +40,13 @@ test("runtime schema bootstrap is idempotent and exactly mirrors the migration",
   assert.ok(CLASSROOM_SCHEMA_STATEMENTS.length >= tables.length);
   for (const table of tables) assert.ok(CLASSROOM_SCHEMA_STATEMENTS.some((statement) => statement.includes(`CREATE TABLE IF NOT EXISTS \`${table}\``)));
   for (const statement of CLASSROOM_SCHEMA_STATEMENTS) {
-    if (/^UPDATE\s/i.test(statement)) {
-      assert.match(statement, /WHERE [\s\S]*IS NULL/i, "data retirement updates must be guarded and repeatable");
+    const executable = statement.replace(/^(?:--[^\n]*(?:\n|$))+/g, "").trimStart();
+    if (/^UPDATE\s/i.test(executable)) {
+      assert.match(executable, /WHERE [\s\S]*IS NULL/i, "data retirement updates must be guarded and repeatable");
+    } else if (/^INSERT OR IGNORE\s/i.test(executable)) {
+      assert.match(executable, /classroom_admin_dm_grants/, "backfills must be conflict-safe and repeatable");
     } else {
-      assert.match(statement, /IF NOT EXISTS/, "DDL bootstrap must be repeatable");
+      assert.match(executable, /IF NOT EXISTS/, "DDL bootstrap must be repeatable");
     }
   }
 });
@@ -54,6 +58,9 @@ test("unified course factory keeps release, courseware, permissions and controll
     "uidx_room_courseware_role",
     "uidx_classroom_mentor_profile",
     "uidx_classroom_permissions_grant",
+    "uidx_classroom_admin_dm_grant",
+    "uidx_classroom_admin_dm_primary_room",
+    "uidx_auth_impersonations_active_session",
     "classroom_controller_states",
     "chk_classroom_wallet_non_negative",
     "uidx_course_view_acceptance_exact",

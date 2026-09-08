@@ -33,6 +33,7 @@ import {
 } from "./course-acceptance";
 
 const TEAM_PUBLIC_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+export type AdminDmDelegationMode = "primary" | "delegated";
 
 export type ClassroomInstanceSummary = {
   id: string;
@@ -45,12 +46,21 @@ export type ClassroomInstanceSummary = {
   mentorRole: ClassroomMentorRole | null;
   learnerSeat: number | null;
   isAdminDm: boolean;
+  adminDmMode: AdminDmDelegationMode | null;
+  canDelegateAdminDm: boolean;
   acceptance: { viewReceiptId: string | null; uiReceiptId: string | null };
   updatedAt: string;
 };
 
 export type ClassroomInstanceDetail = ClassroomInstanceSummary & {
-  viewer: { profileId: string; displayName: string; platformRole: string | null };
+  viewer: {
+    profileId: string;
+    displayName: string;
+    platformRole: string | null;
+    actorProfileId: string;
+    impersonationId: string | null;
+    impersonationExpiresAt: string | null;
+  };
   course: { id: string; title: string; period: string; stepNames: string[]; blockCount: number };
   currentBlock: {
     id: string;
@@ -69,7 +79,7 @@ export type ClassroomInstanceDetail = ClassroomInstanceSummary & {
   team: { id: string; name: string; publicId: string; seatLimit: number };
   mentors: Array<{ mentorRole: ClassroomMentorRole; profileId: string; displayName: string; courseware: ExactCoursewareRef }>;
   learners: Array<{ profileId: string; displayName: string; seat: number }>;
-  admins: Array<{ profileId: string; displayName: string }>;
+  admins: Array<{ profileId: string; displayName: string; mode: AdminDmDelegationMode; canDelegate: boolean }>;
   courseware: ExactCoursewareRef[];
   submissions: Array<{ profileId: string; displayName: string; kind: string; text: string; status: string; updatedAt: string }>;
   economy: { personalRp: number; personalWalletTenths: number; teamTreasuryTenths: number };
@@ -227,11 +237,22 @@ export async function createClassroomInstance(
       }
     });
   }
+  const primaryAdminDmProfileId = request.adminDmProfileIds[0];
   for (const permission of plan.adminPermissions) {
-    statements.push(db.prepare(
-      `INSERT INTO classroom_permissions (id, room_id, profile_id, permission, granted_by_profile_id, created_at)
-       VALUES (?, ?, ?, 'admin-dm', ?, ?)`,
-    ).bind(crypto.randomUUID(), roomId, permission.profileId, actor.userId, now));
+    const grantId = crypto.randomUUID();
+    const mode: AdminDmDelegationMode = permission.profileId === primaryAdminDmProfileId ? "primary" : "delegated";
+    statements.push(
+      db.prepare(
+        `INSERT INTO classroom_permissions (id, room_id, profile_id, permission, granted_by_profile_id, created_at)
+         VALUES (?, ?, ?, 'admin-dm', ?, ?)`,
+      ).bind(grantId, roomId, permission.profileId, actor.userId, now),
+      db.prepare(
+        `INSERT INTO classroom_admin_dm_grants
+         (id, room_id, profile_id, delegation_mode, can_delegate, granted_by_profile_id,
+          granted_at, revoked_by_profile_id, revoked_at, version)
+         VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL, 1)`,
+      ).bind(grantId, roomId, permission.profileId, mode, mode === "primary" ? 1 : 0, actor.userId, now),
+    );
   }
   for (const ref of trustedCourseware) {
     statements.push(db.prepare(
@@ -261,7 +282,7 @@ export async function createClassroomInstance(
         created_by_member_id, idempotency_key, reason, reversal_of, created_at)
        VALUES (?, ?, ?, NULL, ?, 100, 'financing', ?, ?, ?, '课程工厂初始团队资金 10 C', NULL, ?)`,
     ).bind(crypto.randomUUID(), roomId, firstChapter.id, `treasury:${teamId}`, `factory-initial:${roomId}`, ledgerActorMembershipId, `factory-initial:${roomId}`, now),
-    factoryEvent(db, roomId, actor.userId, "classroom.created", {
+    factoryEvent(db, roomId, auditActor(actor), "classroom.created", withIdentityAudit(actor, {
       environment: request.environment,
       learnerCount: request.learnerCount,
       courseRef,
@@ -269,7 +290,7 @@ export async function createClassroomInstance(
       viewAcceptanceReceiptId: viewReceipt.receiptId,
       uiAcceptanceReceiptId: uiReceipt?.receiptId ?? null,
       adminDmProfileIds: request.adminDmProfileIds,
-    }, now),
+    }), now),
   );
   await db.batch(statements);
   return { classroomId: roomId, teamPublicId };
@@ -282,7 +303,8 @@ export async function listClassroomInstances(db: ClassroomD1, user: Authenticate
             CASE WHEN rp.course_id IS NULL THEN 0 ELSE 1 END AS course_released,
             cs.state_machine_version, cs.block_id, cs.block_index, cs.state, cs.attempt, cs.error_message, cs.version,
             ms.mentor_role, lm.seat AS learner_seat,
-            CASE WHEN cp.id IS NULL THEN 0 ELSE 1 END AS is_admin_dm,
+            CASE WHEN g.id IS NULL THEN 0 ELSE 1 END AS is_admin_dm,
+            g.delegation_mode AS admin_dm_mode, COALESCE(g.can_delegate, 0) AS can_delegate_admin_dm,
             ab.view_receipt_id, ab.ui_receipt_id
      FROM rooms r
      JOIN classroom_instances ci ON ci.room_id = r.id
@@ -292,15 +314,24 @@ export async function listClassroomInstances(db: ClassroomD1, user: Authenticate
      LEFT JOIN classroom_acceptance_bindings ab ON ab.room_id = r.id
      LEFT JOIN classroom_mentor_seats ms ON ms.room_id = r.id AND ms.profile_id = ?
      LEFT JOIN memberships lm ON lm.room_id = r.id AND lm.profile_id = ? AND lm.role = 'learner' AND lm.status = 'active'
-     LEFT JOIN classroom_permissions cp ON cp.room_id = r.id AND cp.profile_id = ? AND cp.permission = 'admin-dm'
-     WHERE ms.profile_id IS NOT NULL OR lm.profile_id IS NOT NULL OR cp.id IS NOT NULL
+     LEFT JOIN classroom_admin_dm_grants g
+       ON g.room_id = r.id AND g.profile_id = ? AND g.revoked_at IS NULL
+     WHERE (ms.profile_id IS NOT NULL OR lm.profile_id IS NOT NULL OR g.id IS NOT NULL)
+       AND (? IS NULL OR (r.id = ? AND ci.environment = 'test'))
      ORDER BY CASE ci.lifecycle WHEN 'running' THEN 0 WHEN 'ready' THEN 1 ELSE 2 END, ci.updated_at DESC`,
-  ).bind(user.userId, user.userId, user.userId).all<{
+  ).bind(
+    user.userId,
+    user.userId,
+    user.userId,
+    user.impersonationClassroomId ?? null,
+    user.impersonationClassroomId ?? null,
+  ).all<{
     id: string; title: string; environment: ClassroomEnvironment; lifecycle: string; learner_count: number;
     course_id: string; course_revision: number; course_digest: string; schema_version: number; updated_at: string;
     state_machine_version: 1; block_id: string; block_index: number; state: ClassroomControllerState["state"];
     attempt: number; error_message: string | null; version: number; mentor_role: ClassroomMentorRole | null;
-    learner_seat: number | null; is_admin_dm: number; course_released: number;
+    learner_seat: number | null; is_admin_dm: number; admin_dm_mode: AdminDmDelegationMode | null;
+    can_delegate_admin_dm: number; course_released: number;
     view_receipt_id: string | null; ui_receipt_id: string | null;
   }>();
   return (result.results ?? []).map((row) => ({
@@ -329,6 +360,8 @@ export async function listClassroomInstances(db: ClassroomD1, user: Authenticate
     mentorRole: row.mentor_role,
     learnerSeat: row.learner_seat,
     isAdminDm: Boolean(row.is_admin_dm),
+    adminDmMode: row.admin_dm_mode,
+    canDelegateAdminDm: Boolean(row.can_delegate_admin_dm),
     acceptance: { viewReceiptId: row.view_receipt_id, uiReceiptId: row.ui_receipt_id },
     updatedAt: row.updated_at,
   }));
@@ -363,9 +396,16 @@ export async function getClassroomInstance(db: ClassroomD1, user: AuthenticatedC
   ).bind(roomId).all<{ mentor_role: ClassroomMentorRole; package_id: string; revision: number; digest: string; slug: string }>();
   const courseware = (coursewareRows.results ?? []).map((row) => ({ mentorRole: row.mentor_role, packageId: row.package_id, revision: row.revision, digest: row.digest, slug: row.slug }));
   const adminRows = await db.prepare(
-    `SELECT cp.profile_id, p.nickname FROM classroom_permissions cp JOIN profiles p ON p.id = cp.profile_id
-     WHERE cp.room_id = ? AND cp.permission = 'admin-dm' ORDER BY p.nickname`,
-  ).bind(roomId).all<{ profile_id: string; nickname: string }>();
+    `SELECT g.profile_id, p.nickname, g.delegation_mode, g.can_delegate
+     FROM classroom_admin_dm_grants g JOIN profiles p ON p.id = g.profile_id
+     WHERE g.room_id = ? AND g.revoked_at IS NULL
+     ORDER BY CASE g.delegation_mode WHEN 'primary' THEN 0 ELSE 1 END, p.nickname`,
+  ).bind(roomId).all<{
+    profile_id: string;
+    nickname: string;
+    delegation_mode: AdminDmDelegationMode;
+    can_delegate: number;
+  }>();
   if ((mentorRows.results ?? []).length !== 4 || courseware.length !== 4) {
     throw new ClassroomError("CLASSROOM_MENTOR_BINDING_CORRUPT", "课堂必须保持 P／D／M／O 四个导师席与四套 exact 课件绑定。", 500);
   }
@@ -405,7 +445,14 @@ export async function getClassroomInstance(db: ClassroomD1, user: AuthenticatedC
   }>();
   return {
     ...summary,
-    viewer: { profileId: user.userId, displayName: user.displayName, platformRole: user.platformRole ?? null },
+    viewer: {
+      profileId: user.userId,
+      displayName: user.displayName,
+      platformRole: user.platformRole ?? null,
+      actorProfileId: user.actorProfileId ?? user.userId,
+      impersonationId: user.impersonationId ?? null,
+      impersonationExpiresAt: user.impersonationExpiresAt ?? null,
+    },
     course: {
       id: course.course.id,
       title: course.course.name,
@@ -434,7 +481,12 @@ export async function getClassroomInstance(db: ClassroomD1, user: AuthenticatedC
       courseware: courseware.find((ref) => ref.mentorRole === row.mentor_role)!,
     })),
     learners: (learnerRows.results ?? []).map((row) => ({ profileId: row.profile_id, displayName: row.nickname, seat: row.seat })),
-    admins: (adminRows.results ?? []).map((row) => ({ profileId: row.profile_id, displayName: row.nickname })),
+    admins: (adminRows.results ?? []).map((row) => ({
+      profileId: row.profile_id,
+      displayName: row.nickname,
+      mode: row.delegation_mode,
+      canDelegate: Boolean(row.can_delegate),
+    })),
     courseware,
     submissions: (submissionResult.results ?? []).map((row) => {
       let text = "";
@@ -495,7 +547,7 @@ export async function submitClassroomBlockWork(
        ON CONFLICT(room_id, block_id, profile_id, kind) DO UPDATE SET
          payload_json = excluded.payload_json, status = 'submitted', updated_at = excluded.updated_at`,
     ).bind(crypto.randomUUID(), roomId, detail.currentBlock.id, user.userId, kind, JSON.stringify({ text }), now, now),
-    factoryEvent(db, roomId, user.userId, "block.submitted", { blockId: detail.currentBlock.id, kind }, now),
+    factoryEvent(db, roomId, auditActor(user), "block.submitted", withIdentityAudit(user, { blockId: detail.currentBlock.id, kind }), now),
   ]);
 }
 
@@ -506,7 +558,7 @@ export async function applyControllerAction(
   expectedVersion: number,
   action: ClassroomControllerAction,
 ): Promise<ClassroomControllerState & { version: number }> {
-  await requireAdminDm(db, user.userId, roomId);
+  await requireAdminDm(db, user, roomId);
   const row = await db.prepare(
     `SELECT cs.*, ci.environment, ci.lifecycle FROM classroom_controller_states cs
      JOIN classroom_instances ci ON ci.room_id = cs.room_id WHERE cs.room_id = ?`,
@@ -548,13 +600,13 @@ export async function applyControllerAction(
        started_at = CASE WHEN started_at IS NULL AND ? = 'running' THEN ? ELSE started_at END,
        completed_at = CASE WHEN ? = 'completed' THEN ? ELSE completed_at END, updated_at = ? WHERE room_id = ?`,
     ).bind(lifecycle, lifecycle, now, lifecycle, now, lifecycle, now, now, roomId),
-    factoryEvent(db, roomId, user.userId, `controller.${action.type}`, { from: current, to: next }, now),
+    factoryEvent(db, roomId, auditActor(user), `controller.${action.type}`, withIdentityAudit(user, { from: current, to: next }), now),
   ]);
   return { ...next, version: expectedVersion + 1 };
 }
 
 export async function resetTestClassroom(db: ClassroomD1, user: AuthenticatedClassroomUser, roomId: string): Promise<void> {
-  await requireAdminDm(db, user.userId, roomId);
+  await requireAdminDm(db, user, roomId);
   const instance = await db.prepare(
     `SELECT environment, course_id, course_revision, course_digest, learner_count
      FROM classroom_instances WHERE room_id = ?`,
@@ -620,7 +672,7 @@ export async function resetTestClassroom(db: ClassroomD1, user: AuthenticatedCla
         created_by_member_id, idempotency_key, reason, reversal_of, created_at)
        VALUES (?, ?, ?, NULL, ?, 100, 'financing', ?, ?, ?, 'Test 重置后的初始团队资金 10 C', NULL, ?)`,
     ).bind(crypto.randomUUID(), roomId, campaign.chapters[0].id, `treasury:${team.id}`, `factory-reset:${roomId}:${now}`, actorMembership.membership_id, `factory-reset:${roomId}:${now}`, now),
-    factoryEvent(db, roomId, user.userId, "classroom.test-reset", { learnerCount: instance.learner_count }, now),
+    factoryEvent(db, roomId, auditActor(user), "classroom.test-reset", withIdentityAudit(user, { learnerCount: instance.learner_count }), now),
   );
   await db.batch(statements);
 }
@@ -632,7 +684,7 @@ export async function acceptTestClassroom(
   checks: Record<string, unknown>,
   clientMatrix: UiAcceptanceClient[],
 ) {
-  await requireAdminDm(db, user.userId, roomId);
+  await requireAdminDm(db, user, roomId);
   const detail = await getClassroomInstance(db, user, roomId);
   if (detail.environment !== "test") throw new ClassroomError("TEST_CLASSROOM_REQUIRED", "只有 Test Classroom 可以生成验收回执。", 409);
   if (detail.controller.state !== "completed") throw new ClassroomError("TEST_NOT_COMPLETED", "请先用真实课堂 UI 完成全部 Block。", 409);
@@ -656,8 +708,9 @@ export async function acceptTestClassroom(
      WHERE room_id = ? AND role = 'learner' AND status = 'active' ORDER BY seat`,
   ).bind(roomId).all<{ seat: number; membership_id: string; profile_id: string }>();
   const adminRows = await db.prepare(
-    `SELECT profile_id FROM classroom_permissions
-     WHERE room_id = ? AND permission = 'admin-dm' ORDER BY profile_id`,
+    `SELECT profile_id FROM classroom_admin_dm_grants
+     WHERE room_id = ? AND revoked_at IS NULL
+     ORDER BY CASE delegation_mode WHEN 'primary' THEN 0 ELSE 1 END, profile_id`,
   ).bind(roomId).all<{ profile_id: string }>();
   const audit = await db.prepare(
     `SELECT COUNT(*) AS event_count, MIN(created_at) AS first_event_at, MAX(created_at) AS last_event_at
@@ -684,8 +737,9 @@ export async function acceptTestClassroom(
       lastEventAt: audit?.last_event_at ?? null,
       controllerVersion: detail.controller.version,
       appBuildId: COURSE_ACCEPTANCE_APP_BUILD_ID,
+      ...identityAudit(user),
     },
-  }, user.userId);
+  }, auditActor(user));
   return {
     receiptId: receipt.receiptId,
     viewReceiptId: receipt.viewReceiptId,
@@ -704,19 +758,103 @@ export type AssignableClassroomAccount = {
   inClassroom: boolean;
 };
 
+export type TestClassroomIdentity = {
+  userId: string;
+  username: string;
+  displayName: string;
+  role: "mentor" | "learner" | "observer";
+  status: "active" | "disabled";
+  mentorRole: ClassroomMentorRole | null;
+  learnerSeat: number | null;
+  adminDmMode: AdminDmDelegationMode | null;
+  mustChangePassword: boolean;
+  lastSeenAt: string | null;
+};
+
+/**
+ * The account switcher is intentionally Test-only and returns only identities
+ * that are already scoped to this exact classroom.  It never exposes another
+ * platform administrator as a target.
+ */
+export async function listTestClassroomIdentities(
+  db: ClassroomD1,
+  user: AuthenticatedClassroomUser,
+  roomId: string,
+): Promise<TestClassroomIdentity[]> {
+  if (user.impersonationId || user.platformRole !== "admin") {
+    throw new ClassroomError("PLATFORM_ADMIN_REQUIRED", "只有真实登录的平台管理员可以管理测试身份。", 403);
+  }
+  const instance = await db.prepare(
+    `SELECT ci.environment,
+            CASE WHEN g.id IS NULL THEN 0 ELSE 1 END AS actor_is_admin_dm
+     FROM classroom_instances ci
+     LEFT JOIN classroom_admin_dm_grants g
+       ON g.room_id = ci.room_id AND g.profile_id = ? AND g.revoked_at IS NULL
+     WHERE ci.room_id = ?`,
+  ).bind(user.userId, roomId).first<{ environment: ClassroomEnvironment; actor_is_admin_dm: number }>();
+  if (!instance) throw new ClassroomError("CLASSROOM_NOT_FOUND", "课堂不存在。", 404);
+  if (instance.environment !== "test") {
+    throw new ClassroomError("TEST_CLASSROOM_REQUIRED", "测试身份只适用于 Test Classroom。", 403);
+  }
+  if (!instance.actor_is_admin_dm) {
+    throw new ClassroomError("CLASSROOM_ADMIN_REQUIRED", "平台管理员必须显式拥有本课堂 Admin DM 权限。", 403);
+  }
+  const result = await db.prepare(
+    `SELECT u.id, u.username, u.display_name, u.role, u.status, u.must_change_password,
+            ms.mentor_role, lm.seat AS learner_seat, g.delegation_mode,
+            MAX(CASE WHEN s.revoked_at IS NULL THEN s.last_seen_at END) AS last_seen_at
+     FROM auth_users u
+     LEFT JOIN classroom_mentor_seats ms ON ms.room_id = ? AND ms.profile_id = u.id
+     LEFT JOIN memberships lm
+       ON lm.room_id = ? AND lm.profile_id = u.id AND lm.role = 'learner' AND lm.status = 'active'
+     LEFT JOIN classroom_admin_dm_grants g
+       ON g.room_id = ? AND g.profile_id = u.id AND g.revoked_at IS NULL
+     LEFT JOIN auth_sessions s ON s.user_id = u.id
+     WHERE u.role <> 'admin'
+       AND (ms.profile_id IS NOT NULL OR lm.profile_id IS NOT NULL OR g.id IS NOT NULL)
+     GROUP BY u.id, ms.mentor_role, lm.seat, g.delegation_mode
+     ORDER BY CASE WHEN ms.mentor_role IS NOT NULL THEN 0 WHEN lm.seat IS NOT NULL THEN 1 ELSE 2 END,
+              CASE ms.mentor_role WHEN 'P' THEN 1 WHEN 'D' THEN 2 WHEN 'M' THEN 3 WHEN 'O' THEN 4 ELSE 5 END,
+              lm.seat, u.username`,
+  ).bind(roomId, roomId, roomId).all<{
+    id: string;
+    username: string;
+    display_name: string;
+    role: "mentor" | "learner" | "observer";
+    status: "active" | "disabled";
+    must_change_password: number;
+    mentor_role: ClassroomMentorRole | null;
+    learner_seat: number | null;
+    delegation_mode: AdminDmDelegationMode | null;
+    last_seen_at: string | null;
+  }>();
+  return (result.results ?? []).map((row) => ({
+    userId: row.id,
+    username: row.username,
+    displayName: row.display_name,
+    role: row.role,
+    status: row.status,
+    mentorRole: row.mentor_role,
+    learnerSeat: row.learner_seat,
+    adminDmMode: row.delegation_mode,
+    mustChangePassword: Boolean(row.must_change_password),
+    lastSeenAt: row.last_seen_at,
+  }));
+}
+
 export async function listAssignableClassroomAccounts(
   db: ClassroomD1,
   user: AuthenticatedClassroomUser,
   roomId: string,
 ): Promise<AssignableClassroomAccount[]> {
-  await requireAdminDm(db, user.userId, roomId);
+  await requireAdminDm(db, user, roomId);
   const result = await db.prepare(
     `SELECT u.id, u.username, u.display_name, u.role,
             CASE WHEN m.id IS NOT NULL THEN 1 ELSE 0 END AS has_membership,
-            CASE WHEN p.id IS NOT NULL THEN 1 ELSE 0 END AS has_admin_dm
+            CASE WHEN g.id IS NOT NULL THEN 1 ELSE 0 END AS has_admin_dm
      FROM auth_users u
      LEFT JOIN memberships m ON m.room_id = ? AND m.profile_id = u.id AND m.status = 'active'
-     LEFT JOIN classroom_permissions p ON p.room_id = ? AND p.profile_id = u.id AND p.permission = 'admin-dm'
+     LEFT JOIN classroom_admin_dm_grants g ON g.room_id = ? AND g.profile_id = u.id AND g.revoked_at IS NULL
      WHERE u.status = 'active' AND u.role IN ('admin', 'mentor', 'learner')
      ORDER BY CASE u.role WHEN 'admin' THEN 1 WHEN 'mentor' THEN 2 ELSE 3 END, u.username LIMIT 300`,
   ).bind(roomId, roomId).all<{
@@ -742,7 +880,8 @@ export type ClassroomMembershipAction =
   | { type: "replace-learner"; seat: number; profileId: string }
   | { type: "replace-mentor"; mentorRole: ClassroomMentorRole; profileId: string }
   | { type: "grant-admin-dm"; profileId: string }
-  | { type: "revoke-admin-dm"; profileId: string };
+  | { type: "revoke-admin-dm"; profileId: string }
+  | { type: "relinquish-admin-dm" };
 
 export async function updateClassroomMembership(
   db: ClassroomD1,
@@ -750,40 +889,127 @@ export async function updateClassroomMembership(
   roomId: string,
   action: ClassroomMembershipAction,
 ): Promise<void> {
-  await requireAdminDm(db, user.userId, roomId);
+  const callerGrant = await requireAdminDm(db, user, roomId);
   const instance = await db.prepare(`SELECT lifecycle, learner_count FROM classroom_instances WHERE room_id = ?`).bind(roomId).first<{ lifecycle: string; learner_count: number }>();
   if (!instance) throw new ClassroomError("CLASSROOM_NOT_FOUND", "课堂不存在。", 404);
+  if (action.type === "relinquish-admin-dm") {
+    if (user.impersonationId) {
+      await denyAdminDmDelegation(db, user, roomId, action.type, "ADMIN_DM_DELEGATION_REQUIRED");
+    }
+    if (callerGrant.mode !== "delegated") {
+      await denyAdminDmDelegation(db, user, roomId, action.type, "PRIMARY_RELINQUISH_FORBIDDEN");
+    }
+    const now = new Date().toISOString();
+    await db.batch([
+      db.prepare(
+        `UPDATE classroom_admin_dm_grants
+         SET revoked_by_profile_id = ?, revoked_at = ?, version = version + 1
+         WHERE id = ? AND revoked_at IS NULL AND delegation_mode = 'delegated'`,
+      ).bind(auditActor(user), now, callerGrant.id),
+      db.prepare(
+        `DELETE FROM classroom_permissions
+         WHERE room_id = ? AND profile_id = ? AND permission = 'admin-dm'`,
+      ).bind(roomId, user.userId),
+      db.prepare(
+        `UPDATE auth_impersonations SET revoked_at = ?, end_reason = 'admin-dm-relinquished'
+         WHERE classroom_id = ? AND effective_user_id = ? AND revoked_at IS NULL`,
+      ).bind(now, roomId, user.userId),
+      factoryEvent(db, roomId, auditActor(user), "membership.admin-dm.relinquished", withIdentityAudit(user, { profileId: user.userId }), now),
+    ]);
+    return;
+  }
   const profileId = action.profileId.trim();
   if (!profileId || profileId.length > 128) throw new ClassroomError("PROFILE_ID_INVALID", "账号 ID 无效。", 400);
   const account = await db.prepare(`SELECT role, status FROM auth_users WHERE id = ?`).bind(profileId).first<{ role: string; status: string }>();
-  if (!account || account.status !== "active") throw new ClassroomError("ACCOUNT_NOT_AVAILABLE", "账号不存在或已停用。", 409);
   const now = new Date().toISOString();
 
   if (action.type === "grant-admin-dm") {
-    if (account.role !== "admin" && account.role !== "mentor") throw new ClassroomError("ADMIN_DM_ACCOUNT_INVALID", "Admin DM 只能授予管理员或导师账号。", 409);
+    await requireAdminDmDelegator(db, user, roomId, callerGrant, action.type);
+    const existingGrant = await db.prepare(
+      `SELECT id, delegation_mode, revoked_at FROM classroom_admin_dm_grants
+       WHERE room_id = ? AND profile_id = ?`,
+    ).bind(roomId, profileId).first<{
+      id: string;
+      delegation_mode: AdminDmDelegationMode;
+      revoked_at: string | null;
+    }>();
+    if (existingGrant?.delegation_mode === "primary") {
+      await denyAdminDmDelegation(db, user, roomId, action.type, "ADMIN_DM_ALREADY_PRIMARY", profileId);
+    }
+    if (existingGrant && !existingGrant.revoked_at) {
+      await factoryEvent(db, roomId, auditActor(user), "membership.admin-dm.grant-idempotent", withIdentityAudit(user, {
+        profileId,
+        delegationMode: "delegated",
+      }), now).run();
+      return;
+    }
+    if (!account || account.status !== "active") {
+      throw new ClassroomError("ACCOUNT_NOT_AVAILABLE", "账号不存在或已停用。", 409);
+    }
+    if (account.role !== "mentor") {
+      await denyAdminDmDelegation(db, user, roomId, action.type, "DELEGATED_DM_MENTOR_REQUIRED", profileId);
+    }
+    const grantId = existingGrant?.id ?? crypto.randomUUID();
     await db.batch([
       db.prepare(
         `INSERT OR IGNORE INTO classroom_permissions (id, room_id, profile_id, permission, granted_by_profile_id, created_at)
          VALUES (?, ?, ?, 'admin-dm', ?, ?)`,
-      ).bind(crypto.randomUUID(), roomId, profileId, user.userId, now),
+      ).bind(grantId, roomId, profileId, auditActor(user), now),
+      db.prepare(
+        `INSERT INTO classroom_admin_dm_grants
+         (id, room_id, profile_id, delegation_mode, can_delegate, granted_by_profile_id,
+          granted_at, revoked_by_profile_id, revoked_at, version)
+         VALUES (?, ?, ?, 'delegated', 0, ?, ?, NULL, NULL, 1)
+         ON CONFLICT(room_id, profile_id) DO UPDATE SET
+           granted_by_profile_id = excluded.granted_by_profile_id,
+           granted_at = excluded.granted_at, revoked_by_profile_id = NULL,
+           revoked_at = NULL, version = classroom_admin_dm_grants.version + 1
+         WHERE classroom_admin_dm_grants.delegation_mode = 'delegated'
+           AND classroom_admin_dm_grants.revoked_at IS NOT NULL`,
+      ).bind(grantId, roomId, profileId, auditActor(user), now),
       db.prepare(
         `INSERT OR IGNORE INTO classroom_wallet_balances (room_id, profile_id, balance_tenths, created_at, updated_at)
          VALUES (?, ?, 0, ?, ?)`,
       ).bind(roomId, profileId, now, now),
-      factoryEvent(db, roomId, user.userId, "membership.admin-dm.granted", { profileId }, now),
+      factoryEvent(db, roomId, auditActor(user), "membership.admin-dm.granted", withIdentityAudit(user, { profileId, delegationMode: "delegated", canDelegate: false }), now),
     ]);
     return;
   }
   if (action.type === "revoke-admin-dm") {
-    const count = await db.prepare(`SELECT COUNT(*) AS value FROM classroom_permissions WHERE room_id = ? AND permission = 'admin-dm'`).bind(roomId).first<{ value: number }>();
-    if (Number(count?.value ?? 0) <= 1) throw new ClassroomError("LAST_ADMIN_DM", "课堂必须保留至少一个 Admin DM。", 409);
-    if (profileId === user.userId) throw new ClassroomError("SELF_ADMIN_DM_REVOKE", "请让另一位 Admin DM 撤销你的权限，避免误锁课堂。", 409);
+    await requireAdminDmDelegator(db, user, roomId, callerGrant, action.type);
+    const targetGrant = await db.prepare(
+      `SELECT id, delegation_mode, revoked_at FROM classroom_admin_dm_grants
+       WHERE room_id = ? AND profile_id = ?`,
+    ).bind(roomId, profileId).first<{ id: string; delegation_mode: AdminDmDelegationMode; revoked_at: string | null }>();
+    if (!targetGrant) {
+      await denyAdminDmDelegation(db, user, roomId, action.type, "ADMIN_DM_GRANT_NOT_FOUND", profileId);
+    }
+    if (targetGrant!.delegation_mode === "primary") {
+      await denyAdminDmDelegation(db, user, roomId, action.type, "PRIMARY_ADMIN_DM_PROTECTED", profileId);
+    }
+    if (targetGrant!.revoked_at) {
+      await factoryEvent(db, roomId, auditActor(user), "membership.admin-dm.revoke-idempotent", withIdentityAudit(user, {
+        profileId,
+      }), now).run();
+      return;
+    }
     await db.batch([
       db.prepare(`DELETE FROM classroom_permissions WHERE room_id = ? AND profile_id = ? AND permission = 'admin-dm'`).bind(roomId, profileId),
-      factoryEvent(db, roomId, user.userId, "membership.admin-dm.revoked", { profileId }, now),
+      db.prepare(
+        `UPDATE classroom_admin_dm_grants
+         SET revoked_by_profile_id = ?, revoked_at = ?, version = version + 1
+         WHERE id = ? AND revoked_at IS NULL AND delegation_mode = 'delegated'`,
+      ).bind(auditActor(user), now, targetGrant!.id),
+      db.prepare(
+        `UPDATE auth_impersonations SET revoked_at = ?, end_reason = 'admin-dm-revoked'
+         WHERE classroom_id = ? AND effective_user_id = ? AND revoked_at IS NULL`,
+      ).bind(now, roomId, profileId),
+      factoryEvent(db, roomId, auditActor(user), "membership.admin-dm.revoked", withIdentityAudit(user, { profileId }), now),
     ]);
     return;
   }
+
+  if (!account || account.status !== "active") throw new ClassroomError("ACCOUNT_NOT_AVAILABLE", "账号不存在或已停用。", 409);
 
   if (instance.lifecycle === "running" || instance.lifecycle === "completed") {
     throw new ClassroomError("CLASSROOM_MEMBERS_LOCKED", "课堂开始后导师与学员席已锁定；请先在 Test 环境重置或创建新课堂。", 409);
@@ -803,7 +1029,7 @@ export async function updateClassroomMembership(
     await db.batch([
       db.prepare(`UPDATE memberships SET profile_id = ?, updated_at = ? WHERE id = ?`).bind(profileId, now, membership.id),
       db.prepare(`INSERT OR IGNORE INTO classroom_wallet_balances (room_id, profile_id, balance_tenths, created_at, updated_at) VALUES (?, ?, 0, ?, ?)`).bind(roomId, profileId, now, now),
-      factoryEvent(db, roomId, user.userId, "membership.learner.replaced", { seat: action.seat, fromProfileId: membership.profile_id, toProfileId: profileId }, now),
+      factoryEvent(db, roomId, auditActor(user), "membership.learner.replaced", withIdentityAudit(user, { seat: action.seat, fromProfileId: membership.profile_id, toProfileId: profileId }), now),
     ]);
     return;
   }
@@ -817,7 +1043,7 @@ export async function updateClassroomMembership(
     db.prepare(`UPDATE memberships SET profile_id = ?, updated_at = ? WHERE id = ?`).bind(profileId, now, mentor.membership_id),
     db.prepare(`UPDATE classroom_mentor_seats SET profile_id = ?, updated_at = ? WHERE room_id = ? AND mentor_role = ?`).bind(profileId, now, roomId, action.mentorRole),
     db.prepare(`INSERT OR IGNORE INTO classroom_wallet_balances (room_id, profile_id, balance_tenths, created_at, updated_at) VALUES (?, ?, 0, ?, ?)`).bind(roomId, profileId, now, now),
-    factoryEvent(db, roomId, user.userId, "membership.mentor.replaced", { mentorRole: action.mentorRole, fromProfileId: mentor.profile_id, toProfileId: profileId }, now),
+    factoryEvent(db, roomId, auditActor(user), "membership.mentor.replaced", withIdentityAudit(user, { mentorRole: action.mentorRole, fromProfileId: mentor.profile_id, toProfileId: profileId }), now),
   ]);
 }
 
@@ -861,21 +1087,118 @@ async function validateAccountAssignments(db: ClassroomD1, request: ClassroomFac
     const user = users.get(profileId);
     if (!user || user.status !== "active" || user.role !== "learner") throw new ClassroomError("LEARNER_ACCOUNT_INVALID", `学员账号 ${profileId} 不存在、已停用或角色不正确。`, 409);
   }
-  for (const profileId of request.adminDmProfileIds) {
+  for (const [index, profileId] of request.adminDmProfileIds.entries()) {
     const user = users.get(profileId);
-    if (!user || user.status !== "active" || (user.role !== "admin" && user.role !== "mentor")) throw new ClassroomError("ADMIN_DM_ACCOUNT_INVALID", "Admin DM 必须是有效的管理员或导师账号。", 409);
+    if (!user || user.status !== "active" || (index === 0 ? user.role !== "admin" && user.role !== "mentor" : user.role !== "mentor")) {
+      throw new ClassroomError(
+        "ADMIN_DM_ACCOUNT_INVALID",
+        index === 0 ? "Primary Admin DM 必须是有效的管理员或导师账号。" : "初始 Delegated Admin DM 必须是有效导师账号。",
+        409,
+      );
+    }
   }
 }
 
 function requireFactoryCreator(user: AuthenticatedClassroomUser): void {
+  if (user.impersonationId) {
+    throw new ClassroomError("IMPERSONATION_FACTORY_FORBIDDEN", "测试身份不能创建课堂；请先返回管理员身份。", 403);
+  }
   if (user.platformRole !== "admin" && user.platformRole !== "mentor") {
     throw new ClassroomError("FACTORY_CREATOR_REQUIRED", "只有导师或平台管理员可以创建课堂。", 403);
   }
 }
 
-async function requireAdminDm(db: ClassroomD1, profileId: string, roomId: string): Promise<void> {
-  const row = await db.prepare(`SELECT id FROM classroom_permissions WHERE room_id = ? AND profile_id = ? AND permission = 'admin-dm'`).bind(roomId, profileId).first<{ id: string }>();
+type ActiveAdminDmGrant = {
+  id: string;
+  mode: AdminDmDelegationMode;
+  canDelegate: boolean;
+};
+
+async function requireAdminDm(
+  db: ClassroomD1,
+  user: AuthenticatedClassroomUser,
+  roomId: string,
+): Promise<ActiveAdminDmGrant> {
+  if (user.impersonationClassroomId && user.impersonationClassroomId !== roomId) {
+    throw new ClassroomError("IMPERSONATION_SCOPE_FORBIDDEN", "测试身份只能访问绑定的 Test Classroom。", 403);
+  }
+  const row = await db.prepare(
+    `SELECT g.id, g.delegation_mode, g.can_delegate, ci.environment
+     FROM classroom_admin_dm_grants g
+     JOIN classroom_instances ci ON ci.room_id = g.room_id
+     WHERE g.room_id = ? AND g.profile_id = ? AND g.revoked_at IS NULL`,
+  ).bind(roomId, user.userId).first<{
+    id: string;
+    delegation_mode: AdminDmDelegationMode;
+    can_delegate: number;
+    environment: ClassroomEnvironment;
+  }>();
   if (!row) throw new ClassroomError("ADMIN_DM_REQUIRED", "此操作需要本课堂 Admin DM 权限。", 403);
+  if (user.impersonationId && row.environment !== "test") {
+    throw new ClassroomError("IMPERSONATION_PRODUCTION_FORBIDDEN", "测试身份不能进入 Production Classroom。", 403);
+  }
+  return { id: row.id, mode: row.delegation_mode, canDelegate: Boolean(row.can_delegate) };
+}
+
+async function requireAdminDmDelegator(
+  db: ClassroomD1,
+  user: AuthenticatedClassroomUser,
+  roomId: string,
+  grant: ActiveAdminDmGrant,
+  action: string,
+): Promise<void> {
+  if (user.impersonationId || grant.mode !== "primary" || !grant.canDelegate) {
+    await denyAdminDmDelegation(db, user, roomId, action, "ADMIN_DM_DELEGATION_REQUIRED");
+  }
+}
+
+async function denyAdminDmDelegation(
+  db: ClassroomD1,
+  user: AuthenticatedClassroomUser,
+  roomId: string,
+  action: string,
+  reason: string,
+  targetProfileId?: string,
+): Promise<never> {
+  const now = new Date().toISOString();
+  await factoryEvent(db, roomId, auditActor(user), "membership.admin-dm.denied", withIdentityAudit(user, {
+    requestedAction: action,
+    reason,
+    targetProfileId: targetProfileId ?? null,
+  }), now).run();
+  const message = reason === "PRIMARY_ADMIN_DM_PROTECTED"
+    ? "Primary Admin DM 不能被撤销；课堂必须始终保留主委派人。"
+    : reason === "ADMIN_DM_ALREADY_PRIMARY"
+      ? "目标账号已经是本课堂 Primary Admin DM，不能改写为 Delegated。"
+    : reason === "DELEGATED_DM_MENTOR_REQUIRED"
+      ? "Delegated Admin DM 只能授予有效导师账号。"
+      : reason === "ADMIN_DM_GRANT_NOT_FOUND"
+        ? "目标账号没有可撤销的 Admin DM 权限。"
+        : reason === "PRIMARY_RELINQUISH_FORBIDDEN"
+          ? "Primary Admin DM 不能自行退出。"
+          : "只有 Primary Admin DM 可以授予或撤销 Delegated Admin DM。";
+  throw new ClassroomError(reason, message, reason === "ADMIN_DM_GRANT_NOT_FOUND" ? 404 : 403);
+}
+
+function auditActor(user: AuthenticatedClassroomUser): string {
+  return user.actorProfileId ?? user.userId;
+}
+
+function identityAudit(user: AuthenticatedClassroomUser): Record<string, unknown> {
+  return {
+    actorProfileId: auditActor(user),
+    effectiveProfileId: user.effectiveProfileId ?? user.userId,
+    impersonationId: user.impersonationId ?? null,
+    impersonationClassroomId: user.impersonationClassroomId ?? null,
+    impersonationExpiresAt: user.impersonationExpiresAt ?? null,
+  };
+}
+
+function withIdentityAudit(
+  user: AuthenticatedClassroomUser,
+  detail: Record<string, unknown>,
+): Record<string, unknown> {
+  return { ...detail, ...identityAudit(user) };
 }
 
 function toExactCoursewareRef(content: CoursewareContent): ExactCoursewareRef {

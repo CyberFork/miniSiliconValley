@@ -2,6 +2,7 @@ import Link from "next/link";
 import Script from "next/script";
 import { redirect } from "next/navigation";
 import { chatGPTSignInPath, getChatGPTUser, requireCompletedPasswordSetup } from "../../chatgpt-auth";
+import { AccountMenu } from "../../components/AccountMenu";
 import workbenchDocument from "./workbench.html?raw";
 import editorStyles from "../../../public/studio/editor-assets/editor.css?raw";
 import previewStyles from "../../../public/studio/editor-assets/course-preview.css?raw";
@@ -12,16 +13,11 @@ export const dynamic = "force-dynamic";
 const bodyMarkup = workbenchDocument.match(/<body>([\s\S]*?)<\/body>/)?.[1]
   ?.replace(/<script\b[\s\S]*?<\/script>/gi, "") ?? "";
 
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (character) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
-  })[character] ?? character);
-}
-
 export default async function CourseEditorPage() {
   const user = await getChatGPTUser();
   if (!user) redirect(chatGPTSignInPath("/studio/editor/"));
   requireCompletedPasswordSetup(user, "/studio/editor/");
+  if (user.impersonation) redirect(`/classroom/${encodeURIComponent(user.impersonation.classroomId)}/`);
 
   if (user.role !== "admin" && user.role !== "mentor") {
     return <>
@@ -30,10 +26,15 @@ export default async function CourseEditorPage() {
     </>;
   }
 
-  const markup = bodyMarkup.replace("__MSV_EDITOR_USER__", escapeHtml(user.displayName));
+  const markup = bodyMarkup
+    .replace(/<span class="editor-user"[\s\S]*?<\/span>/, "");
   return <>
     <style dangerouslySetInnerHTML={{ __html: `${editorStyles}\n${previewStyles}\n${themeStyles}` }} />
     <div className="editor-workbench-root" dangerouslySetInnerHTML={{ __html: markup }} />
+    <div className="editor-account-slot"><AccountMenu
+      user={{ userId: user.userId, username: user.username, displayName: user.displayName, role: user.role, impersonation: user.impersonation }}
+      returnTo="/studio/editor/"
+    /></div>
     <Script src="/studio/editor-assets/editor-loader.js?v=t086-acceptance-r1" strategy="afterInteractive" />
   </>;
 }

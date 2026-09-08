@@ -7,10 +7,11 @@ import styles from "./auth.module.css";
 
 type Envelope<T> = { ok: boolean; data?: T; error?: { code: string; message: string } };
 
-export function LoginForm({ returnTo, initialUser, signedOut }: {
+export function LoginForm({ returnTo, initialUser, signedOut, switched = false }: {
   returnTo: string;
   initialUser: AuthUser | null;
   signedOut: boolean;
+  switched?: boolean;
 }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -45,6 +46,7 @@ export function LoginForm({ returnTo, initialUser, signedOut }: {
       </header>
       {initialUser && <div className={styles.signedInNote}>当前已登录为 <strong>{initialUser.displayName}</strong>。你可以直接继续，或切换账号。</div>}
       {signedOut && <div className={styles.formSuccess} role="status">已经安全退出当前账号。</div>}
+      {switched && <div className={styles.formSuccess} role="status">原账号已经在服务器端安全退出。请输入另一个账号的用户名和密码。</div>}
       <form className={styles.authForm} onSubmit={submit} noValidate>
         <label className={styles.field}>
           <span className={styles.fieldLabel}>用户名</span>

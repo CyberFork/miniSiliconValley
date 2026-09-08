@@ -15,7 +15,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   } : null;
   return (
     <AuthShell title="不是访客。" accent="你是这段历史里的行动者。" description="登录后，你的身份、私密情报、课堂协作、声望和作品会沿同一条 Young Builder 世界线持续积累。">
-      <LoginForm returnTo={single(params.returnTo) ?? "/classroom"} initialUser={initialUser} signedOut={single(params.signedOut) === "1"} />
+      <LoginForm returnTo={single(params.returnTo) ?? "/classroom"} initialUser={initialUser} signedOut={single(params.signedOut) === "1"} switched={single(params.switched) === "1"} />
     </AuthShell>
   );
 }

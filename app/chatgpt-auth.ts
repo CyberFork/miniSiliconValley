@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { ensureClassroomSchema, getClassroomDb } from "../db";
 import { authenticateSession } from "./lib/auth-store";
-import type { AuthRole } from "./lib/auth-model";
+import type { AuthImpersonationContext, AuthRole } from "./lib/auth-model";
 import { publicPath } from "./lib/public-path";
 
 export type ChatGPTUser = {
@@ -14,6 +14,7 @@ export type ChatGPTUser = {
   role: AuthRole | null;
   sessionId: string | null;
   mustChangePassword: boolean;
+  impersonation: AuthImpersonationContext | null;
 };
 
 const USER_ID_HEADER = "oai-authenticated-user-id";
@@ -42,6 +43,7 @@ export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
       role: session.role,
       sessionId: session.sessionId,
       mustChangePassword: session.mustChangePassword,
+      impersonation: session.impersonation ?? null,
     };
   }
   const userId = requestHeaders.get(USER_ID_HEADER);
@@ -64,6 +66,7 @@ export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
     role: null,
     sessionId: null,
     mustChangePassword: false,
+    impersonation: null,
   };
 }
 

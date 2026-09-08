@@ -181,6 +181,31 @@ export const rooms = sqliteTable(
   (table) => [uniqueIndex("uidx_rooms_code").on(table.code), index("idx_rooms_dm_status").on(table.dmProfileId, table.status)],
 );
 
+/**
+ * A short-lived, server-validated Test Classroom identity switch. The
+ * platform administrator keeps the real session cookie while this row scopes
+ * one effective identity to exactly one Test Classroom.
+ */
+export const authImpersonations = sqliteTable(
+  "auth_impersonations",
+  {
+    id: text("id").primaryKey(),
+    sessionId: text("session_id").notNull().references(() => authSessions.id, { onDelete: "cascade" }),
+    actorUserId: text("actor_user_id").notNull().references(() => authUsers.id, { onDelete: "cascade" }),
+    effectiveUserId: text("effective_user_id").notNull().references(() => authUsers.id, { onDelete: "cascade" }),
+    classroomId: text("classroom_id").notNull().references(() => rooms.id, { onDelete: "cascade" }),
+    expiresAt: text("expires_at").notNull(),
+    lastSeenAt: text("last_seen_at").notNull(),
+    revokedAt: text("revoked_at"),
+    endReason: text("end_reason"),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("uidx_auth_impersonations_active_session").on(table.sessionId).where(sql`${table.revokedAt} is null`),
+    index("idx_auth_impersonations_scope").on(table.classroomId, table.effectiveUserId, table.revokedAt, table.expiresAt),
+  ],
+);
+
 export const teams = sqliteTable(
   "teams",
   {
@@ -721,6 +746,35 @@ export const classroomPermissions = sqliteTable(
   (table) => [
     uniqueIndex("uidx_classroom_permissions_grant").on(table.roomId, table.profileId, table.permission),
     index("idx_classroom_permissions_profile").on(table.profileId, table.permission),
+  ],
+);
+
+/**
+ * Authoritative classroom-scoped Admin DM grant chain. The legacy
+ * classroom_permissions row is retained as a rollback-compatible mirror;
+ * only a primary grant may create or revoke delegated grants.
+ */
+export const classroomAdminDmGrants = sqliteTable(
+  "classroom_admin_dm_grants",
+  {
+    id: text("id").primaryKey(),
+    roomId: text("room_id").notNull().references(() => rooms.id, { onDelete: "cascade" }),
+    profileId: text("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    delegationMode: text("delegation_mode").notNull(),
+    canDelegate: integer("can_delegate", { mode: "boolean" }).notNull().default(false),
+    grantedByProfileId: text("granted_by_profile_id").notNull().references(() => profiles.id),
+    grantedAt: text("granted_at").notNull(),
+    revokedByProfileId: text("revoked_by_profile_id").references(() => profiles.id, { onDelete: "set null" }),
+    revokedAt: text("revoked_at"),
+    version: integer("version").notNull().default(1),
+  },
+  (table) => [
+    uniqueIndex("uidx_classroom_admin_dm_grant").on(table.roomId, table.profileId),
+    uniqueIndex("uidx_classroom_admin_dm_primary_room").on(table.roomId).where(sql`${table.delegationMode} = 'primary' and ${table.revokedAt} is null`),
+    index("idx_classroom_admin_dm_active_profile").on(table.profileId, table.revokedAt, table.roomId),
+    index("idx_classroom_admin_dm_active_room").on(table.roomId, table.revokedAt, table.delegationMode),
+    check("chk_classroom_admin_dm_delegation_mode", sql`${table.delegationMode} in ('primary', 'delegated')`),
+    check("chk_classroom_admin_dm_can_delegate", sql`(${table.delegationMode} = 'primary' and ${table.canDelegate} = 1) or (${table.delegationMode} = 'delegated' and ${table.canDelegate} = 0)`),
   ],
 );
 

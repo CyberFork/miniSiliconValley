@@ -4,6 +4,7 @@ import Link from "next/link";
 import { type ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 import { BrandHomeLink } from "../components/BrandHomeLink";
+import { AccountMenu, type AccountMenuUser } from "../components/AccountMenu";
 import type {
   AcceptanceClassroomSummary,
   UiAcceptanceReceipt,
@@ -62,19 +63,28 @@ const NAV_GROUPS: Array<{
   },
 ];
 
+const SECTION_TITLES: Record<StudioSection, string> = {
+  home: "课程生产工作台",
+  editor: "课程编排工作台",
+  preview: "多角色视图验收",
+  courseware: "导师课件库",
+  releases: "验收与发布",
+};
+
 export default function StudioApp({
   section,
   user,
   initialCourseRef = null,
 }: {
   section: StudioSection;
-  user: { userId: string; displayName: string; role: string };
+  user: AccountMenuUser;
   initialCourseRef?: InitialCourseRef;
 }) {
   const [data, setData] = useState<Bootstrap | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(true);
+  const [navigationPending, setNavigationPending] = useState<string | null>(null);
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -100,8 +110,8 @@ export default function StudioApp({
     <header className={styles.topbar}>
       <BrandHomeLink className={styles.brand} title="Course Studio" />
       <div className={styles.user}>
-        <span><b>{user.displayName}</b><small>{user.role === "admin" ? "平台管理员" : "课程导师"}</small></span>
         <Link href="/classroom/">课堂中心</Link>
+        <AccountMenu user={user} returnTo={`/studio/${section === "home" ? "" : `${section}/`}`} />
       </div>
     </header>
     <div className={styles.shell}>
@@ -109,15 +119,25 @@ export default function StudioApp({
         <p className={styles.navLabel}>COURSE FACTORY</p>
         {NAV_GROUPS.map((group) => <div className={styles.navGroup} key={group.label}>
           <b>{group.label}</b>
-          {group.items.map((item) => item.id === "editor"
-            ? <a key={item.href} href={item.href} data-active={section === item.id}><span>{item.code}</span>{item.label}</a>
-            : <Link key={item.href} href={item.href} data-active={item.id === section}><span>{item.code}</span>{item.label}</Link>)}
+          {group.items.map((item) => <a
+            key={item.href}
+            href={item.href}
+            data-active={item.id === section}
+            aria-current={item.id === section ? "page" : undefined}
+            aria-busy={navigationPending === item.href || undefined}
+            onClick={(event) => {
+              if (!event.defaultPrevented && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+                setNavigationPending(item.href);
+              }
+            }}
+          ><span>{item.code}</span>{navigationPending === item.href ? "正在打开…" : item.label}</a>)}
         </div>)}
       </nav>
       <section className={styles.content}>
-        {error && <div className={styles.error} role="alert">{error}</div>}
+        {navigationPending && <div className={styles.navigationStatus} role="status">正在打开 {NAV_GROUPS.flatMap((group) => group.items).find((item) => item.href === navigationPending)?.label ?? "页面"}…</div>}
+        {error && <div className={styles.error} role="alert"><span>{error}</span><button type="button" onClick={() => void load()}>重试</button></div>}
         {notice && <div className={styles.notice} role="status">{notice}</div>}
-        {loading && !data ? <div className={styles.loading}>正在读取课程版本与两级验收门禁…</div> : data ? <>
+        {loading && !data ? <div className={styles.loading} role="status"><small>COURSE STUDIO · 正在打开</small><h1>{SECTION_TITLES[section]}</h1><p>正在读取课程版本与两级验收门禁…</p></div> : data ? <>
           {section === "home" && <StudioHome data={data} />}
           {section === "preview" && <ViewAcceptance data={data} initialCourseRef={initialCourseRef} onAccepted={changed} onError={setError} />}
           {section === "courseware" && <CoursewareLibrary data={data} onChanged={changed} onError={setError} />}

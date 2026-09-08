@@ -10,6 +10,7 @@ import type { UiAcceptanceReceipt, ViewAcceptanceReceipt } from "../lib/course-a
 import type { CoursePackage, CoursePackageRef } from "../lib/course-package";
 import type { CoursewareSummary } from "../lib/courseware-store";
 import { BrandHomeLink } from "../components/BrandHomeLink";
+import { AccountMenu, type AccountMenuUser } from "../components/AccountMenu";
 import factoryStyles from "./classroom-factory.module.css";
 import styles from "./platform.module.css";
 
@@ -36,27 +37,27 @@ type InitialCourse = {
   uiReceiptId?: string;
 } | null;
 type HubProps = {
-  user: { userId: string; displayName: string; role: string };
-  signOutPath: string;
+  user: AccountMenuUser;
   initialCourse: InitialCourse;
 };
 
 const MENTOR_ROLES = ["P", "D", "M", "O"] as const;
 const ROLE_NAME = { P: "产品", D: "开发", M: "市场", O: "运营" } as const;
 
-export default function ClassroomHub({ user, signOutPath, initialCourse }: HubProps) {
+export default function ClassroomHub({ user, initialCourse }: HubProps) {
   const [rooms, setRooms] = useState<ClassroomInstanceSummary[]>([]);
   const [bootstrap, setBootstrap] = useState<Bootstrap | null>(null);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(true);
+  const canUseStudio = !user.impersonation && (user.role === "admin" || user.role === "mentor");
 
   const load = useCallback(async () => {
     try {
       const currentRooms = await api<ClassroomInstanceSummary[]>("/api/platform/classrooms");
       setRooms(currentRooms);
-      if (user.role === "admin" || user.role === "mentor") {
+      if (canUseStudio) {
         const [studio, users] = await Promise.all([
           api<Bootstrap>("/api/studio/bootstrap"),
           api<Account[]>("/api/studio/accounts"),
@@ -70,7 +71,7 @@ export default function ClassroomHub({ user, signOutPath, initialCourse }: HubPr
     } finally {
       setLoading(false);
     }
-  }, [user.role]);
+  }, [canUseStudio]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void load(); }, 0);
@@ -83,9 +84,9 @@ export default function ClassroomHub({ user, signOutPath, initialCourse }: HubPr
     <header className={styles.top}>
       <BrandHomeLink title="MSV CLASSROOM" subtitle="课堂中心 · 单一真实运行时" />
       <nav aria-label="课堂导航">
-        {(user.role === "admin" || user.role === "mentor") && <Link href="/studio/">课程生产工作台</Link>}
-        {(user.role === "admin" || user.role === "mentor") && <Link href="/course/">导师课件播放</Link>}
-        <a href={signOutPath}>退出</a>
+        {canUseStudio && <Link href="/studio/">课程生产工作台</Link>}
+        {canUseStudio && <Link href="/course/">导师课件播放</Link>}
+        <AccountMenu user={user} returnTo="/classroom/" />
       </nav>
     </header>
     <div className={styles.main}>
@@ -109,7 +110,7 @@ export default function ClassroomHub({ user, signOutPath, initialCourse }: HubPr
           description="PRODUCTION · 只绑定 Released 与 UI 验收过的同一组 exact 课件；不可重置。"
         />
       </>}
-      {(user.role === "admin" || user.role === "mentor") && bootstrap && <FactoryPanel
+      {canUseStudio && bootstrap && <FactoryPanel
         bootstrap={bootstrap}
         accounts={accounts}
         currentUserId={user.userId}
@@ -139,9 +140,10 @@ function RoomGroup({ title, environment, rooms, description }: {
 }
 
 function RoomCard({ room }: { room: ClassroomInstanceSummary }) {
-  const role = room.mentorRole ? `${room.mentorRole} 导师` : room.learnerSeat ? `学员 ${room.learnerSeat}` : room.isAdminDm ? "Admin DM" : "成员";
+  const adminLabel = room.adminDmMode === "primary" ? "Primary Admin DM" : room.adminDmMode === "delegated" ? "Delegated Admin DM" : "Admin DM";
+  const role = room.mentorRole ? `${room.mentorRole} 导师` : room.learnerSeat ? `学员 ${room.learnerSeat}` : room.isAdminDm ? adminLabel : "成员";
   return <article className={styles.room} data-env={room.environment}>
-    <div><span className={styles.environmentBadge} data-env={room.environment}>{room.environment.toUpperCase()}</span><small>{room.lifecycle.toUpperCase()}</small><h3>{room.title}</h3><p>{role}{room.isAdminDm && room.mentorRole ? " · Admin DM" : ""}<br />课程：{room.courseRef.courseId} · r{room.courseRef.revision}</p></div>
+    <div><span className={styles.environmentBadge} data-env={room.environment}>{room.environment.toUpperCase()}</span><small>{room.lifecycle.toUpperCase()}</small><h3>{room.title}</h3><p>{role}{room.isAdminDm && room.mentorRole ? ` · ${adminLabel}` : ""}<br />课程：{room.courseRef.courseId} · r{room.courseRef.revision}</p></div>
     <div><div className={styles.roomMeta}><span>{room.controller.blockId}</span><span>{room.controller.state}</span><span>{room.learnerCount} 学员</span></div><Link href={`/classroom/${room.id}/`}>进入我的课堂 →</Link></div>
   </article>;
 }

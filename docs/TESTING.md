@@ -1,4 +1,4 @@
-# Mini Silicon Valley 测试与验收（T-086）
+# Mini Silicon Valley 测试与验收（T-087）
 
 ## 1. 自动化总闸
 
@@ -75,6 +75,9 @@ Candidate exact revision/digest
 - `/screen` 专用 allow-list 不包含 `myView/privateCards/privateScript/submissions/economy/accounts/courseware`。
 - 导师课件库和播放页不向学员开放。
 - 过期 ControllerState version 的并发写入必须返回冲突，不得覆盖新状态。
+- Primary Admin DM 可以委派任一有效导师；Delegated 能管理本课堂，但其授权／撤销请求在 API 层返回 403 并写审计。
+- 平台管理员 Test 模拟必须同时满足明确 Test Classroom、有效目标 Membership／DM、管理员自身显式 DM 权限；Production、平台管理员目标和跨课堂请求全部拒绝。
+- 普通切换和退出都必须撤销服务端 session；Test 模拟在返回、过期、停用、凭据重发或权限撤销后立即失效。
 
 ## 4. 动态 `4 + N + 1`
 
@@ -102,11 +105,15 @@ Candidate exact revision/digest
 12. 新 Candidate 使旧未发布 Candidate 的 View 回执失效。
 13. 构造容量不足课程，证明 View／Test 失败关闭。
 14. 验证 N=6、动态任务、手牌隔离、Admin DM 权限与数据隔离。
+15. 验证 Studio 00—04 真实 href、统一账号菜单、服务端登出与安全 returnTo。
+16. 验证 Primary／Delegated 非递归委派、主动退出、立即撤销和跨课堂隔离。
+17. 验证 Test 导师／学员／Delegated 身份模拟、actor/effective 审计、Production／Studio／Account 失败关闭。
+18. 验证 Test 身份停用、启用、一次性凭据重发及相关会话撤销。
 
 成功标记包含：
 
 ```text
-COURSE_PLATFORM_E2E_PASS t086=view-receipt+ui-receipt+release-gates
+COURSE_PLATFORM_E2E_PASS t086=view-receipt+ui-receipt+release-gates t087=navigation+account-menu+test-impersonation+nonrecursive-admin-dm
 ```
 
 ## 6. 浏览器验收
@@ -121,6 +128,8 @@ COURSE_PLATFORM_E2E_PASS t086=view-receipt+ui-receipt+release-gates
 - Preview 显示 exact revision／digest，能遍历全部 Block 和支持人数；未遍历完整时不能签收。
 - Releases 显示 Candidate、View 回执、TEST、UI 回执、课件、Released 与“下一步主操作”。
 - `/course/` 始终标记“导师课件播放”。
+- 00—04 都能用鼠标、键盘 Enter、刷新直达和 Cmd/Ctrl＋点击打开；URL、主标题与 `aria-current=page` 一致。
+- 右上角账号菜单显示真实账号并可进入账户中心、切换账号和退出；操作后旧 Session API 返回 401。
 
 ### Classroom
 
@@ -132,6 +141,8 @@ COURSE_PLATFORM_E2E_PASS t086=view-receipt+ui-receipt+release-gates
 - 完成后显示 14 项真实 UI 清单；签收后显示 receipt id 与发布入口。
 - TEST 有 reset；PRODUCTION 永远不显示 reset。
 - 页面无横向遮挡、控件重叠、按钮无响应、资源 404 或 console error。
+- Primary／Delegated 标签准确；Delegated 没有委派控件但仍可使用主控，直接调用委派 API 也必须失败。
+- Test 身份全程显示黄色 actor → effective 横幅，返回管理员后不残留目标私密数据。
 
 ### 路由
 
