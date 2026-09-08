@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import unittest
 from pathlib import Path
+import re
 
 
 ROOT = Path(__file__).parents[1]
@@ -79,6 +80,10 @@ class DeployScriptContractTests(unittest.TestCase):
     def test_manifest_imports_cannot_mutate_an_immutable_release(self) -> None:
         self.assertIn('"$PYTHON" -B - "$INCOMING"', self.script)
         self.assertIn('"$PYTHON" -B - "$TARGET"', self.rollback_script)
+
+    def test_zsh_scripts_do_not_assign_reserved_status_parameter(self) -> None:
+        for name, source in (("deploy", self.script), ("rollback", self.rollback_script)):
+            self.assertIsNone(re.search(r"(?m)^\s*(?:local\s+)?status=", source), f"{name} assigns zsh's read-only status parameter")
 
 
 if __name__ == "__main__":

@@ -27,9 +27,9 @@ DEPLOY_MUTATED=0
 PREVIOUS_RELEASE_ID=""
 
 classroom_ready() {
-  local status
-  status=$($CURL -sS --connect-timeout 2 -o /dev/null -w '%{http_code}'     -H 'Host: minisv.vip' -H 'X-Forwarded-Host: minisv.vip' -H 'X-Forwarded-Proto: https'     http://127.0.0.1:18787/api/auth/session 2>/dev/null || true)
-  [[ "$status" = 200 || "$status" = 401 ]]
+  local http_status
+  http_status=$($CURL -sS --connect-timeout 2 -o /dev/null -w '%{http_code}'     -H 'Host: minisv.vip' -H 'X-Forwarded-Host: minisv.vip' -H 'X-Forwarded-Proto: https'     http://127.0.0.1:18787/api/auth/session 2>/dev/null || true)
+  [[ "$http_status" = 200 || "$http_status" = 401 ]]
 }
 
 restart_classroom() {

@@ -43,8 +43,8 @@ launchctl bootout "$DOMAIN/$LABEL" >/dev/null 2>&1 || true
 launchctl bootstrap "$DOMAIN" "$PLIST" >/dev/null 2>&1 || launchctl print "$DOMAIN/$LABEL" >/dev/null
 launchctl enable "$DOMAIN/$LABEL"
 for attempt in {1..30}; do
-  status=$($CURL -sS --connect-timeout 2 -o /dev/null -w '%{http_code}'     -H 'Host: minisv.vip' -H 'X-Forwarded-Host: minisv.vip' -H 'X-Forwarded-Proto: https'     http://127.0.0.1:18787/api/auth/session 2>/dev/null || true)
-  [[ "$status" = 200 || "$status" = 401 ]] && break
+  http_status=$($CURL -sS --connect-timeout 2 -o /dev/null -w '%{http_code}'     -H 'Host: minisv.vip' -H 'X-Forwarded-Host: minisv.vip' -H 'X-Forwarded-Proto: https'     http://127.0.0.1:18787/api/auth/session 2>/dev/null || true)
+  [[ "$http_status" = 200 || "$http_status" = 401 ]] && break
   sleep 1
   [[ $attempt -lt 30 ]] || { echo "classroom worker rollback readiness timeout" >&2; exit 1; }
 done
