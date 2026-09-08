@@ -200,7 +200,7 @@ with tarfile.open(archive, 'r:gz') as source:
     source.extractall(target, filter='data')
 PY
 [[ -f "$INCOMING/MANIFEST.sha256" && -f "$INCOMING/site/MANIFEST.sha256"    && -f "$INCOMING/app/dist/server/index.js" && -f "$INCOMING/app/dist/server/wrangler.json"    && -f "$INCOMING/app/dist/client/vinext-client-entry-manifest.json"    && -f "$INCOMING/ops/compose.yml"    && -f "$INCOMING/ops/launchd/com.minisv.cloudflared.plist"    && -f "$INCOMING/ops/launchd/$CLASSROOM_LABEL.plist" ]] || { echo "unified release archive incomplete" >&2; exit 2; }
-"$PYTHON" - "$INCOMING" <<'PY'
+"$PYTHON" -B - "$INCOMING" <<'PY'
 from pathlib import Path
 import importlib.util, sys
 root = Path(sys.argv[1])

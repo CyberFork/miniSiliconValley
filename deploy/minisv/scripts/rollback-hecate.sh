@@ -14,7 +14,7 @@ DOMAIN="gui/$(id -u)"
 
 [[ -d "$TARGET" && -f "$TARGET/MANIFEST.sha256" && -f "$TARGET/site/MANIFEST.sha256"   && -f "$TARGET/app/dist/server/index.js" && -f "$TARGET/app/dist/server/wrangler.json"   && -f "$TARGET/ops/launchd/$LABEL.plist" ]] || { echo "unknown or pre-unified release" >&2; exit 2; }
 
-"$PYTHON" - "$TARGET" <<'PY'
+"$PYTHON" -B - "$TARGET" <<'PY'
 from pathlib import Path
 import importlib.util, sys
 root=Path(sys.argv[1])

@@ -11,6 +11,7 @@ class DeployScriptContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.script = (ROOT / "scripts" / "deploy-hecate.sh").read_text()
+        cls.rollback_script = (ROOT / "scripts" / "rollback-hecate.sh").read_text()
 
     def test_legacy_global_runtime_is_stopped_not_bootstrapped(self) -> None:
         self.assertNotIn("bootstrap_agent()", self.script)
@@ -59,6 +60,7 @@ class DeployScriptContractTests(unittest.TestCase):
         self.assertLess(switch, classroom)
         self.assertLess(classroom, gateway)
         self.assertIn("classroom-data-before.tgz", self.script)
+        self.assertIn('"$PYTHON" -B - "$INCOMING"', self.script)
 
     def test_failed_mutating_deploy_restores_the_previous_release(self) -> None:
         self.assertIn("rollback_failed_deploy()", self.script)
@@ -73,6 +75,10 @@ class DeployScriptContractTests(unittest.TestCase):
         self.assertIn('launchctl enable "$DOMAIN/$legacy_label"', rollback)
         self.assertIn('launchctl bootstrap "$DOMAIN" "$legacy_target"', rollback)
         self.assertIn('launchctl kickstart -k "$DOMAIN/$legacy_label"', rollback)
+
+    def test_manifest_imports_cannot_mutate_an_immutable_release(self) -> None:
+        self.assertIn('"$PYTHON" -B - "$INCOMING"', self.script)
+        self.assertIn('"$PYTHON" -B - "$TARGET"', self.rollback_script)
 
 
 if __name__ == "__main__":
