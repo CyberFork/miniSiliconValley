@@ -63,7 +63,7 @@ export default function AccountClient({ initialUser, firstLogin = false, returnT
       <a className={styles.skipLink} href="#account-main">跳到账户内容</a>
       <nav className={styles.accountNav} aria-label="Mini Silicon Valley">
         <BrandHomeLink />
-        <div className={styles.navLinks}><a href={publicPath("/")}>历史世界</a><a href="/framework/">课程框架</a><a href={publicPath("/classroom")}>进入课堂</a></div>
+        <div className={styles.navLinks} data-msv-theme-slot><a href={publicPath("/")}>历史世界</a><a href="/framework/">课程框架</a><a href={publicPath("/classroom")}>进入课堂</a></div>
       </nav>
       <div className={styles.accountMain} id="account-main">
         <header className={styles.accountHero}>

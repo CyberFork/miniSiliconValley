@@ -26,6 +26,12 @@ test("React surfaces share one accessible root-home logo primitive", async () =>
   for (const path of consumers) {
     assert.match(await source(path), /BrandHomeLink/, `${path} must consume the shared brand primitive`);
   }
+
+  for (const path of ["app/auth/AuthShell.tsx", "app/account/AccountClient.tsx"]) {
+    assert.match(await source(path), /className=\{styles\.navLinks\} data-msv-theme-slot/, `${path} must reserve an inline theme-switch slot`);
+  }
+  const authCss = await source("app/auth/auth.module.css");
+  assert.match(authCss, /@media \(max-width: 700px\)[\s\S]*\.navLinks a \{ display: none; \}/, "mobile auth navigation must not leave covered focusable links behind the theme switch");
 });
 
 test("static operational surfaces use the same mark and absolute root link", async () => {

@@ -14,7 +14,7 @@ export default function AuthShell({ children, title, accent, description }: {
       <a className={styles.skipLink} href="#auth-form">跳到账号表单</a>
       <nav className={styles.authNav} aria-label="Mini Silicon Valley">
         <BrandHomeLink />
-        <div className={styles.navLinks}><a href={publicPath("/")}>历史世界</a><a href="/framework/">课程框架</a><a href={publicPath("/classroom")}>协作课堂</a></div>
+        <div className={styles.navLinks} data-msv-theme-slot><a href={publicPath("/")}>历史世界</a><a href="/framework/">课程框架</a><a href={publicPath("/classroom")}>协作课堂</a></div>
       </nav>
       <div className={styles.authGrid}>
         <section className={styles.storyPanel} aria-label="Young Builder账号说明">

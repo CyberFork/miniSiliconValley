@@ -217,7 +217,8 @@
   .accountNav { min-height: 64px; padding-inline: 14px; }
   .wordmark { font-size: 10px; }
   .wordmark b { width: 38px; height: 38px; }
-  .navLinks a:not(:last-child) { display: none; }
+  .navLinks { gap: 0; }
+  .navLinks a { display: none; }
   .storyPanel { min-height: 470px; padding: 42px 22px; }
   .storySteps { grid-template-columns: 1fr; }
   .storySteps li { min-height: 0; border-right: 0; border-bottom: 1px solid #4a5d61; }
