@@ -1,0 +1,161 @@
+{
+  "receiptVersion": 1,
+  "completedAt": "2026-09-09T01:47:41+08:00",
+  "todo": "T-086",
+  "status": "completed",
+  "release": {
+    "host": "hecate",
+    "publicOrigin": "https://minisv.vip",
+    "releaseId": "20260909T010657CST-t086-two-stage-acceptance-r1",
+    "previousReleaseId": "20260908T222813CST-adventure-ui-r7",
+    "archiveSha256": "5c31623d7c48de787d0e40a64a5f049f54fad9b501bab0d45bcd60fd3b48a21c",
+    "sourceCommit": "ed4831d7e68a6eb0fa7787263c01424224fe4bd8",
+    "siteManifestVerified": true,
+    "servicesHealthy": true,
+    "cloudflareTunnelPreserved": true
+  },
+  "workflow": {
+    "canonicalSequence": [
+      "Editor saves immutable Candidate",
+      "Studio Preview signs exact ViewAcceptanceReceipt",
+      "ClassroomFactory creates real Test Classroom",
+      "completed Test Classroom signs UiAcceptanceReceipt",
+      "Releases promotes the exact Candidate to Released",
+      "ClassroomFactory creates Production from the exact accepted courseware bundle"
+    ],
+    "projectorVersion": "course-projector-v2",
+    "acceptanceAppBuildId": "minisv-t086-v1",
+    "uiAcceptanceChecks": 14,
+    "testAndProductionShareFactory": true,
+    "testAndProductionShareUiApiAndStateMachine": true,
+    "productionReadsMutableWorkingCopy": false,
+    "productionRequiresBothReceipts": true,
+    "productionLocksExactCourseAndCourseware": true,
+    "testResetInvalidatesUiReceipt": true,
+    "concurrentPointerChangesRejectedAtomically": true
+  },
+  "entrypoints": {
+    "studio": "https://minisv.vip/studio/",
+    "editor": "https://minisv.vip/studio/editor/",
+    "viewAcceptance": "https://minisv.vip/studio/preview/",
+    "acceptanceAndRelease": "https://minisv.vip/studio/releases/",
+    "coursewareLibrary": "https://minisv.vip/studio/courseware/",
+    "coursewarePlayer": "https://minisv.vip/course/",
+    "classroomCenter": "https://minisv.vip/classroom/"
+  },
+  "dataModel": {
+    "migration": "drizzle/0005_two_stage_course_acceptance.sql",
+    "tablesAdded": [
+      "course_view_acceptance_receipts",
+      "course_ui_acceptance_receipts",
+      "classroom_acceptance_bindings"
+    ],
+    "exactIdentity": [
+      "courseId",
+      "revision",
+      "contentDigest"
+    ],
+    "uiReceiptAlsoBinds": [
+      "ViewAcceptanceReceipt",
+      "Test Classroom",
+      "reset generation",
+      "state-machine version",
+      "learner count",
+      "membership roster",
+      "four exact courseware releases",
+      "browser and viewport matrix",
+      "application build",
+      "acceptance audit"
+    ]
+  },
+  "automatedValidation": {
+    "typecheck": "passed",
+    "lint": "passed",
+    "coursePlatform": {
+      "passed": 35,
+      "failed": 0
+    },
+    "applicationSmoke": "passed",
+    "coursePlatformEndToEnd": "passed",
+    "studioEditorBrowser": {
+      "status": "passed",
+      "macroSteps": 5,
+      "blocks": 13,
+      "dynamicLearners": 6,
+      "views": 11,
+      "viewports": [
+        1440,
+        1180,
+        768,
+        430
+      ],
+      "horizontalOverflow": 0
+    },
+    "deploymentPython": {
+      "passed": 34,
+      "failed": 0
+    },
+    "themeRuntime": "passed",
+    "shellSyntax": "passed",
+    "gitDiffCheck": "passed"
+  },
+  "productionAcceptance": {
+    "publicSmoke": "passed",
+    "authenticatedBootstrap": "passed",
+    "browserPageErrors": 0,
+    "browserRequestFailures": 0,
+    "routesVerified": [
+      "/",
+      "/world/",
+      "/course/",
+      "/studio/",
+      "/studio/editor/",
+      "/studio/preview/",
+      "/studio/releases/",
+      "/studio/courseware/",
+      "/classroom/",
+      "/auth/login",
+      "/healthz",
+      "/release.json"
+    ],
+    "retiredRoutes": {
+      "/alpha/": 410,
+      "/control/": 410,
+      "/control/editor/": 410
+    },
+    "responsivePages": [
+      "Studio",
+      "View Acceptance",
+      "Acceptance and Release",
+      "Classroom Center",
+      "Courseware Player",
+      "Course Editor"
+    ],
+    "viewports": [
+      1440,
+      390
+    ],
+    "horizontalOverflow": 0,
+    "productionScreenshots": "/private/tmp/minisv-t086-production-qa",
+    "existingViewReceiptCountAfterMigration": 0,
+    "existingUiReceiptCountAfterMigration": 0,
+    "emptyReceiptExplanation": "Expected: existing course versions must be accepted by a human through the new exact-version gates; migration never fabricates approval."
+  },
+  "documentation": [
+    "docs/COURSE_PLATFORM_SOP.md",
+    "docs/COURSE_PLATFORM_ARCHITECTURE.md",
+    "docs/TESTING.md",
+    "docs/MSV_SITE_MAP.md",
+    "docs/TODO_086_IMPLEMENTATION.md"
+  ],
+  "security": {
+    "credentialsInReceipt": false,
+    "credentialsInRepository": false,
+    "authenticatedProductionAuditWasReadOnly": true,
+    "cyberforkerDeploymentTouched": false
+  },
+  "rollback": {
+    "targetRelease": "20260908T222813CST-adventure-ui-r7",
+    "command": "$HOME/Services/minisv/current/ops/scripts/rollback-hecate.sh 20260908T222813CST-adventure-ui-r7"
+  }
+}
