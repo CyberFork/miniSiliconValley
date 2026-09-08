@@ -83,79 +83,11 @@ body {
   position: fixed;
   z-index: 2147482999;
   top: max(12px, env(safe-area-inset-top));
-  right: max(142px, calc(env(safe-area-inset-right) + 142px));
-}
-
-.msv-ui-switch {
-  position: relative;
-  z-index: 2147483000;
-  display: inline-grid;
-  grid-template-columns: auto auto auto;
-  align-items: center;
-  gap: 2px;
-  min-width: max-content;
-  padding: 3px;
-  color: #dfe9e8;
-  background: #071b2a;
-  border: 1px solid #5c747d;
-  box-shadow: 3px 3px 0 #0005;
-  font: 700 11px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
-  letter-spacing: 0;
-}
-
-.msv-ui-switch[data-placement="floating"] {
-  position: fixed;
-  top: max(12px, env(safe-area-inset-top));
   right: max(12px, env(safe-area-inset-right));
 }
 
-.msv-ui-switch__label {
-  padding: 0 6px;
-  color: var(--msv-adventure-yellow);
-  letter-spacing: .12em;
-}
-
-.msv-ui-switch button {
-  appearance: none;
-  min-width: 46px;
-  min-height: 44px;
-  margin: 0;
-  padding: 6px 9px;
-  color: #aebdc0;
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  cursor: pointer;
-  font: inherit;
-}
-
-.msv-ui-switch button[aria-pressed="true"] {
-  color: #071b2a;
-  background: var(--msv-adventure-yellow);
-}
-
-.msv-ui-switch button:focus-visible {
-  outline: 3px solid var(--msv-adventure-mint);
-  outline-offset: 2px;
-}
-
-.msv-ui-switch .sr-only {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  padding: 0 !important;
-  margin: -1px !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  white-space: nowrap !important;
-  border: 0 !important;
-}
-
-/*
- * Adventure is an additive theme. Classic intentionally has no overrides so
- * the accepted UI remains byte-for-byte in control when the switch is off.
- */
+/* Adventure is the canonical product skin. Layout remains owned by each page;
+ * this shared layer changes only palette, materials, borders and shadows. */
 /* Light products can adopt the Adventure palette. Dark operational surfaces
  * own component-scoped text/surface tokens and must never inherit light ink. */
 html[data-msv-theme="adventure"][data-msv-surface="light"] {
@@ -326,26 +258,11 @@ html[data-msv-theme="adventure"][data-msv-surface="dark"] :is(.seat, .overview, 
   box-shadow: 4px 4px 0 #0008;
 }
 
-@media (max-width: 860px) {
-  .msv-ui-switch[data-placement="inline"] .msv-ui-switch__label { display: none; }
-}
-
 @media (max-width: 480px) {
-  .msv-ui-switch[data-placement="floating"] {
-    transform: scale(.9);
-    transform-origin: top right;
-  }
-
-  .msv-ui-switch[data-placement="floating"] {
+  .msv-course-nav-link[data-placement="floating"] {
     top: max(8px, env(safe-area-inset-top));
     right: max(8px, env(safe-area-inset-right));
   }
-
-  .msv-course-nav-link[data-placement="floating"] {
-    top: max(52px, calc(env(safe-area-inset-top) + 52px));
-    right: max(8px, env(safe-area-inset-right));
-  }
-
 }
 
 @media (prefers-reduced-motion: reduce) {

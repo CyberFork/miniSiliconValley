@@ -41,7 +41,7 @@ def fallback_workshop(target: Path) -> None:
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; connect-src 'none'; img-src data:">
 <title>Workshop fixture</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="/ui-theme.css"></head>
-<body><header class="topbar"><div class="brand-lockup"><span class="brand-mark">MSV</span><span><strong>Mini Silicon Valley</strong><small>WORKSHOP</small></span></div><div class="session-health" data-msv-theme-slot></div></header>
+<body><header class="topbar"><div class="brand-lockup"><span class="brand-mark">MSV</span><span><strong>Mini Silicon Valley</strong><small>WORKSHOP</small></span></div><div class="session-health"></div></header>
 <div class="shell"><aside class="rail"><nav id="sectionNav"><button class="nav-item is-active" data-section="overview">概览</button><button class="nav-item" type="button" data-section="decisions">决策</button></nav></aside>
 <main class="workspace"><section class="workspace-section is-active" data-panel="overview"><h1>课程设计同步工坊</h1></section></main></div>
 <script src="app.js"></script><script src="/ui-theme.js"></script></body></html>""",

@@ -11,40 +11,38 @@ class Element {
     this.attributes = {};
     this.listeners = {};
     this.id = "";
-    this.tabIndex = 0;
+    this.parent = null;
   }
   appendChild(child) { this.children.push(child); child.parent = this; return child; }
+  remove() {
+    if (!this.parent) return;
+    this.parent.children = this.parent.children.filter((child) => child !== this);
+    this.parent = null;
+  }
   setAttribute(name, value) { this.attributes[name] = String(value); }
   getAttribute(name) { return this.attributes[name] ?? null; }
   addEventListener(name, handler) { this.listeners[name] = handler; }
-  focus() { this.focused = true; }
   set innerHTML(_value) {}
   get innerHTML() { return ""; }
   walk() { return [this, ...this.children.flatMap((child) => child.walk())]; }
-  querySelectorAll(selector) {
-    if (selector === "button[data-theme]") return this.walk().filter((item) => item.tagName === "BUTTON" && item.dataset.theme);
-    return [];
-  }
-  querySelector(selector) {
-    const match = selector.match(/^button\[data-theme='([^']+)'\]$/);
-    if (match) return this.walk().find((item) => item.tagName === "BUTTON" && item.dataset.theme === match[1]) ?? null;
-    return null;
-  }
 }
 
-function boot(search = "", stored = null, pathname = "/") {
+function boot({ search = "", stored = null, pathname = "/", legacySwitcher = false } = {}) {
   const root = new Element("html");
   const body = new Element("body");
+  if (legacySwitcher) {
+    const old = new Element("section");
+    old.id = "msv-ui-switch";
+    body.appendChild(old);
+  }
   const callbacks = {};
-  const storage = new Map(stored ? [["minisv.ui.theme", stored]] : []);
+  const storage = new Map(stored === null ? [] : [["minisv.ui.theme", stored]]);
   const document = {
     documentElement: root,
     body,
     readyState: "loading",
     createElement: (tag) => new Element(tag),
-    addEventListener: (name, handler) => { callbacks[name] = handler; },
     querySelectorAll: () => [],
-    querySelector: () => null,
     getElementById: (id) => body.walk().find((item) => item.id === id) ?? null,
   };
   const events = [];
@@ -53,6 +51,7 @@ function boot(search = "", stored = null, pathname = "/") {
     localStorage: {
       getItem: (key) => storage.get(key) ?? null,
       setItem: (key, value) => storage.set(key, value),
+      removeItem: (key) => storage.delete(key),
     },
     addEventListener: (name, handler) => { callbacks[name] = handler; },
     setTimeout: (handler) => handler(),
@@ -65,35 +64,49 @@ function boot(search = "", stored = null, pathname = "/") {
   const sourceUrl = sourceCandidates.find((candidate) => existsSync(candidate));
   assert.ok(sourceUrl, "ui-theme.js must exist in source or release layout");
   const source = readFileSync(sourceUrl, "utf8");
-  vm.runInNewContext(source, { document, window, URLSearchParams, CustomEvent: class { constructor(name, options) { this.type = name; this.detail = options.detail; } } });
+  vm.runInNewContext(source, {
+    document,
+    window,
+    CustomEvent: class {
+      constructor(name, options) {
+        this.type = name;
+        this.detail = options.detail;
+      }
+    },
+  });
   callbacks.load();
   return { root, body, storage, events };
 }
 
 {
-  const runtime = boot("", null, "/framework/");
+  const runtime = boot({ pathname: "/framework/" });
   const shortcut = runtime.body.walk().find((item) => item.id === "msv-course-shortcut");
   assert.ok(shortcut, "framework must receive a post-hydration course shortcut");
   assert.equal(shortcut.href, "/course/");
   assert.equal(shortcut.textContent, "导师课件 ↗");
-}
-
-{
-  const runtime = boot();
-  const switcher = runtime.body.walk().find((item) => item.id === "msv-ui-switch");
-  assert.ok(switcher, "switch must mount");
-  assert.equal(runtime.root.dataset.msvTheme, "classic");
-  const buttons = switcher.querySelectorAll("button[data-theme]");
-  assert.deepEqual(buttons.map((button) => button.textContent), ["当前", "冒险"]);
-  buttons[1].listeners.click();
   assert.equal(runtime.root.dataset.msvTheme, "adventure");
-  assert.equal(runtime.storage.get("minisv.ui.theme"), "adventure");
-  assert.equal(buttons[1].attributes["aria-pressed"], "true");
+  assert.equal(runtime.root.dataset.msvSurface, "light");
 }
 
 {
-  const runtime = boot("?ui=adventure", "classic");
-  assert.equal(runtime.root.dataset.msvTheme, "adventure", "URL comparison mode must override storage");
+  const runtime = boot({
+    search: "?ui=classic",
+    stored: "classic",
+    pathname: "/classroom/521a12fb-ec3f-4f72-bb2a-4cdaa7063219/control/",
+    legacySwitcher: true,
+  });
+  assert.equal(runtime.root.dataset.msvTheme, "adventure", "URL and stale storage cannot select a retired theme");
+  assert.equal(runtime.root.dataset.msvSurface, "dark", "classroom instance routes are dark operational surfaces");
+  assert.equal(runtime.root.style.colorScheme, "dark");
+  assert.equal(runtime.storage.has("minisv.ui.theme"), false, "retired preference must be cleared");
+  assert.equal(runtime.body.walk().some((item) => item.id === "msv-ui-switch"), false, "no switch may remain in the DOM");
+  assert.ok(runtime.events.every((event) => event.detail.theme === "adventure" && event.detail.canonical));
 }
 
-console.log("ui theme runtime: ok");
+{
+  const runtime = boot({ pathname: "/classroom/" });
+  assert.equal(runtime.root.dataset.msvSurface, "light", "the classroom list remains a light product surface");
+  assert.equal(runtime.body.walk().some((item) => item.id === "msv-ui-switch"), false);
+}
+
+console.log("canonical Adventure UI runtime: ok");

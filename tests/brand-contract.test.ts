@@ -28,10 +28,12 @@ test("React surfaces share one accessible root-home logo primitive", async () =>
   }
 
   for (const path of ["app/auth/AuthShell.tsx", "app/account/AccountClient.tsx"]) {
-    assert.match(await source(path), /className=\{styles\.navLinks\} data-msv-theme-slot/, `${path} must reserve an inline theme-switch slot`);
+    const shell = await source(path);
+    assert.match(shell, /className=\{styles\.navLinks\}/, `${path} must retain its real navigation links`);
+    assert.doesNotMatch(shell, /data-msv-theme-slot/, `${path} must not reserve space for the retired theme switch`);
   }
   const authCss = await source("app/auth/auth.module.css");
-  assert.match(authCss, /@media \(max-width: 700px\)[\s\S]*\.navLinks a \{ display: none; \}/, "mobile auth navigation must not leave covered focusable links behind the theme switch");
+  assert.match(authCss, /@media \(max-width: 700px\)[\s\S]*\.navLinks a \{ display: none; \}/, "mobile auth navigation must not leave off-canvas focusable links");
 });
 
 test("static operational surfaces use the same mark and absolute root link", async () => {
@@ -51,6 +53,19 @@ test("static operational surfaces use the same mark and absolute root link", asy
   }
 });
 
+test("Classroom top navigation has no injected UI control or reserved overlap slot", async () => {
+  const runtime = await source("app/classroom/ClassroomRuntime.tsx");
+  const styles = await source("app/classroom/platform.module.css");
+  const themeRuntime = await source("deploy/minisv/site/ui-theme.js");
+
+  assert.match(runtime, /className=\{styles\.runtimeTop\}[\s\S]*aria-label="课堂内导航"/);
+  for (const label of ["我的席位", "主控", "投屏", "成员", "退出"]) assert.match(runtime, new RegExp(label));
+  assert.doesNotMatch(runtime, /data-msv-theme-slot|msv-ui-switch/);
+  assert.match(styles, /\.runtimeTop\{[^}]*display:flex[^}]*justify-content:space-between/);
+  assert.doesNotMatch(themeRuntime, /function mountSwitcher|createElement\("button"\)/);
+  assert.match(themeRuntime, /root\.dataset\.msvTheme = "adventure"/);
+});
+
 test("brand metadata, manifest, error routing and editor leave guard stay coherent", async () => {
   const layout = await source("app/layout.tsx");
   const manifest = JSON.parse(await source("deploy/minisv/site/site.webmanifest"));
@@ -59,6 +74,7 @@ test("brand metadata, manifest, error routing and editor leave guard stay cohere
   const asset = await source("public/favicon.svg");
 
   assert.match(asset, /viewBox="0 0 64 64"/);
+  assert.match(layout, /data-msv-theme="adventure"/, "the latest Adventure UI must be the server-rendered canonical skin");
   assert.match(layout, /publicPath\("\/og\.png"\)/);
   assert.equal(manifest.start_url, "/");
   assert.equal(manifest.icons[0].src, "/favicon.svg");

@@ -25,7 +25,6 @@ from course import CourseRepository  # noqa: E402
 
 CHROME = Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
 VIEWPORTS = ((390, 844), (430, 932), (600, 960), (768, 1024), (1440, 900))
-THEMES = ("classic", "adventure")
 SEATS = ("W00", "W01", "W02", "W03", "W04", "W05", "W06", "W07")
 STATUS_BY_SEAT = {
     "W00": "ready", "W01": "executing", "W02": "awaiting-acceptance", "W03": "error",
@@ -141,15 +140,17 @@ def handler_for(base_state: dict):
     return Handler
 
 
-def rectangle_contract(page, switch_selector: str, content_selector: str) -> dict:
+def page_contract(page, content_selector: str) -> dict:
     return page.evaluate(
-        """([switchSelector, contentSelector]) => {
+        """(contentSelector) => {
           const rect = (selector) => { const r=document.querySelector(selector).getBoundingClientRect(); return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height}; };
-          const sw=rect(switchSelector), content=rect(contentSelector);
+          const content=rect(contentSelector);
           return {innerWidth, rootWidth:document.documentElement.scrollWidth, bodyWidth:document.body.scrollWidth,
-            switch:sw, content, overlap:!(sw.right<=content.left||sw.left>=content.right||sw.bottom<=content.top||sw.top>=content.bottom)};
+            theme:document.documentElement.dataset.msvTheme||null,
+            switchCount:document.querySelectorAll('#msv-ui-switch').length,
+            content};
         }""",
-        [switch_selector, content_selector],
+        content_selector,
     )
 
 
@@ -212,76 +213,63 @@ def main() -> None:
                 page = browser.new_page(viewport={"width": 430, "height": 932})
                 base = f"http://127.0.0.1:{fixture.server_port}"
 
-                # Every mentor and learner view receives both themes. Statuses
-                # are spread over ready/executing/waiting/error/completed.
-                for theme in THEMES:
-                    for window in SEATS:
-                        page.goto(f"{base}/seat.html?seat={window}&ui={theme}#clientId=browser-test-client&lease=browser-test-lease-0123456789", wait_until="networkidle")
-                        page.wait_for_selector(".msv-seat-surface[data-preview='false']")
-                        page.wait_for_selector("#msv-ui-switch")
-                        page.wait_for_timeout(40)
-                        brand = brand_contract(page)
-                        assert page.locator("html").get_attribute("data-msv-theme") == theme
-                        geometry = rectangle_contract(page, "#msv-ui-switch", ".surface-header")
-                        assert geometry["rootWidth"] <= geometry["innerWidth"] + 1
-                        assert geometry["bodyWidth"] <= geometry["innerWidth"] + 1
-                        assert geometry["switch"]["left"] >= 0 and geometry["switch"]["right"] <= geometry["innerWidth"] + 1
-                        assert not geometry["overlap"]
-                        for button in page.locator("#msv-ui-switch button").all():
-                            box = button.bounding_box(); assert box and box["height"] >= 44 and box["width"] >= 44
-                        styles = seat_style_contract(page)
-                        result["seat"][f"{theme}-{window}"] = {"status": STATUS_BY_SEAT[window], "noOverflow": True, "noOverlap": True, "brand": brand, **styles}
+                # Every mentor and learner view receives the one canonical
+                # Adventure skin. Statuses span every runtime state.
+                for window in SEATS:
+                    page.goto(f"{base}/seat.html?seat={window}#clientId=browser-test-client&lease=browser-test-lease-0123456789", wait_until="networkidle")
+                    page.wait_for_selector(".msv-seat-surface[data-preview='false']")
+                    brand = brand_contract(page)
+                    geometry = page_contract(page, ".surface-header")
+                    assert geometry["theme"] == "adventure"
+                    assert geometry["switchCount"] == 0
+                    assert geometry["rootWidth"] <= geometry["innerWidth"] + 1
+                    assert geometry["bodyWidth"] <= geometry["innerWidth"] + 1
+                    styles = seat_style_contract(page)
+                    result["seat"][window] = {"status": STATUS_BY_SEAT[window], "noOverflow": True, "adventureOnly": True, "brand": brand, **styles}
                 if artifact:
-                    page.goto(f"{base}/seat.html?seat=W05&ui=adventure#clientId=browser-test-client&lease=browser-test-lease-0123456789", wait_until="networkidle")
-                    page.wait_for_selector("#msv-ui-switch")
+                    page.goto(f"{base}/seat.html?seat=W05#clientId=browser-test-client&lease=browser-test-lease-0123456789", wait_until="networkidle")
                     page.screenshot(path=artifact / "alpha-seat-adventure-430.png", full_page=True)
 
                 # Console responsive matrix: 390–600 uses one readable column,
                 # 768 two columns, projector width four columns.
-                for theme in THEMES:
-                    for width, height in VIEWPORTS:
-                        page.set_viewport_size({"width": width, "height": height})
-                        page.goto(f"{base}/alpha/?ui={theme}", wait_until="networkidle")
-                        page.wait_for_selector("#seatGrid .seat")
-                        page.wait_for_selector("#msv-ui-switch")
-                        brand = brand_contract(page)
-                        assert page.locator("#seatGrid .seat").count() == 8
-                        geometry = rectangle_contract(page, "#msv-ui-switch", "header h1")
-                        assert geometry["rootWidth"] <= geometry["innerWidth"] + 1
-                        assert geometry["switch"]["left"] >= 0 and geometry["switch"]["right"] <= geometry["innerWidth"] + 1
-                        assert not geometry["overlap"]
-                        boxes = [page.locator("#seatGrid .seat").nth(index).bounding_box() for index in range(4)]
-                        rows = len({round(box["y"]) for box in boxes if box})
-                        expected_rows = 4 if width <= 640 else 2 if width <= 900 else 1
-                        assert rows == expected_rows, (width, rows, boxes)
-                        button = page.locator("#seatGrid .seat button").first.bounding_box()
-                        assert button and button["height"] >= 44 and button["width"] >= 44
-                        style = page.evaluate("() => {const t=document.querySelector('.seat-status'),b=document.querySelector('.seat');return {color:getComputedStyle(t).color,background:getComputedStyle(b).backgroundColor,fontSize:parseFloat(getComputedStyle(t).fontSize)}}")
-                        ratio = contrast(style["color"], style["background"])
-                        assert ratio >= 4.5 and style["fontSize"] >= 15
-                        result["console"][f"{theme}-{width}"] = {"columns": 4 // expected_rows, "contrast": round(ratio, 2), "noOverflow": True, "brand": brand}
-                        if artifact and theme == "adventure" and width == 600:
-                            page.screenshot(path=artifact / "alpha-console-adventure-600.png", full_page=True)
+                for width, height in VIEWPORTS:
+                    page.set_viewport_size({"width": width, "height": height})
+                    page.goto(f"{base}/alpha/", wait_until="networkidle")
+                    page.wait_for_selector("#seatGrid .seat")
+                    brand = brand_contract(page)
+                    assert page.locator("#seatGrid .seat").count() == 8
+                    geometry = page_contract(page, "header h1")
+                    assert geometry["theme"] == "adventure" and geometry["switchCount"] == 0
+                    assert geometry["rootWidth"] <= geometry["innerWidth"] + 1
+                    boxes = [page.locator("#seatGrid .seat").nth(index).bounding_box() for index in range(4)]
+                    rows = len({round(box["y"]) for box in boxes if box})
+                    expected_rows = 4 if width <= 640 else 2 if width <= 900 else 1
+                    assert rows == expected_rows, (width, rows, boxes)
+                    button = page.locator("#seatGrid .seat button").first.bounding_box()
+                    assert button and button["height"] >= 44 and button["width"] >= 44
+                    style = page.evaluate("() => {const t=document.querySelector('.seat-status'),b=document.querySelector('.seat');return {color:getComputedStyle(t).color,background:getComputedStyle(b).backgroundColor,fontSize:parseFloat(getComputedStyle(t).fontSize)}}")
+                    ratio = contrast(style["color"], style["background"])
+                    assert ratio >= 4.5 and style["fontSize"] >= 15
+                    result["console"][str(width)] = {"columns": 4 // expected_rows, "contrast": round(ratio, 2), "noOverflow": True, "adventureOnly": True, "brand": brand}
+                    if artifact and width == 600:
+                        page.screenshot(path=artifact / "alpha-console-adventure-600.png", full_page=True)
 
-                # LIVE RUN master and Course Studio retain normal-flow switches,
-                # no horizontal overflow and no status-colour remapping.
+                # LIVE RUN master and Course Studio use Adventure without any
+                # injected control, horizontal overflow or status remapping.
                 control_base = f"http://127.0.0.1:{control.server_port}"
                 for surface, path, heading in (("control", "/", "header h1"), ("editor", "/editor/", ".topbar h1")):
-                    for theme in THEMES:
-                        for width, height in ((390, 844), (1440, 900)):
-                            page.set_viewport_size({"width": width, "height": height})
-                            page.goto(f"{control_base}{path}?ui={theme}", wait_until="networkidle")
-                            page.wait_for_selector("#msv-ui-switch")
-                            brand = brand_contract(page)
-                            geometry = rectangle_contract(page, "#msv-ui-switch", heading)
-                            assert geometry["rootWidth"] <= geometry["innerWidth"] + 1
-                            assert geometry["switch"]["left"] >= 0 and geometry["switch"]["right"] <= geometry["innerWidth"] + 1
-                            assert not geometry["overlap"]
-                            result[surface][f"{theme}-{width}"] = {"noOverflow": True, "switchInFlow": True, "brand": brand}
-                            if artifact and surface == "control" and theme == "adventure" and width == 390:
-                                page.screenshot(path=artifact / "control-adventure-390.png", full_page=True)
-                            if artifact and surface == "editor" and theme == "adventure" and width == 1440:
-                                page.screenshot(path=artifact / "editor-adventure-1440.png", full_page=False)
+                    for width, height in ((390, 844), (1440, 900)):
+                        page.set_viewport_size({"width": width, "height": height})
+                        page.goto(f"{control_base}{path}", wait_until="networkidle")
+                        brand = brand_contract(page)
+                        geometry = page_contract(page, heading)
+                        assert geometry["theme"] == "adventure" and geometry["switchCount"] == 0
+                        assert geometry["rootWidth"] <= geometry["innerWidth"] + 1
+                        result[surface][str(width)] = {"noOverflow": True, "adventureOnly": True, "brand": brand}
+                        if artifact and surface == "control" and width == 390:
+                            page.screenshot(path=artifact / "control-adventure-390.png", full_page=True)
+                        if artifact and surface == "editor" and width == 1440:
+                            page.screenshot(path=artifact / "editor-adventure-1440.png", full_page=False)
                 browser.close()
                 result["ok"] = True
         finally:

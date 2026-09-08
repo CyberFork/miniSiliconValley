@@ -140,6 +140,8 @@ def main() -> None:
                     page.wait_for_url("**/studio/editor/")
                     page.wait_for_selector("#editor:not([hidden])")
                     assert not failed_requests, failed_requests
+                    assert page.locator("html").get_attribute("data-msv-theme") == "adventure"
+                    assert page.locator("#msv-ui-switch").count() == 0
                     normalized = [entry.split("?")[0].split("/")[-1] for entry in loaded_scripts]
                     assert normalized == ["editor-loader.js", "ui-theme.js", "card-view.js", "course-preview.js", "editor.js"], normalized
 

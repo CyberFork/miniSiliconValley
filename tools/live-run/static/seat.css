@@ -39,7 +39,6 @@ body {
   flex: 0 0 auto;
 }
 .seat-toolbar > a:focus-visible { outline: 3px solid var(--seat-success); outline-offset: 3px; }
-.seat-toolbar [data-msv-theme-slot] { display: flex; min-width: 0; justify-content: flex-end; }
 
 #seatApp {
   display: block;

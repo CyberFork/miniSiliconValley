@@ -12,7 +12,6 @@ button{min-height:44px;min-width:44px;padding:9px 12px;font-size:14px}
 .connection-message{font-size:15px}
 .launch-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}
 .launch-toolbar>a{flex:0 0 auto}
-.launch-toolbar [data-msv-theme-slot]{display:flex;min-width:0;justify-content:flex-end}
 @media(max-width:900px){
   .shell{padding:20px 18px}
   header{align-items:flex-start;flex-wrap:wrap}

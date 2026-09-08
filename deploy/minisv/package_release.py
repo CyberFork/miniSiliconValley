@@ -15,7 +15,7 @@ TEXT_SUFFIXES = {".html", ".css", ".js", ".mjs", ".json", ".svg", ".md", ".txt",
 REQUIRED_PAGES = ("index.html", "404.html", "world/index.html", "framework/index.html", "parents/index.html", "workshop/index.html", "courseware/product-mentor-foundations/index.html")
 PUBLIC_COURSE_NAV_PAGES = ("index.html", "world/index.html")
 FORBIDDEN = ("work.cyberforker.com", "192.168.", "127.0.0.1:18765", "/msv/", r"\/msv\/")
-THEME_VERSION = "20260906-9"
+THEME_VERSION = "20260908-10"
 THEME_ASSETS = f'<link rel="stylesheet" href="/ui-theme.css?v={THEME_VERSION}"><script src="/ui-theme.js?v={THEME_VERSION}"></script>'
 CHJ_COURSE_UI_SHA = "679213a61b835335016eac7649213983a0e48489"
 CHJ_COURSE_UI_TREE = "3a041c4714190cc026f6de8e06e15cec0e5f765d"
@@ -65,6 +65,23 @@ def rewrite_text(text: str) -> str:
 
 
 def inject_theme_assets(text: str) -> str:
+    # Adventure is the sole product UI. Mark static documents before paint;
+    # the shared runtime only classifies light/dark surface semantics.
+    if re.search(r'<html\b[^>]*\bdata-msv-theme=', text, flags=re.IGNORECASE):
+        text = re.sub(
+            r'\bdata-msv-theme=(["\']).*?\1',
+            'data-msv-theme="adventure"',
+            text,
+            count=1,
+            flags=re.IGNORECASE,
+        )
+    else:
+        text = re.sub(r'<html\b', '<html data-msv-theme="adventure"', text, count=1, flags=re.IGNORECASE)
+
+    # Older releases declared empty header slots for the retired comparison
+    # control. They must not survive when a historical static shell is reused.
+    text = re.sub(r'<div\s+data-msv-theme-slot\s*>\s*</div>', '', text, flags=re.IGNORECASE)
+    text = re.sub(r'\s+data-msv-theme-slot(?:=(["\']).*?\1)?', '', text, flags=re.IGNORECASE)
     if "/ui-theme.js" in text:
         text = re.sub(r"/ui-theme\.css(?:\?v=[A-Za-z0-9._-]+)?", f"/ui-theme.css?v={THEME_VERSION}", text)
         text = re.sub(r"/ui-theme\.js(?:\?v=[A-Za-z0-9._-]+)?", f"/ui-theme.js?v={THEME_VERSION}", text)
@@ -185,7 +202,7 @@ def apply_workshop_overlay(workshop: Path, snapshot_source: Path | None = None) 
     replacement = (
         '<a class="brand-lockup msv-static-brand" href="/" aria-label="返回 Mini Silicon Valley 主页">'
         '<img src="/favicon.svg" alt="" width="64" height="64"><span>\\1</span></a>'
-        '\n    <div class="session-health" data-msv-theme-slot>'
+        '\n    <div class="session-health">'
     )
     text, brand_count = old_brand.subn(replacement, text, count=1)
     if brand_count != 1:
@@ -212,7 +229,7 @@ def apply_workshop_overlay(workshop: Path, snapshot_source: Path | None = None) 
     verified = page.read_text(encoding="utf-8")
     for marker in (
         "msv-workshop-released-baseline", 'href="/" aria-label="返回 Mini Silicon Valley 主页"',
-        'src="/favicon.svg"', 'data-msv-theme-slot', 'data-panel="baseline"', 'src="baseline.js"', 'href="baseline.css"',
+        'src="/favicon.svg"', 'data-panel="baseline"', 'src="baseline.js"', 'href="baseline.css"',
     ):
         if marker not in verified:
             raise ValueError(f"Workshop overlay is missing marker {marker!r}")

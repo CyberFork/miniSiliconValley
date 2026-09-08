@@ -11,7 +11,7 @@ button,input,textarea,select{font:inherit}
 button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #e0b83f99;outline-offset:2px}
 .topbar{min-height:92px;padding:18px 3vw;background:var(--navy);color:var(--cream);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:20px;border-bottom:4px solid var(--mustard)}
 .topbar h1{margin:0;font-size:30px}.back{color:var(--cream);text-decoration:none;font-weight:700}.back:hover{text-decoration:underline}
-.topbar-actions{justify-self:end;display:flex;align-items:center;justify-content:flex-end;gap:10px;min-width:0;flex-wrap:wrap}.topbar-actions [data-msv-theme-slot]{display:flex;min-width:0}
+.topbar-actions{justify-self:end;display:flex;align-items:center;justify-content:flex-end;gap:10px;min-width:0;flex-wrap:wrap}
 .topbar-library{min-height:36px;border-color:#ffffff88;background:transparent;color:var(--cream);font-size:12px}
 .save-state{padding:8px 12px;border:1px solid #ffffff55;border-radius:999px;white-space:nowrap}.save-state[data-state="dirty"]{color:var(--mustard);border-color:var(--mustard)}.save-state[data-state="saved"]{color:var(--mint);border-color:var(--mint)}.save-state[data-state="error"]{color:#ff9d8c;border-color:#ff9d8c}
 .eyebrow{display:block;color:var(--coral);font:700 11px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.12em}.topbar .eyebrow{color:var(--mustard)}

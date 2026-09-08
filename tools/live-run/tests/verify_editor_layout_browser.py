@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Browser geometry regression for the Course Studio and shared UI switch."""
+"""Browser geometry regression for Course Studio's canonical Adventure UI."""
 from __future__ import annotations
 
 import json
@@ -45,9 +45,8 @@ def snapshot(page) -> dict:
             innerWidth,
             bodyScrollWidth: document.body.scrollWidth,
             rootScrollWidth: document.documentElement.scrollWidth,
-            dock: document.documentElement.dataset.msvUiDock || null,
-            railCount: document.querySelectorAll('.msv-ui-switch-rail').length,
-            switchPlacement: document.querySelector('#msv-ui-switch')?.dataset.placement,
+            theme: document.documentElement.dataset.msvTheme || null,
+            switchCount: document.querySelectorAll('#msv-ui-switch').length,
             topbarMarginBottom: getComputedStyle(document.querySelector('.topbar')).marginBottom,
             emptyStateDisplay: getComputedStyle(document.querySelector('#emptyState')).display,
             studio: rect('.studio'), library: rect('.library'), workspace: rect('.workspace'),
@@ -57,14 +56,6 @@ def snapshot(page) -> dict:
           };
         }"""
     )
-
-
-def same_geometry(first: dict, second: dict) -> bool:
-    for selector in ("studio", "library", "workspace", "guide"):
-        for key in ("x", "y", "width", "height", "right", "bottom"):
-            if abs(first[selector][key] - second[selector][key]) > 0.25:
-                return False
-    return True
 
 
 def structure_snapshot(page) -> dict:
@@ -95,14 +86,6 @@ def structure_snapshot(page) -> dict:
           };
         }"""
     )
-
-
-def same_structure_geometry(first: dict, second: dict) -> bool:
-    for selector in ("workspace", "layout", "list", "form"):
-        for key in ("x", "y", "width", "height", "right", "bottom"):
-            if abs(first[selector][key] - second[selector][key]) > 0.25:
-                return False
-    return first["stacked"] == second["stacked"]
 
 
 def editor_identity(page) -> dict:
@@ -260,25 +243,20 @@ def main() -> None:
                     page.set_viewport_size({"width": width, "height": 1000})
                     if width <= 1040 and not library_snapshot(page)["collapsed"]:
                         page.click("#closeLibrary")
-                    page.locator("#msv-ui-switch [data-theme=classic]").click()
-                    page.wait_for_timeout(40)
-                    classic_structure = structure_snapshot(page)
-                    page.locator("#msv-ui-switch [data-theme=adventure]").click()
-                    page.wait_for_timeout(40)
-                    adventure_structure = structure_snapshot(page)
-                    for current in (classic_structure, adventure_structure):
-                        assert current["bodyScrollWidth"] <= current["innerWidth"] + 1
-                        assert current["rootScrollWidth"] <= current["innerWidth"] + 1
-                        assert current["layout"]["right"] <= current["innerWidth"] + 1
-                        assert current["form"]["right"] <= current["layout"]["right"] + 1
-                        assert current["separated"], f"block list overlaps form at {width}px"
-                        assert not current["buttonOverflow"], f"block button escapes track at {width}px"
-                    assert same_structure_geometry(classic_structure, adventure_structure)
-                    if adventure_structure["workspace"]["width"] <= 780:
-                        assert adventure_structure["stacked"], f"structure controls must stack at {width}px"
+                    current = structure_snapshot(page)
+                    assert page.locator("html").get_attribute("data-msv-theme") == "adventure"
+                    assert page.locator("#msv-ui-switch").count() == 0
+                    assert current["bodyScrollWidth"] <= current["innerWidth"] + 1
+                    assert current["rootScrollWidth"] <= current["innerWidth"] + 1
+                    assert current["layout"]["right"] <= current["innerWidth"] + 1
+                    assert current["form"]["right"] <= current["layout"]["right"] + 1
+                    assert current["separated"], f"block list overlaps form at {width}px"
+                    assert not current["buttonOverflow"], f"block button escapes track at {width}px"
+                    if current["workspace"]["width"] <= 780:
+                        assert current["stacked"], f"structure controls must stack at {width}px"
                     result["viewports"].setdefault(str(width), {}).update({
                         "structureNoOverlap": True,
-                        "structureStacked": adventure_structure["stacked"],
+                        "structureStacked": current["stacked"],
                     })
 
                 if not library_snapshot(page)["collapsed"]:
@@ -289,30 +267,22 @@ def main() -> None:
                     page.set_viewport_size({"width": width, "height": 1000})
                     if width <= 1040 and not library_snapshot(page)["collapsed"]:
                         page.click("#closeLibrary")
-                    page.locator("#msv-ui-switch [data-theme=classic]").click()
-                    page.wait_for_timeout(40)
-                    classic = snapshot(page)
-                    page.locator("#msv-ui-switch [data-theme=adventure]").click()
-                    page.wait_for_timeout(40)
-                    adventure = snapshot(page)
-                    for current in (classic, adventure):
-                        assert current["railCount"] == 0
-                        assert current["dock"] is None
-                        assert current["switchPlacement"] == "inline"
-                        assert current["topbarMarginBottom"] == "0px"
-                        assert current["emptyStateDisplay"] == "none"
-                        assert current["bodyScrollWidth"] <= current["innerWidth"] + 1
-                        assert current["rootScrollWidth"] <= current["innerWidth"] + 1
-                        assert current["studio"]["right"] <= current["innerWidth"] + 1
-                        assert not current["overflowing"], current["overflowing"]
-                    assert same_geometry(classic, adventure)
-                    if adventure["workspace"]["width"] <= 780:
-                        assert adventure["deckStacked"], f"deck controls must stack at {width}px"
+                    current = snapshot(page)
+                    assert current["theme"] == "adventure"
+                    assert current["switchCount"] == 0
+                    assert current["topbarMarginBottom"] == "0px"
+                    assert current["emptyStateDisplay"] == "none"
+                    assert current["bodyScrollWidth"] <= current["innerWidth"] + 1
+                    assert current["rootScrollWidth"] <= current["innerWidth"] + 1
+                    assert current["studio"]["right"] <= current["innerWidth"] + 1
+                    assert not current["overflowing"], current["overflowing"]
+                    if current["workspace"]["width"] <= 780:
+                        assert current["deckStacked"], f"deck controls must stack at {width}px"
                     result["viewports"][str(width)].update({
                         "noOverflow": True,
                         "noRail": True,
-                        "sameThemeGeometry": True,
-                        "deckStacked": adventure["deckStacked"],
+                        "adventureOnly": True,
+                        "deckStacked": current["deckStacked"],
                     })
 
                 # T-079 tablet/phone: the same course-list becomes a modal

@@ -119,7 +119,8 @@ class CourseReleaseTests(unittest.TestCase):
             self.assertIn('src="/favicon.svg"', workshop_html)
             self.assertIn("connect-src 'self'", workshop_html)
             self.assertIn("img-src 'self' data:", workshop_html)
-            self.assertIn("data-msv-theme-slot", workshop_html)
+            self.assertIn('data-msv-theme="adventure"', workshop_html)
+            self.assertNotIn("data-msv-theme-slot", workshop_html)
             self.assertIn('data-panel="baseline"', workshop_html)
             for name in ("baseline.css", "baseline.js", "confirmed-baseline.json", "workshop-snapshot.schema.json"):
                 self.assertTrue((output / "workshop" / name).is_file(), name)

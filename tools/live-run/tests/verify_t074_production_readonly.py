@@ -37,14 +37,6 @@ def geometry(page) -> dict:
     }""")
 
 
-def assert_same_geometry(before: dict, after: dict) -> None:
-    for region in ("studio", "library", "workspace", "guide"):
-        for dimension in ("x", "y", "width", "height"):
-            delta = abs(before[region][dimension] - after[region][dimension])
-            if delta > 1:
-                raise AssertionError(f"theme geometry drift: {region}.{dimension}={delta}")
-
-
 def structure_geometry(page) -> dict:
     return page.evaluate("""() => {
       const rect = (selector) => {
@@ -105,17 +97,13 @@ def main() -> None:
         if active_course != "eleme-2008-find-problem":
             raise AssertionError(f"unexpected active course: {active_course}")
 
-        page.locator('#msv-ui-switch [data-theme="classic"]').click()
-        classic_structure = structure_geometry(page)
-        page.locator('#msv-ui-switch [data-theme="adventure"]').click()
-        adventure_structure = structure_geometry(page)
-        for current in (classic_structure, adventure_structure):
-            if not current["separated"] or current["buttonOverflow"]:
-                raise AssertionError("course block list overlaps the structured editor form")
-        for region in ("list", "form"):
-            for dimension in ("x", "y", "width", "height", "right", "bottom"):
-                if abs(classic_structure[region][dimension] - adventure_structure[region][dimension]) > 1:
-                    raise AssertionError(f"structured editor theme drift: {region}.{dimension}")
+        if page.locator("html").get_attribute("data-msv-theme") != "adventure":
+            raise AssertionError("production editor is not using the canonical Adventure UI")
+        if page.locator("#msv-ui-switch").count():
+            raise AssertionError("retired UI switch is still visible")
+        current_structure = structure_geometry(page)
+        if not current_structure["separated"] or current_structure["buttonOverflow"]:
+            raise AssertionError("course block list overlaps the structured editor form")
 
         page.click("#cardsTab")
         page.wait_for_selector("#deckCardList button")
@@ -152,12 +140,8 @@ def main() -> None:
         if len(hand_ids) != 12 or len(set(hand_ids)) != 12:
             raise AssertionError("current Alpha hands are not 12 unique stable IDs")
 
-        page.locator('#msv-ui-switch [data-theme="classic"]').click()
-        classic = geometry(page)
-        page.locator('#msv-ui-switch [data-theme="adventure"]').click()
-        adventure = geometry(page)
-        assert_same_geometry(classic, adventure)
-        if max(classic["bodyWidth"], classic["rootWidth"]) > classic["innerWidth"] + 1:
+        current = geometry(page)
+        if max(current["bodyWidth"], current["rootWidth"]) > current["innerWidth"] + 1:
             raise AssertionError("desktop horizontal overflow")
 
         page.set_viewport_size({"width": 390, "height": 844})

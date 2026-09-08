@@ -32,16 +32,19 @@ class UiThemeContractTests(unittest.TestCase):
         raise FileNotFoundError("live-run source/release root not found")
 
     def test_release_injection_is_idempotent(self) -> None:
-        html = "<!doctype html><html><head><title>x</title></head><body></body></html>"
+        html = "<!doctype html><html data-msv-theme=\"classic\"><head><title>x</title></head><body><div data-msv-theme-slot></div></body></html>"
         once = MODULE.inject_theme_assets(html)
         twice = MODULE.inject_theme_assets(once)
 
         self.assertEqual(once, twice)
         self.assertEqual(once.count('/ui-theme.css'), 1)
         self.assertEqual(once.count('/ui-theme.js'), 1)
+        self.assertEqual(once.count('data-msv-theme="adventure"'), 1)
+        self.assertNotIn('data-msv-theme="classic"', once)
+        self.assertNotIn('data-msv-theme-slot', once)
         self.assertLess(once.index('/ui-theme.css'), once.index('</head>'))
 
-    def test_every_live_run_surface_loads_the_shared_switch(self) -> None:
+    def test_every_live_run_surface_loads_the_canonical_adventure_skin(self) -> None:
         live_run = self.live_run_root()
         surfaces = (
             live_run / "static" / "index.html",
@@ -55,29 +58,26 @@ class UiThemeContractTests(unittest.TestCase):
                 html = surface.read_text()
                 self.assertIn('/ui-theme.css', html)
                 self.assertIn('/ui-theme.js', html)
+                self.assertIn('data-msv-theme="adventure"', html)
+                self.assertNotIn('data-msv-theme-slot', html)
 
-    def test_theme_copy_has_two_clear_human_labels(self) -> None:
-        script = (self.site_root() / "ui-theme.js").read_text()
-        for value in ('"classic"', '"adventure"', '"当前"', '"冒险"'):
-            self.assertIn(value, script)
-        self.assertIn('aria-pressed', script)
-        self.assertIn('ArrowLeft', script)
-        self.assertIn('ArrowRight', script)
-
-    def test_missing_slot_falls_back_to_non_layout_floating_switch(self) -> None:
+    def test_theme_runtime_forces_adventure_without_rendering_a_switch(self) -> None:
         script = (self.site_root() / "ui-theme.js").read_text()
         styles = (self.site_root() / "ui-theme.css").read_text()
-        self.assertIn('switcher.dataset.placement = "floating"', script)
-        self.assertNotIn('msv-ui-switch-rail', script + styles)
-        self.assertNotIn('data-msv-ui-dock', script + styles)
-        self.assertNotIn('--msv-ui-dock-top', script + styles)
+        self.assertIn('root.dataset.msvTheme = "adventure"', script)
+        self.assertIn('window.localStorage.removeItem(LEGACY_STORAGE_KEY)', script)
+        self.assertNotIn('window.localStorage.getItem', script)
+        self.assertNotIn('window.localStorage.setItem', script)
+        self.assertNotIn('makeButton', script)
+        self.assertNotIn('mountSwitcher', script)
+        self.assertNotIn('msv-ui-switch', styles)
 
-    def test_course_editor_declares_slot_and_container_responsive_layout(self) -> None:
+    def test_course_editor_has_no_retired_slot_and_keeps_responsive_layout(self) -> None:
         live_run = self.live_run_root()
         html = (live_run / "static" / "editor.html").read_text()
         styles = (live_run / "static" / "editor.css").read_text()
         script = (live_run / "static" / "editor.js").read_text()
-        self.assertIn("data-msv-theme-slot", html)
+        self.assertNotIn("data-msv-theme-slot", html)
         self.assertIn(".topbar-actions", styles)
         self.assertIn("container:course-workspace / inline-size", styles)
         self.assertIn("@container course-workspace (max-width:780px)", styles)
