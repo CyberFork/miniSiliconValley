@@ -11,7 +11,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const params = await searchParams;
   const current = await getAppUser();
   const initialUser: AuthUser | null = current?.role ? {
-    userId: current.userId, username: current.username, displayName: current.displayName, role: current.role, mustChangePassword: false,
+    userId: current.userId, username: current.username, displayName: current.displayName, role: current.role, mustChangePassword: current.mustChangePassword,
   } : null;
   return (
     <AuthShell title="不是访客。" accent="你是这段历史里的行动者。" description="登录后，你的身份、私密情报、课堂协作、声望和作品会沿同一条 Young Builder 世界线持续积累。">

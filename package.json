@@ -29,8 +29,10 @@
     "test:classroom": "node --import tsx --test tests/classroom-*.test.ts",
     "test:parent-qa": "npm run build:parent-qa && npm run build:work-qa && node --import tsx --test tests/parent-qa.test.ts tests/parent-qa-static.test.ts",
     "test:classroom:e2e": "tsx scripts/test-classroom-e2e.ts",
+    "test:course-platform": "node --import tsx --test tests/course-platform.test.ts tests/course-platform-routes.test.ts tests/classroom-factory.test.ts tests/classroom-schema.test.ts",
     "test:work-app": "npm run typecheck && npm run lint && npm run build:work-app && tsx scripts/test-work-app-smoke.ts",
-    "test:minisv-app": "npm run typecheck && npm run lint && npm run build:minisv-app && MSV_APP_SMOKE_TARGET=minisv tsx scripts/test-work-app-smoke.ts",
+    "test:minisv-app": "npm run typecheck && npm run lint && npm run test:course-platform && npm run build:minisv-app && MSV_APP_SMOKE_TARGET=minisv tsx scripts/test-work-app-smoke.ts && tsx scripts/test-course-platform-e2e.ts",
+    "test:course-platform:e2e": "tsx scripts/test-course-platform-e2e.ts",
     "test:portal:live": "node scripts/test-msv-portal-live.mjs",
     "test:release": "npm test && npm run test:classroom:e2e && npm run test:work && npm run test:work-app && npm run test:minisv-app"
   },

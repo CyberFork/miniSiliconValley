@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Render the fixed chj application into a static /course/ artifact.
+ * Render the fixed chj application into the opaque P-mentor CoursewarePackage.
  *
  * This script lives outside the colleague-owned checkout. It deliberately
  * performs no HTML/CSS/JS rewriting: it asks the unmodified Vinext worker to
@@ -25,9 +25,11 @@ function requireCondition(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-requireCondition(process.env.MSV_PUBLIC_BASE === "/course/", "MSV_PUBLIC_BASE must be /course/");
+const coursewareBase = "/courseware/product-mentor-foundations/";
+const coursewareUrl = `https://minisv.vip${coursewareBase}`;
+requireCondition(process.env.MSV_PUBLIC_BASE === coursewareBase, `MSV_PUBLIC_BASE must be ${coursewareBase}`);
 requireCondition(process.env.MSV_SITE_ORIGIN === "https://minisv.vip", "MSV_SITE_ORIGIN must be https://minisv.vip");
-requireCondition(process.env.MSV_CANONICAL_URL === "https://minisv.vip/course/", "MSV_CANONICAL_URL must be https://minisv.vip/course/");
+requireCondition(process.env.MSV_CANONICAL_URL === coursewareUrl, `MSV_CANONICAL_URL must be ${coursewareUrl}`);
 
 const { default: worker } = await import(`${pathToFileURL(server).href}?course-static=${Date.now()}`);
 const response = await worker.fetch(
@@ -41,9 +43,9 @@ const html = await response.text();
 for (const marker of [
   "青少年AI创业营",
   "MINI硅谷",
-  "/course/_next/",
-  "/course/assets/home-workbench.png",
-  '<link rel="canonical" href="https://minisv.vip/course/"',
+  `${coursewareBase}_next/`,
+  `${coursewareBase}assets/home-workbench.png`,
+  `<link rel="canonical" href="${coursewareUrl}"`,
 ]) {
   requireCondition(html.includes(marker), `rendered chj page is missing ${marker}`);
 }

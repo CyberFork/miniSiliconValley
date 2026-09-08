@@ -13,7 +13,9 @@ from urllib.parse import urlsplit
 EXPECTED = {
     "/": 200,
     "/world/": 200,
-    "/course/": 200,
+    "/course/": 307,
+    "/studio/": 307,
+    "/courseware/product-mentor-foundations/": 200,
     "/framework/": 200,
     "/parents/": 200,
     "/workshop/": 200,
@@ -22,12 +24,8 @@ EXPECTED = {
     "/auth/login/": 200,
     "/auth/register/": 200,
     "/auth/recover/": 200,
-    "/alpha/": 200,
-    "/alpha/seat.html": 200,
-    "/alpha/seat.js": 200,
-    "/alpha/course-preview.js": 200,
-    "/alpha/course-preview.css": 200,
-    "/control/": 303,
+    "/alpha/": 410,
+    "/control/": 410,
     "/healthz": 200,
     "/release.json": 200,
     "/favicon.svg": 200,
@@ -89,34 +87,24 @@ def main() -> None:
             if release.get("origin") != "hecate" or release.get("canonicalOrigin") != args.base:
                 raise SystemExit("FAIL release.json: invalid production identity")
             if release.get("sources", {}).get("chjCourseUi") != "679213a61b835335016eac7649213983a0e48489":
-                raise SystemExit("FAIL release.json: /course/ is not pinned to the approved chj commit")
-            if release.get("courseArtifact", {}).get("transformed") is not False:
-                raise SystemExit("FAIL release.json: chj course artifact was transformed")
-            for feature in ("shared-brand-home", "released-workshop-snapshot"):
+                raise SystemExit("FAIL release.json: P-mentor courseware is not pinned to the approved chj commit")
+            artifact = release.get("coursewareArtifact", {})
+            if artifact.get("transformed") is not False or artifact.get("mentorRole") != "P":
+                raise SystemExit("FAIL release.json: P-mentor courseware artifact was transformed or misclassified")
+            for feature in ("shared-brand-home", "released-workshop-snapshot", "unified-course-factory", "course-studio"):
                 if feature not in release.get("features", []):
                     raise SystemExit(f"FAIL release.json: missing {feature}")
-        if path == "/course/":
+        if path == "/courseware/product-mentor-foundations/":
             text = body.decode("utf-8", "replace")
-            required = ("青少年AI创业营", "MINI硅谷", "/course/_next/", "/course/assets/home-workbench.png")
+            required = ("青少年AI创业营", "MINI硅谷", "/courseware/product-mentor-foundations/")
             if any(label not in text for label in required):
-                raise SystemExit("FAIL /course/: incomplete colleague-owned course site")
+                raise SystemExit("FAIL P-mentor courseware: incomplete colleague-owned site")
             if "/ui-theme.js" in text or "data-course-outline-schema" in text:
-                raise SystemExit("FAIL /course/: colleague-owned course site was rewritten or decorated")
-        if path in {"/", "/framework/", "/workshop/", "/alpha/", "/auth/login/", "/auth/register/", "/auth/recover/"}:
+                raise SystemExit("FAIL P-mentor courseware: colleague-owned site was rewritten or decorated")
+        if path in {"/", "/framework/", "/workshop/", "/auth/login/", "/auth/register/", "/auth/recover/"}:
             text = body.decode("utf-8", "replace")
             if 'href="/"' not in text or '/favicon.svg' not in text:
                 raise SystemExit(f"FAIL {path}: shared brand/home contract is missing")
-        if path == "/alpha/seat.html":
-            text = body.decode("utf-8", "replace")
-            for dependency in ("seat.js", "course-preview.js", "course-preview.css"):
-                if dependency not in text:
-                    raise SystemExit(f"FAIL Alpha seat: missing dependency {dependency}")
-        if path in {"/alpha/seat.js", "/alpha/course-preview.js"}:
-            if "javascript" not in headers.get("content-type", "") or len(body) < 100:
-                raise SystemExit(f"FAIL {path}: not an executable JavaScript asset")
-        if path == "/alpha/course-preview.css":
-            if "text/css" not in headers.get("content-type", "") or len(body) < 100:
-                raise SystemExit("FAIL Alpha seat: course-preview.css is unavailable")
         if path == "/workshop/":
             text = body.decode("utf-8", "replace")
             for marker in ("msv-workshop-released-baseline", 'data-panel="baseline"', "baseline.js", "baseline.css"):

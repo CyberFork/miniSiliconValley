@@ -58,8 +58,9 @@ export interface CoursePackageDeck {
   id: string;
   macroStepId: CourseStepId;
   drawAtBlockId: string;
-  cardsPerLearner: 3;
-  uniqueDeal: true;
+  cardsPerLearner: number;
+  /** Mirrors learnerPolicy.dealPolicy for older classroom projections. */
+  uniqueDeal: boolean;
   shuffle: true;
   cards: CoursePackageCard[];
 }
@@ -96,7 +97,17 @@ export interface CoursePackageBlock {
   fallback: string[];
   manualInteraction: string;
   learnerLens: { world: string; say: string; ask: string; done: string };
+  /** Generic task used for learner05+ and as the authoring source for dynamic seats. */
+  learnerTaskTemplate?: { badge: string; task: string };
   seatTasks: Record<string, { state: "active" | "support" | "standby"; badge: string; task: string }>;
+}
+
+export interface CourseLearnerPolicy {
+  defaultCount: number;
+  minCount: number;
+  maxCount: number;
+  cardsPerLearner: number;
+  dealPolicy: "unique-within-step" | "repeat-when-needed";
 }
 
 export interface CoursePackage {
@@ -116,6 +127,12 @@ export interface CoursePackage {
     completeFiveStep: true;
   };
   case: { campaignId: string; name: string; learnerName: string; period: string; why: string };
+  /**
+   * Optional only for immutable schema-v1 releases created before T-085.
+   * Runtime code resolves those releases to a safe 2—4 learner policy without
+   * rewriting their signed JSON or digest.
+   */
+  learnerPolicy?: CourseLearnerPolicy;
   sources: ClassroomSource[];
   decks: CoursePackageDeck[];
   formula: {
@@ -184,8 +201,26 @@ export function validateCoursePackage(value: unknown): CoursePackage {
 
   const caseValue = record(root.case, "$.case");
   for (const key of ["campaignId", "name", "learnerName", "period", "why"]) text(caseValue[key], `$.case.${key}`);
-  if (!new Set(["google-1995-2004", "eleme-2008-find-problem"]).has(String(caseValue.campaignId))) {
-    throw new Error("$.case.campaignId 必须选择已安装的课堂运行底座。");
+  const campaignId = String(caseValue.campaignId);
+  if (!/^[a-z0-9][a-z0-9-]{2,63}$/.test(campaignId)) throw new Error("$.case.campaignId 格式无效。");
+  if (campaignId !== courseId) throw new Error("$.case.campaignId 必须与 $.course.id 一致，避免课程与案例真值错配。");
+
+  const learnerPolicy = root.learnerPolicy === undefined
+    ? { defaultCount: 4, minCount: 2, maxCount: 4, cardsPerLearner: 3, dealPolicy: "unique-within-step" as const }
+    : record(root.learnerPolicy, "$.learnerPolicy");
+  for (const key of ["defaultCount", "minCount", "maxCount", "cardsPerLearner"]) {
+    if (!Number.isInteger(learnerPolicy[key])) throw new Error(`$.learnerPolicy.${key} 必须是整数。`);
+  }
+  const minLearners = Number(learnerPolicy.minCount);
+  const maxLearners = Number(learnerPolicy.maxCount);
+  const defaultLearners = Number(learnerPolicy.defaultCount);
+  const cardsPerLearner = Number(learnerPolicy.cardsPerLearner);
+  if (minLearners < 1 || maxLearners > 24 || minLearners > maxLearners || defaultLearners < minLearners || defaultLearners > maxLearners) {
+    throw new Error("$.learnerPolicy 人数范围无效。");
+  }
+  if (cardsPerLearner < 1 || cardsPerLearner > 12) throw new Error("$.learnerPolicy.cardsPerLearner 必须为 1—12。");
+  if (!new Set(["unique-within-step", "repeat-when-needed"]).has(String(learnerPolicy.dealPolicy))) {
+    throw new Error("$.learnerPolicy.dealPolicy 无效。");
   }
 
   const sources = array(root.sources, "$.sources");
@@ -235,6 +270,11 @@ export function validateCoursePackage(value: unknown): CoursePackage {
     }
     const lens = record(block.learnerLens, `$.blocks[${index}].learnerLens`);
     for (const key of ["world", "say", "ask", "done"]) text(lens[key], `$.blocks[${index}].learnerLens.${key}`);
+    if (block.learnerTaskTemplate !== undefined) {
+      const template = record(block.learnerTaskTemplate, `$.blocks[${index}].learnerTaskTemplate`);
+      text(template.badge, `$.blocks[${index}].learnerTaskTemplate.badge`);
+      text(template.task, `$.blocks[${index}].learnerTaskTemplate.task`);
+    }
     const seatTasks = record(block.seatTasks, `$.blocks[${index}].seatTasks`);
     exactArray(Object.keys(seatTasks).sort(), [...COURSE_SEAT_IDS].sort(), `$.blocks[${index}].seatTasks keys`);
     for (const seatId of COURSE_SEAT_IDS) {
@@ -249,13 +289,15 @@ export function validateCoursePackage(value: unknown): CoursePackage {
   const allCardIds = new Set<string>();
   for (const [index, raw] of decks.entries()) {
     const deck = record(raw, `$.decks[${index}]`);
-    if (deck.macroStepId !== COURSE_STEP_IDS[index] || deck.cardsPerLearner !== 3 || deck.uniqueDeal !== true || deck.shuffle !== true) {
-      throw new Error(`第 ${index + 1} 个卡组不符合随机 4×3 发牌契约。`);
+    const expectsUniqueDeal = learnerPolicy.dealPolicy === "unique-within-step";
+    if (deck.macroStepId !== COURSE_STEP_IDS[index] || deck.cardsPerLearner !== cardsPerLearner || deck.uniqueDeal !== expectsUniqueDeal || deck.shuffle !== true) {
+      throw new Error(`第 ${index + 1} 个卡组不符合课程的随机发牌契约。`);
     }
     text(deck.id, `$.decks[${index}].id`);
     if (deck.drawAtBlockId !== COURSE_DECK_DRAW_BLOCKS[index]) throw new Error(`第 ${index + 1} 个卡组必须在 ${COURSE_DECK_DRAW_BLOCKS[index]} 抽取。`);
     const cards = array(deck.cards, `$.decks[${index}].cards`);
-    if (cards.length < 12) throw new Error(`第 ${index + 1} 个卡组少于 12 张卡。`);
+    const baselineCards = expectsUniqueDeal ? minLearners * cardsPerLearner : 1;
+    if (cards.length < baselineCards) throw new Error(`第 ${index + 1} 个卡组少于最低开课人数所需的 ${baselineCards} 张卡。`);
     for (const [cardIndex, rawCard] of cards.entries()) {
       const card = record(rawCard, `$.decks[${index}].cards[${cardIndex}]`);
       const cardId = text(card.id, `$.decks[${index}].cards[${cardIndex}].id`);
@@ -386,12 +428,15 @@ function assetsForPackage(course: CoursePackage): ClassroomAssetDefinition[] {
 function chapterForStep(course: CoursePackage, step: CoursePackageStep, index: number): ClassroomChapter {
   const blocks = step.blocks.map((id) => course.blocks.find((block) => block.id === id)!).filter(Boolean);
   const deck = course.decks.find((entry) => entry.macroStepId === step.id)!;
-  const identities = IDENTITY_NAMES.map((name, identityIndex) => ({
+  const learnerPolicy = course.learnerPolicy ?? { defaultCount: 4, minCount: 2, maxCount: 4, cardsPerLearner: 3, dealPolicy: "unique-within-step" as const };
+  const identities = Array.from({ length: learnerPolicy.maxCount }, (_, identityIndex) => ({
     id: `${course.course.id}:${step.id}:identity:${identityIndex + 1}`,
-    name,
+    name: IDENTITY_NAMES[identityIndex] ?? `协作探索员 ${identityIndex + 1}`,
     nature: "composite" as const,
-    publicGoal: blocks[0]?.seatTasks[`learner0${identityIndex + 1}`]?.task ?? `从自己的三张卡中找到一条能帮助团队完成“${step.name}”的线索。`,
-    privateConcern: `你只能先看到自己的三张随机卡；不要把推测说成事实。`,
+    publicGoal: blocks[0]?.seatTasks[`learner${String(identityIndex + 1).padStart(2, "0")}`]?.task
+      ?? blocks[0]?.learnerTaskTemplate?.task
+      ?? `从自己的${learnerPolicy.cardsPerLearner}张卡中找到一条能帮助团队完成“${step.name}”的线索。`,
+    privateConcern: `你只能先看到自己的${learnerPolicy.cardsPerLearner}张随机卡；不要把推测说成事实。`,
     ability: identityIndex === 0 ? "可以请一名队友把抽象说法改成具体人物和动作。" : identityIndex === 1 ? "可以要求团队指出说法来自哪张卡。" : identityIndex === 2 ? "可以提出一个会推翻当前判断的反例。" : "可以把一次讨论整理成下一步行动。",
   }));
   const infoCards = deck.cards.map((card, cardIndex): ClassroomInfoCard => ({
@@ -431,6 +476,8 @@ function chapterForStep(course: CoursePackage, step: CoursePackageStep, index: n
     briefing: blocks.map((block) => block.learnerLens.world).join("\n"),
     learningGoal: step.question,
     historicalBoundary: blocks.map((block) => block.historyTrack),
+    cardsPerLearner: learnerPolicy.cardsPerLearner,
+    maxLearners: learnerPolicy.maxCount,
     identities,
     infoCards,
     intelGate: {

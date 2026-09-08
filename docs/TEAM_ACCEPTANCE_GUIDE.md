@@ -1,5 +1,8 @@
 # Classroom 团队验收手册
 
+> **Legacy（T-085 已替代）**：正式 Classroom 使用预创建账号与 Membership，不再以自行注册、TEAM ID 申请或 Alpha 八窗口入场。现行验收见 [Course Platform SOP](COURSE_PLATFORM_SOP.md) 与 [TESTING](TESTING.md)。
+
+
 本手册面向第一次使用项目的 8 位同事：4 名导师（产品主 DM、开发、市场、运营）与 4 名学员。每人使用独立账号和浏览器会话。测试目标是先验收完整账户旅程，再分别跑通 Google 与饿了么的五步骤课件，而非只检查页面能打开。人员不足时可由 1 名主 DM 兼任四条导师专业线，但学员仍不被分成 P／D／M／O。
 
 ## 测试前提

@@ -1,166 +1,97 @@
-# 测试与验收（TESTING）
+# Mini Silicon Valley 测试与验收
 
-## 一键生产闸
-
-```bash
-npm ci
-npm test
-```
-
-`npm test` 顺序执行：
-
-1. `npm run typecheck`：TypeScript strict 类型检查。
-2. `npm run lint`：ESLint，`--max-warnings=0`。
-3. `npm run build`：Vinext/Vite 生产构建。
-4. 核心质量闸执行确定性数据、SSR、交互和状态测试。
-
-Work 子路径部署质量闸：
+## 1. 快速平台闸
 
 ```bash
-npm run test:work
+npm run typecheck
+npm run lint
+npm run test:course-platform
+npm run build:minisv-app
+npm run test:course-platform:e2e
 ```
 
-它在完整核心检查之外生成 `/msv/` 静态构建，并执行 2 项部署契约测试，总计 25 项。
+`npm run test:minisv-app` 串联上述核心步骤并执行应用 smoke。
 
-可分开执行：
+## 2. T-085 自动验收矩阵
+
+### CourseDefinition 与 `4 + N + 1`
+
+- 同一投影器生成 4 位导师、N 位学员和 1 个中控。
+- N=2/4/6 的席位数、任务、固定 seed 和手牌确定性。
+- `unique-within-step` 不重复发牌；`repeat-when-needed` 只在显式配置时重复。
+- 人数越界、卡数不足或动态任务模板缺失给出精确缺口。
+- 声明的 `maxCount` 无法实例化时阻止 Released。
+
+### 工厂、权限与隐私
+
+- Test/Production 共用 `ClassroomFactory` 和 state machine version。
+- Test 接受 Candidate 或 Released；Production 只接受 Released。
+- P/D/M/O 恰好四个不同导师账号；学员账号数等于 N。
+- Admin DM 是独立权限；平台 admin 不自动获得某课堂访问权。
+- 一次性初始密码未修改前，所有 Studio/Classroom 数据 API 返回 `PASSWORD_CHANGE_REQUIRED`。
+- 学员响应无中控验收条件和导师脚本；每个学员只收到自己的持久化卡牌。
+- `/screen` 专用 allow-list 不含 `myView/privateCards/privateScript/submissions/economy/accounts/courseware`。
+- 导师课件库不向学员开放。
+
+### 版本与发布链
+
+真实 HTTP+D1 E2E 必须证明：
+
+```text
+Candidate
+  → Test Classroom 完成 13 Block
+  → 完整验收清单
+  → 重复签收仍返回同一个持久 receipt id
+  → Released
+  → Production
+```
+
+还要验证：
+
+- inline HTML 课件可创建、exact 预览、发布和绑定。
+- Production 开始后，后续课程 Candidate、课件新版本和 Test reset 对其 exact 引用与 ControllerState 零副作用。
+- Production reset 返回 `PRODUCTION_RESET_FORBIDDEN`。
+- N=6 的 18 张手牌在六个账号之间隔离且唯一。
+
+### 部署包
+
+```bash
+python3 -m unittest discover -s deploy/minisv/tests -p 'test_*.py'
+node deploy/minisv/tests/test_ui_theme_runtime.mjs
+zsh -n deploy/minisv/scripts/*.sh
+```
+
+覆盖：manifest 完整清单、篡改拒绝、secret/symlink 拒绝、统一 app+site+ops、固定 P 课件身份、gateway 路由、真实 Origin 透传、旧全局端口退休、原子切换和失败回滚契约。
+
+## 3. 真实 release drill
+
+每次生产发布前必须从干净构建执行一次完整组装：
+
+1. `build:minisv-app` 与 `render:minisv-static`。
+2. 从固定 commit/tree 的干净 chj checkout 构建 P 课件。
+3. 运行 `package_release.py`。
+4. 运行 `package_bundle.py --archive`。
+5. 从 archive 解包到新目录，复验根 manifest、site manifest 和 app worker 配置。
+6. 确认包内无 secrets、SQLite、运行数据或 symlink。
+
+## 4. 浏览器验收
+
+至少使用桌面和 390px 手机视口，分别以管理员／导师／学员登录：
+
+- Studio Editor：切换课程、Block、2/4/6 人、seed；无横向遮挡；错误 JSON 不崩溃且不伪装成功。
+- Preview：页内呈现 `4 + N + 1`，没有独立九窗口依赖。
+- Courseware：创建 HTML、打开 exact revision、发布；同事 P 课件从独立原版页面打开。
+- Classroom：创建 Test、首次改密、不同角色进入、提交、逐块推进、投屏、成员管理、reset。
+- Release：验收回执出现后发布；Production 只能选择 Released，且无 reset。
+- 退休入口：`/alpha/`、`/control/` 为 410；`/api/internal/*` 公网 404。
+
+浏览器 console error、资源 404、私密字段越权、内容横溢、按钮无响应或版本静默漂移均视为失败。
+
+## 5. 完整兼容回归
 
 ```bash
 npm run validate:data
-npm run test:unit
-npm run test:render
+npm run test:release
 ```
 
-## 自动测试矩阵
-
-### `tests/curriculum.test.ts`
-
-- 旧六段素材索引继续通过数据完整性校验。
-- 历史世界只能通过真实 `/course/` 链接进入独立课程站，不保留第二套内存入口。
-
-### `tests/data-validate.test.ts`
-
-- 8/34/74/51/75/66/203/8 数据计数与最低门槛。
-- Catalog 与 Mission 零错误、零警告。
-- 每个事件有来源，每个来源为 HTTPS。
-- 8 个 Mission 与 8 个历史事件严格双向对应。
-
-### `tests/state.test.ts`
-
-- 玩家操作不修改 Original Timeline 或关卡定义。
-- 重玩同关替换而非累加结果，无法刷资源。
-- 资源被截断到 0–9。
-- 导出/导入往返一致。
-- 拒绝未知 Schema 与根节点/嵌套危险键。
-- 非法领域回退，文本、历史节点、证据和结果数组去重/限长。
-
-### `tests/render.test.ts`
-
-- 从 `dist/server/index.js` 真实服务端渲染首页，检查标题、世界地图和无 Starter 占位内容。
-- 4 个 WebP 资源存在且画布尺寸一致，保证跨时代交叉切换不跳位。
-- 核心源码无 TODO、旧 Starter 或已拒绝的模板化假历史短语。
-
-### `tests/interaction-contract.test.ts`
-
-- 年份始终限制在 1891—2026；地图缩放始终限制在 1—2.4。
-- 四代地图在任意年份只混合相邻图层，透明度总和恒为 1。
-- 自动检查桌面/平板/手机断点、弹窗视口约束、减少动态与打印样式。
-- 自动锁定时间轴、键盘、搜索、拖动、双指缩放、滚轮、档案和关卡返回契约。
-- 打开地图节点只能暂停播放、登记已读并展示详情，不得改写时间轴年份。
-- 自动锁定 Modal 焦点/关闭语义和六阶段学习闭环，防止关键交互在重构时静默消失。
-
-### `tests/work-static.test.ts`
-
-- `dist/work/msv/demo.html`、客户端 chunks、favicon 与 4 幅地图必须完整存在。
-- HTML 的脚本、样式、图片和图标只能引用 `/msv/` 子路径，Canonical 必须指向 Work 演示地址。
-- `demo-manifest.json` 中每个文件的字节数和 SHA-256 必须与产物一致。
-
-### `tests/mission-progress.test.ts`
-
-- 证据组合必须确定性地解锁对应行动，缺证时返回准确的证据标题。
-- 学员界面只能显示证据标题，不得暴露 `m4-e4` 一类内部 ID。
-
-## 响应式与无障碍验收
-
-代码级闸检查：
-
-- `390px / 520px / 720px / 900px / 1180px` 布局断点。
-- 弹窗宽度不超过 `calc(100vw - 32px)`，所有 Grid 子项 `min-width: 0`，避免窄屏横溢出。
-- Modal 的 Escape、背景关闭、焦点陷阱、关闭后焦点恢复。
-- 年份键盘操作、地图触摸拖动/双指缩放、按钮可访问名称。
-- `prefers-reduced-motion` 及打印样式。
-
-Sites 构建规范不要求用浏览器截图作为发布前置；因此默认质量闸不依赖图形环境或网络，保持 CI 可重复。
-
-## T-077 原样课程站验收
-
-先运行：
-
-```bash
-deploy/minisv/scripts/build-chj-course.sh <chj-checkout> <course-output>
-```
-
-该门禁检查固定 commit、Git tree、干净工作树、类型、Lint、生产构建、`/course/` 资源前缀及 canonical。发布打包测试还逐文件比较输入和 `site/course/`，证明主站路径重写与主题注入没有触碰同事产物。
-
-`tools/live-run/tests/verify_course_outline_browser.py` 验证：
-
-- `/course/` 在 390、430、768、1440 px 正常载入同事原版“青少年AI创业营”首页；
-- 工作台图片和 `/course/_next/` 客户端代码真实加载，不出现主站主题脚本；
-- “课程大纲”和“开始”都进入原版 9 章／4 阶段页面，返回首页可用；
-- `/`、`/world/`、`/framework/`、`/parents/` 在手机和桌面都有可见 `/course/` 入口；
-- 无浏览器 `pageerror`。
-
-部署测试还覆盖 `/course → /course/`、不透明目录复制、固定 chj 身份、manifest 和生产 smoke。最终版本见 `TODO_077_IMPLEMENTATION.md` 和发布回执。
-
-## T-083 九视窗课程工作台验收
-
-核心测试：
-
-```bash
-python3 -m unittest discover -s tools/live-run/tests -p 'test_*.py'
-node tools/live-run/tests/test_card_view.mjs
-node tools/live-run/tests/test_t083_course_preview.mjs
-node --test tools/live-run/tests/test_remote_console_security.mjs
-python3 tools/live-run/tests/verify_t083_browser.py
-python3 tools/live-run/tests/verify_t074_browser.py
-python3 tools/live-run/tests/verify_editor_layout_browser.py
-python3 tools/live-run/tests/verify_todos_071_072_browser.py
-```
-
-覆盖内容：
-
-- 两门内置课程的 26 个 Block 均生成确定性 9 窗契约快照。
-- 每个 Block 检查 4 导师、4 学员、1 中控同步，且只有一位导师主导。
-- 固定 seed 的 4×3 手牌可重现且 12 张唯一；换 seed 后结果变化。
-- 所见字段反查唯一 Course Package 路径，输入后所有受影响窗口同步；派生字段只读。
-- 五种画布布局、底部可调中控、撤销／重做与粘性保存可用。
-- 保存 Candidate 不改变活动 Run；Released API 拒绝无 Candidate、非 exact digest 和未完成验收。
-- T-083 前旧 digest 的活动 Run 在升级重启后保持 Run ID、当前 Block、状态与尝试次数，不得静默新建课堂。
-- 真实 seat 与 controller 复用共享渲染器，同时不显示编辑控件或预览模拟状态。
-- 1440／1180／768／430／390 px 无横向溢出、无过小基础字号。
-
-生产环境使用只读脚本；账号密码只允许由受控环境变量注入，不得写入命令历史、日志或回执：
-
-```bash
-MSV_QA_ORIGIN=https://minisv.vip \
-MSV_QA_USERNAME='<受控导师账号>' \
-MSV_QA_PASSWORD='<受控密码>' \
-MSV_QA_RELEASE='<release-id>' \
-MSV_QA_MAIN_SHA='<release-main-sha>' \
-python3 tools/live-run/tests/verify_t083_production_readonly.py
-```
-
-脚本登录后只发送 `GET/HEAD/OPTIONS`，读取 `/control/api/bootstrap` 的 `editorBuild=t083-nine-pane-studio-r1`，并复验 Google 与饿了么的 5×13、9 窗、五种画布、确定性发牌、角色隔离、可见字段路径、派生只读及五档响应式布局。部署前后另以服务端状态文件的归一化玩法哈希证明 Run、进度、尝试次数、身份、手牌和账本未改变。
-
-## Alpha 席位生产验收
-
-远端席位服务的回归测试必须经过真实 `remote-console/server.mjs`，解析 `seat.html` 并逐项获取其相对 JS/CSS 依赖。不得用直接暴露源码目录的 fixture 替代该边界。
-
-每次 Alpha 相关发布后执行：
-
-```bash
-python3 deploy/minisv/scripts/public-smoke.py --base https://minisv.vip
-python3 tools/live-run/tests/verify_alpha_public_seat.py \
-  --base https://minisv.vip/alpha/
-```
-
-第二条命令会临时领取、渲染并释放一个空闲席位，要求没有加载占位残留、错误界面、失败资源或浏览器 console error。若八席都被真实用户占用，验收明确失败但不会抢占或重置任何席位。事故背景见 [`ALPHA_SEAT_LOADING_INCIDENT_2026-09-08.md`](ALPHA_SEAT_LOADING_INCIDENT_2026-09-08.md)。
+它覆盖历史世界、Work 旧构建、Parent Q&A 和旧资料兼容。历史测试名称里出现“课程大纲”不代表 `/course/` 当前语义；当前路由权威以本文件和 `COURSE_PLATFORM_ARCHITECTURE.md` 为准。

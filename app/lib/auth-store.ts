@@ -9,10 +9,12 @@ import {
 import { assertAuth, AuthError } from "./auth-errors";
 import type {
   AuthRole,
+  IssuedManagedCredential,
   AuthSessionSummary,
   AuthSessionUser,
   ManagedAuthUser,
 } from "./auth-model";
+import { parseDisplayName, parseRole, parseUsername } from "./auth-validation";
 
 const SESSION_COOKIE = "__Secure-msv_session";
 const DEFAULT_SESSION_MS = 12 * 60 * 60 * 1_000;
@@ -152,6 +154,83 @@ export async function registerUser(
   }
   const row = (await getUserByUsername(db, input.username))!;
   return { user: sessionUserFrom(row, session), token: session.token, remember: input.remember };
+}
+
+/**
+ * Pre-create classroom accounts and reveal each generated password exactly in
+ * this return value. Only password hashes reach D1. A classroom-scoped Admin
+ * DM may create mentor/learner accounts for that classroom. Trusted platform
+ * mentors may also pre-create a roster before the ClassroomFactory transaction
+ * so they can become the initial Admin DM without help from a system admin.
+ */
+export async function createManagedUsers(
+  db: ClassroomD1,
+  actor: Pick<AuthSessionUser, "userId" | "role">,
+  inputs: Array<{ username: unknown; displayName: unknown; role: unknown }>,
+  roomId?: string,
+): Promise<IssuedManagedCredential[]> {
+  assertAuth(inputs.length >= 1 && inputs.length <= 24, "ACCOUNT_BATCH_SIZE_INVALID", "一次可以创建 1—24 个账号。", 400);
+  if (roomId) {
+    const permission = await db.prepare(
+      `SELECT id FROM classroom_permissions WHERE room_id = ? AND profile_id = ? AND permission = 'admin-dm'`,
+    ).bind(roomId, actor.userId).first<{ id: string }>();
+    assertAuth(permission, "CLASSROOM_ADMIN_REQUIRED", "此操作需要本课堂 Admin DM 权限。", 403);
+  } else {
+    assertAuth(actor.role === "admin" || actor.role === "mentor", "MENTOR_REQUIRED", "只有导师或平台管理员可以预创建课堂账号。", 403);
+  }
+  const parsed = inputs.map((input) => {
+    const role = parseRole(input.role);
+    assertAuth(role !== "admin" && role !== "observer", "MANAGED_ROLE_INVALID", "课堂批量账号只能是导师或学员。", 400);
+    return { username: parseUsername(input.username), displayName: parseDisplayName(input.displayName), role };
+  });
+  assertAuth(new Set(parsed.map((item) => item.username)).size === parsed.length, "USERNAME_DUPLICATE", "批量账号中有重复用户名。", 400);
+  const placeholders = parsed.map(() => "?").join(",");
+  const existing = await db.prepare(`SELECT username FROM auth_users WHERE username IN (${placeholders})`).bind(...parsed.map((item) => item.username)).all<{ username: string }>();
+  assertAuth(!(existing.results ?? []).length, "USERNAME_TAKEN", `用户名已存在：${(existing.results ?? []).map((item) => item.username).join("、")}`, 409);
+
+  const now = nowIso();
+  const credentials = await Promise.all(parsed.map(async (item): Promise<IssuedManagedCredential & { hash: string; salt: string; iterations: number }> => {
+    const userId = `usr_${crypto.randomUUID()}`;
+    const initialPassword = `Msv!${randomSecret(18)}`;
+    const password = await createPasswordDigest(initialPassword);
+    return {
+      userId,
+      username: item.username,
+      displayName: item.displayName,
+      role: item.role,
+      initialPassword,
+      mustChangePassword: true,
+      hash: password.hash,
+      salt: password.salt,
+      iterations: password.iterations,
+    };
+  }));
+  const statements: D1PreparedStatement[] = [];
+  for (const credential of credentials) {
+    statements.push(
+      db.prepare(
+        `INSERT INTO auth_users
+         (id, username, display_name, role, status, password_hash, password_salt, password_iterations,
+          password_changed_at, must_change_password, created_at, updated_at)
+         VALUES (?, ?, ?, ?, 'active', ?, ?, ?, ?, 1, ?, ?)`,
+      ).bind(credential.userId, credential.username, credential.displayName, credential.role, credential.hash, credential.salt, credential.iterations, now, now, now),
+      db.prepare(`INSERT INTO profiles (id, nickname, created_at, updated_at) VALUES (?, ?, ?, ?)`).bind(credential.userId, credential.displayName, now, now),
+      db.prepare(
+        `INSERT INTO ledger_accounts (id, kind, room_id, team_id, owner_profile_id, balance_tenths, created_at)
+         VALUES (?, 'personal-wallet', NULL, NULL, ?, 0, ?)`,
+      ).bind(`wallet:${credential.userId}`, credential.userId, now),
+      securityEventStatement(db, credential.userId, actor.userId, "auth.managed-account.created", { role: credential.role, roomId: roomId ?? null }, now),
+    );
+  }
+  await db.batch(statements);
+  return credentials.map((credential) => ({
+    userId: credential.userId,
+    username: credential.username,
+    displayName: credential.displayName,
+    role: credential.role,
+    initialPassword: credential.initialPassword,
+    mustChangePassword: credential.mustChangePassword,
+  }));
 }
 
 /** Returns the clear token exactly once; D1 stores only its SHA-256 digest. */

@@ -39,3 +39,12 @@ export type IssuedPasswordResetLink = {
   resetUrl: string;
   expiresAt: string;
 };
+
+export type IssuedManagedCredential = {
+  userId: string;
+  username: string;
+  displayName: string;
+  role: Exclude<AuthRole, "admin">;
+  initialPassword: string;
+  mustChangePassword: true;
+};

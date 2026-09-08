@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 TEXT_SUFFIXES = {".html", ".css", ".js", ".mjs", ".json", ".svg", ".md", ".txt", ".webmanifest"}
-REQUIRED_PAGES = ("index.html", "404.html", "world/index.html", "course/index.html", "framework/index.html", "parents/index.html", "workshop/index.html")
+REQUIRED_PAGES = ("index.html", "404.html", "world/index.html", "framework/index.html", "parents/index.html", "workshop/index.html", "courseware/product-mentor-foundations/index.html")
 PUBLIC_COURSE_NAV_PAGES = ("index.html", "world/index.html")
 FORBIDDEN = ("work.cyberforker.com", "192.168.", "127.0.0.1:18765", "/msv/", r"\/msv\/")
 THEME_VERSION = "20260906-9"
@@ -90,7 +90,7 @@ def transform_tree(root: Path) -> None:
 
 
 def normalize_framework_brand(page: Path) -> None:
-    """Upgrade only the owned framework shell; never touch opaque /course/."""
+    """Upgrade only the owned framework shell; never touch opaque courseware."""
     if not page.is_file():
         return
     text = page.read_text(encoding="utf-8")
@@ -275,8 +275,8 @@ def build(
     for source_name, target_name in page_map.items():
         copy_entry(legacy / source_name, output / target_name)
 
-    # Current main owns the public world shell. The course route is copied later
-    # as an opaque artifact from the fixed chj checkout.
+    # Current main owns the public world shell. /course/ is served dynamically
+    # by the authenticated app; the colleague artifact is copied separately.
     copy_entry(app_static / "world" / "index.html", output / "world" / "index.html")
     # Parent Q&A must be rendered from the same current application build as
     # the authentication and classroom surfaces. Reusing legacy qa.html here
@@ -298,10 +298,12 @@ def build(
     normalize_framework_brand(output / "framework" / "index.html")
     apply_workshop_overlay(output / "workshop", workshop_snapshot)
 
-    # Never pass the colleague-owned course build through rewrite_text() or the
-    # shared theme injector. It is an independently built, immutable subsite.
-    copy_entry(course_static, output / "course")
-    course_output_digest, course_output_files, course_output_bytes = tree_digest(output / "course")
+    # Never pass the colleague-owned build through rewrite_text() or the shared
+    # theme injector. It is an independently built, immutable P-mentor
+    # CoursewarePackage, not the entire course truth or /course/ library.
+    courseware_output = output / "courseware" / "product-mentor-foundations"
+    copy_entry(course_static, courseware_output)
+    course_output_digest, course_output_files, course_output_bytes = tree_digest(courseware_output)
     if (course_output_digest, course_output_files, course_output_bytes) != (
         course_source_digest, course_source_files, course_source_bytes
     ):
@@ -312,9 +314,12 @@ def build(
         "builtAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "origin": "hecate", "canonicalOrigin": "https://minisv.vip",
         "features": [
-            "stable-course-route",
-            "verbatim-chj-course-site",
-            "opaque-course-bundle",
+            "unified-course-factory",
+            "dynamic-courseware-library",
+            "verbatim-product-mentor-courseware",
+            "opaque-courseware-bundle",
+            "course-studio",
+            "per-classroom-controller",
             "shared-brand-home",
             "released-workshop-snapshot",
         ],
@@ -323,7 +328,9 @@ def build(
             "chjCourseUi": chj_sha,
             "chjCourseTree": chj_tree,
         },
-        "courseArtifact": {
+        "coursewareArtifact": {
+            "route": "/courseware/product-mentor-foundations/",
+            "mentorRole": "P",
             "sha256": course_source_digest,
             "files": course_source_files,
             "bytes": course_source_bytes,
@@ -331,7 +338,8 @@ def build(
         },
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (output / "sitemap.json").write_text(json.dumps({"routes": [
-        "/", "/world/", "/course/", "/classroom/", "/alpha/", "/control/", "/framework/", "/parents/", "/workshop/",
+        "/", "/world/", "/studio/", "/studio/editor/", "/studio/preview/", "/studio/courseware/", "/studio/releases/",
+        "/course/", "/courseware/product-mentor-foundations/", "/classroom/", "/framework/", "/parents/", "/workshop/",
     ]}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     errors = []
@@ -341,14 +349,14 @@ def build(
         page = output / relative
         if page.is_file() and not re.search(r'href=["\']/course/', page.read_text(encoding="utf-8")):
             errors.append(f"missing stable course navigation in {relative}")
-    course_page = output / "course" / "index.html"
+    course_page = output / "courseware" / "product-mentor-foundations" / "index.html"
     if course_page.is_file():
         course_text = course_page.read_text(encoding="utf-8")
-        for marker in ("青少年AI创业营", "MINI硅谷", "/course/_next/", "/course/assets/home-workbench.png"):
+        for marker in ("青少年AI创业营", "MINI硅谷"):
             if marker not in course_text:
-                errors.append(f"opaque chj course is missing marker {marker!r}")
+                errors.append(f"opaque P-mentor courseware is missing marker {marker!r}")
         if "/ui-theme.js" in course_text or "data-course-outline-schema" in course_text:
-            errors.append("opaque chj course was replaced or decorated by the main application")
+            errors.append("opaque P-mentor courseware was replaced or decorated by the main application")
     framework_page = output / "framework" / "index.html"
     if framework_page.is_file() and "COURSE SYSTEM" in framework_page.read_text(encoding="utf-8"):
         framework_text = framework_page.read_text(encoding="utf-8")

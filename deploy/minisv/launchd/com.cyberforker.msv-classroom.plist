@@ -7,14 +7,14 @@
   <key>ProgramArguments</key>
   <array>
     <string>/opt/homebrew/bin/node</string>
-    <string>/Users/hecate/Services/msv-classroom/runtime/node_modules/wrangler/bin/wrangler.js</string>
+    <string>__HOME__/Services/msv-classroom/runtime/node_modules/wrangler/bin/wrangler.js</string>
     <string>dev</string>
     <string>--config</string>
-    <string>/Users/hecate/Services/msv-classroom/current/dist/server/wrangler.json</string>
+    <string>__HOME__/Services/minisv/current/app/dist/server/wrangler.json</string>
     <string>--env-file</string>
-    <string>/Users/hecate/Services/minisv/secrets/classroom.env</string>
+    <string>__HOME__/Services/minisv/secrets/classroom.env</string>
     <string>--persist-to</string>
-    <string>/Users/hecate/Services/msv-classroom/data</string>
+    <string>__HOME__/Services/msv-classroom/data</string>
     <string>--ip</string>
     <string>127.0.0.1</string>
     <string>--port</string>
@@ -22,11 +22,11 @@
     <string>--no-show-interactive-dev-session</string>
   </array>
   <key>WorkingDirectory</key>
-  <string>/Users/hecate/Services/msv-classroom/current/dist/server</string>
+  <string>__HOME__/Services/minisv/current/app/dist/server</string>
   <key>EnvironmentVariables</key>
   <dict>
     <key>HOME</key>
-    <string>/Users/hecate</string>
+    <string>__HOME__</string>
     <key>PATH</key>
     <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
     <key>NO_COLOR</key>
@@ -43,8 +43,8 @@
   <key>ThrottleInterval</key>
   <integer>10</integer>
   <key>StandardOutPath</key>
-  <string>/Users/hecate/Services/msv-classroom/logs/stdout.log</string>
+  <string>__HOME__/Services/msv-classroom/logs/stdout.log</string>
   <key>StandardErrorPath</key>
-  <string>/Users/hecate/Services/msv-classroom/logs/stderr.log</string>
+  <string>__HOME__/Services/msv-classroom/logs/stderr.log</string>
 </dict>
 </plist>

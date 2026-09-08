@@ -47,21 +47,26 @@ export function buildIndependentRandomDealPlan(
   identityIds: readonly string[],
   cardIds: readonly string[],
   shuffle: ClassroomShuffle = secureShuffle,
+  cardsPerLearner?: number,
 ): ClassroomDealAssignment[] {
   assertDistinctNonEmpty(memberIds, "memberIds");
   assertDistinctNonEmpty(identityIds, "identityIds");
   assertDistinctNonEmpty(cardIds, "cardIds");
 
-  if (identityIds.length !== memberIds.length) {
-    throw new Error("每支队伍的案例身份数量必须与学员人数相同。");
+  if (identityIds.length < memberIds.length) {
+    throw new Error("案例身份数量不能少于学员人数。");
   }
-  if (cardIds.length % memberIds.length !== 0) {
+  const dealCount = cardsPerLearner === undefined ? cardIds.length : memberIds.length * cardsPerLearner;
+  if (!Number.isInteger(dealCount) || dealCount < memberIds.length || dealCount > cardIds.length) {
+    throw new Error("本章手牌数量不足以满足每名学员的发牌设置。");
+  }
+  if (cardsPerLearner === undefined && cardIds.length % memberIds.length !== 0) {
     throw new Error("本章手牌总数必须能平均分给所有学员。");
   }
 
-  const randomizedIdentities = shuffle(identityIds);
+  const randomizedIdentities = shuffle(identityIds).slice(0, memberIds.length);
   const randomizedCards = shuffle(cardIds);
-  assertPermutation(randomizedIdentities, identityIds, "身份随机结果");
+  assertSelection(randomizedIdentities, identityIds, memberIds.length, "身份随机结果");
   assertPermutation(randomizedCards, cardIds, "手牌随机结果");
 
   const plan = memberIds.map((memberId, index) => ({
@@ -70,16 +75,23 @@ export function buildIndependentRandomDealPlan(
     cardIds: [] as string[],
   }));
 
-  randomizedCards.forEach((cardId, index) => {
+  randomizedCards.slice(0, dealCount).forEach((cardId, index) => {
     plan[index % plan.length].cardIds.push(cardId);
   });
 
-  const expectedCardsPerLearner = cardIds.length / memberIds.length;
+  const expectedCardsPerLearner = cardsPerLearner ?? cardIds.length / memberIds.length;
   if (plan.some((assignment) => assignment.cardIds.length !== expectedCardsPerLearner)) {
     throw new Error("随机发牌没有平均覆盖所有学员。");
   }
 
   return plan;
+}
+
+function assertSelection(actual: readonly string[], source: readonly string[], expectedLength: number, label: string): void {
+  const sourceSet = new Set(source);
+  if (actual.length !== expectedLength || new Set(actual).size !== actual.length || actual.some((value) => !sourceSet.has(value))) {
+    throw new Error(`${label}不是原集合的完整排列或有效不重复选择。`);
+  }
 }
 
 function assertDistinctNonEmpty(values: readonly string[], label: string): void {

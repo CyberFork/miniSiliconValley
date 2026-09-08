@@ -18,7 +18,7 @@ test("React surfaces share one accessible root-home logo primitive", async () =>
     "app/components/WorldApp.tsx",
     "app/auth/AuthShell.tsx",
     "app/account/AccountClient.tsx",
-    "app/classroom/page.tsx",
+    "app/classroom/ClassroomHub.tsx",
     "app/classroom/ClassroomApp.tsx",
     "app/qa/QaClient.tsx",
     "app/not-found.tsx",

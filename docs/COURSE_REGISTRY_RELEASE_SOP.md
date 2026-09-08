@@ -1,5 +1,8 @@
 # Course Registry 发布 SOP
 
+> **Legacy（T-085 已替代）**：旧 `/control`／Alpha 发布链已退休。现行流程是 `CourseDefinition → Candidate → 真实 Test Classroom → 验收回执 → Released → Production`，请使用 [Course Platform SOP](COURSE_PLATFORM_SOP.md)。下文只作历史审计。
+
+
 ## 目标
 
 Registry 是课程发布链的索引，不是内容复制器。唯一真值链为：`Candidate → Alpha exact revision/digest → Released → Classroom`。每个版本 immutable；任何修订都新建 revision，不覆盖旧记录。

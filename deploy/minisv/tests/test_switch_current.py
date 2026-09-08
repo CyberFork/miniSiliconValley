@@ -17,7 +17,13 @@ class SwitchCurrentTests(unittest.TestCase):
     def make_release(self, root: Path, release_id: str) -> Path:
         release = root / "releases" / release_id
         (release / "site").mkdir(parents=True)
+        (release / "app" / "dist" / "server").mkdir(parents=True)
+        (release / "app" / "dist" / "client").mkdir(parents=True)
+        (release / "MANIFEST.sha256").write_text("verified bundle\n")
         (release / "site" / "MANIFEST.sha256").write_text("verified\n")
+        (release / "app" / "dist" / "server" / "index.js").write_text("worker\n")
+        (release / "app" / "dist" / "server" / "wrangler.json").write_text("{}\n")
+        (release / "app" / "dist" / "client" / "vinext-client-entry-manifest.json").write_text("{}\n")
         return release
 
     def test_replaces_existing_directory_symlink_instead_of_nesting(self) -> None:

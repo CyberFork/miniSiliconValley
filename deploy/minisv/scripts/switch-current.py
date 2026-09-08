@@ -16,7 +16,14 @@ def switch_current(root: Path, release_id: str) -> None:
         raise ValueError("invalid release id")
     root = root.resolve()
     target = root / "releases" / release_id
-    if not target.is_dir() or not (target / "site" / "MANIFEST.sha256").is_file():
+    required = (
+        target / "MANIFEST.sha256",
+        target / "site" / "MANIFEST.sha256",
+        target / "app" / "dist" / "server" / "index.js",
+        target / "app" / "dist" / "server" / "wrangler.json",
+        target / "app" / "dist" / "client" / "vinext-client-entry-manifest.json",
+    )
+    if not target.is_dir() or any(not path.is_file() for path in required):
         raise ValueError(f"release is incomplete: {release_id}")
 
     temporary = root / f".current-{release_id}-{os.getpid()}"

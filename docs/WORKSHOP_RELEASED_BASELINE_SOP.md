@@ -1,5 +1,8 @@
 # Workshop Released 基线发布 SOP
 
+> **边界更新（T-085）**：Workshop 仍是只读附加基线；课程发布主链已改为真实 Test Classroom 验收，不再使用旧 Alpha 或 `/control/editor`。现行主链见 [Course Platform SOP](COURSE_PLATFORM_SOP.md)。
+
+
 ## 目的与单一真值链
 
 课程内容沿着 `Candidate → Alpha exact revision/digest → Released → Classroom` 单向流动。Workshop 只读 `public-redacted Released` 快照；不自动与编辑器或 Classroom 双向同步。唯一写入口是 `/control/editor/`。

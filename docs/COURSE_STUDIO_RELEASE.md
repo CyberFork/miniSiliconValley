@@ -1,5 +1,8 @@
 # Course Studio 发布说明
 
+> **Legacy（T-085 已替代）**：旧固定九视窗 `/control/editor` 已由 `/studio/editor/` 和页内动态 `4 + N + 1` 取代。现行流程见 [Course Platform SOP](COURSE_PLATFORM_SOP.md)。
+
+
 发布：`20260906T064756Z-t074-layout-r2`
 
 入口：<https://minisv.vip/control/editor/>

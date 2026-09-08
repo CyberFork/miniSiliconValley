@@ -5,7 +5,8 @@ import { authResponse } from "../_shared";
  * Keep the retired self-service API explicit so a POST cannot fall through to
  * the similarly named HTML page and become a misleading 503 in Workers.
  */
-export async function POST(): Promise<Response> {
+export async function POST(request: Request): Promise<Response> {
+  await request.text();
   return authResponse({
     ok: false,
     error: {

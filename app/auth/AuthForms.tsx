@@ -24,8 +24,11 @@ export function LoginForm({ returnTo, initialUser, signedOut }: {
     setBusy(true);
     setError(null);
     try {
-      await api("/api/auth/login", { username, password, remember });
-      window.location.assign(publicPath(safeReturnTo(returnTo)));
+      const result = await api<{ user: AuthUser }>("/api/auth/login", { username, password, remember });
+      const destination = result.user.mustChangePassword
+        ? `/account?first=1&returnTo=${encodeURIComponent(safeReturnTo(returnTo))}`
+        : safeReturnTo(returnTo);
+      window.location.assign(publicPath(destination));
     } catch (cause) {
       setError(messageOf(cause));
     } finally {
@@ -38,7 +41,7 @@ export function LoginForm({ returnTo, initialUser, signedOut }: {
       <header className={styles.cardHeading}>
         <span>ACCOUNT ACCESS</span>
         <h2>进入你的世界线</h2>
-        <p>账号只使用用户名和密码。课堂归属在登录后通过队伍ID申请。</p>
+        <p>使用 Admin DM 分发的用户名和初始密码。首次登录会先引导你把一次性密码换成自己的密码，课堂已经通过 Membership 分配好。</p>
       </header>
       {initialUser && <div className={styles.signedInNote}>当前已登录为 <strong>{initialUser.displayName}</strong>。你可以直接继续，或切换账号。</div>}
       {signedOut && <div className={styles.formSuccess} role="status">已经安全退出当前账号。</div>}
@@ -62,7 +65,7 @@ export function LoginForm({ returnTo, initialUser, signedOut }: {
         <button className={styles.primaryButton} disabled={busy || username.length < 3 || !password}>{busy ? "正在验证…" : "进入 Mini Silicon Valley →"}</button>
         {initialUser && <button type="button" className={styles.secondaryButton} onClick={() => window.location.assign(publicPath(safeReturnTo(returnTo)))}>继续使用 {initialUser.displayName}</button>}
       </form>
-      <p className={styles.formFoot}>还没有账号？ <a className={styles.textLink} href={`${publicPath("/auth/register")}?returnTo=${encodeURIComponent(returnTo)}`}>直接注册 Young Builder</a></p>
+      <p className={styles.formFoot}>还没有登录凭据？请联系本课堂 Admin DM；不要使用同学的账号。</p>
     </div>
   );
 }
@@ -106,7 +109,7 @@ export function RegisterForm({ returnTo }: { returnTo: string }) {
       <header className={styles.cardHeading}>
         <span>CREATE YOUNG BUILDER ID</span>
         <h2>直接创建成长账号</h2>
-        <p>无需邀请代码。注册成功后，用队伍ID向具体团队申请加入。</p>
+        <p>这是独立体验账号入口。正式课堂使用 Admin DM 预创建并分发的账号，Membership 会在开课前直接绑定。</p>
       </header>
       <form className={styles.authForm} onSubmit={submit} noValidate>
         <label className={styles.field}><span className={styles.fieldLabel}>用户名 <small>3–32位，注册后保持稳定</small></span><input value={username} onChange={(event) => setUsername(normalizeUsernameInput(event.target.value))} autoComplete="username" minLength={3} maxLength={32} pattern="[a-z][a-z0-9_-]{2,31}" required /><p className={styles.fieldHint}>以小写字母开头，可使用数字、- 和 _。</p></label>

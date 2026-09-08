@@ -110,8 +110,8 @@
     link.className = "msv-course-nav-link";
     link.dataset.placement = "floating";
     link.href = "/course/";
-    link.textContent = "课程大纲 ↗";
-    link.setAttribute("aria-label", "打开统一课程大纲");
+    link.textContent = "导师课件 ↗";
+    link.setAttribute("aria-label", "打开导师课件库");
     document.body.appendChild(link);
   }
 

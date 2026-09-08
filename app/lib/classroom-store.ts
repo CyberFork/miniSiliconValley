@@ -1939,15 +1939,18 @@ async function assignAndDeal(db: ClassroomD1, member: MembershipRow, room: RoomR
         .bind(team.id),
     );
     assertClassroom(
-      learners.length === chapter.identities.length,
+      learners.length === team.seat_limit,
       "TEAM_NOT_READY",
-      `${team.name}需要${chapter.identities.length}名学员才能发牌，目前为${learners.length}名。`,
+      `${team.name}需要${team.seat_limit}名学员才能发牌，目前为${learners.length}名。`,
       409,
     );
+    const cardsPerLearner = chapter.cardsPerLearner ?? Math.floor(chapter.infoCards.length / team.seat_limit);
     const dealPlan = buildIndependentRandomDealPlan(
       learners.map((learner) => learner.id),
       chapter.identities.map((identity) => identity.id),
       chapter.infoCards.map((card) => card.id),
+      undefined,
+      cardsPerLearner,
     );
     const cardById = new Map(chapter.infoCards.map((card) => [card.id, card]));
     dealPlan.forEach((assignment) => {
@@ -1972,7 +1975,7 @@ async function assignAndDeal(db: ClassroomD1, member: MembershipRow, room: RoomR
       }
     });
   }
-  const cardsPerLearner = chapter.infoCards.length / chapter.identities.length;
+  const cardsPerLearner = chapter.cardsPerLearner ?? (teams[0] ? Math.floor(chapter.infoCards.length / teams[0].seat_limit) : 0);
   statements.push(
     db.prepare(`UPDATE rooms SET phase = 'identity', version = version + 1, updated_at = ? WHERE id = ?`).bind(now, room.id),
     auditStatement(db, room.id, member.profile_id, "cards.deal", "chapter", chapter.id, {
@@ -2021,7 +2024,8 @@ async function movePhase(
 async function assertPhaseGate(db: ClassroomD1, room: RoomRow, phase: ClassroomPhase): Promise<void> {
   if (phase === "lobby") {
     const learners = await scalarNumber(db.prepare(`SELECT COUNT(*) AS value FROM memberships WHERE room_id = ? AND role = 'learner'`).bind(room.id));
-    assertClassroom(learners >= 4, "ROOM_NOT_READY", "至少需要4名学员加入后才能开局。", 409);
+    const seats = await scalarNumber(db.prepare(`SELECT COALESCE(SUM(seat_limit), 0) AS value FROM teams WHERE room_id = ?`).bind(room.id));
+    assertClassroom(learners >= seats && seats > 0, "ROOM_NOT_READY", `需要${seats}名学员到齐后才能开局，目前为${learners}名。`, 409);
     const grants = await scalarNumber(
       db.prepare(`SELECT COUNT(*) AS value FROM card_grants WHERE room_id = ? AND chapter_id = ?`).bind(room.id, room.chapter_id),
     );

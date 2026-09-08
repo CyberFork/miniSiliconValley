@@ -44,7 +44,7 @@ class CourseReleaseTests(unittest.TestCase):
                 MODULE.build(*inputs, output, "t077-test", main_sha="main")
             self.assertFalse(output.exists())
 
-    def test_release_packages_current_world_and_opaque_chj_course(self) -> None:
+    def test_release_packages_current_world_and_opaque_product_mentor_courseware(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             legacy = root / "legacy"
@@ -78,9 +78,9 @@ class CourseReleaseTests(unittest.TestCase):
             (static / "world" / "index.html").write_text('<html><head></head><body><a href="/course/">课程大纲</a>current world</body></html>')
             (static / "parents" / "index.html").write_text('<html><head></head><body><a class="msv-brand-home" href="/"><img src="/favicon.svg">current parents</a></body></html>')
             course_html = (
-                '<html><head><link rel="stylesheet" href="/course/_next/chj.css"></head>'
+                '<html><head><link rel="stylesheet" href="/courseware/product-mentor-foundations/_next/chj.css"></head>'
                 '<body><h1>青少年AI创业营</h1><b>MINI硅谷</b>'
-                '<img src="/course/assets/home-workbench.png"></body></html>'
+                '<img src="/courseware/product-mentor-foundations/assets/home-workbench.png"></body></html>'
             )
             (course / "index.html").write_text(course_html)
             (course / "_next" / "chj.css").write_bytes(b"/* colleague bytes */")
@@ -106,13 +106,13 @@ class CourseReleaseTests(unittest.TestCase):
             self.assertNotIn('msv-course-nav-link', (output / "framework" / "index.html").read_text())
             self.assertNotIn('msv-course-nav-link', (output / "parents" / "index.html").read_text())
             self.assertIn('link.href = "/course/"', (output / "ui-theme.js").read_text())
-            self.assertTrue((output / "course" / "index.html").is_file())
+            self.assertTrue((output / "courseware" / "product-mentor-foundations" / "index.html").is_file())
             output_snapshot = {
-                path.relative_to(output / "course").as_posix(): path.read_bytes()
-                for path in (output / "course").rglob("*") if path.is_file()
+                path.relative_to(output / "courseware" / "product-mentor-foundations").as_posix(): path.read_bytes()
+                for path in (output / "courseware" / "product-mentor-foundations").rglob("*") if path.is_file()
             }
             self.assertEqual(output_snapshot, source_snapshot)
-            self.assertNotIn("/ui-theme.js", (output / "course" / "index.html").read_text())
+            self.assertNotIn("/ui-theme.js", (output / "courseware" / "product-mentor-foundations" / "index.html").read_text())
             workshop_html = (output / "workshop" / "index.html").read_text()
             self.assertIn("msv-workshop-released-baseline", workshop_html)
             self.assertIn('href="/" aria-label="返回 Mini Silicon Valley 主页"', workshop_html)
@@ -131,11 +131,12 @@ class CourseReleaseTests(unittest.TestCase):
             self.assertEqual(release["sources"]["main"], main_sha)
             self.assertEqual(release["sources"]["chjCourseUi"], MODULE.CHJ_COURSE_UI_SHA)
             self.assertEqual(release["sources"]["chjCourseTree"], MODULE.CHJ_COURSE_UI_TREE)
-            self.assertIn("verbatim-chj-course-site", release["features"])
+            self.assertIn("verbatim-product-mentor-courseware", release["features"])
             self.assertIn("shared-brand-home", release["features"])
             self.assertIn("released-workshop-snapshot", release["features"])
-            self.assertFalse(release["courseArtifact"]["transformed"])
-            self.assertEqual(release["courseArtifact"]["files"], len(source_snapshot))
+            self.assertFalse(release["coursewareArtifact"]["transformed"])
+            self.assertEqual(release["coursewareArtifact"]["mentorRole"], "P")
+            self.assertEqual(release["coursewareArtifact"]["files"], len(source_snapshot))
             self.assertTrue((output / "MANIFEST.sha256").is_file())
 
 

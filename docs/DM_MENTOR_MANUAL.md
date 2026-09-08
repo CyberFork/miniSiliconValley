@@ -1,5 +1,8 @@
 # Mini Silicon Valley DM／导师操作手册 v1.1
 
+> **现行平台说明（T-085）**：本文件的教学主持内容仍可参考；账号、入队、Alpha、全局主控和发布操作已由 [Course Platform SOP](COURSE_PLATFORM_SOP.md) 替代。正式课堂使用预创建账号、Membership 与 `/classroom/{id}` 实例路由。
+
+
 > 文档类型：导师上手指南＋课堂标准操作程序（SOP）
 > 适用对象：课程设计者、主DM、助教、观课导师
 > 适用模式：实体卡牌＋WebApp混合课堂；断网时可切换为实体备份

@@ -14,7 +14,7 @@ import { BrandHomeLink } from "../components/BrandHomeLink";
 
 type Envelope<T> = { ok: boolean; data?: T; error?: { code: string; message: string } };
 
-export default function AccountClient({ initialUser }: { initialUser: AuthUser }) {
+export default function AccountClient({ initialUser, firstLogin = false, returnTo = "/classroom/" }: { initialUser: AuthUser; firstLogin?: boolean; returnTo?: string }) {
   const [user, setUser] = useState(initialUser);
   const [sessions, setSessions] = useState<AuthSessionSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,8 +49,10 @@ export default function AccountClient({ initialUser }: { initialUser: AuthUser }
       await action();
       setNotice(success);
       await refresh();
+      return true;
     } catch (cause) {
       setError(messageOf(cause));
+      return false;
     } finally {
       setBusy(false);
     }
@@ -69,9 +71,10 @@ export default function AccountClient({ initialUser }: { initialUser: AuthUser }
           <div className={styles.identityBadge}><b>{initials(user.displayName)}</b><div><span>{user.displayName}</span><small>@{user.username} · {roleLabel(user.role)}</small></div></div>
         </header>
         {(error || notice) && <div className={error ? styles.formError : styles.formSuccess} role={error ? "alert" : "status"} style={{ marginTop: 24 }}>{error ?? notice}</div>}
+        {(firstLogin || user.mustChangePassword) && <div className={styles.formSuccess} role="status" style={{ marginTop: 24 }}><strong>先完成账号启用：</strong>请使用下方“更新密码”把一次性初始密码换成只有你知道的密码。完成后系统会进入你的课堂。</div>}
         <div className={styles.accountGrid}>
           <ProfileCard key={user.displayName} user={user} busy={busy} onRun={run} />
-          <PasswordCard busy={busy} onRun={run} />
+          <PasswordCard busy={busy} onRun={run} returnTo={firstLogin || user.mustChangePassword ? returnTo : null} />
           <SessionCard sessions={sessions} loading={loading} busy={busy} onRun={run} />
           {manager && <PasswordAssistanceCard busy={busy} />}
         </div>
@@ -94,7 +97,7 @@ function ProfileCard({ user, busy, onRun }: { user: AuthUser; busy: boolean; onR
   );
 }
 
-function PasswordCard({ busy, onRun }: { busy: boolean; onRun: Runner }) {
+function PasswordCard({ busy, onRun, returnTo }: { busy: boolean; onRun: Runner; returnTo: string | null }) {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
@@ -107,7 +110,7 @@ function PasswordCard({ busy, onRun }: { busy: boolean; onRun: Runner }) {
         void onRun(async () => {
           await request("/api/auth/profile", { method: "PATCH", body: { currentPassword, newPassword } });
           setCurrentPassword(""); setNewPassword(""); setConfirmation("");
-        }, "密码已更新，其他设备已经退出。");
+        }, "密码已更新，其他设备已经退出。").then((updated) => { if (updated && returnTo) window.location.assign(publicPath(returnTo)); });
       }}>
         <label className={styles.field}><span className={styles.fieldLabel}>当前密码</span><input type="password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} autoComplete="current-password" required /></label>
         <label className={styles.field}><span className={styles.fieldLabel}>新密码 <small>至少12个字符</small></span><input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} autoComplete="new-password" minLength={12} maxLength={128} required /></label>
@@ -185,7 +188,7 @@ function PasswordAssistanceCard({ busy }: { busy: boolean }) {
   );
 }
 
-type Runner = (action: () => Promise<void>, success: string) => Promise<void>;
+type Runner = (action: () => Promise<void>, success: string) => Promise<boolean>;
 
 async function request<T>(path: string, options: { method?: string; body?: Record<string, unknown> } = {}): Promise<T> {
   const response = await fetch(publicPath(path), {

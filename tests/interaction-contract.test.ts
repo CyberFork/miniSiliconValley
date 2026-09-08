@@ -86,7 +86,7 @@ test("world UI contract retains timeline, keyboard, search, map pointer/pinch/wh
   assert.match(openEventHandler, /recordEventVisit\(current, event\.id\)/, "打开地图节点应只登记访问记录");
   assert.doesNotMatch(openEventHandler, /currentYear/, "打开地图节点不得改写当前时间轴年份");
   assert.doesNotMatch(world, /result\.evidenceIds\.join/, "学习档案不得暴露内部证据 ID");
-  assert.match(world, /<a href=\{publicPath\("\/course\/"\)\}>课程大纲<\/a>/, "历史世界必须用部署基址下的稳定链接进入课程大纲");
+  assert.match(world, /<a href=\{publicPath\("\/course\/"\)\}>导师课件<\/a>/, "历史世界必须用部署基址下的稳定链接进入导师课件库");
   assert.doesNotMatch(world, /view === "curriculum"|setView\("curriculum"\)|import \{ CurriculumOutline \}/, "不得保留第二套内存课程入口");
 });
 

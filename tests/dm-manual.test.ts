@@ -86,42 +86,35 @@ test("production admin and DM manual matches the actual classroom controls", asy
 
   for (const required of [
     "终极管理员／DM 导师主持人操作手册",
-    "去导师控制台完成当前阶段：四人到齐 →",
-    "进入导师控制台 →",
-    "指派为授课导师 →",
-    "批准加入",
-    "随机分配身份与发牌",
-    "身份与完整12张牌池分别随机",
-    "初中生不先学术语",
-    "导师命名",
-    "打开这张线索",
-    "贴到团队线索墙",
-    "保存这5句话",
-    "负责人、至少一名支援者、完成时间和可检查结果",
-    "交出第1版做法",
-    "交出第2版做法",
-    "通过门槛并推进 →",
-    "顶部13阶段圆点只用于切换查看工作区",
-    "按四项量规公开结算",
-    "所有团队已冻结，揭晓真实历史",
-    "全部复盘完成，进入下一章",
-    "完成本次课件",
-    "完成5章战役",
-    "↓ 导出完整课堂档案",
-    "TEAM-MHKNJEAG",
+    "某一场 Classroom 的独立权限",
+    "它不是第五位导师",
+    "/account?first=1",
+    "4 位导师 + N 位学员 + 1 个中控",
+    "保存 Candidate",
+    "一键生成 4＋N 个测试账号",
+    "下载 CSV",
+    "创建 Test Classroom →",
+    "四个导师 Membership",
+    "四套 exact 导师课件",
+    "替换学员席",
+    "替换导师席",
+    "授予 Admin DM",
+    "撤销 Admin DM",
+    "执行当前块",
+    "收齐现场结果，进入验收",
+    "验收通过 或 退回补证据",
+    "进入下一 Block",
+    "完成整门课程",
+    "个人声望 RP、个人钱包 C 和团队资金 C",
+    "CONTROLLER_VERSION_CONFLICT",
+    "生成 exact 验收回执",
+    "重置 Test 实例",
+    "Production · 仅 Released、不可重置",
   ]) {
     assert.ok(manual.includes(required), `管理员／DM逐点击手册缺少生产操作：${required}`);
   }
 
-  for (const phaseLabel of [
-    "四人到齐", "拿到角色任务", "打开三张线索", "讲给队友听", "把线索连起来",
-    "用五句话说清问题", "商量怎么一起做", "第一次试做", "根据反馈改一次", "算账和选工具",
-    "我们的选择 vs 历史", "说清学到和下一步", "完成六分钟发布",
-  ]) assert.ok(manual.includes(phaseLabel), `操作手册缺少当前阶段名：${phaseLabel}`);
-
-  assert.doesNotMatch(manual, /DM 建房|计时开始|归档房间|集结大厅|身份入戏|随机随机|提交第1轮行动|提交第2轮行动/, "手册不得继续使用生产界面不存在的旧按钮或旧阶段名");
-  await assert.doesNotReject(access(new URL("assets/admin-dm-lobby-current-action.png", DOCS)));
-  await assert.doesNotReject(access(new URL("assets/admin-dm-lobby-dm-console.png", DOCS)));
+  assert.doesNotMatch(manual, /DM 建房|计时开始|归档房间|集结大厅|身份入戏|随机随机|提交第1轮行动|提交第2轮行动|TEAM-MHKNJEAG/, "T-085 手册不得继续使用旧课堂的按钮、阶段名或固定测试队伍");
 });
 
 test("mentor documentation: every local Markdown link resolves", async () => {

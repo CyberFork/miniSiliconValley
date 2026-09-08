@@ -8,6 +8,7 @@ import {
   type CoursePackageRef,
 } from "./course-package";
 import type { ClassroomCampaign } from "./classroom-model";
+import { resolveLearnerPolicy, validateCourseInstantiation } from "./course-platform";
 
 export interface CourseReleaseApproval {
   schemaVersion: number;
@@ -22,47 +23,186 @@ export interface CourseReleaseApproval {
   checks?: Record<string, unknown>;
 }
 
-export async function stageAlphaCoursePackage(
+export type StudioCourseVersion = {
+  course: ReturnType<typeof validateCoursePackage>;
+  ref: CoursePackageRef;
+  candidate: boolean;
+  released: boolean;
+};
+
+/** Save the only editable CourseDefinition as a new immutable Candidate. */
+export async function saveCourseCandidate(
   db: ClassroomD1,
-  input: { course: unknown; ref: unknown },
-  actor = "alpha-controller",
+  input: unknown,
+  actor: string,
 ): Promise<CoursePackageRef> {
-  const course = validateCoursePackage(input.course);
-  const rawRef = object(input.ref, "ref");
-  const courseId = string(rawRef.courseId, "ref.courseId");
-  const revision = integer(rawRef.revision, "ref.revision", 0);
-  const digest = string(rawRef.digest, "ref.digest");
-  if (!new Set(["candidate", "released"]).has(String(rawRef.status))) {
-    throw new ClassroomError("COURSE_REF_INVALID", "Alpha 只接收 Candidate 或内置 Released 基线。", 400);
-  }
-  const actual = await coursePackageDigest(course);
-  if (course.course.id !== courseId || course.schemaVersion !== rawRef.schemaVersion || actual !== digest) {
-    throw new ClassroomError("COURSE_REF_MISMATCH", "Alpha 课程正文与 exact 引用不匹配。", 409);
-  }
-  const existing = await db.prepare(
-    `SELECT digest, package_json FROM course_versions WHERE course_id = ? AND revision = ?`,
-  ).bind(courseId, revision).first<{ digest: string; package_json: string }>();
-  if (existing && (existing.digest !== digest || await digestFromJson(existing.package_json) !== digest)) {
-    throw new ClassroomError("COURSE_REVISION_IMMUTABLE", `课程 ${courseId} r${revision} 已存在且内容不同。`, 409);
-  }
+  const course = validateCoursePackage(input);
+  const digest = await coursePackageDigest(course);
+  const existingDigest = await db.prepare(
+    `SELECT revision, created_at, created_by FROM course_versions WHERE course_id = ? AND digest = ?`,
+  ).bind(course.course.id, digest).first<{ revision: number; created_at: string; created_by: string }>();
   const now = new Date().toISOString();
+  let revision: number;
+  let createdAt = now;
+  let createdBy = actor;
+  if (existingDigest) {
+    revision = existingDigest.revision;
+    createdAt = existingDigest.created_at;
+    createdBy = existingDigest.created_by;
+  } else {
+    const latest = await db.prepare(
+      `SELECT MAX(revision) AS revision FROM course_versions WHERE course_id = ?`,
+    ).bind(course.course.id).first<{ revision: number | null }>();
+    revision = (latest?.revision ?? -1) + 1;
+  }
+  const currentCandidate = await db.prepare(
+    `SELECT revision FROM course_candidate_pointers WHERE course_id = ?`,
+  ).bind(course.course.id).first<{ revision: number }>();
+  if (currentCandidate && currentCandidate.revision > revision) {
+    throw new ClassroomError("COURSE_CANDIDATE_ROLLBACK", "不能用旧版本覆盖当前 Candidate；请基于最新版继续编辑。", 409);
+  }
   await db.batch([
     db.prepare(
       `INSERT OR IGNORE INTO course_versions
        (course_id, revision, schema_version, digest, package_json, created_at, created_by)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    ).bind(courseId, revision, course.schemaVersion, digest, JSON.stringify(course), typeof rawRef.createdAt === "string" ? rawRef.createdAt : now, actor),
-    eventStatement(db, "course.alpha-staged", courseId, revision, digest, actor, {}, now),
+    ).bind(course.course.id, revision, course.schemaVersion, digest, JSON.stringify(course), createdAt, createdBy),
+    db.prepare(
+      `INSERT INTO course_candidate_pointers (course_id, revision, digest, staged_at, staged_by)
+       VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(course_id) DO UPDATE SET revision = excluded.revision, digest = excluded.digest,
+         staged_at = excluded.staged_at, staged_by = excluded.staged_by`,
+    ).bind(course.course.id, revision, digest, now, actor),
+    eventStatement(db, "course.candidate-saved", course.course.id, revision, digest, actor, {}, now),
   ]);
   return {
-    courseId,
+    courseId: course.course.id,
     schemaVersion: course.schemaVersion,
     revision,
     digest,
-    status: rawRef.status === "released" ? "released" : "candidate",
-    createdAt: typeof rawRef.createdAt === "string" ? rawRef.createdAt : now,
-    createdBy: typeof rawRef.createdBy === "string" ? rawRef.createdBy : actor,
+    status: "candidate",
+    createdAt,
+    createdBy,
   };
+}
+
+export async function listStudioCourseVersions(db: ClassroomD1): Promise<StudioCourseVersion[]> {
+  await ensureBundledCourseRegistry(db);
+  const result = await db.prepare(
+    `SELECT v.*, cp.revision AS candidate_revision, cp.digest AS candidate_digest,
+            rp.revision AS released_revision, rp.digest AS released_digest, rp.released_at, rp.released_by
+     FROM course_versions v
+     LEFT JOIN course_candidate_pointers cp ON cp.course_id = v.course_id
+     LEFT JOIN course_release_pointers rp ON rp.course_id = v.course_id
+     ORDER BY v.course_id, v.revision DESC`,
+  ).all<CourseVersionRow & {
+    candidate_revision: number | null; candidate_digest: string | null;
+    released_revision: number | null; released_digest: string | null; released_at: string | null; released_by: string | null;
+  }>();
+  const versions: StudioCourseVersion[] = [];
+  for (const row of result.results ?? []) {
+    let parsed: unknown;
+    try { parsed = JSON.parse(row.package_json); } catch { throw new ClassroomError("COURSE_REGISTRY_CORRUPT", "课程正文不是有效 JSON。", 500); }
+    const course = validateCoursePackage(parsed);
+    const actual = await coursePackageDigest(course);
+    if (actual !== row.digest) throw new ClassroomError("COURSE_REGISTRY_CORRUPT", `${row.course_id} r${row.revision} digest 校验失败。`, 500);
+    const candidate = row.candidate_revision === row.revision && row.candidate_digest === row.digest;
+    const released = row.released_revision === row.revision && row.released_digest === row.digest;
+    versions.push({
+      course,
+      candidate,
+      released,
+      ref: {
+        courseId: row.course_id,
+        schemaVersion: row.schema_version,
+        revision: row.revision,
+        digest: row.digest,
+        status: released ? "released" : candidate ? "candidate" : "approved",
+        createdAt: row.created_at,
+        createdBy: row.created_by,
+        releasedAt: released ? row.released_at : null,
+        releasedBy: released ? row.released_by : null,
+      },
+    });
+  }
+  return versions;
+}
+
+export async function releaseTestedCourseCandidate(
+  db: ClassroomD1,
+  input: { courseRef: Pick<CoursePackageRef, "courseId" | "revision" | "digest">; receiptId: string },
+  actor: string,
+): Promise<CoursePackageRef> {
+  const candidate = await db.prepare(
+    `SELECT revision, digest FROM course_candidate_pointers WHERE course_id = ?`,
+  ).bind(input.courseRef.courseId).first<{ revision: number; digest: string }>();
+  if (!candidate || candidate.revision !== input.courseRef.revision || candidate.digest !== input.courseRef.digest) {
+    throw new ClassroomError("CANDIDATE_EXACT_MISMATCH", "发布目标不是当前 exact Candidate。", 409);
+  }
+  const receipt = await db.prepare(
+    `SELECT id, room_id, course_id, revision, digest, status, accepted_at, accepted_by_profile_id, checks_json
+     FROM course_test_receipts WHERE id = ?`,
+  ).bind(input.receiptId).first<{
+    id: string; room_id: string; course_id: string; revision: number; digest: string; status: string;
+    accepted_at: string | null; accepted_by_profile_id: string | null; checks_json: string;
+  }>();
+  if (
+    !receipt || receipt.status !== "accepted" || receipt.course_id !== input.courseRef.courseId
+    || receipt.revision !== input.courseRef.revision || receipt.digest !== input.courseRef.digest || !receipt.accepted_at
+  ) throw new ClassroomError("TEST_RECEIPT_EXACT_MISMATCH", "真实 Test Classroom 回执没有验收这个 exact Candidate。", 409);
+  const course = await loadExactCoursePackage(db, input.courseRef);
+  // A Candidate may be saved while an author is still filling a larger deck,
+  // but a Released definition promises that every learner count in its stated
+  // policy is actually instantiable.  Testing N=2 must not accidentally
+  // publish a course that advertises N=6 while only carrying twelve cards.
+  const maximumLearners = resolveLearnerPolicy(course).maxCount;
+  const releaseCapacity = validateCourseInstantiation(course, maximumLearners);
+  if (!releaseCapacity.ok) {
+    throw new ClassroomError(
+      "COURSE_RELEASE_CAPACITY_INVALID",
+      `课程尚不能覆盖声明的最多 ${maximumLearners} 名学员，暂不可发布。`,
+      409,
+      releaseCapacity.issues.map((issue) => issue.message),
+    );
+  }
+  const now = new Date().toISOString();
+  return publishReleasedCoursePackage(db, {
+    course,
+    ref: {
+      courseId: input.courseRef.courseId,
+      schemaVersion: course.schemaVersion,
+      revision: input.courseRef.revision,
+      digest: input.courseRef.digest,
+      status: "released",
+      releasedAt: now,
+      releasedBy: actor,
+    },
+    approval: {
+      schemaVersion: 1,
+      courseId: input.courseRef.courseId,
+      revision: input.courseRef.revision,
+      digest: input.courseRef.digest,
+      status: "approved",
+      runId: receipt.room_id,
+      runDigest: input.courseRef.digest,
+      acceptedAt: receipt.accepted_at,
+      acceptedBy: receipt.accepted_by_profile_id ?? actor,
+      checks: JSON.parse(receipt.checks_json) as Record<string, unknown>,
+    },
+  }, actor);
+}
+
+export async function loadExactCoursePackage(
+  db: ClassroomD1,
+  ref: Pick<CoursePackageRef, "courseId" | "revision" | "digest">,
+): Promise<ReturnType<typeof validateCoursePackage>> {
+  const row = await db.prepare(
+    `SELECT package_json FROM course_versions WHERE course_id = ? AND revision = ? AND digest = ?`,
+  ).bind(ref.courseId, ref.revision, ref.digest).first<{ package_json: string }>();
+  if (!row) throw new ClassroomError("COURSE_VERSION_NOT_FOUND", "找不到 exact 课程版本。", 404);
+  const course = validateCoursePackage(JSON.parse(row.package_json) as unknown);
+  if (await coursePackageDigest(course) !== ref.digest) throw new ClassroomError("COURSE_REGISTRY_CORRUPT", "课程 digest 校验失败。", 500);
+  return course;
 }
 
 type CourseVersionRow = {
@@ -119,10 +259,10 @@ export async function ensureBundledCourseRegistry(db: ClassroomD1): Promise<void
   }
 }
 
-export async function publishReleasedCoursePackage(
+async function publishReleasedCoursePackage(
   db: ClassroomD1,
   input: { course: unknown; ref: unknown; approval: unknown },
-  actor = "alpha-controller",
+  actor: string,
 ): Promise<CoursePackageRef> {
   const course = validateCoursePackage(input.course);
   const rawRef = object(input.ref, "ref");
@@ -144,7 +284,7 @@ export async function publishReleasedCoursePackage(
     || approval.runDigest !== digest
     || !approval.runId
   ) {
-    throw new ClassroomError("ALPHA_APPROVAL_MISMATCH", "Alpha 验收回执没有绑定这个 exact Candidate。", 409);
+    throw new ClassroomError("TEST_APPROVAL_MISMATCH", "Test Classroom 验收回执没有绑定这个 exact Candidate。", 409);
   }
   const existing = await db.prepare(
     `SELECT digest, package_json FROM course_versions WHERE course_id = ? AND revision = ?`,
@@ -236,7 +376,7 @@ export async function loadExactCourseCampaign(
   ref: Pick<CoursePackageRef, "courseId" | "revision" | "digest">,
 ): Promise<ClassroomCampaign> {
   const row = await db.prepare(
-    `SELECT v.*, '' AS released_at, 'alpha-binding' AS released_by, '{}' AS approval_json
+    `SELECT v.*, '' AS released_at, 'exact-binding' AS released_by, '{}' AS approval_json
      FROM course_versions v
      WHERE v.course_id = ? AND v.revision = ? AND v.digest = ?`,
   ).bind(ref.courseId, ref.revision, ref.digest).first<ReleasedPointerRow>();

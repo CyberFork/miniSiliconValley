@@ -1,89 +1,100 @@
 # Mini Silicon Valley 部署说明
 
-## 唯一生产环境
+## 生产边界
 
-- 正式域名：`https://minisv.vip`
-- 运行主机：Hecate Mac mini
-- 公网入口：Cloudflare Tunnel → loopback Nginx gateway
-- 不依赖 Windows 或局域网机器，不修改 `cyberforker.com` 的其他站点。
-
-主要路由：
-
-```text
-/                 公开总导航
-/world/           历史世界
-/course/          同事原版课程站（固定 chj 提交，独立构建）
-/classroom/       账号与课堂
-/alpha/           八席课堂视图
-/control/         LIVE RUN 主控
-/control/editor/  课程编辑器
-/framework/       方法同步页
-/parents/         家长问答
-/workshop/        内容工坊
-```
+- 域名：`https://minisv.vip`
+- 主机：Hecate Mac mini
+- 入口：Cloudflare Tunnel → loopback Nginx `127.0.0.1:18780`
+- 应用：Vinext/Worker `127.0.0.1:18787`
+- Parent Q&A：`127.0.0.1:18789`
+- 数据：`~/Services/msv-classroom/data`，独立于 release
+- 18790/18791 已退休；Windows 和局域网机器不参与生产。
 
 ## 发布前门禁
 
 ```bash
 npm ci
 npm run validate:data
-npm test
-npm run build:minisv-static
-deploy/minisv/scripts/build-chj-course.sh <chj-checkout> <course-output>
+npm run test:minisv-app
 python3 -m unittest discover -s deploy/minisv/tests -p 'test_*.py'
 node deploy/minisv/tests/test_ui_theme_runtime.mjs
-python3 -m unittest discover -s tools/live-run/tests -p 'test_*.py'
+zsh -n deploy/minisv/scripts/*.sh
 git diff --check
 ```
 
-chj checkout 必须精确位于提交 `679213a61b835335016eac7649213983a0e48489`，Git tree 为 `3a041c4714190cc026f6de8e06e15cec0e5f765d`，且工作树为空。脚本只通过仓库已支持的 `MSV_PUBLIC_BASE`、`MSV_SITE_ORIGIN`、`MSV_CANONICAL_URL` 环境变量适配部署路径，不编辑同事源码。浏览器验收用 `tools/live-run/tests/verify_course_outline_browser.py` 检查原版首页、内部课程大纲、四档视口和公共入口。
+需要全量历史兼容回归时再执行 `npm run test:release`。
 
-## 组装 release
+## 构建同事 P 导师课件
 
-`deploy/minisv/package_release.py` 需要五类输入：
+准备干净 checkout，必须精确匹配：
 
-```bash
-python3 deploy/minisv/package_release.py \
-  --legacy-root <既有静态产品根目录> \
-  --app-client-root dist/client \
-  --app-static-root dist/minisv-static \
-  --course-static-root <原样 chj 课程构建目录> \
-  --portal-root deploy/minisv/site \
-  --output <新 site 目录> \
-  --release-id <唯一 RELEASE_ID> \
-  --main-sha <已验证并提交的 40 位 main SHA>
+```text
+commit 679213a61b835335016eac7649213983a0e48489
+tree   3a041c4714190cc026f6de8e06e15cec0e5f765d
 ```
 
-打包器先组装 `/world/` 与既有 Classroom／Alpha／Editor／QA／Workshop，重写已退休路径并注入共享 UI；最后才把 chj 课程目录按字节复制到 `/course/`。课程目录前后 tree digest、文件数和字节数必须一致，且不得出现共享主题或先前自制课程页标识。产物生成 `release.json`、`sitemap.json`、`MANIFEST.sha256`。
-
-## Hecate 原子发布
-
-1. 以当前生产 release 为底座，替换本次验证后的 `site/`、`ops/`、`docs/`；运行态数据和 secrets 不进入压缩包。
-2. 将压缩包传到 Hecate。
-3. 使用私有环境变量执行 `ops/scripts/deploy-hecate.sh`。
-4. 脚本先验证 manifest、Python／Node／launchd 配置，再建立不可变 release，原子切换 `~/Services/minisv/current`。
-5. 发布后运行 loopback healthcheck、公开 smoke 和真实浏览器验收。
-6. 对比发布前后的 `run-state.json`，确保活动 Run、进度、RP、钱包、团队资金和手牌没有变化。
-
-Cloudflare Tunnel 是公网流量基础设施，不是普通应用发布单元。部署脚本会比较 credentials、渲染后的 config 与 launchd plist：输入未变化且 `127.0.0.1:18792/metrics` 健康时保留原进程；只有输入变化或服务不健康时才执行有界恢复。禁止为了“确保最新”而在每次应用发布中无条件重启 Tunnel。
-
-Alpha 发布还必须执行真实席位验收：
+执行：
 
 ```bash
-python3 tools/live-run/tests/verify_alpha_public_seat.py \
-  --base https://minisv.vip/alpha/
+deploy/minisv/scripts/build-chj-course.sh <chj-checkout> <courseware-output>
 ```
 
-该脚本临时领取一个空闲席位，验证运行界面、资源请求和浏览器控制台，然后在 `finally` 中释放席位；它不会打印租约能力值。
+脚本只使用同事工程已支持的 base/canonical 环境变量，源工作树前后必须干净。产物位于 `/courseware/product-mentor-foundations/`，组装前后按整树 digest、文件数和字节数验证；禁止主题注入或 HTML/CSS/JS 重写。
 
-凭据只能来自 Hecate 的 `~/Services/minisv/secrets/` 或受控环境变量，不得写入仓库、命令回执或 URL。
+## 组装静态 site
+
+```bash
+npm run build:minisv-app
+npm run render:minisv-static
+
+python3 deploy/minisv/package_release.py   --legacy-root <已验收的静态基线>   --app-client-root dist/client   --app-static-root dist/minisv-static   --course-static-root <courseware-output>   --portal-root deploy/minisv/site   --output <site-output>   --release-id <RELEASE_ID>   --main-sha <40位提交SHA>
+```
+
+`package_release.py` 生成 `release.json`、`sitemap.json` 和 `site/MANIFEST.sha256`。动态 `/course/` 由应用拥有；静态同事课件只复制到 `/courseware/product-mentor-foundations/`。
+
+## 组装统一 bundle
+
+```bash
+python3 deploy/minisv/package_bundle.py   --site-root <site-output>   --app-dist-root dist   --ops-root deploy/minisv   --output <bundle-output>   --release-id <RELEASE_ID>   --main-sha <40位提交SHA>   --archive <RELEASE_ID>.tar.gz
+```
+
+bundle 必须同时含：
+
+```text
+site/          公开静态资产
+app/dist/      与本 release 同版本的 Worker 与客户端
+ops/           gateway、launchd、部署和回滚脚本
+bundle.json
+MANIFEST.sha256
+```
+
+secrets、账号明文、SQLite、运行数据和 symlink 会被打包器拒绝。
+
+## Hecate 原子部署
+
+在 Hecate 以受控环境变量运行 bundle 内的 `ops/scripts/deploy-hecate.sh`。脚本会：
+
+1. 验证 archive 安全性、根/site manifests、Worker 配置和 launchd plist。
+2. 将包放入不可变 `~/Services/minisv/releases/<RELEASE_ID>`。
+3. 停止课堂 worker，备份 D1-compatible 数据目录。
+4. 退休 18790/18791 全局服务。
+5. 原子切换 `~/Services/minisv/current`，再启动同版本应用与 gateway。
+6. 保留健康且配置未变的 cloudflared，避免无意义断流。
+7. 执行 loopback health；失败时恢复之前捕获的 symlink、配置和 launchd。
+
+发布后执行：
+
+```bash
+$HOME/Services/minisv/current/ops/scripts/healthcheck-hecate.sh
+python3 $HOME/Services/minisv/current/ops/scripts/public-smoke.py --base https://minisv.vip
+```
+
+随后用真实导师和学员账号完成浏览器验收；不要在终端或回执中打印密码、Cookie、token 或 Tunnel credential。
 
 ## 回滚
 
 ```bash
-~/Services/minisv/current/ops/scripts/rollback-hecate.sh <KNOWN_GOOD_RELEASE_ID>
+$HOME/Services/minisv/current/ops/scripts/rollback-hecate.sh <KNOWN_GOOD_UNIFIED_RELEASE_ID>
 ```
 
-回滚只是切换到已验证的不可变 release；持久化账户、课堂和课程库不随静态 release 回退。回滚后必须重新执行健康检查和公共 smoke。
-
-故障分析与完整防复发门禁见 [`ALPHA_SEAT_LOADING_INCIDENT_2026-09-08.md`](ALPHA_SEAT_LOADING_INCIDENT_2026-09-08.md)。
+回滚只允许已通过统一 manifest 的 release。运行数据不随代码回滚；若 schema 变更不向后兼容，必须按该发布的迁移方案恢复受控数据备份，而不是删除数据库。

@@ -1,7 +1,8 @@
 import { authResponse } from "../../_shared";
 
 /** Explicit tombstone for the retired registration-invitation API. */
-export async function POST(): Promise<Response> {
+export async function POST(request: Request): Promise<Response> {
+  await request.text();
   return authResponse({
     ok: false,
     error: {

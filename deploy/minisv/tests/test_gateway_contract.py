@@ -16,17 +16,28 @@ class GatewayContractTests(unittest.TestCase):
         cls.tunnel = (ROOT / "cloudflared" / "config.yml.template").read_text()
 
     def test_every_public_route_has_an_explicit_owner(self) -> None:
-        for route in ("world", "course", "alpha", "control", "framework", "parents", "workshop"):
+        for route in ("world", "alpha", "control", "framework", "parents", "workshop"):
             self.assertRegex(self.gateway, rf"location[^\n]* /{route}(?:[ /{{])")
-        self.assertIn("^/(classroom|account)", self.gateway)
+        self.assertIn("^/(studio|course|classroom|account)", self.gateway)
+        self.assertIn("/courseware/product-mentor-foundations/", self.gateway)
 
     def test_all_origins_are_loopback_and_windows_is_not_a_dependency(self) -> None:
         combined = self.gateway + self.tunnel
         self.assertNotIn("192.168.", combined)
         self.assertNotIn("18765", combined)
         self.assertIn("127.0.0.1:18780", self.tunnel)
-        for port in (18787, 18789, 18790, 18791):
+        for port in (18787, 18789):
             self.assertIn(f":{port}", self.gateway)
+        for retired in (18790, 18791):
+            self.assertNotIn(f":{retired}", self.gateway)
+
+    def test_classroom_launchd_follows_the_same_unified_release_symlink(self) -> None:
+        plist = (ROOT / "launchd" / "com.cyberforker.msv-classroom.plist").read_text()
+        self.assertIn("__HOME__/Services/minisv/current/app/dist/server/wrangler.json", plist)
+        self.assertIn("__HOME__/Services/minisv/current/app/dist/server", plist)
+        self.assertIn("__HOME__/Services/msv-classroom/data", plist)
+        self.assertNotIn("Services/msv-classroom/current", plist)
+        self.assertNotIn("192.168.", plist)
 
     def test_gateway_preserves_strict_security_boundary(self) -> None:
         for header in (
@@ -39,14 +50,13 @@ class GatewayContractTests(unittest.TestCase):
         self.assertIn('$http_x_forwarded_proto = "http"', self.gateway)
         self.assertIn("return 308 https://minisv.vip$request_uri", self.gateway)
 
-    def test_alpha_gateway_owns_one_non_conflicting_public_csp(self) -> None:
-        route = re.search(r"location \^~ /alpha/ \{(.*?)\n    \}", self.gateway, re.DOTALL)
-        self.assertIsNotNone(route)
-        for header in (
-            "Content-Security-Policy", "Referrer-Policy", "X-Content-Type-Options",
-            "X-Frame-Options", "X-Robots-Tag",
-        ):
-            self.assertIn(f"proxy_hide_header {header};", route.group(1))
+    def test_global_alpha_and_control_are_gone(self) -> None:
+        self.assertRegex(self.gateway, r"location = /alpha \{ return 410;")
+        self.assertRegex(self.gateway, r"location = /control \{ return 410;")
+        self.assertNotIn("minisv_alpha_backend", self.gateway)
+        self.assertNotIn("minisv_control_backend", self.gateway)
+        self.assertNotIn("location ^~ /alpha/", self.gateway)
+        self.assertNotIn("location ^~ /control/", self.gateway)
 
     def test_classroom_adapter_is_native_to_the_public_origin(self) -> None:
         self.assertNotIn("work.cyberforker.com", self.gateway)
@@ -54,10 +64,14 @@ class GatewayContractTests(unittest.TestCase):
         self.assertNotIn("/msv/demo/app", self.proxy)
         self.assertIn("proxy_set_header Host minisv.vip", self.proxy)
         self.assertIn("proxy_set_header X-Forwarded-Host minisv.vip", self.proxy)
-        route = re.search(r"location ~ \^/\(classroom\|account\)\(/\)\?\$ \{(.*?)\n    \}", self.gateway, re.DOTALL)
+        route = re.search(r"location ~ \^/\(studio\|course\|classroom\|account\)\(/\.\*\)\?\$ \{(.*?)\n    \}", self.gateway, re.DOTALL)
         self.assertIsNotNone(route)
         self.assertIn("set $app_path $uri;", route.group(1))
         self.assertNotIn("set $app_path /$1;", route.group(1))
+
+    def test_upstream_receives_the_real_browser_origin_for_csrf_validation(self) -> None:
+        self.assertIn("proxy_set_header Origin $http_origin;", self.proxy)
+        self.assertNotIn("proxy_set_header Origin https://minisv.vip;", self.proxy)
 
     def test_portal_reports_live_hecate_health_instead_of_static_status(self) -> None:
         site = ROOT / "site"
@@ -73,15 +87,17 @@ class GatewayContractTests(unittest.TestCase):
         self.assertIn("location = /portal.js", self.gateway)
         self.assertNotIn("静态导航", portal)
 
-    def test_public_portal_exposes_course_outline_as_a_top_level_route(self) -> None:
+    def test_public_portal_exposes_courseware_classroom_and_studio(self) -> None:
         site = ROOT / "site"
         portal = (site / "index.html").read_text()
         healthcheck = (ROOT / "scripts" / "healthcheck-hecate.sh").read_text()
-        self.assertIn('<a href="/course/">课程大纲</a>', portal)
+        self.assertIn('<a href="/course/">导师课件</a>', portal)
         self.assertIn('class="route route-course" href="/course/"', portal)
-        self.assertIn("location = /course", self.gateway)
-        self.assertIn("/course/index.html", self.gateway)
-        self.assertIn("probe /course/ 200", healthcheck)
+        self.assertIn('href="/studio/"', portal)
+        self.assertIn("(studio|course|classroom|account)", self.gateway)
+        self.assertIn("/courseware/product-mentor-foundations/index.html", self.gateway)
+        self.assertIn("probe /course/ 307", healthcheck)
+        self.assertIn("probe /studio/ 307", healthcheck)
 
     def test_retired_numeric_entry_redirects_to_framework_with_both_slash_forms(self) -> None:
         self.assertRegex(self.gateway, r"location = /123456 \{ return 308 /framework/")

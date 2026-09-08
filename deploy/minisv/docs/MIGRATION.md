@@ -1,33 +1,32 @@
-# 从旧页面迁移到 Mini Silicon Valley
+# T-085 迁移说明
 
-## 语义路由映射
+## 路由迁移
 
-旧 `work.cyberforker.com` 页面及 `/msv/...` 前缀不再作为用户入口；新入口统一为 `https://minisv.vip`：
+```text
+旧 /alpha/*             → 已退休，410
+旧全局 /control/*       → 已退休，410
+旧 /control/editor/     → /studio/editor/
+旧 Alpha 多窗口预览     → /studio/preview/ 页内 4 + N + 1
+旧全局 LIVE RUN         → /classroom/{id}/control
+旧 /course/ 静态大纲    → /course/ 动态导师课件库
+同事原版 P 课件         → /courseware/product-mentor-foundations/
+正式课堂                → /classroom/{id}/
+```
 
-- 旧 demo/home → `/world/`
-- 统一课程大纲 → `/course/`
-- 旧 classroom → `/classroom/`
-- 旧 alpha → `/alpha/`
-- 旧 control → `/control/`
-- 旧 framework/课程 → `/framework/`
-- 旧 QA → `/parents/`
-- workshop → `/workshop/`
-- 根入口 → `/`
+旧 Work 域名和 `/msv/*` 仅保留有限静态入口重定向；前端、Cookie、API 和正式文档一律使用 `https://minisv.vip`。
 
-兼容改写只存在于 Nginx origin 代理，前端链接、重定向和 Cookie 均应使用新域名与新路径。
+## 运行迁移
 
-## 切换清单
+- 从三个 release/运行单元收口为一个 `site + app + ops` bundle。
+- `com.cyberforker.msv-classroom` 攗为读取 `~/Services/minisv/current/app/dist`。
+- `com.minisv.live-run-controller` 与 `com.minisv.remote-console` 停止、禁用并删除 plist；18790/18791 必须关闭。
+- D1-compatible 数据继续位于 `~/Services/msv-classroom/data`，发布前停机备份，绝不复制进 release。
+- 首次统一部署失败时恢复部署前捕获的 exact `current` symlink，即使旧 release 还是 static-only 也可恢复。
 
-1. 在 Hecate 部署并通过 `healthcheck-hecate.sh`；确认服务均绑定 loopback，Windows 不再是运行依赖。
-2. 校验 Tunnel 配置、路由及 metrics `127.0.0.1:18792`；准备 DNS TTL 与变更窗口。
-3. 在 Cloudflare 以同一批次把 apex 与 `www` 指向目标 Tunnel；切换前后记录均离线备份，避免新旧 origin 同时权威。
-4. 验证 DNS、TLS、八个语义路由、登录/RBAC、课堂与家长 QA；检查浏览器不出现旧域名或 `/msv/` 链接。
-5. 观察 gateway、controller、console、cloudflared 日志和健康状态，记录发布时间与 release ID。
+## 数据迁移
 
-## 回退清单
+`drizzle/0004_unified_course_factory.sql` 只新增 Candidate、Test receipt、Courseware、ClassroomInstance、mentor seat、permission、controller、submission、wallet 和 factory event 表，不删除旧审计数据。runtime schema bootstrap 使用 `IF NOT EXISTS`，旧凭据退休更新必须带幂等条件。
 
-若验证失败，先从受控 DNS 备份恢复 Cloudflare 记录（或切入维护页），再执行 `./scripts/rollback-hecate.sh <KNOWN_GOOD_RELEASE_ID>`，验证 loopback 健康检查和旧兼容映射，最后重新检查 DNS 缓存、TLS、RBAC 与日志。问题关闭前保留变更记录和失败 release，不删除证据。
+## 验收
 
-## 旧 Alpha 入口退役
-
-`https://work.cyberforker.com/msv/alpha/` 只保留到 `https://minisv.vip/alpha/` 的 308 兼容跳转，不再代理 Windows 或局域网端口。开发机上的 `com.cyberforker.msv-live-run-tunnel` 已卸载并禁用；新的生产链路不依赖反向 SSH。
+迁移完成必须同时满足：统一 bundle manifest 通过、worker/gateway 同一 release、Test/Production E2E 通过、P 课件整树不变、旧端口关闭、旧路由 410、公网 smoke 和真实角色浏览器验收通过。

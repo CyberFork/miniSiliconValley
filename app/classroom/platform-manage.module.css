@@ -1,0 +1,16 @@
+.manage {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+  padding: 20px;
+  color: #17272e;
+  background: #f4e8cd;
+  border: 4px solid #e5b847;
+}
+.manage > div { display: grid; align-content: start; gap: 9px; padding: 17px; background: #fffaf0; }
+.manage h2, .manage p { margin: 0; }
+.manage label { display: grid; gap: 5px; font-weight: 900; }
+.manage select, .manage input { min-height: 44px; padding: 8px 10px; border: 2px solid #476068; background: #fff; }
+.message { grid-column: 1 / -1; padding: 12px; color: #fff; background: #287d76; }
+@media (max-width: 700px) { .manage { grid-template-columns: 1fr; padding: 12px; } }

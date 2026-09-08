@@ -10,6 +10,10 @@ const tables = [
   "team_assets", "purchase_proposals", "purchase_votes", "gratitude_votes", "worldline_entries", "audit_events",
   "team_access_ids", "team_join_requests",
   "course_versions", "course_release_pointers", "room_course_bindings", "alpha_run_rooms", "course_registry_events",
+  "course_candidate_pointers", "course_test_receipts", "courseware_packages", "courseware_versions",
+  "courseware_release_pointers", "room_courseware_bindings", "classroom_instances", "classroom_mentor_seats",
+  "classroom_permissions", "classroom_controller_states", "classroom_factory_events",
+  "classroom_block_submissions", "classroom_wallet_balances",
 ];
 const migrationNames = readdirSync(new URL("../drizzle/", import.meta.url)).filter((name) => /^\d{4}_.*\.sql$/.test(name)).sort();
 assert.ok(migrationNames.length >= 2, "classroom and auth migrations are required");
@@ -40,6 +44,21 @@ test("runtime schema bootstrap is idempotent and exactly mirrors the migration",
       assert.match(statement, /IF NOT EXISTS/, "DDL bootstrap must be repeatable");
     }
   }
+});
+
+test("unified course factory keeps release, courseware, permissions and controller state exact", () => {
+  for (const marker of [
+    "uidx_course_test_receipts_exact",
+    "uidx_courseware_versions_digest",
+    "uidx_room_courseware_role",
+    "uidx_classroom_mentor_profile",
+    "uidx_classroom_permissions_grant",
+    "classroom_controller_states",
+    "chk_classroom_wallet_non_negative",
+  ]) assert.match(migration, new RegExp(marker));
+  assert.match(migration, /CHECK \(`environment` in \('test', 'production'\)\)/);
+  assert.match(migration, /CHECK \(`mentor_role` in \('P', 'D', 'M', 'O'\)\)/);
+  assert.match(migration, /CHECK \(`state` in \('ready', 'executing', 'awaiting-acceptance', 'accepted', 'completed', 'error'\)\)/);
 });
 
 test("simplified account and team migration retires old credentials without deleting audit history", () => {

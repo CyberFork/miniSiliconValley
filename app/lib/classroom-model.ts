@@ -139,6 +139,9 @@ export interface ClassroomChapter {
   briefing: string;
   learningGoal: string;
   historicalBoundary: string[];
+  /** Runtime deal contract; absent only on pre-T-085 legacy campaigns. */
+  cardsPerLearner?: number;
+  maxLearners?: number;
   identities: CaseIdentity[];
   infoCards: ClassroomInfoCard[];
   intelGate: IntelGateDefinition;

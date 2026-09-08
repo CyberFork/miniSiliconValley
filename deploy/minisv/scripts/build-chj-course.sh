@@ -16,14 +16,14 @@ SCRIPT_DIR=${0:A:h}
 cd "$SOURCE"
 npm run typecheck
 npm run lint
-MSV_PUBLIC_BASE=/course/ \
+MSV_PUBLIC_BASE=/courseware/product-mentor-foundations/ \
 MSV_SITE_ORIGIN=https://minisv.vip \
-MSV_CANONICAL_URL=https://minisv.vip/course/ \
+MSV_CANONICAL_URL=https://minisv.vip/courseware/product-mentor-foundations/ \
 npm run build
 
-MSV_PUBLIC_BASE=/course/ \
+MSV_PUBLIC_BASE=/courseware/product-mentor-foundations/ \
 MSV_SITE_ORIGIN=https://minisv.vip \
-MSV_CANONICAL_URL=https://minisv.vip/course/ \
+MSV_CANONICAL_URL=https://minisv.vip/courseware/product-mentor-foundations/ \
 node "$SCRIPT_DIR/render-chj-course-static.mjs" "$SOURCE" "$OUTPUT"
 
 [[ "$(git -C "$SOURCE" rev-parse HEAD)" = "$EXPECTED_HEAD" ]]

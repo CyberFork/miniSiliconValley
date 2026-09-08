@@ -1,5 +1,8 @@
 # Mini Silicon Valley 课程包标准与实施 SOP
 
+> **Legacy（T-085 已替代）**：旧文件 Registry 与 `/control/editor` 操作已退休。现行唯一写入口是 `/studio/editor/`，请使用 [Course Platform SOP](COURSE_PLATFORM_SOP.md)。下文只作历史审计。
+
+
 版本：Course Package v1
 适用：Google、饿了么以及后续所有 LIVE RUN 课程
 

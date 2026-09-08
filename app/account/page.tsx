@@ -7,7 +7,8 @@ import AccountClient from "./AccountClient";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "账户中心", robots: { index: false, follow: false } };
 
-export default async function AccountPage() {
+export default async function AccountPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const params = await searchParams;
   const current = await getAppUser();
   if (!current || !current.role) redirect(chatGPTSignInPath("/account"));
   const user: AuthUser = {
@@ -15,7 +16,9 @@ export default async function AccountPage() {
     username: current.username,
     displayName: current.displayName,
     role: current.role,
-    mustChangePassword: false,
+    mustChangePassword: current.mustChangePassword,
   };
-  return <AccountClient initialUser={user} />;
+  const requested = typeof params.returnTo === "string" ? params.returnTo : "/classroom/";
+  const returnTo = requested.startsWith("/") && !requested.startsWith("//") && !requested.startsWith("/auth") && !requested.startsWith("/account") ? requested : "/classroom/";
+  return <AccountClient initialUser={user} firstLogin={params.first === "1"} returnTo={returnTo} />;
 }

@@ -1,70 +1,63 @@
-# 生产运维手册
+# MiniSV Hecate 运维
 
-以下命令中的 `<...>` 均为占位符，不要替换为文档中的真实凭据。
+命令中的 `<...>` 都是占位符。不要把任何真实凭据写入文档、日志或 Git。
 
-## 部署
+## 部署统一 bundle
 
-```sh
-cd /path/to/minisv-deploy
-export MINISV_RELEASE_ARCHIVE=/path/to/release-<ID>.tar.gz
-export MINISV_RELEASE_ID=<ID>
-export MINISV_ACCOUNTS_SOURCE=/secure/path/accounts.json
+```bash
+export MINISV_RELEASE_ARCHIVE=<release.tar.gz>
+export MINISV_RELEASE_ID=<RELEASE_ID>
+export MINISV_ACCOUNTS_SOURCE=<private accounts.json>
 export MINISV_TUNNEL_ID=<TUNNEL_ID>
-export MINISV_TUNNEL_CREDENTIAL_SOURCE=$HOME/.cloudflared/<TUNNEL_ID>.json
-./scripts/deploy-hecate.sh
+export MINISV_TUNNEL_CREDENTIAL_SOURCE=<private tunnel credential json>
+./ops/scripts/deploy-hecate.sh
 ```
-脚本会校验 manifest、Python/Node/launchd 配置，复制 secrets（`0600`），原子更新 `current`，启动应用 launchd 与 `minisv-gateway`，并执行健康检查。若 Tunnel 的 credentials、config、plist 均未变化且 metrics 健康，脚本会保留现有 cloudflared 进程；只有配置变化或服务异常时才执行有界恢复，避免普通应用发布中断公网入口。
 
-## 健康检查与观察
+脚本验证 archive、根/site manifests、app worker、plist 和 Nginx 配置；备份 D1-compatible 数据；原子切换 `current`；启动同版本 worker/gateway；保留健康且配置未变的 cloudflared；失败恢复之前的 exact current symlink 与配置。
 
-```sh
+## 健康检查
+
+```bash
 $HOME/Services/minisv/current/ops/scripts/healthcheck-hecate.sh
-curl -fsS http://127.0.0.1:18790/healthz
-curl -fsS http://127.0.0.1:18791/healthz
 curl -fsS -H 'Host: minisv.vip' http://127.0.0.1:18780/healthz
-/usr/local/bin/docker compose -f $HOME/Services/minisv/compose.yml ps
-log stream --predicate 'process == "cloudflared"' --style compact
+curl -sS -o /dev/null -w '%{http_code}
+'   -H 'Host: minisv.vip' -H 'X-Forwarded-Host: minisv.vip' -H 'X-Forwarded-Proto: https'   http://127.0.0.1:18787/api/auth/session
+curl -fsS http://127.0.0.1:18792/metrics >/dev/null
+python3 $HOME/Services/minisv/current/ops/scripts/public-smoke.py --base https://minisv.vip
 ```
-日志目录为 `$HOME/Services/minisv/logs`；禁止写入 token、Cookie 或密码。
 
-公网 Alpha 验收必须再执行 `public-smoke.py` 与 `tools/live-run/tests/verify_alpha_public_seat.py`。后者只领取空闲席位，不抢占真实测试者，并在结束时释放临时租约。
+应用 session 未登录预期 401。18790/18791 必须拒绝连接。
 
-## 重启
+## 进程
 
-```sh
-launchctl kickstart -k gui/$(id -u)/com.minisv.live-run-controller
-launchctl kickstart -k gui/$(id -u)/com.minisv.remote-console
+```bash
+launchctl print gui/$(id -u)/com.cyberforker.msv-classroom
+launchctl print gui/$(id -u)/com.cyberforker.msv-parent-qa
+launchctl print gui/$(id -u)/com.minisv.cloudflared
+cd $HOME/Services/minisv && /usr/local/bin/docker compose -f compose.yml ps
+```
+
+只在确认相应进程有问题后有界重启：
+
+```bash
+launchctl kickstart -k gui/$(id -u)/com.cyberforker.msv-classroom
 launchctl kickstart -k gui/$(id -u)/com.minisv.cloudflared
 cd $HOME/Services/minisv && /usr/local/bin/docker compose -f compose.yml up -d --force-recreate gateway
 ```
 
-## 回滚
+## 课件检查
 
-```sh
-$HOME/Services/minisv/current/ops/scripts/rollback-hecate.sh <KNOWN_GOOD_RELEASE_ID>
-```
-确认健康检查及全部语义路由（含 `/course/`）后再恢复流量；保留失败发布目录供审计。
-
-## 灾备
-
-定期离线加密备份 `releases/`、`compose.yml`、gateway/cloudflared 配置、controller/console 数据及 launchd plist；secrets 单独以访问受控方式备份。新 Hecate 按部署前置条件安装 Docker、Node、Python、cloudflared，恢复文件后先在 loopback 验证，再恢复 Tunnel DNS。定期演练从最近已知良好 release 回滚。
-
-## 课程库运维
-
-- 编辑入口：`https://minisv.vip/control/editor/`
-- 持久目录：`~/Services/minisv/data/courses/{drafts,published,history}`
-- 目录权限：0700；JSON 文件由服务以 0600 原子写入。
-- 查看已发布课程：登录导师账号后访问 `/control/api/courses`。
-- 直接放置文件前，先在 release 的 `live-run/` 目录执行 `python3 course.py --validate <file>`。
-- 无效的手工文件会出现在编辑器诊断区，但不会让内置 Google/饿了么课程或活动课堂下线。
-
-
-## 课程大纲检查
-
-```sh
-curl -fsS https://minisv.vip/course/ >/dev/null
-curl -sSI https://minisv.vip/course | grep -i '^location: /course/'
-python3 $HOME/Services/minisv/current/ops/scripts/public-smoke.py --base https://minisv.vip
+```bash
+curl -fsS https://minisv.vip/courseware/product-mentor-foundations/ >/dev/null
+curl -sSI https://minisv.vip/courseware/product-mentor-foundations | grep -i '^location:'
 ```
 
-大纲页必须显示同事原版首页“青少年AI创业营”，资源只从 `/course/_next/` 与 `/course/assets/` 加载，且 HTML 不含主站 `/ui-theme.js`。`release.json` 的 `sources.chjCourseUi`、`sources.chjCourseTree` 与 `courseArtifact.transformed=false` 是不可变校验。若需要改页面内容，应由同事在其仓库提交新版本，再重新审计并更新固定 SHA；禁止在发布目录直接修改。
+`release.json.coursewareArtifact` 必须记录固定 chj source、`transformed=false`、整树 digest/files/bytes。动态 `/course/` 是登录后的导师课件库，不应被静态产物覆盖。
+
+## 回滚与数据
+
+```bash
+$HOME/Services/minisv/current/ops/scripts/rollback-hecate.sh <KNOWN_GOOD_UNIFIED_RELEASE_ID>
+```
+
+数据位于 release 外，不随代码回滚。每次部署备份 `~/Services/msv-classroom/data` 到受控 backup；不得通过删除数据库解决 schema 或登录故障。

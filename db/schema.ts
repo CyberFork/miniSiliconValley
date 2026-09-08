@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { check, index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { check, index, integer, primaryKey, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 const timestamps = {
   createdAt: text("created_at").notNull(),
@@ -496,4 +496,212 @@ export const auditEvents = sqliteTable(
     createdAt: text("created_at").notNull(),
   },
   (table) => [index("idx_audit_events_room_time").on(table.roomId, table.createdAt)],
+);
+
+export const courseCandidatePointers = sqliteTable("course_candidate_pointers", {
+  courseId: text("course_id").primaryKey().notNull(),
+  revision: integer("revision").notNull(),
+  digest: text("digest").notNull(),
+  stagedAt: text("staged_at").notNull(),
+  stagedBy: text("staged_by").notNull(),
+});
+
+export const courseTestReceipts = sqliteTable(
+  "course_test_receipts",
+  {
+    id: text("id").primaryKey(),
+    roomId: text("room_id").notNull().references(() => rooms.id, { onDelete: "cascade" }),
+    courseId: text("course_id").notNull(),
+    revision: integer("revision").notNull(),
+    digest: text("digest").notNull(),
+    coursewareBundleDigest: text("courseware_bundle_digest").notNull(),
+    status: text("status").notNull(),
+    checksJson: text("checks_json").notNull(),
+    acceptedAt: text("accepted_at"),
+    acceptedByProfileId: text("accepted_by_profile_id").references(() => profiles.id, { onDelete: "set null" }),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("uidx_course_test_receipts_exact").on(table.courseId, table.revision, table.digest, table.coursewareBundleDigest, table.roomId),
+    index("idx_course_test_receipts_status_time").on(table.status, table.createdAt),
+  ],
+);
+
+export const coursewarePackages = sqliteTable(
+  "courseware_packages",
+  {
+    id: text("id").primaryKey(),
+    slug: text("slug").notNull(),
+    title: text("title").notNull(),
+    mentorRole: text("mentor_role").notNull(),
+    ownerProfileId: text("owner_profile_id").notNull().references(() => profiles.id),
+    status: text("status").notNull().default("active"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("uidx_courseware_packages_slug").on(table.slug),
+    index("idx_courseware_packages_owner_role").on(table.ownerProfileId, table.mentorRole, table.status),
+  ],
+);
+
+export const coursewareVersions = sqliteTable(
+  "courseware_versions",
+  {
+    packageId: text("package_id").notNull().references(() => coursewarePackages.id),
+    revision: integer("revision").notNull(),
+    digest: text("digest").notNull(),
+    contentKind: text("content_kind").notNull().default("inline-html"),
+    htmlContent: text("html_content"),
+    entryPath: text("entry_path"),
+    byteLength: integer("byte_length").notNull(),
+    createdAt: text("created_at").notNull(),
+    createdByProfileId: text("created_by_profile_id").notNull().references(() => profiles.id),
+  },
+  (table) => [
+    primaryKey({ columns: [table.packageId, table.revision] }),
+    uniqueIndex("uidx_courseware_versions_digest").on(table.packageId, table.digest),
+  ],
+);
+
+export const coursewareReleasePointers = sqliteTable("courseware_release_pointers", {
+  packageId: text("package_id").primaryKey().references(() => coursewarePackages.id),
+  revision: integer("revision").notNull(),
+  digest: text("digest").notNull(),
+  releasedAt: text("released_at").notNull(),
+  releasedByProfileId: text("released_by_profile_id").notNull().references(() => profiles.id),
+});
+
+export const roomCoursewareBindings = sqliteTable(
+  "room_courseware_bindings",
+  {
+    roomId: text("room_id").notNull().references(() => rooms.id, { onDelete: "cascade" }),
+    mentorRole: text("mentor_role").notNull(),
+    packageId: text("package_id").notNull().references(() => coursewarePackages.id),
+    revision: integer("revision").notNull(),
+    digest: text("digest").notNull(),
+    boundAt: text("bound_at").notNull(),
+    boundByProfileId: text("bound_by_profile_id").notNull().references(() => profiles.id),
+  },
+  (table) => [
+    primaryKey({ columns: [table.roomId, table.mentorRole] }),
+    uniqueIndex("uidx_room_courseware_role").on(table.roomId, table.mentorRole),
+    index("idx_room_courseware_exact").on(table.packageId, table.revision, table.digest),
+  ],
+);
+
+export const classroomInstances = sqliteTable(
+  "classroom_instances",
+  {
+    roomId: text("room_id").primaryKey().references(() => rooms.id, { onDelete: "cascade" }),
+    environment: text("environment").notNull(),
+    learnerCount: integer("learner_count").notNull(),
+    lifecycle: text("lifecycle").notNull().default("ready"),
+    stateMachineVersion: integer("state_machine_version").notNull(),
+    courseId: text("course_id").notNull(),
+    courseRevision: integer("course_revision").notNull(),
+    courseDigest: text("course_digest").notNull(),
+    factoryKey: text("factory_key").notNull(),
+    resetGeneration: integer("reset_generation").notNull().default(0),
+    lockedAt: text("locked_at"),
+    startedAt: text("started_at"),
+    completedAt: text("completed_at"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("uidx_classroom_instances_factory_key").on(table.factoryKey),
+    index("idx_classroom_instances_environment_lifecycle").on(table.environment, table.lifecycle, table.updatedAt),
+  ],
+);
+
+export const classroomMentorSeats = sqliteTable(
+  "classroom_mentor_seats",
+  {
+    roomId: text("room_id").notNull().references(() => rooms.id, { onDelete: "cascade" }),
+    mentorRole: text("mentor_role").notNull(),
+    profileId: text("profile_id").notNull().references(() => profiles.id),
+    membershipId: text("membership_id").notNull().references(() => memberships.id, { onDelete: "cascade" }),
+    ...timestamps,
+  },
+  (table) => [
+    primaryKey({ columns: [table.roomId, table.mentorRole] }),
+    uniqueIndex("uidx_classroom_mentor_profile").on(table.roomId, table.profileId),
+    uniqueIndex("uidx_classroom_mentor_membership").on(table.membershipId),
+  ],
+);
+
+export const classroomPermissions = sqliteTable(
+  "classroom_permissions",
+  {
+    id: text("id").primaryKey(),
+    roomId: text("room_id").notNull().references(() => rooms.id, { onDelete: "cascade" }),
+    profileId: text("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    permission: text("permission").notNull(),
+    grantedByProfileId: text("granted_by_profile_id").notNull().references(() => profiles.id),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("uidx_classroom_permissions_grant").on(table.roomId, table.profileId, table.permission),
+    index("idx_classroom_permissions_profile").on(table.profileId, table.permission),
+  ],
+);
+
+export const classroomControllerStates = sqliteTable(
+  "classroom_controller_states",
+  {
+    roomId: text("room_id").primaryKey().references(() => rooms.id, { onDelete: "cascade" }),
+    stateMachineVersion: integer("state_machine_version").notNull(),
+    blockId: text("block_id").notNull(),
+    blockIndex: integer("block_index").notNull(),
+    state: text("state").notNull(),
+    attempt: integer("attempt").notNull().default(1),
+    errorMessage: text("error_message"),
+    version: integer("version").notNull().default(1),
+    ...timestamps,
+  },
+  (table) => [index("idx_classroom_controller_states_state").on(table.state, table.updatedAt)],
+);
+
+export const classroomFactoryEvents = sqliteTable(
+  "classroom_factory_events",
+  {
+    id: text("id").primaryKey(),
+    roomId: text("room_id").notNull().references(() => rooms.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    actorProfileId: text("actor_profile_id").notNull().references(() => profiles.id),
+    detailJson: text("detail_json").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [index("idx_classroom_factory_events_room_time").on(table.roomId, table.createdAt)],
+);
+
+export const classroomBlockSubmissions = sqliteTable(
+  "classroom_block_submissions",
+  {
+    id: text("id").primaryKey(),
+    roomId: text("room_id").notNull().references(() => rooms.id, { onDelete: "cascade" }),
+    blockId: text("block_id").notNull(),
+    profileId: text("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    payloadJson: text("payload_json").notNull(),
+    status: text("status").notNull().default("submitted"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("uidx_classroom_block_submission_actor").on(table.roomId, table.blockId, table.profileId, table.kind),
+    index("idx_classroom_block_submissions_room_block").on(table.roomId, table.blockId, table.status),
+  ],
+);
+
+export const classroomWalletBalances = sqliteTable(
+  "classroom_wallet_balances",
+  {
+    roomId: text("room_id").notNull().references(() => rooms.id, { onDelete: "cascade" }),
+    profileId: text("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    balanceTenths: integer("balance_tenths").notNull().default(0),
+    ...timestamps,
+  },
+  (table) => [
+    primaryKey({ columns: [table.roomId, table.profileId] }),
+    index("idx_classroom_wallet_profile").on(table.profileId, table.updatedAt),
+  ],
 );

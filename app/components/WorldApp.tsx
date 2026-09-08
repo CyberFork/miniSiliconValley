@@ -363,7 +363,7 @@ export function WorldApp() {
           <button type="button" aria-current={view === "world" ? "page" : undefined} className={view === "world" ? "is-active" : ""} onClick={() => setView("world")}>
             历史世界
           </button>
-          <a href={publicPath("/course/")}>课程大纲</a>
+          <a href={publicPath("/course/")}>导师课件</a>
           {([
             ["missions", `互动战役 ${completedCount}/8`],
             ["dossier", "学习档案"],

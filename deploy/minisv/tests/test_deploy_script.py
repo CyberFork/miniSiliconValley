@@ -12,19 +12,17 @@ class DeployScriptContractTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.script = (ROOT / "scripts" / "deploy-hecate.sh").read_text()
 
-    def test_launch_agents_use_bounded_bootstrap_retry(self) -> None:
-        self.assertIn("bootstrap_agent()", self.script)
-        self.assertIn("for attempt in {1..10}", self.script)
-        self.assertIn('launchctl print "$DOMAIN/$label"', self.script)
-        self.assertIn("failed to bootstrap $label after 10 attempts", self.script)
-        for label in (
-            "com.minisv.live-run-controller",
-            "com.minisv.remote-console",
-        ):
-            self.assertIn(f"bootstrap_agent {label}", self.script)
+    def test_legacy_global_runtime_is_stopped_not_bootstrapped(self) -> None:
+        self.assertNotIn("bootstrap_agent()", self.script)
+        self.assertNotIn("bootstrap_agent com.minisv.live-run-controller", self.script)
+        self.assertNotIn("bootstrap_agent com.minisv.remote-console", self.script)
+        for label in ("com.minisv.live-run-controller", "com.minisv.remote-console"):
+            self.assertIn(label, self.script)
+        self.assertIn('launchctl bootout "$DOMAIN/$label"', self.script)
+        self.assertIn('launchctl disable "$DOMAIN/$label"', self.script)
 
     def test_healthy_tunnel_is_preserved_after_local_stack(self) -> None:
-        gateway = self.script.index('$DOCKER compose -f compose.yml up -d --force-recreate gateway')
+        gateway = self.script.index('"$DOCKER" compose -f compose.yml up -d --force-recreate gateway')
         tunnel = self.script.rindex("\nensure_cloudflared\n")
         self.assertLess(gateway, tunnel)
         self.assertIn("ensure_cloudflared()", self.script)
@@ -44,6 +42,37 @@ class DeployScriptContractTests(unittest.TestCase):
         self.assertIn('cmp -s "$MINISV_TUNNEL_CREDENTIAL_SOURCE" "$ROOT/secrets/tunnel-credentials.json"', self.script)
         self.assertIn('cmp -s "$cloudflared_config_next" "$ROOT/cloudflared/config.yml"', self.script)
         self.assertIn('cmp -s "$target_next" "$target"', self.script)
+
+    def test_deploy_health_has_no_alpha_or_global_controller_dependency(self) -> None:
+        readiness = self.script[self.script.index("for attempt in {1..30}"):]
+        self.assertNotIn("127.0.0.1:18790", readiness)
+        self.assertNotIn("127.0.0.1:18791", readiness)
+        self.assertIn("127.0.0.1:18780/healthz", readiness)
+
+    def test_one_verified_release_switches_the_app_worker_and_static_gateway(self) -> None:
+        self.assertIn('"$INCOMING/MANIFEST.sha256"', self.script)
+        self.assertIn('"$INCOMING/app/dist/server/index.js"', self.script)
+        self.assertIn("module.validate_app_dist(root / 'app' / 'dist')", self.script)
+        switch = self.script.index('"$PYTHON" "$TARGET/ops/scripts/switch-current.py"')
+        classroom = self.script.index("\nrestart_classroom\n", switch)
+        gateway = self.script.index('"$DOCKER" compose -f compose.yml up -d --force-recreate gateway', classroom)
+        self.assertLess(switch, classroom)
+        self.assertLess(classroom, gateway)
+        self.assertIn("classroom-data-before.tgz", self.script)
+
+    def test_failed_mutating_deploy_restores_the_previous_release(self) -> None:
+        self.assertIn("rollback_failed_deploy()", self.script)
+        self.assertIn("trap rollback_failed_deploy ERR", self.script)
+        self.assertIn("MINISV_DEPLOY_ROLLED_BACK", self.script)
+        self.assertIn("previous-current.txt", self.script)
+        self.assertIn(".rollback-current-", self.script)
+        self.assertIn("legacy static-only release", self.script)
+        rollback = self.script[self.script.index("rollback_failed_deploy()") : self.script.index("trap rollback_failed_deploy ERR")]
+        self.assertIn("for legacy_label in com.minisv.live-run-controller com.minisv.remote-console", rollback)
+        self.assertIn('cp -p "$legacy_backup" "$legacy_target"', rollback)
+        self.assertIn('launchctl enable "$DOMAIN/$legacy_label"', rollback)
+        self.assertIn('launchctl bootstrap "$DOMAIN" "$legacy_target"', rollback)
+        self.assertIn('launchctl kickstart -k "$DOMAIN/$legacy_label"', rollback)
 
 
 if __name__ == "__main__":

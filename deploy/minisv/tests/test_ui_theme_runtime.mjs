@@ -75,7 +75,7 @@ function boot(search = "", stored = null, pathname = "/") {
   const shortcut = runtime.body.walk().find((item) => item.id === "msv-course-shortcut");
   assert.ok(shortcut, "framework must receive a post-hydration course shortcut");
   assert.equal(shortcut.href, "/course/");
-  assert.equal(shortcut.textContent, "课程大纲 ↗");
+  assert.equal(shortcut.textContent, "导师课件 ↗");
 }
 
 {

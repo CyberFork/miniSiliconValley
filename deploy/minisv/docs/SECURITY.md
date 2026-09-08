@@ -1,16 +1,29 @@
-# 安全边界与密钥管理
+# MiniSV 安全边界
 
-## 威胁边界
+## 网络
 
-- Cloudflare Tunnel 是唯一公网入口；18780、18787、18789、18790、18791、18792 必须保持 loopback 绑定。
-- Nginx gateway 是路由与 origin 兼容边界；不得绕过 gateway 将内部服务发布到公网。
-- controller 浏览器写操作只接受 admin/mentor RBAC 会话；service key 仅只读 state/script。
-- Hecate 主机、Cloudflare 账户、发布流水线和备份存储均属受信运维边界，必须最小权限、审计和补丁更新。
+- Cloudflare Tunnel 是唯一公网入口。
+- 18780、18787、18789、18792 只绑定 loopback；18790/18791 必须关闭。
+- Gateway 清空外部 Authorization 和伪造身份头，向应用透传浏览器真实 `Origin`；应用对写操作执行同源校验。
+- 公网 `/api/internal/*` 为 404；退休 API/页面为 410。
 
-## 文件与运行时
+## 身份与授权
 
-账户、Tunnel credentials、controller service key、cloudflared 配置及 launchd 配置设为 `0600`；目录至少 `0700`。发布包不得含秘密，日志和错误输出不得含密码、token、Cookie、账户名。发现泄露时立即撤销并轮换，不要把秘密提交 Git。
+- 会话使用 Secure、HttpOnly、SameSite Cookie。
+- 预创建账号的初始密码只显示一次；首次改密前平台数据 API 拒绝访问。
+- Studio 只允许平台 admin/mentor。
+- Classroom 必须有 Membership 或该实例 `admin-dm`；平台 admin 不隐式穿透课堂。
+- Admin DM 是课堂权限，不是平台提权或第五导师。
+- 学员不接收导师脚本、中控验收门或他人私密卡；screen 由服务端专用 allow-list 生成。
+- inline HTML 课件在无 same-origin 权限的 sandbox iframe 中播放。
 
-## 轮换
+## 文件与发布
 
-建立轮换记录和双人复核：先生成新 service key/账户或 Tunnel credential，更新受控文件并保持 `0600`，重启对应 launchd 服务，执行本地及公网健康检查，确认新凭据生效后撤销旧凭据。轮换期间不在命令行、工单或聊天中粘贴秘密；仅使用 `<...>` 占位符记录操作。
+- secrets、账号明文、D1/SQLite 数据和 symlink 不进入 bundle。
+- secret 文件 0600，目录 0700；日志不得含密码、Cookie、token、用户名清单或课件私密正文。
+- 同事 P 课件只从固定 commit/tree 构建；主项目不编辑、注入或改写。
+- 发布前验证 manifests；失败部署恢复之前 exact symlink，不用未校验目录拼接修复。
+
+## 事件处理
+
+凭据泄露时立即撤销／轮换并记录范围；课程或课件 digest 异常时停止发布、保留 release 与审计证据；不得用重建数据库或覆盖不可变 revision 隐藏问题。

@@ -13,6 +13,7 @@ export type ChatGPTUser = {
   fullName: string | null;
   role: AuthRole | null;
   sessionId: string | null;
+  mustChangePassword: boolean;
 };
 
 const USER_ID_HEADER = "oai-authenticated-user-id";
@@ -40,6 +41,7 @@ export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
       fullName: session.displayName,
       role: session.role,
       sessionId: session.sessionId,
+      mustChangePassword: session.mustChangePassword,
     };
   }
   const userId = requestHeaders.get(USER_ID_HEADER);
@@ -61,6 +63,7 @@ export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
     fullName,
     role: null,
     sessionId: null,
+    mustChangePassword: false,
   };
 }
 
@@ -71,6 +74,14 @@ export async function requireChatGPTUser(
   if (user) return user;
 
   redirect(chatGPTSignInPath(returnTo));
+}
+
+/** Keep one-time credentials away from classroom data until the holder
+ * replaces the generated password. API guards enforce the same rule. */
+export function requireCompletedPasswordSetup(user: ChatGPTUser, returnTo: string): void {
+  if (!user.mustChangePassword) return;
+  const safeReturnTo = safeRelativeReturnPath(returnTo);
+  redirect(`${publicPath("/account")}?first=1&returnTo=${encodeURIComponent(safeReturnTo)}`);
 }
 
 export function chatGPTSignInPath(returnTo: string): string {

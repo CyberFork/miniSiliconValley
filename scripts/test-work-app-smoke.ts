@@ -71,16 +71,17 @@ try {
   const loginPage = await smokeFetch(`${internalBase}/auth/login`, { headers: proxyHeaders() });
   assert.equal(loginPage.status, 200);
   const loginHtml = await loginPage.text();
-  assert.match(loginHtml, /账号只使用用户名和密码/);
-  assert.match(loginHtml, /直接注册 Young Builder/);
+  assert.match(loginHtml, /使用 Admin DM 分发的用户名和初始密码/);
+  assert.match(loginHtml, /还没有登录凭据？请联系本课堂 Admin DM/);
   assert.ok(loginHtml.includes(`${appPrefix}/auth/recover`));
-  assert.ok(loginHtml.includes(`${appPrefix}/auth/register`));
+  assert.ok(!loginHtml.includes(`${appPrefix}/auth/register`), "formal classroom login must not route users into independent-experience registration");
   assert.doesNotMatch(loginHtml, /域名验证码|登录验证码|团队邀请代码|signin-with-chatgpt|WWW-Authenticate/i);
 
   const registerPage = await smokeFetch(`${internalBase}/auth/register`, { headers: proxyHeaders() });
   assert.equal(registerPage.status, 200);
   const registerHtml = await registerPage.text();
-  assert.match(registerHtml, /无需邀请代码/);
+  assert.match(registerHtml, /这是独立体验账号入口/);
+  assert.match(registerHtml, /正式课堂使用 Admin DM 预创建并分发的账号/);
   assert.doesNotMatch(registerHtml, /MSV-[A-Z0-9-]{8,}/);
 
   const anonymousClassroom = await smokeFetch(`${internalBase}/classroom/`, { headers: proxyHeaders(), redirect: "manual" });
@@ -90,7 +91,8 @@ try {
   assert.ok([302, 303, 307, 308].includes(anonymousTeamLink.status));
   const teamLoginLocation = new URL(anonymousTeamLink.headers.get("location") ?? "", internalBase);
   assert.equal(teamLoginLocation.pathname, `${appPrefix}/auth/login`);
-  assert.equal(teamLoginLocation.searchParams.get("returnTo"), "/classroom?team=TEAM-MHKNJEAG");
+  assert.equal(teamLoginLocation.searchParams.get("returnTo"), "/classroom/");
+  assert.ok(!teamLoginLocation.search.includes("TEAM-MHKNJEAG"), "retired team-application query must not survive the T-085 membership flow");
   assert.equal((await smokeFetch(`${internalBase}/api/classroom/bootstrap`, { headers: proxyHeaders() })).status, 401);
 
   const wrong = await post("/api/auth/login", { username: "smoke-dm", password: "wrong password value", remember: false });
@@ -196,8 +198,8 @@ try {
   const sharedClassroom = await smokeFetch(`${internalBase}/classroom/?team=${created.teamPublicId}`, { headers: proxyHeaders(learnerCookie) });
   assert.equal(sharedClassroom.status, 200);
   const sharedClassroomHtml = await sharedClassroom.text();
-  assert.match(sharedClassroomHtml, /initialTeamPublicId/, "RSC payload must pass the shared team ID into the client dashboard");
-  assert.ok(sharedClassroomHtml.includes(created.teamPublicId));
+  assert.match(sharedClassroomHtml, /我的 Classroom/, "T-085 dashboard must render the learner's membership list");
+  assert.doesNotMatch(sharedClassroomHtml, /initialTeamPublicId/);
 
   const wrongTeamPublicId = "TEAM-MSVMENTO";
   const wrongTeamJoin = await post("/api/classroom/join", { teamPublicId: wrongTeamPublicId }, registrationCookie);
@@ -313,6 +315,9 @@ try {
   assert.match(limited.headers.get("retry-after") ?? "", /^\d+$/);
 
   console.log(`${deployment.toUpperCase()}_APP_SMOKE_PASS auth=password registration=open reset=single-use-fragment team=request-approve-direct-add-remove facilitator=assign-host-remove rbac=server-enforced`);
+} catch (error) {
+  if (diagnostics.trim()) console.error(`WRANGLER_DIAGNOSTICS\n${diagnostics}`);
+  throw error;
 } finally {
   if (server) {
     server.kill("SIGTERM");
