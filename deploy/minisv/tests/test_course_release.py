@@ -59,6 +59,7 @@ class CourseReleaseTests(unittest.TestCase):
                 client / "_next",
                 client / "assets",
                 client / "courseware" / "development-mentor-ligun" / "assets",
+                client / "courseware" / "market-mentor-user-system",
                 static / "world",
                 static / "parents",
                 course / "_next",
@@ -91,6 +92,20 @@ class CourseReleaseTests(unittest.TestCase):
             (development / "SOURCE-MANIFEST.json").write_text(json.dumps({
                 "schemaVersion": 1, "slideCount": 18, "files": development_files,
                 "contentTreeSha256": development_tree,
+            }))
+            market = client / "courseware" / "market-mentor-user-system"
+            (market / "index.html").write_text("<html><body><h1>产品的用户体系</h1><b>USER SYSTEM</b></body></html>")
+            market_files = []
+            for path in sorted(item for item in market.rglob("*") if item.is_file()):
+                relative = path.relative_to(market).as_posix()
+                content = path.read_bytes()
+                market_files.append({"path": relative, "sha256": hashlib.sha256(content).hexdigest(), "bytes": len(content)})
+            market_tree = hashlib.sha256("".join(
+                f"{item['path']}\0{item['sha256']}\n" for item in market_files
+            ).encode()).hexdigest()
+            (market / "SOURCE-MANIFEST.json").write_text(json.dumps({
+                "schemaVersion": 1, "slideCount": 49, "files": market_files,
+                "contentTreeSha256": market_tree,
             }))
             (static / "world" / "index.html").write_text('<html><head></head><body><a href="/course/">课程大纲</a>current world</body></html>')
             (static / "parents" / "index.html").write_text('<html><head></head><body><a class="msv-brand-home" href="/"><img src="/favicon.svg">current parents</a></body></html>')
@@ -134,6 +149,10 @@ class CourseReleaseTests(unittest.TestCase):
                 MODULE.validate_development_courseware(output / "courseware" / "development-mentor-ligun")["sha256"],
                 development_tree,
             )
+            self.assertEqual(
+                MODULE.validate_market_courseware(output / "courseware" / "market-mentor-user-system")["sha256"],
+                market_tree,
+            )
             workshop_html = (output / "workshop" / "index.html").read_text()
             self.assertIn("msv-workshop-released-baseline", workshop_html)
             self.assertIn('href="/" aria-label="返回 Mini Silicon Valley 主页"', workshop_html)
@@ -162,6 +181,9 @@ class CourseReleaseTests(unittest.TestCase):
             self.assertEqual(release["developmentCoursewareArtifact"]["mentorRole"], "D")
             self.assertEqual(release["developmentCoursewareArtifact"]["sha256"], development_tree)
             self.assertFalse(release["developmentCoursewareArtifact"]["transformed"])
+            self.assertEqual(release["marketCoursewareArtifact"]["mentorRole"], "M")
+            self.assertEqual(release["marketCoursewareArtifact"]["sha256"], market_tree)
+            self.assertFalse(release["marketCoursewareArtifact"]["transformed"])
             self.assertTrue((output / "MANIFEST.sha256").is_file())
 
 

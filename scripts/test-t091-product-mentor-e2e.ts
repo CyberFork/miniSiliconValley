@@ -157,7 +157,7 @@ try {
   const preferredCourseware = {
     P: "product-mentor-foundations",
     D: "development-mentor-ligun",
-    M: "market-mentor-field-kit",
+    M: "market-mentor-user-system",
     O: "operations-mentor-field-kit",
   } as const;
   const exactCourseware = (["P", "D", "M", "O"] as const).map((mentorRole) => {

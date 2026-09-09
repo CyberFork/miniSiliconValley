@@ -8,6 +8,8 @@
 - `/parents/`：家长问答。
 - `/workshop/`：内容工坊只读 Released 基线与既有创作工具。
 - `/courseware/product-mentor-foundations/`：同事原版 P 导师课件，不是完整课程大纲。
+- `/courseware/development-mentor-ligun/`：D 导师 18 页“先立棍”课件，需登录。
+- `/courseware/market-mentor-user-system/`：M 导师 49 页“产品的用户体系”课件，需登录。
 
 ## 登录与账户
 

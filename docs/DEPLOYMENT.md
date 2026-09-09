@@ -50,7 +50,7 @@ npm run render:minisv-static
 python3 deploy/minisv/package_release.py   --legacy-root <已验收的静态基线>   --app-client-root dist/client   --app-static-root dist/minisv-static   --course-static-root <courseware-output>   --portal-root deploy/minisv/site   --output <site-output>   --release-id <RELEASE_ID>   --main-sha <40位提交SHA>
 ```
 
-`package_release.py` 生成 `release.json`、`sitemap.json` 和 `site/MANIFEST.sha256`。动态 `/course/` 由应用拥有；静态同事课件只复制到 `/courseware/product-mentor-foundations/`。
+`package_release.py` 生成 `release.json`、`sitemap.json` 和 `site/MANIFEST.sha256`。动态 `/course/` 由应用拥有；P 课件整树复制到 `/courseware/product-mentor-foundations/`，仓库中带 exact manifest 的 D／M 课件复制到各自 `/courseware/{slug}/`，三者都在全局主题转换之后写入，禁止静默改写已发布字节。
 
 ## 组装统一 bundle
 

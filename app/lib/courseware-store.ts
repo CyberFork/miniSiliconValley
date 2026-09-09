@@ -38,6 +38,7 @@ const SYSTEM_PROFILE = "system-courseware";
 const PRODUCT_COURSEWARE_SOURCE_COMMIT = "679213a61b835335016eac7649213983a0e48489";
 const PRODUCT_COURSEWARE_SOURCE_TREE = "3a041c4714190cc026f6de8e06e15cec0e5f765d";
 const DEVELOPMENT_LIGUN_CONTENT_TREE = "ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234";
+const MARKET_USER_SYSTEM_CONTENT_TREE = "48b01a256bd3d408a5d539f798470e6aad0058a19dcdeb8b5d212b0e64add862";
 const BUNDLED = [
   {
     id: "cw-product-mentor-foundations",
@@ -68,6 +69,16 @@ const BUNDLED = [
     entryPath: null,
     sourceIdentity: null,
     html: mentorFieldKit("D", "开发导师", "把想法变成最小可用的验证物", ["先说清最关键的使用动作", "只实现验证假设必须的部分", "记录技术限制，不替学生决定产品", "让学员亲手演示并收集失败点"]),
+  },
+  {
+    id: "cw-market-mentor-user-system",
+    slug: "market-mentor-user-system",
+    title: "市场导师｜产品的用户体系",
+    role: "M" as const,
+    kind: "static-bundle" as const,
+    entryPath: "/courseware/market-mentor-user-system/",
+    sourceIdentity: `sha256:${MARKET_USER_SYSTEM_CONTENT_TREE}`,
+    html: null,
   },
   {
     id: "cw-market-mentor-field-kit",
@@ -329,8 +340,8 @@ export function defaultCoursewareRefs(summaries: CoursewareSummary[]): ExactCour
   return CLASSROOM_MENTOR_ROLES.map((role) => {
     const released = summaries.filter((item) => item.mentorRole === role && item.releasedRevision !== null && item.releasedDigest);
     // Prefer an actual catalog-visible course over system fallback kits. This
-    // deterministically selects the stable P/D bundles while M/O can continue
-    // using internal placeholders until their real packages are uploaded.
+    // deterministically selects the stable P/D/M bundles while O can continue
+    // using an internal placeholder until its real package is uploaded.
     const summary = released.find(isCoursewareLibraryVisible) ?? released[0];
     if (!summary) throw new ClassroomError("COURSEWARE_DEFAULT_MISSING", `${role} 导师缺少已发布默认课件。`, 409);
     return {

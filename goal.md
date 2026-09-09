@@ -68,3 +68,10 @@ CourseDefinition Candidate
 - T-092：完成；D r0 使用同一目录、认证、播放器与缓存策略上线。
 
 生产 release：`20260910T020748CST-t095-t096-course-platform-r3`。课程 r11 保持 Candidate；系统没有伪造人工 View/UI 回执，也没有创建 Production Classroom。
+
+## M 导师课件扩展（2026-09-10）
+
+- 将 `cowork/课件/user-system-slides.html` 归集为 M 导师 49 页“产品的用户体系”不可变静态课件。
+- `cowork/课件` 顶层统一为 `product-courseware / development-courseware / market-courseware`。
+- M 课件沿用 `/course/` 目录、第一方账号、cookie-only 静态鉴权和 exact revision／digest 机制。
+- 修复快速首尾跳转、深链恢复、查询参数保留、密集页适配和外部字体依赖后再发布。

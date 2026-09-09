@@ -10,6 +10,8 @@
 旧全局 LIVE RUN         → /classroom/{id}/control
 旧 /course/ 静态大纲    → /course/ 动态导师课件库
 同事原版 P 课件         → /courseware/product-mentor-foundations/
+D 导师立棍课件          → /courseware/development-mentor-ligun/
+M 导师用户体系课件      → /courseware/market-mentor-user-system/
 正式课堂                → /classroom/{id}/
 ```
 

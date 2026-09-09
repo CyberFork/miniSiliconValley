@@ -72,8 +72,11 @@ try {
   const bootstrap = await getData<Bootstrap>("/api/studio/bootstrap", adminCookie);
   const pCourseware = mustCourseware(bootstrap.courseware, "P", "product-mentor-foundations");
   const dCourseware = mustCourseware(bootstrap.courseware, "D", "development-mentor-ligun");
+  const mCourseware = mustCourseware(bootstrap.courseware, "M", "market-mentor-user-system");
   assert.equal(dCourseware.latestDigest, "cafb8878e710a698237631523428dff7e0832180415c1b5605acbe6f3ddcf69d");
+  assert.equal(mCourseware.latestDigest, "c48010b29cf4e9319552cee7748b6a8126ddf2c00486390e967e5b40d10cdc20");
   assert.equal((await get("/courseware/development-mentor-ligun/index.html", adminCookie)).status, 200);
+  assert.equal((await get("/courseware/market-mentor-user-system/index.html", adminCookie)).status, 200);
 
   const rawCourse = JSON.parse(await readFile(candidatePath, "utf8")) as { blocks: Array<{ id: string }> };
   const candidate = await postData<ExactRef>("/api/studio/candidates", { course: rawCourse }, adminCookie);

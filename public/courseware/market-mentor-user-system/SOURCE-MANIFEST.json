@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "title": "市场导师｜产品的用户体系",
+  "mentorRole": "M",
+  "packageId": "cw-market-mentor-user-system",
+  "slug": "market-mentor-user-system",
+  "source": "cowork/课件/market-courseware/course/index.html",
+  "slideCount": 49,
+  "files": [
+    {
+      "path": "index.html",
+      "sha256": "aace20f86a717b965f0be1629f254ec3d58e4859850f0d20f0491999fcee1682",
+      "bytes": 87302
+    }
+  ],
+  "contentTreeSha256": "48b01a256bd3d408a5d539f798470e6aad0058a19dcdeb8b5d212b0e64add862",
+  "canonicalization": "sorted relative path + NUL + file SHA-256 + LF; manifest excluded",
+  "transformed": false
+}

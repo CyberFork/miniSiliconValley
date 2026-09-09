@@ -17,6 +17,7 @@ EXPECTED = {
     "/studio/": 307,
     "/courseware/product-mentor-foundations/": 401,
     "/courseware/development-mentor-ligun/": 401,
+    "/courseware/market-mentor-user-system/": 401,
     "/course/development-mentor-ligun/?revision=0&slide=6&step=2": 307,
     "/framework/": 200,
     "/parents/": 200,
@@ -44,6 +45,7 @@ EXPECTED = {
 COURSEWARE_MARKERS = {
     "/courseware/product-mentor-foundations/": ("青少年AI创业营", "MINI硅谷"),
     "/courseware/development-mentor-ligun/": ("先立棍，再让 AI 跑", "DEVELOPMENT MENTOR"),
+    "/courseware/market-mentor-user-system/": ("产品的用户体系", "USER SYSTEM"),
 }
 MAX_UNAUTHORIZED_BODY_BYTES = 1024
 
@@ -115,6 +117,11 @@ def main() -> None:
                 raise SystemExit("FAIL release.json: D-mentor courseware artifact was transformed or misclassified")
             if development.get("sha256") != "ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234":
                 raise SystemExit("FAIL release.json: D-mentor courseware digest is not the accepted T-093 tree")
+            market = release.get("marketCoursewareArtifact", {})
+            if market.get("transformed") is not False or market.get("mentorRole") != "M":
+                raise SystemExit("FAIL release.json: M-mentor courseware artifact was transformed or misclassified")
+            if market.get("sha256") != "48b01a256bd3d408a5d539f798470e6aad0058a19dcdeb8b5d212b0e64add862":
+                raise SystemExit("FAIL release.json: M-mentor courseware digest is not the accepted user-system tree")
             for feature in ("shared-brand-home", "released-workshop-snapshot", "unified-course-factory", "course-studio"):
                 if feature not in release.get("features", []):
                     raise SystemExit(f"FAIL release.json: missing {feature}")

@@ -8,7 +8,7 @@
 - **Course Studio `/studio/`**：唯一课程写入口、页内 `4 + N + 1` 预览、导师课件管理和发布门。
 - **Classroom `/classroom/`**：真实账号与 Membership、按实例中控、角色私密视图、共同投屏和课堂数据。
 
-导师课件库位于 `/course/`。同事原版产品导师课件是其中一件不可变静态产物，物理路径为 `/courseware/product-mentor-foundations/`，不代表课程真值。
+导师课件库位于 `/course/`。P／D／M 已发布课件是其中三件不可变静态产物，分别位于 `/courseware/product-mentor-foundations/`、`/courseware/development-mentor-ligun/`、`/courseware/market-mentor-user-system/`；它们是角色可见的电子课件，不替代 CourseDefinition 课程真值。
 
 ## 2. 单一真值与版本链
 
@@ -46,7 +46,7 @@ CourseDefinition（D1 course_versions）
 - Classroom 访问必须来自导师 Membership、学员 Membership 或该课堂 Admin DM 权限；平台 admin 不自动穿透所有课堂。
 - 学员仅收到自己的任务、自己持久化手牌、自己的提交和账户值；不会收到中控验收门或导师私密脚本。
 - `/screen` 使用专门的 allow-list API，不从浏览器端隐藏私密字段。
-- `/course/` 与 `/course/{slug}/` 只对导师／管理员开放；inline HTML 在无 `allow-same-origin` 的 sandbox iframe 中播放。
+- `/course/` 与 `/course/{slug}/` 对真实管理员、导师和学员开放；inline HTML 在无 `allow-same-origin` 的 sandbox iframe 中播放，静态 bundle 统一经 cookie-only 网关保护。
 - 所有写 API 使用第一方 HttpOnly Session、首次改密门禁、同源 Origin 校验和服务端 RBAC。
 - Studio、Classroom、导师 Courseware 与 Account 使用同一个账号菜单；脱敏共同投屏是唯一例外。普通切换先撤销服务端 Session；Test 模拟只替换当前请求的 effective identity，不改 Cookie 中的真实 actor。
 - Admin DM 委派是非递归授权：Primary 可授予／撤销导师的 Delegated；Delegated 可运行课堂但无委派能力。旧的平面 `classroom_permissions` 仅作为迁移期回滚镜像，不参与授权判定。
@@ -60,7 +60,7 @@ CourseDefinition（D1 course_versions）
 ```text
 Cloudflare Tunnel
   → 127.0.0.1:18780  Nginx gateway
-      ├─ current/site                 静态世界、门户、P 导师原版课件
+      ├─ current/site                 静态世界、门户、P／D／M 导师课件
       ├─ 127.0.0.1:18787             Vinext/Worker + D1-compatible data
       └─ 127.0.0.1:18789             Parent Q&A
 127.0.0.1:18792                       cloudflared metrics

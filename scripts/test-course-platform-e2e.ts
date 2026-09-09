@@ -108,8 +108,9 @@ try {
   const adminCookie = await login(fixture.dm.username, fixture.dm.password);
   const initial = await getData<Bootstrap>("/api/studio/bootstrap", adminCookie);
   assert.equal(new Set(initial.versions.map((item) => item.ref.courseId)).size, 2);
-  assert.deepEqual(initial.courseware.map((item) => item.mentorRole), ["P", "D", "D", "M", "O"]);
+  assert.deepEqual(initial.courseware.map((item) => item.mentorRole), ["P", "D", "D", "M", "M", "O"]);
   assert.ok(initial.courseware.some((item) => item.slug === "development-mentor-ligun"));
+  assert.ok(initial.courseware.some((item) => item.slug === "market-mentor-user-system"));
   assert.ok(initial.courseware.every((item) => item.releasedRevision !== null && item.releasedDigest));
 
   const anonymousCourseLibrary = await fetch(`${internalBase}/course/`, {
@@ -127,6 +128,14 @@ try {
   const developmentLogin = new URL(anonymousDevelopmentDeepLink.headers.get("location") ?? "", publicOrigin);
   assert.equal(developmentLogin.pathname, "/auth/login");
   assert.equal(developmentLogin.searchParams.get("returnTo"), "/course/development-mentor-ligun/?revision=0&slide=7&step=2");
+
+  const anonymousMarketDeepLink = await fetch(`${internalBase}/course/market-mentor-user-system/?revision=0&slide=12`, {
+    headers: proxyHeaders(), redirect: "manual", signal: AbortSignal.timeout(20_000),
+  });
+  assert.ok([302, 303, 307, 308].includes(anonymousMarketDeepLink.status));
+  const marketLogin = new URL(anonymousMarketDeepLink.headers.get("location") ?? "", publicOrigin);
+  assert.equal(marketLogin.pathname, "/auth/login");
+  assert.equal(marketLogin.searchParams.get("returnTo"), "/course/market-mentor-user-system/?revision=0&slide=12");
 
   const anonymousEditor = await fetch(`${internalBase}/studio/editor/`, {
     headers: proxyHeaders(), redirect: "manual", signal: AbortSignal.timeout(20_000),
@@ -253,7 +262,7 @@ try {
   const learnerCourseLibrary = await get("/course/", learnerCookie);
   assert.equal(learnerCourseLibrary.status, 200, "a real learner can open the Released read-only course library");
   const learnerCourseLibraryHtml = await learnerCourseLibrary.text();
-  for (const visible of ["product-mentor-foundations", "development-mentor-ligun", customOperationsCourseware.slug]) {
+  for (const visible of ["product-mentor-foundations", "development-mentor-ligun", "market-mentor-user-system", customOperationsCourseware.slug]) {
     assert.ok(learnerCourseLibraryHtml.includes(visible), `Released course library is missing ${visible}`);
   }
   for (const hidden of ["development-mentor-field-kit", "market-mentor-field-kit", "operations-mentor-field-kit"]) {
@@ -262,6 +271,7 @@ try {
   for (const path of [
     "/course/product-mentor-foundations/?revision=0",
     "/course/development-mentor-ligun/?revision=0&slide=7&step=2",
+    "/course/market-mentor-user-system/?revision=0&slide=12",
   ]) {
     const response = await get(path, learnerCookie);
     assert.equal(response.status, 200, `learner cannot open exact Released courseware ${path}`);
@@ -642,7 +652,7 @@ function coursewareRefs(items: Courseware[], environment: "test" | "production")
   const preferredSlugs = {
     P: "product-mentor-foundations",
     D: "development-mentor-field-kit",
-    M: "market-mentor-field-kit",
+    M: "market-mentor-user-system",
     O: "operations-mentor-field-kit",
   } as const;
   return items.filter((item) => preferredSlugs[item.mentorRole] === item.slug).map((item) => ({

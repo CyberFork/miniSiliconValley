@@ -21,6 +21,7 @@ class GatewayContractTests(unittest.TestCase):
         self.assertIn("^/(studio|course|classroom|account)", self.gateway)
         self.assertIn("/courseware/product-mentor-foundations/", self.gateway)
         self.assertIn("/courseware/development-mentor-ligun/", self.gateway)
+        self.assertIn("/courseware/market-mentor-user-system/", self.gateway)
 
     def test_all_origins_are_loopback_and_windows_is_not_a_dependency(self) -> None:
         combined = self.gateway + self.tunnel
@@ -101,18 +102,19 @@ class GatewayContractTests(unittest.TestCase):
         self.assertIn("probe /studio/ 307", healthcheck)
         self.assertIn("probe /courseware/product-mentor-foundations/ 401", healthcheck)
         self.assertIn("probe /courseware/development-mentor-ligun/ 401", healthcheck)
+        self.assertIn("probe /courseware/market-mentor-user-system/ 401", healthcheck)
 
     def test_released_static_courseware_bytes_share_one_auth_gate(self) -> None:
         self.assertIn("location = /_minisv_courseware_auth", self.gateway)
         self.assertIn("internal;", self.gateway)
         self.assertIn("/api/auth/courseware-access", self.gateway)
-        for slug in ("product-mentor-foundations", "development-mentor-ligun"):
+        for slug in ("product-mentor-foundations", "development-mentor-ligun", "market-mentor-user-system"):
             route = re.search(rf"location \^~ /courseware/{slug}/ \{{(.*?)\n    \}}", self.gateway, re.DOTALL)
             self.assertIsNotNone(route)
             self.assertIn("auth_request /_minisv_courseware_auth;", route.group(1))
             self.assertIn(f"try_files $uri $uri/ /courseware/{slug}/index.html", route.group(1))
             self.assertNotIn("add_header", route.group(1))
-        self.assertIn('~^/courseware/(product-mentor-foundations|development-mentor-ligun)/ "private, no-store, no-transform";', self.gateway)
+        self.assertIn('~^/courseware/(product-mentor-foundations|development-mentor-ligun|market-mentor-user-system)/ "private, no-store, no-transform";', self.gateway)
         self.assertIn('add_header Cache-Control "$minisv_cache_control" always;', self.gateway)
         smoke = (ROOT / "scripts" / "public-smoke.py").read_text()
         self.assertIn("COURSEWARE_MARKERS", smoke)
