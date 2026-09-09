@@ -18,7 +18,7 @@
 - learner 不显示 Studio 管理入口。
 - anonymous 访问动态目录／播放器会跳到登录，并保留 slug、revision、slide、step。
 - Candidate、Draft、observer、Test impersonation 和未完成一次性密码设置均不能进入课件库。
-- P/D 原始静态目录统一经过同一个 cookie-only `auth_request`；匿名直接访问返回 401 且无正文。
+- P/D 原始静态目录统一经过同一个 cookie-only `auth_request`；匿名直接访问返回 401；允许网关返回小型通用 401 错误页，但不得包含任何课件正文或课件指纹。
 - 原始静态响应使用 `private, no-store, no-transform`，退出后不能靠共享缓存重新看到课件。
 
 ## 不可变身份
@@ -60,3 +60,15 @@ D 课件进度条是 18 段真实按钮：
 ## 发布边界
 
 代码部署与“把一个新 CourseDefinition 发布为 Production”是两件事。此次部署可以上线目录、认证、播放器和 T-095 Candidate 导入能力；新的课程 Released 仍必须由团队完成 View + Test Classroom UI 两级人工验收，系统不代签回执。
+
+
+## 2026-09-10 生产部署
+
+- Hecate release：`20260910T020748CST-t095-t096-course-platform-r3`。
+- Git source：`b397f21e2b1ba45e29559c3b814ea159dbca20ad`。
+- T-095 统一课程已作为 `eleme-2008-find-problem r11` Candidate 导入，digest 为 `5dde44ae…c2c33`。
+- 真实导师与真实学员账号均已验收 `/course/`、P r0、D r0 和两套受保护静态资源。
+- P 课件继续复用已批准整树 `34769769…35b04`，没有因重新编译产生无意义的字节漂移。
+- 新 Candidate 未签发人工 View/UI 回执，未进入 Released，也未创建 Production Classroom。
+
+完整机器回执：`TODO_091_096_PRODUCTION_DEPLOYMENT_RECEIPT.json`。

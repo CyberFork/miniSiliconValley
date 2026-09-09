@@ -57,3 +57,14 @@ CourseDefinition Candidate
 - `/course/` 从真实 Courseware 注册表只列出 P、D 已发布静态课件；导师与学生均能只读播放。
 - 匿名 P/D 深链登录回跳不丢 `revision / slide / step`；原始静态路径无法绕过鉴权。
 - P 课程包先完成复验与上线；D 的进度跳转和上线随后沿用同一机制完成。
+
+## 完成状态（2026-09-10）
+
+- T-095：完成；六席、981 字段身份和新 Candidate r11 已进入生产 Studio。
+- T-094：完成；Editor／Preview／Test Controller／Seat 使用同一 exact 投影与运行身份契约。
+- T-091：完成工程复验；P B01—B04、ProductBrief 与 P→D 交接通过，人工视图验收仍由团队执行。
+- T-096：完成；统一 `/course/` 已在 Hecate 上线，真实导师和学员可只读访问 Released P/D。
+- T-093：完成并复验；D 课件 18 段进度跳转、锁边界、刷新恢复和深链均通过。
+- T-092：完成；D r0 使用同一目录、认证、播放器与缓存策略上线。
+
+生产 release：`20260910T020748CST-t095-t096-course-platform-r3`。课程 r11 保持 Candidate；系统没有伪造人工 View/UI 回执，也没有创建 Production Classroom。
