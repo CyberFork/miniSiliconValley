@@ -114,6 +114,7 @@ class GatewayContractTests(unittest.TestCase):
             self.assertIn("auth_request /_minisv_courseware_auth;", route.group(1))
             self.assertIn(f"try_files $uri $uri/ /courseware/{slug}/index.html", route.group(1))
             self.assertNotIn("add_header", route.group(1))
+            self.assertNotIn("expires", route.group(1), "courseware must emit only the shared private/no-store policy")
         self.assertIn('~^/courseware/(product-mentor-foundations|development-mentor-ligun|market-mentor-user-system)/ "private, no-store, no-transform";', self.gateway)
         self.assertIn('add_header Cache-Control "$minisv_cache_control" always;', self.gateway)
         smoke = (ROOT / "scripts" / "public-smoke.py").read_text()
