@@ -160,9 +160,23 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
           requestUnlock={() => data.scriptNavigation.nextLocked && setUnlockTarget(data.scriptNavigation.nextLocked)}
           reset={() => mutate(`/api/platform/classrooms/${classroomId}/reset`, {}, "Test Classroom 已回到 B01；其他课堂不受影响。")}
           receipt={(checks) => mutate(`/api/platform/classrooms/${classroomId}/receipt`, { checks, clientMatrix: currentClientMatrix() }, "UiAcceptanceReceipt 已生成；返回 Course Studio 即可发布。")}
-        /> : <SeatView data={data} busy={busy} submit={(kind, text) => mutate(`/api/platform/classrooms/${classroomId}/submissions`, {
-          blockId: data.page.id, kind, text, ...(viewAsProfileId ? { viewAsProfileId } : {}),
-        }, `已保存到 ${data.page.id}；翻页不会改变这份记录。`)} />}
+        /> : <SeatView
+          data={data}
+          busy={busy}
+          submit={(input) => mutate(`/api/platform/classrooms/${classroomId}/submissions`, {
+            blockId: data.page.id,
+            ...input,
+            ...(viewAsProfileId ? { viewAsProfileId } : {}),
+          }, input.schemaId && data.activitySchema
+            ? `${data.activitySchema.name}已提交给 ${data.activitySchema.ownerMentorRole} 导师；退回修改或通过都会保留。`
+            : `已保存到 ${data.page.id}；翻页不会改变这份记录。`)}
+          review={(submissionId, status, feedback, expectedUpdatedAt) => mutate(`/api/platform/classrooms/${classroomId}/submissions/${submissionId}/review`, {
+            status,
+            feedback,
+            expectedUpdatedAt,
+            ...(viewAsProfileId ? { viewAsProfileId } : {}),
+          }, status === "accepted" ? "结构化成果已通过；到声明的交接页后，下游导师可以读取。" : "结构化成果已退回，学员会看到具体修改建议。")}
+        />}
     </div>
     {unlockTarget && <UnlockDialog target={unlockTarget} busy={busy} onCancel={() => setUnlockTarget(null)} onConfirm={() => void unlock()} />}
   </main>;
@@ -264,7 +278,12 @@ function UnlockDialog({ target, busy, onCancel, onConfirm }: { target: { id: str
   </section></div>;
 }
 
-function SeatView({ data, busy, submit }: { data: ClassroomInstanceDetail; busy: boolean; submit: (kind: string, text: string) => Promise<unknown> }) {
+function SeatView({ data, busy, submit, review }: {
+  data: ClassroomInstanceDetail;
+  busy: boolean;
+  submit: (input: { kind?: string; text?: string; schemaId?: string; values?: Record<string, string> }) => Promise<unknown>;
+  review: (submissionId: string, status: "accepted" | "rejected", feedback: string, expectedUpdatedAt: string) => Promise<unknown>;
+}) {
   const [text, setText] = useState("");
   const view = data.myView;
   const role = view?.kind === "mentor" ? `${view.mentorRole} 导师` : view?.kind === "learner" ? `Young Builder ${view.learnerNumber}` : "Admin DM";
@@ -281,9 +300,13 @@ function SeatView({ data, busy, submit }: { data: ClassroomInstanceDetail; busy:
         {view?.kind === "mentor" && <MentorView data={data} view={view} courseware={courseware} />}
         {view?.kind === "controller" && <p>你在本课堂拥有 Admin DM 权限，但没有占用 P／D／M／O 导师席。请从顶部进入主控。</p>}
       </section>
-      {view?.kind !== "controller" && <aside className={styles.card}>
+      {view?.kind === "learner" && data.activitySchema
+        ? <StructuredActivityForm key={`${data.activitySchema.id}:${data.submissions.find((item) => item.schemaId === data.activitySchema?.id && item.profileId === data.viewer.viewProfileId)?.updatedAt ?? "new"}`} data={data} busy={busy} submit={submit} />
+        : view?.kind === "mentor" && data.activitySchema?.mentorRubric
+          ? <MentorStructuredReview data={data} busy={busy} review={review} />
+          : view?.kind !== "controller" && <aside className={styles.card}>
         <small className={styles.eyebrow}>本页活动记录</small><h2>把结果留在 {data.page.id}</h2>
-        <form className={styles.submission} onSubmit={async (event) => { event.preventDefault(); await submit(view?.kind === "mentor" ? "mentor-note" : "learner-work", text); setText(""); }}>
+        <form className={styles.submission} onSubmit={async (event) => { event.preventDefault(); await submit({ kind: view?.kind === "mentor" ? "mentor-note" : "learner-work", text }); setText(""); }}>
           <label htmlFor="block-work">记录真实完成的内容。翻页和回看不会删除或重新提交它。</label>
           <textarea id="block-work" value={text} onChange={(event) => setText(event.target.value)} placeholder={data.page.learnerLens.done} minLength={2} maxLength={4000} required />
           <button className={styles.button} disabled={busy || text.trim().length < 2}>保存 {data.page.id} 活动记录</button>
@@ -292,6 +315,81 @@ function SeatView({ data, busy, submit }: { data: ClassroomInstanceDetail; busy:
       </aside>}
     </div>
   </>;
+}
+
+function StructuredActivityForm({ data, busy, submit }: {
+  data: ClassroomInstanceDetail;
+  busy: boolean;
+  submit: (input: { schemaId?: string; values?: Record<string, string> }) => Promise<unknown>;
+}) {
+  const schema = data.activitySchema!;
+  const mine = data.submissions.find((item) => item.schemaId === schema.id && item.profileId === data.viewer.viewProfileId);
+  const [values, setValues] = useState<Record<string, string>>(() => Object.fromEntries(schema.fields.map((field) => [field.id, mine?.values?.[field.id] ?? ""])));
+  const valid = schema.fields.every((field) => {
+    const value = (values[field.id] ?? "").trim();
+    const itemCount = field.input === "list" ? value.split(/\r?\n/).map((item) => item.trim()).filter(Boolean).length : 0;
+    return (!field.required || value.length > 0)
+      && value.length >= field.minLength
+      && value.length <= field.maxLength
+      && (field.minItems === undefined || itemCount >= field.minItems)
+      && (field.maxItems === undefined || itemCount <= field.maxItems);
+  });
+  return <aside className={`${styles.card} ${styles.structuredActivity}`}>
+    <small className={styles.eyebrow}>团队交付物 · {schema.ownerMentorRole} 导师验收</small>
+    <h2>{schema.name}</h2>
+    <p>{schema.learnerIntro}</p>
+    {mine && <div className={styles.submissionStatus} data-status={mine.status}>
+      <b>{mine.status === "accepted" ? `✓ ${schema.ownerMentorRole} 导师已通过` : mine.status === "rejected" ? `↺ ${schema.ownerMentorRole} 导师已退回` : `已提交 · 等待 ${schema.ownerMentorRole} 导师`}</b>
+      {mine.reviewFeedback && <span>导师建议：{mine.reviewFeedback}</span>}
+    </div>}
+    <form className={styles.structuredForm} onSubmit={async (event) => {
+      event.preventDefault();
+      await submit({ schemaId: schema.id, values });
+    }}>
+      {schema.fields.map((field, index) => <label key={field.id}>
+        <span><b>{String(index + 1).padStart(2, "0")} · {field.label}</b><small>{field.learnerPrompt}</small></span>
+        {field.input === "short-text"
+          ? <input value={values[field.id] ?? ""} minLength={field.minLength} maxLength={field.maxLength} required={field.required} onChange={(event) => setValues((current) => ({ ...current, [field.id]: event.target.value }))} />
+          : <textarea value={values[field.id] ?? ""} minLength={field.minLength} maxLength={field.maxLength} required={field.required} placeholder={field.input === "list" ? "每行写一条" : "用具体的人、场景和动作写"} onChange={(event) => setValues((current) => ({ ...current, [field.id]: event.target.value }))} />}
+        {field.input === "list" && (field.minItems !== undefined || field.maxItems !== undefined) && <small>{field.minItems ?? 0}—{field.maxItems ?? "不限"} 条 · 每行一条</small>}
+      </label>)}
+      <button className={styles.button} disabled={busy || !valid}>{mine ? `重新提交给 ${schema.ownerMentorRole} 导师` : `提交给 ${schema.ownerMentorRole} 导师`}</button>
+      <small>重新提交会回到“等待验收”；已解锁剧本、手牌、RP 和资金不会改变。</small>
+    </form>
+  </aside>;
+}
+
+function MentorStructuredReview({ data, busy, review }: {
+  data: ClassroomInstanceDetail;
+  busy: boolean;
+  review: (submissionId: string, status: "accepted" | "rejected", feedback: string, expectedUpdatedAt: string) => Promise<unknown>;
+}) {
+  const schema = data.activitySchema!;
+  const submissions = data.submissions.filter((item) => item.schemaId === schema.id);
+  return <aside className={`${styles.card} ${styles.mentorReview}`}>
+    <small className={styles.eyebrow}>{schema.ownerMentorRole} 导师工作台 · 结构化验收</small>
+    <h2>{schema.name}</h2>
+    <div className={styles.rubric}><b>只看这 {schema.mentorRubric?.length ?? 0} 件事</b><ol>{schema.mentorRubric?.map((item) => <li key={item}>{item}</li>)}</ol></div>
+    {submissions.length
+      ? <div className={styles.reviewList}>{submissions.map((submission) => <StructuredReviewCard key={`${submission.id}:${submission.updatedAt}`} data={data} submission={submission} busy={busy} review={review} />)}</div>
+      : <p>还没有学员汇总提交。先让团队把交付物各项内容说清，再由一位同学提交。</p>}
+  </aside>;
+}
+
+function StructuredReviewCard({ data, submission, busy, review }: {
+  data: ClassroomInstanceDetail;
+  submission: ClassroomInstanceDetail["submissions"][number];
+  busy: boolean;
+  review: (submissionId: string, status: "accepted" | "rejected", feedback: string, expectedUpdatedAt: string) => Promise<unknown>;
+}) {
+  const schema = data.activitySchema!;
+  const [feedback, setFeedback] = useState(submission.reviewFeedback ?? "");
+  return <article className={styles.reviewCard} data-status={submission.status}>
+    <header><div><b>{submission.displayName}</b><small>{submission.status === "accepted" ? "已通过" : submission.status === "rejected" ? "已退回" : "等待验收"}</small></div><time>{new Date(submission.updatedAt).toLocaleString("zh-CN")}</time></header>
+    <dl>{schema.fields.map((field) => <div key={field.id}><dt>{field.label}<small>{"mentorPrompt" in field ? field.mentorPrompt : ""}</small></dt><dd>{submission.values?.[field.id] ?? "—"}</dd></div>)}</dl>
+    <label><b>给学生的具体反馈</b><textarea value={feedback} maxLength={1000} onChange={(event) => setFeedback(event.target.value)} placeholder="退回时写清：哪一项不够具体、下一步去问谁或改什么。" /></label>
+    <div className={styles.reviewActions}><button className={styles.secondary} disabled={busy} onClick={() => void review(submission.id, "accepted", feedback, submission.updatedAt)}>通过并进入下游交接</button><button className={styles.danger} disabled={busy || feedback.trim().length < 2} onClick={() => void review(submission.id, "rejected", feedback, submission.updatedAt)}>退回修改</button></div>
+  </article>;
 }
 
 function LearnerView({ data, view }: { data: ClassroomInstanceDetail; view: Extract<NonNullable<ClassroomInstanceDetail["myView"]>, { kind: "learner" }> }) {
@@ -308,10 +406,21 @@ function MentorView({ data, view, courseware }: {
   view: Extract<NonNullable<ClassroomInstanceDetail["myView"]>, { kind: "mentor" }>;
   courseware: ClassroomInstanceDetail["courseware"][number] | null | undefined;
 }) {
+  const context = view.contentContext;
   return <>
     <p>本页分工：<b>{view.activity === "active" ? "建议你主讲" : view.activity === "support" ? "观察并支援" : "按需支援"}</b>。这不是权限限制；任一导师都可确认解锁下一页。</p>
-    <h3>导师私有提示</h3><ul>{view.privateScript.map((line) => <li key={line}>{line}</li>)}</ul>
+    {context.mode === "owner" && context.checkpoint && <section className={styles.contentOwnership}>
+      <small>{context.ownerMentorRole} 专属{context.ownerMentorRole === "P" ? "历史" : "课堂模拟"}剧本 · {context.scriptPackageId}</small>
+      <h3>{context.checkpoint.title}</h3><p>{context.checkpoint.purpose}</p>
+      <div><b>课件章节提示</b><span>{context.coursewareCue?.label} · 第 {context.coursewareCue?.slideStart}—{context.coursewareCue?.slideEnd} 页</span></div>
+      <div><b>本检查点公开动作</b><span>{context.checkpoint.publicEvents.join("；")}</span></div>
+    </section>}
+    {context.mode === "handoff" && <section className={styles.handoffNotice}><small>{context.ownerMentorRole} → {view.mentorRole} · 已验收成果交接</small><p>{context.note}</p></section>}
+    {view.privateScript.length > 0
+      ? <><h3>当值导师私有提示</h3><ul>{view.privateScript.map((line) => <li key={line}>{line}</li>)}</ul></>
+      : <p className={styles.standbyNote}>你当前不是主讲席：只显示自己的观察任务，不复制当值导师的私有讲稿。</p>}
     {courseware && !data.viewer.impersonationId && <a className={styles.coursewareLink} href={`/course/${courseware.slug}/?revision=${courseware.revision}`} target="_blank" rel="noreferrer">打开 {view.mentorRole} 导师 exact 课件 →</a>}
+    {data.handoffs.length > 0 && <section className={styles.handoffArtifacts}><h3>已通过的上游交付物</h3>{data.handoffs.map((handoff) => <article key={handoff.submission.id}><header><b>{handoff.artifactName} · {handoff.submission.displayName}</b><span>{handoff.fromBlockId} 由 {handoff.fromMentorRole} 导师通过</span></header><dl>{Object.entries(handoff.submission.values ?? {}).map(([key, value]) => <div key={key}><dt>{handoff.fieldLabels[key] ?? key}</dt><dd>{value}</dd></div>)}</dl></article>)}</section>}
     <p>学员这一页的任务：{data.page.studentPrompt}</p>
   </>;
 }

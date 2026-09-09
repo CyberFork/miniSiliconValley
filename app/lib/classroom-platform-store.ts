@@ -14,7 +14,13 @@ import {
   type ClassroomScriptProgress,
   type ExactCoursewareRef,
 } from "./classroom-factory";
-import { assertCourseCanInstantiate, buildStudioProjection, resolveLearnerPolicy } from "./course-platform";
+import {
+  assertCourseCanInstantiate,
+  buildStudioProjection,
+  declaredCoursewareBindingIssues,
+  privateDeckForBlock,
+  resolveLearnerPolicy,
+} from "./course-platform";
 import {
   loadExactCoursePackage,
   type StudioCourseVersion,
@@ -24,6 +30,17 @@ import {
   loadCoursewareExact,
   type CoursewareContent,
 } from "./courseware-store";
+import {
+  findSubmissionSchema,
+  parseStoredSubmissionPayload,
+  projectLearnerSubmissionSchema,
+  projectMentorSubmissionSchema,
+  submissionPlainText,
+  submissionSchemaForBlock,
+  validateStructuredSubmissionValues,
+  type ClassroomSubmissionSchemaView,
+  type StructuredSubmissionValues,
+} from "./course-submission";
 import {
   COURSE_ACCEPTANCE_APP_BUILD_ID,
   recordUiAcceptanceReceipt,
@@ -93,8 +110,37 @@ export type ClassroomInstanceDetail = ClassroomInstanceSummary & {
   learners: Array<{ profileId: string; displayName: string; seat: number }>;
   admins: Array<{ profileId: string; displayName: string; mode: AdminDmDelegationMode; canDelegate: boolean }>;
   courseware: ExactCoursewareRef[];
-  submissions: Array<{ profileId: string; displayName: string; kind: string; text: string; status: string; updatedAt: string }>;
+  activitySchema: ClassroomSubmissionSchemaView | null;
+  submissions: ClassroomSubmissionDetail[];
+  handoffs: ClassroomHandoffDetail[];
   economy: { personalRp: number; personalWalletTenths: number; teamTreasuryTenths: number };
+};
+
+export type ClassroomSubmissionDetail = {
+  id: string;
+  profileId: string;
+  displayName: string;
+  blockId: string;
+  kind: string;
+  text: string;
+  schemaId: string | null;
+  values: StructuredSubmissionValues | null;
+  status: string;
+  reviewFeedback: string | null;
+  reviewedAt: string | null;
+  updatedAt: string;
+};
+
+export type ClassroomHandoffDetail = {
+  scriptPackageId: string;
+  artifactName: string;
+  fieldLabels: Record<string, string>;
+  fromMentorRole: ClassroomMentorRole;
+  toMentorRole: ClassroomMentorRole;
+  fromBlockId: string;
+  availableAtBlockId: string;
+  summary: string;
+  submission: ClassroomSubmissionDetail;
 };
 
 /**
@@ -157,6 +203,15 @@ export async function createClassroomInstance(
     if (content.mentorRole !== role) throw new ClassroomError("COURSEWARE_ROLE_MISMATCH", `${role} 导师课件角色不匹配。`, 409);
     if (request.environment === "production" && !content.released) throw new ClassroomError("COURSEWARE_RELEASE_REQUIRED", `正式课堂的 ${role} 课件必须已发布。`, 409);
     trustedCourseware.push(toExactCoursewareRef(content));
+  }
+  const declaredBindingIssues = declaredCoursewareBindingIssues(course, trustedCourseware);
+  if (declaredBindingIssues.length) {
+    throw new ClassroomError(
+      "COURSE_CONTENT_COURSEWARE_MISMATCH",
+      "课程声明的案例剧本与导师课件版本不一致，不能创建会悄悄错页的课堂。",
+      409,
+      declaredBindingIssues,
+    );
   }
   const uiReceipt = request.environment === "production"
     ? await requireValidUiAcceptanceReceipt(
@@ -480,11 +535,11 @@ export async function getClassroomInstance(
       ? projection.learnerViews[selectedLearner.seat - 1] ?? null
       : projection.controllerView;
   if (selectedLearner && myView?.kind === "learner") {
+    const privateDeck = privateDeckForBlock(course, page);
     const grants = await db.prepare(
       `SELECT card_id FROM card_grants WHERE room_id = ? AND chapter_id = ? AND member_id = ? ORDER BY granted_at, id`,
-    ).bind(roomId, `${course.course.id}:${page.macroStepId}`, selectedLearner.membership_id).all<{ card_id: string }>();
-    const deck = course.decks.find((item) => item.macroStepId === page.macroStepId);
-    const cards = new Map((deck?.cards ?? []).map((card) => [card.id, card]));
+    ).bind(roomId, `${course.course.id}:${privateDeck.macroStepId}`, selectedLearner.membership_id).all<{ card_id: string }>();
+    const cards = new Map(privateDeck.cards.map((card) => [card.id, card]));
     myView = {
       ...myView,
       privateCards: (grants.results ?? [])
@@ -496,13 +551,90 @@ export async function getClassroomInstance(
 
   const canSeeAllSubmissions = Boolean(selectedMentor) || !selectedLearner;
   const submissionResult = await db.prepare(
-    `SELECT s.profile_id, p.nickname, s.kind, s.payload_json, s.status, s.updated_at
+    `SELECT s.id, s.block_id, s.profile_id, p.nickname, s.kind, s.payload_json, s.status, s.updated_at
      FROM classroom_block_submissions s JOIN profiles p ON p.id = s.profile_id
      WHERE s.room_id = ? AND s.block_id = ? AND (? = 1 OR s.profile_id = ?)
      ORDER BY s.updated_at`,
   ).bind(roomId, page.id, canSeeAllSubmissions ? 1 : 0, viewProfileId).all<{
-    profile_id: string; nickname: string; kind: string; payload_json: string; status: string; updated_at: string;
+    id: string; block_id: string; profile_id: string; nickname: string; kind: string; payload_json: string; status: string; updated_at: string;
   }>();
+  const currentSchema = submissionSchemaForBlock(course, page.id);
+  const activitySchema = !currentSchema
+    ? null
+    : selectedLearner
+      ? projectLearnerSubmissionSchema(currentSchema)
+      : selectedMentor?.mentor_role === currentSchema.ownerMentorRole
+        ? projectMentorSubmissionSchema(currentSchema)
+        : null;
+  const submissions = (submissionResult.results ?? []).flatMap((row): ClassroomSubmissionDetail[] => {
+    const payload = parseStoredSubmissionPayload(row.payload_json);
+    const schema = payload.schemaId ? findSubmissionSchema(course, payload.schemaId) : null;
+    // A structured artifact stays private to its author, its owning mentor and
+    // the Admin-DM control surface. A downstream mentor receives only the
+    // accepted hand-off on its declared later page.
+    if (payload.schemaId && !schema && selectedMentor) return [];
+    if (schema && selectedMentor && selectedMentor.mentor_role !== schema.ownerMentorRole) return [];
+    return [{
+      id: row.id,
+      profileId: row.profile_id,
+      displayName: row.nickname,
+      blockId: row.block_id,
+      kind: row.kind,
+      text: submissionPlainText(payload, schema),
+      schemaId: payload.schemaId ?? null,
+      values: payload.values ?? null,
+      status: row.status,
+      reviewFeedback: payload.review?.feedback ?? null,
+      reviewedAt: payload.review?.reviewedAt ?? null,
+      updatedAt: row.updated_at,
+    }];
+  });
+  const handoffs: ClassroomHandoffDetail[] = [];
+  if (selectedMentor) {
+    for (const scriptPackage of course.contentPackages?.scriptPackages ?? []) {
+      const handoff = scriptPackage.handoff;
+      if (!handoff || handoff.toMentorRole !== selectedMentor.mentor_role) continue;
+      const availableIndex = course.blocks.findIndex((item) => item.id === handoff.availableAtBlockId);
+      if (availableIndex < 0 || viewedIndex < availableIndex) continue;
+      const schema = findSubmissionSchema(course, handoff.submissionSchemaId);
+      if (!schema) continue;
+      const rows = await db.prepare(
+        `SELECT s.id, s.block_id, s.profile_id, p.nickname, s.kind, s.payload_json, s.status, s.updated_at
+         FROM classroom_block_submissions s JOIN profiles p ON p.id = s.profile_id
+         WHERE s.room_id = ? AND s.block_id = ? AND s.kind = ? AND s.status = 'accepted'
+         ORDER BY s.updated_at DESC, s.id DESC`,
+      ).bind(roomId, handoff.fromBlockId, schema.kind).all<{
+        id: string; block_id: string; profile_id: string; nickname: string; kind: string; payload_json: string; status: string; updated_at: string;
+      }>();
+      const row = (rows.results ?? []).find((item) => parseStoredSubmissionPayload(item.payload_json).schemaId === schema.id);
+      if (!row) continue;
+      const payload = parseStoredSubmissionPayload(row.payload_json);
+      handoffs.push({
+        scriptPackageId: scriptPackage.id,
+        artifactName: schema.name,
+        fieldLabels: Object.fromEntries(schema.fields.map((field) => [field.id, field.label])),
+        fromMentorRole: scriptPackage.ownerMentorRole,
+        toMentorRole: handoff.toMentorRole,
+        fromBlockId: handoff.fromBlockId,
+        availableAtBlockId: handoff.availableAtBlockId,
+        summary: handoff.summary,
+        submission: {
+          id: row.id,
+          profileId: row.profile_id,
+          displayName: row.nickname,
+          blockId: row.block_id,
+          kind: row.kind,
+          text: submissionPlainText(payload, schema),
+          schemaId: payload.schemaId ?? null,
+          values: payload.values ?? null,
+          status: row.status,
+          reviewFeedback: payload.review?.feedback ?? null,
+          reviewedAt: payload.review?.reviewedAt ?? null,
+          updatedAt: row.updated_at,
+        },
+      });
+    }
+  }
   const balances = await db.prepare(
     `SELECT
        COALESCE((SELECT SUM(points) FROM reputation_entries WHERE profile_id = ? AND room_id = ?), 0) AS rp,
@@ -574,11 +706,9 @@ export async function getClassroomInstance(
       canDelegate: Boolean(row.can_delegate),
     })),
     courseware,
-    submissions: (submissionResult.results ?? []).map((row) => {
-      let text = "";
-      try { const payload = JSON.parse(row.payload_json) as { text?: unknown }; text = typeof payload.text === "string" ? payload.text : ""; } catch { /* fail closed to blank */ }
-      return { profileId: row.profile_id, displayName: row.nickname, kind: row.kind, text, status: row.status, updatedAt: row.updated_at };
-    }),
+    activitySchema,
+    submissions,
+    handoffs,
     economy: {
       personalRp: Number(balances?.rp ?? 0),
       personalWalletTenths: Number(balances?.wallet ?? 0),
@@ -619,16 +749,43 @@ export async function submitClassroomBlockWork(
   db: ClassroomD1,
   user: AuthenticatedClassroomUser,
   roomId: string,
-  input: { blockId: string; kind: string; text: string; viewAsProfileId?: string },
+  input: {
+    blockId: string;
+    kind?: string;
+    text?: string;
+    schemaId?: string;
+    values?: unknown;
+    viewAsProfileId?: string;
+  },
 ): Promise<void> {
   const detail = await getClassroomInstance(db, user, roomId, {
     blockId: input.blockId,
     ...(input.viewAsProfileId ? { viewAsProfileId: input.viewAsProfileId } : {}),
   });
-  const kind = input.kind.trim();
-  const text = input.text.trim();
-  if (!/^[a-z][a-z0-9-]{1,31}$/.test(kind)) throw new ClassroomError("SUBMISSION_KIND_INVALID", "作品类型无效。", 400);
-  if (text.length < 2 || text.length > 4_000) throw new ClassroomError("SUBMISSION_TEXT_INVALID", "作品内容需为 2—4000 个字符。", 400);
+  const course = await loadExactCoursePackage(db, detail.courseRef);
+  const declaredSchema = submissionSchemaForBlock(course, detail.page.id);
+  let kind: string;
+  let payload: Record<string, unknown>;
+  if (input.schemaId) {
+    const schema = findSubmissionSchema(course, input.schemaId);
+    if (!schema) throw new ClassroomError("SUBMISSION_SCHEMA_NOT_FOUND", "这个课程版本没有声明该作品结构。", 404);
+    if (schema.submitAtBlockId !== detail.page.id) throw new ClassroomError("SUBMISSION_SCHEMA_BLOCK_MISMATCH", `${schema.name} 只能在 ${schema.submitAtBlockId} 提交。`, 409);
+    if (detail.myView?.kind !== "learner") throw new ClassroomError("SUBMISSION_LEARNER_REQUIRED", "结构化团队作品必须从学员席提交。", 403);
+    let values: StructuredSubmissionValues;
+    try { values = validateStructuredSubmissionValues(schema, input.values); }
+    catch (error) { throw new ClassroomError("SUBMISSION_VALUES_INVALID", error instanceof Error ? error.message : "作品字段无效。", 400); }
+    kind = schema.kind;
+    payload = { schemaId: schema.id, values };
+  } else {
+    kind = input.kind?.trim() ?? "";
+    const text = input.text?.trim() ?? "";
+    if (!/^[a-z][a-z0-9-]{1,31}$/.test(kind)) throw new ClassroomError("SUBMISSION_KIND_INVALID", "作品类型无效。", 400);
+    if (declaredSchema?.kind === kind) {
+      throw new ClassroomError("SUBMISSION_SCHEMA_REQUIRED", `${declaredSchema.name} 必须按课程声明的结构化字段提交。`, 409);
+    }
+    if (text.length < 2 || text.length > 4_000) throw new ClassroomError("SUBMISSION_TEXT_INVALID", "作品内容需为 2—4000 个字符。", 400);
+    payload = { text };
+  }
   const now = new Date().toISOString();
   await db.batch([
     db.prepare(
@@ -637,14 +794,78 @@ export async function submitClassroomBlockWork(
        VALUES (?, ?, ?, ?, ?, ?, 'submitted', ?, ?)
        ON CONFLICT(room_id, block_id, profile_id, kind) DO UPDATE SET
          payload_json = excluded.payload_json, status = 'submitted', updated_at = excluded.updated_at`,
-    ).bind(crypto.randomUUID(), roomId, detail.page.id, detail.viewer.viewProfileId, kind, JSON.stringify({ text }), now, now),
+    ).bind(crypto.randomUUID(), roomId, detail.page.id, detail.viewer.viewProfileId, kind, JSON.stringify(payload), now, now),
     factoryEvent(db, roomId, auditActor(user), "block.submitted", withIdentityAudit(user, {
       blockId: detail.page.id,
       kind,
+      schemaId: input.schemaId ?? null,
       projectedProfileId: detail.viewer.viewProfileId,
       testView: detail.environment === "test" && detail.viewer.viewProfileId !== user.userId,
     }), now),
   ]);
+}
+
+export async function reviewClassroomSubmission(
+  db: ClassroomD1,
+  user: AuthenticatedClassroomUser,
+  roomId: string,
+  submissionId: string,
+  input: {
+    status: "accepted" | "rejected";
+    feedback: string;
+    expectedUpdatedAt: string;
+    viewAsProfileId?: string;
+  },
+): Promise<void> {
+  // Authorize the room before looking up the opaque submission id. Otherwise
+  // a non-member could distinguish an existing UUID (later 403) from a missing
+  // UUID (early 404) and use the review endpoint as an existence oracle.
+  await getClassroomInstance(db, user, roomId);
+  const row = await db.prepare(
+    `SELECT id, block_id, profile_id, kind, payload_json, status, updated_at
+     FROM classroom_block_submissions WHERE id = ? AND room_id = ?`,
+  ).bind(submissionId, roomId).first<{
+    id: string; block_id: string; profile_id: string; kind: string; payload_json: string; status: string; updated_at: string;
+  }>();
+  if (!row) throw new ClassroomError("SUBMISSION_NOT_FOUND", "找不到这份课堂作品。", 404);
+  if (row.updated_at !== input.expectedUpdatedAt) throw new ClassroomError("SUBMISSION_VERSION_CONFLICT", "这份作品刚被重新提交或审核，请刷新后再操作。", 409);
+  const detail = await getClassroomInstance(db, user, roomId, {
+    blockId: row.block_id,
+    ...(input.viewAsProfileId ? { viewAsProfileId: input.viewAsProfileId } : {}),
+  });
+  const course = await loadExactCoursePackage(db, detail.courseRef);
+  const payload = parseStoredSubmissionPayload(row.payload_json);
+  const schema = payload.schemaId ? findSubmissionSchema(course, payload.schemaId) : null;
+  if (!schema || schema.kind !== row.kind || !payload.values) {
+    throw new ClassroomError("SUBMISSION_REVIEW_UNSUPPORTED", "这不是由课程声明的结构化作品，不能使用导师验收。", 409);
+  }
+  if (detail.myView?.kind !== "mentor" || detail.myView.mentorRole !== schema.ownerMentorRole) {
+    throw new ClassroomError("SUBMISSION_REVIEW_OWNER_REQUIRED", `只有 ${schema.ownerMentorRole} 导师席可以验收 ${schema.name}。`, 403);
+  }
+  try { validateStructuredSubmissionValues(schema, payload.values); }
+  catch { throw new ClassroomError("SUBMISSION_PAYLOAD_CORRUPT", "作品字段与当前锁定课程版本不一致，不能验收。", 409); }
+  const feedback = input.feedback.trim();
+  if (input.status === "rejected" && (feedback.length < 2 || feedback.length > 1_000)) {
+    throw new ClassroomError("SUBMISSION_FEEDBACK_REQUIRED", "退回时请写 2—1000 字的具体修改建议。", 400);
+  }
+  if (input.status === "accepted" && feedback.length > 1_000) {
+    throw new ClassroomError("SUBMISSION_FEEDBACK_INVALID", "导师反馈不能超过 1000 字。", 400);
+  }
+  const now = new Date().toISOString();
+  const nextPayload = { ...payload, review: { feedback, reviewedAt: now } };
+  const update = await db.prepare(
+    `UPDATE classroom_block_submissions SET payload_json = ?, status = ?, updated_at = ?
+     WHERE id = ? AND room_id = ? AND updated_at = ?`,
+  ).bind(JSON.stringify(nextPayload), input.status, now, submissionId, roomId, input.expectedUpdatedAt).run();
+  if (Number(update.meta?.changes ?? 0) !== 1) throw new ClassroomError("SUBMISSION_VERSION_CONFLICT", "这份作品刚被重新提交或审核，请刷新后再操作。", 409);
+  await factoryEvent(db, roomId, auditActor(user), "submission.reviewed", withIdentityAudit(user, {
+    submissionId,
+    blockId: row.block_id,
+    schemaId: schema.id,
+    status: input.status,
+    projectedProfileId: detail.viewer.viewProfileId,
+    testView: detail.environment === "test" && detail.viewer.viewProfileId !== user.userId,
+  }), now).run();
 }
 
 export async function applyScriptAction(

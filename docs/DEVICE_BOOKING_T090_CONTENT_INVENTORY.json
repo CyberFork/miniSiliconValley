@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "todoId": "T-090",
+  "generatedAt": "2026-09-09",
+  "status": "candidate-local-development",
+  "course": {
+    "courseId": "eleme-2008-find-problem",
+    "path": "tools/live-run/courses/candidates/eleme-2008-product-development-t090.json",
+    "digest": "bbb3d912b94b93127422d83cd03c1ad1aca3119b48f38797af1718dc99db281a",
+    "fileSha256": "9510bf6fa6e17d47761660ca8682d9e35cca90ebef6c17a81c48ab969a45cb40",
+    "learnerPolicy": {
+      "minCount": 2,
+      "defaultCount": 4,
+      "maxCount": 6,
+      "cardsPerLearner": 2,
+      "dealPolicy": "unique-within-step"
+    }
+  },
+  "casePackages": [
+    {
+      "id": "case-eleme-2008-product-discovery",
+      "caseType": "historical",
+      "ownerMentorRole": "P",
+      "blocks": [
+        "B01",
+        "B02",
+        "B03",
+        "B04"
+      ]
+    },
+    {
+      "id": "case-device-booking-incident",
+      "caseType": "simulation",
+      "ownerMentorRole": "D",
+      "sourceCount": 0,
+      "factCardCount": 0,
+      "blocks": [
+        "B05",
+        "B06",
+        "B07",
+        "B08"
+      ]
+    }
+  ],
+  "dCourseware": {
+    "packageId": "cw-development-mentor-ligun",
+    "slug": "development-mentor-ligun",
+    "revision": 0,
+    "digest": "cafb8878e710a698237631523428dff7e0832180415c1b5605acbe6f3ddcf69d",
+    "slideCount": 18,
+    "path": "public/courseware/development-mentor-ligun",
+    "contentTreeSha256": "ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234"
+  },
+  "checkpoints": [
+    {
+      "id": "d-a-system-failure",
+      "block": "B05",
+      "slides": [
+        1,
+        5
+      ]
+    },
+    {
+      "id": "d-b-establish-main-stick",
+      "block": "B06",
+      "slides": [
+        6,
+        10
+      ]
+    },
+    {
+      "id": "d-c-split-and-test",
+      "block": "B07",
+      "slides": [
+        11,
+        15
+      ]
+    },
+    {
+      "id": "d-d-incident-and-correction",
+      "block": "B08",
+      "slides": [
+        16,
+        18
+      ]
+    }
+  ],
+  "privateDeck": {
+    "id": "device-booking-incident-private-evidence",
+    "cardCount": 12,
+    "boundaryCounts": {
+      "R": 12
+    },
+    "sourceCount": 0,
+    "categoryCounts": {
+      "user-scene": 3,
+      "system-data": 3,
+      "business-rule": 2,
+      "test-record": 2,
+      "boundary-unknown": 2
+    }
+  },
+  "artifact": {
+    "id": "development-stick-v1",
+    "name": "DevelopmentStick／开发立棍卡",
+    "ownerMentorRole": "D",
+    "submitAtBlockId": "B08",
+    "fieldIds": [
+      "current-situation",
+      "user-task",
+      "main-goal",
+      "core-journey",
+      "acceptance-criteria",
+      "constraints",
+      "sub-sticks",
+      "micro-sticks",
+      "tests",
+      "correction-log"
+    ],
+    "mentorRubricCount": 6,
+    "handoff": "D/B08 accepted DevelopmentStick -> M/B09"
+  }
+}

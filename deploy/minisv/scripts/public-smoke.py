@@ -7,7 +7,7 @@ import hashlib
 import http.client
 import json
 import ssl
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 
 EXPECTED = {
@@ -16,6 +16,8 @@ EXPECTED = {
     "/course/": 307,
     "/studio/": 307,
     "/courseware/product-mentor-foundations/": 200,
+    "/courseware/development-mentor-ligun/": 401,
+    "/course/development-mentor-ligun/?revision=0&slide=6&step=2": 307,
     "/framework/": 200,
     "/parents/": 200,
     "/workshop/": 200,
@@ -82,6 +84,12 @@ def main() -> None:
             raise SystemExit(f"FAIL {path}: response did not originate at Hecate")
         if path == "/auth/login" and headers.get("location") != "/auth/login/":
             raise SystemExit("FAIL /auth/login: canonical trailing-slash redirect is invalid")
+        if path.startswith("/course/development-mentor-ligun/"):
+            location = headers.get("location", "")
+            target = urlsplit(location)
+            returned = parse_qs(target.query).get("returnTo", [""])[0]
+            if target.path.rstrip("/") != "/auth/login" or returned != path:
+                raise SystemExit(f"FAIL D-mentor login returnTo lost exact progress: {location!r}")
         if path == "/release.json":
             release = json.loads(body)
             if release.get("origin") != "hecate" or release.get("canonicalOrigin") != args.base:
@@ -91,6 +99,11 @@ def main() -> None:
             artifact = release.get("coursewareArtifact", {})
             if artifact.get("transformed") is not False or artifact.get("mentorRole") != "P":
                 raise SystemExit("FAIL release.json: P-mentor courseware artifact was transformed or misclassified")
+            development = release.get("developmentCoursewareArtifact", {})
+            if development.get("transformed") is not False or development.get("mentorRole") != "D":
+                raise SystemExit("FAIL release.json: D-mentor courseware artifact was transformed or misclassified")
+            if development.get("sha256") != "ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234":
+                raise SystemExit("FAIL release.json: D-mentor courseware digest is not the accepted T-093 tree")
             for feature in ("shared-brand-home", "released-workshop-snapshot", "unified-course-factory", "course-studio"):
                 if feature not in release.get("features", []):
                     raise SystemExit(f"FAIL release.json: missing {feature}")

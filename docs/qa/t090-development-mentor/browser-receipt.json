@@ -1,0 +1,93 @@
+{
+  "ok": true,
+  "base": "http://127.0.0.1:60423",
+  "browser": {
+    "engine": "Chromium",
+    "version": "151.0.7922.176"
+  },
+  "candidate": {
+    "courseId": "eleme-2008-find-problem",
+    "schemaVersion": 1,
+    "revision": 1,
+    "digest": "bbb3d912b94b93127422d83cd03c1ad1aca3119b48f38797af1718dc99db281a",
+    "status": "candidate",
+    "createdAt": "2026-09-09T12:38:28.131Z",
+    "createdBy": "t090-admin-96028112"
+  },
+  "viewReceiptId": "322cf6a4-4931-4cb5-8005-43daa4b4be07",
+  "classrooms": {
+    "2": "2857dd94-05b7-469b-a338-dc8ff0b8eac8",
+    "4": "0a290490-23dd-40a7-bdf0-0a871e840883",
+    "6": "e5e14ac9-c7ce-42a8-815b-99669b6d0a96"
+  },
+  "projection": {
+    "learnerCounts": [
+      2,
+      4,
+      6
+    ],
+    "cardsPerLearner": 2,
+    "uniqueWithinTeam": true
+  },
+  "simulation": {
+    "blockRange": "B05-B08",
+    "boundary": "R",
+    "pHistorySeparated": true
+  },
+  "developmentStick": {
+    "fields": 10,
+    "learnerRubricRedacted": true,
+    "listCardinality": true,
+    "offlineRecovery": true,
+    "privacy": true,
+    "returned": true,
+    "resubmitted": true,
+    "accepted": true
+  },
+  "handoff": {
+    "from": "D/B08",
+    "to": "M/B09",
+    "acceptedOnly": true,
+    "touchBackAndLatest": true,
+    "keyboardBackAndLatest": true
+  },
+  "exactCourseware": {
+    "mentorRole": "D",
+    "packageId": "cw-development-mentor-ligun",
+    "slug": "development-mentor-ligun",
+    "revision": 0,
+    "digest": "cafb8878e710a698237631523428dff7e0832180415c1b5605acbe6f3ddcf69d"
+  },
+  "geometry": {
+    "desktop": {
+      "width": 1600,
+      "body": 1600,
+      "root": 1600
+    },
+    "mobilePortrait": {
+      "width": 390,
+      "body": 390,
+      "root": 390
+    },
+    "tabletPortrait": {
+      "width": 768,
+      "body": 768,
+      "root": 768
+    },
+    "tabletLandscape": {
+      "width": 1024,
+      "body": 1024,
+      "root": 1024
+    }
+  },
+  "pageErrors": 0,
+  "requestFailures": 0,
+  "screenshots": [
+    "docs/qa/t090-development-mentor/studio-b05-2-4-6-projection.png",
+    "docs/qa/t090-development-mentor/b05-d-owner-and-handoff.png",
+    "docs/qa/t090-development-mentor/learner-development-stick-mobile.png",
+    "docs/qa/t090-development-mentor/m-handoff-mobile.png",
+    "docs/qa/t090-development-mentor/development-stick-ipad-portrait.png",
+    "docs/qa/t090-development-mentor/private-cards-ipad-landscape.png"
+  ]
+}

@@ -5,11 +5,12 @@ import { coursePackageDigest, validateCoursePackage, type CoursePackageRef } fro
 import { buildStudioProjection, resolveLearnerPolicy, validateCourseInstantiation } from "./course-platform";
 import { coursewareBundleDigest } from "./courseware-store";
 
-export const COURSE_PROJECTOR_VERSION = "course-projector-v3";
-// T-086 changes the runtime contract from a coupled controller workflow to an
-// append-only script frontier plus independent role-visible page cursors. Old
-// View/UI receipts must not authorize a Production Classroom under this UI.
-export const COURSE_ACCEPTANCE_APP_BUILD_ID = "minisv-t086-script-v1";
+export const COURSE_PROJECTOR_VERSION = "course-projector-v5";
+// T-090 extends the role projection contract with a source-free D simulation,
+// checkpoint-specific private decks and the generic DevelopmentStick review /
+// handoff flow. Old View/UI receipts must not authorize Production under this
+// materially different projection and classroom build.
+export const COURSE_ACCEPTANCE_APP_BUILD_ID = "minisv-t090-development-v1";
 export const COURSE_ACCEPTANCE_RECEIPT_SCHEMA_VERSION = 1;
 
 export const UI_ACCEPTANCE_REQUIRED_CHECKS = [

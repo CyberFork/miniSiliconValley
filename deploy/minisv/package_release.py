@@ -12,7 +12,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 TEXT_SUFFIXES = {".html", ".css", ".js", ".mjs", ".json", ".svg", ".md", ".txt", ".webmanifest"}
-REQUIRED_PAGES = ("index.html", "404.html", "world/index.html", "framework/index.html", "parents/index.html", "workshop/index.html", "courseware/product-mentor-foundations/index.html")
+DEVELOPMENT_COURSEWARE = Path("courseware/development-mentor-ligun")
+REQUIRED_PAGES = (
+    "index.html", "404.html", "world/index.html", "framework/index.html",
+    "parents/index.html", "workshop/index.html",
+    "courseware/product-mentor-foundations/index.html",
+    "courseware/development-mentor-ligun/index.html",
+)
 PUBLIC_COURSE_NAV_PAGES = ("index.html", "world/index.html")
 FORBIDDEN = ("work.cyberforker.com", "192.168.", "127.0.0.1:18765", "/msv/", r"\/msv\/")
 THEME_VERSION = "20260908-10"
@@ -129,6 +135,42 @@ def normalize_framework_brand(page: Path) -> None:
 def canonical_digest(value: object) -> str:
     body = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(body).hexdigest()
+
+
+def validate_development_courseware(root: Path) -> dict:
+    """Verify the repo-owned D deck against its immutable content manifest."""
+    manifest_path = root / "SOURCE-MANIFEST.json"
+    if not manifest_path.is_file():
+        raise ValueError("D-mentor courseware manifest is missing")
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("D-mentor courseware manifest is invalid") from exc
+    if manifest.get("slideCount") != 18 or not isinstance(manifest.get("files"), list):
+        raise ValueError("D-mentor courseware manifest has an invalid slide/file contract")
+    canonical = []
+    seen = set()
+    for item in manifest["files"]:
+        if not isinstance(item, dict):
+            raise ValueError("D-mentor courseware manifest file record is invalid")
+        relative = Path(str(item.get("path", "")))
+        if relative.is_absolute() or ".." in relative.parts or relative.as_posix() in seen:
+            raise ValueError("D-mentor courseware manifest contains an unsafe or duplicate path")
+        seen.add(relative.as_posix())
+        path = root / relative
+        if not path.is_file():
+            raise ValueError(f"D-mentor courseware file is missing: {relative.as_posix()}")
+        content = path.read_bytes()
+        digest = hashlib.sha256(content).hexdigest()
+        if item.get("bytes") != len(content) or item.get("sha256") != digest:
+            raise ValueError(f"D-mentor courseware digest mismatch: {relative.as_posix()}")
+        canonical.append(f"{relative.as_posix()}\0{digest}\n")
+    if "index.html" not in seen:
+        raise ValueError("D-mentor courseware index is missing from its manifest")
+    tree = hashlib.sha256("".join(canonical).encode("utf-8")).hexdigest()
+    if manifest.get("contentTreeSha256") != tree:
+        raise ValueError("D-mentor courseware content tree digest mismatch")
+    return {"sha256": tree, "files": len(seen), "bytes": sum(int(item["bytes"]) for item in manifest["files"])}
 
 
 def validate_workshop_snapshot(path: Path) -> dict:
@@ -272,6 +314,8 @@ def build(
     for label, value in (("main SHA", main_sha), ("chj SHA", chj_sha), ("chj tree", chj_tree)):
         if value != "uncommitted" and not re.fullmatch(r"[0-9a-f]{40}", value):
             raise ValueError(f"invalid {label}: {value}")
+    development_courseware_source = app_client / DEVELOPMENT_COURSEWARE
+    development_courseware = validate_development_courseware(development_courseware_source)
     course_source_digest, course_source_files, course_source_bytes = tree_digest(course_static)
     if output.exists():
         raise ValueError(f"refusing to overwrite release output: {output}")
@@ -326,6 +370,14 @@ def build(
     ):
         raise ValueError("opaque chj course copy changed during release assembly")
 
+    # D is repo-owned rather than colleague-owned, but its r0 still uses an
+    # exact byte manifest. Copy it after transform_tree() so the release
+    # assembler cannot silently inject global theme/runtime code into the deck.
+    development_courseware_output = output / DEVELOPMENT_COURSEWARE
+    copy_entry(development_courseware_source, development_courseware_output)
+    if validate_development_courseware(development_courseware_output) != development_courseware:
+        raise ValueError("D-mentor courseware changed during release assembly")
+
     (output / "release.json").write_text(json.dumps({
         "service": "minisv", "release": release_id,
         "builtAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
@@ -334,6 +386,7 @@ def build(
             "unified-course-factory",
             "dynamic-courseware-library",
             "verbatim-product-mentor-courseware",
+            "exact-development-mentor-courseware",
             "opaque-courseware-bundle",
             "course-studio",
             "per-classroom-controller",
@@ -353,10 +406,17 @@ def build(
             "bytes": course_source_bytes,
             "transformed": False,
         },
+        "developmentCoursewareArtifact": {
+            "route": "/courseware/development-mentor-ligun/",
+            "mentorRole": "D",
+            **development_courseware,
+            "transformed": False,
+        },
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (output / "sitemap.json").write_text(json.dumps({"routes": [
         "/", "/world/", "/studio/", "/studio/editor/", "/studio/preview/", "/studio/courseware/", "/studio/releases/",
-        "/course/", "/courseware/product-mentor-foundations/", "/classroom/", "/framework/", "/parents/", "/workshop/",
+        "/course/", "/courseware/product-mentor-foundations/", "/courseware/development-mentor-ligun/",
+        "/classroom/", "/framework/", "/parents/", "/workshop/",
     ]}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     errors = []

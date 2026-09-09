@@ -1,0 +1,124 @@
+{
+  "ok": true,
+  "base": "http://127.0.0.1:52903",
+  "browser": {
+    "engine": "Chromium",
+    "version": "151.0.7922.176"
+  },
+  "candidate": {
+    "courseId": "eleme-2008-find-problem",
+    "schemaVersion": 1,
+    "revision": 1,
+    "digest": "8f6320d43600d5f7e14ee66cdd1d3f721ebf638e87933ae13db1bdb5d8af1803",
+    "status": "candidate",
+    "createdAt": "2026-09-09T10:58:12.458Z",
+    "createdBy": "t091-admin-1cf65cfa"
+  },
+  "viewReceiptId": "8a2e8a25-5b4d-493d-b644-b3c51715f651",
+  "classroomId": "c38fc3e9-e5c5-4928-ba95-287c7ed089af",
+  "studio": {
+    "pOwner": true,
+    "dmoNoCopiedScript": true,
+    "openReviewItems": 2
+  },
+  "productBrief": {
+    "fields": 10,
+    "learnerRubricRedacted": true,
+    "refreshPersisted": true,
+    "returned": true,
+    "resubmitted": true,
+    "accepted": true
+  },
+  "handoff": {
+    "from": "P/B04",
+    "to": "D/B05",
+    "acceptedOnly": true,
+    "backAndReturnPreserved": true
+  },
+  "geometry": {
+    "desktop": {
+      "width": 1600,
+      "body": 1600,
+      "root": 1600,
+      "offenders": []
+    },
+    "mobile": {
+      "width": 390,
+      "body": 390,
+      "root": 390,
+      "offenders": [
+        {
+          "tag": "NAV",
+          "cls": "_testRoleTabs_sm5ea_6",
+          "text": "TEST · 真实角色视图中控P · 产品导师D · 开发导师M · 市场导师O · 运营导师学员 1学员 2投屏",
+          "left": 0,
+          "right": 390,
+          "scroll": 950,
+          "client": 390
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "D · 开发导师",
+          "left": 343.8125,
+          "right": 462,
+          "scroll": 116,
+          "client": 116
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "M · 市场导师",
+          "left": 469,
+          "right": 590.109375,
+          "scroll": 119,
+          "client": 119
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "O · 运营导师",
+          "left": 597.109375,
+          "right": 716.171875,
+          "scroll": 117,
+          "client": 117
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "学员 1",
+          "left": 723.171875,
+          "right": 791.0625,
+          "scroll": 66,
+          "client": 66
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "学员 2",
+          "left": 798.0625,
+          "right": 869,
+          "scroll": 69,
+          "client": 69
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "投屏",
+          "left": 876,
+          "right": 932,
+          "scroll": 54,
+          "client": 54
+        }
+      ]
+    }
+  },
+  "pageErrors": 0,
+  "requestFailures": 0,
+  "screenshots": [
+    "docs/qa/t091-product-mentor/studio-p-owned-routing.png",
+    "docs/qa/t091-product-mentor/learner-product-brief-desktop.png",
+    "docs/qa/t091-product-mentor/d-handoff-desktop.png",
+    "docs/qa/t091-product-mentor/d-handoff-mobile.png"
+  ]
+}

@@ -30,6 +30,8 @@ export const COURSE_API_ACTIONS = [
 ] as const;
 export type CourseStepId = (typeof COURSE_STEP_IDS)[number];
 export type EvidenceBoundary = "F" | "R" | "G" | "U";
+export type CourseMentorRole = "P" | "D" | "M" | "O";
+export type CourseCaseType = "historical" | "simulation";
 
 export interface CoursePackageRef {
   courseId: string;
@@ -52,6 +54,7 @@ export interface CoursePackageCard {
   sharePrompt: string;
   sourceIds: string[];
   credibility?: "high" | "medium" | "low";
+  simulationCategory?: "user-scene" | "system-data" | "business-rule" | "test-record" | "boundary-unknown";
 }
 
 export interface CoursePackageDeck {
@@ -110,6 +113,108 @@ export interface CourseLearnerPolicy {
   dealPolicy: "unique-within-step" | "repeat-when-needed";
 }
 
+/**
+ * Optional, additive content ownership metadata introduced by T-091.
+ *
+ * Legacy immutable schema-v1 releases intentionally omit this object. New
+ * Candidates can declare a source-backed historical CasePackage, the mentor
+ * ScriptPackage that teaches it, coarse courseware checkpoints and structured
+ * hand-off artifacts without copying any card or Block body into a second
+ * truth source.
+ */
+export interface CourseCasePackage {
+  id: string;
+  caseId: string;
+  /** Historical packages cite sources; simulations must remain source-free. */
+  caseType: CourseCaseType;
+  title: string;
+  ownerMentorRole: CourseMentorRole;
+  scope: string;
+  evidenceRevision: string;
+  sourceIds: string[];
+  factCardIds: string[];
+}
+
+export interface CourseContentCoursewareRef {
+  mentorRole: CourseMentorRole;
+  packageId: string;
+  slug: string;
+  revision: number;
+  digest: string;
+  sourceCommit?: string;
+  sourceTree?: string;
+}
+
+export interface CourseScriptCheckpoint {
+  id: string;
+  title: string;
+  purpose: string;
+  blockIds: string[];
+  coursewareCue: { label: string; slideStart: number; slideEnd: number };
+  privateDeckIds: string[];
+  publicEvents: string[];
+  submissionSchemaIds: string[];
+}
+
+export interface CourseScriptPackage {
+  id: string;
+  title: string;
+  casePackageId: string;
+  ownerMentorRole: CourseMentorRole;
+  coursewareRef: CourseContentCoursewareRef;
+  checkpoints: CourseScriptCheckpoint[];
+  mentorRubric: string[];
+  handoff?: {
+    fromBlockId: string;
+    availableAtBlockId: string;
+    toMentorRole: CourseMentorRole;
+    submissionSchemaId: string;
+    summary: string;
+  };
+}
+
+export type CourseSubmissionFieldInput = "short-text" | "long-text" | "list";
+export interface CourseSubmissionField {
+  id: string;
+  label: string;
+  learnerPrompt: string;
+  mentorPrompt: string;
+  input: CourseSubmissionFieldInput;
+  required: boolean;
+  minLength: number;
+  maxLength: number;
+  minItems?: number;
+  maxItems?: number;
+}
+
+export interface CourseSubmissionSchema {
+  id: string;
+  kind: string;
+  name: string;
+  learnerIntro: string;
+  ownerMentorRole: CourseMentorRole;
+  submitAtBlockId: string;
+  fields: CourseSubmissionField[];
+  mentorRubric: string[];
+}
+
+export interface CourseContentReviewItem {
+  id: string;
+  status: "open" | "resolved";
+  category: "source-boundary" | "courseware-version" | "curriculum" | "routing";
+  location: string;
+  title: string;
+  reason: string;
+  recommendedAction: string;
+}
+
+export interface CourseContentPackages {
+  casePackages: CourseCasePackage[];
+  scriptPackages: CourseScriptPackage[];
+  submissionSchemas: CourseSubmissionSchema[];
+  reviewQueue: CourseContentReviewItem[];
+}
+
 export interface CoursePackage {
   schemaVersion: typeof COURSE_PACKAGE_SCHEMA_VERSION;
   id: string;
@@ -146,6 +251,7 @@ export interface CoursePackage {
   macroSteps: CoursePackageStep[];
   blocks: CoursePackageBlock[];
   rules: Record<string, unknown>;
+  contentPackages?: CourseContentPackages;
   authoring?: Record<string, unknown>;
 }
 
@@ -309,6 +415,12 @@ export function validateCoursePackage(value: unknown): CoursePackage {
       if (card.boundary === "F" && !refs.length) throw new Error(`事实卡 ${cardId} 必须引用来源。`);
       for (const sourceId of refs) if (!sourceIds.has(String(sourceId))) throw new Error(`卡牌 ${cardId} 引用了未知来源 ${String(sourceId)}。`);
       if (card.credibility !== undefined && !new Set(["high", "medium", "low"]).has(String(card.credibility))) throw new Error(`卡牌 ${cardId}.credibility 无效。`);
+      if (card.simulationCategory !== undefined) {
+        if (card.boundary !== "R" || refs.length) throw new Error(`卡牌 ${cardId}.simulationCategory 只能用于无来源的 R 课堂模拟卡。`);
+        if (!new Set(["user-scene", "system-data", "business-rule", "test-record", "boundary-unknown"]).has(String(card.simulationCategory))) {
+          throw new Error(`卡牌 ${cardId}.simulationCategory 无效。`);
+        }
+      }
     }
   }
   for (const [index, raw] of steps.entries()) {
@@ -350,12 +462,290 @@ export function validateCoursePackage(value: unknown): CoursePackage {
   for (const [key, expected] of Object.entries(requiredRules)) if (rules[key] !== expected) throw new Error(`$.rules.${key} 必须为 ${JSON.stringify(expected)}。`);
   exactArray(textArray(rules.executionStates, "$.rules.executionStates"), ["ready", "executing", "awaiting-acceptance", "error", "completed"], "$.rules.executionStates");
   text(rules.historyBoundary, "$.rules.historyBoundary");
+  if (root.contentPackages !== undefined) {
+    validateContentPackages(root.contentPackages, {
+      courseId,
+      sourceIds,
+      blockIds,
+      deckIds: new Set(decks.map((raw, index) => text(record(raw, `$.decks[${index}]`).id, `$.decks[${index}].id`))),
+      deckCardIdsById: new Map(decks.map((raw, deckIndex) => {
+        const deck = record(raw, `$.decks[${deckIndex}]`);
+        return [
+          text(deck.id, `$.decks[${deckIndex}].id`),
+          array(deck.cards, `$.decks[${deckIndex}].cards`).map((rawCard, cardIndex) => text(record(rawCard, `$.decks[${deckIndex}].cards[${cardIndex}]`).id, `$.decks[${deckIndex}].cards[${cardIndex}].id`)),
+        ] as const;
+      })),
+      cardsById: new Map(decks.flatMap((raw, deckIndex) => {
+        const deck = record(raw, `$.decks[${deckIndex}]`);
+        return array(deck.cards, `$.decks[${deckIndex}].cards`).map((rawCard, cardIndex) => {
+          const card = record(rawCard, `$.decks[${deckIndex}].cards[${cardIndex}]`);
+          return [String(card.id), {
+            boundary: String(card.boundary),
+            sourceIds: textArray(card.sourceIds, `$.decks[${deckIndex}].cards[${cardIndex}].sourceIds`, true),
+          }] as const;
+        });
+      })),
+    });
+  }
   if (root.authoring !== undefined) {
     const authoring = record(root.authoring, "$.authoring");
     if (authoring.status !== undefined && !new Set(["draft", "published", "candidate", "released", "retired"]).has(String(authoring.status))) throw new Error("$.authoring.status 无效。" );
     if (authoring.revision !== undefined && (!Number.isInteger(authoring.revision) || Number(authoring.revision) < 0)) throw new Error("$.authoring.revision 必须为非负整数。" );
   }
   return value as CoursePackage;
+}
+
+function validateContentPackages(
+  value: unknown,
+  refs: {
+    courseId: string;
+    sourceIds: Set<string>;
+    blockIds: Set<string>;
+    deckIds: Set<string>;
+    deckCardIdsById: Map<string, string[]>;
+    cardsById: Map<string, { boundary: string; sourceIds: string[] }>;
+  },
+): void {
+  const root = record(value, "$.contentPackages");
+  for (const key of ["casePackages", "scriptPackages", "submissionSchemas", "reviewQueue"]) {
+    if (!(key in root)) throw new Error(`$.contentPackages.${key} 为必填字段。`);
+  }
+  const roles = new Set<CourseMentorRole>(["P", "D", "M", "O"]);
+  const identifier = (raw: unknown, path: string) => {
+    const result = text(raw, path);
+    if (!/^[a-z0-9][a-z0-9-]{1,95}$/.test(result)) throw new Error(`${path} 只能使用小写字母、数字和连字符。`);
+    return result;
+  };
+  const role = (raw: unknown, path: string) => {
+    if (!roles.has(raw as CourseMentorRole)) throw new Error(`${path} 必须是 P、D、M 或 O。`);
+    return raw as CourseMentorRole;
+  };
+  const unique = (values: string[], path: string) => {
+    if (new Set(values).size !== values.length) throw new Error(`${path} 不能包含重复项。`);
+  };
+
+  const rawCases = array(root.casePackages, "$.contentPackages.casePackages");
+  if (!rawCases.length) throw new Error("$.contentPackages.casePackages 不能为空。");
+  const caseIds = new Set<string>();
+  const caseOwners = new Map<string, CourseMentorRole>();
+  const caseTypes = new Map<string, CourseCaseType>();
+  const declaredFactCards = new Set<string>();
+  for (const [index, raw] of rawCases.entries()) {
+    const path = `$.contentPackages.casePackages[${index}]`;
+    const item = record(raw, path);
+    const id = identifier(item.id, `${path}.id`);
+    if (caseIds.has(id)) throw new Error(`${path}.id 重复。`);
+    caseIds.add(id);
+    const caseId = identifier(item.caseId, `${path}.caseId`);
+    if (!new Set(["historical", "simulation"]).has(String(item.caseType))) {
+      throw new Error(`${path}.caseType 必须是 historical 或 simulation。`);
+    }
+    const caseType = item.caseType as CourseCaseType;
+    caseTypes.set(id, caseType);
+    if (caseType === "historical" && caseId !== refs.courseId) {
+      throw new Error(`${path}.caseId 必须与课程 ID 一致，避免史实案例真值错配。`);
+    }
+    text(item.title, `${path}.title`);
+    const caseOwner = role(item.ownerMentorRole, `${path}.ownerMentorRole`);
+    caseOwners.set(id, caseOwner);
+    text(item.scope, `${path}.scope`);
+    if (!/^sha256:[0-9a-f]{64}$/.test(text(item.evidenceRevision, `${path}.evidenceRevision`))) {
+      throw new Error(`${path}.evidenceRevision 必须是 sha256:<64位小写摘要>。`);
+    }
+    const sources = textArray(item.sourceIds, `${path}.sourceIds`, caseType === "simulation");
+    unique(sources, `${path}.sourceIds`);
+    for (const sourceId of sources) if (!refs.sourceIds.has(sourceId)) throw new Error(`${path}.sourceIds 引用了未知来源 ${sourceId}。`);
+    const caseSources = new Set(sources);
+    const factCards = textArray(item.factCardIds, `${path}.factCardIds`, caseType === "simulation");
+    unique(factCards, `${path}.factCardIds`);
+    if (caseType === "simulation" && (sources.length || factCards.length)) {
+      throw new Error(`${path} 是课堂模拟，sourceIds 与 factCardIds 必须为空，不能伪装成来源史实。`);
+    }
+    for (const cardId of factCards) {
+      if (declaredFactCards.has(cardId)) throw new Error(`${path}.factCardIds 的 ${cardId} 已由另一个 CasePackage 声明。`);
+      declaredFactCards.add(cardId);
+      if (!refs.cardsById.has(cardId)) throw new Error(`${path}.factCardIds 引用了未知卡牌 ${cardId}。`);
+      const card = refs.cardsById.get(cardId)!;
+      if (card.boundary !== "F") throw new Error(`${path}.factCardIds 的 ${cardId} 不是 F 来源事实卡。`);
+      for (const sourceId of card.sourceIds) {
+        if (!caseSources.has(sourceId)) throw new Error(`${path}.factCardIds 的 ${cardId} 使用了 CasePackage 未声明的来源 ${sourceId}。`);
+      }
+    }
+  }
+  const undeclaredFacts = [...refs.cardsById.entries()]
+    .filter(([, card]) => card.boundary === "F")
+    .map(([cardId]) => cardId)
+    .filter((cardId) => !declaredFactCards.has(cardId));
+  if (undeclaredFacts.length) throw new Error(`$.contentPackages.casePackages 未归档 F 卡：${undeclaredFacts.join("、")}。`);
+
+  const rawSchemas = array(root.submissionSchemas, "$.contentPackages.submissionSchemas");
+  const schemaIds = new Set<string>();
+  const schemaKinds = new Set<string>();
+  const schemaOwners = new Map<string, CourseMentorRole>();
+  const schemaBlocks = new Map<string, string>();
+  const schemaSubmitBlocks = new Set<string>();
+  for (const [index, raw] of rawSchemas.entries()) {
+    const path = `$.contentPackages.submissionSchemas[${index}]`;
+    const item = record(raw, path);
+    const id = identifier(item.id, `${path}.id`);
+    if (schemaIds.has(id)) throw new Error(`${path}.id 重复。`);
+    schemaIds.add(id);
+    const kind = identifier(item.kind, `${path}.kind`);
+    if (schemaKinds.has(kind)) throw new Error(`${path}.kind 重复；结构化作品 kind 必须唯一。`);
+    schemaKinds.add(kind);
+    text(item.name, `${path}.name`);
+    text(item.learnerIntro, `${path}.learnerIntro`);
+    const schemaOwner = role(item.ownerMentorRole, `${path}.ownerMentorRole`);
+    schemaOwners.set(id, schemaOwner);
+    const submitAt = text(item.submitAtBlockId, `${path}.submitAtBlockId`);
+    if (!refs.blockIds.has(submitAt)) throw new Error(`${path}.submitAtBlockId 引用了未知 Block。`);
+    if (schemaSubmitBlocks.has(submitAt)) throw new Error(`${path}.submitAtBlockId 重复；每个 Block 只能有一个结构化交付物。`);
+    schemaSubmitBlocks.add(submitAt);
+    schemaBlocks.set(id, submitAt);
+    const fields = array(item.fields, `${path}.fields`);
+    if (!fields.length) throw new Error(`${path}.fields 不能为空。`);
+    const fieldIds = new Set<string>();
+    for (const [fieldIndex, rawField] of fields.entries()) {
+      const fieldPath = `${path}.fields[${fieldIndex}]`;
+      const field = record(rawField, fieldPath);
+      const fieldId = identifier(field.id, `${fieldPath}.id`);
+      if (fieldIds.has(fieldId)) throw new Error(`${fieldPath}.id 重复。`);
+      fieldIds.add(fieldId);
+      for (const key of ["label", "learnerPrompt", "mentorPrompt"]) text(field[key], `${fieldPath}.${key}`);
+      if (!new Set(["short-text", "long-text", "list"]).has(String(field.input))) throw new Error(`${fieldPath}.input 无效。`);
+      if (typeof field.required !== "boolean") throw new Error(`${fieldPath}.required 必须是布尔值。`);
+      if (!Number.isInteger(field.minLength) || !Number.isInteger(field.maxLength)
+        || Number(field.minLength) < 0 || Number(field.maxLength) < Number(field.minLength) || Number(field.maxLength) > 4_000) {
+        throw new Error(`${fieldPath} 的长度范围无效。`);
+      }
+      if (field.minItems !== undefined || field.maxItems !== undefined) {
+        if (field.input !== "list") throw new Error(`${fieldPath}.minItems/maxItems 只能用于 list 字段。`);
+        const minItems = Number(field.minItems ?? 0);
+        const maxItems = Number(field.maxItems ?? 100);
+        if (!Number.isInteger(minItems) || !Number.isInteger(maxItems) || minItems < 0 || maxItems < minItems || maxItems > 100) {
+          throw new Error(`${fieldPath} 的条目数量范围无效。`);
+        }
+      }
+    }
+    textArray(item.mentorRubric, `${path}.mentorRubric`);
+  }
+
+  const rawScripts = array(root.scriptPackages, "$.contentPackages.scriptPackages");
+  if (!rawScripts.length) throw new Error("$.contentPackages.scriptPackages 不能为空。");
+  const scriptIds = new Set<string>();
+  const globallyOwnedCheckpointBlocks = new Set<string>();
+  for (const [index, raw] of rawScripts.entries()) {
+    const path = `$.contentPackages.scriptPackages[${index}]`;
+    const item = record(raw, path);
+    const id = identifier(item.id, `${path}.id`);
+    if (scriptIds.has(id)) throw new Error(`${path}.id 重复。`);
+    scriptIds.add(id);
+    text(item.title, `${path}.title`);
+    const casePackageId = identifier(item.casePackageId, `${path}.casePackageId`);
+    if (!caseIds.has(casePackageId)) throw new Error(`${path}.casePackageId 引用了未知 CasePackage。`);
+    const ownerRole = role(item.ownerMentorRole, `${path}.ownerMentorRole`);
+    if (caseOwners.get(casePackageId) !== ownerRole) throw new Error(`${path}.ownerMentorRole 必须与 CasePackage 内容所有者一致。`);
+    if (caseTypes.get(casePackageId) === "simulation") {
+      const privateDeckIds = array(item.checkpoints, `${path}.checkpoints`).flatMap((rawCheckpoint, checkpointIndex) => {
+        const checkpoint = record(rawCheckpoint, `${path}.checkpoints[${checkpointIndex}]`);
+        return textArray(checkpoint.privateDeckIds, `${path}.checkpoints[${checkpointIndex}].privateDeckIds`, true);
+      });
+      if (!privateDeckIds.length) throw new Error(`${path} 的课堂模拟必须声明至少一个私密卡组。`);
+    }
+    const courseware = record(item.coursewareRef, `${path}.coursewareRef`);
+    if (role(courseware.mentorRole, `${path}.coursewareRef.mentorRole`) !== ownerRole) throw new Error(`${path}.coursewareRef 必须属于内容所有者。`);
+    identifier(courseware.packageId, `${path}.coursewareRef.packageId`);
+    identifier(courseware.slug, `${path}.coursewareRef.slug`);
+    if (!Number.isInteger(courseware.revision) || Number(courseware.revision) < 0) throw new Error(`${path}.coursewareRef.revision 无效。`);
+    if (!/^[0-9a-f]{64}$/.test(text(courseware.digest, `${path}.coursewareRef.digest`))) throw new Error(`${path}.coursewareRef.digest 必须是 64 位小写 SHA-256。`);
+    if (courseware.sourceCommit !== undefined && !/^[0-9a-f]{40}$/.test(text(courseware.sourceCommit, `${path}.coursewareRef.sourceCommit`))) throw new Error(`${path}.coursewareRef.sourceCommit 无效。`);
+    if (courseware.sourceTree !== undefined && !/^[0-9a-f]{40}$/.test(text(courseware.sourceTree, `${path}.coursewareRef.sourceTree`))) throw new Error(`${path}.coursewareRef.sourceTree 无效。`);
+    const checkpoints = array(item.checkpoints, `${path}.checkpoints`);
+    if (!checkpoints.length) throw new Error(`${path}.checkpoints 不能为空。`);
+    const checkpointIds = new Set<string>();
+    const checkpointBlocks = new Set<string>();
+    for (const [checkpointIndex, rawCheckpoint] of checkpoints.entries()) {
+      const checkpointPath = `${path}.checkpoints[${checkpointIndex}]`;
+      const checkpoint = record(rawCheckpoint, checkpointPath);
+      const checkpointId = identifier(checkpoint.id, `${checkpointPath}.id`);
+      if (checkpointIds.has(checkpointId)) throw new Error(`${checkpointPath}.id 重复。`);
+      checkpointIds.add(checkpointId);
+      text(checkpoint.title, `${checkpointPath}.title`);
+      text(checkpoint.purpose, `${checkpointPath}.purpose`);
+      const blockRefs = textArray(checkpoint.blockIds, `${checkpointPath}.blockIds`);
+      unique(blockRefs, `${checkpointPath}.blockIds`);
+      for (const blockId of blockRefs) {
+        if (!refs.blockIds.has(blockId)) throw new Error(`${checkpointPath}.blockIds 引用了未知 Block ${blockId}。`);
+        if (checkpointBlocks.has(blockId)) throw new Error(`${checkpointPath}.blockIds 重复覆盖了 ${blockId}。`);
+        checkpointBlocks.add(blockId);
+      }
+      const cue = record(checkpoint.coursewareCue, `${checkpointPath}.coursewareCue`);
+      text(cue.label, `${checkpointPath}.coursewareCue.label`);
+      if (!Number.isInteger(cue.slideStart) || !Number.isInteger(cue.slideEnd)
+        || Number(cue.slideStart) < 1 || Number(cue.slideEnd) < Number(cue.slideStart)) {
+        throw new Error(`${checkpointPath}.coursewareCue 页码范围无效。`);
+      }
+      const privateDeckIds = textArray(checkpoint.privateDeckIds, `${checkpointPath}.privateDeckIds`, true);
+      unique(privateDeckIds, `${checkpointPath}.privateDeckIds`);
+      if (privateDeckIds.length > 1) throw new Error(`${checkpointPath}.privateDeckIds 当前只能声明一个学员私密卡组。`);
+      for (const deckId of privateDeckIds) if (!refs.deckIds.has(deckId)) throw new Error(`${checkpointPath}.privateDeckIds 引用了未知卡组 ${deckId}。`);
+      if (caseTypes.get(casePackageId) === "simulation") {
+        const invalidCardIds = privateDeckIds.flatMap((deckId) => (refs.deckCardIdsById.get(deckId) ?? [])
+          .filter((cardId) => {
+            const card = refs.cardsById.get(cardId)!;
+            return card.boundary !== "R" || card.sourceIds.length > 0;
+          }));
+        if (invalidCardIds.length) {
+          throw new Error(`${checkpointPath}.privateDeckIds 的模拟卡组 ${privateDeckIds.join("、")} 只能包含无来源的 R 课堂模拟卡；不符合：${invalidCardIds.join("、")}。`);
+        }
+      }
+      textArray(checkpoint.publicEvents, `${checkpointPath}.publicEvents`, true);
+      const schemaRefs = textArray(checkpoint.submissionSchemaIds, `${checkpointPath}.submissionSchemaIds`, true);
+      unique(schemaRefs, `${checkpointPath}.submissionSchemaIds`);
+      for (const schemaId of schemaRefs) {
+        if (!schemaIds.has(schemaId)) throw new Error(`${checkpointPath}.submissionSchemaIds 引用了未知提交结构 ${schemaId}。`);
+        if (schemaOwners.get(schemaId) !== ownerRole) throw new Error(`${checkpointPath}.submissionSchemaIds 的 ${schemaId} 不属于剧本所有者。`);
+        if (!blockRefs.includes(schemaBlocks.get(schemaId)!)) throw new Error(`${checkpointPath}.submissionSchemaIds 的 ${schemaId} 必须在本检查点 Block 提交。`);
+      }
+      for (const blockId of blockRefs) {
+        if (globallyOwnedCheckpointBlocks.has(blockId)) throw new Error(`${checkpointPath}.blockIds 的 ${blockId} 已由另一个 ScriptPackage 拥有。`);
+        globallyOwnedCheckpointBlocks.add(blockId);
+      }
+    }
+    textArray(item.mentorRubric, `${path}.mentorRubric`);
+    if (item.handoff !== undefined) {
+      const handoff = record(item.handoff, `${path}.handoff`);
+      for (const key of ["fromBlockId", "availableAtBlockId"]) {
+        const blockId = text(handoff[key], `${path}.handoff.${key}`);
+        if (!refs.blockIds.has(blockId)) throw new Error(`${path}.handoff.${key} 引用了未知 Block。`);
+      }
+      const fromBlockId = String(handoff.fromBlockId);
+      const availableAtBlockId = String(handoff.availableAtBlockId);
+      const blockOrder = (blockId: string) => Number(blockId.slice(1));
+      if (blockOrder(availableAtBlockId) <= blockOrder(fromBlockId)) throw new Error(`${path}.handoff.availableAtBlockId 必须晚于 fromBlockId。`);
+      const toMentorRole = role(handoff.toMentorRole, `${path}.handoff.toMentorRole`);
+      if (toMentorRole === ownerRole) throw new Error(`${path}.handoff.toMentorRole 必须是另一个专业导师。`);
+      const schemaId = identifier(handoff.submissionSchemaId, `${path}.handoff.submissionSchemaId`);
+      if (!schemaIds.has(schemaId)) throw new Error(`${path}.handoff.submissionSchemaId 引用了未知提交结构。`);
+      if (schemaOwners.get(schemaId) !== ownerRole || schemaBlocks.get(schemaId) !== fromBlockId) {
+        throw new Error(`${path}.handoff 必须从所有者在 fromBlockId 验收的结构化作品交接。`);
+      }
+      text(handoff.summary, `${path}.handoff.summary`);
+    }
+  }
+
+  const rawReview = array(root.reviewQueue, "$.contentPackages.reviewQueue");
+  const reviewIds = new Set<string>();
+  for (const [index, raw] of rawReview.entries()) {
+    const path = `$.contentPackages.reviewQueue[${index}]`;
+    const item = record(raw, path);
+    const id = identifier(item.id, `${path}.id`);
+    if (reviewIds.has(id)) throw new Error(`${path}.id 重复。`);
+    reviewIds.add(id);
+    if (!new Set(["open", "resolved"]).has(String(item.status))) throw new Error(`${path}.status 无效。`);
+    if (!new Set(["source-boundary", "courseware-version", "curriculum", "routing"]).has(String(item.category))) throw new Error(`${path}.category 无效。`);
+    for (const key of ["location", "title", "reason", "recommendedAction"]) text(item[key], `${path}.${key}`);
+  }
 }
 
 function stableJson(value: unknown): string {

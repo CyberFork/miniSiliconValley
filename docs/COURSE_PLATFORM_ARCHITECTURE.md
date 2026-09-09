@@ -1,6 +1,6 @@
 # Mini Silicon Valley 课程平台架构
 
-> 状态：T-087 已实现的现行架构
+> 状态：T-090 本地实现后的现行架构
 > 日期：2026-09-09
 > 基础架构：T-085 统一课程工厂
 > 当前闭环：两次验收、一次发布
@@ -77,7 +77,11 @@ CourseDefinition Working Copy
 - Macro Step、Block、中控脚本、P／D／M／O 导师任务与学员任务。
 - 卡组、卡牌、来源、F／R／G／U 边界和发牌策略。
 - `learnerPolicy`：支持人数、默认人数、每人手牌数与发牌规则。
-- P／D／M／O 默认课件引用。
+- 可选 `contentPackages`：案例、剧本所有权、少量课件检查点、结构化交付物、跨导师交接和待审核项。
+
+`contentPackages` 把“谁拥有案例内容”与“课堂绑定了哪些导师工具包”分开：四套 P／D／M／O 专业课件仍可同时绑定；某个 P 所有的历史 ScriptPackage 不会因此复制给 D／M／O。ScriptPackage 必须固定它编写时使用的 exact Courseware ref，ClassroomFactory 发现 revision／digest 不一致时失败关闭。
+
+`CasePackage.caseType` 明确隔离史实与课堂模拟：`historical` 必须绑定课程 case、来源和 F 卡；`simulation` 可以使用独立 case ID，但来源与 F 卡必须为空，其私密证据只能作为无来源的 R 模拟卡。一个 CourseDefinition 可以像 T-090 一样先运行 P 历史 ScriptPackage，再运行 D 模拟 ScriptPackage，两者不能共享“事实”身份。
 
 ### CourseRelease
 
@@ -180,7 +184,7 @@ Script Layer 只持久化 append-only 的 `unlockedThroughBlockId`、`unlockedTh
 
 P/D/M/O 任一导师和 Admin DM 可在 Production 弹窗确认顺序解锁；学员不可解锁。Test 中任意课堂参与者可在角色 Tabs 真实测试中控、四导师、N 学员和 `/screen` 投屏；Production 严禁 `viewAs`。`leadMentorId` 仅建议主讲，不是权限。
 
-Activity 按 block 保存并覆盖同 kind 的工作记录；Economy／卡牌与浏览、解锁彻底解耦。回看或解锁不要求重新提交，也不重置已有数据。“重新提交”不是流程状态：只有用户主动再次保存同一 block/kind 才更新该记录。遗留 `classroom_controller_states` 仅作兼容镜像，Runtime 不读取。
+Activity 按 block 保存并覆盖同 kind 的工作记录；Economy／卡牌与浏览、解锁彻底解耦。回看或解锁不要求重新提交，也不重置已有数据。“重新提交”不是剧本流程状态：只有用户主动再次保存同一 block/kind 才更新该记录。课程可以声明任意命名的结构化作品，例如 `ProductBrief` 和 `DevelopmentStick`，共同使用 `submitted → rejected → submitted → accepted`；状态只属于作品，绝不阻塞剧本回看或偷偷改动经济数据。列表字段可以声明最少／最多条数，并在客户端和服务端同时失败关闭。已通过作品可以按 ScriptPackage 的显式规则投影给下一位导师，未通过草稿不跨专业泄漏。遗留 `classroom_controller_states` 仅作兼容镜像，Runtime 不读取。
 
 Stage 1 `/studio/preview/` 是桌面内部内容投影验收：单页展示 4 导师、N 学员和中控摘要，支持完整字段核验及 hover/点击固定展开。Stage 2 才是真实 `/classroom/{id}/` Test Classroom UI；两级 exact 回执门禁后才能 Released。
 

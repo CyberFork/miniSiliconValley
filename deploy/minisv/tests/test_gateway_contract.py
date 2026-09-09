@@ -20,6 +20,7 @@ class GatewayContractTests(unittest.TestCase):
             self.assertRegex(self.gateway, rf"location[^\n]* /{route}(?:[ /{{])")
         self.assertIn("^/(studio|course|classroom|account)", self.gateway)
         self.assertIn("/courseware/product-mentor-foundations/", self.gateway)
+        self.assertIn("/courseware/development-mentor-ligun/", self.gateway)
 
     def test_all_origins_are_loopback_and_windows_is_not_a_dependency(self) -> None:
         combined = self.gateway + self.tunnel
@@ -98,6 +99,16 @@ class GatewayContractTests(unittest.TestCase):
         self.assertIn("/courseware/product-mentor-foundations/index.html", self.gateway)
         self.assertIn("probe /course/ 307", healthcheck)
         self.assertIn("probe /studio/ 307", healthcheck)
+        self.assertIn("probe /courseware/development-mentor-ligun/ 401", healthcheck)
+
+    def test_development_courseware_static_bytes_are_role_gated(self) -> None:
+        self.assertIn("location = /_minisv_courseware_auth", self.gateway)
+        self.assertIn("internal;", self.gateway)
+        self.assertIn("/api/auth/courseware-access", self.gateway)
+        route = re.search(r"location \^~ /courseware/development-mentor-ligun/ \{(.*?)\n    \}", self.gateway, re.DOTALL)
+        self.assertIsNotNone(route)
+        self.assertIn("auth_request /_minisv_courseware_auth;", route.group(1))
+        self.assertIn("try_files $uri $uri/ /courseware/development-mentor-ligun/index.html", route.group(1))
 
     def test_retired_numeric_entry_redirects_to_framework_with_both_slash_forms(self) -> None:
         self.assertRegex(self.gateway, r"location = /123456 \{ return 308 /framework/")

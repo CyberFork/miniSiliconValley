@@ -37,6 +37,7 @@ const SYSTEM_PROFILE = "system-courseware";
 // invariant.
 const PRODUCT_COURSEWARE_SOURCE_COMMIT = "679213a61b835335016eac7649213983a0e48489";
 const PRODUCT_COURSEWARE_SOURCE_TREE = "3a041c4714190cc026f6de8e06e15cec0e5f765d";
+const DEVELOPMENT_LIGUN_CONTENT_TREE = "ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234";
 const BUNDLED = [
   {
     id: "cw-product-mentor-foundations",
@@ -46,6 +47,16 @@ const BUNDLED = [
     kind: "static-bundle" as const,
     entryPath: "/courseware/product-mentor-foundations/",
     sourceIdentity: `${PRODUCT_COURSEWARE_SOURCE_COMMIT}:${PRODUCT_COURSEWARE_SOURCE_TREE}`,
+    html: null,
+  },
+  {
+    id: "cw-development-mentor-ligun",
+    slug: "development-mentor-ligun",
+    title: "开发导师｜先立棍，再让 AI 跑",
+    role: "D" as const,
+    kind: "static-bundle" as const,
+    entryPath: "/courseware/development-mentor-ligun/",
+    sourceIdentity: `t093:sha256:${DEVELOPMENT_LIGUN_CONTENT_TREE}`,
     html: null,
   },
   {

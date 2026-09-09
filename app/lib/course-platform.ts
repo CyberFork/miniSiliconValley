@@ -5,6 +5,8 @@ import {
   type CoursePackage,
   type CoursePackageBlock,
   type CoursePackageCard,
+  type CourseMentorRole,
+  type CourseScriptCheckpoint,
 } from "./course-package";
 
 export type CourseInstantiationIssue = {
@@ -29,11 +31,24 @@ export type StudioMentorView = StudioBaseView & {
   kind: "mentor";
   mentorRole: "P" | "D" | "M" | "O";
   privateScript: string[];
+  contentContext: StudioMentorContentContext;
+};
+
+export type StudioMentorContentContext = {
+  mode: "owner" | "handoff" | "none";
+  scriptPackageId: string | null;
+  scriptPackageTitle: string | null;
+  ownerMentorRole: CourseMentorRole | null;
+  checkpoint: CourseScriptCheckpoint | null;
+  coursewareCue: CourseScriptCheckpoint["coursewareCue"] | null;
+  note: string;
 };
 
 export type StudioLearnerView = StudioBaseView & {
   kind: "learner";
   learnerNumber: number;
+  /** Exact deck selected by the current ScriptPackage checkpoint. */
+  privateDeckId: string;
   privateCards: CoursePackageCard[];
   prompt: string;
 };
@@ -69,6 +84,81 @@ const LEGACY_LEARNER_POLICY: CourseLearnerPolicy = {
 };
 
 const MENTOR_CODES = ["P", "D", "M", "O"] as const;
+
+export type CoursewareBindingLike = {
+  mentorRole: CourseMentorRole;
+  packageId: string;
+  slug: string;
+  revision: number;
+  digest: string;
+};
+
+/**
+ * New content-owned ScriptPackages pin the exact teaching deck they were
+ * authored against. Four mentor toolkits may still be bound to the Classroom,
+ * but a silently different P deck must never drive the declared checkpoints.
+ */
+export function declaredCoursewareBindingIssues(
+  course: CoursePackage,
+  bindings: readonly CoursewareBindingLike[],
+): string[] {
+  return (course.contentPackages?.scriptPackages ?? []).flatMap((scriptPackage) => {
+    const expected = scriptPackage.coursewareRef;
+    const actual = bindings.find((binding) => binding.mentorRole === expected.mentorRole);
+    if (!actual) return [`${scriptPackage.title} 缺少 ${expected.mentorRole} 导师 exact 课件。`];
+    const fields = ["packageId", "slug", "revision", "digest"] as const;
+    return fields.some((field) => actual[field] !== expected[field])
+      ? [`${scriptPackage.title} 必须绑定 ${expected.packageId}/${expected.slug} r${expected.revision} · ${expected.digest}，当前 ${actual.packageId}/${actual.slug} r${actual.revision} · ${actual.digest}。`]
+      : [];
+  });
+}
+
+export function mentorContentContext(
+  course: CoursePackage,
+  block: CoursePackageBlock,
+  mentorRole: CourseMentorRole,
+): StudioMentorContentContext {
+  const scripts = course.contentPackages?.scriptPackages ?? [];
+  const owned = scripts.find((scriptPackage) => scriptPackage.ownerMentorRole === mentorRole
+    && scriptPackage.checkpoints.some((checkpoint) => checkpoint.blockIds.includes(block.id)));
+  if (owned) {
+    const checkpoint = owned.checkpoints.find((item) => item.blockIds.includes(block.id))!;
+    return {
+      mode: "owner",
+      scriptPackageId: owned.id,
+      scriptPackageTitle: owned.title,
+      ownerMentorRole: owned.ownerMentorRole,
+      checkpoint: structuredClone(checkpoint),
+      coursewareCue: structuredClone(checkpoint.coursewareCue),
+      note: `${mentorRole} 是本案例检查点的内容所有者；课件只按章节范围提示，不做脆弱的逐页状态绑定。`,
+    };
+  }
+  const handoff = scripts.find((scriptPackage) => {
+    if (!scriptPackage.handoff || scriptPackage.handoff.toMentorRole !== mentorRole) return false;
+    const availableAt = course.blocks.find((item) => item.id === scriptPackage.handoff!.availableAtBlockId)?.order ?? Number.POSITIVE_INFINITY;
+    return block.order >= availableAt;
+  });
+  if (handoff?.handoff) {
+    return {
+      mode: "handoff",
+      scriptPackageId: handoff.id,
+      scriptPackageTitle: handoff.title,
+      ownerMentorRole: handoff.ownerMentorRole,
+      checkpoint: null,
+      coursewareCue: null,
+      note: handoff.handoff.summary,
+    };
+  }
+  return {
+    mode: "none",
+    scriptPackageId: null,
+    scriptPackageTitle: null,
+    ownerMentorRole: null,
+    checkpoint: null,
+    coursewareCue: null,
+    note: "本页没有分配给你的案例私有剧本；按席位任务观察或支援，不重复主讲案例历史。",
+  };
+}
 
 /** Resolve old exact schema-v1 releases without changing their canonical JSON. */
 export function resolveLearnerPolicy(course: CoursePackage): CourseLearnerPolicy {
@@ -150,6 +240,23 @@ function seededShuffle<T>(values: readonly T[], seed: string): T[] {
   return result;
 }
 
+/**
+ * A ScriptPackage may expose a simulation deck before the course's macro-step
+ * changes. This keeps card disclosure aligned with the electronic script
+ * checkpoint instead of coupling it to a five-step navigation label.
+ */
+export function privateDeckForBlock(course: CoursePackage, block: CoursePackageBlock) {
+  const declaredDeckId = course.contentPackages?.scriptPackages
+    .flatMap((scriptPackage) => scriptPackage.checkpoints)
+    .find((checkpoint) => checkpoint.blockIds.includes(block.id))
+    ?.privateDeckIds[0];
+  const deck = declaredDeckId
+    ? course.decks.find((item) => item.id === declaredDeckId)
+    : course.decks.find((item) => item.macroStepId === block.macroStepId);
+  if (!deck) throw new Error(`${block.id} 找不到可用的学员私密卡组。`);
+  return deck;
+}
+
 export function buildStudioProjection(
   course: CoursePackage,
   input: { learnerCount: number; blockId: string; seed: string },
@@ -161,22 +268,25 @@ export function buildStudioProjection(
   // Preview deliberately still renders an invalid N so the author can see the
   // exact missing views and repair the definition. Factory creation fails shut.
   const policy = resolveLearnerPolicy(course);
-  const deck = course.decks.find((item) => item.macroStepId === block.macroStepId);
-  if (!deck) throw new Error(`${block.macroStepId} 缺少卡组。`);
-  const shuffled = seededShuffle(deck.cards, `${course.course.id}:${block.macroStepId}:${input.seed}`);
+  const deck = privateDeckForBlock(course, block);
+  const shuffled = seededShuffle(deck.cards, `${course.course.id}:${deck.id}:${input.seed}`);
 
   const mentorViews: StudioMentorView[] = COURSE_SEAT_IDS.slice(0, 4).map((seatId, index) => {
     const authored = block.seatTasks[seatId];
+    const mentorRole = MENTOR_CODES[index];
     return {
       kind: "mentor",
       seatId,
       label: course.formula.fourMentors[index].name,
-      mentorRole: MENTOR_CODES[index],
+      mentorRole,
       activity: authored.state,
       badge: authored.badge,
       task: authored.task,
       blockId: block.id,
-      privateScript: [...block.mentorScript],
+      // A support/standby mentor needs the authored seat task—not the active
+      // mentor's entire private historical narration.
+      privateScript: authored.state === "active" ? [...block.mentorScript] : [],
+      contentContext: mentorContentContext(course, block, mentorRole),
     };
   });
 
@@ -197,6 +307,7 @@ export function buildStudioProjection(
       badge: task.badge,
       task: task.task,
       blockId: block.id,
+      privateDeckId: deck.id,
       privateCards: structuredClone(privateCards),
       prompt: block.studentPrompt,
     };

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import hashlib
 import json
 import tempfile
 import unittest
@@ -57,6 +58,7 @@ class CourseReleaseTests(unittest.TestCase):
                 legacy,
                 client / "_next",
                 client / "assets",
+                client / "courseware" / "development-mentor-ligun" / "assets",
                 static / "world",
                 static / "parents",
                 course / "_next",
@@ -75,6 +77,21 @@ class CourseReleaseTests(unittest.TestCase):
             ):
                 (legacy / name).write_text(value)
             (client / "favicon.svg").write_text("<svg xmlns='http://www.w3.org/2000/svg'/>")
+            development = client / "courseware" / "development-mentor-ligun"
+            (development / "index.html").write_text("<html><body><h1>先立棍，再让 AI 跑</h1></body></html>")
+            (development / "assets" / "diagram.png").write_bytes(b"\x89PNG\r\n\x1a\nD mentor")
+            development_files = []
+            for path in sorted(item for item in development.rglob("*") if item.is_file()):
+                relative = path.relative_to(development).as_posix()
+                content = path.read_bytes()
+                development_files.append({"path": relative, "sha256": hashlib.sha256(content).hexdigest(), "bytes": len(content)})
+            development_tree = hashlib.sha256("".join(
+                f"{item['path']}\0{item['sha256']}\n" for item in development_files
+            ).encode()).hexdigest()
+            (development / "SOURCE-MANIFEST.json").write_text(json.dumps({
+                "schemaVersion": 1, "slideCount": 18, "files": development_files,
+                "contentTreeSha256": development_tree,
+            }))
             (static / "world" / "index.html").write_text('<html><head></head><body><a href="/course/">课程大纲</a>current world</body></html>')
             (static / "parents" / "index.html").write_text('<html><head></head><body><a class="msv-brand-home" href="/"><img src="/favicon.svg">current parents</a></body></html>')
             course_html = (
@@ -113,6 +130,10 @@ class CourseReleaseTests(unittest.TestCase):
             }
             self.assertEqual(output_snapshot, source_snapshot)
             self.assertNotIn("/ui-theme.js", (output / "courseware" / "product-mentor-foundations" / "index.html").read_text())
+            self.assertEqual(
+                MODULE.validate_development_courseware(output / "courseware" / "development-mentor-ligun")["sha256"],
+                development_tree,
+            )
             workshop_html = (output / "workshop" / "index.html").read_text()
             self.assertIn("msv-workshop-released-baseline", workshop_html)
             self.assertIn('href="/" aria-label="返回 Mini Silicon Valley 主页"', workshop_html)
@@ -138,6 +159,9 @@ class CourseReleaseTests(unittest.TestCase):
             self.assertFalse(release["coursewareArtifact"]["transformed"])
             self.assertEqual(release["coursewareArtifact"]["mentorRole"], "P")
             self.assertEqual(release["coursewareArtifact"]["files"], len(source_snapshot))
+            self.assertEqual(release["developmentCoursewareArtifact"]["mentorRole"], "D")
+            self.assertEqual(release["developmentCoursewareArtifact"]["sha256"], development_tree)
+            self.assertFalse(release["developmentCoursewareArtifact"]["transformed"])
             self.assertTrue((output / "MANIFEST.sha256").is_file())
 
 

@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "todoId": "T-090",
+  "status": "passed-local",
+  "testedAt": "2026-09-09T11:13:52Z",
+  "baseCommit": "e962b9ceb0f60df7c7513998e03eaa563f191ddd",
+  "delivery": {
+    "developed": true,
+    "deployed": false,
+    "onlineStudioImported": false,
+    "onlineClassroomCreated": false,
+    "released": false,
+    "committed": false,
+    "pushed": false,
+    "reason": "The requester explicitly asked for development without deployment."
+  },
+  "courseTruth": {
+    "courseId": "eleme-2008-find-problem",
+    "candidatePath": "tools/live-run/courses/candidates/eleme-2008-product-development-t090.json",
+    "candidateCourseDigest": "bbb3d912b94b93127422d83cd03c1ad1aca3119b48f38797af1718dc99db281a",
+    "candidateFileSha256": "9510bf6fa6e17d47761660ca8682d9e35cca90ebef6c17a81c48ab969a45cb40",
+    "immutableR0Path": "tools/live-run/live-run-script-eleme.json",
+    "immutableR0CourseDigest": "407a24b43ead68ddccf0871fe7910ae21f1ca64ec4b7232a2bc0afeb2cfecb6c",
+    "immutableR0FileSha256": "ac2c235d83e643ea5c7acaaa9b2e4618741f07de35a209e7d9951083b6f705eb"
+  },
+  "contentAcceptance": {
+    "historicalCase": "case-eleme-2008-product-discovery / P / B01-B04",
+    "simulationCase": "case-device-booking-incident / D / B05-B08 / source-free",
+    "checkpointCount": 4,
+    "simulationCardCount": 12,
+    "simulationCardCategories": {
+      "user-scene": 3,
+      "system-data": 3,
+      "business-rule": 2,
+      "test-record": 2,
+      "boundary-unknown": 2
+    },
+    "allSimulationCardsBoundaryR": true,
+    "developmentStickFields": 10,
+    "mentorRubricItems": 6,
+    "handoff": "D/B08 accepted DevelopmentStick -> M/B09",
+    "simulationPrivateDeckFailsClosed": true
+  },
+  "coursewareAcceptance": {
+    "packageId": "cw-development-mentor-ligun",
+    "slug": "development-mentor-ligun",
+    "revision": 0,
+    "digest": "cafb8878e710a698237631523428dff7e0832180415c1b5605acbe6f3ddcf69d",
+    "slideCount": 18,
+    "contentTreeSha256": "ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234",
+    "exactMismatchDenied": true,
+    "clickableUnlockedProgress": true
+  },
+  "runtimeAcceptance": {
+    "learnerCounts": [
+      2,
+      4,
+      6
+    ],
+    "cardsPerLearner": 2,
+    "uniqueWithinTeam": true,
+    "handsPersistAcrossRefreshAndCheckpoints": true,
+    "learnerMentorRubricRedacted": true,
+    "learnerDraftsPrivate": true,
+    "wrongMentorReviewDenied": true,
+    "listCardinalityEnforcedClientAndServer": true,
+    "rejectResubmitAccept": true,
+    "acceptedOnlyHandoff": true,
+    "offlineRecovery": true,
+    "touchOnlyCoreFlow": true,
+    "backAndLatestPreserveData": true,
+    "economyIndependentFromScriptAndArtifact": true,
+    "submissionIdExistenceHiddenFromOutsiders": true,
+    "optimisticReviewConflictDenied": true
+  },
+  "validation": [
+    {
+      "command": "python3 tools/live-run/course.py --validate tools/live-run/courses/candidates/eleme-2008-product-development-t090.json",
+      "result": "passed"
+    },
+    {
+      "command": "npm test",
+      "result": "49 passed, 0 failed; typecheck, lint and build passed"
+    },
+    {
+      "command": "npm run test:course-platform",
+      "result": "69 passed, 0 failed"
+    },
+    {
+      "command": "npm run test:minisv-app",
+      "result": "passed: app smoke, platform E2E, T-091 E2E and T-090 E2E"
+    },
+    {
+      "command": "npm run test:t090:e2e",
+      "result": "passed: 2/4/6, private cards, B05-B08, reject-resubmit-accept, D-to-M handoff and exact mismatch"
+    },
+    {
+      "command": "python3 tools/live-run/tests/verify_t090_development_mentor_browser.py",
+      "result": "passed on Chromium 151.0.7922.176; touch/mobile/iPad portrait/iPad landscape/offline and desktop keyboard flows; 0 page errors; 0 unexpected request failures"
+    },
+    {
+      "command": "python3 tools/live-run/tests/verify_t091_product_mentor_browser.py",
+      "result": "passed after generic handoff rendering and deterministic D courseware selection"
+    },
+    {
+      "command": "npm run test:classroom:e2e",
+      "result": "passed: Google and Ele.me both completed five chapters"
+    },
+    {
+      "command": "tools/live-run/tests/run_tests.sh",
+      "result": "80 Python tests and 5 Node tests passed; grid geometry passed"
+    },
+    {
+      "command": "python3 tests/verify_deck.py (cowork D deck)",
+      "result": "passed: 18 slides, 4 viewports, keyboard/deep-link/overview/print, 4 offline assets, 0 console errors"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    },
+    {
+      "command": "npm run test:course-platform:e2e",
+      "result": "passed: exact acceptance/release gates, Test identity scope, Production isolation and receipt invalidation"
+    },
+    {
+      "command": "python3 -m unittest tools/live-run/tests/test_course.py -q",
+      "result": "11 passed, including source and boundary contamination failure paths"
+    }
+  ],
+  "browserEvidence": {
+    "receipt": "docs/qa/t090-development-mentor/browser-receipt.json",
+    "screenshots": [
+      "docs/qa/t090-development-mentor/studio-b05-2-4-6-projection.png",
+      "docs/qa/t090-development-mentor/b05-d-owner-and-handoff.png",
+      "docs/qa/t090-development-mentor/learner-development-stick-mobile.png",
+      "docs/qa/t090-development-mentor/m-handoff-mobile.png",
+      "docs/qa/t090-development-mentor/development-stick-ipad-portrait.png",
+      "docs/qa/t090-development-mentor/private-cards-ipad-landscape.png"
+    ]
+  },
+  "notes": [
+    "Browser and API E2E classroom IDs were created only in isolated temporary local D1 databases and were deleted at test exit.",
+    "The browser test imports a local Candidate into its disposable database; no online Candidate or acceptance receipt was created.",
+    "T-091's two P-courseware review items remain deliberate governance records and are not D-simulation source claims."
+  ],
+  "acceptanceContract": {
+    "projectorVersion": "course-projector-v5",
+    "appBuildId": "minisv-t090-development-v1",
+    "oldReceiptsInvalidated": true
+  }
+}

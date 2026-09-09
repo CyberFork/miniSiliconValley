@@ -296,6 +296,10 @@ function ViewAcceptance({ data, initialCourseRef, onAccepted, onError }: {
       </div>
       <div className={styles.timeline} aria-label={`${course.blocks.length} 个课程 Block`}>{course.blocks.map((block) => <button key={block.id} type="button" data-active={block.id === blockId} data-reviewed={reviewedBlocks.includes(block.id)} onClick={() => chooseBlock(block.id)}><b>{block.id} · STEP {block.macroStepOrder}</b><span>{block.title}</span>{reviewedBlocks.includes(block.id) && <em>已查看</em>}</button>)}</div>
       <div className={styles.validation} data-ok={validation.ok}><strong>{validation.ok ? `✓ ${learnerCount} 人投影通过容量校验` : `⚠ ${learnerCount} 人投影不能验收`}</strong>{!validation.ok && <ul>{validation.issues.map((issue) => <li key={`${issue.path}-${issue.code}`}>{issue.message}</li>)}</ul>}</div>
+      {course.contentPackages?.reviewQueue.some((item) => item.status === "open") && <details className={styles.contentReviewQueue}>
+        <summary>待人工审核 · {course.contentPackages.reviewQueue.filter((item) => item.status === "open").length} 项（不向学员显示）</summary>
+        {course.contentPackages.reviewQueue.filter((item) => item.status === "open").map((item) => <article key={item.id}><b>{item.title}</b><small>{item.category} · {item.location}</small><p>{item.reason}</p><p><strong>处理：</strong>{item.recommendedAction}</p></article>)}
+      </details>}
       <Projection projection={projection} />
       <div className={styles.acceptanceAction}>
         <div><b>{existing ? "这张 exact 回执仍有效" : blocksComplete && countsComplete ? "人工遍历已完成，可以签发" : "还不能签发回执"}</b><p>{existing ? "Candidate digest 或投影器兼容版本变化后，系统会自动把旧回执标为失效。" : `还需查看 ${course.blocks.length - reviewedBlocks.length} 个 Block、${requiredCounts.filter((count) => !reviewedCounts.includes(count)).length} 个人数场景。`}</p></div>
@@ -309,7 +313,17 @@ function Projection({ projection }: { projection: ReturnType<typeof buildStudioP
   const [pinned, setPinned] = useState<string[]>([]);
   const togglePin = (id: string) => setPinned((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
   return <div className={styles.viewGrid}>
-    {projection.mentorViews.map((view) => <article className={styles.viewCard} data-active={view.activity === "active"} data-kind="mentor" data-pinned={pinned.includes(view.seatId)} key={view.seatId}><header><small>{view.seatId.toUpperCase()} · {view.mentorRole} 导师</small><button type="button" aria-expanded={pinned.includes(view.seatId)} onClick={() => togglePin(view.seatId)}>{pinned.includes(view.seatId) ? "收起" : "固定展开"}</button></header><h3>{view.label}</h3><span className={styles.badge}>{view.badge}</span><p>{view.task}</p><div className={styles.viewDetails}><b>导师私有讲稿</b><ul>{view.privateScript.map((line) => <li key={line}>{line}</li>)}</ul></div></article>)}
+    {projection.mentorViews.map((view) => <article className={styles.viewCard} data-active={view.activity === "active"} data-kind="mentor" data-pinned={pinned.includes(view.seatId)} key={view.seatId}>
+      <header><small>{view.seatId.toUpperCase()} · {view.mentorRole} 导师</small><button type="button" aria-expanded={pinned.includes(view.seatId)} onClick={() => togglePin(view.seatId)}>{pinned.includes(view.seatId) ? "收起" : "固定展开"}</button></header>
+      <h3>{view.label}</h3><span className={styles.badge}>{view.badge}</span><p>{view.task}</p>
+      <div className={styles.viewDetails}>
+        <b>{view.contentContext.mode === "owner" ? "案例内容所有者" : view.contentContext.mode === "handoff" ? "已验收成果接收者" : "本页案例路由"}</b>
+        <p>{view.contentContext.note}</p>
+        {view.contentContext.checkpoint && <p><b>{view.contentContext.checkpoint.title}</b><br/>{view.contentContext.checkpoint.purpose}<br/>课件第 {view.contentContext.coursewareCue?.slideStart}—{view.contentContext.coursewareCue?.slideEnd} 页：{view.contentContext.coursewareCue?.label}</p>}
+        <b>{view.privateScript.length ? "当值导师私有讲稿" : "没有复制当值导师讲稿"}</b>
+        {view.privateScript.length ? <ul>{view.privateScript.map((line) => <li key={line}>{line}</li>)}</ul> : <p>只保留这个席位自己的观察任务。</p>}
+      </div>
+    </article>)}
     {projection.learnerViews.map((view) => <article className={styles.viewCard} data-kind="learner" data-pinned={pinned.includes(view.seatId)} key={view.seatId}><header><small>{view.seatId.toUpperCase()} · 私人任务视角</small><button type="button" aria-expanded={pinned.includes(view.seatId)} onClick={() => togglePin(view.seatId)}>{pinned.includes(view.seatId) ? "收起" : "固定展开"}</button></header><h3>{view.label}</h3><span className={styles.badge}>{view.badge}</span><p>{view.task}</p><div className={styles.viewDetails}><p><b>学员私有提示：</b>{view.prompt}</p><div className={styles.cards}>{view.privateCards.map((card) => <span key={card.id}><b>{card.id} · {card.title}</b><br/>正文：{card.body}<br/>分享提示：{card.sharePrompt}<br/>证据边界：{card.boundary}<br/>来源：{card.sourceIds.join(", ") || "未标注"}</span>)}{!view.privateCards.length && <span>卡组容量不足：不会伪造手牌</span>}</div></div></article>)}
     <article className={styles.controller}><div><small>CONTROLLER · {projection.controllerView.blockId}</small><h3>{projection.controllerView.title}</h3><b>主导：{projection.controllerView.leadMentorId}</b></div><div><small>系统动作</small><ul>{projection.controllerView.systemActions.map((item) => <li key={item}>{item}</li>)}</ul></div><div><small>本块验收</small><ul>{projection.controllerView.acceptance.map((item) => <li key={item}>{item}</li>)}</ul></div></article>
   </div>;

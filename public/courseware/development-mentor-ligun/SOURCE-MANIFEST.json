@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "todoId": "T-089+T-093",
+  "title": "开发导师｜先立棍，再让 AI 跑",
+  "source": "cowork/课件/dev/mentor-development-deck",
+  "slideCount": 18,
+  "files": [
+    {
+      "path": "assets/cover-learning-world.png",
+      "sha256": "08dc2f9a22541fff3686269147fc82fcc27792e5ad078dcb686437641869bfe7",
+      "bytes": 2413867
+    },
+    {
+      "path": "assets/design-blueprint.png",
+      "sha256": "e2b11e68936f35b73fa76e0627999739eb76d2b092fcddc0bdb686b796de7d94",
+      "bytes": 1839856
+    },
+    {
+      "path": "assets/testing-lab.png",
+      "sha256": "37c2cc0bde2719804b5eaa258a36e87f8e3b98e25e2874059e7177a45f115c7b",
+      "bytes": 1767253
+    },
+    {
+      "path": "assets/user-investigation.png",
+      "sha256": "054ebd009d93b1ab9c95ba30de9b2d099e1ba1ee760c61d196dff99ffddb887d",
+      "bytes": 1911354
+    },
+    {
+      "path": "index.html",
+      "sha256": "b13cd12a59d7ebdd6c97cfe426b999633348b35fea85f87571ff104eb3658c1b",
+      "bytes": 72893
+    }
+  ],
+  "contentTreeSha256": "ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234",
+  "canonicalization": "sorted relative path + NUL + file SHA-256 + LF; manifest excluded"
+}

@@ -108,7 +108,8 @@ try {
   const adminCookie = await login(fixture.dm.username, fixture.dm.password);
   const initial = await getData<Bootstrap>("/api/studio/bootstrap", adminCookie);
   assert.equal(new Set(initial.versions.map((item) => item.ref.courseId)).size, 2);
-  assert.deepEqual(initial.courseware.map((item) => item.mentorRole), ["P", "D", "M", "O"]);
+  assert.deepEqual(initial.courseware.map((item) => item.mentorRole), ["P", "D", "D", "M", "O"]);
+  assert.ok(initial.courseware.some((item) => item.slug === "development-mentor-ligun"));
   assert.ok(initial.courseware.every((item) => item.releasedRevision !== null && item.releasedDigest));
 
   const anonymousEditor = await fetch(`${internalBase}/studio/editor/`, {
@@ -355,7 +356,7 @@ try {
   const receipt = await postData<{ receiptId: string; viewReceiptId: string; coursewareBundleDigest: string; appBuildId: string }>(`/api/platform/classrooms/${testRoom.classroomId}/receipt`, { checks: uiAcceptanceChecks(), clientMatrix: acceptanceClients() }, adminCookie);
   assert.match(receipt.coursewareBundleDigest, /^[0-9a-f]{64}$/);
   assert.equal(receipt.viewReceiptId, viewReceipt.receiptId);
-  assert.equal(receipt.appBuildId, "minisv-t086-script-v1");
+  assert.equal(receipt.appBuildId, "minisv-t090-development-v1");
   const receiptBoundDetail = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}`, adminCookie);
   assert.equal(receiptBoundDetail.acceptance.uiReceiptId, receipt.receiptId);
   const repeatedReceipt = await postData<{ receiptId: string; coursewareBundleDigest: string }>(`/api/platform/classrooms/${testRoom.classroomId}/receipt`, { checks: uiAcceptanceChecks(), clientMatrix: acceptanceClients() }, adminCookie);
@@ -587,7 +588,13 @@ function mentorSeats(ids: string[]) {
 }
 
 function coursewareRefs(items: Courseware[], environment: "test" | "production") {
-  return items.map((item) => ({
+  const preferredSlugs = {
+    P: "product-mentor-foundations",
+    D: "development-mentor-field-kit",
+    M: "market-mentor-field-kit",
+    O: "operations-mentor-field-kit",
+  } as const;
+  return items.filter((item) => preferredSlugs[item.mentorRole] === item.slug).map((item) => ({
     mentorRole: item.mentorRole,
     packageId: item.packageId,
     slug: item.slug,
