@@ -1,6 +1,6 @@
 {
   "receiptVersion": 1,
-  "completedAt": "2026-09-09T22:18:31+08:00",
+  "completedAt": "2026-09-09T22:48:00+08:00",
   "scope": [
     "T-090",
     "T-093",
@@ -10,15 +10,19 @@
   "canonicalProduction": {
     "host": "hecate",
     "origin": "https://minisv.vip",
-    "releaseId": "20260909T205212CST-t090-t093-course-release-r1",
-    "previousReleaseId": "20260909T150600CST-t086-script-runtime-r2",
-    "sourceCommit": "4edfdffa3eaeca1491da7c44d61b69b30d7193e4",
-    "archiveSha256OnHecate": "907bafdb5ed7312fc9a3f084dbef7f0ec4a183ae60306c190eb875eb1b72b501",
-    "siteDigest": "b519cc8e9f15a09836fbef218ffc4e256d30d1dcef7d7fb2a9aa3f3da9ea4286",
-    "appDigest": "61d920cf7571031e0052667806478ee77ddd59055f07a59cc5ba0cec717399f5",
-    "appBuildId": "a7361c5a-67fe-466c-96bf-4142f1afdbeb",
-    "backup": "~/Services/minisv/backups/20260909T135103Z-20260909T205212CST-t090-t093-course-release-r1",
-    "rollbackTarget": "20260909T150600CST-t086-script-runtime-r2"
+    "releaseId": "20260909T223953CST-t090-t093-course-release-r3",
+    "previousReleaseId": "20260909T222822CST-t090-t093-course-release-r2",
+    "sourceCommit": "09a84f2f3d1ea97eb12eccc53a64cd24da12cb39",
+    "archiveSha256OnHecate": "208683acfbed9448f42e9e002174166cac72a7786bca058708b60587d409460b",
+    "siteDigest": "e1063fe0c6f6310e4b10c1c867ddd29c69dffa559c2a2d0134f331b91a39891a",
+    "appDigest": "536c2e78ce599d87068dd1df334e34e3390df6f4ce00a5d58f33da871bddb3fc",
+    "appBuildId": "de67662d-3186-434d-802b-5998f0c46755",
+    "backup": "~/Services/minisv/backups/20260909T144247Z-20260909T223953CST-t090-t093-course-release-r3",
+    "rollbackTarget": "20260909T205212CST-t090-t093-course-release-r1",
+    "supersededDuringFinalSmoke": [
+      "20260909T205212CST-t090-t093-course-release-r1",
+      "20260909T222822CST-t090-t093-course-release-r2"
+    ]
   },
   "courseCandidate": {
     "courseId": "eleme-2008-find-problem",
@@ -56,8 +60,8 @@
   },
   "secondarySitesDeployment": {
     "url": "https://mini-silicon-valley-rpg.cyberforker.chatgpt.site",
-    "versionNumber": 6,
-    "sourceCommit": "4edfdffa3eaeca1491da7c44d61b69b30d7193e4",
+    "versionNumber": 7,
+    "sourceCommit": "09a84f2f3d1ea97eb12eccc53a64cd24da12cb39",
     "status": "succeeded",
     "canonical": false
   },
@@ -81,6 +85,9 @@
     },
     "anonymousDevelopmentCourseware": 401,
     "exactLoginReturnToPreserved": true,
+    "exactStudioPreviewLoginReturnToPreserved": true,
+    "developmentCoursewareNoStore": true,
+    "developmentCoursewareSecurityHeadersPreserved": true,
     "originHeader": "hecate"
   },
   "securityAndData": {

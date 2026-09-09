@@ -58,5 +58,5 @@ b13cd12a59d7ebdd6c97cfe426b999633348b35fea85f87571ff104eb3658c1b
 - 可验证深链：<https://minisv.vip/course/development-mentor-ligun/?revision=0&slide=6&step=2>
 - 匿名访问会进入登录流程，并完整保留 `revision`、`slide`、`step`；导师登录后返回 exact 位置。
 - 静态文件由受保护的 `/courseware/development-mentor-ligun/` 提供，匿名请求返回 `401`，导师请求返回 `200`。
-- Hecate Release：`20260909T205212CST-t090-t093-course-release-r1`。
+- Hecate Release：`20260909T223953CST-t090-t093-course-release-r3`。
 - 完整部署证据见 `docs/TODO_090_093_PRODUCTION_DEPLOYMENT_RECEIPT.json`。

@@ -166,8 +166,8 @@ minisv-t090-development-v1
 2026-09-09 已完成可回滚生产部署，并将本 Candidate 导入线上 Studio：
 
 ```text
-Hecate Release  20260909T205212CST-t090-t093-course-release-r1
-Source commit   4edfdffa3eaeca1491da7c44d61b69b30d7193e4
+Hecate Release  20260909T223953CST-t090-t093-course-release-r3
+Source commit   09a84f2f3d1ea97eb12eccc53a64cd24da12cb39
 Course          eleme-2008-find-problem
 Candidate       r10
 Course digest   bbb3d912b94b93127422d83cd03c1ad1aca3119b48f38797af1718dc99db281a
