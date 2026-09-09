@@ -5,7 +5,7 @@ import {
   assertClassroomFactoryRequest,
   buildClassroomFactoryPlan,
   canActorAdministerClassroom,
-  controllerTransition,
+  unlockNextScriptPage,
   type ClassroomFactoryRequest,
 } from "../app/lib/classroom-factory";
 import { coursewareBundleDigest } from "../app/lib/courseware-store";
@@ -50,8 +50,8 @@ test("Test and Production use one factory plan and the same state-machine versio
   const testPlan = buildClassroomFactoryPlan(request(), "factory-seed");
   const productionPlan = buildClassroomFactoryPlan(request({ environment: "production", courseRef: exactReleased, uiAcceptanceReceiptId: "ui-acceptance-receipt" }), "factory-seed");
   assert.equal(testPlan.stateMachineVersion, productionPlan.stateMachineVersion);
-  assert.equal(testPlan.initialControllerState.state, "ready");
-  assert.equal(productionPlan.initialControllerState.state, "ready");
+  assert.equal(testPlan.initialScriptProgress.unlockedThroughBlockId, "B01");
+  assert.equal(productionPlan.initialScriptProgress.unlockedThroughIndex, 0);
   assert.deepEqual(testPlan.mentorSeats.map((seat) => seat.mentorRole), ["P", "D", "M", "O"]);
   assert.equal(testPlan.learnerMemberships.length, 4);
   assert.equal(testPlan.adminPermissions.length, 1);
@@ -114,17 +114,12 @@ test("Admin DM is a permission and can overlap a mentor without creating a fifth
   assert.equal(canActorAdministerClassroom("mentor-development", plan.adminPermissions), false);
 });
 
-test("controller state machine is versioned and classroom-local", () => {
+test("script unlock frontier is versioned, sequential and classroom-local", () => {
   const left = buildClassroomFactoryPlan(request({ title: "Left" }), "left");
   const right = buildClassroomFactoryPlan(request({ title: "Right" }), "right");
-  const executing = controllerTransition(left.initialControllerState, { type: "execute" }, "2026-09-08T00:00:00Z");
-  assert.equal(executing.state, "executing");
-  assert.equal(right.initialControllerState.state, "ready");
-  assert.throws(() => controllerTransition(left.initialControllerState, { type: "accept" }, "2026-09-08T00:00:00Z"), /不能直接验收/);
-
-  const awaitingAcceptance = controllerTransition(executing, { type: "submit-for-acceptance" }, "2026-09-08T00:01:00Z");
-  const accepted = controllerTransition(awaitingAcceptance, { type: "accept" }, "2026-09-08T00:02:00Z");
-  assert.throws(() => controllerTransition(accepted, { type: "execute" }, "2026-09-08T00:03:00Z"), /不能开始执行/);
-  const nextBlock = controllerTransition(accepted, { type: "advance", nextBlockId: "B02" }, "2026-09-08T00:03:00Z");
-  assert.deepEqual({ state: nextBlock.state, blockId: nextBlock.blockId, blockIndex: nextBlock.blockIndex }, { state: "ready", blockId: "B02", blockIndex: 1 });
+  const next = unlockNextScriptPage(left.initialScriptProgress, { type: "unlock-next", nextBlockId: "B02" }, ["B01", "B02", "B03"], "2026-09-08T00:00:00Z");
+  assert.deepEqual({ blockId: next.unlockedThroughBlockId, index: next.unlockedThroughIndex, version: next.version }, { blockId: "B02", index: 1, version: 2 });
+  assert.equal(right.initialScriptProgress.unlockedThroughBlockId, "B01");
+  assert.throws(() => unlockNextScriptPage(left.initialScriptProgress, { type: "unlock-next", nextBlockId: "B03" }, ["B01", "B02", "B03"], "2026-09-08T00:00:00Z"), /不能跳页/);
+  assert.throws(() => unlockNextScriptPage(next, { type: "unlock-next", nextBlockId: "B02" }, ["B01", "B02", "B03"], "2026-09-08T00:01:00Z"), /不能跳页或解锁旧页/);
 });

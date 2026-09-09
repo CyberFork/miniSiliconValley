@@ -13,6 +13,7 @@ const tables = [
   "course_candidate_pointers", "course_test_receipts", "courseware_packages", "courseware_versions",
   "courseware_release_pointers", "room_courseware_bindings", "classroom_instances", "classroom_mentor_seats",
   "classroom_permissions", "classroom_admin_dm_grants", "classroom_controller_states", "classroom_factory_events",
+  "classroom_script_progress",
   "classroom_block_submissions", "classroom_wallet_balances",
   "course_view_acceptance_receipts", "course_ui_acceptance_receipts", "classroom_acceptance_bindings",
   "auth_impersonations",
@@ -42,16 +43,16 @@ test("runtime schema bootstrap is idempotent and exactly mirrors the migration",
   for (const statement of CLASSROOM_SCHEMA_STATEMENTS) {
     const executable = statement.replace(/^(?:--[^\n]*(?:\n|$))+/g, "").trimStart();
     if (/^UPDATE\s/i.test(executable)) {
-      assert.match(executable, /WHERE [\s\S]*IS NULL/i, "data retirement updates must be guarded and repeatable");
+      assert.match(executable, /WHERE [\s\S]*(?:IS NULL|<\s*2)/i, "data updates must be guarded and repeatable");
     } else if (/^INSERT OR IGNORE\s/i.test(executable)) {
-      assert.match(executable, /classroom_admin_dm_grants/, "backfills must be conflict-safe and repeatable");
+      assert.match(executable, /(?:classroom_admin_dm_grants|classroom_script_progress)/, "backfills must be conflict-safe and repeatable");
     } else {
       assert.match(executable, /IF NOT EXISTS/, "DDL bootstrap must be repeatable");
     }
   }
 });
 
-test("unified course factory keeps release, courseware, permissions and controller state exact", () => {
+test("unified course factory keeps release, courseware, permissions and script progress exact", () => {
   for (const marker of [
     "uidx_course_test_receipts_exact",
     "uidx_courseware_versions_digest",
@@ -62,6 +63,8 @@ test("unified course factory keeps release, courseware, permissions and controll
     "uidx_classroom_admin_dm_primary_room",
     "uidx_auth_impersonations_active_session",
     "classroom_controller_states",
+    "classroom_script_progress",
+    "chk_classroom_script_progress_index",
     "chk_classroom_wallet_non_negative",
     "uidx_course_view_acceptance_exact",
     "uidx_course_ui_acceptance_run",

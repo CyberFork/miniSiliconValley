@@ -6,12 +6,12 @@ import {
   CLASSROOM_STATE_MACHINE_VERSION,
   assertClassroomFactoryRequest,
   buildClassroomFactoryPlan,
-  controllerTransition,
-  type ClassroomControllerAction,
-  type ClassroomControllerState,
+  unlockNextScriptPage,
   type ClassroomEnvironment,
   type ClassroomFactoryRequest,
   type ClassroomMentorRole,
+  type ClassroomScriptAction,
+  type ClassroomScriptProgress,
   type ExactCoursewareRef,
 } from "./classroom-factory";
 import { assertCourseCanInstantiate, buildStudioProjection, resolveLearnerPolicy } from "./course-platform";
@@ -42,7 +42,7 @@ export type ClassroomInstanceSummary = {
   lifecycle: string;
   learnerCount: number;
   courseRef: CoursePackageRef;
-  controller: ClassroomControllerState & { version: number };
+  script: ClassroomScriptProgress;
   mentorRole: ClassroomMentorRole | null;
   learnerSeat: number | null;
   isAdminDm: boolean;
@@ -60,9 +60,14 @@ export type ClassroomInstanceDetail = ClassroomInstanceSummary & {
     actorProfileId: string;
     impersonationId: string | null;
     impersonationExpiresAt: string | null;
+    /** Test-only selected role surface; equals profileId in Production. */
+    viewProfileId: string;
+    viewDisplayName: string;
+    viewMentorRole: ClassroomMentorRole | null;
+    viewLearnerSeat: number | null;
   };
   course: { id: string; title: string; period: string; stepNames: string[]; blockCount: number };
-  currentBlock: {
+  page: {
     id: string;
     title: string;
     macroStepId: string;
@@ -72,6 +77,13 @@ export type ClassroomInstanceDetail = ClassroomInstanceSummary & {
     studentPrompt: string;
     learnerLens: { world: string; say: string; ask: string; done: string };
     gameModes: string[];
+  };
+  scriptNavigation: {
+    unlockedBlocks: Array<{ id: string; title: string; index: number; macroStepOrder: number }>;
+    viewedIndex: number;
+    latestUnlocked: { id: string; title: string; index: number };
+    nextLocked: { id: string; title: string; index: number } | null;
+    canUnlockNext: boolean;
   };
   myView: ReturnType<typeof buildStudioProjection>["views"][number] | null;
   /** Admin-DM-only projection. Learner responses never receive scripts or gates. */
@@ -98,17 +110,20 @@ export type ClassroomSharedScreenDetail = {
   lifecycle: string;
   learnerCount: number;
   course: { title: string; blockCount: number };
-  currentBlock: {
+  page: {
     id: string;
     title: string;
     macroStepOrder: number;
     studentPrompt: string;
   };
-  controller: {
-    blockId: string;
-    blockIndex: number;
-    state: ClassroomControllerState["state"];
-  };
+  script: ClassroomScriptProgress;
+  scriptNavigation: ClassroomInstanceDetail["scriptNavigation"];
+};
+
+export type ClassroomViewRequest = {
+  blockId?: string;
+  /** Test-only role projection. Production rejects this even for admins. */
+  viewAsProfileId?: string;
 };
 
 type ResolvedCourseRef = CoursePackageRef & { status: "candidate" | "released" };
@@ -164,7 +179,7 @@ export async function createClassroomInstance(
   const mentorMemberships = plan.mentorSeats.map((seat) => ({ ...seat, id: crypto.randomUUID() }));
   const learnerMemberships = plan.learnerMemberships.map((seat) => ({ ...seat, id: crypto.randomUUID() }));
   const ledgerActorMembershipId = mentorMemberships.find((seat) => seat.mentorRole === "P")!.id;
-  const controller = { ...plan.initialControllerState, updatedAt: now };
+  const script = { ...plan.initialScriptProgress, updatedAt: now };
   const statements: D1PreparedStatement[] = [
     db.prepare(
       `INSERT INTO rooms
@@ -186,7 +201,15 @@ export async function createClassroomInstance(
       `INSERT INTO classroom_controller_states
        (room_id, state_machine_version, block_id, block_index, state, attempt, error_message, version, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, NULL, 1, ?, ?)`,
-    ).bind(roomId, controller.stateMachineVersion, controller.blockId, controller.blockIndex, controller.state, controller.attempt, now, now),
+    // Compatibility mirror only. Runtime navigation reads
+    // classroom_script_progress and never this retired workflow state.
+    ).bind(roomId, CLASSROOM_STATE_MACHINE_VERSION, script.unlockedThroughBlockId, script.unlockedThroughIndex, "ready", 1, now, now),
+    db.prepare(
+      `INSERT INTO classroom_script_progress
+       (room_id, state_machine_version, unlocked_through_block_id, unlocked_through_index,
+        version, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    ).bind(roomId, script.stateMachineVersion, script.unlockedThroughBlockId, script.unlockedThroughIndex, script.version, now, now),
     db.prepare(
       `INSERT INTO classroom_acceptance_bindings
        (room_id, view_receipt_id, ui_receipt_id, bound_at, bound_by_profile_id)
@@ -291,6 +314,11 @@ export async function createClassroomInstance(
       uiAcceptanceReceiptId: uiReceipt?.receiptId ?? null,
       adminDmProfileIds: request.adminDmProfileIds,
     }), now),
+    factoryEvent(db, roomId, auditActor(actor), "script.page-unlocked", withIdentityAudit(actor, {
+      blockId: script.unlockedThroughBlockId,
+      blockIndex: script.unlockedThroughIndex,
+      initial: true,
+    }), now),
   );
   await db.batch(statements);
   return { classroomId: roomId, teamPublicId };
@@ -301,7 +329,8 @@ export async function listClassroomInstances(db: ClassroomD1, user: Authenticate
     `SELECT r.id, r.title, ci.environment, ci.lifecycle, ci.learner_count, ci.course_id, ci.course_revision,
             ci.course_digest, ci.updated_at, cv.schema_version,
             CASE WHEN rp.course_id IS NULL THEN 0 ELSE 1 END AS course_released,
-            cs.state_machine_version, cs.block_id, cs.block_index, cs.state, cs.attempt, cs.error_message, cs.version,
+            sp.state_machine_version, sp.unlocked_through_block_id, sp.unlocked_through_index,
+            sp.version AS script_version, sp.updated_at AS script_updated_at,
             ms.mentor_role, lm.seat AS learner_seat,
             CASE WHEN g.id IS NULL THEN 0 ELSE 1 END AS is_admin_dm,
             g.delegation_mode AS admin_dm_mode, COALESCE(g.can_delegate, 0) AS can_delegate_admin_dm,
@@ -310,7 +339,7 @@ export async function listClassroomInstances(db: ClassroomD1, user: Authenticate
      JOIN classroom_instances ci ON ci.room_id = r.id
      JOIN course_versions cv ON cv.course_id = ci.course_id AND cv.revision = ci.course_revision AND cv.digest = ci.course_digest
      LEFT JOIN course_release_pointers rp ON rp.course_id = ci.course_id AND rp.revision = ci.course_revision AND rp.digest = ci.course_digest
-     JOIN classroom_controller_states cs ON cs.room_id = r.id
+     JOIN classroom_script_progress sp ON sp.room_id = r.id
      LEFT JOIN classroom_acceptance_bindings ab ON ab.room_id = r.id
      LEFT JOIN classroom_mentor_seats ms ON ms.room_id = r.id AND ms.profile_id = ?
      LEFT JOIN memberships lm ON lm.room_id = r.id AND lm.profile_id = ? AND lm.role = 'learner' AND lm.status = 'active'
@@ -328,8 +357,8 @@ export async function listClassroomInstances(db: ClassroomD1, user: Authenticate
   ).all<{
     id: string; title: string; environment: ClassroomEnvironment; lifecycle: string; learner_count: number;
     course_id: string; course_revision: number; course_digest: string; schema_version: number; updated_at: string;
-    state_machine_version: 1; block_id: string; block_index: number; state: ClassroomControllerState["state"];
-    attempt: number; error_message: string | null; version: number; mentor_role: ClassroomMentorRole | null;
+    state_machine_version: 2; unlocked_through_block_id: string; unlocked_through_index: number;
+    script_version: number; script_updated_at: string; mentor_role: ClassroomMentorRole | null;
     learner_seat: number | null; is_admin_dm: number; admin_dm_mode: AdminDmDelegationMode | null;
     can_delegate_admin_dm: number; course_released: number;
     view_receipt_id: string | null; ui_receipt_id: string | null;
@@ -347,15 +376,12 @@ export async function listClassroomInstances(db: ClassroomD1, user: Authenticate
       digest: row.course_digest,
       status: row.course_released ? "released" : "candidate",
     },
-    controller: {
+    script: {
       stateMachineVersion: row.state_machine_version,
-      blockId: row.block_id,
-      blockIndex: row.block_index,
-      state: row.state,
-      attempt: row.attempt,
-      errorMessage: row.error_message,
-      updatedAt: row.updated_at,
-      version: row.version,
+      unlockedThroughBlockId: row.unlocked_through_block_id,
+      unlockedThroughIndex: row.unlocked_through_index,
+      updatedAt: row.script_updated_at,
+      version: row.script_version,
     },
     mentorRole: row.mentor_role,
     learnerSeat: row.learner_seat,
@@ -367,25 +393,46 @@ export async function listClassroomInstances(db: ClassroomD1, user: Authenticate
   }));
 }
 
-export async function getClassroomInstance(db: ClassroomD1, user: AuthenticatedClassroomUser, roomId: string): Promise<ClassroomInstanceDetail> {
+export async function getClassroomInstance(
+  db: ClassroomD1,
+  user: AuthenticatedClassroomUser,
+  roomId: string,
+  request: ClassroomViewRequest = {},
+): Promise<ClassroomInstanceDetail> {
   const summaries = await listClassroomInstances(db, user);
   const summary = summaries.find((item) => item.id === roomId);
   if (!summary) throw new ClassroomError("CLASSROOM_ACCESS_FORBIDDEN", "你不是这个课堂的成员或 Admin DM。", 403);
+  if (request.viewAsProfileId && summary.environment !== "test") {
+    throw new ClassroomError("TEST_VIEW_PRODUCTION_FORBIDDEN", "角色视角切换只存在于 Test Classroom。", 403);
+  }
+
   const course = await loadExactCoursePackage(db, summary.courseRef);
-  const currentBlock = course.blocks[summary.controller.blockIndex];
-  if (!currentBlock || currentBlock.id !== summary.controller.blockId) throw new ClassroomError("CONTROLLER_STATE_CORRUPT", "课堂中控与课程 Block 不一致。", 500);
+  const latestUnlocked = course.blocks[summary.script.unlockedThroughIndex];
+  if (!latestUnlocked || latestUnlocked.id !== summary.script.unlockedThroughBlockId) {
+    throw new ClassroomError("SCRIPT_PROGRESS_CORRUPT", "课堂剧本解锁边界与课程版本不一致。", 500);
+  }
+  const requestedBlockId = request.blockId?.trim() || latestUnlocked.id;
+  const viewedIndex = course.blocks.findIndex((block) => block.id === requestedBlockId);
+  if (viewedIndex < 0) throw new ClassroomError("SCRIPT_PAGE_NOT_FOUND", "课程中没有这一页剧本。", 404);
+  if (viewedIndex > summary.script.unlockedThroughIndex) {
+    throw new ClassroomError("SCRIPT_PAGE_LOCKED", "这一页尚未由导师解锁。", 409, [
+      `当前已解锁至 ${summary.script.unlockedThroughBlockId}`,
+    ]);
+  }
+  const page = course.blocks[viewedIndex];
   const projection = buildStudioProjection(course, {
     learnerCount: summary.learnerCount,
-    blockId: currentBlock.id,
+    blockId: page.id,
     seed: `classroom:${roomId}`,
   });
+
   const team = await db.prepare(
     `SELECT t.id, t.name, t.seat_limit, a.public_id FROM teams t JOIN team_access_ids a ON a.team_id = t.id WHERE t.room_id = ? ORDER BY t.created_at LIMIT 1`,
   ).bind(roomId).first<{ id: string; name: string; seat_limit: number; public_id: string }>();
   if (!team) throw new ClassroomError("CLASSROOM_TEAM_MISSING", "课堂缺少团队。", 500);
   const mentorRows = await db.prepare(
-    `SELECT s.mentor_role, s.profile_id, p.nickname FROM classroom_mentor_seats s JOIN profiles p ON p.id = s.profile_id WHERE s.room_id = ? ORDER BY CASE s.mentor_role WHEN 'P' THEN 1 WHEN 'D' THEN 2 WHEN 'M' THEN 3 ELSE 4 END`,
-  ).bind(roomId).all<{ mentor_role: ClassroomMentorRole; profile_id: string; nickname: string }>();
+    `SELECT s.mentor_role, s.profile_id, s.membership_id, p.nickname FROM classroom_mentor_seats s JOIN profiles p ON p.id = s.profile_id WHERE s.room_id = ? ORDER BY CASE s.mentor_role WHEN 'P' THEN 1 WHEN 'D' THEN 2 WHEN 'M' THEN 3 ELSE 4 END`,
+  ).bind(roomId).all<{ mentor_role: ClassroomMentorRole; profile_id: string; membership_id: string; nickname: string }>();
   const learnerRows = await db.prepare(
     `SELECT m.id AS membership_id, m.profile_id, p.nickname, m.seat FROM memberships m JOIN profiles p ON p.id = m.profile_id WHERE m.room_id = ? AND m.role = 'learner' AND m.status = 'active' ORDER BY m.seat`,
   ).bind(roomId).all<{ membership_id: string; profile_id: string; nickname: string; seat: number }>();
@@ -406,43 +453,66 @@ export async function getClassroomInstance(db: ClassroomD1, user: AuthenticatedC
     delegation_mode: AdminDmDelegationMode;
     can_delegate: number;
   }>();
-  if ((mentorRows.results ?? []).length !== 4 || courseware.length !== 4) {
+  const mentors = mentorRows.results ?? [];
+  const learners = learnerRows.results ?? [];
+  const admins = adminRows.results ?? [];
+  if (mentors.length !== 4 || courseware.length !== 4) {
     throw new ClassroomError("CLASSROOM_MENTOR_BINDING_CORRUPT", "课堂必须保持 P／D／M／O 四个导师席与四套 exact 课件绑定。", 500);
   }
-  if ((learnerRows.results ?? []).length !== summary.learnerCount) {
+  if (learners.length !== summary.learnerCount) {
     throw new ClassroomError("CLASSROOM_LEARNER_BINDING_CORRUPT", "课堂学员 Membership 与工厂锁定人数不一致。", 500);
   }
-  if (!(adminRows.results ?? []).length) {
+  if (!admins.length) {
     throw new ClassroomError("CLASSROOM_ADMIN_BINDING_CORRUPT", "课堂缺少 Admin DM 权限账号。", 500);
   }
-  const balances = await db.prepare(
-    `SELECT
-       COALESCE((SELECT SUM(points) FROM reputation_entries WHERE profile_id = ? AND room_id = ?), 0) AS rp,
-       COALESCE((SELECT balance_tenths FROM classroom_wallet_balances WHERE room_id = ? AND profile_id = ?), 0) AS wallet,
-       COALESCE((SELECT balance_tenths FROM ledger_accounts WHERE kind = 'team-treasury' AND room_id = ? LIMIT 1), 0) AS treasury`,
-  ).bind(user.userId, roomId, roomId, user.userId, roomId).first<{ rp: number; wallet: number; treasury: number }>();
-  let myView: ClassroomInstanceDetail["myView"] = summary.mentorRole
-    ? projection.mentorViews.find((view) => view.mentorRole === summary.mentorRole) ?? null
-    : summary.learnerSeat
-      ? projection.learnerViews[summary.learnerSeat - 1] ?? null
-      : projection.controllerView;
-  if (summary.learnerSeat && myView?.kind === "learner") {
-    const member = (learnerRows.results ?? []).find((row) => row.profile_id === user.userId);
-    const grants = member ? await db.prepare(
-      `SELECT card_id FROM card_grants WHERE room_id = ? AND chapter_id = ? AND member_id = ? ORDER BY granted_at, id`,
-    ).bind(roomId, `${course.course.id}:${currentBlock.macroStepId}`, member.membership_id).all<{ card_id: string }>() : { results: [] };
-    const deck = course.decks.find((item) => item.macroStepId === currentBlock.macroStepId);
-    const cards = new Map((deck?.cards ?? []).map((card) => [card.id, card]));
-    myView = { ...myView, privateCards: (grants.results ?? []).map((grant) => cards.get(grant.card_id)).filter((card): card is NonNullable<typeof card> => Boolean(card)).map((card) => structuredClone(card)) };
+
+  const viewAs = request.viewAsProfileId?.trim() || user.userId;
+  const selectedMentor = mentors.find((row) => row.profile_id === viewAs) ?? null;
+  const selectedLearner = learners.find((row) => row.profile_id === viewAs) ?? null;
+  if (request.viewAsProfileId && !selectedMentor && !selectedLearner) {
+    throw new ClassroomError("TEST_VIEW_MEMBERSHIP_REQUIRED", "测试视角必须是本课堂有效的导师席或学员席。", 403);
   }
+  const viewProfileId = selectedMentor?.profile_id ?? selectedLearner?.profile_id ?? user.userId;
+  const viewDisplayName = selectedMentor?.nickname ?? selectedLearner?.nickname ?? user.displayName;
+  let myView: ClassroomInstanceDetail["myView"] = selectedMentor
+    ? projection.mentorViews.find((view) => view.mentorRole === selectedMentor.mentor_role) ?? null
+    : selectedLearner
+      ? projection.learnerViews[selectedLearner.seat - 1] ?? null
+      : projection.controllerView;
+  if (selectedLearner && myView?.kind === "learner") {
+    const grants = await db.prepare(
+      `SELECT card_id FROM card_grants WHERE room_id = ? AND chapter_id = ? AND member_id = ? ORDER BY granted_at, id`,
+    ).bind(roomId, `${course.course.id}:${page.macroStepId}`, selectedLearner.membership_id).all<{ card_id: string }>();
+    const deck = course.decks.find((item) => item.macroStepId === page.macroStepId);
+    const cards = new Map((deck?.cards ?? []).map((card) => [card.id, card]));
+    myView = {
+      ...myView,
+      privateCards: (grants.results ?? [])
+        .map((grant) => cards.get(grant.card_id))
+        .filter((card): card is NonNullable<typeof card> => Boolean(card))
+        .map((card) => structuredClone(card)),
+    };
+  }
+
+  const canSeeAllSubmissions = Boolean(selectedMentor) || !selectedLearner;
   const submissionResult = await db.prepare(
     `SELECT s.profile_id, p.nickname, s.kind, s.payload_json, s.status, s.updated_at
      FROM classroom_block_submissions s JOIN profiles p ON p.id = s.profile_id
      WHERE s.room_id = ? AND s.block_id = ? AND (? = 1 OR s.profile_id = ?)
      ORDER BY s.updated_at`,
-  ).bind(roomId, currentBlock.id, summary.isAdminDm || Boolean(summary.mentorRole) ? 1 : 0, user.userId).all<{
+  ).bind(roomId, page.id, canSeeAllSubmissions ? 1 : 0, viewProfileId).all<{
     profile_id: string; nickname: string; kind: string; payload_json: string; status: string; updated_at: string;
   }>();
+  const balances = await db.prepare(
+    `SELECT
+       COALESCE((SELECT SUM(points) FROM reputation_entries WHERE profile_id = ? AND room_id = ?), 0) AS rp,
+       COALESCE((SELECT balance_tenths FROM classroom_wallet_balances WHERE room_id = ? AND profile_id = ?), 0) AS wallet,
+       COALESCE((SELECT balance_tenths FROM ledger_accounts WHERE kind = 'team-treasury' AND room_id = ? LIMIT 1), 0) AS treasury`,
+  ).bind(viewProfileId, roomId, roomId, viewProfileId, roomId).first<{ rp: number; wallet: number; treasury: number }>();
+
+  const canUnlockNext = summary.script.unlockedThroughIndex < course.blocks.length - 1
+    && (summary.environment === "test" || summary.isAdminDm || Boolean(summary.mentorRole));
+  const nextBlock = course.blocks[summary.script.unlockedThroughIndex + 1] ?? null;
   return {
     ...summary,
     viewer: {
@@ -452,6 +522,10 @@ export async function getClassroomInstance(db: ClassroomD1, user: AuthenticatedC
       actorProfileId: user.actorProfileId ?? user.userId,
       impersonationId: user.impersonationId ?? null,
       impersonationExpiresAt: user.impersonationExpiresAt ?? null,
+      viewProfileId,
+      viewDisplayName,
+      viewMentorRole: selectedMentor?.mentor_role ?? null,
+      viewLearnerSeat: selectedLearner?.seat ?? null,
     },
     course: {
       id: course.course.id,
@@ -460,28 +534,40 @@ export async function getClassroomInstance(db: ClassroomD1, user: AuthenticatedC
       stepNames: course.macroSteps.map((step) => step.name),
       blockCount: course.blocks.length,
     },
-    currentBlock: {
-      id: currentBlock.id,
-      title: currentBlock.title,
-      macroStepId: currentBlock.macroStepId,
-      macroStepOrder: currentBlock.macroStepOrder,
-      order: currentBlock.order,
-      leadMentorId: currentBlock.leadMentorId,
-      studentPrompt: currentBlock.studentPrompt,
-      learnerLens: structuredClone(currentBlock.learnerLens),
-      gameModes: [...currentBlock.gameModes],
+    page: {
+      id: page.id,
+      title: page.title,
+      macroStepId: page.macroStepId,
+      macroStepOrder: page.macroStepOrder,
+      order: page.order,
+      leadMentorId: page.leadMentorId,
+      studentPrompt: page.studentPrompt,
+      learnerLens: structuredClone(page.learnerLens),
+      gameModes: [...page.gameModes],
+    },
+    scriptNavigation: {
+      unlockedBlocks: course.blocks.slice(0, summary.script.unlockedThroughIndex + 1).map((block, index) => ({
+        id: block.id,
+        title: block.title,
+        index,
+        macroStepOrder: block.macroStepOrder,
+      })),
+      viewedIndex,
+      latestUnlocked: { id: latestUnlocked.id, title: latestUnlocked.title, index: summary.script.unlockedThroughIndex },
+      nextLocked: canUnlockNext && nextBlock ? { id: nextBlock.id, title: nextBlock.title, index: summary.script.unlockedThroughIndex + 1 } : null,
+      canUnlockNext,
     },
     myView,
-    controlView: summary.isAdminDm ? projection.controllerView : null,
+    controlView: summary.environment === "test" || summary.isAdminDm || Boolean(summary.mentorRole) ? projection.controllerView : null,
     team: { id: team.id, name: team.name, publicId: team.public_id, seatLimit: team.seat_limit },
-    mentors: (mentorRows.results ?? []).map((row) => ({
+    mentors: mentors.map((row) => ({
       mentorRole: row.mentor_role,
       profileId: row.profile_id,
       displayName: row.nickname,
       courseware: courseware.find((ref) => ref.mentorRole === row.mentor_role)!,
     })),
-    learners: (learnerRows.results ?? []).map((row) => ({ profileId: row.profile_id, displayName: row.nickname, seat: row.seat })),
-    admins: (adminRows.results ?? []).map((row) => ({
+    learners: learners.map((row) => ({ profileId: row.profile_id, displayName: row.nickname, seat: row.seat })),
+    admins: admins.map((row) => ({
       profileId: row.profile_id,
       displayName: row.nickname,
       mode: row.delegation_mode,
@@ -493,7 +579,11 @@ export async function getClassroomInstance(db: ClassroomD1, user: AuthenticatedC
       try { const payload = JSON.parse(row.payload_json) as { text?: unknown }; text = typeof payload.text === "string" ? payload.text : ""; } catch { /* fail closed to blank */ }
       return { profileId: row.profile_id, displayName: row.nickname, kind: row.kind, text, status: row.status, updatedAt: row.updated_at };
     }),
-    economy: { personalRp: Number(balances?.rp ?? 0), personalWalletTenths: Number(balances?.wallet ?? 0), teamTreasuryTenths: Number(balances?.treasury ?? 0) },
+    economy: {
+      personalRp: Number(balances?.rp ?? 0),
+      personalWalletTenths: Number(balances?.wallet ?? 0),
+      teamTreasuryTenths: Number(balances?.treasury ?? 0),
+    },
   };
 }
 
@@ -501,11 +591,12 @@ export async function getClassroomSharedScreen(
   db: ClassroomD1,
   user: AuthenticatedClassroomUser,
   roomId: string,
+  request: Pick<ClassroomViewRequest, "blockId"> = {},
 ): Promise<ClassroomSharedScreenDetail> {
-  // Reuse the exact same membership check and current-block integrity guard as
-  // the seat UI, then construct an explicit allow-list response.  Never return
-  // the detail object and ask the browser to hide fields.
-  const detail = await getClassroomInstance(db, user, roomId);
+  // Reuse the exact same membership and unlocked-page guards as the seat UI,
+  // then construct an explicit allow-list response. Never return the private
+  // detail object and ask the browser to hide fields.
+  const detail = await getClassroomInstance(db, user, roomId, request);
   return {
     id: detail.id,
     title: detail.title,
@@ -513,17 +604,14 @@ export async function getClassroomSharedScreen(
     lifecycle: detail.lifecycle,
     learnerCount: detail.learnerCount,
     course: { title: detail.course.title, blockCount: detail.course.blockCount },
-    currentBlock: {
-      id: detail.currentBlock.id,
-      title: detail.currentBlock.title,
-      macroStepOrder: detail.currentBlock.macroStepOrder,
-      studentPrompt: detail.currentBlock.studentPrompt,
+    page: {
+      id: detail.page.id,
+      title: detail.page.title,
+      macroStepOrder: detail.page.macroStepOrder,
+      studentPrompt: detail.page.studentPrompt,
     },
-    controller: {
-      blockId: detail.controller.blockId,
-      blockIndex: detail.controller.blockIndex,
-      state: detail.controller.state,
-    },
+    script: detail.script,
+    scriptNavigation: { ...detail.scriptNavigation, nextLocked: null, canUnlockNext: false },
   };
 }
 
@@ -531,9 +619,12 @@ export async function submitClassroomBlockWork(
   db: ClassroomD1,
   user: AuthenticatedClassroomUser,
   roomId: string,
-  input: { kind: string; text: string },
+  input: { blockId: string; kind: string; text: string; viewAsProfileId?: string },
 ): Promise<void> {
-  const detail = await getClassroomInstance(db, user, roomId);
+  const detail = await getClassroomInstance(db, user, roomId, {
+    blockId: input.blockId,
+    ...(input.viewAsProfileId ? { viewAsProfileId: input.viewAsProfileId } : {}),
+  });
   const kind = input.kind.trim();
   const text = input.text.trim();
   if (!/^[a-z][a-z0-9-]{1,31}$/.test(kind)) throw new ClassroomError("SUBMISSION_KIND_INVALID", "作品类型无效。", 400);
@@ -546,63 +637,78 @@ export async function submitClassroomBlockWork(
        VALUES (?, ?, ?, ?, ?, ?, 'submitted', ?, ?)
        ON CONFLICT(room_id, block_id, profile_id, kind) DO UPDATE SET
          payload_json = excluded.payload_json, status = 'submitted', updated_at = excluded.updated_at`,
-    ).bind(crypto.randomUUID(), roomId, detail.currentBlock.id, user.userId, kind, JSON.stringify({ text }), now, now),
-    factoryEvent(db, roomId, auditActor(user), "block.submitted", withIdentityAudit(user, { blockId: detail.currentBlock.id, kind }), now),
+    ).bind(crypto.randomUUID(), roomId, detail.page.id, detail.viewer.viewProfileId, kind, JSON.stringify({ text }), now, now),
+    factoryEvent(db, roomId, auditActor(user), "block.submitted", withIdentityAudit(user, {
+      blockId: detail.page.id,
+      kind,
+      projectedProfileId: detail.viewer.viewProfileId,
+      testView: detail.environment === "test" && detail.viewer.viewProfileId !== user.userId,
+    }), now),
   ]);
 }
 
-export async function applyControllerAction(
+export async function applyScriptAction(
   db: ClassroomD1,
   user: AuthenticatedClassroomUser,
   roomId: string,
   expectedVersion: number,
-  action: ClassroomControllerAction,
-): Promise<ClassroomControllerState & { version: number }> {
-  await requireAdminDm(db, user, roomId);
+  action: ClassroomScriptAction,
+  viewAsProfileId?: string,
+): Promise<ClassroomScriptProgress> {
+  const summary = (await listClassroomInstances(db, user)).find((item) => item.id === roomId);
+  if (!summary) throw new ClassroomError("CLASSROOM_ACCESS_FORBIDDEN", "你不是这个课堂的成员或 Admin DM。", 403);
+  if (viewAsProfileId) {
+    if (summary.environment !== "test") throw new ClassroomError("TEST_VIEW_PRODUCTION_FORBIDDEN", "角色视角切换不能用于 Production Classroom。", 403);
+    await requireTestViewTarget(db, roomId, viewAsProfileId);
+  }
+  if (summary.environment !== "test" && !summary.isAdminDm && !summary.mentorRole) {
+    throw new ClassroomError("SCRIPT_UNLOCK_MENTOR_REQUIRED", "只有本课堂导师或 Admin DM 可以解锁下一页。", 403);
+  }
   const row = await db.prepare(
-    `SELECT cs.*, ci.environment, ci.lifecycle FROM classroom_controller_states cs
-     JOIN classroom_instances ci ON ci.room_id = cs.room_id WHERE cs.room_id = ?`,
+    `SELECT sp.*, ci.environment, ci.lifecycle, ci.course_id, ci.course_revision, ci.course_digest
+     FROM classroom_script_progress sp
+     JOIN classroom_instances ci ON ci.room_id = sp.room_id WHERE sp.room_id = ?`,
   ).bind(roomId).first<{
-    state_machine_version: 1; block_id: string; block_index: number; state: ClassroomControllerState["state"];
-    attempt: number; error_message: string | null; version: number; created_at: string; updated_at: string;
-    environment: ClassroomEnvironment; lifecycle: string;
+    state_machine_version: 2; unlocked_through_block_id: string; unlocked_through_index: number;
+    version: number; created_at: string; updated_at: string; environment: ClassroomEnvironment; lifecycle: string;
+    course_id: string; course_revision: number; course_digest: string;
   }>();
   if (!row) throw new ClassroomError("CLASSROOM_NOT_FOUND", "课堂不存在。", 404);
-  if (row.version !== expectedVersion) throw new ClassroomError("CONTROLLER_VERSION_CONFLICT", "中控已被另一位管理员更新，请刷新后重试。", 409);
+  if (row.version !== expectedVersion) throw new ClassroomError("SCRIPT_VERSION_CONFLICT", "另一位导师刚刚解锁了页面，请同步后再操作。", 409);
   const now = new Date().toISOString();
-  const current: ClassroomControllerState = {
+  const current: ClassroomScriptProgress = {
     stateMachineVersion: row.state_machine_version,
-    blockId: row.block_id,
-    blockIndex: row.block_index,
-    state: row.state,
-    attempt: row.attempt,
-    errorMessage: row.error_message,
+    unlockedThroughBlockId: row.unlocked_through_block_id,
+    unlockedThroughIndex: row.unlocked_through_index,
+    version: row.version,
     updatedAt: row.updated_at,
   };
-  let next: ClassroomControllerState;
-  try { next = controllerTransition(current, action, now); }
-  catch (error) { throw new ClassroomError("CONTROLLER_TRANSITION_INVALID", error instanceof Error ? error.message : "中控状态转换无效。", 409); }
-  const courseRow = await db.prepare(`SELECT course_id, course_revision, course_digest FROM classroom_instances WHERE room_id = ?`).bind(roomId).first<{ course_id: string; course_revision: number; course_digest: string }>();
-  const course = await loadExactCoursePackage(db, { courseId: courseRow!.course_id, revision: courseRow!.course_revision, digest: courseRow!.course_digest });
-  if (action.type === "advance") {
-    if (current.blockIndex >= course.blocks.length - 1) throw new ClassroomError("USE_COMPLETE", "最后一个 Block 请使用完成课程。", 409);
-    next = { ...next, blockId: course.blocks[current.blockIndex + 1].id };
-  }
+  const course = await loadExactCoursePackage(db, { courseId: row.course_id, revision: row.course_revision, digest: row.course_digest });
+  let next: ClassroomScriptProgress;
+  try { next = unlockNextScriptPage(current, action, course.blocks.map((block) => block.id), now); }
+  catch (error) { throw new ClassroomError("SCRIPT_UNLOCK_INVALID", error instanceof Error ? error.message : "不能解锁这一页。", 409); }
   const changes = await db.prepare(
-    `UPDATE classroom_controller_states SET block_id = ?, block_index = ?, state = ?, attempt = ?, error_message = ?,
-       version = version + 1, updated_at = ? WHERE room_id = ? AND version = ?`,
-  ).bind(next.blockId, next.blockIndex, next.state, next.attempt, next.errorMessage, now, roomId, expectedVersion).run();
-  if (Number(changes.meta?.changes ?? 0) !== 1) throw new ClassroomError("CONTROLLER_VERSION_CONFLICT", "中控已被另一位管理员更新，请刷新后重试。", 409);
-  const lifecycle = next.state === "completed" ? "completed" : row.lifecycle === "ready" && next.state === "executing" ? "running" : row.lifecycle;
+    `UPDATE classroom_script_progress
+     SET unlocked_through_block_id = ?, unlocked_through_index = ?, state_machine_version = ?,
+         version = version + 1, updated_at = ?
+     WHERE room_id = ? AND version = ? AND unlocked_through_index = ?`,
+  ).bind(next.unlockedThroughBlockId, next.unlockedThroughIndex, CLASSROOM_STATE_MACHINE_VERSION, now, roomId, expectedVersion, current.unlockedThroughIndex).run();
+  if (Number(changes.meta?.changes ?? 0) !== 1) throw new ClassroomError("SCRIPT_VERSION_CONFLICT", "另一位导师刚刚解锁了页面，请同步后再操作。", 409);
+  const lifecycle = next.unlockedThroughIndex === course.blocks.length - 1 ? "completed" : "running";
   await db.batch([
     db.prepare(
       `UPDATE classroom_instances SET lifecycle = ?, locked_at = CASE WHEN locked_at IS NULL AND ? = 'running' THEN ? ELSE locked_at END,
        started_at = CASE WHEN started_at IS NULL AND ? = 'running' THEN ? ELSE started_at END,
        completed_at = CASE WHEN ? = 'completed' THEN ? ELSE completed_at END, updated_at = ? WHERE room_id = ?`,
     ).bind(lifecycle, lifecycle, now, lifecycle, now, lifecycle, now, now, roomId),
-    factoryEvent(db, roomId, auditActor(user), `controller.${action.type}`, withIdentityAudit(user, { from: current, to: next }), now),
+    factoryEvent(db, roomId, auditActor(user), "script.page-unlocked", withIdentityAudit(user, {
+      from: current,
+      to: next,
+      projectedProfileId: viewAsProfileId ?? user.userId,
+      testView: Boolean(viewAsProfileId),
+    }), now),
   ]);
-  return { ...next, version: expectedVersion + 1 };
+  return next;
 }
 
 export async function resetTestClassroom(db: ClassroomD1, user: AuthenticatedClassroomUser, roomId: string): Promise<void> {
@@ -646,6 +752,11 @@ export async function resetTestClassroom(db: ClassroomD1, user: AuthenticatedCla
     db.prepare(`UPDATE memberships SET pdmo_role = NULL, support_commitment = NULL, updated_at = ? WHERE room_id = ?`).bind(now, roomId),
     db.prepare(`UPDATE rooms SET phase = 'identity', chapter_id = ?, version = version + 1, paused = 0, paused_at = NULL, phase_deadline_at = NULL, player_timeline_frozen = 0, history_revealed = 0, updated_at = ? WHERE id = ?`).bind(campaign.chapters[0].id, now, roomId),
     db.prepare(`UPDATE classroom_controller_states SET block_id = ?, block_index = 0, state = 'ready', attempt = 1, error_message = NULL, version = version + 1, updated_at = ? WHERE room_id = ?`).bind(course.blocks[0].id, now, roomId),
+    db.prepare(
+      `UPDATE classroom_script_progress
+       SET state_machine_version = ?, unlocked_through_block_id = ?, unlocked_through_index = 0,
+           version = version + 1, updated_at = ? WHERE room_id = ?`,
+    ).bind(CLASSROOM_STATE_MACHINE_VERSION, course.blocks[0].id, now, roomId),
     db.prepare(`UPDATE classroom_instances SET lifecycle = 'ready', reset_generation = reset_generation + 1, locked_at = NULL, started_at = NULL, completed_at = NULL, updated_at = ? WHERE room_id = ?`).bind(now, roomId),
     db.prepare(`UPDATE classroom_acceptance_bindings SET ui_receipt_id = NULL WHERE room_id = ?`).bind(roomId),
   ];
@@ -687,7 +798,9 @@ export async function acceptTestClassroom(
   await requireAdminDm(db, user, roomId);
   const detail = await getClassroomInstance(db, user, roomId);
   if (detail.environment !== "test") throw new ClassroomError("TEST_CLASSROOM_REQUIRED", "只有 Test Classroom 可以生成验收回执。", 409);
-  if (detail.controller.state !== "completed") throw new ClassroomError("TEST_NOT_COMPLETED", "请先用真实课堂 UI 完成全部 Block。", 409);
+  if (detail.script.unlockedThroughIndex !== detail.course.blockCount - 1) {
+    throw new ClassroomError("TEST_NOT_COMPLETED", "请先在真实课堂 UI 中逐页确认并解锁全部剧本页。", 409);
+  }
   if (detail.mentors.length !== 4 || detail.learners.length !== detail.learnerCount || detail.courseware.length !== 4) {
     throw new ClassroomError("TEST_INSTANCE_INCOMPLETE", "课堂成员或四导师课件绑定不完整，不能签发验收回执。", 409);
   }
@@ -735,7 +848,8 @@ export async function acceptTestClassroom(
       eventCount: Number(audit?.event_count ?? 0),
       firstEventAt: audit?.first_event_at ?? null,
       lastEventAt: audit?.last_event_at ?? null,
-      controllerVersion: detail.controller.version,
+      scriptUnlockVersion: detail.script.version,
+      unlockedThroughBlockId: detail.script.unlockedThroughBlockId,
       appBuildId: COURSE_ACCEPTANCE_APP_BUILD_ID,
       ...identityAudit(user),
     },
@@ -1199,6 +1313,18 @@ function withIdentityAudit(
   detail: Record<string, unknown>,
 ): Record<string, unknown> {
   return { ...detail, ...identityAudit(user) };
+}
+
+async function requireTestViewTarget(db: ClassroomD1, roomId: string, profileId: string): Promise<void> {
+  const target = await db.prepare(
+    `SELECT 1 AS value FROM memberships
+     WHERE room_id = ? AND profile_id = ? AND status = 'active'
+     UNION ALL
+     SELECT 1 AS value FROM classroom_admin_dm_grants
+     WHERE room_id = ? AND profile_id = ? AND revoked_at IS NULL
+     LIMIT 1`,
+  ).bind(roomId, profileId, roomId, profileId).first<{ value: number }>();
+  if (!target) throw new ClassroomError("TEST_VIEW_MEMBERSHIP_REQUIRED", "测试视角必须属于这个 Test Classroom。", 403);
 }
 
 function toExactCoursewareRef(content: CoursewareContent): ExactCoursewareRef {

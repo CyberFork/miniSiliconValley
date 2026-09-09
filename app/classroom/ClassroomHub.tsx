@@ -144,7 +144,7 @@ function RoomCard({ room }: { room: ClassroomInstanceSummary }) {
   const role = room.mentorRole ? `${room.mentorRole} 导师` : room.learnerSeat ? `学员 ${room.learnerSeat}` : room.isAdminDm ? adminLabel : "成员";
   return <article className={styles.room} data-env={room.environment}>
     <div><span className={styles.environmentBadge} data-env={room.environment}>{room.environment.toUpperCase()}</span><small>{room.lifecycle.toUpperCase()}</small><h3>{room.title}</h3><p>{role}{room.isAdminDm && room.mentorRole ? ` · ${adminLabel}` : ""}<br />课程：{room.courseRef.courseId} · r{room.courseRef.revision}</p></div>
-    <div><div className={styles.roomMeta}><span>{room.controller.blockId}</span><span>{room.controller.state}</span><span>{room.learnerCount} 学员</span></div><Link href={`/classroom/${room.id}/`}>进入我的课堂 →</Link></div>
+    <div><div className={styles.roomMeta}><span>{room.script.unlockedThroughBlockId}</span><span>已解锁</span><span>{room.learnerCount} 学员</span></div><a href={`/classroom/${encodeURIComponent(room.id)}/`}>进入我的课堂 →</a></div>
   </article>;
 }
 

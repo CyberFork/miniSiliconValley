@@ -1,5 +1,5 @@
 import { ClassroomError } from "./classroom-errors";
-import type { ClassroomControllerAction, ClassroomFactoryRequest, ClassroomMentorRole, ExactCoursewareRef } from "./classroom-factory";
+import type { ClassroomFactoryRequest, ClassroomMentorRole, ClassroomScriptAction, ExactCoursewareRef } from "./classroom-factory";
 import type { CoursePackageRef } from "./course-package";
 
 export function objectValue(value: unknown, label = "请求"): Record<string, unknown> {
@@ -72,15 +72,13 @@ export function parseFactoryRequest(value: unknown): ClassroomFactoryRequest {
   return result;
 }
 
-export function parseControllerAction(value: unknown): { expectedVersion: number; action: ClassroomControllerAction } {
+export function parseScriptAction(value: unknown): { expectedVersion: number; action: ClassroomScriptAction; viewAsProfileId?: string } {
   const raw = objectValue(value);
   const action = objectValue(raw.action, "action");
-  const type = action.type;
-  if (type === "execute" || type === "submit-for-acceptance" || type === "accept" || type === "complete") {
-    return { expectedVersion: integerValue(raw.expectedVersion, "expectedVersion", 1), action: { type } };
-  }
-  if (type === "advance") return { expectedVersion: integerValue(raw.expectedVersion, "expectedVersion", 1), action: { type, ...(typeof action.nextBlockId === "string" ? { nextBlockId: action.nextBlockId } : {}) } };
-  if (type === "reject") return { expectedVersion: integerValue(raw.expectedVersion, "expectedVersion", 1), action: { type, ...(typeof action.message === "string" ? { message: action.message.slice(0, 500) } : {}) } };
-  if (type === "fail") return { expectedVersion: integerValue(raw.expectedVersion, "expectedVersion", 1), action: { type, message: stringValue(action.message, "错误说明", 500) } };
-  throw new ClassroomError("INPUT_INVALID", "未知中控动作。", 400);
+  if (action.type !== "unlock-next") throw new ClassroomError("INPUT_INVALID", "未知剧本解锁动作。", 400);
+  return {
+    expectedVersion: integerValue(raw.expectedVersion, "expectedVersion", 1),
+    action: { type: "unlock-next", nextBlockId: stringValue(action.nextBlockId, "下一页 Block", 64) },
+    ...(raw.viewAsProfileId == null ? {} : { viewAsProfileId: stringValue(raw.viewAsProfileId, "测试视角账号", 128) }),
+  };
 }

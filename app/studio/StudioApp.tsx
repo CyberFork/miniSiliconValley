@@ -212,6 +212,26 @@ function ViewAcceptance({ data, initialCourseRef, onAccepted, onError }: {
   const [reviewedBlocks, setReviewedBlocks] = useState<string[]>(source?.course.blocks[0]?.id ? [source.course.blocks[0].id] : []);
   const [reviewedCounts, setReviewedCounts] = useState<number[]>(source ? [source.learnerPolicy.defaultCount] : []);
   const [accepting, setAccepting] = useState(false);
+  const chooseBlock = useCallback((nextBlockId: string) => {
+    setBlockId(nextBlockId);
+    setReviewedBlocks((current) => current.includes(nextBlockId) ? current : [...current, nextBlockId]);
+  }, []);
+  useEffect(() => {
+    if (!source) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target && (target.matches("input, select, textarea, [contenteditable='true'], [role='textbox']") || target.closest("input, select, textarea, [contenteditable='true'], [role='textbox']"))) return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+      const index = source.course.blocks.findIndex((block) => block.id === blockId);
+      const next = event.key === "Home" ? 0 : event.key === "End" ? source.course.blocks.length - 1 : index + (event.key === "ArrowRight" ? 1 : -1);
+      if (next < 0 || next >= source.course.blocks.length || next === index) return;
+      event.preventDefault();
+      chooseBlock(source.course.blocks[next].id);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [blockId, chooseBlock, source]);
   if (!source) return <div className={styles.empty}>没有可验收的 Candidate 或 Released 课程版本。</div>;
 
   const course = source.course;
@@ -233,10 +253,6 @@ function ViewAcceptance({ data, initialCourseRef, onAccepted, onError }: {
     setReviewedBlocks(firstBlock ? [firstBlock] : []);
     setReviewedCounts([next.learnerPolicy.defaultCount]);
     onError("");
-  };
-  const chooseBlock = (nextBlockId: string) => {
-    setBlockId(nextBlockId);
-    setReviewedBlocks((current) => current.includes(nextBlockId) ? current : [...current, nextBlockId]);
   };
   const chooseCount = (count: number) => {
     setLearnerCount(count);
@@ -262,7 +278,7 @@ function ViewAcceptance({ data, initialCourseRef, onAccepted, onError }: {
 
   return <>
     <Heading eyebrow="VIEW ACCEPTANCE · SAVED CANDIDATE ONLY" title="多角色视图验收">
-      这里仅读取已保存的 exact 版本，不读取编辑器 Working Copy，也不写入课堂状态。亲自检查完全部 Block 与支持人数后，系统再重跑完整矩阵并签发不可变回执。
+      这是内部内容验收；最终 UI 在 Test Classroom 验收。这里仅读取已保存的 exact 版本，不读取编辑器 Working Copy，也不写入课堂状态。亲自检查完全部 Block 与支持人数后，系统再重跑完整矩阵并签发不可变回执。
     </Heading>
     <section className={styles.panel}>
       <div className={styles.acceptanceHeader}>
@@ -290,9 +306,11 @@ function ViewAcceptance({ data, initialCourseRef, onAccepted, onError }: {
 }
 
 function Projection({ projection }: { projection: ReturnType<typeof buildStudioProjection> }) {
+  const [pinned, setPinned] = useState<string[]>([]);
+  const togglePin = (id: string) => setPinned((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
   return <div className={styles.viewGrid}>
-    {projection.mentorViews.map((view) => <article className={styles.viewCard} data-active={view.activity === "active"} data-kind="mentor" key={view.seatId}><small>{view.seatId.toUpperCase()} · {view.mentorRole} 导师</small><h3>{view.label}</h3><span className={styles.badge}>{view.activity === "active" ? "本块主导" : view.activity === "support" ? "观察支援" : "待命"}</span><p>{view.task}</p></article>)}
-    {projection.learnerViews.map((view) => <article className={styles.viewCard} data-kind="learner" key={view.seatId}><small>{view.seatId.toUpperCase()} · 私人任务视角</small><h3>{view.label}</h3><p>{view.task}</p><div className={styles.cards}>{view.privateCards.map((card) => <span key={card.id}>{card.boundary} · {card.title}</span>)}{!view.privateCards.length && <span>卡组容量不足：不会伪造手牌</span>}</div></article>)}
+    {projection.mentorViews.map((view) => <article className={styles.viewCard} data-active={view.activity === "active"} data-kind="mentor" data-pinned={pinned.includes(view.seatId)} key={view.seatId}><header><small>{view.seatId.toUpperCase()} · {view.mentorRole} 导师</small><button type="button" aria-expanded={pinned.includes(view.seatId)} onClick={() => togglePin(view.seatId)}>{pinned.includes(view.seatId) ? "收起" : "固定展开"}</button></header><h3>{view.label}</h3><span className={styles.badge}>{view.badge}</span><p>{view.task}</p><div className={styles.viewDetails}><b>导师私有讲稿</b><ul>{view.privateScript.map((line) => <li key={line}>{line}</li>)}</ul></div></article>)}
+    {projection.learnerViews.map((view) => <article className={styles.viewCard} data-kind="learner" data-pinned={pinned.includes(view.seatId)} key={view.seatId}><header><small>{view.seatId.toUpperCase()} · 私人任务视角</small><button type="button" aria-expanded={pinned.includes(view.seatId)} onClick={() => togglePin(view.seatId)}>{pinned.includes(view.seatId) ? "收起" : "固定展开"}</button></header><h3>{view.label}</h3><span className={styles.badge}>{view.badge}</span><p>{view.task}</p><div className={styles.viewDetails}><p><b>学员私有提示：</b>{view.prompt}</p><div className={styles.cards}>{view.privateCards.map((card) => <span key={card.id}><b>{card.id} · {card.title}</b><br/>正文：{card.body}<br/>分享提示：{card.sharePrompt}<br/>证据边界：{card.boundary}<br/>来源：{card.sourceIds.join(", ") || "未标注"}</span>)}{!view.privateCards.length && <span>卡组容量不足：不会伪造手牌</span>}</div></div></article>)}
     <article className={styles.controller}><div><small>CONTROLLER · {projection.controllerView.blockId}</small><h3>{projection.controllerView.title}</h3><b>主导：{projection.controllerView.leadMentorId}</b></div><div><small>系统动作</small><ul>{projection.controllerView.systemActions.map((item) => <li key={item}>{item}</li>)}</ul></div><div><small>本块验收</small><ul>{projection.controllerView.acceptance.map((item) => <li key={item}>{item}</li>)}</ul></div></article>
   </div>;
 }

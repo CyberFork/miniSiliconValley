@@ -1,11 +1,15 @@
 import type { CoursePackageRef } from "./course-package";
 
-export const CLASSROOM_STATE_MACHINE_VERSION = 1 as const;
+/**
+ * Version 2 replaces the coupled execute/accept/advance controller with an
+ * append-only script-unlock frontier.  Activity submissions and economy data
+ * remain independent of this value.
+ */
+export const CLASSROOM_STATE_MACHINE_VERSION = 2 as const;
 export const CLASSROOM_MENTOR_ROLES = ["P", "D", "M", "O"] as const;
 export type ClassroomMentorRole = (typeof CLASSROOM_MENTOR_ROLES)[number];
 export type ClassroomEnvironment = "test" | "production";
 export type ClassroomLifecycle = "draft" | "ready" | "running" | "completed" | "reset";
-export type ControllerExecutionState = "ready" | "executing" | "awaiting-acceptance" | "accepted" | "completed" | "error";
 
 export interface ExactCoursewareRef {
   mentorRole: ClassroomMentorRole;
@@ -28,24 +32,15 @@ export interface ClassroomFactoryRequest {
   learnerProfileIds: string[];
 }
 
-export interface ClassroomControllerState {
+export interface ClassroomScriptProgress {
   stateMachineVersion: typeof CLASSROOM_STATE_MACHINE_VERSION;
-  blockId: string;
-  blockIndex: number;
-  state: ControllerExecutionState;
-  attempt: number;
+  unlockedThroughBlockId: string;
+  unlockedThroughIndex: number;
+  version: number;
   updatedAt: string;
-  errorMessage: string | null;
 }
 
-export type ClassroomControllerAction =
-  | { type: "execute" }
-  | { type: "submit-for-acceptance" }
-  | { type: "accept" }
-  | { type: "reject"; message?: string }
-  | { type: "advance"; nextBlockId?: string }
-  | { type: "complete" }
-  | { type: "fail"; message: string };
+export type ClassroomScriptAction = { type: "unlock-next"; nextBlockId: string };
 
 export interface ClassroomFactoryPlan {
   factoryKey: string;
@@ -61,7 +56,7 @@ export interface ClassroomFactoryPlan {
   mentorSeats: Array<{ mentorRole: ClassroomMentorRole; profileId: string; membershipKey: string }>;
   learnerMemberships: Array<{ profileId: string; seat: number; membershipKey: string }>;
   adminPermissions: Array<{ profileId: string; permission: "admin-dm" }>;
-  initialControllerState: ClassroomControllerState;
+  initialScriptProgress: ClassroomScriptProgress;
 }
 
 function exactRoles(values: readonly ClassroomMentorRole[]): boolean {
@@ -155,14 +150,12 @@ export function buildClassroomFactoryPlan(input: ClassroomFactoryRequest, factor
       membershipKey: `learner-${index + 1}-${stableKey(factorySeed, index + 1, profileId)}`,
     })),
     adminPermissions: input.adminDmProfileIds.map((profileId) => ({ profileId, permission: "admin-dm" as const })),
-    initialControllerState: {
+    initialScriptProgress: {
       stateMachineVersion: CLASSROOM_STATE_MACHINE_VERSION,
-      blockId: "B01",
-      blockIndex: 0,
-      state: "ready",
-      attempt: 1,
+      unlockedThroughBlockId: "B01",
+      unlockedThroughIndex: 0,
+      version: 1,
       updatedAt: new Date(0).toISOString(),
-      errorMessage: null,
     },
   };
 }
@@ -174,38 +167,23 @@ export function canActorAdministerClassroom(
   return permissions.some((permission) => permission.profileId === profileId && permission.permission === "admin-dm");
 }
 
-export function controllerTransition(
-  current: ClassroomControllerState,
-  action: ClassroomControllerAction,
+export function unlockNextScriptPage(
+  current: ClassroomScriptProgress,
+  action: ClassroomScriptAction,
+  orderedBlockIds: readonly string[],
   at: string,
-): ClassroomControllerState {
-  const next = { ...current, updatedAt: at, errorMessage: null };
-  switch (action.type) {
-    case "execute":
-      if (current.state !== "ready") throw new Error(`状态 ${current.state} 不能开始执行。`);
-      return { ...next, state: "executing" };
-    case "submit-for-acceptance":
-      if (current.state !== "executing") throw new Error(`状态 ${current.state} 不能提交验收。`);
-      return { ...next, state: "awaiting-acceptance" };
-    case "accept":
-      if (current.state !== "awaiting-acceptance") throw new Error(`状态 ${current.state} 不能直接验收。`);
-      return { ...next, state: "accepted" };
-    case "reject":
-      if (current.state !== "awaiting-acceptance") throw new Error(`状态 ${current.state} 不能退回。`);
-      return { ...next, state: "ready", attempt: current.attempt + 1, errorMessage: action.message?.trim() || "需要补充证据后重试。" };
-    case "advance":
-      if (current.state !== "accepted") throw new Error(`状态 ${current.state} 不能进入下一块。`);
-      return {
-        ...next,
-        blockId: action.nextBlockId ?? `B${String(current.blockIndex + 2).padStart(2, "0")}`,
-        blockIndex: current.blockIndex + 1,
-        state: "ready",
-        attempt: 1,
-      };
-    case "complete":
-      if (current.state !== "accepted") throw new Error(`状态 ${current.state} 不能完成课程。`);
-      return { ...next, state: "completed" };
-    case "fail":
-      return { ...next, state: "error", errorMessage: action.message };
+): ClassroomScriptProgress {
+  const expectedIndex = current.unlockedThroughIndex + 1;
+  if (expectedIndex >= orderedBlockIds.length) throw new Error("全部剧本页已经解锁。");
+  const expectedBlockId = orderedBlockIds[expectedIndex];
+  if (action.nextBlockId !== expectedBlockId) {
+    throw new Error(`下一页必须是 ${expectedBlockId}，不能跳页或解锁旧页。`);
   }
+  return {
+    stateMachineVersion: CLASSROOM_STATE_MACHINE_VERSION,
+    unlockedThroughBlockId: expectedBlockId,
+    unlockedThroughIndex: expectedIndex,
+    version: current.version + 1,
+    updatedAt: at,
+  };
 }

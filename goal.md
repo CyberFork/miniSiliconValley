@@ -1,44 +1,53 @@
-# Mini Silicon Valley 完整收口目标
+# T-086｜角色可见电子剧本课堂闭环
 
-## 目标
+## 主棍
 
-按 `T-075 → T-073 → T-078/T-079/T-080/T-084 → T-076 → T-082 → T-081` 完成课程单一真相链、统一课程语义、入口与编辑器、地图交互、Alpha 可读性、品牌及 Workshop 只读回写，并发布到 Hecate 的 `minisv.vip`。
+Mini Silicon Valley Classroom 不是一条强制所有人同步跳转的工作流，而是一组按角色分发、逐页解锁的电子剧本／PPT：
+
+- 全课堂只共享“已经解锁到哪一页”。
+- 每位导师、学员与投屏独立翻阅已经解锁的页面。
+- 回看历史页不会修改课堂状态、提交、RP、钱包、团队资金或任何游戏记录。
+- 导师确认后只解锁下一页并通知全员，不强制任何人的屏幕跳页。
+- 学员不能解锁新页；P／D／M／O 任一导师和 Admin DM 都可以确认解锁。
+- Test Classroom 可在同一真实运行时中切换角色视角并执行真实测试操作；Production 不提供角色切换。
+- `leadMentorId` 只是本页建议主讲人，不是权限边界。
+
+## 分层契约
+
+1. **Script Layer**：角色可见内容、课程页序、全局已解锁边界、独立浏览页游标。
+2. **Activity Layer**：信息卡、讨论、回答、提交、导师反馈与 Demo 作品；按 Block 持久化，但不阻塞翻页或解锁。
+3. **Economy Layer**：个人 RP、个人钱包、团队资金、工具与账本；与脚本浏览完全解耦。
+4. **Acceptance Layer**：Stage 1 验收角色内容投影；Stage 2 在真实 Test Classroom UI 中验收；两级 exact 回执共同门禁 Released。
 
 ## 不可妥协约束
 
-- 课程正文只有一份结构化 JSON Course Package；编辑器、Alpha、Classroom 和 Workshop 不复制业务文案。
-- `Candidate → Alpha 人工逐块验收 → Released → 新课堂 exact 绑定`；历史 revision、既有正式课堂和验收回执不可静默改写。
-- “全部刷新 Alpha”保留 Run ID、执行位置、成员、提交、评分、RP、个人钱包、团队资金和稳定手牌；与重置严格分离。
-- 学员统一为 Young Builder，不固定 P/D/M/O；P/D/M/O 只表示四类导师专业分工。
-- 课程统一为五步创业闭环与六分钟 Demo Day；事实、模拟、推测、未知边界始终可见。
-- 不修改或重写同事 `cowork/chj` 原稿及其 `/course/` 发布内容；`/framework/` 是本项目自有方法页，可以统一站点品牌。
-- 不触碰 `cyberforker.com` 主站；只部署 Hecate 和 `minisv.vip`。
-- 内部发布接口必须 loopback + service key 防护；密钥不进入 Git、日志或前端。
+- 不存在全局“当前页”；服务端只保存单调递增的 `unlockedThroughIndex`。
+- 浏览位置属于每个浏览器视图，以 URL／本地 UI 状态表达，不能写成课堂业务状态。
+- 非最新页始终提供“一键回到最新解锁页”。
+- 右方向键在已解锁范围内只翻页；处于解锁边界时，学员收到“下一页尚未解锁”，导师弹出明确确认后才能解锁下一页。
+- 解锁采用乐观并发版本，重复／过期操作不可越页或覆盖新状态，并记录真实 actor 与 Test effective identity。
+- 既有课堂迁移以旧 `blockIndex` 作为已解锁边界；不删除提交、手牌、身份、RP、钱包、团队资金、账本或验收绑定。
+- Test 角色切换只在目标 Test Classroom 内有效；不得进入 Studio、其他课堂或 Production，不得泄漏其他人的密码。
+- Production 只显示登录者自己的角色剧本；服务端拒绝任何 Test-only 视角参数。
+- `cyberforker.com` 不触碰；只部署 Hecate 的 `minisv.vip`。
+
+## 交付范围
+
+- [x] Stage 1：桌面多角色内容验收完整字段、Hover／点击固定、←／→ 切 B01—B13。
+- [x] Classroom Center：普通点击、Enter、Cmd/Ctrl-click 均按浏览器语义可靠进入课堂。
+- [x] Script Progress：全局解锁边界、独立页游标、通知、回到最新页、确认解锁。
+- [x] Test Role Tabs：中控、P／D／M／O、学员 1…N、投屏；保持页码并使用真实 API。
+- [x] Control：移除执行／提交验收／退回／尝试次数对导航的门禁，保留每页主持提示和现场数据雷达。
+- [x] UI Acceptance：完成全部页解锁后可签发新 build 的 UiAcceptanceReceipt；旧 build 回执自动失效。
+- [x] 测试与文档：单元、API、迁移、并发、权限、浏览器键盘／导航、生产隔离、操作手册。
+- [ ] Hecate/minisv.vip 部署与生产冒烟回执。
 
 ## 验收
 
-- Google、饿了么均为 5 步 / 13 Block / 5 卡组，每组至少 12 张，Course Package digest 跨 Python/TypeScript 一致。
-- 编辑器保存只产生 Candidate；Alpha 显式刷新；13 Block 逐块验收生成 exact approval；Released 指针原子推进。
-- 正式课堂只读取 Released；创建时写入 exact revision/digest；发布新版本不改变旧课堂。
-- 四导师、四学员、随机 4×3 发牌、三类玩法、RP/个人钱包/团队资金和 Demo Day 完整可运行。
-- 相关 TypeScript、Python、网关、构建、响应式与生产只读冒烟测试全部通过。
-- 所有目标页面由 `https://minisv.vip/` 导航可达，部署回执和操作文档完整。
-
-## 执行顺序
-
-- [x] T-075 课程版本单一真相链
-- [x] T-073 四导师 / Young Builder / 五步语义统一
-- [x] T-078、T-079、T-080、T-084 快速收口
-- [x] T-076 Alpha 九窗口可读性
-- [x] T-082 Logo 与统一品牌入口
-- [x] T-081 Workshop Released 只读回写
-- [x] 全量测试、Hecate 部署、生产验收与回执
-
-## 完成回执
-
-- Hecate Release：`20260907T180022Z-truth-chain-final2`
-- 部署源码：`40c652b562a7634135ff645a9c3cddf32a9da784`
-- 饿了么 Released：r9，digest `5e18ab82b30cd6f61b37bb4d0d217c1ef3b2a795354a16d9a2ce3c6a5f4ab4e4`
-- Alpha 验收 Run：`run-20260907-014609-04bf7f`，13／13 Block 完成
-- Workshop 快照 digest：`93cf31150b241268c3ab6bdd76c1563dc9e8831774e9ccf8791e5b855e7c94cb`
-- 完整生产回执：[T-073—T-084 课程真值链生产收口回执](docs/TODO_073_084_PRODUCTION_RECEIPT.md)
+- B01 初始解锁；导师依次确认解锁至末页，不能跳号、倒退或重复写入。
+- 两个用户分别停留在 B02／B05 时，解锁 B06 后只收到通知，页面不被强制切换。
+- 任意已解锁历史页可左右翻阅，并一键回到最新解锁页。
+- 刷新、重登和并发解锁后边界、私密视图、提交和经济数据都正确。
+- Test 可切换所有角色并执行该角色的真实页面操作；Production 前后端都没有该能力。
+- 学员只能看自己的私密卡与个人经济；共享投屏不泄漏私密卡、导师讲稿、账号、钱包或未公开提交。
+- Candidate 经过 Stage 1 和完整 Test UI 验收后才可 Released；Production 只能绑定对应 exact Released 与有效 UI 回执。

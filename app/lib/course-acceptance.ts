@@ -5,12 +5,11 @@ import { coursePackageDigest, validateCoursePackage, type CoursePackageRef } fro
 import { buildStudioProjection, resolveLearnerPolicy, validateCourseInstantiation } from "./course-platform";
 import { coursewareBundleDigest } from "./courseware-store";
 
-export const COURSE_PROJECTOR_VERSION = "course-projector-v2";
-// Bump whenever the real Classroom/Studio acceptance surface changes. T-087
-// adds actor/effective identity isolation and Primary/Delegated Admin DM
-// controls, so a receipt produced by the pre-T-087 UI must not unlock a new
-// Production Classroom.
-export const COURSE_ACCEPTANCE_APP_BUILD_ID = "minisv-t087-v1";
+export const COURSE_PROJECTOR_VERSION = "course-projector-v3";
+// T-086 changes the runtime contract from a coupled controller workflow to an
+// append-only script frontier plus independent role-visible page cursors. Old
+// View/UI receipts must not authorize a Production Classroom under this UI.
+export const COURSE_ACCEPTANCE_APP_BUILD_ID = "minisv-t086-script-v1";
 export const COURSE_ACCEPTANCE_RECEIPT_SCHEMA_VERSION = 1;
 
 export const UI_ACCEPTANCE_REQUIRED_CHECKS = [
@@ -20,7 +19,9 @@ export const UI_ACCEPTANCE_REQUIRED_CHECKS = [
   "learnerTasks",
   "learnerPrivacy",
   "sharedScreenRedaction",
-  "blockLifecycle",
+  "scriptUnlockFlow",
+  "independentNavigation",
+  "testRoleSwitching",
   "fiveStepCompletion",
   "refreshAndRelogin",
   "concurrencyConflict",

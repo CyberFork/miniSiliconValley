@@ -47,14 +47,16 @@ type ViewReceipt = { receiptId: string; courseRef: ExactRef; projectorVersion: s
 type UiReceipt = { receiptId: string; roomId: string; viewReceiptId: string; courseRef: ExactRef; coursewareBundleDigest: string; coursewareRefs: Detail["courseware"]; valid: boolean; invalidReasons: string[] };
 type Bootstrap = { user: { userId: string }; versions: Version[]; courseware: Courseware[]; viewReceipts: ViewReceipt[]; uiReceipts: UiReceipt[] };
 type Credential = { userId: string; username: string; role: "mentor" | "learner"; initialPassword: string; mustChangePassword: true };
-type Controller = { state: string; blockIndex: number; blockId: string; version: number };
+type ScriptProgress = { stateMachineVersion: number; unlockedThroughBlockId: string; unlockedThroughIndex: number; version: number };
 type Detail = {
   id: string;
   environment: "test" | "production";
   lifecycle: string;
   learnerCount: number;
   courseRef: ExactRef;
-  controller: Controller;
+  script: ScriptProgress;
+  page: { id: string; title: string };
+  scriptNavigation: { viewedIndex: number; latestUnlocked: { id: string }; canUnlockNext: boolean };
   controlView: null | { systemActions: string[]; acceptance: string[] };
   myView: null | { kind: string; privateCards?: Array<{ id: string }> };
   mentors: unknown[];
@@ -64,8 +66,9 @@ type Detail = {
   isAdminDm: boolean;
   adminDmMode: "primary" | "delegated" | null;
   canDelegateAdminDm: boolean;
-  viewer: { profileId: string; actorProfileId: string; impersonationId: string | null };
+  viewer: { profileId: string; actorProfileId: string; impersonationId: string | null; viewProfileId?: string };
   admins: Array<{ profileId: string; mode: "primary" | "delegated"; canDelegate: boolean }>;
+  submissions: Array<{ profileId: string; kind: string; text: string }>;
 };
 type TestIdentity = {
   userId: string;
@@ -221,11 +224,11 @@ try {
   const learnerDetail = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}`, learnerCookie);
   assert.equal(learnerDetail.myView?.kind, "learner");
   assert.equal(learnerDetail.myView?.privateCards?.length, 3);
-  assert.equal(learnerDetail.controlView, null, "learner response must not contain controller scripts or gates");
+  assert.ok(learnerDetail.controlView, "every Test participant can inspect the real control surface through role tabs");
   const screenDetail = await getData<Record<string, unknown>>(`/api/platform/classrooms/${testRoom.classroomId}/screen`, learnerCookie);
   const serializedScreen = JSON.stringify(screenDetail);
   assert.equal(screenDetail.learnerCount, 2);
-  for (const privateField of ["myView", "privateCards", "privateScript", "controlView", "submissions", "economy", "viewer", "mentors", "admins", "courseware"]) {
+  for (const privateField of ["myView", "privateCards", "privateScript", "controlView", "submissions", "economy", "viewer", "mentors", "admins", "courseware", "profileId", "wallet"]) {
     assert.equal(serializedScreen.includes(`"${privateField}"`), false, `shared screen leaked ${privateField}`);
   }
   const adminDetail = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}`, adminCookie);
@@ -237,6 +240,12 @@ try {
   assert.equal(adminDetail.adminDmMode, "primary");
   assert.equal(adminDetail.canDelegateAdminDm, true);
   assert.deepEqual(adminDetail.admins.map((item) => ({ mode: item.mode, canDelegate: item.canDelegate })), [{ mode: "primary", canDelegate: true }]);
+
+  const mentorOneTimeLogin = await post("/api/auth/login", { username: generatedMentors[0].username, password: generatedMentors[0].initialPassword, remember: false });
+  assert.equal(mentorOneTimeLogin.status, 200);
+  const productionMentorCookie = cookieFrom(mentorOneTimeLogin);
+  const mentorReplacementPassword = "Mentor replaced one-time password 2026!";
+  assert.equal((await mutate("/api/auth/profile", "PATCH", { currentPassword: generatedMentors[0].initialPassword, newPassword: mentorReplacementPassword }, productionMentorCookie)).status, 200);
 
   const identities = await getData<TestIdentity[]>(`/api/platform/classrooms/${testRoom.classroomId}/test-identities`, adminCookie);
   assert.equal(identities.length, 6);
@@ -300,29 +309,53 @@ try {
   await deleteData("/api/auth/impersonation", adminCookie);
   await postData(`/api/platform/classrooms/${testRoom.classroomId}/members`, { type: "revoke-admin-dm", profileId: generatedMentors[0].userId }, adminCookie);
 
-  const firstExecution = await control(testRoom.classroomId, adminDetail.controller.version, { type: "execute" }, adminCookie);
-  assert.equal(firstExecution.state, "executing");
-  const staleControllerMutation = await post(`/api/platform/classrooms/${testRoom.classroomId}/control`, { expectedVersion: adminDetail.controller.version, action: { type: "execute" } }, adminCookie);
-  assert.equal(staleControllerMutation.status, 409);
-  assert.equal(((await staleControllerMutation.json()) as Envelope<never>).error?.code, "CONTROLLER_VERSION_CONFLICT");
-  await postData(`/api/platform/classrooms/${testRoom.classroomId}/reset`, {}, adminCookie);
-  const verifiedReset = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}`, adminCookie);
-  assert.deepEqual({ lifecycle: verifiedReset.lifecycle, state: verifiedReset.controller.state, blockId: verifiedReset.controller.blockId }, { lifecycle: "ready", state: "ready", blockId: "B01" });
-
+  assert.deepEqual({ lifecycle: adminDetail.lifecycle, blockId: adminDetail.script.unlockedThroughBlockId, index: adminDetail.script.unlockedThroughIndex }, { lifecycle: "ready", blockId: "B01", index: 0 });
+  const lockedPage = await get(`/api/platform/classrooms/${testRoom.classroomId}?block=B02`, adminCookie);
+  assert.equal(lockedPage.status, 409);
+  assert.equal(((await lockedPage.json()) as Envelope<never>).error?.code, "SCRIPT_PAGE_LOCKED");
+  const unlocked = await control(testRoom.classroomId, adminDetail.script.version, { type: "unlock-next", nextBlockId: "B02" }, adminCookie);
+  assert.equal(unlocked.unlockedThroughBlockId, "B02");
+  const stale = await post(`/api/platform/classrooms/${testRoom.classroomId}/control`, { expectedVersion: adminDetail.script.version, action: { type: "unlock-next", nextBlockId: "B03" } }, adminCookie);
+  assert.equal(stale.status, 409);
+  assert.equal(((await stale.json()) as Envelope<never>).error?.code, "SCRIPT_VERSION_CONFLICT");
+  const historicalB01 = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}?block=B01`, adminCookie);
+  const latestB02 = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}?block=B02`, adminCookie);
+  assert.deepEqual({ page: historicalB01.page.id, frontier: historicalB01.script.unlockedThroughBlockId, viewedIndex: historicalB01.scriptNavigation.viewedIndex }, { page: "B01", frontier: "B02", viewedIndex: 0 });
+  assert.deepEqual({ page: latestB02.page.id, frontier: latestB02.script.unlockedThroughBlockId, viewedIndex: latestB02.scriptNavigation.viewedIndex }, { page: "B02", frontier: "B02", viewedIndex: 1 });
+  const mentorView = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}?block=B02&viewAs=${generatedMentors[0].userId}`, adminCookie);
+  assert.equal(mentorView.viewer.viewProfileId, generatedMentors[0].userId);
+  assert.equal(mentorView.myView?.kind, "mentor");
+  const learnerView = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}?block=B02&viewAs=${generatedLearners[0].userId}`, adminCookie);
+  assert.equal(learnerView.viewer.viewProfileId, generatedLearners[0].userId);
+  assert.equal(learnerView.myView?.kind, "learner");
+  for (const mentor of generatedMentors) {
+    assert.equal((await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}?block=B02&viewAs=${mentor.userId}`, learnerCookie)).myView?.kind, "mentor");
+  }
+  for (const learner of generatedLearners) {
+    assert.equal((await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}?block=B02&viewAs=${learner.userId}`, learnerCookie)).myView?.kind, "learner");
+  }
+  const invalidTestView = await get(`/api/platform/classrooms/${testRoom.classroomId}?block=B02&viewAs=${initial.user.userId}`, learnerCookie);
+  assert.equal(invalidTestView.status, 403, "Admin DM is represented by the control tab, never by a forged profile role tab");
+  const submitted = await post(`/api/platform/classrooms/${testRoom.classroomId}/submissions`, { blockId: "B02", kind: "reflection", text: "真实测试提交", viewAsProfileId: generatedLearners[0].userId }, adminCookie);
+  assert.equal(submitted.status, 200);
+  const submittedView = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}?block=B02&viewAs=${generatedLearners[0].userId}`, adminCookie);
+  assert.ok(submittedView.submissions.some((item) => item.profileId === generatedLearners[0].userId && item.kind === "reflection" && item.text === "真实测试提交"));
+  const learnerUnlocked = await control(testRoom.classroomId, unlocked.version, { type: "unlock-next", nextBlockId: "B03" }, learnerCookie);
+  assert.equal(learnerUnlocked.unlockedThroughBlockId, "B03", "Test role testing is intentionally not gated by the logged-in seat");
+  const finalProgress = await completeClassroom(testRoom.classroomId, learnerUnlocked, adminCookie);
+  assert.equal(finalProgress.unlockedThroughBlockId, "B13");
+  assert.equal(finalProgress.unlockedThroughIndex, 12);
   const blockedRelease = await post("/api/studio/releases", { courseRef: candidate, viewReceiptId: viewReceipt.receiptId, uiReceiptId: "missing-ui-receipt" }, adminCookie);
   assert.equal(blockedRelease.status, 409);
   assert.equal(((await blockedRelease.json()) as Envelope<never>).error?.code, "UI_ACCEPTANCE_RECEIPT_INVALID");
 
-  const controller = await completeClassroom(testRoom.classroomId, verifiedReset.controller, adminCookie);
-  assert.equal(controller.state, "completed");
-  assert.equal(controller.blockIndex, 12);
   const incompleteReceipt = await post(`/api/platform/classrooms/${testRoom.classroomId}/receipt`, { checks: { sameRuntimeUi: true }, clientMatrix: acceptanceClients() }, adminCookie);
   assert.equal(incompleteReceipt.status, 409);
   assert.equal(((await incompleteReceipt.json()) as Envelope<never>).error?.code, "UI_ACCEPTANCE_CHECKS_INCOMPLETE");
   const receipt = await postData<{ receiptId: string; viewReceiptId: string; coursewareBundleDigest: string; appBuildId: string }>(`/api/platform/classrooms/${testRoom.classroomId}/receipt`, { checks: uiAcceptanceChecks(), clientMatrix: acceptanceClients() }, adminCookie);
   assert.match(receipt.coursewareBundleDigest, /^[0-9a-f]{64}$/);
   assert.equal(receipt.viewReceiptId, viewReceipt.receiptId);
-  assert.match(receipt.appBuildId, /^minisv-t087-/);
+  assert.equal(receipt.appBuildId, "minisv-t086-script-v1");
   const receiptBoundDetail = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}`, adminCookie);
   assert.equal(receiptBoundDetail.acceptance.uiReceiptId, receipt.receiptId);
   const repeatedReceipt = await postData<{ receiptId: string; coursewareBundleDigest: string }>(`/api/platform/classrooms/${testRoom.classroomId}/receipt`, { checks: uiAcceptanceChecks(), clientMatrix: acceptanceClients() }, adminCookie);
@@ -343,6 +376,16 @@ try {
     mentorSeats: mentorSeats(generatedMentors.map((item) => item.userId)),
     learnerProfileIds: generatedLearners.map((item) => item.userId),
   }, adminCookie);
+  const productionViewAs = await get(`/api/platform/classrooms/${production.classroomId}?viewAs=${generatedLearners[0].userId}`, adminCookie);
+  assert.equal(productionViewAs.status, 403);
+  assert.equal(((await productionViewAs.json()) as Envelope<never>).error?.code, "TEST_VIEW_PRODUCTION_FORBIDDEN");
+  const productionLearnerDetail = await getData<Detail>(`/api/platform/classrooms/${production.classroomId}`, learnerCookie);
+  assert.equal(productionLearnerDetail.controlView, null, "Production learner must never receive mentor/control scripts");
+  const productionLearnerUnlock = await post(`/api/platform/classrooms/${production.classroomId}/control`, { expectedVersion: 1, action: { type: "unlock-next", nextBlockId: "B02" } }, learnerCookie);
+  assert.equal(productionLearnerUnlock.status, 403);
+  assert.equal(((await productionLearnerUnlock.json()) as Envelope<never>).error?.code, "SCRIPT_UNLOCK_MENTOR_REQUIRED");
+  const productionMentorUnlock = await postData<ScriptProgress>(`/api/platform/classrooms/${production.classroomId}/control`, { expectedVersion: 1, action: { type: "unlock-next", nextBlockId: "B02" } }, productionMentorCookie);
+  assert.equal(productionMentorUnlock.unlockedThroughBlockId, "B02");
   const productionImpersonation = await post("/api/auth/impersonation", { classroomId: production.classroomId, effectiveProfileId: generatedLearners[0].userId }, adminCookie);
   assert.equal(productionImpersonation.status, 403);
   assert.equal(((await productionImpersonation.json()) as Envelope<never>).error?.code, "IMPERSONATION_PRODUCTION_FORBIDDEN");
@@ -373,7 +416,7 @@ try {
   assert.equal(invalidatedUiReceipt?.valid, false);
   assert.ok(invalidatedUiReceipt?.invalidReasons.some((reason) => reason.includes("重置")));
   const after = await getData<Detail>(`/api/platform/classrooms/${production.classroomId}`, adminCookie);
-  assert.deepEqual({ ref: after.courseRef, courseware: after.courseware, controller: after.controller, lifecycle: after.lifecycle }, { ref: before.courseRef, courseware: before.courseware, controller: before.controller, lifecycle: before.lifecycle }, "Studio save, courseware update and Test reset must not mutate a running Production instance");
+  assert.deepEqual({ ref: after.courseRef, courseware: after.courseware, script: after.script, lifecycle: after.lifecycle }, { ref: before.courseRef, courseware: before.courseware, script: before.script, lifecycle: before.lifecycle }, "Studio save, courseware update and Test reset must not mutate a running Production instance");
 
   const insufficientBody = structuredClone(nextCandidateBody);
   insufficientBody.title = `${insufficientBody.title} · incomplete six learner promise`;
@@ -426,7 +469,7 @@ try {
     const detail = await getData<Detail>(`/api/platform/classrooms/${sixRoom.classroomId}`, cookie);
     assert.equal(detail.learnerCount, 6);
     assert.equal(detail.myView?.kind, "learner");
-    assert.equal(detail.controlView, null);
+    assert.ok(detail.controlView, "Test participants can switch to the real control surface without changing accounts");
     const ids = detail.myView?.privateCards?.map((card) => card.id) ?? [];
     assert.equal(ids.length, 3);
     allCards.push(...ids);
@@ -437,8 +480,8 @@ try {
   await postData(`/api/platform/classrooms/${sixRoom.classroomId}/reset`, {}, adminCookie);
   const resetSixRoom = await getData<Detail>(`/api/platform/classrooms/${sixRoom.classroomId}`, adminCookie);
   assert.deepEqual(
-    { lifecycle: resetSixRoom.lifecycle, state: resetSixRoom.controller.state, blockId: resetSixRoom.controller.blockId, learnerCount: resetSixRoom.learnerCount },
-    { lifecycle: "ready", state: "ready", blockId: "B01", learnerCount: 6 },
+    { lifecycle: resetSixRoom.lifecycle, unlockedThroughBlockId: resetSixRoom.script.unlockedThroughBlockId, unlockedThroughIndex: resetSixRoom.script.unlockedThroughIndex, learnerCount: resetSixRoom.learnerCount },
+    { lifecycle: "ready", unlockedThroughBlockId: "B01", unlockedThroughIndex: 0, learnerCount: 6 },
     "Test reset must preserve the declared six-learner capacity and return to B01 ready",
   );
   const resetCards: string[] = [];
@@ -574,7 +617,9 @@ function uiAcceptanceChecks() {
     learnerTasks: true,
     learnerPrivacy: true,
     sharedScreenRedaction: true,
-    blockLifecycle: true,
+    scriptUnlockFlow: true,
+    independentNavigation: true,
+    testRoleSwitching: true,
     fiveStepCompletion: true,
     refreshAndRelogin: true,
     concurrencyConflict: true,
@@ -600,20 +645,16 @@ async function createClassroom(body: Record<string, unknown>, cookie: string): P
   return result;
 }
 
-async function control(roomId: string, expectedVersion: number, action: Record<string, unknown>, cookie: string): Promise<Controller> {
-  return postData<Controller>(`/api/platform/classrooms/${roomId}/control`, { expectedVersion, action }, cookie);
+async function control(roomId: string, expectedVersion: number, action: Record<string, unknown>, cookie: string): Promise<ScriptProgress> {
+  return postData<ScriptProgress>(`/api/platform/classrooms/${roomId}/control`, { expectedVersion, action }, cookie);
 }
 
-async function completeClassroom(roomId: string, initial: Controller, cookie: string): Promise<Controller> {
-  let controller = initial;
-  for (let block = 0; block < 13; block += 1) {
-    controller = await control(roomId, controller.version, { type: "execute" }, cookie);
-    assert.equal(controller.state, "executing");
-    controller = await control(roomId, controller.version, { type: "submit-for-acceptance" }, cookie);
-    controller = await control(roomId, controller.version, { type: "accept" }, cookie);
-    controller = await control(roomId, controller.version, block === 12 ? { type: "complete" } : { type: "advance" }, cookie);
+async function completeClassroom(roomId: string, initial: ScriptProgress, cookie: string): Promise<ScriptProgress> {
+  let progress = initial;
+  for (let index = progress.unlockedThroughIndex + 1; index < 13; index += 1) {
+    progress = await control(roomId, progress.version, { type: "unlock-next", nextBlockId: `B${String(index + 1).padStart(2, "0")}` }, cookie);
   }
-  return controller;
+  return progress;
 }
 
 async function login(username: string, passwordValue: string): Promise<string> {

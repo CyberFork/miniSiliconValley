@@ -174,28 +174,17 @@ TEST reset 不删除历史回执，但会增加 reset generation、解除当前�
 
 Preview 无副作用：不创建 Classroom、Membership、手牌、账本或审计记录。
 
-## 5. 同一课堂工厂与状态机
+## 5. Script Layer 与课堂运行时
 
-Test 与 Production 均调用同一个 `ClassroomFactory.create()`，并执行同一个版本化状态机：
+Script Layer 只持久化 append-only 的 `unlockedThroughBlockId`、`unlockedThroughBlockIndex` 与 `version`；初始边界为 B01，不存在“全局当前页”。每个浏览器以 `?block=Bxx` 独立查看已解锁页；解锁通知不强制跳转，历史页始终可一键回到最新。支持键盘 `←/→/Home/End` 切页。
 
-```text
-ready → executing → awaiting-acceptance → accepted → next block
-                            └→ rejected / retry
-```
+P/D/M/O 任一导师和 Admin DM 可在 Production 弹窗确认顺序解锁；学员不可解锁。Test 中任意课堂参与者可在角色 Tabs 真实测试中控、四导师、N 学员和 `/screen` 投屏；Production 严禁 `viewAs`。`leadMentorId` 仅建议主讲，不是权限。
 
-共同准入：
+Activity 按 block 保存并覆盖同 kind 的工作记录；Economy／卡牌与浏览、解锁彻底解耦。回看或解锁不要求重新提交，也不重置已有数据。“重新提交”不是流程状态：只有用户主动再次保存同一 block/kind 才更新该记录。遗留 `classroom_controller_states` 仅作兼容镜像，Runtime 不读取。
 
-- exact CourseRelease 合法；
-- 学员人数、账号角色、导师唯一性和卡牌容量合法；
-- 有效 ViewAcceptanceReceipt 与 exact 课程一致。
+Stage 1 `/studio/preview/` 是桌面内部内容投影验收：单页展示 4 导师、N 学员和中控摘要，支持完整字段核验及 hover/点击固定展开。Stage 2 才是真实 `/classroom/{id}/` Test Classroom UI；两级 exact 回执门禁后才能 Released。
 
-Production 额外准入：
-
-- 课程状态是 Released；
-- 有效 UiAcceptanceReceipt 与 exact 课程、View 回执和 Test Classroom 一致；
-- 计划绑定的四套课件与 UI 回执逐项相同且均已 Released。
-
-创建使用单次 D1 事务／batch 写入实例、成员、权限、课件与回执绑定，失败时不留下半个课堂。
+共同准入仍由 `ClassroomFactory.create()` 负责：exact CourseRelease、人数、成员与有效 ViewAcceptanceReceipt 必须一致。Production 额外要求 Released、有效 UiAcceptanceReceipt 及四套 exact 课件。创建使用单次 D1 事务／batch 写入，失败不留下半个课堂。
 
 ## 6. 14 项真实 UI 验收
 
@@ -301,3 +290,11 @@ Cloudflare Tunnel
 - 回执提供证据链，不能替代真实人工课堂验收。
 
 具体操作步骤见 [Course Platform SOP](COURSE_PLATFORM_SOP.md)，验证命令与矩阵见 [Testing](TESTING.md)。
+
+## 9. Script Runtime、迁移与操作手册
+
+Script Layer 只保存 append-only `unlockedThroughBlockId`、`unlockedThroughBlockIndex`、`version`（B01 初始）；每个浏览器通过 `?block=Bxx` 独立查看，通知不强制跳转，历史页可一键回最新，键盘支持 `←/→/Home/End`。Production 解锁确认仅限任一 P/D/M/O 导师或 Admin DM，Test 可由任意参与者在角色 Tabs 测试；Production 禁止 `viewAs`。`leadMentorId` 仅为主讲建议。
+
+0007 迁移只将旧 `blockIndex` 解释为已解锁边界，保留提交、卡牌、RP、钱包、团队资金与 Activity。Activity 按 block/kind 覆盖保存；Economy、卡牌与浏览/解锁解耦，回看或解锁不重置数据。“重新提交”不是状态，只有用户主动再次保存同一 block/kind 才更新记录。`classroom_controller_states` 仅兼容镜像，Runtime 不读取。
+
+操作路径：导师在 `/classroom/{id}/` 保存工作并在 Production 弹窗确认解锁；学员仅使用自己的席位回看并点击“回到最新”；验收者在 Test 依次检查 `/control`、角色席位与 `/screen`，确认隐私、并发和刷新恢复后签发 UI 回执。

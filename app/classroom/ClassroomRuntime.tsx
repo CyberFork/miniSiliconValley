@@ -1,15 +1,16 @@
 "use client";
 import Link from "next/link";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AccountMenu, type AccountMenuUser } from "../components/AccountMenu";
-import type { ClassroomControllerAction } from "../lib/classroom-factory";
+import type { ClassroomScriptAction } from "../lib/classroom-factory";
 import type { ClassroomInstanceDetail, ClassroomSharedScreenDetail } from "../lib/classroom-platform-store";
 import styles from "./platform.module.css";
 import manageStyles from "./platform-manage.module.css";
 
 type RuntimeView = "seat" | "control" | "members";
 type RuntimeProps = { classroomId: string; view: RuntimeView; user: AccountMenuUser };
+type NavigationState = { blockId: string | null; testSurface: string | null };
 const UI_ACCEPTANCE_CHECKLIST = [
   ["sameRuntimeUi", "Test 与 Production 使用同一套页面、API 与状态机"],
   ["membershipsAndRbac", "四导师、N 学员、Admin DM 的 Membership 与 RBAC 均正确"],
@@ -17,10 +18,12 @@ const UI_ACCEPTANCE_CHECKLIST = [
   ["learnerTasks", "每名学员都能看懂并完成当前私人任务"],
   ["learnerPrivacy", "学员只看到自己的私密卡、RP 与个人钱包"],
   ["sharedScreenRedaction", "公共投屏未泄漏手牌、讲稿、账号、钱包或未公开提交"],
-  ["blockLifecycle", "执行、提交、退回、重试、接受和推进均已实测"],
+  ["scriptUnlockFlow", "导师确认后只顺序解锁下一页，不能跳页、重复或倒退"],
+  ["independentNavigation", "多人独立回看；新页解锁只通知、不强制其他窗口跳页"],
+  ["testRoleSwitching", "Test 角色 Tab 能真实切换中控、四导师、全部学员和投屏"],
   ["fiveStepCompletion", "五大步及全部 Block 已在真实 UI 中完整走完"],
   ["refreshAndRelogin", "刷新和重新登录后，席位、手牌与课堂进度保持正确"],
-  ["concurrencyConflict", "旧版本并发操作被拒绝，没有覆盖较新的中控状态"],
+  ["concurrencyConflict", "旧版本并发操作被拒绝，没有覆盖较新的解锁边界"],
   ["testReset", "Test reset 已实测且只重置本课堂，不影响其他实例"],
   ["responsiveLayouts", "手机、电脑与公共投屏尺寸均已人工检查"],
   ["immutableRuntime", "Studio 后续保存没有热更新正在运行的课堂"],
@@ -28,10 +31,6 @@ const UI_ACCEPTANCE_CHECKLIST = [
 ] as const;
 type TestReceiptCheckKey = (typeof UI_ACCEPTANCE_CHECKLIST)[number][0];
 type TestReceiptChecks = Record<TestReceiptCheckKey, boolean>;
-const STATE_LABEL: Record<string, string> = {
-  ready: "等待主控开始", executing: "本块执行中", "awaiting-acceptance": "等待主控验收",
-  accepted: "本块已通过", completed: "课程已完成", error: "需要主控处理",
-};
 const BOUNDARY = {
   F: { short: "F 有来源", title: "有来源的事实" },
   R: { short: "R 课堂模拟", title: "课堂平行世界中的模拟" },
@@ -39,20 +38,92 @@ const BOUNDARY = {
   U: { short: "U 还不知道", title: "当前未知，需要调查" },
 } as const;
 
+function initialNavigation(): NavigationState {
+  if (typeof window === "undefined") return { blockId: null, testSurface: null };
+  const params = new URLSearchParams(window.location.search);
+  return { blockId: params.get("block"), testSurface: params.get("as") };
+}
+
+export function isClassroomKeyboardTargetEditable(target: EventTarget | null): boolean {
+  const element = target instanceof HTMLElement ? target : null;
+  return Boolean(element?.closest("input, textarea, select, [contenteditable='true'], [role='textbox']"));
+}
+
 export default function ClassroomRuntime({ classroomId, view, user }: RuntimeProps) {
+  const [navigation, setNavigation] = useState<NavigationState>(initialNavigation);
   const [data, setData] = useState<ClassroomInstanceDetail | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
+  const [unlockTarget, setUnlockTarget] = useState<{ id: string; title: string } | null>(null);
+  const observedUnlockVersion = useRef<number | null>(null);
+  const viewAsProfileId = navigation.testSurface && navigation.testSurface !== "control" && navigation.testSurface !== "screen"
+    ? navigation.testSurface
+    : undefined;
+  const writeUrl = useCallback((next: NavigationState) => {
+    const url = new URL(window.location.href);
+    if (next.blockId) url.searchParams.set("block", next.blockId); else url.searchParams.delete("block");
+    if (next.testSurface) url.searchParams.set("as", next.testSurface); else url.searchParams.delete("as");
+    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  }, []);
+  const updateNavigation = useCallback((update: Partial<NavigationState>) => {
+    setNavigation((current) => {
+      const next = { ...current, ...update };
+      writeUrl(next);
+      return next;
+    });
+  }, [writeUrl]);
   const load = useCallback(async (quiet = false) => {
-    try { setData(await api<ClassroomInstanceDetail>(`/api/platform/classrooms/${encodeURIComponent(classroomId)}`)); if (!quiet) setError(""); }
+    const query = new URLSearchParams();
+    if (navigation.blockId) query.set("block", navigation.blockId);
+    if (viewAsProfileId) query.set("viewAs", viewAsProfileId);
+    try {
+      const next = await api<ClassroomInstanceDetail>(`/api/platform/classrooms/${encodeURIComponent(classroomId)}${query.size ? `?${query}` : ""}`);
+      if (observedUnlockVersion.current !== null && next.script.version > observedUnlockVersion.current) {
+        setNotice(`${next.script.unlockedThroughBlockId} 已解锁；你仍停留在 ${next.page.id}，可自行翻页或一键回到最新。`);
+      }
+      observedUnlockVersion.current = next.script.version;
+      setData(next);
+      if (!navigation.blockId) updateNavigation({ blockId: next.page.id });
+      if (!quiet) setError("");
+    }
     catch (cause) { if (!quiet) setError(messageOf(cause)); }
-  }, [classroomId]);
+  }, [classroomId, navigation.blockId, updateNavigation, viewAsProfileId]);
   useEffect(() => {
     const initial = window.setTimeout(() => { void load(); }, 0);
     const timer = window.setInterval(() => { if (document.visibilityState === "visible") void load(true); }, 4_000);
     return () => { window.clearTimeout(initial); window.clearInterval(timer); };
   }, [load, view]);
+
+  const navigateTo = useCallback((blockId: string) => { setNotice(""); updateNavigation({ blockId }); }, [updateNavigation]);
+  const switchSurface = useCallback((testSurface: string) => { setNotice(""); updateNavigation({ testSurface }); }, [updateNavigation]);
+  const selectedSurface = data?.environment === "test"
+    ? navigation.testSurface ?? (view === "control" || data.myView?.kind === "controller" ? "control" : data.viewer.viewProfileId)
+    : view;
+  const requestForward = useCallback(() => {
+    if (!data) return;
+    if (data.scriptNavigation.viewedIndex < data.script.unlockedThroughIndex) {
+      navigateTo(data.scriptNavigation.unlockedBlocks[data.scriptNavigation.viewedIndex + 1].id);
+    } else if (data.scriptNavigation.nextLocked && data.scriptNavigation.canUnlockNext) {
+      setUnlockTarget(data.scriptNavigation.nextLocked);
+    } else {
+      setNotice(data.script.unlockedThroughIndex >= data.course.blockCount - 1 ? "已经到达整组剧本的最后一页。" : "下一页尚未解锁，请等待导师确认。");
+    }
+  }, [data, navigateTo]);
+  const requestBack = useCallback(() => {
+    if (data && data.scriptNavigation.viewedIndex > 0) navigateTo(data.scriptNavigation.unlockedBlocks[data.scriptNavigation.viewedIndex - 1].id);
+  }, [data, navigateTo]);
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!data || view === "members" || isClassroomKeyboardTargetEditable(event.target) || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (event.key === "ArrowLeft") { event.preventDefault(); requestBack(); }
+      if (event.key === "ArrowRight") { event.preventDefault(); requestForward(); }
+      if (event.key === "Home") { event.preventDefault(); navigateTo(data.scriptNavigation.unlockedBlocks[0].id); }
+      if (event.key === "End") { event.preventDefault(); navigateTo(data.scriptNavigation.latestUnlocked.id); }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [data, navigateTo, requestBack, requestForward, view]);
 
   const mutate = async <T,>(path: string, body: unknown, success: string): Promise<T | null> => {
     setBusy(true); setError("");
@@ -61,56 +132,96 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
     finally { setBusy(false); }
   };
 
+  const unlock = async () => {
+    if (!data || !unlockTarget) return;
+    const target = unlockTarget;
+    setUnlockTarget(null);
+    const result = await mutate<ClassroomInstanceDetail["script"]>(`/api/platform/classrooms/${encodeURIComponent(classroomId)}/control`, {
+      expectedVersion: data.script.version,
+      action: { type: "unlock-next", nextBlockId: target.id } satisfies ClassroomScriptAction,
+      ...(viewAsProfileId ? { viewAsProfileId } : {}),
+    }, `${target.id} 已解锁；其他人会收到通知，但不会被强制跳页。`);
+    if (result) navigateTo(target.id);
+  };
+
   if (error && !data) return <RuntimeError error={error} />;
   if (!data) return <main className={styles.runtime}><div className={styles.runtimeMain}>正在连接这一个 Classroom 实例…</div></main>;
+  const screenMode = data.environment === "test" && selectedSurface === "screen";
+  const roleProjectionReady = data.environment !== "test" || selectedSurface === "control" || selectedSurface === "screen"
+    || data.viewer.viewProfileId === selectedSurface;
   return <main className={styles.runtime}>
-    <RuntimeTop data={data} classroomId={classroomId} user={user} />
-    <div className={styles.runtimeMain}>
+    <RuntimeTop data={data} classroomId={classroomId} user={user} selectedSurface={String(selectedSurface)} onSwitch={switchSurface} />
+    <div className={screenMode ? styles.screenShell : styles.runtimeMain}>
       {error && <div className={styles.error} role="alert">{error}</div>}
       {notice && <div className={styles.notice} role="status">{notice}</div>}
-      {view === "seat" && <SeatView data={data} busy={busy} submit={(kind, text) => mutate(`/api/platform/classrooms/${classroomId}/submissions`, { kind, text }, "已保存到本课堂当前 Block。")} />}
-      {view === "control" && <ControlView data={data} busy={busy} act={(action) => mutate(`/api/platform/classrooms/${classroomId}/control`, { expectedVersion: data.controller.version, action }, "主控已推进，所有成员会在下一次同步时看到变化。")}
-        reset={() => mutate(`/api/platform/classrooms/${classroomId}/reset`, {}, "Test Classroom 已回到初始状态。")}
-        receipt={(checks) => mutate(`/api/platform/classrooms/${classroomId}/receipt`, { checks, clientMatrix: currentClientMatrix() }, "UiAcceptanceReceipt 已生成；返回 Course Studio 即可通过两级门禁发布该 Candidate。")}
-      />}
-      {view === "members" && <MembersView data={data} />}
+      {view !== "members" && <PageNavigator data={data} busy={busy} onBack={requestBack} onForward={requestForward} onNavigate={navigateTo} />}
+      {view === "members" ? <MembersView data={data} /> : !roleProjectionReady ? <section className={styles.card} aria-live="polite">正在切换真实角色视图…</section> : screenMode ? <SharedScreen data={toSharedScreen(data)} />
+        : selectedSurface === "control" ? <ControlView data={data} busy={busy}
+          requestUnlock={() => data.scriptNavigation.nextLocked && setUnlockTarget(data.scriptNavigation.nextLocked)}
+          reset={() => mutate(`/api/platform/classrooms/${classroomId}/reset`, {}, "Test Classroom 已回到 B01；其他课堂不受影响。")}
+          receipt={(checks) => mutate(`/api/platform/classrooms/${classroomId}/receipt`, { checks, clientMatrix: currentClientMatrix() }, "UiAcceptanceReceipt 已生成；返回 Course Studio 即可发布。")}
+        /> : <SeatView data={data} busy={busy} submit={(kind, text) => mutate(`/api/platform/classrooms/${classroomId}/submissions`, {
+          blockId: data.page.id, kind, text, ...(viewAsProfileId ? { viewAsProfileId } : {}),
+        }, `已保存到 ${data.page.id}；翻页不会改变这份记录。`)} />}
     </div>
+    {unlockTarget && <UnlockDialog target={unlockTarget} busy={busy} onCancel={() => setUnlockTarget(null)} onConfirm={() => void unlock()} />}
   </main>;
 }
 
 /** Live shared display backed by a dedicated allow-list API projection. */
 export function ClassroomScreenRuntime({ classroomId }: { classroomId: string }) {
+  const [blockId, setBlockId] = useState<string | null>(() => typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("block"));
   const [data, setData] = useState<ClassroomSharedScreenDetail | null>(null);
   const [error, setError] = useState("");
   const load = useCallback(async (quiet = false) => {
     try {
-      setData(await api<ClassroomSharedScreenDetail>(`/api/platform/classrooms/${encodeURIComponent(classroomId)}/screen`));
+      const next = await api<ClassroomSharedScreenDetail>(`/api/platform/classrooms/${encodeURIComponent(classroomId)}/screen${blockId ? `?block=${encodeURIComponent(blockId)}` : ""}`);
+      setData(next);
+      if (!blockId) setBlockId(next.page.id);
       if (!quiet) setError("");
     } catch (cause) {
       if (!quiet) setError(messageOf(cause));
     }
-  }, [classroomId]);
+  }, [blockId, classroomId]);
   useEffect(() => {
     const initial = window.setTimeout(() => { void load(); }, 0);
     const timer = window.setInterval(() => { if (document.visibilityState === "visible") void load(true); }, 2_000);
     return () => { window.clearTimeout(initial); window.clearInterval(timer); };
   }, [load]);
+  const navigate = useCallback((nextBlockId: string) => {
+    setBlockId(nextBlockId);
+    const url = new URL(window.location.href);
+    url.searchParams.set("block", nextBlockId);
+    window.history.replaceState(null, "", `${url.pathname}${url.search}`);
+  }, []);
+  useEffect(() => {
+    const handler = (event: KeyboardEvent) => {
+      if (!data || isClassroomKeyboardTargetEditable(event.target)) return;
+      const index = data.scriptNavigation.viewedIndex;
+      if (event.key === "ArrowLeft" && index > 0) { event.preventDefault(); navigate(data.scriptNavigation.unlockedBlocks[index - 1].id); }
+      if (event.key === "ArrowRight" && index < data.script.unlockedThroughIndex) { event.preventDefault(); navigate(data.scriptNavigation.unlockedBlocks[index + 1].id); }
+      if (event.key === "Home") { event.preventDefault(); navigate(data.scriptNavigation.unlockedBlocks[0].id); }
+      if (event.key === "End") { event.preventDefault(); navigate(data.scriptNavigation.latestUnlocked.id); }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [data, navigate]);
   if (error && !data) return <RuntimeError error={error} />;
   if (!data) return <main className={styles.runtime}><div className={styles.runtimeMain}>正在连接课堂共享画面…</div></main>;
-  return <SharedScreen data={data} />;
+  return <><SharedScreen data={data} /><div className={styles.screenControls}><button disabled={data.scriptNavigation.viewedIndex <= 0} onClick={() => navigate(data.scriptNavigation.unlockedBlocks[data.scriptNavigation.viewedIndex - 1]?.id)}>← 上一页</button>{data.scriptNavigation.viewedIndex < data.script.unlockedThroughIndex && <button onClick={() => navigate(data.scriptNavigation.latestUnlocked.id)}>回到最新 · {data.scriptNavigation.latestUnlocked.id}</button>}<button disabled={data.scriptNavigation.viewedIndex >= data.script.unlockedThroughIndex} onClick={() => navigate(data.scriptNavigation.unlockedBlocks[data.scriptNavigation.viewedIndex + 1]?.id)}>下一页 →</button></div></>;
 }
 
-function RuntimeTop({ data, classroomId, user }: { data: ClassroomInstanceDetail; classroomId: string; user: AccountMenuUser }) {
-  const seatLabel = data.mentorRole
-    ? `${data.mentorRole} 导师${data.isAdminDm ? ` · ${data.adminDmMode === "primary" ? "Primary" : "Delegated"} Admin DM` : ""}`
-    : data.learnerSeat
-      ? `Young Builder ${data.learnerSeat}`
+function RuntimeTop({ data, classroomId, user, selectedSurface, onSwitch }: { data: ClassroomInstanceDetail; classroomId: string; user: AccountMenuUser; selectedSurface: string; onSwitch: (surface: string) => void }) {
+  const seatLabel = data.viewer.viewMentorRole
+    ? `${data.viewer.viewMentorRole} 导师`
+    : data.viewer.viewLearnerSeat
+      ? `Young Builder ${data.viewer.viewLearnerSeat}`
       : data.isAdminDm
         ? `${data.adminDmMode === "primary" ? "Primary" : "Delegated"} Admin DM`
         : "课堂成员";
-  return <header className={styles.runtimeTop}>
+  return <><header className={styles.runtimeTop}>
     <Link href="/classroom/"><b>MSV · {data.title}</b></Link>
-    <nav aria-label="课堂内导航"><Link href={`/classroom/${classroomId}/`}>我的席位</Link>{data.isAdminDm && <Link href={`/classroom/${classroomId}/control`}>主控</Link>}<a href={`/classroom/${classroomId}/screen`} target="_blank" rel="noreferrer">投屏</a>{data.isAdminDm && <Link href={`/classroom/${classroomId}/members`}>成员</Link>}<AccountMenu user={user} returnTo={`/classroom/${classroomId}/`} context={{
+    <nav aria-label="课堂内导航"><Link href={`/classroom/${classroomId}/`}>我的席位</Link>{data.controlView && <Link href={`/classroom/${classroomId}/control`}>主持提示</Link>}<a href={`/classroom/${classroomId}/screen?block=${encodeURIComponent(data.page.id)}`} target="_blank" rel="noreferrer">投屏</a>{data.isAdminDm && <Link href={`/classroom/${classroomId}/members`}>成员</Link>}<AccountMenu user={user} returnTo={`/classroom/${classroomId}/`} context={{
       classroomId,
       classroomTitle: data.title,
       seatLabel,
@@ -118,7 +229,39 @@ function RuntimeTop({ data, classroomId, user }: { data: ClassroomInstanceDetail
         ? `/classroom/${classroomId}/members#test-identities`
         : null,
     }} /></nav>
-  </header>;
+  </header>{data.environment === "test" && <TestRoleTabs data={data} selected={selectedSurface} onSwitch={onSwitch} />}</>;
+}
+
+function TestRoleTabs({ data, selected, onSwitch }: { data: ClassroomInstanceDetail; selected: string; onSwitch: (surface: string) => void }) {
+  return <nav className={styles.testRoleTabs} aria-label="Test Classroom 角色视角">
+    <span>TEST · 真实角色视图</span>
+    <button data-active={selected === "control"} onClick={() => onSwitch("control")}>中控</button>
+    {data.mentors.map((mentor) => <button key={mentor.profileId} data-active={selected === mentor.profileId} onClick={() => onSwitch(mentor.profileId)}>{mentor.mentorRole} · {mentor.displayName}</button>)}
+    {data.learners.map((learner) => <button key={learner.profileId} data-active={selected === learner.profileId} onClick={() => onSwitch(learner.profileId)}>学员 {learner.seat}</button>)}
+    <button data-active={selected === "screen"} onClick={() => onSwitch("screen")}>投屏</button>
+  </nav>;
+}
+
+function PageNavigator({ data, busy, onBack, onForward, onNavigate }: { data: ClassroomInstanceDetail; busy: boolean; onBack: () => void; onForward: () => void; onNavigate: (blockId: string) => void }) {
+  const historical = data.scriptNavigation.viewedIndex < data.script.unlockedThroughIndex;
+  return <section className={styles.pageNavigator} aria-label="已解锁剧本导航">
+    <button disabled={busy || data.scriptNavigation.viewedIndex <= 0} onClick={onBack}>← 上一页</button>
+    <label><span>我的浏览位置</span><select value={data.page.id} onChange={(event) => onNavigate(event.target.value)}>{data.scriptNavigation.unlockedBlocks.map((block) => <option key={block.id} value={block.id}>{block.id} · {block.title}</option>)}</select></label>
+    {historical && <button className={styles.latestButton} onClick={() => onNavigate(data.scriptNavigation.latestUnlocked.id)}>回到最新解锁 · {data.scriptNavigation.latestUnlocked.id}</button>}
+    <button disabled={busy || (data.script.unlockedThroughIndex >= data.course.blockCount - 1 && !historical)} onClick={onForward}>{historical ? "下一页 →" : data.scriptNavigation.canUnlockNext ? "确认解锁下一页 →" : "下一页尚未解锁"}</button>
+    <small>←/→ 翻页 · Home 回 B01 · End 回最新；每个人独立浏览</small>
+  </section>;
+}
+
+function UnlockDialog({ target, busy, onCancel, onConfirm }: { target: { id: string; title: string }; busy: boolean; onCancel: () => void; onConfirm: () => void }) {
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape" && !busy) onCancel(); };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [busy, onCancel]);
+  return <div className={styles.dialogBackdrop} role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onCancel(); }}><section className={styles.dialog} role="dialog" aria-modal="true" aria-labelledby="unlock-title">
+    <small className={styles.eyebrow}>导师确认 · 只增加可见页</small><h2 id="unlock-title">解锁 {target.id}？</h2><p><b>{target.title}</b></p><ul><li>全员会收到“新页已解锁”的通知。</li><li>其他人的屏幕不会被强制跳转。</li><li>提交、手牌、RP、钱包与团队资金都不会变化。</li><li>解锁后不能重新锁回去。</li></ul><div className={styles.dialogActions}><button className={styles.secondary} disabled={busy} onClick={onCancel}>取消</button><button className={styles.button} disabled={busy} onClick={onConfirm}>{busy ? "处理中…" : "确认解锁并进入"}</button></div>
+  </section></div>;
 }
 
 function SeatView({ data, busy, submit }: { data: ClassroomInstanceDetail; busy: boolean; submit: (kind: string, text: string) => Promise<unknown> }) {
@@ -131,29 +274,29 @@ function SeatView({ data, busy, submit }: { data: ClassroomInstanceDetail; busy:
     <Progress data={data} />
     <div className={styles.taskGrid}>
       <section className={styles.card}>
-        <small className={styles.eyebrow}>现在只做这一件事</small>
-        <h2>{view && view.kind !== "controller" ? view.task : data.currentBlock.studentPrompt}</h2>
-        <div className={styles.instruction}>{STATE_LABEL[data.controller.state] ?? data.controller.state}</div>
+        <small className={styles.eyebrow}>这一页只做一件事</small>
+        <h2>{view && view.kind !== "controller" ? view.task : data.page.studentPrompt}</h2>
+        <div className={styles.instruction}>已解锁剧本页 · 可以回看，不会改动课堂数据</div>
         {view?.kind === "learner" && <LearnerView data={data} view={view} />}
         {view?.kind === "mentor" && <MentorView data={data} view={view} courseware={courseware} />}
         {view?.kind === "controller" && <p>你在本课堂拥有 Admin DM 权限，但没有占用 P／D／M／O 导师席。请从顶部进入主控。</p>}
       </section>
-      <aside className={styles.card}>
-        <small className={styles.eyebrow}>交付本块证据</small><h2>把结果留在课堂</h2>
+      {view?.kind !== "controller" && <aside className={styles.card}>
+        <small className={styles.eyebrow}>本页活动记录</small><h2>把结果留在 {data.page.id}</h2>
         <form className={styles.submission} onSubmit={async (event) => { event.preventDefault(); await submit(view?.kind === "mentor" ? "mentor-note" : "learner-work", text); setText(""); }}>
-          <label htmlFor="block-work">写下你真实完成的内容；不需要猜老师心里的标准。</label>
-          <textarea id="block-work" value={text} onChange={(event) => setText(event.target.value)} placeholder={data.currentBlock.learnerLens.done} minLength={2} maxLength={4000} required />
-          <button className={styles.button} disabled={busy || text.trim().length < 2}>提交当前 Block 证据</button>
+          <label htmlFor="block-work">记录真实完成的内容。翻页和回看不会删除或重新提交它。</label>
+          <textarea id="block-work" value={text} onChange={(event) => setText(event.target.value)} placeholder={data.page.learnerLens.done} minLength={2} maxLength={4000} required />
+          <button className={styles.button} disabled={busy || text.trim().length < 2}>保存 {data.page.id} 活动记录</button>
         </form>
         {data.submissions.length > 0 && <div className={styles.submissions}><h3>已保存</h3>{data.submissions.map((item) => <article className={styles.submissionItem} key={`${item.profileId}:${item.kind}`}><b>{item.displayName}</b><small>{item.kind} · {item.status}</small><p>{item.text}</p></article>)}</div>}
-      </aside>
+      </aside>}
     </div>
   </>;
 }
 
 function LearnerView({ data, view }: { data: ClassroomInstanceDetail; view: Extract<NonNullable<ClassroomInstanceDetail["myView"]>, { kind: "learner" }> }) {
   return <>
-    <div className={styles.lens}><div><b>你看到的世界</b>{data.currentBlock.learnerLens.world}</div><div><b>先讲给队友</b>{data.currentBlock.learnerLens.say}</div><div><b>再一起追问</b>{data.currentBlock.learnerLens.ask}</div><div><b>完成的样子</b>{data.currentBlock.learnerLens.done}</div></div>
+    <div className={styles.lens}><div><b>你看到的世界</b>{data.page.learnerLens.world}</div><div><b>先讲给队友</b>{data.page.learnerLens.say}</div><div><b>再一起追问</b>{data.page.learnerLens.ask}</div><div><b>完成的样子</b>{data.page.learnerLens.done}</div></div>
     <h3>只有你先看到的情报卡</h3>
     <div className={styles.privateCards}>{view.privateCards.map((card) => { const boundary = BOUNDARY[card.boundary]; return <article className={styles.privateCard} data-boundary={card.boundary} key={card.id}><b>{boundary.short} · {card.title}</b><span>{boundary.title}</span><p>{card.body}</p><span><strong>讲给队友：</strong>{card.sharePrompt}</span></article>; })}</div>
     <p><strong>规则：</strong>先用自己的话讲卡片，再听队友讲；不要把推测说成史实。老师负责更复杂的历史边界。</p>
@@ -166,58 +309,56 @@ function MentorView({ data, view, courseware }: {
   courseware: ClassroomInstanceDetail["courseware"][number] | null | undefined;
 }) {
   return <>
-    <p>本块状态：<b>{view.activity === "active" ? "你主导" : view.activity === "support" ? "你观察支援" : "本块待命"}</b>。学生先经历，再由你命名方法。</p>
+    <p>本页分工：<b>{view.activity === "active" ? "建议你主讲" : view.activity === "support" ? "观察并支援" : "按需支援"}</b>。这不是权限限制；任一导师都可确认解锁下一页。</p>
     <h3>导师私有提示</h3><ul>{view.privateScript.map((line) => <li key={line}>{line}</li>)}</ul>
     {courseware && !data.viewer.impersonationId && <a className={styles.coursewareLink} href={`/course/${courseware.slug}/?revision=${courseware.revision}`} target="_blank" rel="noreferrer">打开 {view.mentorRole} 导师 exact 课件 →</a>}
-    <p>学员当前任务：{data.currentBlock.studentPrompt}</p>
+    <p>学员这一页的任务：{data.page.studentPrompt}</p>
   </>;
 }
 
 function RuntimeHeading({ data, eyebrow }: { data: ClassroomInstanceDetail; eyebrow: string }) {
-  return <section className={styles.runtimeHeading}><div><small>{eyebrow}</small><h1>{data.currentBlock.id} · {data.currentBlock.title}</h1><p>{data.course.title} · 第 {data.currentBlock.macroStepOrder}/5 步 · Block {data.controller.blockIndex + 1}/{data.course.blockCount}</p></div><div className={styles.balance}><span><b>{data.economy.personalRp} RP</b><small>我的声望</small></span><span><b>{(data.economy.personalWalletTenths / 10).toFixed(1)} C</b><small>我的钱包</small></span><span><b>{(data.economy.teamTreasuryTenths / 10).toFixed(1)} C</b><small>团队资金</small></span></div></section>;
+  return <section className={styles.runtimeHeading}><div><small>{eyebrow}</small><h1>{data.page.id} · {data.page.title}</h1><p>{data.course.title} · 第 {data.page.macroStepOrder}/5 步 · 我的页 {data.scriptNavigation.viewedIndex + 1}/{data.course.blockCount} · 已解锁至 {data.script.unlockedThroughBlockId}</p></div><div className={styles.balance}><span><b>{data.economy.personalRp} RP</b><small>我的声望</small></span><span><b>{(data.economy.personalWalletTenths / 10).toFixed(1)} C</b><small>我的钱包</small></span><span><b>{(data.economy.teamTreasuryTenths / 10).toFixed(1)} C</b><small>团队资金</small></span></div></section>;
 }
 
 function Progress({ data }: { data: ClassroomInstanceDetail }) {
-  return <div className={styles.progress} aria-label={`课程进度 ${data.controller.blockIndex + 1}/${data.course.blockCount}`}>{Array.from({ length: data.course.blockCount }, (_, index) => <span key={index} data-done={index < data.controller.blockIndex} data-current={index === data.controller.blockIndex} />)}</div>;
+  return <div className={styles.progress} aria-label={`已解锁 ${data.script.unlockedThroughIndex + 1}/${data.course.blockCount}，正在看第 ${data.scriptNavigation.viewedIndex + 1} 页`}>{Array.from({ length: data.course.blockCount }, (_, index) => <span key={index} data-done={index <= data.script.unlockedThroughIndex} data-current={index === data.scriptNavigation.viewedIndex} />)}</div>;
 }
 
-function ControlView({ data, busy, act, reset, receipt }: {
+function ControlView({ data, busy, requestUnlock, reset, receipt }: {
   data: ClassroomInstanceDetail;
   busy: boolean;
-  act: (action: ClassroomControllerAction) => Promise<unknown>;
+  requestUnlock: () => void;
   reset: () => Promise<unknown>;
   receipt: (checks: TestReceiptChecks) => Promise<unknown>;
 }) {
   const [receiptChecks, setReceiptChecks] = useState<TestReceiptChecks>(() => Object.fromEntries(UI_ACCEPTANCE_CHECKLIST.map(([key]) => [key, false])) as TestReceiptChecks);
   const control = data.controlView;
-  if (!data.isAdminDm || !control) return <section className={styles.card}><h1>需要 Admin DM 权限</h1><p>导师席与 Admin DM 权限相互独立。请让本课堂管理员授予权限。</p></section>;
-  const state = data.controller.state;
-  const last = data.controller.blockIndex === data.course.blockCount - 1;
+  if (!control) return <section className={styles.card}><h1>没有主持提示权限</h1></section>;
+  const atFrontier = data.scriptNavigation.viewedIndex === data.script.unlockedThroughIndex;
+  const allUnlocked = data.script.unlockedThroughIndex === data.course.blockCount - 1;
   return <>
-    <RuntimeHeading data={data} eyebrow="LIVE RUN SCRIPT · INSTANCE CONTROL" /><Progress data={data} />
+    <RuntimeHeading data={data} eyebrow="LIVE RUN SCRIPT · HOST NOTES" /><Progress data={data} />
     <div className={styles.controlGrid}>
       <section className={styles.scriptBlock}>
-        <small>当前块 · {data.currentBlock.id} · 尝试 {data.controller.attempt}</small><h2>{data.currentBlock.title}</h2>
-        <span className={styles.state}>{STATE_LABEL[state] ?? state}</span>
-        <p><b>主导师：</b>{data.currentBlock.leadMentorId.replace("mentor01", "P 产品").replace("mentor02", "D 开发").replace("mentor03", "M 市场").replace("mentor04", "O 运营")}</p>
-        <h3>系统动作</h3><ol>{control.systemActions.map((item) => <li key={item}>{item}</li>)}</ol>
-        <h3>人工验收门</h3><ol>{control.acceptance.map((item) => <li key={item}>{item}</li>)}</ol>
-        {data.controller.errorMessage && <div className={styles.error}>{data.controller.errorMessage}</div>}
+        <small>主持提示 · {data.page.id} · 解锁边界 {data.script.unlockedThroughBlockId}</small><h2>{data.page.title}</h2>
+        <span className={styles.state}>{atFrontier ? "最新已解锁页" : "正在回看历史页"}</span>
+        <p><b>建议主导师：</b>{data.page.leadMentorId.replace("mentor01", "P 产品").replace("mentor02", "D 开发").replace("mentor03", "M 市场").replace("mentor04", "O 运营")}（建议，不是权限）</p>
+        <h3>本页系统动作</h3><ol>{control.systemActions.map((item) => <li key={item}>{item}</li>)}</ol>
+        <h3>主持观察提示</h3><ol>{control.acceptance.map((item) => <li key={item}>{item}</li>)}</ol>
         <div className={styles.controlActions}>
-          {state === "ready" && <button className={styles.button} disabled={busy} onClick={() => act({ type: "execute" })}>执行当前块</button>}
-          {state === "executing" && <button className={styles.button} disabled={busy} onClick={() => act({ type: "submit-for-acceptance" })}>收齐现场结果，进入验收</button>}
-          {state === "awaiting-acceptance" && <><button className={styles.button} disabled={busy} onClick={() => act({ type: "accept" })}>验收通过</button><button className={styles.danger} disabled={busy} onClick={() => act({ type: "reject", message: "证据还不够具体，请补充后重试。" })}>退回补证据</button></>}
-          {state === "accepted" && (last ? <button className={styles.button} disabled={busy} onClick={() => act({ type: "complete" })}>完成整门课程</button> : <button className={styles.button} disabled={busy} onClick={() => act({ type: "advance" })}>进入下一 Block</button>)}
-          {state === "completed" && data.environment === "test" && data.acceptance.uiReceiptId && <div className={styles.receiptSuccess}><b>✓ UiAcceptanceReceipt 已签发</b><code>{data.acceptance.uiReceiptId}</code><br/><Link href="/studio/releases/">返回验收与发布 →</Link></div>}
-          {state === "completed" && data.environment === "test" && !data.acceptance.uiReceiptId && <fieldset className={styles.receiptChecks}>
-            <legend>签发回执前，逐项确认真实课堂验收</legend>
+          {atFrontier && !allUnlocked && data.scriptNavigation.canUnlockNext && <button className={styles.button} disabled={busy} onClick={requestUnlock}>确认解锁 {data.scriptNavigation.nextLocked?.id}</button>}
+          {!atFrontier && <p>你正在回看；使用上方“回到最新解锁”后才能继续解锁。</p>}
+          {allUnlocked && data.environment === "test" && data.acceptance.uiReceiptId && <div className={styles.receiptSuccess}><b>✓ UiAcceptanceReceipt 已签发</b><code>{data.acceptance.uiReceiptId}</code><br/><Link href="/studio/releases/">返回验收与发布 →</Link></div>}
+          {allUnlocked && data.environment === "test" && !data.acceptance.uiReceiptId && data.isAdminDm && <fieldset className={styles.receiptChecks}>
+            <legend>签发回执前，逐项确认真实 Test Classroom</legend>
             {UI_ACCEPTANCE_CHECKLIST.map(([key, label]) => <label key={key}><input type="checkbox" checked={receiptChecks[key]} onChange={(event) => setReceiptChecks((current) => ({ ...current, [key]: event.target.checked }))} />{label}</label>)}
             <button className={styles.button} disabled={busy || Object.values(receiptChecks).some((value) => !value)} onClick={() => receipt(receiptChecks)}>签发 UiAcceptanceReceipt</button>
           </fieldset>}
-          {data.environment === "test" && <button className={styles.danger} disabled={busy} onClick={reset}>重置 Test 实例</button>}
+          {allUnlocked && data.environment === "test" && !data.acceptance.uiReceiptId && !data.isAdminDm && <p>所有角色都可以完成视图验收；不可变的 UiAcceptanceReceipt 由本课堂 Admin DM 签发。</p>}
+          {data.environment === "test" && data.isAdminDm && <button className={styles.danger} disabled={busy} onClick={reset}>重置 Test 实例</button>}
         </div>
       </section>
-      <aside className={styles.card}><small className={styles.eyebrow}>现场雷达</small><h2>{data.mentors.length} 导师 + {data.learners.length} 学员</h2><div className={styles.people}>{data.mentors.map((item) => <div className={styles.person} data-ready key={item.mentorRole}><b>{item.mentorRole} · {item.displayName}</b><small>导师 Membership</small></div>)}{data.learners.map((item) => <div className={styles.person} data-ready={data.submissions.some((submission) => submission.profileId === item.profileId)} key={item.profileId}><b>{item.seat} · {item.displayName}</b><small>{data.submissions.some((submission) => submission.profileId === item.profileId) ? "本块已提交" : "等待本块证据"}</small></div>)}</div><h3>本块提交</h3><div className={styles.submissions}>{data.submissions.length ? data.submissions.map((item) => <article className={styles.submissionItem} key={`${item.profileId}:${item.kind}`}><b>{item.displayName}</b><small>{item.kind}</small><p>{item.text}</p></article>) : <p>还没有人提交。主控不会假装完成现场活动。</p>}</div></aside>
+      <aside className={styles.card}><small className={styles.eyebrow}>这一页的现场雷达</small><h2>{data.mentors.length} 导师 + {data.learners.length} 学员</h2><div className={styles.people}>{data.mentors.map((item) => <div className={styles.person} data-ready key={item.mentorRole}><b>{item.mentorRole} · {item.displayName}</b><small>导师 Membership</small></div>)}{data.learners.map((item) => <div className={styles.person} data-ready={data.submissions.some((submission) => submission.profileId === item.profileId)} key={item.profileId}><b>{item.seat} · {item.displayName}</b><small>{data.submissions.some((submission) => submission.profileId === item.profileId) ? "本页已保存记录" : "本页尚无记录"}</small></div>)}</div><h3>本页活动记录</h3><div className={styles.submissions}>{data.submissions.length ? data.submissions.map((item) => <article className={styles.submissionItem} key={`${item.profileId}:${item.kind}`}><b>{item.displayName}</b><small>{item.kind}</small><p>{item.text}</p></article>) : <p>还没有人保存记录；这不阻止剧本翻页或解锁。</p>}</div></aside>
     </div>
   </>;
 }
@@ -372,7 +513,21 @@ function TestIdentityManager({ data }: { data: ClassroomInstanceDetail }) {
 }
 
 function SharedScreen({ data }: { data: ClassroomSharedScreenDetail }) {
-  return <main className={styles.screen}><small>{data.environment.toUpperCase()} · 第 {data.currentBlock.macroStepOrder}/5 步 · {data.currentBlock.id}</small><h1>{data.currentBlock.title}</h1><p>{data.currentBlock.studentPrompt}</p><div className={styles.instruction}>{STATE_LABEL[data.controller.state] ?? data.controller.state}</div><footer><span>{data.course.title}</span><span>{data.controller.blockIndex + 1}/{data.course.blockCount} · {data.learnerCount} 位 Young Builder</span></footer></main>;
+  return <main className={styles.screen}><small>{data.environment.toUpperCase()} · 第 {data.page.macroStepOrder}/5 步 · {data.page.id}</small><h1>{data.page.title}</h1><p>{data.page.studentPrompt}</p><div className={styles.instruction}>已解锁课堂页 · 投屏独立翻阅</div><footer><span>{data.course.title}</span><span>{data.scriptNavigation.viewedIndex + 1}/{data.course.blockCount} · 已解锁至 {data.script.unlockedThroughBlockId} · {data.learnerCount} 位 Young Builder</span></footer></main>;
+}
+
+function toSharedScreen(data: ClassroomInstanceDetail): ClassroomSharedScreenDetail {
+  return {
+    id: data.id,
+    title: data.title,
+    environment: data.environment,
+    lifecycle: data.lifecycle,
+    learnerCount: data.learnerCount,
+    course: { title: data.course.title, blockCount: data.course.blockCount },
+    page: { id: data.page.id, title: data.page.title, macroStepOrder: data.page.macroStepOrder, studentPrompt: data.page.studentPrompt },
+    script: data.script,
+    scriptNavigation: { ...data.scriptNavigation, nextLocked: null, canUnlockNext: false },
+  };
 }
 
 function RuntimeError({ error }: { error: string }) { return <main className={styles.runtime}><div className={styles.runtimeMain}><div className={styles.error} role="alert"><b>无法进入课堂</b><p>{error}</p></div><Link className={styles.coursewareLink} href="/classroom/">返回我的课堂</Link></div></main>; }
