@@ -36,6 +36,17 @@ EXPECTED = {
     "/this-worldline-does-not-exist": 404,
 }
 
+# A denied Nginx auth_request may legitimately emit its tiny generic 401
+# document.  Security depends on the protected artifact not being served, not
+# on every gateway implementation returning a zero-byte error body.  These
+# fingerprints and the size ceiling distinguish that generic response from a
+# leaked courseware document without coupling the smoke test to Nginx wording.
+COURSEWARE_MARKERS = {
+    "/courseware/product-mentor-foundations/": ("青少年AI创业营", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/": ("先立棍，再让 AI 跑", "DEVELOPMENT MENTOR"),
+}
+MAX_UNAUTHORIZED_BODY_BYTES = 1024
+
 
 def sha256(value: object) -> str:
     encoded = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -107,8 +118,9 @@ def main() -> None:
             for feature in ("shared-brand-home", "released-workshop-snapshot", "unified-course-factory", "course-studio"):
                 if feature not in release.get("features", []):
                     raise SystemExit(f"FAIL release.json: missing {feature}")
-        if path in {"/courseware/product-mentor-foundations/", "/courseware/development-mentor-ligun/"}:
-            if body:
+        if path in COURSEWARE_MARKERS:
+            text = body.decode("utf-8", "replace")
+            if len(body) > MAX_UNAUTHORIZED_BODY_BYTES or any(marker in text for marker in COURSEWARE_MARKERS[path]):
                 raise SystemExit(f"FAIL {path}: anonymous auth gate leaked courseware bytes")
             if headers.get("cache-control") != "private, no-store, no-transform":
                 raise SystemExit(f"FAIL {path}: authenticated static courseware cache policy is unsafe")

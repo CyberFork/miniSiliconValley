@@ -114,6 +114,10 @@ class GatewayContractTests(unittest.TestCase):
             self.assertNotIn("add_header", route.group(1))
         self.assertIn('~^/courseware/(product-mentor-foundations|development-mentor-ligun)/ "private, no-store, no-transform";', self.gateway)
         self.assertIn('add_header Cache-Control "$minisv_cache_control" always;', self.gateway)
+        smoke = (ROOT / "scripts" / "public-smoke.py").read_text()
+        self.assertIn("COURSEWARE_MARKERS", smoke)
+        self.assertIn("MAX_UNAUTHORIZED_BODY_BYTES", smoke)
+        self.assertNotIn("if body:\n                raise SystemExit", smoke)
 
     def test_retired_numeric_entry_redirects_to_framework_with_both_slash_forms(self) -> None:
         self.assertRegex(self.gateway, r"location = /123456 \{ return 308 /framework/")
