@@ -75,3 +75,4 @@ CourseDefinition Candidate
 - `cowork/课件` 顶层统一为 `product-courseware / development-courseware / market-courseware`。
 - M 课件沿用 `/course/` 目录、第一方账号、cookie-only 静态鉴权和 exact revision／digest 机制。
 - 修复快速首尾跳转、深链恢复、查询参数保留、密集页适配和外部字体依赖后再发布。
+- 已以 `20260910T032647CST-market-mentor-user-system-r2` 部署到 Hecate；真实导师／学员与匿名边界均通过生产验收。

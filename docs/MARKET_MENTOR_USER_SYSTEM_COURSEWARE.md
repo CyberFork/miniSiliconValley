@@ -61,4 +61,13 @@ M r0 是新的 static-bundle，没有覆盖隐藏的 `market-mentor-field-kit` �
 - 安全：匿名静态访问 401，无课件正文泄漏；真实导师与学员登录后可打开。
 - 平台：Course Studio、Course Library、Test Classroom 共用同一个 packageId／revision／digest。
 
-最终生产 release 与回滚信息在部署后追加到本文件及生产回执。
+## 生产结果
+
+- 正式 release：`20260910T032647CST-market-mentor-user-system-r2`
+- 运行时代码：`f1b063b56aa4800a5316103da94c09dcef870a78`
+- 上一版（已含 M r0）：`20260910T031544CST-market-mentor-user-system-r1`
+- 上线 M 前的已知良好版：`20260910T020748CST-t095-t096-course-platform-r3`
+- Hecate healthcheck、公开冒烟、真实导师与真实学员的登录后目录／播放器／原始课件访问全部通过。
+- 生产返回的原始 HTML SHA-256 与源文件一致；49 页完整，缓存响应只有 `private, no-store, no-transform`。
+
+机器可读的完整回执见 [`MARKET_MENTOR_USER_SYSTEM_PRODUCTION_RECEIPT.json`](MARKET_MENTOR_USER_SYSTEM_PRODUCTION_RECEIPT.json)。
