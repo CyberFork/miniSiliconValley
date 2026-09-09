@@ -1,6 +1,6 @@
 # T-093｜课件已解锁进度导航
 
-状态：本地开发与浏览器验收通过；随 D 导师 exact r0 等待 T-092 生产发布。
+状态：本地开发、浏览器验收和生产发布均已完成；D 导师 exact r0 已上线。
 
 ## 交互真值
 
@@ -51,3 +51,12 @@ b13cd12a59d7ebdd6c97cfe426b999633348b35fea85f87571ff104eb3658c1b
 - `python3 tests/verify_deck.py`（本地编辑源）：4 个桌面/投影视口、方向键、Home/End、总览、打印、4 张离线图片全部通过。
 - `tests/development-mentor-package.test.ts`：清单文件、逐文件 SHA-256、内容树和 Courseware digest 一致。
 - `git diff --check`：通过。
+
+## 生产结果
+
+- 课件入口：<https://minisv.vip/course/development-mentor-ligun/?revision=0>
+- 可验证深链：<https://minisv.vip/course/development-mentor-ligun/?revision=0&slide=6&step=2>
+- 匿名访问会进入登录流程，并完整保留 `revision`、`slide`、`step`；导师登录后返回 exact 位置。
+- 静态文件由受保护的 `/courseware/development-mentor-ligun/` 提供，匿名请求返回 `401`，导师请求返回 `200`。
+- Hecate Release：`20260909T205212CST-t090-t093-course-release-r1`。
+- 完整部署证据见 `docs/TODO_090_093_PRODUCTION_DEPLOYMENT_RECEIPT.json`。

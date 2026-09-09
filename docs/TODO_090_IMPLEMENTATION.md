@@ -1,6 +1,6 @@
 # T-090｜D 导师剧本组课件与开发立棍闭环
 
-状态：本地 Candidate、运行时课件快照和完整测试已完成；尚未导入线上 Studio、尚未部署、尚未发布 Released。
+状态：开发、完整自动化测试、生产部署和线上 Studio Candidate 导入已完成；exact Candidate r10 等待团队进行两级人工验收后再发布 Released。
 
 ## 1. 成品关系
 
@@ -161,13 +161,24 @@ minisv-t090-development-v1
 - 机器盘点：`docs/DEVICE_BOOKING_T090_CONTENT_INVENTORY.json`
 - 本地测试回执：`docs/TODO_090_LOCAL_TEST_RECEIPT.json`
 
-## 9. 本地交付边界
+## 9. 生产交付状态
 
-本轮严格按请求只开发和本地测试：
+2026-09-09 已完成可回滚生产部署，并将本 Candidate 导入线上 Studio：
 
-- 未连接或修改线上 D1；
-- 未导入线上 Studio；
-- 未创建线上 Classroom；
-- 未部署 minisv.vip；
-- 未签发正式 Released；
-- 未 commit、未 push。
+```text
+Hecate Release  20260909T205212CST-t090-t093-course-release-r1
+Source commit   4edfdffa3eaeca1491da7c44d61b69b30d7193e4
+Course          eleme-2008-find-problem
+Candidate       r10
+Course digest   bbb3d912b94b93127422d83cd03c1ad1aca3119b48f38797af1718dc99db281a
+D courseware    development-mentor-ligun r0
+D digest        cafb8878e710a698237631523428dff7e0832180415c1b5605acbe6f3ddcf69d
+```
+
+- `https://minisv.vip/` 已由 Hecate 提供该构建，公网与本机健康检查通过。
+- D 导师课件的匿名直链返回 `401`；导师账号登录后 exact 深链返回 `200`，并保留 `revision`、`slide`、`step`。
+- Candidate r10 已在生产 D1 中校验为当前 Candidate，仍未标记 Released。
+- 没有自动伪造 `ViewAcceptanceReceipt` 或 `UiAcceptanceReceipt`，也没有绕过门禁创建 Production Classroom。
+- 下一步由团队在 Studio 多角色视图和真实 Test Classroom 中完成两级人工验收；完成后才能发布 r10。
+
+完整部署证据见 `docs/TODO_090_093_PRODUCTION_DEPLOYMENT_RECEIPT.json`。

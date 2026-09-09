@@ -1,0 +1,93 @@
+{
+  "receiptVersion": 1,
+  "completedAt": "2026-09-09T22:18:31+08:00",
+  "scope": [
+    "T-090",
+    "T-093",
+    "T-092 deployment phase"
+  ],
+  "status": "deployed-candidate-awaiting-human-acceptance",
+  "canonicalProduction": {
+    "host": "hecate",
+    "origin": "https://minisv.vip",
+    "releaseId": "20260909T205212CST-t090-t093-course-release-r1",
+    "previousReleaseId": "20260909T150600CST-t086-script-runtime-r2",
+    "sourceCommit": "4edfdffa3eaeca1491da7c44d61b69b30d7193e4",
+    "archiveSha256OnHecate": "907bafdb5ed7312fc9a3f084dbef7f0ec4a183ae60306c190eb875eb1b72b501",
+    "siteDigest": "b519cc8e9f15a09836fbef218ffc4e256d30d1dcef7d7fb2a9aa3f3da9ea4286",
+    "appDigest": "61d920cf7571031e0052667806478ee77ddd59055f07a59cc5ba0cec717399f5",
+    "appBuildId": "a7361c5a-67fe-466c-96bf-4142f1afdbeb",
+    "backup": "~/Services/minisv/backups/20260909T135103Z-20260909T205212CST-t090-t093-course-release-r1",
+    "rollbackTarget": "20260909T150600CST-t086-script-runtime-r2"
+  },
+  "courseCandidate": {
+    "courseId": "eleme-2008-find-problem",
+    "title": "Mini Silicon Valley｜饿了么产品发现 × 开发立棍｜LIVE RUN SCRIPT",
+    "revision": 10,
+    "digest": "bbb3d912b94b93127422d83cd03c1ad1aca3119b48f38797af1718dc99db281a",
+    "blocks": 13,
+    "candidate": true,
+    "released": false,
+    "viewAcceptanceReceipt": false,
+    "uiAcceptanceReceipt": false,
+    "reasonNotReleased": "两级人工验收是正式发布门禁；部署没有代替团队签发回执。"
+  },
+  "developmentCourseware": {
+    "packageId": "cw-development-mentor-ligun",
+    "slug": "development-mentor-ligun",
+    "mentorRole": "D",
+    "revision": 0,
+    "digest": "cafb8878e710a698237631523428dff7e0832180415c1b5605acbe6f3ddcf69d",
+    "contentTreeSha256": "ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234",
+    "indexSha256": "b13cd12a59d7ebdd6c97cfe426b999633348b35fea85f87571ff104eb3658c1b",
+    "files": 5,
+    "bytes": 8005223,
+    "transformed": false,
+    "courseUrl": "https://minisv.vip/course/development-mentor-ligun/?revision=0",
+    "deepLink": "https://minisv.vip/course/development-mentor-ligun/?revision=0&slide=6&step=2"
+  },
+  "productCoursewarePreservation": {
+    "sourceCommit": "679213a61b835335016eac7649213983a0e48489",
+    "sourceTree": "3a041c4714190cc026f6de8e06e15cec0e5f765d",
+    "artifactSha256": "347697696787065721fc66ac7d756e8c56338f646bc1a5aba51392133c835b04",
+    "files": 103,
+    "bytes": 114367157,
+    "transformed": false
+  },
+  "secondarySitesDeployment": {
+    "url": "https://mini-silicon-valley-rpg.cyberforker.chatgpt.site",
+    "versionNumber": 6,
+    "sourceCommit": "4edfdffa3eaeca1491da7c44d61b69b30d7193e4",
+    "status": "succeeded",
+    "canonical": false
+  },
+  "validation": {
+    "data": "203 events; 5 curriculum stages; 0 errors; 0 warnings",
+    "webUnit": "49 passed",
+    "coursePlatform": "69 passed",
+    "classroomE2E": "Google and Eleme five-step campaigns passed",
+    "liveRun": "80 Python and 5 Node tests passed",
+    "deployment": "35 tests passed",
+    "developmentMentorBrowser": "2/4/6 learners, B05-B08, reject-resubmit-accept and D-to-M handoff passed with 0 page/request errors",
+    "coursewareProgressBrowser": "mouse, keyboard, lock boundary, refresh restoration and exact query retention passed",
+    "sourceDeckBrowser": "18 slides, 4 viewports, overview, print and offline assets passed with 0 errors",
+    "hecateHealthcheck": true,
+    "publicSmoke": true,
+    "authenticatedMentorCourseware": {
+      "login": 200,
+      "coursePage": 200,
+      "staticCourseware": 200,
+      "markersVerified": true
+    },
+    "anonymousDevelopmentCourseware": 401,
+    "exactLoginReturnToPreserved": true,
+    "originHeader": "hecate"
+  },
+  "securityAndData": {
+    "secretsInReceipt": false,
+    "productionDataReset": false,
+    "candidateReleaseGateBypassed": false,
+    "productionClassroomCreated": false,
+    "cyberforkerComTouched": false
+  }
+}
