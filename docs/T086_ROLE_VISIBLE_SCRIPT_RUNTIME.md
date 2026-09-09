@@ -32,3 +32,13 @@ Activity 按 `block + kind` 保存并覆盖同类记录；Economy、卡牌、浏
 ## 安全、审计与并发
 
 Test 与 Production 按 classroomId 隔离；所有解锁确认记录 actor、effective identity、block、version 与时间。旧 version 的并发写入拒绝并可恢复；投屏永不包含私密卡、导师讲稿、账号、钱包或未公开提交。
+
+## 生产发布
+
+- 权威入口：<https://minisv.vip/classroom/>
+- Hecate release：`20260909T150600CST-t086-script-runtime-r2`
+- App build：`7c5ce67f-a337-434c-b03a-c8423a50d1f8`
+- Source：`583a81d099a2e5209b112cdbaec21d3b166f00b5`
+- 完整机器可读回执：[T-086 Script Runtime Production Receipt](TODO_086_SCRIPT_RUNTIME_PRODUCTION_RECEIPT.json)
+
+生产迁移验证为 `1 classroom / 1 script progress / 0 missing / 0 invalid`，现存课堂进入 runtime v2；迁移没有删除或重置 Activity、手牌与经济数据。公开路由冒烟、Hecate loopback 健康检查及 18790／18791 退休端口检查均通过。

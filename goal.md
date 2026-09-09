@@ -40,7 +40,7 @@ Mini Silicon Valley Classroom 不是一条强制所有人同步跳转的工作�
 - [x] Control：移除执行／提交验收／退回／尝试次数对导航的门禁，保留每页主持提示和现场数据雷达。
 - [x] UI Acceptance：完成全部页解锁后可签发新 build 的 UiAcceptanceReceipt；旧 build 回执自动失效。
 - [x] 测试与文档：单元、API、迁移、并发、权限、浏览器键盘／导航、生产隔离、操作手册。
-- [ ] Hecate/minisv.vip 部署与生产冒烟回执。
+- [x] Hecate/minisv.vip 部署与生产冒烟回执。
 
 ## 验收
 
