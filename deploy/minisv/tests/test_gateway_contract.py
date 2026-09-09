@@ -109,6 +109,7 @@ class GatewayContractTests(unittest.TestCase):
         self.assertIsNotNone(route)
         self.assertIn("auth_request /_minisv_courseware_auth;", route.group(1))
         self.assertIn("try_files $uri $uri/ /courseware/development-mentor-ligun/index.html", route.group(1))
+        self.assertIn('add_header Cache-Control "private, no-store, no-transform" always', route.group(1))
 
     def test_retired_numeric_entry_redirects_to_framework_with_both_slash_forms(self) -> None:
         self.assertRegex(self.gateway, r"location = /123456 \{ return 308 /framework/")

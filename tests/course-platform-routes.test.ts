@@ -42,6 +42,14 @@ test("T-086 navigation names the two acceptance gates and keeps UI preview on re
   assert.doesNotMatch(studio + editor + classroom, /href=["']\/ui-preview/);
 });
 
+test("exact Studio preview login preserves course, revision and digest", () => {
+  const route = readFileSync(new URL("app/studio/StudioRoute.tsx", root), "utf8");
+  assert.match(route, /section === "preview" && initialCourseRef/);
+  for (const field of ["course", "revision", "digest"]) assert.match(route, new RegExp(`${field}:`));
+  assert.match(route, /chatGPTSignInPath\(returnTo\)/);
+  assert.match(route, /requireCompletedPasswordSetup\(user, returnTo\)/);
+});
+
 test("T-086 release and factory APIs enforce two exact acceptance receipts", () => {
   const registry = readFileSync(new URL("app/lib/course-registry.ts", root), "utf8");
   const store = readFileSync(new URL("app/lib/classroom-platform-store.ts", root), "utf8");

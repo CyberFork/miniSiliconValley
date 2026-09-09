@@ -117,6 +117,15 @@ try {
   });
   assert.ok([302, 303, 307, 308].includes(anonymousEditor.status));
   assert.match(anonymousEditor.headers.get("location") ?? "", /\/auth\/login.*returnTo/);
+  const previewRef = initial.versions[0]!.ref;
+  const exactPreviewPath = `/studio/preview/?course=${encodeURIComponent(previewRef.courseId)}&revision=${previewRef.revision}&digest=${encodeURIComponent(previewRef.digest)}`;
+  const anonymousExactPreview = await fetch(`${internalBase}${exactPreviewPath}`, {
+    headers: proxyHeaders(), redirect: "manual", signal: AbortSignal.timeout(20_000),
+  });
+  assert.ok([302, 303, 307, 308].includes(anonymousExactPreview.status));
+  const exactPreviewLogin = new URL(anonymousExactPreview.headers.get("location") ?? "", publicOrigin);
+  assert.equal(exactPreviewLogin.pathname, "/auth/login");
+  assert.equal(exactPreviewLogin.searchParams.get("returnTo"), exactPreviewPath);
   const editorPage = await get("/studio/editor/", adminCookie);
   assert.equal(editorPage.status, 200);
   const editorHtml = await editorPage.text();

@@ -12,7 +12,14 @@ export default async function StudioRoute({
   initialCourseRef?: { courseId: string; revision: number; digest?: string } | null;
 }) {
   const user = await getChatGPTUser();
-  const returnTo = `/studio/${section === "home" ? "" : `${section}/`}`;
+  const routePath = `/studio/${section === "home" ? "" : `${section}/`}`;
+  const returnTo = section === "preview" && initialCourseRef
+    ? `${routePath}?${new URLSearchParams({
+        course: initialCourseRef.courseId,
+        revision: String(initialCourseRef.revision),
+        ...(initialCourseRef.digest ? { digest: initialCourseRef.digest } : {}),
+      }).toString()}`
+    : routePath;
   if (!user) redirect(chatGPTSignInPath(returnTo));
   requireCompletedPasswordSetup(user, returnTo);
   if (user.impersonation) redirect(`/classroom/${encodeURIComponent(user.impersonation.classroomId)}/`);
