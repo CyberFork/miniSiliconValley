@@ -58,9 +58,19 @@ test("the restored editor speaks only to the versioned Studio API", () => {
 
   const route = source("app/api/studio/validate/route.ts");
   assert.match(route, /requireStudioRole\(user\)/);
-  assert.match(route, /validateCoursePackage\(raw\.course\)/);
+  assert.match(route, /migrateCourseFieldIsolation\(raw\.course/);
+  assert.match(route, /validateCoursePackage\(migration\.course\)/);
   assert.match(route, /coursePackageDigest/);
   assert.doesNotMatch(route, /saveCourseCandidate/);
+});
+
+test("T-094 editor surfaces immutable data identity and does not fabricate it for a Working Copy", () => {
+  const js = source("public/studio/editor-assets/editor.js");
+  assert.match(js, /function exactCourseDataId/);
+  assert.match(js, /\$\{course\.course\.id\}@r\$\{Number\(meta\.revision\)\}:\$\{meta\.digest\}/);
+  assert.match(js, /未保存 Working Copy；没有不可变数据 ID/);
+  assert.match(js, /courseDataId/);
+  assert.match(js, /Working Copy 只在浏览器中变化，不会静默热更新任何课堂/);
 });
 
 test("the browser projector renders the same full editor for 4 mentors plus dynamic N learners", () => {

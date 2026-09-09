@@ -73,7 +73,7 @@ Candidate exact revision/digest
 - 首次密码未修改前，Studio／Classroom 数据 API 返回 `PASSWORD_CHANGE_REQUIRED`。
 - 学员只收到自己的任务、持久化私密卡、提交、RP 与钱包。
 - `/screen` 专用 allow-list 不包含 `myView/privateCards/privateScript/submissions/economy/accounts/courseware`。
-- 导师课件库和播放页不向学员开放。
+- Released 课件库和播放页允许真实 admin／mentor／learner 只读访问；Candidate、内部 fallback、observer 和 Test impersonation 不得进入。
 - 过期 ControllerState version 的并发写入必须返回冲突，不得覆盖新状态。
 - Primary Admin DM 可以委派任一有效导师；Delegated 能管理本课堂，但其授权／撤销请求在 API 层返回 403 并写审计。
 - 平台管理员 Test 模拟必须同时满足明确 Test Classroom、有效目标 Membership／DM、管理员自身显式 DM 权限；Production、平台管理员目标和跨课堂请求全部拒绝。
@@ -83,9 +83,11 @@ Candidate exact revision/digest
 
 - N=2／4／6 的席位数、任务、固定 seed 与发牌均可确定性投影。
 - `unique-within-step` 不重复发牌；`repeat-when-needed` 只在显式配置时重复。
-- N=2 不显示虚假学员；N=6 的 18 张手牌在六个账号之间隔离且唯一。
+- N=2 不显示虚假学员；当前 T-095 策略下 N=6 的 12 张手牌在六个账号之间隔离且唯一（每人 2 张），数量不得写死为 3。
 - 人数越界、动态任务模板缺失或卡牌容量不足时显示精确缺口。
 - 声明的 `maxCount` 无法实例化时不能签 View 回执、创建 Test 或 Released。
+- `fieldModel` 的每个非公共字段必须有唯一 fieldId、owner 和 JSON path；learner01—06、四导师与卡片互不串改。
+- 浏览器与服务端在相同 courseDataId、block、seat、seed 下必须产生相同 cardId 顺序；checkpoint 卡组覆盖规则也必须一致。
 
 ## 5. HTTP + D1 E2E 场景
 
@@ -127,7 +129,7 @@ COURSE_PLATFORM_E2E_PASS t086=view-receipt+ui-receipt+release-gates t087=navigat
 - 保存 Candidate 后出现“前往多角色视图验收”。
 - Preview 显示 exact revision／digest，能遍历全部 Block 和支持人数；未遍历完整时不能签收。
 - Releases 显示 Candidate、View 回执、TEST、UI 回执、课件、Released 与“下一步主操作”。
-- `/course/` 始终标记“导师课件播放”。
+- `/course/` 始终标记“课程目录”，并只列出注册表中的真实 Released 课件；P、D 使用同一登录和播放器机制。
 - 00—04 都能用鼠标、键盘 Enter、刷新直达和 Cmd/Ctrl＋点击打开；URL、主标题与 `aria-current=page` 一致。
 - 右上角账号菜单显示真实账号并可进入账户中心、切换账号和退出；操作后旧 Session API 返回 401。
 
@@ -143,6 +145,7 @@ COURSE_PLATFORM_E2E_PASS t086=view-receipt+ui-receipt+release-gates t087=navigat
 - 页面无横向遮挡、控件重叠、按钮无响应、资源 404 或 console error。
 - Primary／Delegated 标签准确；Delegated 没有委派控件但仍可使用主控，直接调用委派 API 也必须失败。
 - Test 身份全程显示黄色 actor → effective 横幅，返回管理员后不残留目标私密数据。
+- Test 的“数据身份”可复制 exact courseDataId、run、block、seat、deal seed、状态版本和 cardAssignment 顺序；与当前 Candidate 不同时明确标为锁定旧版本。
 
 ### 路由
 

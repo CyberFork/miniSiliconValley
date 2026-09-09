@@ -10,7 +10,7 @@ import {
 } from "./course-package";
 
 export type CourseInstantiationIssue = {
-  code: "LEARNER_COUNT_OUT_OF_RANGE" | "DECK_CAPACITY_INSUFFICIENT" | "LEARNER_TASK_TEMPLATE_MISSING";
+  code: "LEARNER_COUNT_OUT_OF_RANGE" | "DECK_CAPACITY_INSUFFICIENT" | "LEARNER_TASK_TEMPLATE_MISSING" | "LEARNER_SEAT_TASK_MISSING";
   path: string;
   message: string;
 };
@@ -188,7 +188,7 @@ export function validateCourseInstantiation(course: CoursePackage, learnerCount:
       }
     });
   }
-  if (learnerCount > 4) {
+  if (learnerCount > 4 && !course.fieldModel) {
     course.blocks.forEach((block, index) => {
       if (!block.learnerTaskTemplate) {
         issues.push({
@@ -196,6 +196,20 @@ export function validateCourseInstantiation(course: CoursePackage, learnerCount:
           path: `blocks[${index}].learnerTaskTemplate`,
           message: `${block.id} 缺少动态学员任务模板，无法安全生成第 5 名及之后的学员席。`,
         });
+      }
+    });
+  }
+  if (course.fieldModel) {
+    course.blocks.forEach((block, blockIndex) => {
+      for (let index = 1; index <= learnerCount; index += 1) {
+        const seatId = `learner${String(index).padStart(2, "0")}`;
+        if (!block.seatTasks[seatId]) {
+          issues.push({
+            code: "LEARNER_SEAT_TASK_MISSING",
+            path: `blocks[${blockIndex}].seatTasks.${seatId}`,
+            message: `${block.id} 缺少 ${seatId} 的独立任务节点。`,
+          });
+        }
       }
     });
   }

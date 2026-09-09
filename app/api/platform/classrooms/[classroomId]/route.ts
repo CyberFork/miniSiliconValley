@@ -10,6 +10,7 @@ export async function GET(request: Request, context: { params: Promise<{ classro
     return getClassroomInstance(db, user, classroomId, {
       ...(url.searchParams.get("block") ? { blockId: url.searchParams.get("block")! } : {}),
       ...(url.searchParams.get("viewAs") ? { viewAsProfileId: url.searchParams.get("viewAs")! } : {}),
+      ...(url.searchParams.get("surface") === "control" ? { surface: "control" as const } : {}),
     });
   });
 }

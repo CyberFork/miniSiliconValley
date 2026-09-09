@@ -1,0 +1,219 @@
+{
+  "schemaVersion": 1,
+  "todo": "T-095",
+  "generatedAt": "2026-09-09T16:00:00Z",
+  "source": {
+    "path": "tools/live-run/courses/candidates/eleme-2008-product-development-t090.json",
+    "courseId": "eleme-2008-find-problem",
+    "digest": "bbb3d912b94b93127422d83cd03c1ad1aca3119b48f38797af1718dc99db281a",
+    "immutable": true
+  },
+  "candidate": {
+    "path": "tools/live-run/courses/candidates/eleme-2008-unified-t095.json",
+    "courseId": "eleme-2008-find-problem",
+    "digest": "5dde44ae6d32fe935df1900d6b805e306be20671a9afc523180821939c8c2c33",
+    "fieldModelSchemaVersion": 1,
+    "fieldCount": 981,
+    "studentSeats": [
+      {
+        "seatId": "learner01",
+        "fieldRootId": "field-root:learner01",
+        "status": "available"
+      },
+      {
+        "seatId": "learner02",
+        "fieldRootId": "field-root:learner02",
+        "status": "available"
+      },
+      {
+        "seatId": "learner03",
+        "fieldRootId": "field-root:learner03",
+        "status": "available"
+      },
+      {
+        "seatId": "learner04",
+        "fieldRootId": "field-root:learner04",
+        "status": "available"
+      },
+      {
+        "seatId": "learner05",
+        "fieldRootId": "field-root:learner05",
+        "status": "available"
+      },
+      {
+        "seatId": "learner06",
+        "fieldRootId": "field-root:learner06",
+        "status": "available"
+      }
+    ]
+  },
+  "migration": [
+    {
+      "action": "created-seat",
+      "ownerId": "learner05",
+      "path": "blocks.0.seatTasks.learner05",
+      "detail": "B01 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner06",
+      "path": "blocks.0.seatTasks.learner06",
+      "detail": "B01 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner05",
+      "path": "blocks.1.seatTasks.learner05",
+      "detail": "B02 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner06",
+      "path": "blocks.1.seatTasks.learner06",
+      "detail": "B02 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner05",
+      "path": "blocks.2.seatTasks.learner05",
+      "detail": "B03 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner06",
+      "path": "blocks.2.seatTasks.learner06",
+      "detail": "B03 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner05",
+      "path": "blocks.3.seatTasks.learner05",
+      "detail": "B04 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner06",
+      "path": "blocks.3.seatTasks.learner06",
+      "detail": "B04 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner05",
+      "path": "blocks.4.seatTasks.learner05",
+      "detail": "B05 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner06",
+      "path": "blocks.4.seatTasks.learner06",
+      "detail": "B05 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner05",
+      "path": "blocks.5.seatTasks.learner05",
+      "detail": "B06 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner06",
+      "path": "blocks.5.seatTasks.learner06",
+      "detail": "B06 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner05",
+      "path": "blocks.6.seatTasks.learner05",
+      "detail": "B07 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner06",
+      "path": "blocks.6.seatTasks.learner06",
+      "detail": "B07 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner05",
+      "path": "blocks.7.seatTasks.learner05",
+      "detail": "B08 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner06",
+      "path": "blocks.7.seatTasks.learner06",
+      "detail": "B08 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner05",
+      "path": "blocks.8.seatTasks.learner05",
+      "detail": "B09 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner06",
+      "path": "blocks.8.seatTasks.learner06",
+      "detail": "B09 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner05",
+      "path": "blocks.9.seatTasks.learner05",
+      "detail": "B10 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner06",
+      "path": "blocks.9.seatTasks.learner06",
+      "detail": "B10 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner05",
+      "path": "blocks.10.seatTasks.learner05",
+      "detail": "B11 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner06",
+      "path": "blocks.10.seatTasks.learner06",
+      "detail": "B11 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner05",
+      "path": "blocks.11.seatTasks.learner05",
+      "detail": "B12 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner06",
+      "path": "blocks.11.seatTasks.learner06",
+      "detail": "B12 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner05",
+      "path": "blocks.12.seatTasks.learner05",
+      "detail": "B13 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-seat",
+      "ownerId": "learner06",
+      "path": "blocks.12.seatTasks.learner06",
+      "detail": "B13 从只读模板深复制为独立席位节点。"
+    },
+    {
+      "action": "created-field-model",
+      "ownerId": null,
+      "path": "fieldModel",
+      "detail": "981 个可编辑字段已建立稳定 scope / owner / path 索引。"
+    }
+  ],
+  "contentCorrection": {
+    "blockId": "B01",
+    "reason": "learnerPolicy supports 2–6 learners with two unique cards each; legacy copy incorrectly described a fixed four-by-three deal",
+    "oldArtifactChanged": false
+  }
+}

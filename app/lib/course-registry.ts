@@ -5,11 +5,13 @@ import {
   coursePackageDigest,
   projectCoursePackageToCampaign,
   validateCoursePackage,
+  type CoursePackage,
   type CoursePackageRef,
 } from "./course-package";
 import type { ClassroomCampaign } from "./classroom-model";
 import { resolveLearnerPolicy, validateCourseInstantiation } from "./course-platform";
 import { requireValidUiAcceptanceReceipt, requireValidViewAcceptanceReceipt } from "./course-acceptance";
+import { migrateCourseFieldIsolation } from "./course-field-model";
 
 export interface CourseReleaseApproval {
   schemaVersion: number;
@@ -40,7 +42,12 @@ export async function saveCourseCandidate(
   input: unknown,
   actor: string,
 ): Promise<CoursePackageRef> {
-  const course = validateCoursePackage(input);
+  // Normalize ownership metadata first so a legitimate structural edit (card
+  // reorder, capacity change) cannot be rejected solely because its previous
+  // field index is now stale. The normalized result still passes the complete
+  // CourseDefinition validator before any digest or DB write occurs.
+  const migration = migrateCourseFieldIsolation(input as CoursePackage);
+  const course = validateCoursePackage(migration.course);
   const digest = await coursePackageDigest(course);
   const existingDigest = await db.prepare(
     `SELECT revision, created_at, created_by FROM course_versions WHERE course_id = ? AND digest = ?`,
@@ -87,6 +94,7 @@ export async function saveCourseCandidate(
     status: "candidate",
     createdAt,
     createdBy,
+    fieldMigration: migration.report,
   };
 }
 

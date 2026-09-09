@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const BUILD_ID = "t086-two-stage-acceptance-r1";
+  const BUILD_ID = "t095-field-isolation-t094-data-identity-r1";
   const $ = (selector) => document.querySelector(selector);
   const CardView = window.MsvCardView;
   if (!CardView) throw new Error("共享卡片渲染器未加载，无法安全预览学员卡片。");
@@ -14,10 +14,9 @@
     cleanCardTitle,
     renderLearnerCard,
   } = CardView;
-  const FIXED_SEATS = [
+  const MENTOR_SEATS = [
     ["mentor01", "导师 1 · 产品 / 主 DM"], ["mentor02", "导师 2 · 开发"],
     ["mentor03", "导师 3 · 市场"], ["mentor04", "导师 4 · 运营"],
-    ["learner01", "学员 1"], ["learner02", "学员 2"], ["learner03", "学员 3"], ["learner04", "学员 4"],
   ];
   const MODE_NAMES = {yarn: "毛线式 · 获取交换信息", american: "美式 · 情境攻坚", euro: "德式 · 资源经营"};
   const MENTOR_NAMES = {mentor01: "P · 产品导师", mentor02: "D · 开发导师", mentor03: "M · 市场导师", mentor04: "O · 运营导师"};
@@ -116,6 +115,21 @@
     keys.slice(0, -1).forEach((key) => { target = target[Number.isInteger(+key) ? +key : key]; });
     const last = keys.at(-1); target[Number.isInteger(+last) ? +last : last] = value;
   }
+  function fieldBinding(path) { return course?.fieldModel?.fields?.find((item) => item.path === path) || null; }
+  function fieldScopeLabel(binding) {
+    if (!binding) return "待建立字段身份";
+    if (binding.scope === "global") return "公共字段";
+    if (binding.scope === "mentorRole") return `${MENTOR_NAMES[binding.ownerId] || binding.ownerId} 专属`;
+    if (binding.scope === "seat") return `${binding.ownerId} 专属`;
+    if (binding.scope === "card") return `卡片 ${binding.ownerId} 专属`;
+    return "新席位初始化模板";
+  }
+  function authoringSeats() {
+    const modeled = course?.fieldModel?.studentSeats?.map((seat, index) => [seat.seatId, `学员 ${index + 1}${seat.status === "inactive" ? " · 已停用但保留" : ""}`]);
+    if (modeled?.length) return [...MENTOR_SEATS, ...modeled];
+    const available = Object.keys(course?.blocks?.[0]?.seatTasks || {}).filter((id) => /^learner\d{2}$/.test(id)).sort();
+    return [...MENTOR_SEATS, ...available.map((id, index) => [id, `学员 ${index + 1}`])];
+  }
   function syncRaw() { if (course) $("#rawJson").value = JSON.stringify(course, null, 2); }
   function catalogItem() { return catalog.find((item) => item.id === course?.course?.id) || null; }
   function versionsFor(courseId) {
@@ -156,6 +170,10 @@
       cardCount: cards,
       source: version.ref.createdBy === "bundled" ? "bundled" : "authored",
     };
+  }
+  function exactCourseDataId(meta = courseMeta) {
+    if (!course?.course?.id || !meta?.digest || !Number.isInteger(Number(meta.revision))) return null;
+    return `${course.course.id}@r${Number(meta.revision)}:${meta.digest}`;
   }
 
   function renderLibraryDisclosure() {
@@ -272,11 +290,13 @@
 
   function field(label, path, options = {}) {
     const value = getPath(course, path);
+    const binding = fieldBinding(path);
     const wide = options.wide ? " wide" : "";
+    const ownership = `<small class="field-ownership" title="${esc(binding?.fieldId || "保存 Candidate 时建立")}">${esc(fieldScopeLabel(binding))}</small>`;
     const help = options.help ? `<small>${esc(options.help)}</small>` : "";
-    if (options.select) return `<label class="${wide}">${esc(label)}${help}<select data-path="${esc(path)}">${options.select.map(([key, name]) => `<option value="${esc(key)}" ${value === key ? "selected" : ""}>${esc(name)}</option>`).join("")}</select></label>`;
-    if (options.textarea) return `<label class="${wide}">${esc(label)}${help}<textarea data-path="${esc(path)}" ${options.array ? "data-array=\"true\"" : ""}>${esc(options.array ? (Array.isArray(value) ? value.join("\n") : "") : value)}</textarea></label>`;
-    return `<label class="${wide}">${esc(label)}${help}<input data-path="${esc(path)}" value="${esc(value)}" ${options.locked ? "readonly class=\"locked-field\"" : ""} ${options.type ? `type="${options.type}"` : ""}></label>`;
+    if (options.select) return `<label class="${wide}">${esc(label)}${ownership}${help}<select data-path="${esc(path)}">${options.select.map(([key, name]) => `<option value="${esc(key)}" ${value === key ? "selected" : ""}>${esc(name)}</option>`).join("")}</select></label>`;
+    if (options.textarea) return `<label class="${wide}">${esc(label)}${ownership}${help}<textarea data-path="${esc(path)}" ${options.array ? "data-array=\"true\"" : ""}>${esc(options.array ? (Array.isArray(value) ? value.join("\n") : "") : value)}</textarea></label>`;
+    return `<label class="${wide}">${esc(label)}${ownership}${help}<input data-path="${esc(path)}" value="${esc(value)}" ${options.locked ? "readonly class=\"locked-field\"" : ""} ${options.type ? `type="${options.type}"` : ""}></label>`;
   }
   function renderMetadata() {
     const policy = Preview.learnerPolicy(course);
@@ -297,7 +317,8 @@
       ${field("案例时间", "case.period")}
       ${field("导师案例名", "case.name", {wide: true})}
       ${field("为什么值得学", "case.why", {textarea: true, wide: true})}
-      ${policyFields}`;
+      ${policyFields}
+      <section class="legacy-policy wide"><div><b>${course.fieldModel ? `${course.fieldModel.studentSeats.length} 个稳定学员席 · ${course.fieldModel.fields.length} 个字段身份` : "当前版本尚未建立字段身份"}</b><small>${course.fieldModel ? "fieldId / scope / ownerId / JSON path 已写入 CourseDefinition；停用席位不会被删除。" : "点击后只更新浏览器 Working Copy；保存 Candidate 才会形成新的不可变 revision。"}</small></div><button type="button" class="button secondary" id="normalizeFieldModel">${course.fieldModel ? "刷新字段身份" : "建立席位隔离"}</button></section>`;
     bindInputs($("#metadataForm"));
     const enable = $("#enableDynamicPolicy");
     if (enable) enable.onclick = () => {
@@ -308,6 +329,20 @@
       markDirty("learnerPolicy");
       renderAll();
       toast("已加入动态学员规则与第 5 名之后的通用任务模板；请补足卡组容量后保存 Candidate。");
+    };
+    $("#normalizeFieldModel").onclick = async () => {
+      try {
+        const before = JSON.stringify(course);
+        const data = await post("/api/studio/normalize", {course});
+        pushUndo(before);
+        course = data.course;
+        const nextPolicy = Preview.learnerPolicy(course);
+        previewLearnerCount = Math.min(nextPolicy.maxCount, Math.max(previewLearnerCount, nextPolicy.defaultCount));
+        markDirty("fieldModel");
+        renderAll();
+        const created = data.report.filter((item) => item.action === "created-seat").length;
+        toast(`字段身份已建立：新增 ${created} 个席位节点，${course.fieldModel.fields.length} 个字段可追溯。请保存为新 Candidate。`);
+      } catch (error) { toast(`字段隔离失败：${error.message}`, true); }
     };
   }
   function renderSteps() {
@@ -518,7 +553,7 @@
     }
     const current = course.blocks[activeBlock]; const bp = `blocks.${activeBlock}`; const sp = `macroSteps.${activeStep}`;
     const checks = Object.entries(MODE_NAMES).map(([id, name]) => `<label><input type="checkbox" data-mode="${id}" ${current.gameModes.includes(id) ? "checked" : ""}>${esc(name)}</label>`).join("");
-    const seats = FIXED_SEATS.map(([id, name]) => `<div class="seat-card"><h4>${esc(name)}</h4>
+    const seats = authoringSeats().map(([id, name]) => `<div class="seat-card"><h4>${esc(name)}</h4>
       ${field("状态", `${bp}.seatTasks.${id}.state`, {select: [["active", "当值 / active"], ["support", "支撑 / support"], ["standby", "待命 / standby"]]})}
       ${field("徽标", `${bp}.seatTasks.${id}.badge`)}
       ${field("此刻唯一任务", `${bp}.seatTasks.${id}.task`, {textarea: true})}</div>`).join("");
@@ -554,8 +589,8 @@
         ${field("卡住时兜底", `${bp}.fallback`, {textarea: true, array: true})}
         ${field("线下与多角色视窗配合", `${bp}.manualInteraction`, {textarea: true, wide: true})}
       </div></section>
-      ${course.learnerPolicy ? `<section class="form-section"><h3>第 5 名及之后学员的通用任务</h3><div class="field-grid">${field("通用徽标", `${bp}.learnerTaskTemplate.badge`)}${field("此刻唯一任务", `${bp}.learnerTaskTemplate.task`, {textarea: true, wide: true})}</div></section>` : ""}
-      <section class="form-section"><h3>4 位导师与 4 个基础学员席位</h3><p class="section-note">基础席位保持旧课程精细编排；第 5 名及之后由上方通用模板安全生成。</p><div class="seat-grid">${seats}</div></section>`;
+      ${course.learnerPolicy ? `<section class="form-section"><h3>新席位初始化模板</h3><p class="section-note">模板只用于创建缺失席位；保存后每个学员拥有独立节点，修改模板不会反向改写既有席位。</p><div class="field-grid">${field("模板徽标", `${bp}.learnerTaskTemplate.badge`)}${field("模板任务", `${bp}.learnerTaskTemplate.task`, {textarea: true, wide: true})}</div></section>` : ""}
+      <section class="form-section"><h3>4 位导师与 ${authoringSeats().length - 4} 个独立学员席位</h3><p class="section-note">每个专属字段都有独立 fieldId、ownerId 和 JSON path；已停用席位仍保留内容。</p><div class="seat-grid">${seats}</div></section>`;
     bindInputs($("#blockForm"));
     document.querySelectorAll("[data-mode]").forEach((input) => { input.onchange = () => {
       current.gameModes = Object.keys(MODE_NAMES).filter((id) => document.querySelector(`[data-mode="${id}"]`).checked); markDirty(`${bp}.gameModes`);
@@ -614,14 +649,16 @@
     if (!course) return;
     const health = inspectPackage(); const item = catalogItem(); const blocking = health.issues.length > 0;
     const node = $("#packageHealth"); node.dataset.state = blocking ? "error" : dirty ? "dirty" : "ok";
-    const digest = courseMeta?.digestShort || courseMeta?.digest?.slice(0, 16) || item?.digest || "保存后生成";
+    const exactDigest = courseMeta?.digest || item?.digest || null;
+    const digest = exactDigest ? shortDigest(exactDigest) : "保存后生成";
+    const dataId = exactCourseDataId(courseMeta);
     const source = courseMeta?.source || item?.source || "imported";
     node.innerHTML = `<div class="health-title"><span class="health-icon">${blocking ? "!" : "✓"}</span><div><b>${blocking ? "课程包不完整，已阻止保存" : dirty ? "完整课程包 · 有未保存修改" : "完整课程包 · Candidate 可测试"}</b><span>${blocking ? esc(health.issues[0]) : `5 步 / 13 块 / ${health.policy.minCount}—${health.policy.maxCount} 名学员 / 每人 ${health.policy.cardsPerLearner} 张卡；正式课堂只读取锁定版本。`}</span></div></div>
       <div class="health-stats">
         <div><b>${health.deckCount}/5</b><span>卡组</span></div><div><b>${health.cardCount}</b><span>卡牌总数</span></div><div><b>${health.policy.minCount}—${health.policy.maxCount}</b><span>学员范围</span></div><div><b>r${esc(revision)}</b><span>当前基线</span></div>
       </div>
       <details ${blocking ? "open" : ""}><summary>版本与数据诊断</summary><dl>
-        <div><dt>编辑器资源</dt><dd>${esc(BUILD_ID)}</dd></div><div><dt>生产 release</dt><dd>${esc(releaseInfo?.release || "读取中")}</dd></div><div><dt>课程来源</dt><dd>${esc(SOURCE_NAMES[source] || source)}</dd></div><div><dt>课程 digest</dt><dd><code>${esc(digest)}</code></dd></div><div><dt>卡组分布</dt><dd>${esc(health.counts.join(" / ") || "—")}</dd></div><div><dt>Candidate / Released</dt><dd>${item?.candidateRevision == null ? "—" : `r${esc(item.candidateRevision)}`} / ${item?.releasedRevision == null ? "—" : `r${esc(item.releasedRevision)}`}</dd></div>
+        <div><dt>编辑器资源</dt><dd>${esc(BUILD_ID)}</dd></div><div><dt>生产 release</dt><dd>${esc(releaseInfo?.release || "读取中")}</dd></div><div><dt>课程来源</dt><dd>${esc(SOURCE_NAMES[source] || source)}</dd></div><div><dt>courseDataId</dt><dd><code>${esc(dataId || "未保存 Working Copy；没有不可变数据 ID")}</code></dd></div><div><dt>课程 digest</dt><dd><code>${esc(exactDigest || digest)}</code></dd></div><div><dt>卡组分布</dt><dd>${esc(health.counts.join(" / ") || "—")}</dd></div><div><dt>Candidate / Released</dt><dd>${item?.candidateRevision == null ? "—" : `r${esc(item.candidateRevision)}`} / ${item?.releasedRevision == null ? "—" : `r${esc(item.releasedRevision)}`}</dd></div>
       </dl>${blocking ? `<ul>${health.issues.map((issue) => `<li>${esc(issue)}</li>`).join("")}</ul>` : ""}</details>`;
     $("#publish").disabled = blocking || dirty || !candidateVersion(course.course.id);
     $("#publish").title = blocking ? health.issues.join("；") : dirty ? "请先保存 Candidate" : "进入两次验收与正式发布总闸门";
@@ -679,7 +716,7 @@
   }
   function renderFocusSelectors() {
     const seats = [
-      ...FIXED_SEATS.slice(0, 4),
+      ...MENTOR_SEATS,
       ...Preview.learnersForCourse(course, previewLearnerCount).map((item) => [item.id, item.title]),
     ];
     if (!seats.some(([id]) => id === focusSeatA)) focusSeatA = seats[0][0];
@@ -859,10 +896,17 @@
     const dialog = $("#fieldDialog");
     dialog.dataset.readonly = "false";
     $("#fieldDialogTitle").textContent = target.dataset.editLabel || "编辑课程字段";
-    $("#fieldPath").textContent = path;
+    const binding = fieldBinding(path);
+    $("#fieldPath").textContent = binding
+      ? `${fieldScopeLabel(binding)} · ${binding.fieldId} · owner ${binding.ownerId || "course"} · ${binding.path}`
+      : `待建立字段身份 · ${path}`;
     const cardId = target.dataset.cardId || target.closest("[data-card-id]")?.dataset.cardId;
     $("#fieldCardId").textContent = cardId ? `稳定卡牌 ID：${cardId}` : "";
-    $("#fieldHelp").textContent = Array.isArray(value) ? "每行一项；输入时所有角色预览立即同步，关闭弹窗不会丢失修改。" : "输入时直接修改浏览器 Working Copy；保存前对 Test Classroom 与正式课堂均为零副作用。";
+    $("#fieldHelp").textContent = binding?.scope === "global"
+      ? `公共字段：修改会更新所有使用此字段的角色视图${binding.aliases?.length ? `，并同步 ${binding.aliases.join("、")}` : ""}。`
+      : binding
+        ? `专属字段：只修改 ${binding.ownerId}；保存前对 Test Classroom 与正式课堂均为零副作用。`
+        : "本版本尚无字段身份；请先在课程信息中建立隔离，再保存 Candidate。";
     const options = fieldOptions(path);
     let control;
     if (options) {
@@ -876,7 +920,11 @@
     control.id = "fieldValue";
     control.dataset.array = String(Array.isArray(value));
     $("#fieldControl").replaceChildren(control);
-    $("#impactReport").textContent = `${document.querySelectorAll(`[data-course-path="${CSS.escape(path)}"]`).length} 个可见位置使用这个唯一源字段。`;
+    $("#impactReport").textContent = binding?.scope === "global"
+      ? `${document.querySelectorAll(`[data-course-path="${CSS.escape(path)}"]`).length} 个可见位置投影这个公共字段。`
+      : binding
+        ? `影响范围：仅 ${binding.ownerId} / ${binding.blockId || "课程"} / ${binding.fieldType}。`
+        : "先建立字段身份，才能确认影响范围。";
     const update = () => {
       let next = control.value;
       if (control.dataset.array === "true") next = next.split("\n").map((item) => item.trim()).filter(Boolean);
@@ -917,7 +965,10 @@
     $("#courseKicker").textContent = `${course.course.id} · ${course.case.campaignId}`;
     $("#courseTitle").textContent = course.course.name;
     const selected = versionsFor(course.course.id).find((item) => item.ref.revision === revision && item.ref.digest === courseMeta?.digest);
-    $("#revisionLine").textContent = `当前基线 r${revision}${selected?.candidate ? " · Candidate" : selected?.released ? " · Released" : ""} · Working Copy 只在浏览器中变化，不会静默热更新任何课堂`;
+    const dataId = exactCourseDataId(courseMeta);
+    $("#revisionLine").textContent = dataId
+      ? `当前基线 r${revision}${selected?.candidate ? " · Candidate" : selected?.released ? " · Released" : ""} · 数据 ${dataId} · Working Copy 只在浏览器中变化，不会静默热更新任何课堂`
+      : `未保存 Working Copy · 基线 r${revision} · 暂无不可变 courseDataId；保存 Candidate 后生成，任何课堂都不会读取当前修改`;
     renderMetadata(); renderSteps(); renderBlocks(); renderCardFilterSteps(); renderCardLibrary(); renderPackageHealth(); renderAlphaSync(); syncRaw(); renderLibrary(); setMode(mode);
     syncSaveControls();
   }

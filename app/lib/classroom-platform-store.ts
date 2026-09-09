@@ -25,7 +25,7 @@ import {
   loadExactCoursePackage,
   type StudioCourseVersion,
 } from "./course-registry";
-import { projectCoursePackageToCampaign, type CoursePackageRef } from "./course-package";
+import { courseDataIdForRef, projectCoursePackageToCampaign, type CoursePackageRef } from "./course-package";
 import {
   loadCoursewareExact,
   type CoursewareContent,
@@ -114,6 +114,28 @@ export type ClassroomInstanceDetail = ClassroomInstanceSummary & {
   submissions: ClassroomSubmissionDetail[];
   handoffs: ClassroomHandoffDetail[];
   economy: { personalRp: number; personalWalletTenths: number; teamTreasuryTenths: number };
+  /** Test diagnostics for proving all runtime surfaces read one exact snapshot. */
+  runtimeIdentity: {
+    courseDataId: string;
+    classroomId: string;
+    runId: string;
+    blockId: string;
+    seatId: string;
+    membershipId: string | null;
+    dealSeed: string;
+    deckId: string;
+    deckRevision: number;
+    stateMachineVersion: number;
+    scriptStateVersion: number;
+    controllerStateVersion: number;
+    resetGeneration: number;
+    cacheEpoch: string;
+    cardAssignments: Array<{ cardAssignmentId: string; cardId: string }>;
+    candidateComparison: {
+      exactMatch: boolean;
+      currentCandidate: Pick<CoursePackageRef, "courseId" | "revision" | "digest"> | null;
+    };
+  };
 };
 
 export type ClassroomSubmissionDetail = {
@@ -170,9 +192,27 @@ export type ClassroomViewRequest = {
   blockId?: string;
   /** Test-only role projection. Production rejects this even for admins. */
   viewAsProfileId?: string;
+  /** Test-only controller surface; separate from the actor's real seat. */
+  surface?: "control";
 };
 
 type ResolvedCourseRef = CoursePackageRef & { status: "candidate" | "released" };
+
+/**
+ * One deterministic deal seed per explicit Classroom run. The immutable
+ * CourseDefinition never contains hands; resetGeneration is the only switch
+ * that intentionally produces a new deal while refresh/re-login remain
+ * perfectly stable.
+ */
+export function classroomDealSeed(roomId: string, resetGeneration: number): string {
+  if (!roomId.trim()) throw new Error("roomId 不能为空。");
+  if (!Number.isInteger(resetGeneration) || resetGeneration < 0) throw new Error("resetGeneration 必须为非负整数。");
+  return `classroom:${roomId}:run:${resetGeneration}`;
+}
+
+export function classroomRunId(roomId: string, resetGeneration: number): string {
+  return `${roomId}:run:${resetGeneration}`;
+}
 
 export async function createClassroomInstance(
   db: ClassroomD1,
@@ -303,7 +343,7 @@ export async function createClassroomInstance(
     const projection = buildStudioProjection(course, {
       learnerCount: request.learnerCount,
       blockId: step.blocks[0],
-      seed: `classroom:${roomId}`,
+      seed: classroomDealSeed(roomId, 0),
     });
     const chapterId = campaign.chapters[stepIndex].id;
     projection.learnerViews.forEach((view, learnerIndex) => {
@@ -460,6 +500,12 @@ export async function getClassroomInstance(
   if (request.viewAsProfileId && summary.environment !== "test") {
     throw new ClassroomError("TEST_VIEW_PRODUCTION_FORBIDDEN", "角色视角切换只存在于 Test Classroom。", 403);
   }
+  if (request.surface === "control" && summary.environment !== "test") {
+    throw new ClassroomError("TEST_VIEW_PRODUCTION_FORBIDDEN", "中控视角模拟只存在于 Test Classroom。", 403);
+  }
+  if (request.surface === "control" && request.viewAsProfileId) {
+    throw new ClassroomError("TEST_VIEW_INVALID", "中控视角与角色席位不能同时选择。", 400);
+  }
 
   const course = await loadExactCoursePackage(db, summary.courseRef);
   const latestUnlocked = course.blocks[summary.script.unlockedThroughIndex];
@@ -474,11 +520,27 @@ export async function getClassroomInstance(
       `当前已解锁至 ${summary.script.unlockedThroughBlockId}`,
     ]);
   }
+  const runtimeRow = await db.prepare(
+    `SELECT ci.reset_generation, ci.state_machine_version, cs.version AS controller_state_version,
+            cp.revision AS candidate_revision, cp.digest AS candidate_digest
+     FROM classroom_instances ci
+     JOIN classroom_controller_states cs ON cs.room_id = ci.room_id
+     LEFT JOIN course_candidate_pointers cp ON cp.course_id = ci.course_id
+     WHERE ci.room_id = ?`,
+  ).bind(roomId).first<{
+    reset_generation: number;
+    state_machine_version: number;
+    controller_state_version: number;
+    candidate_revision: number | null;
+    candidate_digest: string | null;
+  }>();
+  if (!runtimeRow) throw new ClassroomError("CLASSROOM_DIAGNOSTICS_MISSING", "课堂缺少一致性诊断状态。", 500);
   const page = course.blocks[viewedIndex];
+  const dealSeed = classroomDealSeed(roomId, runtimeRow.reset_generation);
   const projection = buildStudioProjection(course, {
     learnerCount: summary.learnerCount,
     blockId: page.id,
-    seed: `classroom:${roomId}`,
+    seed: dealSeed,
   });
 
   const team = await db.prepare(
@@ -529,21 +591,41 @@ export async function getClassroomInstance(
   }
   const viewProfileId = selectedMentor?.profile_id ?? selectedLearner?.profile_id ?? user.userId;
   const viewDisplayName = selectedMentor?.nickname ?? selectedLearner?.nickname ?? user.displayName;
-  let myView: ClassroomInstanceDetail["myView"] = selectedMentor
-    ? projection.mentorViews.find((view) => view.mentorRole === selectedMentor.mentor_role) ?? null
-    : selectedLearner
-      ? projection.learnerViews[selectedLearner.seat - 1] ?? null
-      : projection.controllerView;
+  let myView: ClassroomInstanceDetail["myView"] = request.surface === "control"
+    ? projection.controllerView
+    : selectedMentor
+      ? projection.mentorViews.find((view) => view.mentorRole === selectedMentor.mentor_role) ?? null
+      : selectedLearner
+        ? projection.learnerViews[selectedLearner.seat - 1] ?? null
+        : projection.controllerView;
+  let privateAssignments: Array<{ cardAssignmentId: string; cardId: string }> = [];
   if (selectedLearner && myView?.kind === "learner") {
     const privateDeck = privateDeckForBlock(course, page);
     const grants = await db.prepare(
-      `SELECT card_id FROM card_grants WHERE room_id = ? AND chapter_id = ? AND member_id = ? ORDER BY granted_at, id`,
-    ).bind(roomId, `${course.course.id}:${privateDeck.macroStepId}`, selectedLearner.membership_id).all<{ card_id: string }>();
+      `SELECT id, card_id FROM card_grants WHERE room_id = ? AND chapter_id = ? AND member_id = ? ORDER BY granted_at, id`,
+    ).bind(roomId, `${course.course.id}:${privateDeck.macroStepId}`, selectedLearner.membership_id).all<{ id: string; card_id: string }>();
+    const grantQueues = new Map<string, Array<{ id: string; card_id: string }>>();
+    for (const grant of grants.results ?? []) {
+      const queue = grantQueues.get(grant.card_id) ?? [];
+      queue.push(grant);
+      grantQueues.set(grant.card_id, queue);
+    }
+    // D1 assignment IDs are deliberately random; card display order is the
+    // deterministic projector order, never UUID lexical order. This makes the
+    // Editor/Test/Seat comparison exact without storing a second card list.
+    privateAssignments = myView.privateCards.map((card) => {
+      const grant = grantQueues.get(card.id)?.shift();
+      if (!grant) throw new ClassroomError("CLASSROOM_CARD_BINDING_CORRUPT", `学员席缺少 ${card.id} 的运行时发牌关系。`, 500);
+      return { cardAssignmentId: grant.id, cardId: grant.card_id };
+    });
+    if ([...grantQueues.values()].some((queue) => queue.length > 0)) {
+      throw new ClassroomError("CLASSROOM_CARD_BINDING_CORRUPT", "学员席存在不属于当前 exact 投影的发牌关系。", 500);
+    }
     const cards = new Map(privateDeck.cards.map((card) => [card.id, card]));
     myView = {
       ...myView,
-      privateCards: (grants.results ?? [])
-        .map((grant) => cards.get(grant.card_id))
+      privateCards: privateAssignments
+        .map((assignment) => cards.get(assignment.cardId))
         .filter((card): card is NonNullable<typeof card> => Boolean(card))
         .map((card) => structuredClone(card)),
     };
@@ -713,6 +795,37 @@ export async function getClassroomInstance(
       personalRp: Number(balances?.rp ?? 0),
       personalWalletTenths: Number(balances?.wallet ?? 0),
       teamTreasuryTenths: Number(balances?.treasury ?? 0),
+    },
+    runtimeIdentity: {
+      courseDataId: courseDataIdForRef(summary.courseRef),
+      classroomId: roomId,
+      runId: classroomRunId(roomId, runtimeRow.reset_generation),
+      blockId: page.id,
+      seatId: request.surface === "control"
+        ? "controller"
+        : selectedMentor
+        ? `mentor${String(CLASSROOM_MENTOR_ROLES.indexOf(selectedMentor.mentor_role) + 1).padStart(2, "0")}`
+        : selectedLearner
+          ? `learner${String(selectedLearner.seat).padStart(2, "0")}`
+          : "controller",
+      membershipId: request.surface === "control" ? null : selectedMentor?.membership_id ?? selectedLearner?.membership_id ?? null,
+      dealSeed,
+      deckId: privateDeckForBlock(course, page).id,
+      deckRevision: summary.courseRef.revision,
+      stateMachineVersion: runtimeRow.state_machine_version,
+      scriptStateVersion: summary.script.version,
+      controllerStateVersion: runtimeRow.controller_state_version,
+      resetGeneration: runtimeRow.reset_generation,
+      cacheEpoch: `reset-${runtimeRow.reset_generation}:script-${summary.script.version}:controller-${runtimeRow.controller_state_version}`,
+      cardAssignments: privateAssignments,
+      candidateComparison: {
+        exactMatch: runtimeRow.candidate_revision === summary.courseRef.revision && runtimeRow.candidate_digest === summary.courseRef.digest,
+        currentCandidate: runtimeRow.candidate_revision === null || runtimeRow.candidate_digest === null ? null : {
+          courseId: summary.courseRef.courseId,
+          revision: runtimeRow.candidate_revision,
+          digest: runtimeRow.candidate_digest,
+        },
+      },
     },
   };
 }
@@ -935,9 +1048,9 @@ export async function applyScriptAction(
 export async function resetTestClassroom(db: ClassroomD1, user: AuthenticatedClassroomUser, roomId: string): Promise<void> {
   await requireAdminDm(db, user, roomId);
   const instance = await db.prepare(
-    `SELECT environment, course_id, course_revision, course_digest, learner_count
+    `SELECT environment, course_id, course_revision, course_digest, learner_count, reset_generation
      FROM classroom_instances WHERE room_id = ?`,
-  ).bind(roomId).first<{ environment: ClassroomEnvironment; course_id: string; course_revision: number; course_digest: string; learner_count: number }>();
+  ).bind(roomId).first<{ environment: ClassroomEnvironment; course_id: string; course_revision: number; course_digest: string; learner_count: number; reset_generation: number }>();
   if (!instance) throw new ClassroomError("CLASSROOM_NOT_FOUND", "课堂不存在。", 404);
   if (instance.environment !== "test") throw new ClassroomError("PRODUCTION_RESET_FORBIDDEN", "正式课堂不能重置。", 403);
   const exactRef = { courseId: instance.course_id, revision: instance.course_revision, digest: instance.course_digest };
@@ -954,6 +1067,8 @@ export async function resetTestClassroom(db: ClassroomD1, user: AuthenticatedCla
   ).bind(roomId).first<{ membership_id: string }>();
   if (!actorMembership) throw new ClassroomError("CLASSROOM_MENTOR_MISSING", "课堂缺少 P 导师席，不能安全重置。", 500);
   const now = new Date().toISOString();
+  const nextResetGeneration = instance.reset_generation + 1;
+  const nextDealSeed = classroomDealSeed(roomId, nextResetGeneration);
   const statements: D1PreparedStatement[] = [
     db.prepare(`DELETE FROM card_grants WHERE room_id = ?`).bind(roomId),
     db.prepare(`DELETE FROM intelligence_edges WHERE room_id = ?`).bind(roomId),
@@ -987,7 +1102,7 @@ export async function resetTestClassroom(db: ClassroomD1, user: AuthenticatedCla
     statements.push(db.prepare(`UPDATE memberships SET case_identity_id = ? WHERE id = ?`).bind(identityId, learner.id));
   }
   for (const [stepIndex, step] of course.macroSteps.entries()) {
-    const projection = buildStudioProjection(course, { learnerCount: instance.learner_count, blockId: step.blocks[0], seed: `classroom:${roomId}` });
+    const projection = buildStudioProjection(course, { learnerCount: instance.learner_count, blockId: step.blocks[0], seed: nextDealSeed });
     projection.learnerViews.forEach((view, learnerIndex) => {
       for (const card of view.privateCards) {
         statements.push(db.prepare(
@@ -1004,7 +1119,12 @@ export async function resetTestClassroom(db: ClassroomD1, user: AuthenticatedCla
         created_by_member_id, idempotency_key, reason, reversal_of, created_at)
        VALUES (?, ?, ?, NULL, ?, 100, 'financing', ?, ?, ?, 'Test 重置后的初始团队资金 10 C', NULL, ?)`,
     ).bind(crypto.randomUUID(), roomId, campaign.chapters[0].id, `treasury:${team.id}`, `factory-reset:${roomId}:${now}`, actorMembership.membership_id, `factory-reset:${roomId}:${now}`, now),
-    factoryEvent(db, roomId, auditActor(user), "classroom.test-reset", withIdentityAudit(user, { learnerCount: instance.learner_count }), now),
+    factoryEvent(db, roomId, auditActor(user), "classroom.test-reset", withIdentityAudit(user, {
+      learnerCount: instance.learner_count,
+      fromRunId: classroomRunId(roomId, instance.reset_generation),
+      toRunId: classroomRunId(roomId, nextResetGeneration),
+      dealSeed: nextDealSeed,
+    }), now),
   );
   await db.batch(statements);
 }
@@ -1056,7 +1176,7 @@ export async function acceptTestClassroom(
     viewReceiptId: binding.view_receipt_id,
     courseRef: detail.courseRef,
     learnerCount: detail.learnerCount,
-    dealSeed: `classroom:${roomId}`,
+    dealSeed: classroomDealSeed(roomId, instance.reset_generation),
     resetGeneration: instance.reset_generation,
     stateMachineVersion: instance.state_machine_version,
     coursewareRefs: detail.courseware,

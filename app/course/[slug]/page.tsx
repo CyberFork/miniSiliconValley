@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { ensureClassroomSchema, getClassroomDb } from "../../../db";
 import { chatGPTSignInPath, getChatGPTUser, requireCompletedPasswordSetup } from "../../chatgpt-auth";
-import { loadCoursewareBySlug } from "../../lib/courseware-store";
+import { isCoursewareLibraryVisible, loadCoursewareBySlug } from "../../lib/courseware-store";
 import { ClassroomError } from "../../lib/classroom-errors";
 import CoursewareFrame from "./CoursewareFrame";
 
@@ -41,7 +41,7 @@ export default async function CoursewarePage({
   if (!user) redirect(chatGPTSignInPath(returnTo));
   requireCompletedPasswordSetup(user, returnTo);
   if (user.impersonation) redirect(`/classroom/${encodeURIComponent(user.impersonation.classroomId)}/`);
-  if (user.role !== "admin" && user.role !== "mentor") notFound();
+  if (user.role !== "admin" && user.role !== "mentor" && user.role !== "learner") notFound();
   const db = getClassroomDb();
   await ensureClassroomSchema(db);
   let item;
@@ -51,6 +51,10 @@ export default async function CoursewarePage({
     if (error instanceof ClassroomError && error.status === 404) notFound();
     throw error;
   }
+  // /course/ is the Released read-only library for every real signed-in
+  // learner and mentor. Candidate/Draft and system fallback field kits remain
+  // Studio/factory-only even when somebody guesses their slug.
+  if (!isCoursewareLibraryVisible(item)) notFound();
   return <CoursewareFrame
     item={item}
     initialSlide={slide}

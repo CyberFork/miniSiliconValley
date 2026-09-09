@@ -15,7 +15,7 @@ EXPECTED = {
     "/world/": 200,
     "/course/": 307,
     "/studio/": 307,
-    "/courseware/product-mentor-foundations/": 200,
+    "/courseware/product-mentor-foundations/": 401,
     "/courseware/development-mentor-ligun/": 401,
     "/course/development-mentor-ligun/?revision=0&slide=6&step=2": 307,
     "/framework/": 200,
@@ -107,13 +107,11 @@ def main() -> None:
             for feature in ("shared-brand-home", "released-workshop-snapshot", "unified-course-factory", "course-studio"):
                 if feature not in release.get("features", []):
                     raise SystemExit(f"FAIL release.json: missing {feature}")
-        if path == "/courseware/product-mentor-foundations/":
-            text = body.decode("utf-8", "replace")
-            required = ("青少年AI创业营", "MINI硅谷", "/courseware/product-mentor-foundations/")
-            if any(label not in text for label in required):
-                raise SystemExit("FAIL P-mentor courseware: incomplete colleague-owned site")
-            if "/ui-theme.js" in text or "data-course-outline-schema" in text:
-                raise SystemExit("FAIL P-mentor courseware: colleague-owned site was rewritten or decorated")
+        if path in {"/courseware/product-mentor-foundations/", "/courseware/development-mentor-ligun/"}:
+            if body:
+                raise SystemExit(f"FAIL {path}: anonymous auth gate leaked courseware bytes")
+            if headers.get("cache-control") != "private, no-store, no-transform":
+                raise SystemExit(f"FAIL {path}: authenticated static courseware cache policy is unsafe")
         if path in {"/", "/framework/", "/workshop/", "/auth/login/", "/auth/register/", "/auth/recover/"}:
             text = body.decode("utf-8", "replace")
             if 'href="/"' not in text or '/favicon.svg' not in text:

@@ -60,6 +60,8 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
   const viewAsProfileId = navigation.testSurface && navigation.testSurface !== "control" && navigation.testSurface !== "screen"
     ? navigation.testSurface
     : undefined;
+  const requestControlSurface = data?.environment === "test"
+    && (navigation.testSurface === "control" || (!navigation.testSurface && view === "control"));
   const writeUrl = useCallback((next: NavigationState) => {
     const url = new URL(window.location.href);
     if (next.blockId) url.searchParams.set("block", next.blockId); else url.searchParams.delete("block");
@@ -77,6 +79,7 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
     const query = new URLSearchParams();
     if (navigation.blockId) query.set("block", navigation.blockId);
     if (viewAsProfileId) query.set("viewAs", viewAsProfileId);
+    if (requestControlSurface) query.set("surface", "control");
     try {
       const next = await api<ClassroomInstanceDetail>(`/api/platform/classrooms/${encodeURIComponent(classroomId)}${query.size ? `?${query}` : ""}`);
       if (observedUnlockVersion.current !== null && next.script.version > observedUnlockVersion.current) {
@@ -88,7 +91,7 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
       if (!quiet) setError("");
     }
     catch (cause) { if (!quiet) setError(messageOf(cause)); }
-  }, [classroomId, navigation.blockId, updateNavigation, viewAsProfileId]);
+  }, [classroomId, navigation.blockId, requestControlSurface, updateNavigation, viewAsProfileId]);
   useEffect(() => {
     const initial = window.setTimeout(() => { void load(); }, 0);
     const timer = window.setInterval(() => { if (document.visibilityState === "visible") void load(true); }, 4_000);
@@ -155,6 +158,7 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
       {error && <div className={styles.error} role="alert">{error}</div>}
       {notice && <div className={styles.notice} role="status">{notice}</div>}
       {view !== "members" && <PageNavigator data={data} busy={busy} onBack={requestBack} onForward={requestForward} onNavigate={navigateTo} />}
+      {view !== "members" && data.environment === "test" && <RuntimeDiagnostics data={data} />}
       {view === "members" ? <MembersView data={data} /> : !roleProjectionReady ? <section className={styles.card} aria-live="polite">正在切换真实角色视图…</section> : screenMode ? <SharedScreen data={toSharedScreen(data)} />
         : selectedSurface === "control" ? <ControlView data={data} busy={busy}
           requestUnlock={() => data.scriptNavigation.nextLocked && setUnlockTarget(data.scriptNavigation.nextLocked)}
@@ -180,6 +184,36 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
     </div>
     {unlockTarget && <UnlockDialog target={unlockTarget} busy={busy} onCancel={() => setUnlockTarget(null)} onConfirm={() => void unlock()} />}
   </main>;
+}
+
+function RuntimeDiagnostics({ data }: { data: ClassroomInstanceDetail }) {
+  const [copied, setCopied] = useState(false);
+  const diagnostic = data.runtimeIdentity;
+  const candidate = diagnostic.candidateComparison.currentCandidate;
+  const copy = async () => {
+    await navigator.clipboard.writeText(JSON.stringify({
+      courseRef: data.courseRef,
+      runtimeIdentity: diagnostic,
+      page: data.page,
+      myView: data.myView,
+    }, null, 2));
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1_800);
+  };
+  return <details className={styles.runtimeDiagnostics}>
+    <summary><b>TEST 数据身份</b><span>{diagnostic.seatId} · {data.page.id} · {diagnostic.candidateComparison.exactMatch ? "与当前 Candidate 相同" : "课堂锁定旧版本"}</span></summary>
+    <div className={styles.diagnosticGrid}>
+      <span><small>courseDataId</small><code>{diagnostic.courseDataId}</code></span>
+      <span><small>classroom / run</small><code>{diagnostic.classroomId} / {diagnostic.runId}</code></span>
+      <span><small>seat / membership</small><code>{diagnostic.seatId} / {diagnostic.membershipId ?? "—"}</code></span>
+      <span><small>block / deck</small><code>{diagnostic.blockId} / {diagnostic.deckId} r{diagnostic.deckRevision}</code></span>
+      <span><small>deal seed</small><code>{diagnostic.dealSeed}</code></span>
+      <span><small>state / reset / cache</small><code>{diagnostic.scriptStateVersion} / {diagnostic.resetGeneration} / {diagnostic.cacheEpoch}</code></span>
+      <span><small>当前 Candidate</small><code>{candidate ? `${candidate.courseId}@r${candidate.revision}:${candidate.digest}` : "没有 Candidate 指针"}</code></span>
+      <span><small>本视角 cardAssignment</small><code>{diagnostic.cardAssignments.length ? diagnostic.cardAssignments.map((item) => `${item.cardAssignmentId}:${item.cardId}`).join(" · ") : "当前视角无私密发牌"}</code></span>
+    </div>
+    <button type="button" className={styles.diagnosticCopy} onClick={() => void copy()}>{copied ? "已复制完整 payload" : "复制本视角诊断与 payload"}</button>
+  </details>;
 }
 
 /** Live shared display backed by a dedicated allow-list API projection. */

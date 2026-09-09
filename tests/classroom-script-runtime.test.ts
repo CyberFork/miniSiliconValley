@@ -42,8 +42,24 @@ test("Test role tabs are exhaustive while Production rejects the viewAs contract
   assert.match(runtime, /data\.mentors\.map/);
   assert.match(runtime, /data\.learners\.map/);
   assert.match(detailRoute, /viewAs/);
+  assert.match(detailRoute, /surface/);
   assert.match(store, /TEST_VIEW_PRODUCTION_FORBIDDEN/);
   assert.match(store, /TEST_VIEW_MEMBERSHIP_REQUIRED/);
+});
+
+test("T-094 exposes one exact runtime identity and preserves projector card order", () => {
+  const runtime = source("app/classroom/ClassroomRuntime.tsx");
+  const store = source("app/lib/classroom-platform-store.ts");
+  for (const marker of [
+    "courseDataId", "classroomId", "runId", "dealSeed", "deckId",
+    "scriptStateVersion", "controllerStateVersion", "resetGeneration",
+    "candidateComparison", "cardAssignmentId",
+  ]) assert.match(runtime + store, new RegExp(marker));
+  assert.match(store, /privateAssignments = myView\.privateCards\.map/);
+  assert.match(store, /classroomDealSeed\(roomId, runtimeRow\.reset_generation\)/);
+  assert.match(store, /classroomRunId\(roomId, runtimeRow\.reset_generation\)/);
+  assert.match(runtime, /课堂锁定旧版本/);
+  assert.match(runtime, /复制本视角诊断与 payload/);
 });
 
 test("the Classroom Center uses native browser link semantics", () => {

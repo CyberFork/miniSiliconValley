@@ -59,8 +59,13 @@
 
   function hash32(value) {
     let hash = 2166136261;
-    for (const character of String(value ?? "")) {
-      hash ^= character.codePointAt(0);
+    const text = String(value ?? "");
+    // Keep this byte-for-byte equivalent to app/lib/course-platform.ts.
+    // charCodeAt is intentional: codePointAt/for..of diverges for astral
+    // Unicode characters and would make Editor Preview deal different cards
+    // from the Test Classroom for the same courseDataId + seed.
+    for (let index = 0; index < text.length; index += 1) {
+      hash ^= text.charCodeAt(index);
       hash = Math.imul(hash, 16777619);
     }
     return hash >>> 0;
@@ -77,12 +82,28 @@
     };
   }
 
-  function deterministicDeal(course, stepIndex, seed, learnerCount) {
+  function privateDeckForBlock(course, block) {
+    const declaredDeckId = (course?.contentPackages?.scriptPackages || [])
+      .flatMap((scriptPackage) => scriptPackage.checkpoints || [])
+      .find((checkpoint) => (checkpoint.blockIds || []).includes(block?.id))
+      ?.privateDeckIds?.[0];
+    const deck = declaredDeckId
+      ? (course?.decks || []).find((item) => item.id === declaredDeckId)
+      : (course?.decks || []).find((item) => item.macroStepId === block?.macroStepId);
+    if (!deck) throw new Error(`${block?.id || "当前 Block"} 找不到可用的学员私密卡组。`);
+    return deck;
+  }
+
+  function deterministicDeal(course, stepIndex, seed, learnerCount, blockId) {
     const step = course?.macroSteps?.[stepIndex];
-    const deckIndex = (course?.decks || []).findIndex((item) => item.macroStepId === step?.id);
-    const deck = course?.decks?.[deckIndex];
+    const block = blockId ? (course?.blocks || []).find((item) => item.id === blockId) : null;
+    const deck = block
+      ? privateDeckForBlock(course, block)
+      : (course?.decks || []).find((item) => item.macroStepId === step?.id);
+    if (!deck) throw new Error(`${blockId || step?.id || "当前步骤"} 找不到可用的学员私密卡组。`);
+    const deckIndex = (course?.decks || []).findIndex((item) => item.id === deck.id);
     const cards = Array.isArray(deck?.cards) ? deck.cards.map((card, cardIndex) => ({card, cardIndex})) : [];
-    const random = randomFromSeed(`${seed}|${course?.course?.id}|${step?.id}|${deck?.id}`);
+    const random = randomFromSeed(`${course?.course?.id}:${deck?.id}:${seed}`);
     for (let index = cards.length - 1; index > 0; index -= 1) {
       const target = Math.floor(random() * (index + 1));
       [cards[index], cards[target]] = [cards[target], cards[index]];
@@ -135,7 +156,12 @@
     strings.forEach((key) => { if (!String(block[key] || "").trim()) warnings.push(`${key} 为空`); });
     const arrays = ["gameModes", "mentorScript", "studentActions", "systemActions", "props", "evidenceGate", "fallback"];
     arrays.forEach((key) => { if (!Array.isArray(block[key]) || !block[key].length) warnings.push(`${key} 为空`); });
-    const seats = ["mentor01", "mentor02", "mentor03", "mentor04", "learner01", "learner02", "learner03", "learner04"];
+    const activeLearnerSeats = course?.fieldModel?.studentSeats
+      ?.filter((seat) => seat.status === "available")
+      .slice(0, learnerCount)
+      .map((seat) => seat.seatId)
+      || Array.from({length: Math.min(4, learnerCount)}, (_, index) => `learner${String(index + 1).padStart(2, "0")}`);
+    const seats = ["mentor01", "mentor02", "mentor03", "mentor04", ...activeLearnerSeats];
     seats.forEach((seatId) => {
       const task = block.seatTasks?.[seatId];
       if (!task?.task || !task?.badge || !task?.state) warnings.push(`${seatId} 任务不完整`);
@@ -144,7 +170,14 @@
     const activeMentors = seats.slice(0, 4).filter((seatId) => block.seatTasks?.[seatId]?.state === "active");
     if (activeMentors.length !== 1 || activeMentors[0] !== block.leadMentorId) warnings.push("必须且只能由当值导师处于 active");
     const requested = Number(learnerCount ?? learnerPolicy(course).defaultCount);
-    if (requested > 4 && (!block.learnerTaskTemplate?.task || !block.learnerTaskTemplate?.badge)) warnings.push("动态学员任务模板不完整");
+    if (course?.fieldModel) {
+      for (const learner of learnersForCourse(course, requested)) {
+        const task = block.seatTasks?.[learner.id];
+        if (!task?.task || !task?.badge || !task?.state) warnings.push(`${learner.id} 独立任务不完整`);
+      }
+    } else if (requested > 4 && (!block.learnerTaskTemplate?.task || !block.learnerTaskTemplate?.badge)) {
+      warnings.push("动态学员任务模板不完整");
+    }
     return warnings;
   }
 
@@ -167,7 +200,7 @@
     const policy = learnerPolicy(course);
     const learnerCount = Number.isInteger(Number(options.learnerCount)) ? Number(options.learnerCount) : policy.defaultCount;
     const learnersForPreview = learnersForCourse(course, learnerCount);
-    const deal = deterministicDeal(course, stepIndex, seed, learnerCount);
+    const deal = deterministicDeal(course, stepIndex, seed, learnerCount, block.id);
     const blockPath = `blocks.${blockIndex}`;
     const stepPath = `macroSteps.${stepIndex}`;
     const mentorDefinitions = course.formula?.fourMentors || [];
@@ -353,7 +386,7 @@
 
   function readyTask(view, learnerView, data) {
     if (data.status !== "ready") return view.task;
-    if (view.blockOrder === 1 && !learnerView) return "先把纸和笔放在手边。不要猜公司结局，等老师发出身份和三张私密卡。";
+    if (view.blockOrder === 1 && !learnerView) return "先把纸和笔放在手边。不要猜公司结局，等老师发出身份和私密卡。";
     return `先看看上一步留下的结果。老师说“开始”后，再做：${view.task}`;
   }
 
@@ -398,7 +431,7 @@
           {label: "我要问", value: lens.ask || "听队友说完，再追问一件不清楚的事。", derived: "当前课程内容"},
           {label: "完成后", value: lens.done || "让导师看见一个具体结果。", derived: "当前课程内容"},
         ],
-        chipsTitle: "我已经拥有", chips: [`${learnerView?.cards?.length || 0}/3 私密卡`, `${learnerView?.unlockIds?.length || 0} 项解锁`, "一票团队发言权"],
+        chipsTitle: "我已经拥有", chips: [`${learnerView?.cards?.length || 0} 张私密卡`, `${learnerView?.unlockIds?.length || 0} 项解锁`, "一票团队发言权"],
         footerLeft: `${view.learnerCaseName} · 第 ${classroom.chapterOrder || 1}/${classroom.chapterCount || view.macroStepCount || 1} 章`,
         footerRight: `r${common.revision} · #${view.refreshEpoch ?? data.refreshEpoch ?? 0}${view.isPreview ? " · 回看" : ""}`,
       };
@@ -441,7 +474,7 @@
 
   root.MsvCoursePreview = Object.freeze({
     LEGACY_LEARNER_POLICY, learnerPolicy, learnersForCourse, STATUS_LABELS, FIELD_LABELS, MODE_LABELS, hash32, randomFromSeed,
-    deterministicDeal, flattenCards, blockWarnings, projectCourse,
+    privateDeckForBlock, deterministicDeal, flattenCards, blockWarnings, projectCourse,
     renderSeatSurface, renderControllerSurface, runtimeSeatView, runtimeControllerView,
   });
 })();

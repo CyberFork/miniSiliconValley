@@ -9,6 +9,7 @@ import type {
   ClassroomSource,
   PDMORole,
 } from "./classroom-model";
+import { validateCourseFieldModel, type CourseFieldModel } from "./course-field-model";
 
 export const COURSE_PACKAGE_SCHEMA_VERSION = 1 as const;
 export const COURSE_STEP_IDS = ["find", "decide", "build", "market", "operate"] as const;
@@ -44,6 +45,8 @@ export interface CoursePackageRef {
   releasedAt?: string | null;
   releasedBy?: string | null;
   approvalRunId?: string | null;
+  /** Returned by Candidate writes; not persisted as part of an exact ref. */
+  fieldMigration?: import("./course-field-model").CourseFieldMigrationEntry[];
 }
 
 export interface CoursePackageCard {
@@ -252,6 +255,12 @@ export interface CoursePackage {
   blocks: CoursePackageBlock[];
   rules: Record<string, unknown>;
   contentPackages?: CourseContentPackages;
+  /**
+   * Ownership/index contract for the actual editable values above. Legacy
+   * immutable releases omit it; every newly saved Candidate is normalized to
+   * include it before its digest is calculated.
+   */
+  fieldModel?: CourseFieldModel;
   authoring?: Record<string, unknown>;
 }
 
@@ -382,8 +391,15 @@ export function validateCoursePackage(value: unknown): CoursePackage {
       text(template.task, `$.blocks[${index}].learnerTaskTemplate.task`);
     }
     const seatTasks = record(block.seatTasks, `$.blocks[${index}].seatTasks`);
-    exactArray(Object.keys(seatTasks).sort(), [...COURSE_SEAT_IDS].sort(), `$.blocks[${index}].seatTasks keys`);
-    for (const seatId of COURSE_SEAT_IDS) {
+    const modeledLearnerSeats = root.fieldModel === undefined
+      ? COURSE_SEAT_IDS.slice(4)
+      : Array.from({ length: Math.max(
+        maxLearners,
+        ...Object.keys(seatTasks).map((seatId) => /^learner(\d{2})$/.exec(seatId)).filter(Boolean).map((match) => Number(match![1])),
+      ) }, (_, learnerIndex) => `learner${String(learnerIndex + 1).padStart(2, "0")}`);
+    const expectedSeatIds = [...COURSE_SEAT_IDS.slice(0, 4), ...modeledLearnerSeats];
+    exactArray(Object.keys(seatTasks).sort(), [...expectedSeatIds].sort(), `$.blocks[${index}].seatTasks keys`);
+    for (const seatId of expectedSeatIds) {
       const task = record(seatTasks[seatId], `$.blocks[${index}].seatTasks.${seatId}`);
       if (!new Set(["active", "support", "standby"]).has(String(task.state))) throw new Error(`$.blocks[${index}].seatTasks.${seatId}.state 无效。`);
       text(task.badge, `$.blocks[${index}].seatTasks.${seatId}.badge`);
@@ -486,6 +502,9 @@ export function validateCoursePackage(value: unknown): CoursePackage {
         });
       })),
     });
+  }
+  if (root.fieldModel !== undefined) {
+    validateCourseFieldModel(value as CoursePackage, root.fieldModel as unknown as CourseFieldModel);
   }
   if (root.authoring !== undefined) {
     const authoring = record(root.authoring, "$.authoring");
@@ -766,6 +785,14 @@ export async function coursePackageDigest(value: CoursePackage): Promise<string>
   const bytes = new TextEncoder().encode(canonicalCoursePackage(value));
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   return [...new Uint8Array(digest)].map((part) => part.toString(16).padStart(2, "0")).join("");
+}
+
+/** Stable identity of one immutable registry row; never means “latest”. */
+export function courseDataIdForRef(ref: Pick<CoursePackageRef, "courseId" | "revision" | "digest">): string {
+  if (!ref.courseId || !Number.isInteger(ref.revision) || !/^[0-9a-f]{64}$/.test(ref.digest)) {
+    throw new Error("无法为无效的 exact CourseDefinition 引用生成 courseDataId。");
+  }
+  return `${ref.courseId}@r${ref.revision}:${ref.digest}`;
 }
 
 const STAGES: Record<CourseStepId, CampaignStage> = {

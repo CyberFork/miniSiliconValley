@@ -112,6 +112,22 @@ try {
   assert.ok(initial.courseware.some((item) => item.slug === "development-mentor-ligun"));
   assert.ok(initial.courseware.every((item) => item.releasedRevision !== null && item.releasedDigest));
 
+  const anonymousCourseLibrary = await fetch(`${internalBase}/course/`, {
+    headers: proxyHeaders(), redirect: "manual", signal: AbortSignal.timeout(20_000),
+  });
+  assert.ok([302, 303, 307, 308].includes(anonymousCourseLibrary.status));
+  const courseLibraryLogin = new URL(anonymousCourseLibrary.headers.get("location") ?? "", publicOrigin);
+  assert.equal(courseLibraryLogin.pathname, "/auth/login");
+  assert.equal(courseLibraryLogin.searchParams.get("returnTo"), "/course/");
+
+  const anonymousDevelopmentDeepLink = await fetch(`${internalBase}/course/development-mentor-ligun/?revision=0&slide=7&step=2`, {
+    headers: proxyHeaders(), redirect: "manual", signal: AbortSignal.timeout(20_000),
+  });
+  assert.ok([302, 303, 307, 308].includes(anonymousDevelopmentDeepLink.status));
+  const developmentLogin = new URL(anonymousDevelopmentDeepLink.headers.get("location") ?? "", publicOrigin);
+  assert.equal(developmentLogin.pathname, "/auth/login");
+  assert.equal(developmentLogin.searchParams.get("returnTo"), "/course/development-mentor-ligun/?revision=0&slide=7&step=2");
+
   const anonymousEditor = await fetch(`${internalBase}/studio/editor/`, {
     headers: proxyHeaders(), redirect: "manual", signal: AbortSignal.timeout(20_000),
   });
@@ -170,15 +186,20 @@ try {
   }, adminCookie);
   assert.equal(customOperationsCourseware.revision, 0);
   assert.equal(customOperationsCourseware.released, false);
-  const coursewarePage = await get(`/course/${customOperationsCourseware.slug}/?revision=0`, adminCookie);
-  assert.equal(coursewarePage.status, 200);
-  const coursewareHtml = await coursewarePage.text();
-  assert.ok(coursewareHtml.includes("账户中心") && coursewareHtml.includes("切换账号") && coursewareHtml.includes("退出登录"), "protected Courseware must keep the unified account menu");
+  assert.equal(
+    (await get(`/course/${customOperationsCourseware.slug}/?revision=0`, adminCookie)).status,
+    404,
+    "unreleased courseware must stay outside the Released library even for an administrator",
+  );
   await postData("/api/studio/courseware/release", {
     packageId: customOperationsCourseware.packageId,
     revision: customOperationsCourseware.revision,
     digest: customOperationsCourseware.digest,
   }, adminCookie);
+  const coursewarePage = await get(`/course/${customOperationsCourseware.slug}/?revision=0`, adminCookie);
+  assert.equal(coursewarePage.status, 200);
+  const coursewareHtml = await coursewarePage.text();
+  assert.ok(coursewareHtml.includes("账户中心") && coursewareHtml.includes("切换账号") && coursewareHtml.includes("退出登录"), "protected Courseware must keep the unified account menu");
   const testedCoursewareRefs = coursewareRefs(initial.courseware, "test").map((ref) => ref.mentorRole === "O" ? {
     mentorRole: customOperationsCourseware.mentorRole,
     packageId: customOperationsCourseware.packageId,
@@ -229,7 +250,28 @@ try {
   const replacementPassword = "Learner replaced one-time password 2026!";
   const changed = await mutate("/api/auth/profile", "PATCH", { currentPassword: generatedLearners[0].initialPassword, newPassword: replacementPassword }, learnerCookie);
   assert.equal(changed.status, 200, await changed.clone().text());
-  assert.equal((await get("/course/", learnerCookie)).status, 404, "mentor courseware library must not be exposed to learners");
+  const learnerCourseLibrary = await get("/course/", learnerCookie);
+  assert.equal(learnerCourseLibrary.status, 200, "a real learner can open the Released read-only course library");
+  const learnerCourseLibraryHtml = await learnerCourseLibrary.text();
+  for (const visible of ["product-mentor-foundations", "development-mentor-ligun", customOperationsCourseware.slug]) {
+    assert.ok(learnerCourseLibraryHtml.includes(visible), `Released course library is missing ${visible}`);
+  }
+  for (const hidden of ["development-mentor-field-kit", "market-mentor-field-kit", "operations-mentor-field-kit"]) {
+    assert.ok(!learnerCourseLibraryHtml.includes(hidden), `system fallback ${hidden} must not masquerade as a published course`);
+  }
+  for (const path of [
+    "/course/product-mentor-foundations/?revision=0",
+    "/course/development-mentor-ligun/?revision=0&slide=7&step=2",
+  ]) {
+    const response = await get(path, learnerCookie);
+    assert.equal(response.status, 200, `learner cannot open exact Released courseware ${path}`);
+    assert.match(response.headers.get("content-type") ?? "", /text\/html/, `${path} must render the authenticated courseware page`);
+  }
+  assert.equal(
+    (await get("/course/market-mentor-field-kit/?revision=0", learnerCookie)).status,
+    404,
+    "a guessed system fallback slug must not become learner-visible",
+  );
 
   const learnerDetail = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}`, learnerCookie);
   assert.equal(learnerDetail.myView?.kind, "learner");

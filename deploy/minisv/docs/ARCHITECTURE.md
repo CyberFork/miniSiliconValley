@@ -18,7 +18,7 @@ minisv.vip / www.minisv.vip
 
 - 静态：`/`、`/world/`、`/framework/`、`/parents/`、`/workshop/`。
 - 动态应用：`/studio/*`、`/course/*`、`/classroom/*`、`/account/*`、`/auth/*`、`/api/studio/*`、`/api/platform/*`。
-- 固定 P 课件：`/courseware/product-mentor-foundations/`，逐字节复制。
+- 固定 P／D 课件：`/courseware/product-mentor-foundations/`、`/courseware/development-mentor-ligun/`，原样复制并统一经 cookie-only `auth_request` 保护；导师与学员从 `/course/` 只读访问。
 - 退休：`/alpha*`、`/control*` 返回 410；`/api/classroom/*` 返回 410；公网 `/api/internal/*` 返回 404。
 
 ## 单一 release

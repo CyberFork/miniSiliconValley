@@ -83,6 +83,8 @@ CourseDefinition Working Copy
 
 `CasePackage.caseType` 明确隔离史实与课堂模拟：`historical` 必须绑定课程 case、来源和 F 卡；`simulation` 可以使用独立 case ID，但来源与 F 卡必须为空，其私密证据只能作为无来源的 R 模拟卡。一个 CourseDefinition 可以像 T-090 一样先运行 P 历史 ScriptPackage，再运行 D 模拟 ScriptPackage，两者不能共享“事实”身份。
 
+T-095 起，新 Candidate 还包含 `fieldModel`：它只为正文中已有值建立稳定的 `fieldId / scope / ownerId / JSON path` 索引，不复制第二份内容。`global` 是明确共享的公共字段；四导师、learner01—learner06、每张 card 和新席位模板分别拥有独立节点。课程人数减少只把超出容量的既有席位标为 inactive，不删除内容；ClassroomInstance 的手牌、提交、RP、钱包和资金永远不进入该模型。
+
 ### CourseRelease
 
 每次保存产生不可变版本：
@@ -188,6 +190,8 @@ Activity 按 block 保存并覆盖同 kind 的工作记录；Economy／卡牌与
 
 Stage 1 `/studio/preview/` 是桌面内部内容投影验收：单页展示 4 导师、N 学员和中控摘要，支持完整字段核验及 hover/点击固定展开。Stage 2 才是真实 `/classroom/{id}/` Test Classroom UI；两级 exact 回执门禁后才能 Released。
 
+T-094 起，所有 exact 课程快照统一显示 `courseDataId = {courseId}@r{revision}:{digest}`。Test Runtime 另外公开 `classroomId / runId / blockId / seatId / membershipId / dealSeed / deckId / state versions / resetGeneration / cardAssignmentId` 的内部诊断。浏览器预览与服务端共享相同 UTF-16 hash、`courseId:deckId:seed` 和 checkpoint 卡组选择契约；数据库随机 assignment ID 不参与卡片显示排序。只有显式 Test reset 才生成新 runId 与 dealSeed。
+
 共同准入仍由 `ClassroomFactory.create()` 负责：exact CourseRelease、人数、成员与有效 ViewAcceptanceReceipt 必须一致。Production 额外要求 Released、有效 UiAcceptanceReceipt 及四套 exact 课件。创建使用单次 D1 事务／batch 写入，失败不留下半个课堂。
 
 ## 6. 14 项真实 UI 验收
@@ -228,7 +232,8 @@ Admin DM 只有在 TEST 完成全部课程后，才能逐项确认并签发 UI �
 
 ## 8. 权限与隐私边界
 
-- `/studio/*`、`/course/*`：平台 mentor／admin，且必须完成首次改密。
+- `/studio/*`：平台 mentor／admin，且必须完成首次改密。
+- `/course/*`：真实 admin／mentor／learner 登录账号只读访问 Released 课件；Candidate、测试模拟身份和内部 fallback 不进入目录。
 - Classroom：仅该实例 Membership 或 Admin DM。
 - 学员只收到自己的任务、持久化手牌、提交、RP 与钱包。
 - 导师不接收其他导师不需要的私密脚本。

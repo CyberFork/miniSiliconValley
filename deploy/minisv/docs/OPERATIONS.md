@@ -48,11 +48,11 @@ cd $HOME/Services/minisv && /usr/local/bin/docker compose -f compose.yml up -d -
 ## 课件检查
 
 ```bash
-curl -fsS https://minisv.vip/courseware/product-mentor-foundations/ >/dev/null
+test "$(curl -sS -o /dev/null -w '%{http_code}' https://minisv.vip/courseware/product-mentor-foundations/)" = 401
 curl -sSI https://minisv.vip/courseware/product-mentor-foundations | grep -i '^location:'
 ```
 
-`release.json.coursewareArtifact` 必须记录固定 chj source、`transformed=false`、整树 digest/files/bytes。动态 `/course/` 是登录后的导师课件库，不应被静态产物覆盖。
+`release.json.coursewareArtifact` 必须记录固定 chj source、`transformed=false`、整树 digest/files/bytes。匿名访问 P／D 原始静态课件均须返回 401 且不得泄漏正文；登录后的导师和学员从动态 `/course/` 目录只读打开。
 
 ## 回滚与数据
 

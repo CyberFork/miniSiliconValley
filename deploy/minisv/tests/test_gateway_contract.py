@@ -99,19 +99,21 @@ class GatewayContractTests(unittest.TestCase):
         self.assertIn("/courseware/product-mentor-foundations/index.html", self.gateway)
         self.assertIn("probe /course/ 307", healthcheck)
         self.assertIn("probe /studio/ 307", healthcheck)
+        self.assertIn("probe /courseware/product-mentor-foundations/ 401", healthcheck)
         self.assertIn("probe /courseware/development-mentor-ligun/ 401", healthcheck)
 
-    def test_development_courseware_static_bytes_are_role_gated(self) -> None:
+    def test_released_static_courseware_bytes_share_one_auth_gate(self) -> None:
         self.assertIn("location = /_minisv_courseware_auth", self.gateway)
         self.assertIn("internal;", self.gateway)
         self.assertIn("/api/auth/courseware-access", self.gateway)
-        route = re.search(r"location \^~ /courseware/development-mentor-ligun/ \{(.*?)\n    \}", self.gateway, re.DOTALL)
-        self.assertIsNotNone(route)
-        self.assertIn("auth_request /_minisv_courseware_auth;", route.group(1))
-        self.assertIn("try_files $uri $uri/ /courseware/development-mentor-ligun/index.html", route.group(1))
-        self.assertIn('~^/courseware/development-mentor-ligun/ "private, no-store, no-transform";', self.gateway)
+        for slug in ("product-mentor-foundations", "development-mentor-ligun"):
+            route = re.search(rf"location \^~ /courseware/{slug}/ \{{(.*?)\n    \}}", self.gateway, re.DOTALL)
+            self.assertIsNotNone(route)
+            self.assertIn("auth_request /_minisv_courseware_auth;", route.group(1))
+            self.assertIn(f"try_files $uri $uri/ /courseware/{slug}/index.html", route.group(1))
+            self.assertNotIn("add_header", route.group(1))
+        self.assertIn('~^/courseware/(product-mentor-foundations|development-mentor-ligun)/ "private, no-store, no-transform";', self.gateway)
         self.assertIn('add_header Cache-Control "$minisv_cache_control" always;', self.gateway)
-        self.assertNotIn("add_header", route.group(1))
 
     def test_retired_numeric_entry_redirects_to_framework_with_both_slash_forms(self) -> None:
         self.assertRegex(self.gateway, r"location = /123456 \{ return 308 /framework/")

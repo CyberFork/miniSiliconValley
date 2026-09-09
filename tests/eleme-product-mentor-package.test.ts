@@ -13,10 +13,15 @@ import {
 } from "../app/lib/course-platform";
 
 const candidatePath = new URL("../tools/live-run/courses/candidates/eleme-2008-product-mentor-t091.json", import.meta.url);
+const unifiedCandidatePath = new URL("../tools/live-run/courses/candidates/eleme-2008-unified-t095.json", import.meta.url);
 const inventoryPath = new URL("../docs/ELEME_T091_CONTENT_INVENTORY.json", import.meta.url);
 
 function candidate() {
   return validateCoursePackage(JSON.parse(readFileSync(candidatePath, "utf8")) as unknown);
+}
+
+function unifiedCandidate() {
+  return validateCoursePackage(JSON.parse(readFileSync(unifiedCandidatePath, "utf8")) as unknown);
 }
 
 test("T-091 keeps immutable bundled r0 intact and adds an importable Candidate", async () => {
@@ -198,4 +203,42 @@ test("T-091 machine inventory remains aligned with the auditable Candidate", () 
     fields: schema.fields.map((field) => field.id),
   });
   assert.deepEqual(new Set(inventory.openReviewQueue), new Set(packages.reviewQueue.map((item) => item.id)));
+});
+
+test("T-091 revalidation keeps P ownership and evidence boundaries in the T-095 unified Candidate", () => {
+  const value = unifiedCandidate();
+  const packages = value.contentPackages!;
+  const pCase = packages.casePackages.find((item) => item.ownerMentorRole === "P")!;
+  const pScript = packages.scriptPackages.find((item) => item.ownerMentorRole === "P")!;
+  const productBrief = packages.submissionSchemas.find((item) => item.kind === "product-brief")!;
+  const pDeckIds = new Set(pScript.checkpoints.flatMap((item) => item.privateDeckIds));
+  const pCards = value.decks.filter((deck) => pDeckIds.has(deck.id)).flatMap((deck) => deck.cards);
+
+  assert.equal(pCase.caseType, "historical");
+  assert.deepEqual(pScript.checkpoints.flatMap((item) => item.blockIds), ["B01", "B02", "B03", "B04"]);
+  assert.deepEqual(pScript.coursewareRef, {
+    mentorRole: "P",
+    packageId: "cw-product-mentor-foundations",
+    slug: "product-mentor-foundations",
+    revision: 0,
+    digest: "b2852b39462bc05464582b3c36f773e68fa84775b9e7c7673a128fac97d7cda5",
+    sourceCommit: "679213a61b835335016eac7649213983a0e48489",
+    sourceTree: "3a041c4714190cc026f6de8e06e15cec0e5f765d",
+  });
+  assert.ok(pCards.filter((card) => card.boundary === "F").every((card) => card.sourceIds.length > 0));
+  assert.ok(pCards.filter((card) => card.boundary === "R").every((card) => card.sourceIds.length === 0 && card.body.startsWith("课堂模拟：")));
+  assert.equal(productBrief.ownerMentorRole, "P");
+  assert.equal(productBrief.submitAtBlockId, "B04");
+  assert.equal(productBrief.fields.length, 10);
+
+  const b01 = buildStudioProjection(value, { learnerCount: 6, blockId: "B01", seed: "t091-revalidation" });
+  assert.ok(b01.mentorViews.find((view) => view.mentorRole === "P")!.privateScript.length > 0);
+  for (const role of ["D", "M", "O"] as const) {
+    const view = b01.mentorViews.find((item) => item.mentorRole === role)!;
+    assert.deepEqual(view.privateScript, []);
+    assert.equal(view.contentContext.mode, "none");
+  }
+  assert.equal(b01.learnerViews.length, 6);
+  assert.ok(b01.learnerViews.every((view) => view.privateCards.length === 2));
+  assert.equal(new Set(b01.learnerViews.flatMap((view) => view.privateCards.map((card) => card.id))).size, 12);
 });

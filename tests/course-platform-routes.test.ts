@@ -42,6 +42,23 @@ test("T-086 navigation names the two acceptance gates and keeps UI preview on re
   assert.doesNotMatch(studio + editor + classroom, /href=["']\/ui-preview/);
 });
 
+test("T-096 makes /course/ a registry-backed Released library for real learners and mentors", () => {
+  const directory = readFileSync(new URL("app/course/page.tsx", root), "utf8");
+  const player = readFileSync(new URL("app/course/[slug]/page.tsx", root), "utf8");
+  const access = readFileSync(new URL("app/api/auth/courseware-access/route.ts", root), "utf8");
+  const store = readFileSync(new URL("app/lib/courseware-store.ts", root), "utf8");
+  assert.match(directory, /listCourseware\(db\)/);
+  assert.match(directory, /filter\(isCoursewareLibraryVisible\)/);
+  assert.match(directory, /packageId/);
+  assert.match(directory, /releasedDigest/);
+  assert.match(directory, /\?revision=\$\{item\.releasedRevision\}/);
+  assert.match(player, /isCoursewareLibraryVisible\(item\)/);
+  assert.match(access, /"admin", "mentor", "learner"/);
+  assert.match(access, /user\.impersonation \|\| user\.mustChangePassword/);
+  assert.match(store, /item\.contentKind === "static-bundle" \|\| item\.ownerProfileId !== SYSTEM_PROFILE/);
+  assert.doesNotMatch(directory, /href=\{?['"]\/course\/(?:product|development)/);
+});
+
 test("exact Studio preview login preserves course, revision and digest", () => {
   const route = readFileSync(new URL("app/studio/StudioRoute.tsx", root), "utf8");
   assert.match(route, /section === "preview" && initialCourseRef/);

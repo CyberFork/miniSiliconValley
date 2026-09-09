@@ -9,6 +9,7 @@ import {
   type ClassroomFactoryRequest,
 } from "../app/lib/classroom-factory";
 import { coursewareBundleDigest } from "../app/lib/courseware-store";
+import { classroomDealSeed, classroomRunId } from "../app/lib/classroom-platform-store";
 
 const exactCandidate = {
   courseId: "google-1995-2004",
@@ -122,4 +123,13 @@ test("script unlock frontier is versioned, sequential and classroom-local", () =
   assert.equal(right.initialScriptProgress.unlockedThroughBlockId, "B01");
   assert.throws(() => unlockNextScriptPage(left.initialScriptProgress, { type: "unlock-next", nextBlockId: "B03" }, ["B01", "B02", "B03"], "2026-09-08T00:00:00Z"), /不能跳页/);
   assert.throws(() => unlockNextScriptPage(next, { type: "unlock-next", nextBlockId: "B02" }, ["B01", "B02", "B03"], "2026-09-08T00:01:00Z"), /不能跳页或解锁旧页/);
+});
+
+test("an explicit Test reset is the only operation that advances run identity and deal seed", () => {
+  assert.equal(classroomRunId("room-094", 0), "room-094:run:0");
+  assert.equal(classroomDealSeed("room-094", 0), "classroom:room-094:run:0");
+  assert.equal(classroomRunId("room-094", 1), "room-094:run:1");
+  assert.equal(classroomDealSeed("room-094", 1), "classroom:room-094:run:1");
+  assert.notEqual(classroomDealSeed("room-094", 0), classroomDealSeed("room-094", 1));
+  assert.throws(() => classroomDealSeed("room-094", -1), /非负整数/);
 });

@@ -170,6 +170,17 @@ export async function listCourseware(db: ClassroomD1): Promise<CoursewareSummary
   }));
 }
 
+/**
+ * The Course Library contains real released teaching artifacts. System-owned
+ * inline field kits are factory fallbacks for not-yet-uploaded M/O material;
+ * they must never masquerade as published courses. Team-authored inline HTML
+ * remains eligible once explicitly released.
+ */
+export function isCoursewareLibraryVisible(item: Pick<CoursewareSummary | CoursewareContent, "ownerProfileId" | "contentKind"> & { releasedRevision?: number | null; released?: boolean }): boolean {
+  const released = "released" in item ? item.released : item.releasedRevision !== null && item.releasedRevision !== undefined;
+  return Boolean(released) && (item.contentKind === "static-bundle" || item.ownerProfileId !== SYSTEM_PROFILE);
+}
+
 function requireCoursewareAuthor(user: AuthenticatedClassroomUser): void {
   if (user.platformRole !== "admin" && user.platformRole !== "mentor") {
     throw new ClassroomError("COURSEWARE_AUTHOR_REQUIRED", "只有导师或管理员可以管理课件。", 403);
@@ -316,7 +327,11 @@ export async function loadCoursewareExact(db: ClassroomD1, packageId: string, re
 
 export function defaultCoursewareRefs(summaries: CoursewareSummary[]): ExactCoursewareRef[] {
   return CLASSROOM_MENTOR_ROLES.map((role) => {
-    const summary = summaries.find((item) => item.mentorRole === role && item.releasedRevision !== null && item.releasedDigest);
+    const released = summaries.filter((item) => item.mentorRole === role && item.releasedRevision !== null && item.releasedDigest);
+    // Prefer an actual catalog-visible course over system fallback kits. This
+    // deterministically selects the stable P/D bundles while M/O can continue
+    // using internal placeholders until their real packages are uploaded.
+    const summary = released.find(isCoursewareLibraryVisible) ?? released[0];
     if (!summary) throw new ClassroomError("COURSEWARE_DEFAULT_MISSING", `${role} 导师缺少已发布默认课件。`, 409);
     return {
       mentorRole: role,

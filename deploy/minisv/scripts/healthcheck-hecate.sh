@@ -32,7 +32,7 @@ probe / 200
 probe /world/ 200
 probe /course/ 307
 probe /studio/ 307
-probe /courseware/product-mentor-foundations/ 200
+probe /courseware/product-mentor-foundations/ 401
 probe /courseware/development-mentor-ligun/ 401
 probe /framework/ 200
 probe /parents/ 200

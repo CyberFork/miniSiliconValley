@@ -12,7 +12,9 @@ const fixturePath = join(persistPath, "accounts.json");
 const seedPath = join(persistPath, "seed.sql");
 const wrangler = join(process.cwd(), "node_modules", ".bin", "wrangler");
 const tsx = join(process.cwd(), "node_modules", ".bin", "tsx");
-const candidatePath = join(process.cwd(), "tools/live-run/courses/candidates/eleme-2008-product-mentor-t091.json");
+const candidatePath = process.env.MSV_T091_CANDIDATE_PATH
+  ? join(process.cwd(), process.env.MSV_T091_CANDIDATE_PATH)
+  : join(process.cwd(), "tools/live-run/courses/candidates/eleme-2008-unified-t095.json");
 const password = "T091 product mentor E2E password 2026!";
 const fixture = {
   dm: { username: "t091-admin", name: "T091 Admin DM", password },
@@ -154,7 +156,7 @@ try {
 
   const preferredCourseware = {
     P: "product-mentor-foundations",
-    D: "development-mentor-field-kit",
+    D: "development-mentor-ligun",
     M: "market-mentor-field-kit",
     O: "operations-mentor-field-kit",
   } as const;
@@ -284,13 +286,11 @@ try {
   }, adminCookie);
   assert.equal(progress.unlockedThroughBlockId, "B05");
   const dB05 = await view(room.classroomId, "B05", mentorProfiles[1].userId, adminCookie);
-  assert.equal((dB05.myView as MentorView).contentContext.mode, "handoff");
+  assert.equal((dB05.myView as MentorView).contentContext.mode, "owner", "D owns its B05 facilitation script; the accepted ProductBrief arrives through the separate handoff projection");
   assert.ok((dB05.myView as MentorView).privateScript.length > 0, "D keeps its own development-stage facilitation script");
-  assert.doesNotMatch(
-    (dB05.myView as MentorView).privateScript.join("\n"),
-    /饿了么|2008|宿舍现场|亲自送餐/,
-    "D gets the accepted artifact without inheriting P's historical narration",
-  );
+  const dScript = (dB05.myView as MentorView).privateScript.join("\n");
+  assert.match(dScript, /课堂模拟，不是饿了么历史/, "D explicitly marks the boundary instead of presenting its incident as history");
+  assert.doesNotMatch(dScript, /2008|宿舍现场|亲自送餐/, "D gets the accepted artifact without inheriting P's historical narration");
   assert.equal(dB05.submissions.length, 0, "P-owned raw submission list remains private");
   assert.equal(dB05.handoffs.length, 1);
   assert.deepEqual(
@@ -318,7 +318,7 @@ try {
   const mismatchEnvelope = await mismatch.json() as Envelope<never>;
   assert.equal(mismatchEnvelope.error?.code, "COURSE_CONTENT_COURSEWARE_MISMATCH");
 
-  console.log("T091_PRODUCT_MENTOR_E2E_PASS candidate=imported checkpoints=P:B01-B04 productBrief=return-resubmit-accept handoff=P-to-D:B05 DMO=no-history-copy exact-courseware=fail-closed");
+  console.log("T091_PRODUCT_MENTOR_E2E_PASS candidate=t095-unified checkpoints=P:B01-B04 productBrief=return-resubmit-accept handoff=P-to-D:B05 DMO=no-history-copy exact-courseware=fail-closed");
 } finally {
   if (server) {
     server.kill("SIGTERM");

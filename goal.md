@@ -1,53 +1,59 @@
-# T-086｜角色可见电子剧本课堂闭环
+# T-095 → T-092｜课程字段、数据一致性与导师课件上线
 
 ## 主棍
 
-Mini Silicon Valley Classroom 不是一条强制所有人同步跳转的工作流，而是一组按角色分发、逐页解锁的电子剧本／PPT：
+一份可追溯的 `CourseDefinition` 生成编辑器预览、Test Classroom 中控、导师席和学员席；课件作为独立、不可变的 `CoursewarePackage` 通过统一的登录后 `/course/` 目录播放。
 
-- 全课堂只共享“已经解锁到哪一页”。
-- 每位导师、学员与投屏独立翻阅已经解锁的页面。
-- 回看历史页不会修改课堂状态、提交、RP、钱包、团队资金或任何游戏记录。
-- 导师确认后只解锁下一页并通知全员，不强制任何人的屏幕跳页。
-- 学员不能解锁新页；P／D／M／O 任一导师和 Admin DM 都可以确认解锁。
-- Test Classroom 可在同一真实运行时中切换角色视角并执行真实测试操作；Production 不提供角色切换。
-- `leadMentorId` 只是本页建议主讲人，不是权限边界。
+```text
+CourseDefinition Candidate
+→ 六个稳定学员席与字段身份校验
+→ Studio 多角色视图验收
+→ exact Test Classroom（锁定 revision + digest）
+→ P 导师饿了么课程包复验
+→ P 课件上线统一目录
+→ D 课件沿用同一目录、认证和播放器
+```
 
-## 分层契约
+## 实现顺序
 
-1. **Script Layer**：角色可见内容、课程页序、全局已解锁边界、独立浏览页游标。
-2. **Activity Layer**：信息卡、讨论、回答、提交、导师反馈与 Demo 作品；按 Block 持久化，但不阻塞翻页或解锁。
-3. **Economy Layer**：个人 RP、个人钱包、团队资金、工具与账本；与脚本浏览完全解耦。
-4. **Acceptance Layer**：Stage 1 验收角色内容投影；Stage 2 在真实 Test Classroom UI 中验收；两级 exact 回执共同门禁 Released。
+1. **T-095｜用户字段与六席隔离**
+   - 每个可编辑字段具有稳定 `fieldId / scope / ownerId / JSON path`。
+   - P/D/M/O 与 learner01—learner06 专属字段均为独立节点。
+   - 人数减少只停用席位，不静默删除其内容。
+   - 卡片 ID、模板深复制、全局字段影响提示和隔离回归测试完整。
+2. **T-094｜Editor、Preview、Test Classroom 与中控一致性**
+   - 四端显示并使用相同 `courseId / courseDataId / revision / digest`。
+   - Test Runtime 显示 classroom/run/block/seat/deal/state/reset 等诊断身份。
+   - B01 固定 seed 投影与实际发牌逐字段一致，并能识别旧课堂与当前 Candidate 的差异。
+3. **T-091｜重新验收 P 导师饿了么课程包**
+   - P 拥有饿了么历史案例与 B01—B04 检查点；D/M/O 不重复主讲。
+   - F/R/G/U 来源边界、私密卡、Product Brief 与 P 课件 exact 引用通过测试。
+4. **T-096｜统一 `/course/` 目录并首先上线 P 课件**
+   - 登录后的导师和学员均可只读访问 Released 静态课件。
+   - 匿名访问完整保留 returnTo；Candidate、测试身份和管理操作不泄漏。
+   - P 与 D 原始静态资源使用同一鉴权和 `no-store` 规则。
+5. **T-093｜D 课件已解锁进度跳转复验**
+   - 已解锁段可点击与键盘操作；未解锁段不可泄漏；URL 保留 revision/slide/step。
+6. **T-092｜D 课件沿用统一目录与播放器复验**
+   - 复用现有稳定身份 `cw-development-mentor-ligun / development-mentor-ligun / r0`，不创建第二套 slug。
+   - 新课堂锁定 exact 课件；既有课堂不可被新 Candidate 静默覆盖。
 
 ## 不可妥协约束
 
-- 不存在全局“当前页”；服务端只保存单调递增的 `unlockedThroughIndex`。
-- 浏览位置属于每个浏览器视图，以 URL／本地 UI 状态表达，不能写成课堂业务状态。
-- 非最新页始终提供“一键回到最新解锁页”。
-- 右方向键在已解锁范围内只翻页；处于解锁边界时，学员收到“下一页尚未解锁”，导师弹出明确确认后才能解锁下一页。
-- 解锁采用乐观并发版本，重复／过期操作不可越页或覆盖新状态，并记录真实 actor 与 Test effective identity。
-- 既有课堂迁移以旧 `blockIndex` 作为已解锁边界；不删除提交、手牌、身份、RP、钱包、团队资金、账本或验收绑定。
-- Test 角色切换只在目标 Test Classroom 内有效；不得进入 Studio、其他课堂或 Production，不得泄漏其他人的密码。
-- Production 只显示登录者自己的角色剧本；服务端拒绝任何 Test-only 视角参数。
-- `cyberforker.com` 不触碰；只部署 Hecate 的 `minisv.vip`。
-
-## 交付范围
-
-- [x] Stage 1：桌面多角色内容验收完整字段、Hover／点击固定、←／→ 切 B01—B13。
-- [x] Classroom Center：普通点击、Enter、Cmd/Ctrl-click 均按浏览器语义可靠进入课堂。
-- [x] Script Progress：全局解锁边界、独立页游标、通知、回到最新页、确认解锁。
-- [x] Test Role Tabs：中控、P／D／M／O、学员 1…N、投屏；保持页码并使用真实 API。
-- [x] Control：移除执行／提交验收／退回／尝试次数对导航的门禁，保留每页主持提示和现场数据雷达。
-- [x] UI Acceptance：完成全部页解锁后可签发新 build 的 UiAcceptanceReceipt；旧 build 回执自动失效。
-- [x] 测试与文档：单元、API、迁移、并发、权限、浏览器键盘／导航、生产隔离、操作手册。
-- [x] Hecate/minisv.vip 部署与生产冒烟回执。
+- 不修改既有不可变 Candidate、Released JSON 或其 digest；修复产生新的 Candidate revision。
+- 不伪造人工 `ViewAcceptanceReceipt` 或 `UiAcceptanceReceipt`。
+- 编辑器、Preview 和 Classroom 共用同一套服务端投影契约；浏览器副本必须有契约测试。
+- 课程正文、课件资源和课堂运行状态分层：运行时手牌、提交、RP、钱包和资金不得写回 CourseDefinition。
+- 学员只看到其席位私密内容；课件目录只暴露 Released 静态课件，不显示导师讲稿、rubric、其他学员数据或管理入口。
+- 生产根域为 Hecate 的 `minisv.vip`；不触碰 `cyberforker.com`。
+- 部署前必须完成 typecheck、lint、课程平台测试、构建、浏览器／E2E 回归与生产冒烟。
 
 ## 验收
 
-- B01 初始解锁；导师依次确认解锁至末页，不能跳号、倒退或重复写入。
-- 两个用户分别停留在 B02／B05 时，解锁 B06 后只收到通知，页面不被强制切换。
-- 任意已解锁历史页可左右翻阅，并一键回到最新解锁页。
-- 刷新、重登和并发解锁后边界、私密视图、提交和经济数据都正确。
-- Test 可切换所有角色并执行该角色的真实页面操作；Production 前后端都没有该能力。
-- 学员只能看自己的私密卡与个人经济；共享投屏不泄漏私密卡、导师讲稿、账号、钱包或未公开提交。
-- Candidate 经过 Stage 1 和完整 Test UI 验收后才可 Released；Production 只能绑定对应 exact Released 与有效 UI 回执。
+- 修改 learner01/P 导师/任一卡片边界，只改变对应 owner；global 修改明确列出影响范围。
+- 2、4、6 人配置均能显示稳定席位；learner05/06 有独立任务字段与发牌身份。
+- 同一 exact CourseDefinition 的 B01 在 Editor Preview、Studio Preview、中控与席位的可见数据一致。
+- Test Classroom 可复制诊断身份并明确显示“与当前 Candidate 相同／不同”；旧课堂保持原 revision。
+- `/course/` 从真实 Courseware 注册表只列出 P、D 已发布静态课件；导师与学生均能只读播放。
+- 匿名 P/D 深链登录回跳不丢 `revision / slide / step`；原始静态路径无法绕过鉴权。
+- P 课程包先完成复验与上线；D 的进度跳转和上线随后沿用同一机制完成。
