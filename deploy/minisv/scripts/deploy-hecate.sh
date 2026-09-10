@@ -10,6 +10,7 @@ umask 077
 
 ROOT="$HOME/Services/minisv"
 CLASSROOM_ROOT="$HOME/Services/msv-classroom"
+QA_ROOT="$HOME/Services/msv-parent-qa"
 RELEASES="$ROOT/releases"
 TARGET="$RELEASES/$MINISV_RELEASE_ID"
 INCOMING="$RELEASES/.incoming-$MINISV_RELEASE_ID"
@@ -22,6 +23,8 @@ UID_VALUE=$(id -u)
 DOMAIN="gui/$UID_VALUE"
 CLASSROOM_LABEL="com.cyberforker.msv-classroom"
 CLASSROOM_PLIST="$HOME/Library/LaunchAgents/$CLASSROOM_LABEL.plist"
+QA_LABEL="com.cyberforker.msv-parent-qa"
+QA_PLIST="$HOME/Library/LaunchAgents/$QA_LABEL.plist"
 TUNNEL_RELOAD_REQUIRED=0
 DEPLOY_MUTATED=0
 PREVIOUS_RELEASE_ID=""
@@ -30,6 +33,10 @@ classroom_ready() {
   local http_status
   http_status=$($CURL -sS --connect-timeout 2 -o /dev/null -w '%{http_code}'     -H 'Host: minisv.vip' -H 'X-Forwarded-Host: minisv.vip' -H 'X-Forwarded-Proto: https'     http://127.0.0.1:18787/api/auth/session 2>/dev/null || true)
   [[ "$http_status" = 200 || "$http_status" = 401 ]]
+}
+
+parent_qa_ready() {
+  $CURL -fsS --connect-timeout 2 http://127.0.0.1:18789/health >/dev/null 2>&1
 }
 
 restart_classroom() {
@@ -57,6 +64,33 @@ restart_classroom() {
   done
   sed -E '/token|cookie|password|credential/Id' "$error_log" >&2 || true
   echo "classroom worker did not become ready after 10 attempts" >&2
+  return 1
+}
+
+restart_parent_qa() {
+  local error_log="$BACKUP/$QA_LABEL.bootstrap.log"
+  for attempt in {1..10}; do
+    launchctl bootout "$DOMAIN/$QA_LABEL" >/dev/null 2>&1 || true
+    sleep 1
+    : > "$error_log"
+    local loaded=0
+    if launchctl bootstrap "$DOMAIN" "$QA_PLIST" 2>"$error_log"; then
+      loaded=1
+    elif launchctl print "$DOMAIN/$QA_LABEL" >/dev/null 2>&1; then
+      loaded=1
+    fi
+    if [[ "$loaded" = 1 ]]; then
+      launchctl enable "$DOMAIN/$QA_LABEL"
+      for readiness_attempt in {1..30}; do
+        if launchctl print "$DOMAIN/$QA_LABEL" >/dev/null 2>&1 && parent_qa_ready; then
+          echo "parent Q&A ready (attempt $attempt)"
+          return 0
+        fi
+        sleep 1
+      done
+    fi
+  done
+  echo "parent Q&A did not become ready after 10 attempts; inspect restricted log $error_log" >&2
   return 1
 }
 
@@ -137,7 +171,18 @@ source,target,home=sys.argv[1:]
 Path(target).write_text(Path(source).read_text().replace('__HOME__',home))
 PY
   fi
+  if [[ -f "$BACKUP/$QA_LABEL.plist" ]]; then
+    cp -p "$BACKUP/$QA_LABEL.plist" "$QA_PLIST"
+  elif [[ -n "$PREVIOUS_RELEASE_ID" && -f "$RELEASES/$PREVIOUS_RELEASE_ID/ops/launchd/$QA_LABEL.plist" ]]; then
+    "$PYTHON" - "$RELEASES/$PREVIOUS_RELEASE_ID/ops/launchd/$QA_LABEL.plist" "$QA_PLIST" "$HOME" <<'PY'
+from pathlib import Path
+import sys
+source,target,home=sys.argv[1:]
+Path(target).write_text(Path(source).read_text().replace('__HOME__',home))
+PY
+  fi
   restart_classroom || true
+  [[ -f "$QA_PLIST" ]] && restart_parent_qa || true
   # A first unified deployment retires the two legacy mutable runtimes. If a
   # later health gate fails, rollback must restore not only the old static
   # pointer but also every legacy agent that actually existed before mutation.
@@ -165,10 +210,11 @@ trap rollback_failed_deploy ERR
 [[ -x "$DOCKER" && -x "$PYTHON" && -x "$NODE" && -x /opt/homebrew/bin/cloudflared ]] || { echo "required Hecate runtime missing" >&2; exit 2; }
 [[ -f "$CLASSROOM_ROOT/runtime/node_modules/wrangler/bin/wrangler.js" ]] || { echo "classroom wrangler runtime missing" >&2; exit 2; }
 [[ -f "$ROOT/secrets/classroom.env" ]] || { echo "classroom environment file missing" >&2; exit 2; }
-$CURL -fsS http://127.0.0.1:18789/health >/dev/null
+[[ -f "$QA_ROOT/secrets/deepseek.env" ]] || { echo "parent Q&A environment file missing" >&2; exit 2; }
 
 mkdir -p "$RELEASES" "$ROOT/backups" "$ROOT/secrets" "$ROOT/logs" "$ROOT/gateway" "$ROOT/cloudflared"   "$CLASSROOM_ROOT/data" "$CLASSROOM_ROOT/logs"
-chmod 700 "$ROOT" "$RELEASES" "$ROOT/backups" "$ROOT/secrets" "$ROOT/logs" "$ROOT/cloudflared" "$CLASSROOM_ROOT/data" "$CLASSROOM_ROOT/logs"
+mkdir -p "$QA_ROOT/data" "$QA_ROOT/logs" "$QA_ROOT/secrets"
+chmod 700 "$ROOT" "$RELEASES" "$ROOT/backups" "$ROOT/secrets" "$ROOT/logs" "$ROOT/cloudflared" "$CLASSROOM_ROOT/data" "$CLASSROOM_ROOT/logs" "$QA_ROOT" "$QA_ROOT/data" "$QA_ROOT/logs" "$QA_ROOT/secrets"
 mkdir -p "$BACKUP"
 if [[ -L "$ROOT/current" ]]; then
   readlink "$ROOT/current" > "$BACKUP/previous-current.txt"
@@ -177,7 +223,7 @@ fi
 for item in "$ROOT/compose.yml" "$ROOT/gateway/default.conf" "$ROOT/gateway/app-proxy.conf" "$ROOT/cloudflared/config.yml"; do
   [[ -f "$item" ]] && cp -p "$item" "$BACKUP/$(basename "$item")"
 done
-for label in "$CLASSROOM_LABEL" com.minisv.live-run-controller com.minisv.remote-console com.minisv.cloudflared; do
+for label in "$CLASSROOM_LABEL" "$QA_LABEL" com.minisv.live-run-controller com.minisv.remote-console com.minisv.cloudflared; do
   p="$HOME/Library/LaunchAgents/$label.plist"; [[ -f "$p" ]] && cp -p "$p" "$BACKUP/$label.plist"
 done
 
@@ -199,7 +245,7 @@ with tarfile.open(archive, 'r:gz') as source:
             raise SystemExit(f'unsafe release archive member: {member.name}')
     source.extractall(target, filter='data')
 PY
-[[ -f "$INCOMING/MANIFEST.sha256" && -f "$INCOMING/site/MANIFEST.sha256"    && -f "$INCOMING/app/dist/server/index.js" && -f "$INCOMING/app/dist/server/wrangler.json"    && -f "$INCOMING/app/dist/client/vinext-client-entry-manifest.json"    && -f "$INCOMING/ops/compose.yml"    && -f "$INCOMING/ops/scripts/preflight-course-registry-integrity.py"    && -f "$INCOMING/ops/launchd/com.minisv.cloudflared.plist"    && -f "$INCOMING/ops/launchd/$CLASSROOM_LABEL.plist" ]] || { echo "unified release archive incomplete" >&2; exit 2; }
+[[ -f "$INCOMING/MANIFEST.sha256" && -f "$INCOMING/site/MANIFEST.sha256"    && -f "$INCOMING/app/dist/server/index.js" && -f "$INCOMING/app/dist/server/wrangler.json"    && -f "$INCOMING/app/dist/client/vinext-client-entry-manifest.json"    && -f "$INCOMING/app/dist/parent-qa/server.mjs" && -f "$INCOMING/app/dist/parent-qa/manifest.json"    && -f "$INCOMING/ops/compose.yml"    && -f "$INCOMING/ops/scripts/preflight-course-registry-integrity.py"    && -f "$INCOMING/ops/scripts/sync-parent-qa-review-token.py"    && -f "$INCOMING/ops/launchd/com.minisv.cloudflared.plist"    && -f "$INCOMING/ops/launchd/$CLASSROOM_LABEL.plist"    && -f "$INCOMING/ops/launchd/$QA_LABEL.plist" ]] || { echo "unified release archive incomplete" >&2; exit 2; }
 "$PYTHON" -B - "$INCOMING" <<'PY'
 from pathlib import Path
 import importlib.util, sys
@@ -210,9 +256,17 @@ spec.loader.exec_module(module)
 module.verify_manifest(root)
 module.verify_manifest(root / 'site')
 module.validate_app_dist(root / 'app' / 'dist')
+module.validate_parent_qa_dist(root / 'app' / 'dist' / 'parent-qa')
 PY
 plutil -lint "$INCOMING/ops/launchd/com.minisv.cloudflared.plist" >/dev/null
 plutil -lint "$INCOMING/ops/launchd/$CLASSROOM_LABEL.plist" >/dev/null
+plutil -lint "$INCOMING/ops/launchd/$QA_LABEL.plist" >/dev/null
+
+# The Studio server proxy and loopback QA service authenticate with one
+# persistent secret. Generate/copy it only when absent; any mismatch fails
+# closed before the release pointer or runtime is touched.
+"$PYTHON" "$INCOMING/ops/scripts/sync-parent-qa-review-token.py" \
+  "$ROOT/secrets/classroom.env" "$QA_ROOT/secrets/deepseek.env"
 mv "$INCOMING" "$TARGET"
 chmod -R go-w "$TARGET"
 
@@ -227,7 +281,7 @@ for source_value, target_value in zip(sys.argv[1::2], sys.argv[2::2]):
     if source.resolve() != target.resolve():
         shutil.copy2(source, target)
 PY
-chmod 600 "$ROOT/secrets/accounts.json" "$ROOT/secrets/tunnel-credentials.json" "$ROOT/secrets/classroom.env"
+chmod 600 "$ROOT/secrets/accounts.json" "$ROOT/secrets/tunnel-credentials.json" "$ROOT/secrets/classroom.env" "$QA_ROOT/secrets/deepseek.env"
 cp "$TARGET/ops/compose.yml" "$ROOT/compose.yml"
 cp "$TARGET/ops/gateway/default.conf" "$ROOT/gateway/default.conf"
 cp "$TARGET/ops/gateway/app-proxy.conf" "$ROOT/gateway/app-proxy.conf"
@@ -248,7 +302,7 @@ else
 fi
 
 mkdir -p "$HOME/Library/LaunchAgents"
-for source in "$TARGET/ops/launchd/com.minisv.cloudflared.plist" "$TARGET/ops/launchd/$CLASSROOM_LABEL.plist"; do
+for source in "$TARGET/ops/launchd/com.minisv.cloudflared.plist" "$TARGET/ops/launchd/$CLASSROOM_LABEL.plist" "$TARGET/ops/launchd/$QA_LABEL.plist"; do
   target="$HOME/Library/LaunchAgents/$(basename "$source")"
   target_next="$target.next.$$"
   "$PYTHON" - "$source" "$target_next" "$HOME" <<'PY'
@@ -271,9 +325,14 @@ DEPLOY_MUTATED=1
 # Stop once, then snapshot the quiescent D1 directory. Runtime data never
 # enters the release and the new CREATE-only schema bootstrap is reversible.
 launchctl bootout "$DOMAIN/$CLASSROOM_LABEL" >/dev/null 2>&1 || true
+launchctl bootout "$DOMAIN/$QA_LABEL" >/dev/null 2>&1 || true
 if [[ -d "$CLASSROOM_ROOT/data" ]]; then
   tar -czf "$BACKUP/classroom-data-before.tgz" -C "$CLASSROOM_ROOT" data
   chmod 600 "$BACKUP/classroom-data-before.tgz"
+fi
+if [[ -d "$QA_ROOT/data" ]]; then
+  tar -czf "$BACKUP/parent-qa-data-before.tgz" -C "$QA_ROOT" data
+  chmod 600 "$BACKUP/parent-qa-data-before.tgz"
 fi
 # T-099 migration adds exact digest guards.  Inspect the stopped database in
 # read-only mode only after its complete backup exists; abort rather than
@@ -291,6 +350,7 @@ for label in com.minisv.live-run-controller com.minisv.remote-console; do
 done
 
 "$PYTHON" "$TARGET/ops/scripts/switch-current.py" "$ROOT" "$MINISV_RELEASE_ID"
+restart_parent_qa
 restart_classroom
 
 cd "$ROOT"
@@ -299,7 +359,7 @@ cd "$ROOT"
 ensure_cloudflared
 
 for attempt in {1..30}; do
-  if classroom_ready      && $CURL -fsS http://127.0.0.1:18792/metrics >/dev/null      && $CURL -fsS -H 'Host: minisv.vip' http://127.0.0.1:18780/healthz >/dev/null; then
+  if classroom_ready && parent_qa_ready      && $CURL -fsS http://127.0.0.1:18792/metrics >/dev/null      && $CURL -fsS -H 'Host: minisv.vip' http://127.0.0.1:18780/healthz >/dev/null; then
     break
   fi
   sleep 1

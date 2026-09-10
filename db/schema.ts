@@ -704,6 +704,38 @@ export const courseUiAcceptanceReceipts = sqliteTable(
   ],
 );
 
+/**
+ * Append-only human dispositions for one authored reviewQueue item on one
+ * immutable exact CourseDefinition. Course bodies are never rewritten by the
+ * review workflow and a new course revision starts a separate audit trail.
+ */
+export const courseContentReviewEvents = sqliteTable(
+  "course_content_review_events",
+  {
+    id: text("id").primaryKey(),
+    courseId: text("course_id").notNull(),
+    revision: integer("revision").notNull(),
+    digest: text("digest").notNull(),
+    itemId: text("item_id").notNull(),
+    sequence: integer("sequence").notNull(),
+    action: text("action").notNull(),
+    disposition: text("disposition"),
+    note: text("note").notNull(),
+    sourceRef: text("source_ref").notNull().default(""),
+    reviewerProfileId: text("reviewer_profile_id").notNull().references(() => profiles.id, { onDelete: "restrict" }),
+    idempotencyKey: text("idempotency_key").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("uidx_course_content_review_sequence").on(table.courseId, table.revision, table.digest, table.itemId, table.sequence),
+    uniqueIndex("uidx_course_content_review_idempotency").on(table.reviewerProfileId, table.idempotencyKey),
+    index("idx_course_content_review_exact").on(table.courseId, table.revision, table.digest, table.createdAt),
+    check("chk_course_content_review_sequence", sql`${table.sequence} >= 1`),
+    check("chk_course_content_review_action", sql`(${table.action} = 'decision' and ${table.disposition} in ('revision-required', 'source-added', 'excluded-this-release')) or (${table.action} = 'reopen' and ${table.disposition} is null)`),
+    check("chk_course_content_review_note", sql`length(${table.note}) between 1 and 500`),
+  ],
+);
+
 export const courseAcceptanceBuildIdentities = sqliteTable(
   "course_acceptance_build_identities",
   {

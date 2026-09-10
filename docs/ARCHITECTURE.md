@@ -2,7 +2,7 @@
 
 # Mini Silicon Valley 架构说明
 
-本文件描述当前 T-106／T-107 架构。详细领域决策见 [COURSE_PLATFORM_ARCHITECTURE.md](COURSE_PLATFORM_ARCHITECTURE.md)。历史 Alpha、固定九弹窗和旧 Course Registry 文档仅供追溯，不再是运行规范。
+本文件描述当前统一平台架构。详细领域决策见 [COURSE_PLATFORM_ARCHITECTURE.md](COURSE_PLATFORM_ARCHITECTURE.md)，人工审核边界见 [T-104 实施说明](TODO_104_IMPLEMENTATION.md)，家长问答运行手册见 [PARENT_QA.md](PARENT_QA.md)。历史 Alpha、固定九弹窗和旧 Course Registry 文档仅供追溯，不再是运行规范。
 
 ## 1. 三个产品面
 
@@ -40,6 +40,8 @@ CourseDefinition（D1 course_versions）
 - `AuthImpersonation`：真实平台管理员会话上的短时 Test 身份覆盖；始终锁定一个 Test Classroom，并同时保留 actor/effective identity。
 - `ViewAcceptanceReceipt`：对 exact Candidate 的全部 Block、支持人数与共享投影结果验收。
 - `UiAcceptanceReceipt`：完成真实 Test 后，对 exact course、课堂成员、运行版本与四件 exact courseware 的 UI 验收回执。
+- `CourseContentReviewEvent`：对 exact `courseId + revision + digest + itemId` 的追加式人工处置；作者在 `contentPackages.reviewQueue` 中的声明不被原地改写。
+- `ParentQaKnowledgeGapEvent`：独立于课程的脱敏 observation/review/reopen NDJSON 事件；从不自动进入检索或改写 CourseDefinition。
 
 ## 4. 可见性与权限
 
@@ -53,6 +55,7 @@ CourseDefinition（D1 course_versions）
 - 所有写 API 使用第一方 HttpOnly Session、首次改密门禁、同源 Origin 校验和服务端 RBAC。
 - Studio、Classroom、导师 Courseware、Account 与静态官网共用同一账号契约；脱敏共同投屏是唯一例外。本浏览器账号集合可保存多个已验证身份的最小元数据，但任一时刻只有一个当前身份；切换会原子轮换服务端 Session。Test 模拟只替换当前请求的 effective identity，不进入真实账号列表，也不改 Cookie 中的真实 actor。
 - Admin DM 委派是非递归授权：Primary 可授予／撤销导师的 Delegated；Delegated 可运行课堂但无委派能力。旧的平面 `classroom_permissions` 仅作为迁移期回滚镜像，不参与授权判定。
+- Studio「人工审核工作台」并列展示课程审核项和家长 QA 缺口，但保持两个真值、两个生命周期。课程显式 `revision-required`／`reopen` 阻断对应 exact 版本发布；未处置的作者声明仅作醒目提示，不自动等同失败。家长 QA 的详细健康状态与重试只经带 server-only token 的 loopback 内部接口访问。
 
 ## 5. 动态学员人数
 

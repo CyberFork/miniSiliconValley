@@ -202,8 +202,10 @@ export function QaClient() {
                   <p>{message.content}</p>
                   {message.knowledgeGap ? (
                     <div className={styles.gapNotice}>
-                      <strong>{message.knowledgeGapRecorded ? "已加入待补充清单" : "知识库暂未覆盖"}</strong>
-                      <span>仅记录问题；需要课程 DM 或导师核实资料后，才会正式入库。</span>
+                      <strong>{message.knowledgeGapRecorded ? "已加入待补充清单" : "未能写入待补充清单"}</strong>
+                      <span>{message.knowledgeGapRecorded
+                        ? "仅记录问题；需要课程 DM 或导师核实资料后，才会正式入库。"
+                        : "回答仍明确标记为资料未覆盖，但系统没有宣称已记录；请稍后重试或直接告知课程团队。"}</span>
                     </div>
                   ) : null}
                   {message.sources && message.sources.length > 0 ? (

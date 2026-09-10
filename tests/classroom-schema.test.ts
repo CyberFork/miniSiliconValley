@@ -19,6 +19,7 @@ const tables = [
   "classroom_script_mutations", "classroom_reset_mutations", "classroom_finish_mutations",
   "classroom_archives",
   "course_view_acceptance_receipts", "course_ui_acceptance_receipts", "course_acceptance_build_identities", "classroom_acceptance_bindings",
+  "course_content_review_events",
   "auth_impersonations",
   "course_exact_integrity_guard",
   "courseware_releases", "courseware_exact_integrity_guard", "courseware_bundle_uploads",
@@ -105,6 +106,11 @@ test("unified course factory keeps release, courseware, permissions and script p
     "uidx_auth_browser_mutations_idempotency",
     "chk_auth_browser_atomic_assertion",
     "trg_auth_browser_set_active_integrity",
+    "uidx_course_content_review_sequence",
+    "uidx_course_content_review_idempotency",
+    "trg_course_content_review_item_exact",
+    "trg_course_content_review_immutable_update",
+    "trg_course_content_review_immutable_delete",
   ]) assert.match(migration, new RegExp(marker));
   assert.match(migration, /DROP INDEX IF EXISTS `uidx_course_versions_digest`/);
   assert.match(migration, /CHECK \(`environment` in \('test', 'production'\)\)/);

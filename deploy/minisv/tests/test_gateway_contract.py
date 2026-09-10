@@ -41,6 +41,14 @@ class GatewayContractTests(unittest.TestCase):
         self.assertNotIn("Services/msv-classroom/current", plist)
         self.assertNotIn("192.168.", plist)
 
+    def test_parent_qa_launchd_follows_the_same_release_but_keeps_private_data_external(self) -> None:
+        plist = (ROOT / "launchd" / "com.cyberforker.msv-parent-qa.plist").read_text()
+        self.assertIn("__HOME__/Services/minisv/current/app/dist/parent-qa/server.mjs", plist)
+        self.assertIn("__HOME__/Services/msv-parent-qa/secrets/deepseek.env", plist)
+        self.assertIn("__HOME__/Services/msv-parent-qa/data/knowledge-gaps.ndjson", plist)
+        self.assertNotIn("Services/msv-parent-qa/current", plist)
+        self.assertNotIn("192.168.", plist)
+
     def test_gateway_preserves_strict_security_boundary(self) -> None:
         for header in (
             "Strict-Transport-Security", "Content-Security-Policy",
@@ -51,6 +59,7 @@ class GatewayContractTests(unittest.TestCase):
         self.assertNotIn("X-Live-Run-Service-Key", self.gateway)
         self.assertIn('$http_x_forwarded_proto = "http"', self.gateway)
         self.assertIn("return 308 https://minisv.vip$request_uri", self.gateway)
+        self.assertIn("location ^~ /internal/ { return 404; }", self.gateway)
 
     def test_global_alpha_and_control_are_gone(self) -> None:
         self.assertRegex(self.gateway, r"location = /alpha \{ return 410;")

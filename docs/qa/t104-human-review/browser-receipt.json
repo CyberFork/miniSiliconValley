@@ -1,0 +1,20 @@
+{
+  "ok": true,
+  "scope": "isolated local D1 and synthetic redacted Parent-QA log",
+  "browser": {
+    "engine": "Chromium",
+    "version": "151.0.7922.176"
+  },
+  "courseExact": {
+    "courseId": "eleme-2008-find-problem",
+    "revision": 1,
+    "digest": "5dde44ae6d32fe935df1900d6b805e306be20671a9afc523180821939c8c2c33"
+  },
+  "courseDecisionAppendOnly": true,
+  "courseExplicitReopen": true,
+  "parentQaDecision": true,
+  "parentQaExplicitReopen": true,
+  "internalTokenStayedServerSide": true,
+  "noHorizontalOverflow": true,
+  "screenshot": "docs/qa/t104-human-review/human-review-workbench.png"
+}

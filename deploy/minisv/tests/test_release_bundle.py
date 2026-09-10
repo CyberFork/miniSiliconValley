@@ -20,6 +20,7 @@ class ReleaseBundleTests(unittest.TestCase):
     def fixture(self, root: Path) -> tuple[Path, Path, Path]:
         site = root / "site"
         app = root / "dist"
+        parent_qa = app / "parent-qa"
         ops = root / "ops"
         site.mkdir(parents=True)
         (site / "index.html").write_text("MiniSV")
@@ -35,6 +36,16 @@ class ReleaseBundleTests(unittest.TestCase):
             "vars": {"MSV_SELF_HOSTED_AUTH": "app-session", "MSV_APP_BASE_PATH": "/"},
         }))
         (app / "client" / "vinext-client-entry-manifest.json").write_text("{}")
+        parent_qa.mkdir()
+        server = b"export const service = 'parent-qa'\n"
+        (parent_qa / "server.mjs").write_bytes(server)
+        (parent_qa / "manifest.json").write_text(json.dumps({
+            "schemaVersion": 1,
+            "service": "msv-parent-qa",
+            "entrypoint": "server.mjs",
+            "bytes": len(server),
+            "sha256": hashlib.sha256(server).hexdigest(),
+        }))
         for entry in MODULE.OPS_ENTRIES:
             path = ops / entry
             if Path(entry).suffix:
@@ -54,10 +65,12 @@ class ReleaseBundleTests(unittest.TestCase):
             MODULE.verify_manifest(output)
             self.assertTrue((output / "site" / "index.html").is_file())
             self.assertTrue((output / "app" / "dist" / "server" / "index.js").is_file())
+            self.assertTrue((output / "app" / "dist" / "parent-qa" / "server.mjs").is_file())
             self.assertTrue((output / "ops" / "launchd" / "fixture.txt").is_file())
             bundle = json.loads((output / "bundle.json").read_text())
             self.assertEqual(bundle["release"], "t085-bundle")
             self.assertEqual(bundle["units"]["app"]["buildId"], "build-1")
+            self.assertEqual(bundle["units"]["parentQa"]["entrypoint"], "server.mjs")
             self.assertFalse(bundle["units"]["data"]["packaged"])
 
     def test_tampered_site_and_misconfigured_worker_fail_before_output(self) -> None:
@@ -88,6 +101,24 @@ class ReleaseBundleTests(unittest.TestCase):
             (app / "client" / "outside").symlink_to(root / "outside")
             with self.assertRaisesRegex(ValueError, "contains a symlink"):
                 MODULE.build_bundle(site, app, ops, root / "bad-link", "bad-link")
+
+    def test_parent_qa_manifest_and_private_runtime_files_are_required(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            site, app, ops = self.fixture(root)
+            parent_qa = app / "parent-qa"
+            manifest = json.loads((parent_qa / "manifest.json").read_text())
+            manifest["sha256"] = "0" * 64
+            (parent_qa / "manifest.json").write_text(json.dumps(manifest))
+            with self.assertRaisesRegex(ValueError, "does not match"):
+                MODULE.build_bundle(site, app, ops, root / "bad-parent-qa", "bad-parent-qa")
+            self.assertFalse((root / "bad-parent-qa").exists())
+
+            site, app, ops = self.fixture(root / "second-parent")
+            parent_qa = app / "parent-qa"
+            (parent_qa / "knowledge-gaps.ndjson").write_text("{}\n")
+            with self.assertRaisesRegex(ValueError, "runtime data or secret"):
+                MODULE.build_bundle(site, app, ops, root / "bad-parent-data", "bad-parent-data")
 
 
 if __name__ == "__main__":

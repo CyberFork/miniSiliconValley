@@ -13,6 +13,7 @@ class DeployScriptContractTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.script = (ROOT / "scripts" / "deploy-hecate.sh").read_text()
         cls.rollback_script = (ROOT / "scripts" / "rollback-hecate.sh").read_text()
+        cls.healthcheck = (ROOT / "scripts" / "healthcheck-hecate.sh").read_text()
 
     def test_legacy_global_runtime_is_stopped_not_bootstrapped(self) -> None:
         self.assertNotIn("bootstrap_agent()", self.script)
@@ -55,12 +56,17 @@ class DeployScriptContractTests(unittest.TestCase):
         self.assertIn('"$INCOMING/MANIFEST.sha256"', self.script)
         self.assertIn('"$INCOMING/app/dist/server/index.js"', self.script)
         self.assertIn("module.validate_app_dist(root / 'app' / 'dist')", self.script)
+        self.assertIn("module.validate_parent_qa_dist(root / 'app' / 'dist' / 'parent-qa')", self.script)
         switch = self.script.index('"$PYTHON" "$TARGET/ops/scripts/switch-current.py"')
+        parent_qa = self.script.index("\nrestart_parent_qa\n", switch)
         classroom = self.script.index("\nrestart_classroom\n", switch)
         gateway = self.script.index('"$DOCKER" compose -f compose.yml up -d --force-recreate gateway', classroom)
+        self.assertLess(switch, parent_qa)
+        self.assertLess(parent_qa, classroom)
         self.assertLess(switch, classroom)
         self.assertLess(classroom, gateway)
         self.assertIn("classroom-data-before.tgz", self.script)
+        self.assertIn("parent-qa-data-before.tgz", self.script)
         self.assertIn('"$PYTHON" -B - "$INCOMING"', self.script)
 
     def test_course_registry_preflight_runs_read_only_after_backup_and_before_switch(self) -> None:
@@ -85,6 +91,30 @@ class DeployScriptContractTests(unittest.TestCase):
         self.assertIn('launchctl enable "$DOMAIN/$legacy_label"', rollback)
         self.assertIn('launchctl bootstrap "$DOMAIN" "$legacy_target"', rollback)
         self.assertIn('launchctl kickstart -k "$DOMAIN/$legacy_label"', rollback)
+        self.assertIn('$BACKUP/$QA_LABEL.plist', rollback)
+        self.assertIn("restart_parent_qa", rollback)
+
+    def test_parent_qa_secret_and_runtime_are_part_of_the_atomic_release(self) -> None:
+        self.assertIn('QA_LABEL="com.cyberforker.msv-parent-qa"', self.script)
+        self.assertIn('"$INCOMING/app/dist/parent-qa/server.mjs"', self.script)
+        self.assertIn('"$INCOMING/ops/launchd/$QA_LABEL.plist"', self.script)
+        token_sync = self.script.index("sync-parent-qa-review-token.py")
+        mutation = self.script.index("DEPLOY_MUTATED=1")
+        switch = self.script.index('"$PYTHON" "$TARGET/ops/scripts/switch-current.py"')
+        self.assertLess(token_sync, mutation)
+        self.assertLess(mutation, switch)
+        self.assertIn("parent_qa_ready", self.script[switch:])
+
+        self.assertIn("com.cyberforker.msv-parent-qa", self.rollback_script)
+        self.assertIn("validate_parent_qa_dist", self.rollback_script)
+        self.assertIn("sync-parent-qa-review-token.py", self.rollback_script)
+
+    def test_healthcheck_covers_public_and_private_parent_qa_boundaries(self) -> None:
+        self.assertIn("probe /api/qa 200", self.healthcheck)
+        self.assertIn("probe /internal/knowledge-gaps 404", self.healthcheck)
+        self.assertIn("com.cyberforker.msv-parent-qa", self.healthcheck)
+        self.assertIn("QA_INTERNAL_REVIEW_TOKEN", self.healthcheck)
+        self.assertIn("$QA_BASE/internal/knowledge-gaps", self.healthcheck)
 
     def test_manifest_imports_cannot_mutate_an_immutable_release(self) -> None:
         self.assertIn('"$PYTHON" -B - "$INCOMING"', self.script)

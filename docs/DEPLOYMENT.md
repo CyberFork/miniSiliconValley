@@ -66,6 +66,7 @@ python3 deploy/minisv/package_release.py   --legacy-root <已验收的静态基�
 ## 组装统一 bundle
 
 ```bash
+npm run build:parent-qa
 python3 deploy/minisv/package_bundle.py   --site-root <site-output>   --app-dist-root dist   --ops-root deploy/minisv   --output <bundle-output>   --release-id <RELEASE_ID>   --main-sha <40位提交SHA>   --archive <RELEASE_ID>.tar.gz
 ```
 
@@ -74,20 +75,22 @@ bundle 必须同时含：
 ```text
 site/          公开静态资产
 app/dist/      与本 release 同版本的 Worker 与客户端
+app/dist/parent-qa/  同版本的 loopback 家长问答服务与内容清单
 ops/           gateway、launchd、部署和回滚脚本
 bundle.json
 MANIFEST.sha256
 ```
 
-secrets、账号明文、SQLite、运行数据和 symlink 会被打包器拒绝。
+打包器会逐字节校验 `app/dist/parent-qa/manifest.json` 与 `server.mjs`，并在 `bundle.json.units.parentQa` 单独记录其摘要。secrets、账号明文、SQLite、NDJSON 运行数据和 symlink 会被打包器拒绝。
 
 ## Hecate 原子部署
 
 在 Hecate 以受控环境变量运行 bundle 内的 `ops/scripts/deploy-hecate.sh`。脚本会：
 
-1. 验证 archive 安全性、根/site manifests、Worker 配置和 launchd plist。
+1. 验证 archive 安全性、根/site manifests、Worker、Parent-QA 内容清单和全部 launchd plist。
 2. 将包放入不可变 `~/Services/minisv/releases/<RELEASE_ID>`。
-3. 停止课堂 worker，备份 D1-compatible 数据目录。
+3. 在改动运行态前校验主应用与 Parent-QA 的内部审核令牌一致；缺失时安全生成／补齐，不一致时失败关闭且不回显令牌。
+4. 停止课堂 worker 与 Parent-QA，分别备份 D1-compatible 数据和 QA NDJSON 数据目录。
 4. 退休 18790/18791 全局服务。
 5. 原子切换 `~/Services/minisv/current`，再启动同版本应用与 gateway。
 6. 保留健康且配置未变的 cloudflared，避免无意义断流。

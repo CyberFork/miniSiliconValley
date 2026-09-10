@@ -11,12 +11,14 @@ import type {
   StudioViewAcceptanceSummary,
   ViewAcceptanceReceipt,
 } from "../lib/course-acceptance";
+import type { CourseContentReviewDisposition, CourseContentReviewState } from "../lib/course-content-review";
+import type { ParentQaReviewSnapshot } from "../lib/parent-qa-review-client";
 import { courseDataIdForRef, type CoursePackage, type CoursePackageRef } from "../lib/course-package";
 import { buildStudioProjection, resolveLearnerPolicy, validateCourseInstantiation } from "../lib/course-platform";
 import type { CoursewareSummary } from "../lib/courseware-store";
 import styles from "./studio.module.css";
 
-export type StudioSection = "home" | "editor" | "preview" | "courseware" | "releases";
+export type StudioSection = "home" | "editor" | "preview" | "reviews" | "courseware" | "releases";
 
 type Version = {
   ref: CoursePackageRef;
@@ -33,6 +35,7 @@ type Bootstrap = {
   viewReceipts: StudioViewAcceptanceSummary[];
   uiReceipts: StudioUiAcceptanceSummary[];
   acceptanceClassrooms: AcceptanceClassroomSummary[];
+  contentReviews: CourseContentReviewState[];
   acceptanceRuntime: {
     projectorVersion: string;
     projectorContractVersion: string;
@@ -56,19 +59,20 @@ const NAV_GROUPS: Array<{
       { id: "home", href: "/studio/", code: "00", label: "课程工作台" },
       { id: "editor", href: "/studio/editor/", code: "01", label: "课程编辑器" },
       { id: "preview", href: "/studio/preview/", code: "02", label: "多角色视图验收" },
-      { id: "releases", href: "/studio/releases/", code: "03", label: "验收与发布" },
+      { id: "reviews", href: "/studio/reviews/", code: "03", label: "人工审核工作台" },
+      { id: "releases", href: "/studio/releases/", code: "04", label: "验收与发布" },
     ],
   },
   {
     label: "资源管理",
     items: [
-      { id: "courseware", href: "/studio/courseware/", code: "04", label: "导师课件库" },
-      { href: "/course/", code: "05", label: "导师课件播放" },
+      { id: "courseware", href: "/studio/courseware/", code: "05", label: "导师课件库" },
+      { href: "/course/", code: "06", label: "导师课件播放" },
     ],
   },
   {
     label: "课堂交付",
-    items: [{ href: "/classroom/", code: "06", label: "课堂中心" }],
+    items: [{ href: "/classroom/", code: "07", label: "课堂中心" }],
   },
 ];
 
@@ -76,6 +80,7 @@ const SECTION_TITLES: Record<StudioSection, string> = {
   home: "课程生产工作台",
   editor: "课程编排工作台",
   preview: "多角色视图验收",
+  reviews: "人工审核工作台",
   courseware: "导师课件库",
   releases: "验收与发布",
 };
@@ -141,6 +146,7 @@ export default function StudioApp({
         {loading && !data ? <div className={styles.loading} role="status"><small>COURSE STUDIO · 正在打开</small><h1>{SECTION_TITLES[section]}</h1><p>正在读取课程版本与两级验收门禁…</p></div> : data ? <>
           {section === "home" && <StudioHome data={data} />}
           {section === "preview" && <ViewAcceptance key={initialCourseRef ? `${initialCourseRef.courseId}:${initialCourseRef.revision}:${initialCourseRef.digest ?? ""}` : "current"} data={data} initialCourseRef={initialCourseRef} onAccepted={changed} onError={setError} />}
+          {section === "reviews" && <HumanReviewWorkbench data={data} onChanged={changed} onError={setError} />}
           {section === "courseware" && <CoursewareLibrary data={data} onChanged={changed} onError={setError} />}
           {section === "releases" && <Releases data={data} onChanged={changed} onError={setError} />}
         </> : null}
@@ -251,6 +257,7 @@ function ViewAcceptance({ data, initialCourseRef, onAccepted, onError }: {
   const courseDataId = courseDataIdForRef(source.ref);
   const exactTestClassrooms = data.acceptanceClassrooms.filter((room) => room.environment === "test" && !room.archivedAt && sameRef(room.courseRef, source.ref));
   const archivedExactTests = data.acceptanceClassrooms.filter((room) => room.environment === "test" && room.archivedAt && sameRef(room.courseRef, source.ref));
+  const exactContentReviews = data.contentReviews.filter((state) => sameRef(state.courseRef, source.ref));
   const blocksComplete = course.blocks.every((block) => reviewedBlocks.includes(block.id));
   const countsComplete = requiredCounts.every((count) => reviewedCounts.includes(count));
 
@@ -309,9 +316,11 @@ function ViewAcceptance({ data, initialCourseRef, onAccepted, onError }: {
       </div>
       <div className={styles.timeline} aria-label={`${course.blocks.length} 个课程 Block`}>{course.blocks.map((block) => <button key={block.id} type="button" data-active={block.id === blockId} data-reviewed={reviewedBlocks.includes(block.id)} onClick={() => chooseBlock(block.id)}><b>{block.id} · STEP {block.macroStepOrder}</b><span>{block.title}</span>{reviewedBlocks.includes(block.id) && <em>已查看</em>}</button>)}</div>
       <div className={styles.validation} data-ok={validation.ok}><strong>{validation.ok ? `✓ ${learnerCount} 人投影通过容量校验` : `⚠ ${learnerCount} 人投影不能验收`}</strong>{!validation.ok && <ul>{validation.issues.map((issue) => <li key={`${issue.path}-${issue.code}`}>{issue.message}</li>)}</ul>}</div>
-      {course.contentPackages?.reviewQueue.some((item) => item.status === "open") && <details className={styles.contentReviewQueue}>
-        <summary>待人工审核 · {course.contentPackages.reviewQueue.filter((item) => item.status === "open").length} 项（不向学员显示）</summary>
-        {course.contentPackages.reviewQueue.filter((item) => item.status === "open").map((item) => <article key={item.id}><b>{item.title}</b><small>{item.category} · {item.location}</small><p>{item.reason}</p><p><strong>处理：</strong>{item.recommendedAction}</p></article>)}
+      {exactContentReviews.length > 0 && <details className={styles.contentReviewQueue}>
+        <summary>内容人工审核 · {exactContentReviews.filter((item) => item.releaseBlocking).length} 项明确阻断 · {exactContentReviews.filter((item) => item.state === "pending").length} 项待判断</summary>
+        <p>这里仅用于看见风险；审核决定在独立工作台追加，绝不改写本次多角色投影。</p>
+        {exactContentReviews.map((state) => <article key={state.item.id}><b>{state.item.title}</b><small>{state.item.category} · {state.item.location}</small><p>{state.item.reason}</p><p><strong>当前：</strong>{state.resolutionLabel}</p></article>)}
+        <div className={styles.actions}><Link href="/studio/reviews/">进入人工审核工作台 →</Link></div>
       </details>}
       <Projection projection={projection} />
       <div className={styles.acceptanceAction}>
@@ -320,6 +329,195 @@ function ViewAcceptance({ data, initialCourseRef, onAccepted, onError }: {
       </div>
     </section>
   </>;
+}
+
+function HumanReviewWorkbench({ data, onChanged, onError }: {
+  data: Bootstrap;
+  onChanged: (message: string) => Promise<void>;
+  onError: (value: string) => void;
+}) {
+  const reviewVersions = preferredVersions(data.versions).filter((version) => data.contentReviews.some((state) => sameRef(state.courseRef, version.ref)));
+  const [courseKey, setCourseKey] = useState(reviewVersions[0] ? versionKey(reviewVersions[0]) : "");
+  const selected = reviewVersions.find((version) => versionKey(version) === courseKey) ?? reviewVersions[0];
+  const states = selected ? data.contentReviews.filter((state) => sameRef(state.courseRef, selected.ref)) : [];
+  const blockingCount = states.filter((state) => state.releaseBlocking).length;
+  const pendingCount = states.filter((state) => state.state === "pending").length;
+  const [parentQa, setParentQa] = useState<ParentQaReviewSnapshot | null>(null);
+  const [parentError, setParentError] = useState("");
+  const [parentLoading, setParentLoading] = useState(true);
+
+  const loadParentQa = useCallback(async () => {
+    setParentLoading(true);
+    try {
+      setParentQa(await api<ParentQaReviewSnapshot>("/api/studio/parent-qa-reviews"));
+      setParentError("");
+    } catch (cause) {
+      setParentError(messageOf(cause));
+    } finally {
+      setParentLoading(false);
+    }
+  }, [setParentError]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void loadParentQa(); }, 0);
+    return () => window.clearTimeout(timer);
+  }, [loadParentQa]);
+
+  return <>
+    <Heading eyebrow="HUMAN REVIEW · TWO SEPARATE TRUTH OBJECTS" title="人工审核工作台">
+      课程待核对与家长问答待补充在同一工作台操作，但始终是两类独立数据。模型只能提出缺口，不能替导师补写事实、改变审核状态或把待审内容放进检索库。
+    </Heading>
+    <section className={styles.panel}>
+      <div className={styles.sectionTitle}>
+        <div><h2>课程内容待核对</h2><p>决定绑定 exact revision＋digest；不会改写 CourseDefinition，也不会自动沿用到下一版。</p></div>
+        <Link href="/studio/editor/">需要改正文？打开编辑器 →</Link>
+      </div>
+      {selected ? <>
+        <div className={styles.reviewToolbar}>
+          <label className={styles.field}>课程 exact 版本
+            <select value={versionKey(selected)} onChange={(event) => setCourseKey(event.target.value)}>
+              {reviewVersions.map((version) => <option value={versionKey(version)} key={versionKey(version)}>{version.course.course.name} · r{version.ref.revision} · {version.candidate ? "Candidate" : version.released ? "Released" : "Archived"}</option>)}
+            </select>
+          </label>
+          <div className={styles.reviewCounters}>
+            <span data-tone={blockingCount ? "danger" : "ok"}><b>{blockingCount}</b> 明确阻断</span>
+            <span data-tone={pendingCount ? "warn" : "ok"}><b>{pendingCount}</b> 待判断（不自动阻断）</span>
+            <span><b>{states.length}</b> 全部事项</span>
+          </div>
+        </div>
+        <div className={styles.reviewExact}><b>{selected.ref.courseId} · r{selected.ref.revision}</b><code>{selected.ref.digest}</code><span>“本次明确排除”会保留审计痕迹，并明确显示“不代表已修复”。</span></div>
+        <div className={styles.reviewList}>{states.map((state) => <CourseReviewCard key={`${state.item.id}:${state.nextSequence}`} state={state} courseRef={selected.ref} onChanged={onChanged} onError={onError} />)}</div>
+      </> : <div className={styles.empty}>当前 Candidate／Released 没有声明课程内容待核对项。新事项请在课程编辑器的 <code>contentPackages.reviewQueue</code> 中归档。</div>}
+    </section>
+
+    <section className={styles.panel}>
+      <div className={styles.sectionTitle}>
+        <div><h2>家长问答待补充</h2><p>来自脱敏后的 knowledge-gaps.ndjson；重复提问只累计次数，不会推翻人工结论。</p></div>
+        {parentQa?.health.pendingRetryCount ? <button className={styles.buttonDanger} type="button" onClick={async () => {
+          try { await api("/api/studio/parent-qa-reviews", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "retry-failed" }) }); await loadParentQa(); }
+          catch (cause) { setParentError(messageOf(cause)); }
+        }}>重试 {parentQa.health.pendingRetryCount} 条失败写入</button> : null}
+      </div>
+      {parentError && <div className={styles.dependencyError} role="alert"><b>家长 QA 清单暂时不可用</b><span>{parentError}</span><button type="button" onClick={() => void loadParentQa()}>重试独立服务</button></div>}
+      {parentLoading && !parentQa ? <div className={styles.reviewLoading} role="status">正在读取独立审核日志…</div> : parentQa ? <>
+        <div className={styles.recorderHealth} data-status={parentQa.health.status}>
+          <b>{parentQa.health.status === "healthy" ? "✓ 写入健康" : "⚠ 写入降级"}</b>
+          <span>累计写入失败 {parentQa.health.failedWriteCount} · 待重试 {parentQa.health.pendingRetryCount}</span>
+          <small>最近成功 {formatAuditTime(parentQa.health.lastSuccessAt)} · 最近失败 {formatAuditTime(parentQa.health.lastFailureAt)}</small>
+        </div>
+        <div className={styles.reviewList}>{parentQa.gaps.length ? parentQa.gaps.map((gap) => <ParentQaReviewCard key={`${gap.id}:${gap.eventCount}`} gap={gap} onChanged={loadParentQa} onError={setParentError} />) : <div className={styles.empty}>暂无家长问答待补充事项。</div>}</div>
+      </> : null}
+    </section>
+  </>;
+}
+
+function CourseReviewCard({ state, courseRef, onChanged, onError }: {
+  state: CourseContentReviewState;
+  courseRef: CoursePackageRef;
+  onChanged: (message: string) => Promise<void>;
+  onError: (value: string) => void;
+}) {
+  const terminal = state.state === "source-added" || state.state === "excluded-this-release" || state.state === "authored-resolved";
+  const [disposition, setDisposition] = useState<CourseContentReviewDisposition>("revision-required");
+  const [note, setNote] = useState("");
+  const [sourceRef, setSourceRef] = useState("");
+  const [working, setWorking] = useState(false);
+  const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
+  const submit = async (action: "decision" | "reopen") => {
+    setWorking(true);
+    onError("");
+    try {
+      await api("/api/studio/content-reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          courseRef,
+          itemId: state.item.id,
+          expectedSequence: state.nextSequence - 1,
+          idempotencyKey,
+          action,
+          note,
+          ...(action === "decision" ? { disposition, ...(disposition === "source-added" ? { sourceRef } : {}) } : {}),
+        }),
+      });
+      setIdempotencyKey(crypto.randomUUID());
+      setNote("");
+      setSourceRef("");
+      await onChanged(`${state.item.title} 已记录人工${action === "reopen" ? "重开" : "处置"}；课程正文未被自动改写。`);
+    } catch (cause) { onError(messageOf(cause)); }
+    finally { setWorking(false); }
+  };
+  return <article className={styles.reviewCard} data-state={state.state}>
+    <header><div><small>{state.item.category} · {state.item.location}</small><h3>{state.item.title}</h3></div><span data-blocking={state.releaseBlocking}>{state.resolutionLabel}</span></header>
+    <p>{state.item.reason}</p>
+    <div className={styles.recommended}><b>课程作者建议</b><span>{state.item.recommendedAction}</span></div>
+    {state.history.length > 0 && <details className={styles.reviewHistory}><summary>人工处理记录 · {state.history.length}</summary>{[...state.history].reverse().map((event) => <div key={event.id}><b>#{event.sequence} · {event.action === "reopen" ? "显式重开" : reviewDispositionLabel(event.disposition)}</b><span>{event.note}</span>{event.sourceRef && <code>{event.sourceRef}</code>}<small>{event.reviewerDisplayName} · {formatAuditTime(event.createdAt)}</small></div>)}</details>}
+    <div className={styles.reviewForm}>
+      {!terminal && <label>处置方式<select value={disposition} onChange={(event) => setDisposition(event.target.value as CourseContentReviewDisposition)}><option value="revision-required">需要修订（阻断本版发布）</option><option value="source-added">已补可追溯来源</option><option value="excluded-this-release">本次明确排除（不等于修复）</option></select></label>}
+      {!terminal && disposition === "source-added" && <label>来源引用<input value={sourceRef} onChange={(event) => setSourceRef(event.target.value)} placeholder="https://… 或 knowledge://…" /></label>}
+      <label className={styles.wide}>人工说明<textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder={terminal ? "说明为什么现在需要重新核对" : "写清证据、判断和下一步，不能只写“已处理”"} /></label>
+      <button className={terminal ? styles.buttonDanger : styles.button} type="button" disabled={working || !note.trim() || (!terminal && disposition === "source-added" && !sourceRef.trim())} onClick={() => void submit(terminal ? "reopen" : "decision")}>{working ? "正在写入审计记录…" : terminal ? "显式重开此项" : "保存人工处置"}</button>
+    </div>
+  </article>;
+}
+
+function ParentQaReviewCard({ gap, onChanged, onError }: {
+  gap: ParentQaReviewSnapshot["gaps"][number];
+  onChanged: () => Promise<void>;
+  onError: (value: string) => void;
+}) {
+  const pending = gap.reviewStatus === "pending_dm_review";
+  const [status, setStatus] = useState<"resolved_already_covered" | "resolved_added_to_knowledge" | "dismissed_out_of_scope">("resolved_already_covered");
+  const [note, setNote] = useState("");
+  const [knowledgeEntryId, setKnowledgeEntryId] = useState("");
+  const [working, setWorking] = useState(false);
+  const submit = async () => {
+    setWorking(true);
+    onError("");
+    try {
+      await api("/api/studio/parent-qa-reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pending
+          ? { action: "review", id: gap.id, status, note, ...(status === "resolved_added_to_knowledge" ? { knowledgeEntryId } : {}) }
+          : { action: "reopen", id: gap.id, note }),
+      });
+      setNote("");
+      setKnowledgeEntryId("");
+      await onChanged();
+    } catch (cause) { onError(messageOf(cause)); }
+    finally { setWorking(false); }
+  };
+  return <article className={styles.reviewCard} data-state={pending ? "pending" : "handled"}>
+    <header><div><small>{gap.id} · 出现 {gap.observationCount} 次</small><h3>{gap.question}</h3></div><span data-blocking="false">{knowledgeGapStatusLabel(gap.reviewStatus)}</span></header>
+    <div className={styles.reviewMeta}><span>首次 {formatAuditTime(gap.firstObservedAt)}</span><span>最近 {formatAuditTime(gap.lastObservedAt)}</span><span>来源 {gap.sourceIds.join("、") || "无匹配资料"}</span></div>
+    {gap.reviewedAt && <div className={styles.recommended}><b>{gap.reviewedBy} · {formatAuditTime(gap.reviewedAt)}</b><span>{gap.reviewNote}</span>{gap.knowledgeEntryId && <code>{gap.knowledgeEntryId}</code>}</div>}
+    <div className={styles.reviewForm}>
+      {pending && <label>处置方式<select value={status} onChange={(event) => setStatus(event.target.value as typeof status)}><option value="resolved_already_covered">既有资料已覆盖</option><option value="resolved_added_to_knowledge">新增人工知识解决</option><option value="dismissed_out_of_scope">确认不在课程范围</option></select></label>}
+      {pending && status === "resolved_added_to_knowledge" && <label>已发布知识条目 ID<input value={knowledgeEntryId} onChange={(event) => setKnowledgeEntryId(event.target.value)} placeholder="curated-knowledge-id-v1" /></label>}
+      <label className={styles.wide}>人工说明<textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder={pending ? "说明核对依据；不要粘贴家长或孩子个人信息" : "只有范围或证据变化时才重开，并写明原因"} /></label>
+      <button className={pending ? styles.button : styles.buttonDanger} type="button" disabled={working || !note.trim() || (pending && status === "resolved_added_to_knowledge" && !knowledgeEntryId.trim())} onClick={() => void submit()}>{working ? "正在写入独立日志…" : pending ? "保存人工处置" : "显式重新打开"}</button>
+    </div>
+  </article>;
+}
+
+function reviewDispositionLabel(value: CourseContentReviewDisposition | null): string {
+  if (value === "revision-required") return "确认需要修订";
+  if (value === "source-added") return "已补可追溯来源";
+  if (value === "excluded-this-release") return "本次明确排除";
+  return "人工决定";
+}
+
+function knowledgeGapStatusLabel(value: ParentQaReviewSnapshot["gaps"][number]["reviewStatus"]): string {
+  if (value === "pending_dm_review") return "待导师审核";
+  if (value === "resolved_already_covered") return "既有资料已覆盖";
+  if (value === "resolved_added_to_knowledge") return "新增知识已解决";
+  return "确认范围外";
+}
+
+function formatAuditTime(value: string | null | undefined): string {
+  if (!value) return "无";
+  const date = new Date(value);
+  return Number.isNaN(date.valueOf()) ? "时间无效" : date.toLocaleString("zh-CN");
 }
 
 function Projection({ projection }: { projection: ReturnType<typeof buildStudioProjection> }) {
@@ -487,6 +685,7 @@ function Releases({ data, onChanged, onError }: { data: Bootstrap; onChanged: (m
           <header><div><small>{version.ref.courseId} · r{version.ref.revision}</small><h3>{version.course.course.name}</h3></div><span className={styles.badge}>{version.released ? "RELEASED" : "CANDIDATE"}</span></header>
           <p className={styles.meta}>{version.ref.digest}</p>
           <div className={styles.gateStack}>
+            <GateDetail index="R" label="内容人工审核" passed={!status.reviewBlocking} detail={status.reviewStates.length ? `${status.reviewBlocking ? `${status.reviewStates.filter((item) => item.releaseBlocking).length} 项人工明确阻断` : "没有人工明确阻断"} · ${status.reviewStates.filter((item) => item.state === "pending").length} 项待判断不自动阻断` : "本版本没有声明待核对项"} />
             <GateDetail index="1" label="多角色视图验收" passed={Boolean(status.view)} detail={status.view ? `${status.view.receiptId} · ${status.view.projectorVersion} · ${status.view.sourceCommit} / ${status.view.appBuildId}` : "缺少当前 exact 版本的有效回执"} />
             <GateDetail index="2" label="UI 验收课堂" passed={status.tests.length > 0} detail={status.tests.length ? `${status.tests.length} 场 Test · ${status.tests[0].lifecycle}` : "尚未创建"} />
             <GateDetail index="3" label="真实 UI 验收回执" passed={Boolean(status.ui)} detail={status.ui ? `${status.ui.receiptId} · ${status.ui.runtimeContractVersion} · ${status.ui.sourceCommit} / ${status.ui.appBuildId} · ${status.ui.learnerCount} 学员 · 4 套课件` : "尚未完成／回执已失效"} />
@@ -496,10 +695,11 @@ function Releases({ data, onChanged, onError }: { data: Bootstrap; onChanged: (m
           {status.ui && <details className={styles.receiptDetail}><summary>查看 UI 回执锁定的四套课件</summary>{status.ui.coursewareRefs.map((ref) => <code key={ref.mentorRole}>{ref.mentorRole} · {ref.slug} · r{ref.revision}<br />{ref.digest}</code>)}</details>}
           <div className={styles.nextAction}><small>下一步主操作</small><b>{status.nextLabel}</b></div>
           <div className={styles.actions}>
+            {status.reviewStates.length > 0 && <Link href="/studio/reviews/">查看内容人工审核 →</Link>}
             {!status.view && <Link href={previewHref(version.ref)}>前往多角色视图验收 →</Link>}
             {status.view && status.tests.length === 0 && <Link href={factoryHref("test", version.ref, status.view.receiptId)}>创建 UI 验收课堂 →</Link>}
             {status.view && status.tests.length > 0 && !status.ui && <Link href={`/classroom/${status.tests[0].roomId}/control`}>继续真实 UI 验收 →</Link>}
-            {status.view && status.ui && !version.released && <button className={styles.button} type="button" onClick={async () => { try { await api("/api/studio/releases", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ courseRef: version.ref, viewReceiptId: status.view!.receiptId, uiReceiptId: status.ui!.receiptId }) }); await onChanged(`${version.course.course.name} r${version.ref.revision} 已通过两级门禁并发布。`); } catch (cause) { onError(messageOf(cause)); } }}>发布为 Released</button>}
+            {status.view && status.ui && !version.released && !status.reviewBlocking && <button className={styles.button} type="button" onClick={async () => { try { await api("/api/studio/releases", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ courseRef: version.ref, viewReceiptId: status.view!.receiptId, uiReceiptId: status.ui!.receiptId }) }); await onChanged(`${version.course.course.name} r${version.ref.revision} 已通过两级门禁并发布。`); } catch (cause) { onError(messageOf(cause)); } }}>发布为 Released</button>}
             {status.view && status.ui && version.released && <Link href={factoryHref("production", version.ref, status.view.receiptId, status.ui.receiptId)}>创建 Production Classroom →</Link>}
           </div>
         </article>;
@@ -530,8 +730,10 @@ function pipelineStatus(data: Bootstrap, version: Version) {
   const tests = data.acceptanceClassrooms.filter((room) => room.environment === "test" && !room.archivedAt && sameRef(room.courseRef, version.ref) && (!view || room.viewReceiptId === view.receiptId));
   const ui = data.uiReceipts.find((receipt) => receipt.valid && sameRef(receipt.courseRef, version.ref) && (!view || receipt.viewReceiptId === view.receiptId));
   const production = data.acceptanceClassrooms.filter((room) => room.environment === "production" && sameRef(room.courseRef, version.ref));
-  const nextLabel = !view ? "验收多角色视图" : !tests.length ? "创建真实 UI 验收课堂" : !ui ? "跑完 Test 并签发 UI 回执" : !version.released ? "发布为 Released" : "创建正式课堂";
-  return { view, tests, ui, production, nextLabel };
+  const reviewStates = data.contentReviews.filter((state) => sameRef(state.courseRef, version.ref));
+  const reviewBlocking = reviewStates.some((state) => state.releaseBlocking);
+  const nextLabel = reviewBlocking ? "先处理人工明确阻断项" : !view ? "验收多角色视图" : !tests.length ? "创建真实 UI 验收课堂" : !ui ? "跑完 Test 并签发 UI 回执" : !version.released ? "发布为 Released" : "创建正式课堂";
+  return { view, tests, ui, production, reviewStates, reviewBlocking, nextLabel };
 }
 
 function findViewReceipt(data: Bootstrap, ref: Pick<CoursePackageRef, "courseId" | "revision" | "digest">) {

@@ -481,6 +481,8 @@ def build(
             "exact-market-mentor-courseware",
             "opaque-courseware-bundle",
             "course-studio",
+            "human-review-workbench",
+            "parent-qa-review-bridge",
             "per-classroom-controller",
             "shared-brand-home",
             "released-workshop-snapshot",
@@ -518,7 +520,7 @@ def build(
         },
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (output / "sitemap.json").write_text(json.dumps({"routes": [
-        "/", "/world/", "/studio/", "/studio/editor/", "/studio/preview/", "/studio/courseware/", "/studio/releases/",
+        "/", "/world/", "/studio/", "/studio/editor/", "/studio/preview/", "/studio/reviews/", "/studio/courseware/", "/studio/releases/",
         "/course/", "/courseware/product-mentor-foundations/", "/courseware/development-mentor-ligun/",
         "/courseware/market-mentor-user-system/",
         "/classroom/", "/framework/", "/parents/", "/workshop/",

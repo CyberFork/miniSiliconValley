@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm, stat } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import type { AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -15,8 +15,10 @@ import {
 } from "../app/lib/parent-qa";
 import {
   applyKnowledgeGapReview,
+  aggregateKnowledgeGapEvents,
   buildKnowledgeGapEvent,
   createKnowledgeGapRecorder,
+  createKnowledgeGapStore,
 } from "../services/parent-qa/knowledge-gap-store";
 import { createParentQaServer } from "../services/parent-qa/server";
 
@@ -165,7 +167,7 @@ test("knowledge-gap recorder writes a private review list with personal data red
   const raw = await readFile(file, "utf8");
   const events = raw.trim().split("\n").map((line) => JSON.parse(line) as Record<string, unknown>);
   assert.equal(events.length, 2);
-  assert.ok(events.every(({ reviewStatus }) => reviewStatus === "pending_dm_review"));
+  assert.ok(events.every(({ schemaVersion, eventType }) => schemaVersion === 2 && eventType === "observation"));
   assert.ok(events.every(({ id }) => typeof id === "string" && /^gap_[a-f0-9]{16}$/.test(id)));
   assert.doesNotMatch(raw, /张三|138|parent@example\.com/);
   assert.match(raw, /姓名已隐藏|手机号已隐藏/);
@@ -173,6 +175,127 @@ test("knowledge-gap recorder writes a private review list with personal data red
   assert.deepEqual(events[0].sourceIds, ["ai-boundary"]);
   assert.equal((await stat(directory)).mode & 0o777, 0o700);
   assert.equal((await stat(file)).mode & 0o777, 0o600);
+});
+
+test("knowledge-gap event log accumulates observations without silently reopening a human resolution", async (context) => {
+  const root = await mkdtemp(join(tmpdir(), "msv-parent-qa-review-"));
+  context.after(() => rm(root, { recursive: true, force: true }));
+  const file = join(root, "private", "knowledge-gaps.ndjson");
+  const store = createKnowledgeGapStore(file);
+  const observedAt = Date.UTC(2026, 8, 1, 2, 3, 4);
+  const input = {
+    question: "是否提供一对一课程？电话是 138-0013-8000",
+    observedAt,
+    model: "synthetic-model",
+    sourceIds: ["enrollment-boundary"],
+  };
+
+  await store.recordObservation(input);
+  const pending = (await store.list())[0];
+  assert.equal(pending.reviewStatus, "pending_dm_review");
+  assert.equal(pending.observationCount, 1);
+  assert.doesNotMatch(pending.question, /138/);
+
+  const resolved = await store.review({
+    id: pending.id,
+    status: "resolved_already_covered",
+    reviewedAt: observedAt + 1_000,
+    reviewedBy: "合成导师",
+    note: "现有招生边界已经明确覆盖。",
+  });
+  assert.equal(resolved.reviewStatus, "resolved_already_covered");
+
+  await store.recordObservation({ ...input, observedAt: observedAt + 2_000 });
+  const repeated = (await store.list())[0];
+  assert.equal(repeated.observationCount, 2);
+  assert.equal(repeated.reviewStatus, "resolved_already_covered");
+  assert.equal(repeated.reviewedBy, "合成导师");
+  await assert.rejects(store.review({
+    id: pending.id,
+    status: "dismissed_out_of_scope",
+    reviewedAt: observedAt + 2_500,
+    reviewedBy: "合成导师",
+    note: "不能静默覆盖已有结论。",
+  }), /KNOWLEDGE_GAP_REOPEN_REQUIRED/);
+
+  const reopened = await store.reopen({
+    id: pending.id,
+    reopenedAt: observedAt + 3_000,
+    reopenedBy: "合成导师",
+    reason: "课程范围发生变化，需要重新核对。",
+  });
+  assert.equal(reopened.reviewStatus, "pending_dm_review");
+  assert.match(reopened.reopenReason ?? "", /范围发生变化/);
+
+  const withKnowledge = await store.review({
+    id: pending.id,
+    status: "resolved_added_to_knowledge",
+    reviewedAt: observedAt + 4_000,
+    reviewedBy: "合成导师",
+    note: "已补充经过人工确认的课程说明。",
+    knowledgeEntryId: "curated-synthetic-one-to-one-policy-v1",
+  });
+  assert.equal(withKnowledge.reviewStatus, "resolved_added_to_knowledge");
+  assert.equal(withKnowledge.knowledgeEntryId, "curated-synthetic-one-to-one-policy-v1");
+
+  const raw = await readFile(file, "utf8");
+  assert.match(raw, /"eventType":"observation"/);
+  assert.match(raw, /"eventType":"review"/);
+  assert.match(raw, /"eventType":"reopen"/);
+  assert.doesNotMatch(raw, /138-0013-8000/);
+});
+
+test("legacy pending observations preserve the last explicit human resolution", () => {
+  const input = {
+    question: "课程是否有奖学金？",
+    observedAt: Date.UTC(2026, 8, 1),
+    model: "synthetic-model",
+    sourceIds: ["enrollment-boundary"],
+  };
+  const first = buildKnowledgeGapEvent(input);
+  const resolved = applyKnowledgeGapReview(first, {
+    status: "dismissed_out_of_scope",
+    reviewedAt: Date.UTC(2026, 8, 2),
+    reviewedBy: "合成导师",
+    note: "属于当期招生运营范围。",
+  });
+  const repeated = buildKnowledgeGapEvent({ ...input, observedAt: Date.UTC(2026, 8, 3) });
+  const aggregate = aggregateKnowledgeGapEvents([first, resolved, repeated])[0];
+
+  assert.equal(aggregate.observationCount, 2);
+  assert.equal(aggregate.reviewStatus, "dismissed_out_of_scope");
+  assert.equal(aggregate.reviewedBy, "合成导师");
+});
+
+test("failed knowledge-gap writes remain visibly degraded and can be retried without double counting", async (context) => {
+  const root = await mkdtemp(join(tmpdir(), "msv-parent-qa-retry-"));
+  context.after(() => rm(root, { recursive: true, force: true }));
+  const blockedDirectory = join(root, "blocked");
+  await writeFile(blockedDirectory, "not-a-directory", "utf8");
+  const file = join(blockedDirectory, "knowledge-gaps.ndjson");
+  const store = createKnowledgeGapStore(file);
+
+  await assert.rejects(store.recordObservation({
+    question: "合成的未覆盖问题",
+    observedAt: Date.UTC(2026, 8, 1),
+    model: "synthetic-model",
+    sourceIds: [],
+  }));
+  assert.equal(store.health().status, "degraded");
+  assert.equal(store.health().pendingRetryCount, 1);
+  await assert.rejects(store.review({
+    id: "gap_0000000000000000",
+    status: "resolved_already_covered",
+    reviewedAt: Date.UTC(2026, 8, 2),
+    reviewedBy: "合成导师",
+    note: "必须先处理失败队列。",
+  }), /KNOWLEDGE_GAP_PENDING_RETRY/);
+
+  await rm(blockedDirectory, { force: true });
+  await mkdir(blockedDirectory, { recursive: true });
+  assert.deepEqual(await store.retryFailed(), { attempted: 1, recovered: 1, remaining: 0 });
+  assert.equal(store.health().status, "healthy");
+  assert.equal((await store.list())[0].observationCount, 1);
 });
 
 test("parent Q&A client calls only the same-origin server endpoint", async () => {
@@ -273,4 +396,105 @@ test("standalone server records only questions marked as knowledge gaps", async 
   assert.equal(recorded.length, 1);
   assert.equal(recorded[0].question, "使用什么模型？");
   assert.equal(recorded[0].observedAt, Date.UTC(2026, 8, 1, 3, 0, 0));
+});
+
+test("standalone server never claims a failed injected recorder stored the gap", async (context) => {
+  const fakeFetch: typeof fetch = async () => Response.json({
+    choices: [{ message: { content: "当前资料还不能确认这一项。\n[[MSV_KNOWLEDGE_GAP]]" } }],
+  });
+  const server = createParentQaServer({
+    config: { apiKey: "test-key", model: "synthetic-model" },
+    fetchImpl: fakeFetch,
+    now: () => Date.UTC(2026, 8, 1, 4, 0, 0),
+    recordKnowledgeGap: async () => { throw new Error("synthetic disk failure"); },
+  });
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  context.after(() => new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve())));
+  const { port } = server.address() as AddressInfo;
+  const base = `http://127.0.0.1:${port}`;
+
+  const answer = await fetch(`${base}/qa`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question: "合成的未覆盖问题", history: [] }),
+  });
+  assert.equal(answer.status, 200);
+  const answerBody = await answer.json() as { data: ParentQaAnswer };
+  assert.equal(answerBody.data.knowledgeGap, true);
+  assert.equal(answerBody.data.knowledgeGapRecorded, false);
+
+  const health = await fetch(`${base}/health`);
+  const healthBody = await health.json() as { data: Record<string, unknown> };
+  assert.equal(healthBody.data.knowledgeGapRecording, true);
+  assert.equal(Object.hasOwn(healthBody.data, "knowledgeGapRecorderHealth"), false, "operational details stay behind the internal token");
+});
+
+test("internal knowledge-gap review API requires its token and only explicit reopen clears a resolution", async (context) => {
+  const root = await mkdtemp(join(tmpdir(), "msv-parent-qa-server-review-"));
+  context.after(() => rm(root, { recursive: true, force: true }));
+  const file = join(root, "private", "knowledge-gaps.ndjson");
+  const token = "synthetic-internal-review-token-1234567890";
+  let now = Date.UTC(2026, 8, 1, 5, 0, 0);
+  const fakeFetch: typeof fetch = async () => Response.json({
+    choices: [{ message: { content: "当前资料还不能确认这一项。\n[[MSV_KNOWLEDGE_GAP]]" } }],
+  });
+  const server = createParentQaServer({
+    config: { apiKey: "test-key", model: "synthetic-model", knowledgeGapFile: file, reviewToken: token },
+    fetchImpl: fakeFetch,
+    now: () => now,
+  });
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  context.after(() => new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve())));
+  const { port } = server.address() as AddressInfo;
+  const base = `http://127.0.0.1:${port}`;
+
+  const observe = async () => fetch(`${base}/qa`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question: "合成问题：是否有夜间班？", history: [] }),
+  });
+  assert.equal((await observe()).status, 200);
+
+  const unauthorized = await fetch(`${base}/internal/knowledge-gaps`);
+  assert.equal(unauthorized.status, 401);
+  assert.doesNotMatch(await unauthorized.text(), /synthetic-internal-review-token/);
+
+  const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+  const first = await fetch(`${base}/internal/knowledge-gaps`, { headers });
+  const firstBody = await first.json() as { data: { gaps: Array<{ id: string; reviewStatus: string; observationCount: number }> } };
+  assert.equal(firstBody.data.gaps.length, 1);
+  const id = firstBody.data.gaps[0].id;
+  assert.equal(firstBody.data.gaps[0].reviewStatus, "pending_dm_review");
+
+  now += 1_000;
+  const reviewed = await fetch(`${base}/internal/knowledge-gaps`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      action: "review",
+      id,
+      actor: "合成导师",
+      note: "现有公开说明已经覆盖。",
+      status: "resolved_already_covered",
+    }),
+  });
+  assert.equal(reviewed.status, 200);
+
+  now += 1_000;
+  assert.equal((await observe()).status, 200);
+  const repeated = await fetch(`${base}/internal/knowledge-gaps`, { headers });
+  const repeatedBody = await repeated.json() as { data: { gaps: Array<{ reviewStatus: string; observationCount: number }> } };
+  assert.equal(repeatedBody.data.gaps[0].observationCount, 2);
+  assert.equal(repeatedBody.data.gaps[0].reviewStatus, "resolved_already_covered");
+
+  now += 1_000;
+  const reopened = await fetch(`${base}/internal/knowledge-gaps`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ action: "reopen", id, actor: "合成导师", note: "招生范围变化，重新核对。" }),
+  });
+  assert.equal(reopened.status, 200);
+  const reopenedBody = await reopened.json() as { data: { gap: { reviewStatus: string; reopenReason: string } } };
+  assert.equal(reopenedBody.data.gap.reviewStatus, "pending_dm_review");
+  assert.match(reopenedBody.data.gap.reopenReason, /范围变化/);
 });

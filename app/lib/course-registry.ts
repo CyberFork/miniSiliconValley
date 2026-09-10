@@ -1,5 +1,6 @@
 import type { ClassroomD1 } from "../../db";
 import { ClassroomError } from "./classroom-errors";
+import { assertCourseContentReviewReleaseReady } from "./course-content-review";
 import {
   bundledCoursePackages,
   coursePackageDigest,
@@ -242,6 +243,7 @@ export async function releaseTestedCourseCandidate(
   const viewReceipt = await requireValidViewAcceptanceReceipt(db, input.courseRef, input.viewReceiptId);
   const uiReceipt = await requireValidUiAcceptanceReceipt(db, input.courseRef, input.uiReceiptId, viewReceipt.receiptId);
   const course = await loadExactCoursePackage(db, input.courseRef);
+  await assertCourseContentReviewReleaseReady(db, input.courseRef);
   // A Candidate may be saved while an author is still filling a larger deck,
   // but a Released definition promises that every learner count in its stated
   // policy is actually instantiable.  Testing N=2 must not accidentally

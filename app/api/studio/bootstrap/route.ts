@@ -12,6 +12,7 @@ import {
   studioViewAcceptanceSummary,
 } from "../../../lib/course-acceptance";
 import { listStudioCourseVersions } from "../../../lib/course-registry";
+import { listCourseContentReviewStates } from "../../../lib/course-content-review";
 import { listCourseware } from "../../../lib/courseware-store";
 import { ClassroomError } from "../../../lib/classroom-errors";
 import { requireStudioRole, withPlatformApi } from "../../platform/_shared";
@@ -35,12 +36,13 @@ export async function GET(request: Request): Promise<Response> {
       userId: user.userId,
       platformRole: user.platformRole === "admin" ? "admin" as const : "mentor" as const,
     };
-    const [versions, courseware, viewReceipts, uiReceipts, acceptanceClassrooms] = await Promise.all([
-      listStudioCourseVersions(db, { currentOnly: scope === "current", ...(historyOnly ? { courseId: courseId! } : {}) }),
+    const versions = await listStudioCourseVersions(db, { currentOnly: scope === "current", ...(historyOnly ? { courseId: courseId! } : {}) });
+    const [courseware, viewReceipts, uiReceipts, acceptanceClassrooms, contentReviews] = await Promise.all([
       historyOnly ? Promise.resolve([]) : listCourseware(db),
       historyOnly ? Promise.resolve([]) : listViewAcceptanceReceipts(db),
       historyOnly ? Promise.resolve([]) : listUiAcceptanceReceipts(db, acceptanceViewer),
       historyOnly ? Promise.resolve([]) : listAcceptanceClassrooms(db, acceptanceViewer),
+      historyOnly ? Promise.resolve([]) : listCourseContentReviewStates(db, versions),
     ]);
     return {
       user: { userId: user.userId, displayName: user.displayName, role: user.platformRole },
@@ -49,6 +51,7 @@ export async function GET(request: Request): Promise<Response> {
       viewReceipts: viewReceipts.map(studioViewAcceptanceSummary),
       uiReceipts: uiReceipts.map(studioUiAcceptanceSummary),
       acceptanceClassrooms,
+      contentReviews,
       acceptanceRuntime: {
         projectorVersion: COURSE_PROJECTOR_VERSION,
         projectorContractVersion: COURSE_PROJECTOR_CONTRACT_VERSION,

@@ -7,14 +7,14 @@
   <key>ProgramArguments</key>
   <array>
     <string>/opt/homebrew/bin/node</string>
-    <string>/Users/hecate/Services/msv-parent-qa/current/server.mjs</string>
+    <string>__HOME__/Services/minisv/current/app/dist/parent-qa/server.mjs</string>
   </array>
   <key>WorkingDirectory</key>
-  <string>/Users/hecate/Services/msv-parent-qa/current</string>
+  <string>__HOME__/Services/minisv/current/app/dist/parent-qa</string>
   <key>EnvironmentVariables</key>
   <dict>
     <key>HOME</key>
-    <string>/Users/hecate</string>
+    <string>__HOME__</string>
     <key>PATH</key>
     <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
     <key>NO_COLOR</key>
@@ -26,9 +26,9 @@
     <key>QA_PORT</key>
     <string>18789</string>
     <key>QA_ENV_FILE</key>
-    <string>/Users/hecate/Services/msv-parent-qa/secrets/deepseek.env</string>
+    <string>__HOME__/Services/msv-parent-qa/secrets/deepseek.env</string>
     <key>QA_KNOWLEDGE_GAP_FILE</key>
-    <string>/Users/hecate/Services/msv-parent-qa/data/knowledge-gaps.ndjson</string>
+    <string>__HOME__/Services/msv-parent-qa/data/knowledge-gaps.ndjson</string>
   </dict>
   <key>RunAtLoad</key>
   <true/>
@@ -39,8 +39,8 @@
   <key>ThrottleInterval</key>
   <integer>10</integer>
   <key>StandardOutPath</key>
-  <string>/Users/hecate/Services/msv-parent-qa/logs/stdout.log</string>
+  <string>__HOME__/Services/msv-parent-qa/logs/stdout.log</string>
   <key>StandardErrorPath</key>
-  <string>/Users/hecate/Services/msv-parent-qa/logs/stderr.log</string>
+  <string>__HOME__/Services/msv-parent-qa/logs/stderr.log</string>
 </dict>
 </plist>

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Assemble one immutable MiniSV release containing site, app worker and ops."""
+"""Assemble one immutable MiniSV release containing site, app, Parent-QA and ops."""
 from __future__ import annotations
 
 import argparse
@@ -20,6 +20,7 @@ APP_REQUIRED = (
     "server/BUILD_ID",
     "client/vinext-client-entry-manifest.json",
 )
+PARENT_QA_REQUIRED = ("server.mjs", "manifest.json")
 OPS_ENTRIES = (
     "compose.yml",
     "gateway",
@@ -111,6 +112,33 @@ def validate_app_dist(app_dist: Path) -> dict:
     return {"sha256": digest, "files": files, "bytes": size, "buildId": (app_dist / "server" / "BUILD_ID").read_text().strip()}
 
 
+def validate_parent_qa_dist(parent_qa_dist: Path) -> dict:
+    """Validate the standalone loopback service without accepting runtime state."""
+    if not parent_qa_dist.is_dir():
+        raise ValueError(f"parent Q&A dist is missing: {parent_qa_dist}")
+    for relative in PARENT_QA_REQUIRED:
+        if not (parent_qa_dist / relative).is_file():
+            raise ValueError(f"parent Q&A dist is incomplete: {relative}")
+    for path in checked_files(parent_qa_dist):
+        if path.name in SECRET_FILENAMES or path.suffix.lower() in {".sqlite", ".sqlite3", ".ndjson"}:
+            raise ValueError(f"parent Q&A dist contains forbidden runtime data or secret: {path.name}")
+    try:
+        manifest = json.loads((parent_qa_dist / "manifest.json").read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("parent Q&A manifest is invalid") from exc
+    server = parent_qa_dist / "server.mjs"
+    if (
+        manifest.get("schemaVersion") != 1
+        or manifest.get("service") != "msv-parent-qa"
+        or manifest.get("entrypoint") != "server.mjs"
+        or manifest.get("bytes") != server.stat().st_size
+        or manifest.get("sha256") != file_digest(server)
+    ):
+        raise ValueError("parent Q&A manifest does not match server.mjs")
+    digest, files, size = tree_digest(parent_qa_dist)
+    return {"sha256": digest, "files": files, "bytes": size, "entrypoint": "server.mjs"}
+
+
 def write_manifest(root: Path) -> None:
     lines = []
     for path in checked_files(root):
@@ -137,6 +165,7 @@ def build_bundle(
         raise ValueError(f"refusing to overwrite release output: {output}")
     verify_manifest(site)
     app = validate_app_dist(app_dist)
+    parent_qa = validate_parent_qa_dist(app_dist / "parent-qa")
     required_ops = [entry for entry in OPS_ENTRIES if not (ops_root / entry).exists()]
     if required_ops:
         raise ValueError(f"ops tree is incomplete: {', '.join(required_ops)}")
@@ -155,8 +184,8 @@ def build_bundle(
             else:
                 shutil.copy2(source, target)
         for path in checked_files(output):
-            if path.name in SECRET_FILENAMES:
-                raise ValueError(f"release bundle contains a secret filename: {path.relative_to(output)}")
+            if path.name in SECRET_FILENAMES or path.suffix.lower() in {".sqlite", ".sqlite3", ".ndjson"}:
+                raise ValueError(f"release bundle contains runtime data or a secret: {path.relative_to(output)}")
         site_summary = tree_digest(output / "site")
         (output / "bundle.json").write_text(json.dumps({
             "schemaVersion": 1,
@@ -167,6 +196,7 @@ def build_bundle(
             "units": {
                 "site": {"sha256": site_summary[0], "files": site_summary[1], "bytes": site_summary[2]},
                 "app": app,
+                "parentQa": parent_qa,
                 "data": {"packaged": False, "location": "~/Services/msv-classroom/data"},
             },
         }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -206,7 +236,14 @@ def main() -> None:
     parser.add_argument("--main-sha", default="uncommitted")
     parser.add_argument("--archive", type=Path)
     args = parser.parse_args()
-    build_bundle(args.site_root, args.app_dist_root, args.ops_root, args.output, args.release_id, main_sha=args.main_sha)
+    build_bundle(
+        args.site_root,
+        args.app_dist_root,
+        args.ops_root,
+        args.output,
+        args.release_id,
+        main_sha=args.main_sha,
+    )
     if args.archive:
         archive_bundle(args.output, args.archive)
     print(f"MINISV_BUNDLE_READY {args.release_id} {args.output}{f' archive={args.archive}' if args.archive else ''}")

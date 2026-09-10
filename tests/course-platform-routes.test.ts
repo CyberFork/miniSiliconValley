@@ -7,6 +7,7 @@ const required = [
   "app/studio/page.tsx",
   "app/studio/editor/page.tsx",
   "app/studio/preview/page.tsx",
+  "app/studio/reviews/page.tsx",
   "app/studio/courseware/page.tsx",
   "app/studio/releases/page.tsx",
   "app/course/page.tsx",
@@ -22,6 +23,8 @@ const required = [
   "app/api/platform/classrooms/[classroomId]/finish/route.ts",
   "app/api/platform/classrooms/[classroomId]/archive/route.ts",
   "app/api/studio/view-acceptance/route.ts",
+  "app/api/studio/content-reviews/route.ts",
+  "app/api/studio/parent-qa-reviews/route.ts",
   "app/api/platform/classrooms/[classroomId]/receipt/route.ts",
 ];
 
@@ -247,4 +250,25 @@ test("T-105 scopes Studio bootstrap data and permanently tombstones the legacy c
     assert.match(source, /retiredClassroomApi\(request\)/, `${relative} must use the application tombstone`);
     assert.doesNotMatch(source, /classroom-store|withClassroomApi|createClassroomRoom|applyClassroomAction/, `${relative} must not reach the old writer`);
   }
+});
+
+test("T-104 keeps course review decisions exact and parent QA review behind a server-only proxy", () => {
+  const studio = readFileSync(new URL("app/studio/StudioApp.tsx", root), "utf8");
+  const bootstrap = readFileSync(new URL("app/api/studio/bootstrap/route.ts", root), "utf8");
+  const contentRoute = readFileSync(new URL("app/api/studio/content-reviews/route.ts", root), "utf8");
+  const parentRoute = readFileSync(new URL("app/api/studio/parent-qa-reviews/route.ts", root), "utf8");
+  const parentClient = readFileSync(new URL("app/lib/parent-qa-review-client.ts", root), "utf8");
+  const parentKnowledge = readFileSync(new URL("app/lib/parent-qa.ts", root), "utf8");
+  assert.match(studio, /人工审核工作台/);
+  assert.match(studio, /本次明确排除（不等于修复）/);
+  assert.match(bootstrap, /listCourseContentReviewStates\(db, versions\)/);
+  assert.match(contentRoute, /requireStudioRole\(user\)/);
+  assert.match(contentRoute, /expectedSequence/);
+  assert.match(parentRoute, /requireStudioRole\(user\)/);
+  assert.match(parentRoute, /user\.displayName/);
+  assert.doesNotMatch(parentRoute, /raw\.actor/);
+  assert.match(parentClient, /QA_INTERNAL_REVIEW_TOKEN/);
+  assert.match(parentClient, /127\.0\.0\.1/);
+  assert.doesNotMatch(studio + parentRoute, /QA_INTERNAL_REVIEW_TOKEN|Authorization:\s*`Bearer/);
+  assert.doesNotMatch(parentKnowledge, /knowledge-gaps\.ndjson|createKnowledgeGapStore|readKnowledgeGapEvents/);
 });

@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -10,8 +11,9 @@ import {
   type ParentQaAnswer,
 } from "../../app/lib/parent-qa";
 import {
-  createKnowledgeGapRecorder,
+  createKnowledgeGapStore,
   type KnowledgeGapRecorder,
+  type KnowledgeGapStore,
 } from "./knowledge-gap-store";
 
 const DEFAULT_HOST = "127.0.0.1";
@@ -25,22 +27,33 @@ type RuntimeConfig = {
   model?: string;
   endpoint?: string;
   knowledgeGapFile?: string;
+  reviewToken?: string;
 };
 
 type RateLimitBucket = { count: number; resetAt: number };
+type ParentQaRequestContext = {
+  config: RuntimeConfig;
+  fetchImpl?: typeof fetch;
+  now: () => number;
+  buckets: Map<string, RateLimitBucket>;
+  recordKnowledgeGap?: KnowledgeGapRecorder;
+  knowledgeGapStore?: KnowledgeGapStore;
+};
 
 export function createParentQaServer(options?: {
   config?: RuntimeConfig;
   fetchImpl?: typeof fetch;
   now?: () => number;
   recordKnowledgeGap?: KnowledgeGapRecorder;
+  knowledgeGapStore?: KnowledgeGapStore;
 }): Server {
   const config = options?.config ?? runtimeConfig();
   const now = options?.now ?? Date.now;
   const buckets = new Map<string, RateLimitBucket>();
+  const knowledgeGapStore = options?.knowledgeGapStore
+    ?? (config.knowledgeGapFile ? createKnowledgeGapStore(config.knowledgeGapFile) : undefined);
   const recordKnowledgeGap = options?.recordKnowledgeGap
-    ?? (config.knowledgeGapFile ? createKnowledgeGapRecorder(config.knowledgeGapFile) : undefined);
-
+    ?? (knowledgeGapStore ? (input: Parameters<KnowledgeGapRecorder>[0]) => knowledgeGapStore.recordObservation(input) : undefined);
   const server = createServer(async (request, response) => {
     try {
       await handleRequest(request, response, {
@@ -49,6 +62,7 @@ export function createParentQaServer(options?: {
         now,
         buckets,
         recordKnowledgeGap,
+        knowledgeGapStore,
       });
     } catch (error) {
       if (error instanceof ParentQaError) {
@@ -77,17 +91,16 @@ export function createParentQaServer(options?: {
 async function handleRequest(
   request: IncomingMessage,
   response: ServerResponse,
-  context: {
-    config: RuntimeConfig;
-    fetchImpl?: typeof fetch;
-    now: () => number;
-    buckets: Map<string, RateLimitBucket>;
-    recordKnowledgeGap?: KnowledgeGapRecorder;
-  },
+  context: ParentQaRequestContext,
 ): Promise<void> {
   const url = new URL(request.url ?? "/", "http://localhost");
-  if (url.pathname !== "/qa" && url.pathname !== "/health") {
+  if (url.pathname !== "/qa" && url.pathname !== "/health" && url.pathname !== "/internal/knowledge-gaps") {
     sendJson(response, 404, { ok: false, error: { code: "NOT_FOUND", message: "Not found" } });
+    return;
+  }
+
+  if (url.pathname === "/internal/knowledge-gaps") {
+    await handleKnowledgeGapReviewRequest(request, response, context);
     return;
   }
 
@@ -149,6 +162,77 @@ async function handleRequest(
   sendJson<{ ok: true; data: ParentQaAnswer }>(response, 200, { ok: true, data: responseData });
 }
 
+async function handleKnowledgeGapReviewRequest(
+  request: IncomingMessage,
+  response: ServerResponse,
+  context: ParentQaRequestContext,
+): Promise<void> {
+  requireReviewToken(request, context.config.reviewToken);
+  const store = context.knowledgeGapStore;
+  if (!store) {
+    throw new ParentQaError("KNOWLEDGE_GAP_STORE_UNAVAILABLE", "待补充清单尚未配置。", 503);
+  }
+  if (request.method === "GET") {
+    sendJson(response, 200, { ok: true, data: { gaps: await store.list(), health: store.health() } });
+    return;
+  }
+  if (request.method !== "POST") {
+    response.setHeader("Allow", "GET, POST");
+    throw new ParentQaError("METHOD_NOT_ALLOWED", "Method not allowed", 405);
+  }
+  const raw = await readJsonBody(request);
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    throw new ParentQaError("INVALID_REVIEW_REQUEST", "审核请求必须是 JSON 对象。", 400);
+  }
+  const body = raw as Record<string, unknown>;
+  const action = requiredInternalString(body.action, "操作", 32);
+  if (action === "retry-failed") {
+    const retry = await store.retryFailed();
+    sendJson(response, 200, { ok: true, data: { retry, health: store.health() } });
+    return;
+  }
+  const id = requiredInternalString(body.id, "缺口 ID", 64);
+  const actor = requiredInternalString(body.actor, "审核人", 80);
+  const note = requiredInternalString(body.note, "审核说明", 500);
+  try {
+    if (action === "review") {
+      const status = body.status;
+      if (
+        status !== "resolved_already_covered"
+        && status !== "resolved_added_to_knowledge"
+        && status !== "dismissed_out_of_scope"
+      ) throw new ParentQaError("KNOWLEDGE_GAP_REVIEW_STATUS_INVALID", "请选择明确的人工处置。", 400);
+      const knowledgeEntryId = typeof body.knowledgeEntryId === "string" ? body.knowledgeEntryId.trim() : undefined;
+      const gap = await store.review({
+        id,
+        status,
+        reviewedAt: context.now(),
+        reviewedBy: actor,
+        note,
+        ...(knowledgeEntryId ? { knowledgeEntryId } : {}),
+      });
+      sendJson(response, 200, { ok: true, data: { gap, health: store.health() } });
+      return;
+    }
+    if (action === "reopen") {
+      const gap = await store.reopen({ id, reopenedAt: context.now(), reopenedBy: actor, reason: note });
+      sendJson(response, 200, { ok: true, data: { gap, health: store.health() } });
+      return;
+    }
+  } catch (error) {
+    if (error instanceof ParentQaError) throw error;
+    const code = error instanceof Error ? error.message : "KNOWLEDGE_GAP_REVIEW_FAILED";
+    if (code === "KNOWLEDGE_GAP_NOT_FOUND") throw new ParentQaError(code, "没有找到这个待补充问题。", 404);
+    if (code === "KNOWLEDGE_GAP_ALREADY_PENDING") throw new ParentQaError(code, "这个问题已经处于待审核状态。", 409);
+    if (code === "KNOWLEDGE_GAP_REOPEN_REQUIRED") throw new ParentQaError(code, "已有人工结论；请先显式重开，不能静默覆盖。", 409);
+    if (code === "KNOWLEDGE_GAP_PENDING_RETRY") throw new ParentQaError(code, "存在尚未落盘的审核事件；请先执行失败写入重试。", 409);
+    if (code === "KNOWLEDGE_GAP_ENTRY_REQUIRED") throw new ParentQaError(code, "新增知识解决时必须填写知识条目 ID。", 400);
+    if (code.endsWith("_REQUIRED") || code.endsWith("_INVALID")) throw new ParentQaError(code, "审核字段不完整或格式无效。", 400);
+    throw error;
+  }
+  throw new ParentQaError("KNOWLEDGE_GAP_ACTION_INVALID", "不支持的审核操作。", 400);
+}
+
 async function readJsonBody(request: IncomingMessage): Promise<unknown> {
   const contentType = String(request.headers["content-type"] ?? "").toLowerCase();
   if (!contentType.includes("application/json")) {
@@ -208,6 +292,42 @@ function firstHeaderValue(value: string | string[] | undefined): string {
   return raw?.split(",", 1)[0]?.trim() ?? "";
 }
 
+function requireReviewToken(request: IncomingMessage, configuredToken: string | undefined): void {
+  if (!configuredToken || configuredToken.length < 24) {
+    request.resume();
+    throw new ParentQaError(
+      "KNOWLEDGE_GAP_REVIEW_NOT_CONFIGURED",
+      "人工审核服务尚未完成安全配置。",
+      503,
+    );
+  }
+  const authorization = firstHeaderValue(request.headers.authorization);
+  const suppliedToken = authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
+  const expected = Buffer.from(configuredToken, "utf8");
+  const supplied = Buffer.from(suppliedToken, "utf8");
+  if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) {
+    request.resume();
+    throw new ParentQaError("KNOWLEDGE_GAP_REVIEW_UNAUTHORIZED", "人工审核凭据无效。", 401);
+  }
+}
+
+function requiredInternalString(value: unknown, label: string, maxLength: number): string {
+  if (typeof value !== "string") {
+    throw new ParentQaError("KNOWLEDGE_GAP_REVIEW_FIELD_REQUIRED", `${label}不能为空。`, 400);
+  }
+  const normalized = [...value].filter((character) => {
+    const code = character.charCodeAt(0);
+    return code >= 32 && code !== 127;
+  }).join("").trim();
+  if (!normalized) {
+    throw new ParentQaError("KNOWLEDGE_GAP_REVIEW_FIELD_REQUIRED", `${label}不能为空。`, 400);
+  }
+  if (normalized.length > maxLength) {
+    throw new ParentQaError("KNOWLEDGE_GAP_REVIEW_FIELD_TOO_LONG", `${label}内容过长。`, 400);
+  }
+  return normalized;
+}
+
 function consumeRateLimit(
   fingerprint: string,
   buckets: Map<string, RateLimitBucket>,
@@ -252,6 +372,7 @@ function runtimeConfig(): RuntimeConfig {
     model: process.env.DEEPSEEK_MODEL?.trim() || undefined,
     endpoint: process.env.DEEPSEEK_API_ENDPOINT?.trim() || undefined,
     knowledgeGapFile: process.env.QA_KNOWLEDGE_GAP_FILE?.trim() || undefined,
+    reviewToken: process.env.QA_INTERNAL_REVIEW_TOKEN?.trim() || undefined,
   };
 }
 
