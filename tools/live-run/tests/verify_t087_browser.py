@@ -224,7 +224,7 @@ def main() -> None:
                     # T-087; no credential appears in DOM or browser storage.
                     summary = page.locator('summary[aria-label="账户菜单：T087 浏览器验收管理员"]')
                     summary.click()
-                    for label in ("账户中心", "切换账号", "退出登录"):
+                    for label in ("账户中心", "＋ 添加账号", "退出当前账号", "退出本设备全部账号"):
                         expect(page.get_by_text(label, exact=True)).to_be_visible()
                     stored = page.evaluate("() => JSON.stringify({...localStorage, ...sessionStorage})")
                     assert username not in stored and password not in stored
@@ -259,18 +259,26 @@ def main() -> None:
                     page.set_viewport_size({"width": 1440, "height": 1000})
                     page.goto(f"{base}/studio/", wait_until="networkidle")
                     page.locator('summary[aria-label="账户菜单：T087 浏览器验收管理员"]').click()
-                    page.get_by_text("切换账号", exact=True).click()
+                    page.get_by_text("＋ 添加账号", exact=True).click()
                     page.wait_for_url("**/auth/login/**")
                     page.wait_for_load_state("networkidle")
-                    expect(page.get_by_text("原账号已经在服务器端安全退出", exact=False)).to_be_visible()
+                    expect(page.get_by_role("tab", name="添加账号")).to_have_attribute("aria-selected", "true")
+                    assert session_status(page, base) == 200, "opening the account picker must not sign out"
+                    page.go_back(wait_until="networkidle")
+                    page.locator('summary[aria-label="账户菜单：T087 浏览器验收管理员"]').click()
+                    page.get_by_text("退出当前账号", exact=True).click()
+                    page.wait_for_url("**/auth/login/**")
+                    page.wait_for_load_state("networkidle")
+                    expect(page.get_by_text("当前账号已从这台设备退出", exact=False)).to_be_visible()
                     assert session_status(page, base) == 401
 
                     login(page, base, username, password)
                     page.locator('summary[aria-label="账户菜单：T087 浏览器验收管理员"]').click()
-                    page.get_by_text("退出登录", exact=True).click()
+                    page.on("dialog", lambda dialog: dialog.accept())
+                    page.get_by_text("退出本设备全部账号", exact=True).click()
                     page.wait_for_url("**/auth/login/**")
                     page.wait_for_load_state("networkidle")
-                    expect(page.get_by_text("已经安全退出当前账号。", exact=True)).to_be_visible()
+                    expect(page.get_by_text("这台设备上的全部账号已经安全退出。", exact=True)).to_be_visible()
                     assert session_status(page, base) == 401
 
                     page.screenshot(path=str(QA / "signed-out.png"), full_page=True)
@@ -283,7 +291,8 @@ def main() -> None:
                         "keyboardNavigation": True,
                         "newTabNavigation": True,
                         "accountMenu": True,
-                        "serverLogout": True,
+                        "accountPickerWithoutLogout": True,
+                        "serverLogoutCurrentAndAll": True,
                         "pageErrors": 0,
                         "requestFailures": 0,
                         "serverErrors": 0,

@@ -2,6 +2,7 @@
 
 import { type FormEvent, useCallback, useEffect, useState } from "react";
 import type {
+  AuthBrowserAccountSetSummary,
   AuthRole,
   AuthSessionSummary,
   AuthUser,
@@ -12,12 +13,14 @@ import { publicPath } from "../lib/public-path";
 import styles from "../auth/auth.module.css";
 import { BrandHomeLink } from "../components/BrandHomeLink";
 import { AccountMenu } from "../components/AccountMenu";
+import { announceAccountChange, approveAccountNavigation, mutateBrowserAccount } from "../components/browser-account-client";
 
 type Envelope<T> = { ok: boolean; data?: T; error?: { code: string; message: string } };
 
 export default function AccountClient({ initialUser, firstLogin = false, returnTo = "/classroom/" }: { initialUser: AuthUser; firstLogin?: boolean; returnTo?: string }) {
   const [user, setUser] = useState(initialUser);
   const [sessions, setSessions] = useState<AuthSessionSummary[]>([]);
+  const [accountSet, setAccountSet] = useState<AuthBrowserAccountSetSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,9 +29,10 @@ export default function AccountClient({ initialUser, firstLogin = false, returnT
 
   const refresh = useCallback(async () => {
     try {
-      const sessionData = await request<{ user: AuthUser; sessions: AuthSessionSummary[] }>("/api/auth/session");
+      const sessionData = await request<{ user: AuthUser; sessions: AuthSessionSummary[]; accountSet: AuthBrowserAccountSetSummary | null }>("/api/auth/session");
       setUser(sessionData.user);
       setSessions(sessionData.sessions);
+      setAccountSet(sessionData.accountSet);
       setError(null);
     } catch (cause) {
       setError(messageOf(cause));
@@ -76,7 +80,7 @@ export default function AccountClient({ initialUser, firstLogin = false, returnT
         <div className={styles.accountGrid}>
           <ProfileCard key={user.displayName} user={user} busy={busy} onRun={run} />
           <PasswordCard busy={busy} onRun={run} returnTo={firstLogin || user.mustChangePassword ? returnTo : null} />
-          <SessionCard sessions={sessions} loading={loading} busy={busy} onRun={run} />
+          <SessionCard sessions={sessions} accountSet={accountSet} loading={loading} busy={busy} onRun={run} />
           {manager && <PasswordAssistanceCard busy={busy} />}
         </div>
       </div>
@@ -123,8 +127,9 @@ function PasswordCard({ busy, onRun, returnTo }: { busy: boolean; onRun: Runner;
   );
 }
 
-function SessionCard({ sessions, loading, busy, onRun }: {
+function SessionCard({ sessions, accountSet, loading, busy, onRun }: {
   sessions: AuthSessionSummary[];
+  accountSet: AuthBrowserAccountSetSummary | null;
   loading: boolean;
   busy: boolean;
   onRun: Runner;
@@ -135,7 +140,7 @@ function SessionCard({ sessions, loading, busy, onRun }: {
       {loading ? <p>正在读取设备…</p> : <ul className={styles.sessionList}>{sessions.map((session) => (
         <li key={session.id}><div><strong>{session.userAgent}{session.current && <span className={styles.statusPill}>当前</span>}</strong><span>最近活动 {formatTime(session.lastSeenAt)} · 到期 {formatTime(session.expiresAt)}</span></div>{!session.current && <button className={styles.tinyButton} disabled={busy} onClick={() => void onRun(() => request(`/api/auth/sessions/${encodeURIComponent(session.id)}`, { method: "DELETE" }).then(() => undefined), "该设备已经退出。")}>退出设备</button>}</li>
       ))}</ul>}
-      <button className={styles.dangerButton} style={{ marginTop: 18 }} disabled={busy} onClick={() => void signOut()}>退出当前账号</button>
+      <button className={styles.dangerButton} style={{ marginTop: 18 }} disabled={busy} onClick={() => void onRun(() => signOutCurrent(accountSet), "正在打开本设备账号列表…")}>退出当前账号</button>
     </section>
   );
 }
@@ -202,12 +207,15 @@ async function request<T>(path: string, options: { method?: string; body?: Recor
   return envelope.data;
 }
 
-async function signOut() {
-  try {
-    await fetch(publicPath("/api/auth/logout"), { method: "POST", headers: { Accept: "application/json" } });
-  } finally {
-    window.location.replace(`${publicPath("/auth/login")}?signedOut=1`);
+async function signOutCurrent(accountSet: AuthBrowserAccountSetSummary | null) {
+  if (accountSet) await mutateBrowserAccount("logout-current", accountSet);
+  else {
+    const response = await fetch(publicPath("/api/auth/logout"), { method: "POST", headers: { Accept: "application/json" } });
+    if (!response.ok) throw new Error("当前账号没有退出，请重试。");
   }
+  announceAccountChange("logout-current");
+  approveAccountNavigation();
+  window.location.replace(`${publicPath("/auth/login")}?signedOut=current&select=1`);
 }
 
 function roleLabel(role: AuthRole): string {

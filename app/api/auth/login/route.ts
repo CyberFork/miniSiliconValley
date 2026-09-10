@@ -1,4 +1,4 @@
-import { loginWithPassword, revokeCurrentSession, sessionCookie } from "../../../lib/auth-store";
+import { issuedSessionHeaders, loginWithPassword } from "../../../lib/auth-store";
 import { parseBoolean, parseUsername, requiredString } from "../../../lib/auth-validation";
 import { readSecureJson, requestClientFingerprint, requestUserAgent } from "../../../lib/request-security";
 import { authResponse, withAuthApi } from "../_shared";
@@ -16,10 +16,8 @@ export async function POST(request: Request): Promise<Response> {
       password: requiredString(body.password, "密码", 128),
       fingerprint: requestClientFingerprint(request),
       userAgent: requestUserAgent(request),
+      cookieHeader: request.headers.get("cookie"),
     });
-    // A deliberate account switch should not leave the previous browser
-    // session active and invisible in the new account's device list.
-    await revokeCurrentSession(db, request.headers.get("cookie"));
-    return authResponse({ ok: true, data: { user: issued.user } }, 200, { "Set-Cookie": sessionCookie(issued.token, issued.remember) });
+    return authResponse({ ok: true, data: { user: issued.user, accountSet: issued.browserSet?.state ?? null } }, 200, issuedSessionHeaders(issued));
   });
 }

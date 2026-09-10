@@ -38,6 +38,26 @@ export type AuthSessionSummary = {
   expiresAt: string;
 };
 
+export type AuthBrowserAccountStatus = "available" | "expired" | "disabled" | "reauthenticate";
+
+/** Minimal identity projection for accounts explicitly verified in this one
+ * browser.  It never contains a password, cookie, session token or platform
+ * directory entry. */
+export type AuthBrowserAccountSummary = AuthIdentitySummary & {
+  current: boolean;
+  status: AuthBrowserAccountStatus;
+  mustChangePassword: boolean;
+  remember: boolean;
+  expiresAt: string;
+  lastUsedAt: string;
+};
+
+export type AuthBrowserAccountSetSummary = {
+  version: number;
+  currentUserId: string | null;
+  accounts: AuthBrowserAccountSummary[];
+};
+
 export type ManagedAuthUser = {
   id: string;
   username: string;

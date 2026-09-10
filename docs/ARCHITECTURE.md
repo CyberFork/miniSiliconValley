@@ -1,6 +1,6 @@
 # Mini Silicon Valley 架构说明
 
-本文件描述当前 T-087 架构。详细领域决策见 [COURSE_PLATFORM_ARCHITECTURE.md](COURSE_PLATFORM_ARCHITECTURE.md)。历史 Alpha、固定九弹窗和旧 Course Registry 文档仅供追溯，不再是运行规范。
+本文件描述当前 T-106／T-107 架构。详细领域决策见 [COURSE_PLATFORM_ARCHITECTURE.md](COURSE_PLATFORM_ARCHITECTURE.md)。历史 Alpha、固定九弹窗和旧 Course Registry 文档仅供追溯，不再是运行规范。
 
 ## 1. 三个产品面
 
@@ -48,7 +48,7 @@ CourseDefinition（D1 course_versions）
 - `/screen` 使用专门的 allow-list API，不从浏览器端隐藏私密字段。
 - `/course/` 与 `/course/{slug}/` 对真实管理员、导师和学员开放；inline HTML 在无 `allow-same-origin` 的 sandbox iframe 中播放，静态 bundle 统一经 cookie-only 网关保护。
 - 所有写 API 使用第一方 HttpOnly Session、首次改密门禁、同源 Origin 校验和服务端 RBAC。
-- Studio、Classroom、导师 Courseware 与 Account 使用同一个账号菜单；脱敏共同投屏是唯一例外。普通切换先撤销服务端 Session；Test 模拟只替换当前请求的 effective identity，不改 Cookie 中的真实 actor。
+- Studio、Classroom、导师 Courseware、Account 与静态官网共用同一账号契约；脱敏共同投屏是唯一例外。本浏览器账号集合可保存多个已验证身份的最小元数据，但任一时刻只有一个当前身份；切换会原子轮换服务端 Session。Test 模拟只替换当前请求的 effective identity，不进入真实账号列表，也不改 Cookie 中的真实 actor。
 - Admin DM 委派是非递归授权：Primary 可授予／撤销导师的 Delegated；Delegated 可运行课堂但无委派能力。旧的平面 `classroom_permissions` 仅作为迁移期回滚镜像，不参与授权判定。
 
 ## 5. 动态学员人数

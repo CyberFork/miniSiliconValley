@@ -22,15 +22,48 @@ test("Studio navigation is a real-link, route-derived and recoverable surface", 
   assert.doesNotMatch(studio, /href="#"/);
 });
 
-test("unified account menu performs server logout and never stores credentials", () => {
+test("unified account menu uses the server-side browser set and never stores credentials", () => {
   const menu = source("app/components/AccountMenu.tsx");
+  const client = source("app/components/browser-account-client.ts");
+  const accounts = source("app/api/auth/accounts/route.ts");
   const logout = source("app/api/auth/logout/route.ts");
-  for (const label of ["账户中心", "切换账号", "退出登录", "返回管理员身份"]) assert.match(menu, new RegExp(label));
-  assert.match(menu, /mutate\("\/api\/auth\/logout", "POST"\)/);
-  assert.match(menu, /safeRelativePath/);
-  assert.doesNotMatch(menu, /localStorage|sessionStorage|password/i);
+  for (const label of ["账户中心", "添加账号", "退出当前账号", "退出本设备全部账号", "返回管理员身份"]) assert.match(menu, new RegExp(label));
+  assert.match(menu, /mutateBrowserAccount\("switch"/);
+  assert.match(menu, /IdentityChangedGuard/);
+  assert.match(menu, /msv-account-identity-guard/);
+  assert.match(client, /\/api\/auth\/accounts/);
+  assert.match(client, /BroadcastChannel/);
+  assert.match(client, /safeAccountReturnTo/);
+  assert.match(client, /accountDestination/);
+  assert.match(client, /studio-role/);
+  assert.match(source("app/classroom/page.tsx"), /没有 Course Studio 权限/);
+  assert.doesNotMatch(`${menu}\n${client}`, /localStorage|sessionStorage/i);
+  assert.match(accounts, /expectedVersion/);
+  assert.match(accounts, /idempotencyKey/);
+  assert.match(accounts, /sessionCookie\(result\.sessionToken/);
   assert.match(logout, /revokeCurrentSession/);
   assert.match(logout, /Clear-Site-Data/);
+});
+
+test("homepage and protected shells share readable account semantics", () => {
+  const html = source("deploy/minisv/site/index.html");
+  const portal = source("deploy/minisv/site/portal.js");
+  const portalCss = source("deploy/minisv/site/portal.css");
+  const menuCss = source("app/components/account-menu.module.css");
+  assert.match(html, /data-portal-account/);
+  assert.doesNotMatch(html, /displayName|currentUserId|accountSet/);
+  assert.match(portal, /\/api\/auth\/accounts/);
+  assert.match(portal, /cache:\s*"no-store"/);
+  assert.match(portal, /credentials:\s*"same-origin"/);
+  assert.match(portal, /账号服务没有完成这次操作/);
+  assert.doesNotMatch(portal, /localStorage|sessionStorage/);
+  for (const css of [portalCss, menuCss]) {
+    assert.match(css, /:focus-visible/);
+    assert.match(css, /visited/);
+  }
+  assert.doesNotMatch(source("app/classroom/platform.module.css"), /\.top nav a/);
+  assert.doesNotMatch(source("app/studio/studio.module.css"), /\.user a/);
+  assert.doesNotMatch(source("app/course/course.module.css"), /\.top a/);
 });
 
 test("Test impersonation is server-scoped, short-lived and actor/effective audited", () => {

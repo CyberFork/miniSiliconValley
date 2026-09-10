@@ -9,6 +9,8 @@ import {
 import { assertAuth, AuthError } from "./auth-errors";
 import type {
   AuthImpersonationContext,
+  AuthBrowserAccountSetSummary,
+  AuthBrowserAccountStatus,
   AuthRole,
   IssuedManagedCredential,
   AuthSessionSummary,
@@ -18,8 +20,14 @@ import type {
 import { parseDisplayName, parseRole, parseUsername } from "./auth-validation";
 
 const SESSION_COOKIE = "__Secure-msv_session";
+const BROWSER_ACCOUNT_COOKIE = "__Secure-msv_accounts";
 const DEFAULT_SESSION_MS = 12 * 60 * 60 * 1_000;
 const REMEMBERED_SESSION_MS = 30 * 24 * 60 * 60 * 1_000;
+// Preserve only the minimal account-picker metadata after an individual login
+// expires. This lets the browser show "需要重新验证" instead of silently
+// forgetting the account. The cookie remains session-only unless the user
+// explicitly selected "保持登录" for at least one account.
+const BROWSER_SET_RETENTION_MS = 90 * 24 * 60 * 60 * 1_000;
 const SESSION_TOUCH_MS = 5 * 60 * 1_000;
 const RESET_LINK_MS = 30 * 60 * 1_000;
 const RATE_WINDOW_MS = 15 * 60 * 1_000;
@@ -27,6 +35,7 @@ const RATE_BLOCK_MS = 15 * 60 * 1_000;
 const IMPERSONATION_MS = 30 * 60 * 1_000;
 const DUMMY_SALT = "AAAAAAAAAAAAAAAAAAAAAA";
 const DUMMY_HASH = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+const MAX_BROWSER_ACCOUNTS = 8;
 
 type UserRow = {
   id: string;
@@ -37,6 +46,7 @@ type UserRow = {
   password_hash: string;
   password_salt: string;
   password_iterations: number;
+  password_changed_at: string;
   must_change_password: number;
   created_at: string;
   updated_at: string;
@@ -80,9 +90,36 @@ export type IssuedSession = {
   user: AuthSessionUser;
   token: string;
   remember: boolean;
+  browserSet?: IssuedBrowserSet;
 };
 
+export type IssuedBrowserSet = {
+  token: string;
+  persistent: boolean;
+  expiresAt: string;
+  state: AuthBrowserAccountSetSummary;
+};
+
+type BrowserSetRow = {
+  id: string;
+  token_hash: string;
+  active_user_id: string | null;
+  active_session_id: string | null;
+  version: number;
+  expires_at: string;
+  last_seen_at: string;
+  revoked_at: string | null;
+};
+
+type BrowserAccountMutationAction = "login" | "ensure" | "switch" | "logout-current" | "remove" | "logout-all";
+
 export async function authenticateSession(db: ClassroomD1, cookieHeader: string | null): Promise<AuthSessionUser | null> {
+  const browserIdentity = await authenticateBrowserSetIdentity(db, cookieHeader);
+  if (browserIdentity.recognized) return browserIdentity.user;
+  return authenticateLegacySession(db, cookieHeader);
+}
+
+async function authenticateLegacySession(db: ClassroomD1, cookieHeader: string | null): Promise<AuthSessionUser | null> {
   const token = readCookie(cookieHeader, SESSION_COOKIE);
   if (!token || token.length < 32 || token.length > 128) return null;
   const tokenHash = await hashSecret(token);
@@ -103,6 +140,67 @@ export async function authenticateSession(db: ClassroomD1, cookieHeader: string 
     await db.prepare(`UPDATE auth_sessions SET last_seen_at = ? WHERE id = ? AND revoked_at IS NULL`).bind(nowIso(), row.id).run();
   }
   return resolveSessionIdentity(db, sessionUser(row));
+}
+
+async function authenticateBrowserSetIdentity(
+  db: ClassroomD1,
+  cookieHeader: string | null,
+): Promise<{ recognized: boolean; user: AuthSessionUser | null }> {
+  const token = readCookie(cookieHeader, BROWSER_ACCOUNT_COOKIE);
+  if (!token || token.length < 32 || token.length > 128) return { recognized: false, user: null };
+  const tokenHash = await hashSecret(token);
+  const row = await db.prepare(
+    `SELECT bs.id AS set_id, bs.expires_at AS set_expires_at, bs.last_seen_at AS set_last_seen_at,
+            bs.revoked_at AS set_revoked_at, bs.active_user_id, bs.active_session_id,
+            a.credential_version, a.expires_at AS account_expires_at,
+            a.reauth_required_at, a.removed_at,
+            s.id, s.user_id, s.expires_at, s.last_seen_at, s.revoked_at,
+            u.username, u.display_name, u.role, u.status, u.must_change_password,
+            u.password_changed_at
+     FROM auth_browser_sets bs
+     LEFT JOIN auth_browser_accounts a
+       ON a.set_id = bs.id AND a.user_id = bs.active_user_id
+     LEFT JOIN auth_browser_session_links l
+       ON l.set_id = bs.id AND l.user_id = bs.active_user_id AND l.session_id = bs.active_session_id
+     LEFT JOIN auth_sessions s ON s.id = l.session_id
+     LEFT JOIN auth_users u ON u.id = bs.active_user_id
+     WHERE bs.token_hash = ? LIMIT 1`,
+  ).bind(tokenHash).first<SessionRow & {
+    set_id: string;
+    set_expires_at: string;
+    set_last_seen_at: string;
+    set_revoked_at: string | null;
+    active_user_id: string | null;
+    active_session_id: string | null;
+    credential_version: string | null;
+    account_expires_at: string | null;
+    reauth_required_at: string | null;
+    removed_at: string | null;
+    password_changed_at: string | null;
+  }>();
+  if (!row) return { recognized: false, user: null };
+  const now = Date.now();
+  const valid = !row.set_revoked_at
+    && Date.parse(row.set_expires_at) > now
+    && Boolean(row.active_user_id && row.active_session_id)
+    && !row.removed_at
+    && !row.reauth_required_at
+    && row.status === "active"
+    && row.credential_version === row.password_changed_at
+    && Boolean(row.account_expires_at && Date.parse(row.account_expires_at) > now)
+    && !row.revoked_at
+    && Date.parse(row.expires_at) > now;
+  if (!valid) return { recognized: true, user: null };
+
+  if (now - Date.parse(row.set_last_seen_at) >= SESSION_TOUCH_MS) {
+    const touched = nowIso();
+    await db.batch([
+      db.prepare(`UPDATE auth_browser_sets SET last_seen_at = ?, updated_at = ? WHERE id = ? AND revoked_at IS NULL`).bind(touched, touched, row.set_id),
+      db.prepare(`UPDATE auth_browser_accounts SET last_used_at = ? WHERE set_id = ? AND user_id = ? AND removed_at IS NULL`).bind(touched, row.set_id, row.user_id),
+      db.prepare(`UPDATE auth_sessions SET last_seen_at = ? WHERE id = ? AND revoked_at IS NULL`).bind(touched, row.id),
+    ]);
+  }
+  return { recognized: true, user: await resolveSessionIdentity(db, sessionUser(row)) };
 }
 
 /**
@@ -353,7 +451,7 @@ function identitySummary(user: Pick<AuthSessionUser, "userId" | "username" | "di
 
 export async function loginWithPassword(
   db: ClassroomD1,
-  input: { username: string; password: string; remember: boolean; fingerprint: string; userAgent: string },
+  input: { username: string; password: string; remember: boolean; fingerprint: string; userAgent: string; cookieHeader?: string | null },
 ): Promise<IssuedSession> {
   const rateKey = await consumeRateLimit(db, "password-login", `${input.fingerprint}|${input.username}`, 8);
   const user = await getUserByUsername(db, input.username);
@@ -369,6 +467,15 @@ export async function loginWithPassword(
   }
   await clearRateLimit(db, rateKey);
   const issued = await issueSession(db, user, input.remember, input.userAgent);
+  try {
+    issued.browserSet = await attachIssuedSessionWithRetry(db, issued, input.cookieHeader ?? null, "login");
+  } catch (error) {
+    // The account-list transaction is all-or-nothing.  If it loses a CAS race,
+    // the newly minted but undisclosed session is revoked and the previously
+    // active browser identity remains authoritative.
+    await db.prepare(`UPDATE auth_sessions SET revoked_at = ? WHERE id = ? AND revoked_at IS NULL`).bind(nowIso(), issued.user.sessionId).run();
+    throw normalizeBrowserMutationError(error);
+  }
   await securityEvent(db, user.id, user.id, "auth.login.password.succeeded", { sessionId: issued.user.sessionId });
   return issued;
 }
@@ -383,10 +490,12 @@ export async function registerUser(
     remember: boolean;
     fingerprint: string;
     userAgent: string;
+    cookieHeader?: string | null;
   },
 ): Promise<IssuedSession> {
   await consumeRateLimit(db, "registration", input.fingerprint, 5);
   assertAuth(!(await getUserByUsername(db, input.username)), "USERNAME_TAKEN", "这个用户名已经有人使用。", 409);
+  await assertBrowserAccountCapacity(db, input.cookieHeader ?? null, null);
 
   const password = await createPasswordDigest(input.password);
   const userId = `usr_${crypto.randomUUID()}`;
@@ -417,7 +526,9 @@ export async function registerUser(
     throw error;
   }
   const row = (await getUserByUsername(db, input.username))!;
-  return { user: sessionUserFrom(row, session), token: session.token, remember: input.remember };
+  const issued: IssuedSession = { user: sessionUserFrom(row, session), token: session.token, remember: input.remember };
+  issued.browserSet = await attachIssuedSessionWithRetry(db, issued, input.cookieHeader ?? null, "login");
+  return issued;
 }
 
 /**
@@ -559,6 +670,15 @@ export async function manageTestClassroomIdentity(
     await db.batch([
       db.prepare(`UPDATE auth_users SET status = 'disabled', updated_at = ? WHERE id = ?`).bind(now, target.id),
       db.prepare(`UPDATE auth_sessions SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL`).bind(now, target.id),
+      db.prepare(
+        `UPDATE auth_browser_accounts SET reauth_required_at = COALESCE(reauth_required_at, ?)
+         WHERE user_id = ? AND removed_at IS NULL`,
+      ).bind(now, target.id),
+      db.prepare(
+        `UPDATE auth_browser_sets SET active_user_id = NULL, active_session_id = NULL,
+             version = version + 1, last_seen_at = ?, updated_at = ?
+         WHERE active_user_id = ?`,
+      ).bind(now, now, target.id),
       db.prepare(`UPDATE auth_impersonations SET revoked_at = ?, end_reason = 'target-disabled' WHERE effective_user_id = ? AND revoked_at IS NULL`).bind(now, target.id),
       securityEventStatement(db, target.id, actor.userId, "auth.test-identity.disabled", { classroomId }, now),
     ]);
@@ -583,6 +703,15 @@ export async function manageTestClassroomIdentity(
        password_changed_at = ?, must_change_password = 1, updated_at = ? WHERE id = ?`,
     ).bind(password.hash, password.salt, password.iterations, now, now, target.id),
     db.prepare(`UPDATE auth_sessions SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL`).bind(now, target.id),
+    db.prepare(
+      `UPDATE auth_browser_accounts SET reauth_required_at = COALESCE(reauth_required_at, ?)
+       WHERE user_id = ? AND removed_at IS NULL`,
+    ).bind(now, target.id),
+    db.prepare(
+      `UPDATE auth_browser_sets SET active_user_id = NULL, active_session_id = NULL,
+           version = version + 1, last_seen_at = ?, updated_at = ?
+       WHERE active_user_id = ?`,
+    ).bind(now, now, target.id),
     db.prepare(`UPDATE auth_impersonations SET revoked_at = ?, end_reason = 'credential-reset' WHERE effective_user_id = ? AND revoked_at IS NULL`).bind(now, target.id),
     db.prepare(`UPDATE auth_reset_tokens SET consumed_at = ? WHERE user_id = ? AND consumed_at IS NULL`).bind(now, target.id),
     securityEventStatement(db, target.id, actor.userId, "auth.test-credential.regenerated", { classroomId }, now),
@@ -644,7 +773,7 @@ export async function issuePasswordResetToken(
 
 export async function resetPasswordWithToken(
   db: ClassroomD1,
-  input: { token: string; newPassword: string; fingerprint: string; userAgent: string },
+  input: { token: string; newPassword: string; fingerprint: string; userAgent: string; cookieHeader?: string | null },
 ): Promise<IssuedSession> {
   const tokenHash = await hashSecret(input.token);
   const rateKey = await consumeRateLimit(db, "password-reset-link", `${input.fingerprint}|${tokenHash.slice(0, 16)}`, 6);
@@ -654,7 +783,7 @@ export async function resetPasswordWithToken(
   const row = await db.prepare(
     `SELECT rt.id AS reset_token_id, rt.expires_at AS reset_expires_at,
             u.id, u.username, u.display_name, u.role, u.status, u.password_hash,
-            u.password_salt, u.password_iterations, u.must_change_password,
+            u.password_salt, u.password_iterations, u.password_changed_at, u.must_change_password,
             u.created_at, u.updated_at
      FROM auth_reset_tokens rt
      JOIN auth_users u ON u.id = rt.user_id
@@ -663,6 +792,7 @@ export async function resetPasswordWithToken(
      LIMIT 1`,
   ).bind(tokenHash, now).first<ResetTokenRow>();
   if (!row) throw new AuthError("RESET_LINK_INVALID", "重置链接无效、已使用或已经过期。", 401);
+  await assertBrowserAccountCapacity(db, input.cookieHeader ?? null, row.id);
 
   // A unique claim marker makes every dependent statement a no-op for a
   // concurrent replay, even if two requests were read in the same millisecond.
@@ -708,7 +838,9 @@ export async function resetPasswordWithToken(
     throw new AuthError("RESET_LINK_INVALID", "重置链接无效、已使用或已经过期。", 401);
   }
   await clearRateLimit(db, rateKey);
-  return { user: sessionUserFrom(row, session), token: session.token, remember: false };
+  const issued: IssuedSession = { user: sessionUserFrom({ ...row, password_changed_at: now }, session), token: session.token, remember: false };
+  issued.browserSet = await attachIssuedSessionWithRetry(db, issued, input.cookieHeader ?? null, "login");
+  return issued;
 }
 
 export async function updateOwnProfile(
@@ -730,6 +862,17 @@ export async function updateOwnProfile(
         `UPDATE auth_users SET password_hash = ?, password_salt = ?, password_iterations = ?,
          password_changed_at = ?, must_change_password = 0, updated_at = ? WHERE id = ?`,
       ).bind(password.hash, password.salt, password.iterations, now, now, user.id),
+      db.prepare(
+        `UPDATE auth_browser_accounts SET reauth_required_at = COALESCE(reauth_required_at, ?)
+         WHERE user_id = ? AND removed_at IS NULL`,
+      ).bind(now, user.id),
+      db.prepare(
+        `UPDATE auth_browser_accounts
+         SET credential_version = ?, reauth_required_at = NULL, last_used_at = ?
+         WHERE user_id = ? AND removed_at IS NULL AND set_id IN (
+           SELECT set_id FROM auth_browser_session_links WHERE session_id = ?
+         )`,
+      ).bind(now, now, user.id, current.sessionId),
       db.prepare(`UPDATE auth_sessions SET revoked_at = ? WHERE user_id = ? AND id <> ? AND revoked_at IS NULL`)
         .bind(now, user.id, current.sessionId),
       db.prepare(`UPDATE auth_reset_tokens SET consumed_at = ? WHERE user_id = ? AND consumed_at IS NULL`).bind(now, user.id),
@@ -764,12 +907,308 @@ export async function listOwnSessions(db: ClassroomD1, current: AuthSessionUser)
   }));
 }
 
+export async function getBrowserAccountSetState(
+  db: ClassroomD1,
+  cookieHeader: string | null,
+): Promise<AuthBrowserAccountSetSummary | null> {
+  const resolved = await resolveBrowserSet(db, cookieHeader);
+  if (!resolved) return null;
+  return (await browserSetProjection(db, resolved.row)).state;
+}
+
+/** Upgrade one pre-T-106 session into a server-side browser account set. */
+export async function ensureBrowserAccountSet(
+  db: ClassroomD1,
+  current: AuthSessionUser,
+  cookieHeader: string | null,
+): Promise<IssuedBrowserSet> {
+  requireDirectSession(current);
+  const existing = await resolveBrowserSet(db, cookieHeader);
+  if (existing) {
+    const projection = await browserSetProjection(db, existing.row);
+    assertAuth(
+      projection.state.currentUserId === current.userId,
+      "ACCOUNT_SET_IDENTITY_CHANGED",
+      "这个页面的账号已经在其他标签页切换，请刷新后再操作。",
+      409,
+    );
+    return { token: existing.token, ...projection };
+  }
+
+  const credential = await db.prepare(
+    `SELECT s.remember, s.expires_at, s.revoked_at, u.password_changed_at, u.status
+     FROM auth_sessions s JOIN auth_users u ON u.id = s.user_id
+     WHERE s.id = ? AND s.user_id = ?`,
+  ).bind(current.sessionId, current.userId).first<{
+    remember: number; expires_at: string; revoked_at: string | null;
+    password_changed_at: string; status: "active" | "disabled";
+  }>();
+  assertAuth(
+    credential && !credential.revoked_at && credential.status === "active" && Date.parse(credential.expires_at) > Date.now(),
+    "AUTH_REQUIRED",
+    "当前登录已经失效，请重新登录。",
+    401,
+  );
+  const token = randomSecret(32);
+  const tokenHash = await hashSecret(token);
+  const setId = `browser_${crypto.randomUUID()}`;
+  const now = nowIso();
+  await db.batch([
+    db.prepare(
+      `INSERT INTO auth_browser_sets
+       (id, token_hash, active_user_id, active_session_id, version, expires_at,
+        last_seen_at, revoked_at, created_at, updated_at)
+       VALUES (?, ?, NULL, NULL, 1, ?, ?, NULL, ?, ?)`,
+    ).bind(setId, tokenHash, browserSetRetentionUntil(now), now, now, now),
+    browserAccountUpsert(db, setId, current.userId, credential.password_changed_at, Boolean(credential.remember), credential.expires_at, now),
+    db.prepare(
+      `INSERT INTO auth_browser_session_links (session_id, set_id, user_id, created_at)
+       VALUES (?, ?, ?, ?)`,
+    ).bind(current.sessionId, setId, current.userId, now),
+    db.prepare(
+      `UPDATE auth_browser_sets SET active_user_id = ?, active_session_id = ?, updated_at = ?
+       WHERE id = ? AND version = 1`,
+    ).bind(current.userId, current.sessionId, now, setId),
+    securityEventStatement(db, current.userId, current.userId, "auth.browser-set.created", { setId, source: "legacy-session" }, now),
+  ]);
+  const row = await browserSetById(db, setId);
+  if (!row) throw new AuthError("ACCOUNT_SET_CREATE_FAILED", "账号列表没有完成初始化，请重试。", 500);
+  return { token, ...(await browserSetProjection(db, row)) };
+}
+
+export type SwitchBrowserAccountResult = {
+  user: AuthSessionUser;
+  sessionToken: string | null;
+  remember: boolean;
+  browserSet: IssuedBrowserSet;
+  idempotent: boolean;
+};
+
+export async function switchBrowserAccount(
+  db: ClassroomD1,
+  cookieHeader: string | null,
+  input: { targetUserId: string; expectedVersion: number; idempotencyKey: string; userAgent: string },
+): Promise<SwitchBrowserAccountResult> {
+  const resolved = await requireBrowserSet(db, cookieHeader);
+  assertBrowserMutationInput(input.expectedVersion, input.idempotencyKey);
+  const replay = await browserSwitchReplay(db, resolved, input);
+  if (replay) return replay;
+  if (resolved.row.version !== input.expectedVersion) throw browserSetConflict();
+  await assertNoBrowserSetImpersonation(db, resolved.row);
+
+  const target = await browserAccountCredential(db, resolved.row.id, input.targetUserId);
+  assertAuth(target && !target.removed_at, "ACCOUNT_NOT_IN_BROWSER", "这个账号不在当前浏览器的已登录列表中。", 404);
+  const status = browserAccountStatus(target);
+  assertAuth(status === "available", "ACCOUNT_REAUTHENTICATION_REQUIRED", accountStatusMessage(status), 409);
+  const session = await newSessionUntil(
+    target.id,
+    Boolean(target.remember),
+    input.userAgent,
+    target.expires_at,
+    nowIso(),
+  );
+  const mutationId = crypto.randomUUID();
+  const now = session.now;
+  try {
+    await db.batch([
+      browserMutationClaim(db, mutationId, resolved.row.id, "switch", target.id, input.expectedVersion, input.idempotencyKey, now),
+      browserMutationAssertion(db, mutationId, now),
+      db.prepare(
+        `UPDATE auth_impersonations SET revoked_at = ?, end_reason = 'account-switch'
+         WHERE session_id IN (SELECT session_id FROM auth_browser_session_links WHERE set_id = ?)
+           AND revoked_at IS NULL`,
+      ).bind(now, resolved.row.id),
+      db.prepare(
+        `UPDATE auth_sessions SET revoked_at = ?
+         WHERE id IN (SELECT session_id FROM auth_browser_session_links WHERE set_id = ?)
+           AND revoked_at IS NULL`,
+      ).bind(now, resolved.row.id),
+      sessionInsert(db, session),
+      db.prepare(
+        `INSERT INTO auth_browser_session_links (session_id, set_id, user_id, created_at)
+         VALUES (?, ?, ?, ?)`,
+      ).bind(session.id, resolved.row.id, target.id, now),
+      db.prepare(
+        `UPDATE auth_browser_accounts SET last_used_at = ?
+         WHERE set_id = ? AND user_id = ? AND removed_at IS NULL`,
+      ).bind(now, resolved.row.id, target.id),
+      db.prepare(
+        `UPDATE auth_browser_sets
+         SET active_user_id = ?, active_session_id = ?, version = version + 1,
+             last_seen_at = ?, updated_at = ?
+         WHERE id = ? AND version = ? AND revoked_at IS NULL`,
+      ).bind(target.id, session.id, now, now, resolved.row.id, input.expectedVersion),
+      securityEventStatement(db, target.id, target.id, "auth.browser-account.switched", {
+        setId: resolved.row.id,
+        fromUserId: resolved.row.active_user_id,
+        expectedVersion: input.expectedVersion,
+        resultVersion: input.expectedVersion + 1,
+      }, now),
+    ]);
+  } catch (error) {
+    const won = await browserSwitchReplay(db, resolved, input);
+    if (won) return won;
+    throw normalizeBrowserMutationError(error);
+  }
+  const nextRow = await browserSetById(db, resolved.row.id);
+  if (!nextRow) throw browserSetConflict();
+  const browserSet = { token: resolved.token, ...(await browserSetProjection(db, nextRow)) };
+  return {
+    user: sessionUserFrom(target, session),
+    sessionToken: session.token,
+    remember: Boolean(target.remember),
+    browserSet,
+    idempotent: false,
+  };
+}
+
+export type MutateBrowserAccountsResult = {
+  browserSet: IssuedBrowserSet | null;
+  clearSession: boolean;
+  clearBrowserSet: boolean;
+  idempotent: boolean;
+};
+
+export async function mutateBrowserAccounts(
+  db: ClassroomD1,
+  cookieHeader: string | null,
+  input: {
+    action: "logout-current" | "remove" | "logout-all";
+    targetUserId?: string;
+    expectedVersion: number;
+    idempotencyKey: string;
+  },
+): Promise<MutateBrowserAccountsResult> {
+  const resolved = await requireBrowserSet(db, cookieHeader);
+  assertBrowserMutationInput(input.expectedVersion, input.idempotencyKey);
+  const targetUserId = input.action === "logout-current" ? resolved.row.active_user_id : input.targetUserId ?? null;
+  if (input.action === "remove") {
+    assertAuth(targetUserId, "ACCOUNT_TARGET_REQUIRED", "请选择要从本设备移除的账号。", 400);
+  }
+  const replay = await browserAccountMutationReplay(db, resolved, input.action, targetUserId, input.expectedVersion, input.idempotencyKey);
+  if (replay) return replay;
+  if (resolved.row.version !== input.expectedVersion) throw browserSetConflict();
+  await assertNoBrowserSetImpersonation(db, resolved.row);
+  if (input.action === "remove") {
+    const target = await browserAccountCredential(db, resolved.row.id, targetUserId!);
+    assertAuth(target && !target.removed_at, "ACCOUNT_NOT_IN_BROWSER", "这个账号不在当前浏览器的已登录列表中。", 404);
+  }
+
+  const now = nowIso();
+  const mutationId = crypto.randomUUID();
+  const removesActive = input.action !== "remove" || targetUserId === resolved.row.active_user_id;
+  try {
+    const statements: D1PreparedStatement[] = [
+      browserMutationClaim(db, mutationId, resolved.row.id, input.action, targetUserId, input.expectedVersion, input.idempotencyKey, now),
+      browserMutationAssertion(db, mutationId, now),
+    ];
+    if (input.action === "logout-all" || removesActive) {
+      statements.push(
+        db.prepare(
+          `UPDATE auth_impersonations SET revoked_at = ?, end_reason = ?
+           WHERE session_id IN (SELECT session_id FROM auth_browser_session_links WHERE set_id = ?)
+             AND revoked_at IS NULL`,
+        ).bind(now, input.action, resolved.row.id),
+        db.prepare(
+          `UPDATE auth_sessions SET revoked_at = ?
+           WHERE id IN (SELECT session_id FROM auth_browser_session_links WHERE set_id = ?)
+             AND revoked_at IS NULL`,
+        ).bind(now, resolved.row.id),
+      );
+    }
+    if (input.action === "logout-all") {
+      statements.push(
+        db.prepare(
+          `UPDATE auth_browser_accounts SET removed_at = COALESCE(removed_at, ?)
+           WHERE set_id = ?`,
+        ).bind(now, resolved.row.id),
+        db.prepare(
+          `UPDATE auth_browser_sets
+           SET active_user_id = NULL, active_session_id = NULL, version = version + 1,
+               revoked_at = ?, last_seen_at = ?, updated_at = ?
+           WHERE id = ? AND version = ? AND revoked_at IS NULL`,
+        ).bind(now, now, now, resolved.row.id, input.expectedVersion),
+      );
+    } else {
+      statements.push(
+        db.prepare(
+          `UPDATE auth_browser_accounts SET removed_at = COALESCE(removed_at, ?)
+           WHERE set_id = ? AND user_id = ? AND removed_at IS NULL`,
+        ).bind(now, resolved.row.id, targetUserId),
+        removesActive
+          ? db.prepare(
+            `UPDATE auth_browser_sets
+             SET active_user_id = NULL, active_session_id = NULL, version = version + 1,
+                 expires_at = COALESCE((SELECT MAX(expires_at) FROM auth_browser_accounts
+                   WHERE set_id = ? AND removed_at IS NULL), expires_at),
+                 revoked_at = CASE WHEN NOT EXISTS (
+                   SELECT 1 FROM auth_browser_accounts WHERE set_id = ? AND removed_at IS NULL
+                 ) THEN ? ELSE revoked_at END,
+                 last_seen_at = ?, updated_at = ?
+             WHERE id = ? AND version = ? AND revoked_at IS NULL`,
+          ).bind(resolved.row.id, resolved.row.id, now, now, now, resolved.row.id, input.expectedVersion)
+          : db.prepare(
+            `UPDATE auth_browser_sets
+             SET version = version + 1,
+                 expires_at = COALESCE((SELECT MAX(expires_at) FROM auth_browser_accounts
+                   WHERE set_id = ? AND removed_at IS NULL), expires_at),
+                 last_seen_at = ?, updated_at = ?
+             WHERE id = ? AND version = ? AND revoked_at IS NULL`,
+          ).bind(resolved.row.id, now, now, resolved.row.id, input.expectedVersion),
+      );
+    }
+    statements.push(securityEventStatement(db, targetUserId, resolved.row.active_user_id, `auth.browser-account.${input.action}`, {
+      setId: resolved.row.id,
+      expectedVersion: input.expectedVersion,
+      resultVersion: input.expectedVersion + 1,
+    }, now));
+    await db.batch(statements);
+  } catch (error) {
+    const won = await browserAccountMutationReplay(db, resolved, input.action, targetUserId, input.expectedVersion, input.idempotencyKey);
+    if (won) return won;
+    throw normalizeBrowserMutationError(error);
+  }
+  if (input.action === "logout-all") {
+    return { browserSet: null, clearSession: true, clearBrowserSet: true, idempotent: false };
+  }
+  const nextRow = await browserSetById(db, resolved.row.id);
+  if (!nextRow) throw browserSetConflict();
+  const browserSet = { token: resolved.token, ...(await browserSetProjection(db, nextRow)) };
+  const noAccounts = browserSet.state.accounts.length === 0;
+  return {
+    browserSet: noAccounts ? null : browserSet,
+    clearSession: removesActive,
+    clearBrowserSet: noAccounts,
+    idempotent: false,
+  };
+}
+
 export async function revokeSession(db: ClassroomD1, current: AuthSessionUser, sessionId: string): Promise<boolean> {
   requireDirectSession(current);
-  const result = await db.prepare(
-    `UPDATE auth_sessions SET revoked_at = ? WHERE id = ? AND user_id = ? AND revoked_at IS NULL`,
-  ).bind(nowIso(), sessionId, current.userId).run();
-  return Number(result.meta?.changes ?? 0) === 1;
+  const linked = await db.prepare(
+    `SELECT l.set_id, bs.active_session_id
+     FROM auth_browser_session_links l JOIN auth_browser_sets bs ON bs.id = l.set_id
+     WHERE l.session_id = ? AND l.user_id = ? LIMIT 1`,
+  ).bind(sessionId, current.userId).first<{ set_id: string; active_session_id: string | null }>();
+  const now = nowIso();
+  const results = await db.batch([
+    db.prepare(
+      `UPDATE auth_sessions SET revoked_at = ? WHERE id = ? AND user_id = ? AND revoked_at IS NULL`,
+    ).bind(now, sessionId, current.userId),
+    ...(linked ? [
+      db.prepare(
+        `UPDATE auth_browser_accounts SET reauth_required_at = COALESCE(reauth_required_at, ?)
+         WHERE set_id = ? AND user_id = ? AND removed_at IS NULL`,
+      ).bind(now, linked.set_id, current.userId),
+      ...(linked.active_session_id === sessionId ? [db.prepare(
+        `UPDATE auth_browser_sets
+         SET active_user_id = NULL, active_session_id = NULL, version = version + 1,
+             updated_at = ?, last_seen_at = ?
+         WHERE id = ? AND active_session_id = ?`,
+      ).bind(now, now, linked.set_id, sessionId)] : []),
+    ] : []),
+  ]);
+  return Number(results[0]?.meta?.changes ?? 0) === 1;
 }
 
 export async function revokeCurrentSession(db: ClassroomD1, cookieHeader: string | null): Promise<void> {
@@ -860,13 +1299,25 @@ export async function setManagedUserStatus(
   await db.batch([
     db.prepare(`UPDATE auth_users SET status = ?, updated_at = ? WHERE id = ?`).bind(status, now, targetId),
     ...(status === "disabled"
-      ? [db.prepare(`UPDATE auth_sessions SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL`).bind(now, targetId)]
+      ? [
+        db.prepare(`UPDATE auth_sessions SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL`).bind(now, targetId),
+        db.prepare(
+          `UPDATE auth_browser_accounts SET reauth_required_at = COALESCE(reauth_required_at, ?)
+           WHERE user_id = ? AND removed_at IS NULL`,
+        ).bind(now, targetId),
+        db.prepare(
+          `UPDATE auth_browser_sets
+           SET active_user_id = NULL, active_session_id = NULL, version = version + 1,
+               updated_at = ?, last_seen_at = ?
+           WHERE active_user_id = ?`,
+        ).bind(now, now, targetId),
+      ]
       : []),
     securityEventStatement(db, targetId, actor.userId, `auth.user.${status}`, {}, now),
   ]);
 }
 
-export function sessionCookie(token: string, remember: boolean): string {
+export function sessionCookie(token: string, remember: boolean, expiresAt?: string): string {
   const parts = [
     `${SESSION_COOKIE}=${encodeURIComponent(token)}`,
     `Path=${cookiePath()}`,
@@ -874,12 +1325,40 @@ export function sessionCookie(token: string, remember: boolean): string {
     "Secure",
     "SameSite=Lax",
   ];
-  if (remember) parts.push(`Max-Age=${Math.floor(REMEMBERED_SESSION_MS / 1_000)}`);
+  if (remember) {
+    const remaining = expiresAt ? Math.max(0, Date.parse(expiresAt) - Date.now()) : REMEMBERED_SESSION_MS;
+    parts.push(`Max-Age=${Math.floor(Math.min(REMEMBERED_SESSION_MS, remaining) / 1_000)}`);
+  }
   return parts.join("; ");
 }
 
 export function clearSessionCookie(): string {
   return `${SESSION_COOKIE}=; Path=${cookiePath()}; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
+}
+
+export function browserAccountSetCookie(value: Pick<IssuedBrowserSet, "token" | "persistent" | "expiresAt">): string {
+  const parts = [
+    `${BROWSER_ACCOUNT_COOKIE}=${encodeURIComponent(value.token)}`,
+    `Path=${cookiePath()}`,
+    "HttpOnly",
+    "Secure",
+    "SameSite=Lax",
+  ];
+  if (value.persistent) {
+    parts.push(`Max-Age=${Math.floor(Math.max(0, Date.parse(value.expiresAt) - Date.now()) / 1_000)}`);
+  }
+  return parts.join("; ");
+}
+
+export function clearBrowserAccountSetCookie(): string {
+  return `${BROWSER_ACCOUNT_COOKIE}=; Path=${cookiePath()}; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
+}
+
+export function issuedSessionHeaders(issued: IssuedSession): Headers {
+  const headers = new Headers();
+  headers.append("Set-Cookie", sessionCookie(issued.token, issued.remember, issued.user.sessionExpiresAt));
+  if (issued.browserSet) headers.append("Set-Cookie", browserAccountSetCookie(issued.browserSet));
+  return headers;
 }
 
 export function requireManager(user: AuthSessionUser): void {
@@ -931,6 +1410,442 @@ function readCookie(header: string | null, name: string): string | null {
     }
   }
   return null;
+}
+
+type BrowserAccountCredentialRow = UserRow & {
+  credential_version: string;
+  remember: number;
+  account_expires_at?: string;
+  expires_at: string;
+  authenticated_at: string;
+  last_used_at: string;
+  reauth_required_at: string | null;
+  removed_at: string | null;
+};
+
+async function resolveBrowserSet(
+  db: ClassroomD1,
+  cookieHeader: string | null,
+): Promise<{ token: string; row: BrowserSetRow } | null> {
+  const token = readCookie(cookieHeader, BROWSER_ACCOUNT_COOKIE);
+  if (!token || token.length < 32 || token.length > 128) return null;
+  const row = await db.prepare(
+    `SELECT id, token_hash, active_user_id, active_session_id, version, expires_at,
+            last_seen_at, revoked_at
+     FROM auth_browser_sets WHERE token_hash = ? LIMIT 1`,
+  ).bind(await hashSecret(token)).first<BrowserSetRow>();
+  if (!row || row.revoked_at || Date.parse(row.expires_at) <= Date.now()) return null;
+  return { token, row };
+}
+
+async function requireBrowserSet(
+  db: ClassroomD1,
+  cookieHeader: string | null,
+): Promise<{ token: string; row: BrowserSetRow }> {
+  const resolved = await resolveBrowserSet(db, cookieHeader);
+  if (!resolved) throw new AuthError("ACCOUNT_SET_REQUIRED", "此浏览器还没有可切换的已登录账号，请先登录。", 401);
+  return resolved;
+}
+
+async function browserSetById(db: ClassroomD1, setId: string): Promise<BrowserSetRow | null> {
+  return db.prepare(
+    `SELECT id, token_hash, active_user_id, active_session_id, version, expires_at,
+            last_seen_at, revoked_at
+     FROM auth_browser_sets WHERE id = ? LIMIT 1`,
+  ).bind(setId).first<BrowserSetRow>();
+}
+
+async function browserSetProjection(
+  db: ClassroomD1,
+  set: BrowserSetRow,
+): Promise<{ persistent: boolean; expiresAt: string; state: AuthBrowserAccountSetSummary }> {
+  const rows = await db.prepare(
+    `SELECT u.id, u.username, u.display_name, u.role, u.status, u.must_change_password,
+            u.password_changed_at, a.credential_version, a.remember, a.expires_at,
+            a.authenticated_at, a.last_used_at, a.reauth_required_at, a.removed_at,
+            CASE WHEN bs.active_user_id = u.id
+              AND bs.active_session_id IS NOT NULL
+              AND s.id = bs.active_session_id
+              AND s.revoked_at IS NULL AND s.expires_at > ?
+              AND l.session_id IS NOT NULL THEN 1 ELSE 0 END AS active_session_valid
+     FROM auth_browser_accounts a
+     JOIN auth_browser_sets bs ON bs.id = a.set_id
+     JOIN auth_users u ON u.id = a.user_id
+     LEFT JOIN auth_browser_session_links l
+       ON l.set_id = bs.id AND l.user_id = u.id AND l.session_id = bs.active_session_id
+     LEFT JOIN auth_sessions s ON s.id = l.session_id
+     WHERE a.set_id = ? AND a.removed_at IS NULL
+     ORDER BY CASE WHEN bs.active_user_id = u.id THEN 0 ELSE 1 END, a.last_used_at DESC`,
+  ).bind(nowIso(), set.id).all<BrowserAccountCredentialRow & { active_session_valid: number }>();
+  const accounts = (rows.results ?? []).map((row) => {
+    const status = browserAccountStatus(row);
+    return {
+      userId: row.id,
+      username: row.username,
+      displayName: row.display_name,
+      role: row.role,
+      current: status === "available" && Boolean(row.active_session_valid) && set.active_user_id === row.id,
+      status,
+      mustChangePassword: Boolean(row.must_change_password),
+      remember: Boolean(row.remember),
+      expiresAt: row.expires_at,
+      lastUsedAt: row.last_used_at,
+    };
+  });
+  const current = accounts.find((account) => account.current) ?? null;
+  const retained = (rows.results ?? []).filter((row) => Date.parse(row.expires_at) > Date.now());
+  const expiresAt = retained.reduce((latest, row) => Date.parse(row.expires_at) > Date.parse(latest) ? row.expires_at : latest, set.expires_at);
+  return {
+    persistent: retained.some((row) => Boolean(row.remember)),
+    expiresAt,
+    state: { version: set.version, currentUserId: current?.userId ?? null, accounts },
+  };
+}
+
+async function browserAccountCredential(
+  db: ClassroomD1,
+  setId: string,
+  userId: string,
+): Promise<BrowserAccountCredentialRow | null> {
+  return db.prepare(
+    `SELECT u.*, a.credential_version, a.remember, a.expires_at, a.authenticated_at,
+            a.last_used_at, a.reauth_required_at, a.removed_at
+     FROM auth_browser_accounts a JOIN auth_users u ON u.id = a.user_id
+     WHERE a.set_id = ? AND a.user_id = ? LIMIT 1`,
+  ).bind(setId, userId).first<BrowserAccountCredentialRow>();
+}
+
+function browserAccountStatus(row: Pick<BrowserAccountCredentialRow,
+  "status" | "expires_at" | "reauth_required_at" | "credential_version" | "password_changed_at"
+>): AuthBrowserAccountStatus {
+  if (row.status !== "active") return "disabled";
+  if (Date.parse(row.expires_at) <= Date.now()) return "expired";
+  if (row.reauth_required_at || row.credential_version !== row.password_changed_at) return "reauthenticate";
+  return "available";
+}
+
+function accountStatusMessage(status: AuthBrowserAccountStatus): string {
+  if (status === "disabled") return "这个账号已经停用，不能切换。";
+  if (status === "expired") return "这个账号的本设备授权已到期，请只重新登录这个账号。";
+  return "这个账号的密码或安全状态已经变化，请只重新登录这个账号。";
+}
+
+function browserAccountUpsert(
+  db: ClassroomD1,
+  setId: string,
+  userId: string,
+  credentialVersion: string,
+  remember: boolean,
+  expiresAt: string,
+  now: string,
+): D1PreparedStatement {
+  return db.prepare(
+    `INSERT INTO auth_browser_accounts
+     (set_id, user_id, credential_version, remember, expires_at, authenticated_at,
+      last_used_at, reauth_required_at, removed_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL)
+     ON CONFLICT(set_id, user_id) DO UPDATE SET
+       credential_version = excluded.credential_version,
+       remember = excluded.remember,
+       expires_at = excluded.expires_at,
+       authenticated_at = excluded.authenticated_at,
+       last_used_at = excluded.last_used_at,
+       reauth_required_at = NULL,
+       removed_at = NULL`,
+  ).bind(setId, userId, credentialVersion, remember ? 1 : 0, expiresAt, now, now);
+}
+
+async function attachIssuedSessionToBrowserSet(
+  db: ClassroomD1,
+  issued: IssuedSession,
+  cookieHeader: string | null,
+  action: "login",
+): Promise<IssuedBrowserSet> {
+  const target = await getUserById(db, issued.user.userId);
+  if (!target || target.status !== "active") throw new AuthError("AUTH_REQUIRED", "当前账号不可用，请重新登录。", 401);
+  const existing = await resolveBrowserSet(db, cookieHeader);
+  const legacyCurrent = existing ? null : await authenticateLegacySession(db, cookieHeader);
+  if (legacyCurrent?.impersonation) {
+    throw new AuthError("IMPERSONATION_ACCOUNT_OPERATION_FORBIDDEN", "请先返回真实管理员身份，再添加或切换账号。", 403);
+  }
+  const setId = existing?.row.id ?? `browser_${crypto.randomUUID()}`;
+  const token = existing?.token ?? randomSecret(32);
+  const expectedVersion = existing?.row.version ?? 1;
+  const now = nowIso();
+  const existingCount = existing ? await db.prepare(
+    `SELECT COUNT(*) AS count FROM auth_browser_accounts WHERE set_id = ? AND removed_at IS NULL`,
+  ).bind(setId).first<{ count: number }>() : { count: legacyCurrent && legacyCurrent.userId !== target.id ? 1 : 0 };
+  const alreadyPresent = existing ? await browserAccountCredential(db, setId, target.id) : null;
+  assertAuth(
+    Boolean(alreadyPresent && !alreadyPresent.removed_at) || Number(existingCount?.count ?? 0) < MAX_BROWSER_ACCOUNTS,
+    "ACCOUNT_SET_FULL",
+    `一个浏览器最多保留 ${MAX_BROWSER_ACCOUNTS} 个已验证账号；请先移除不用的账号。`,
+    409,
+  );
+  const mutationId = crypto.randomUUID();
+  const statements: D1PreparedStatement[] = [];
+  if (!existing) {
+    statements.push(db.prepare(
+      `INSERT INTO auth_browser_sets
+       (id, token_hash, active_user_id, active_session_id, version, expires_at,
+        last_seen_at, revoked_at, created_at, updated_at)
+       VALUES (?, ?, NULL, NULL, 1, ?, ?, NULL, ?, ?)`,
+    ).bind(setId, await hashSecret(token), browserSetRetentionUntil(now), now, now, now));
+  }
+  statements.push(
+    browserMutationClaim(db, mutationId, setId, action, target.id, expectedVersion, `login.${mutationId}`, now),
+    browserMutationAssertion(db, mutationId, now),
+  );
+  if (legacyCurrent && legacyCurrent.userId !== target.id) {
+    const legacy = await db.prepare(
+      `SELECT s.remember, s.expires_at, u.password_changed_at, u.status
+       FROM auth_sessions s JOIN auth_users u ON u.id = s.user_id
+       WHERE s.id = ? AND s.user_id = ? AND s.revoked_at IS NULL`,
+    ).bind(legacyCurrent.sessionId, legacyCurrent.userId).first<{
+      remember: number; expires_at: string; password_changed_at: string; status: "active" | "disabled";
+    }>();
+    if (legacy && legacy.status === "active" && Date.parse(legacy.expires_at) > Date.now()) {
+      statements.push(browserAccountUpsert(db, setId, legacyCurrent.userId, legacy.password_changed_at, Boolean(legacy.remember), legacy.expires_at, now));
+    }
+  }
+  statements.push(
+    browserAccountUpsert(db, setId, target.id, target.password_changed_at, issued.remember, issued.user.sessionExpiresAt, now),
+    db.prepare(
+      `UPDATE auth_impersonations SET revoked_at = ?, end_reason = 'account-login'
+       WHERE session_id IN (SELECT session_id FROM auth_browser_session_links WHERE set_id = ?)
+         AND revoked_at IS NULL`,
+    ).bind(now, setId),
+    db.prepare(
+      `UPDATE auth_sessions SET revoked_at = ?
+       WHERE id IN (SELECT session_id FROM auth_browser_session_links WHERE set_id = ?)
+         AND id <> ? AND revoked_at IS NULL`,
+    ).bind(now, setId, issued.user.sessionId),
+  );
+  if (legacyCurrent && legacyCurrent.sessionId !== issued.user.sessionId) {
+    statements.push(db.prepare(`UPDATE auth_sessions SET revoked_at = ? WHERE id = ? AND revoked_at IS NULL`).bind(now, legacyCurrent.sessionId));
+  }
+  statements.push(
+    db.prepare(
+      `INSERT INTO auth_browser_session_links (session_id, set_id, user_id, created_at)
+       VALUES (?, ?, ?, ?)`,
+    ).bind(issued.user.sessionId, setId, target.id, now),
+    db.prepare(
+      `UPDATE auth_browser_sets
+       SET active_user_id = ?, active_session_id = ?, version = version + 1,
+           expires_at = MAX(expires_at, ?),
+           last_seen_at = ?, updated_at = ?
+       WHERE id = ? AND version = ? AND revoked_at IS NULL`,
+    ).bind(target.id, issued.user.sessionId, browserSetRetentionUntil(now), now, now, setId, expectedVersion),
+    securityEventStatement(db, target.id, target.id, "auth.browser-account.added", {
+      setId,
+      replacedUserId: existing?.row.active_user_id ?? legacyCurrent?.userId ?? null,
+      resultVersion: expectedVersion + 1,
+    }, now),
+  );
+  await db.batch(statements);
+  const row = await browserSetById(db, setId);
+  if (!row) throw browserSetConflict();
+  return { token, ...(await browserSetProjection(db, row)) };
+}
+
+async function attachIssuedSessionWithRetry(
+  db: ClassroomD1,
+  issued: IssuedSession,
+  cookieHeader: string | null,
+  action: "login",
+): Promise<IssuedBrowserSet> {
+  let lastError: unknown = browserSetConflict();
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      return await attachIssuedSessionToBrowserSet(db, issued, cookieHeader, action);
+    } catch (error) {
+      lastError = error;
+      if (!isBrowserMutationConflict(error)) {
+        await revokeUndisclosedSession(db, issued.user.sessionId);
+        throw error;
+      }
+    }
+  }
+  // Never replace a still-valid browser account collection just because
+  // several tabs raced. The caller can retry against the newest version; the
+  // newly created but undisclosed session must not remain usable.
+  await revokeUndisclosedSession(db, issued.user.sessionId);
+  throw normalizeBrowserMutationError(lastError);
+}
+
+async function revokeUndisclosedSession(db: ClassroomD1, sessionId: string): Promise<void> {
+  await db.prepare(`UPDATE auth_sessions SET revoked_at = ? WHERE id = ? AND revoked_at IS NULL`)
+    .bind(nowIso(), sessionId).run();
+}
+
+async function assertBrowserAccountCapacity(
+  db: ClassroomD1,
+  cookieHeader: string | null,
+  targetUserId: string | null,
+): Promise<void> {
+  const resolved = await resolveBrowserSet(db, cookieHeader);
+  if (!resolved) return;
+  const existing = targetUserId ? await browserAccountCredential(db, resolved.row.id, targetUserId) : null;
+  if (existing && !existing.removed_at) return;
+  const count = await db.prepare(
+    `SELECT COUNT(*) AS count FROM auth_browser_accounts WHERE set_id = ? AND removed_at IS NULL`,
+  ).bind(resolved.row.id).first<{ count: number }>();
+  assertAuth(
+    Number(count?.count ?? 0) < MAX_BROWSER_ACCOUNTS,
+    "ACCOUNT_SET_FULL",
+    `一个浏览器最多保留 ${MAX_BROWSER_ACCOUNTS} 个已验证账号；请先移除不用的账号。`,
+    409,
+  );
+}
+
+function browserMutationClaim(
+  db: ClassroomD1,
+  mutationId: string,
+  setId: string,
+  action: BrowserAccountMutationAction,
+  targetUserId: string | null,
+  expectedVersion: number,
+  idempotencyKey: string,
+  now: string,
+): D1PreparedStatement {
+  return db.prepare(
+    `INSERT INTO auth_browser_mutations
+     (id, set_id, action, target_user_id, expected_version, result_version,
+      idempotency_key, created_at)
+     SELECT ?, id, ?, ?, ?, ?, ?, ?
+     FROM auth_browser_sets
+     WHERE id = ? AND version = ? AND revoked_at IS NULL`,
+  ).bind(
+    mutationId, action, targetUserId, expectedVersion, expectedVersion + 1,
+    idempotencyKey, now, setId, expectedVersion,
+  );
+}
+
+function browserMutationAssertion(db: ClassroomD1, mutationId: string, now: string): D1PreparedStatement {
+  return db.prepare(
+    `INSERT INTO auth_browser_atomic_assertions (id, verified_at)
+     SELECT CASE WHEN EXISTS (SELECT 1 FROM auth_browser_mutations WHERE id = ?) THEN 1 ELSE 0 END, ?
+     ON CONFLICT(id) DO NOTHING`,
+  ).bind(mutationId, now);
+}
+
+function assertBrowserMutationInput(expectedVersion: number, idempotencyKey: string): void {
+  assertAuth(Number.isInteger(expectedVersion) && expectedVersion >= 1, "ACCOUNT_SET_VERSION_INVALID", "账号列表版本无效，请刷新后重试。", 400);
+  assertAuth(/^[A-Za-z0-9._:-]{12,128}$/.test(idempotencyKey), "IDEMPOTENCY_KEY_INVALID", "账号操作标识无效。", 400);
+}
+
+async function assertNoBrowserSetImpersonation(db: ClassroomD1, set: BrowserSetRow): Promise<void> {
+  if (!set.active_session_id) return;
+  const row = await db.prepare(
+    `SELECT id FROM auth_impersonations
+     WHERE session_id = ? AND revoked_at IS NULL AND expires_at > ? LIMIT 1`,
+  ).bind(set.active_session_id, nowIso()).first<{ id: string }>();
+  assertAuth(!row, "IMPERSONATION_ACCOUNT_OPERATION_FORBIDDEN", "请先返回真实管理员身份，再添加、切换或退出账号。", 403);
+}
+
+async function browserSwitchReplay(
+  db: ClassroomD1,
+  resolved: { token: string; row: BrowserSetRow },
+  input: { targetUserId: string; expectedVersion: number; idempotencyKey: string },
+): Promise<SwitchBrowserAccountResult | null> {
+  const replay = await db.prepare(
+    `SELECT action, target_user_id, expected_version FROM auth_browser_mutations
+     WHERE set_id = ? AND idempotency_key = ? LIMIT 1`,
+  ).bind(resolved.row.id, input.idempotencyKey).first<{
+    action: string; target_user_id: string | null; expected_version: number;
+  }>();
+  if (!replay) return null;
+  if (replay.action !== "switch" || replay.target_user_id !== input.targetUserId || replay.expected_version !== input.expectedVersion) {
+    throw new AuthError("IDEMPOTENCY_KEY_REUSED", "同一个账号操作标识不能用于不同请求。", 409);
+  }
+  const row = await browserSetById(db, resolved.row.id);
+  if (!row || row.revoked_at || row.active_user_id !== input.targetUserId) throw browserSetConflict();
+  const user = await activeBrowserSessionUser(db, row);
+  if (!user) throw browserSetConflict();
+  const target = await browserAccountCredential(db, row.id, input.targetUserId);
+  if (!target || browserAccountStatus(target) !== "available") throw browserSetConflict();
+  return {
+    user,
+    sessionToken: null,
+    remember: Boolean(target.remember),
+    browserSet: { token: resolved.token, ...(await browserSetProjection(db, row)) },
+    idempotent: true,
+  };
+}
+
+async function browserAccountMutationReplay(
+  db: ClassroomD1,
+  resolved: { token: string; row: BrowserSetRow },
+  action: "logout-current" | "remove" | "logout-all",
+  targetUserId: string | null,
+  expectedVersion: number,
+  idempotencyKey: string,
+): Promise<MutateBrowserAccountsResult | null> {
+  const replay = await db.prepare(
+    `SELECT action, target_user_id, expected_version FROM auth_browser_mutations
+     WHERE set_id = ? AND idempotency_key = ? LIMIT 1`,
+  ).bind(resolved.row.id, idempotencyKey).first<{
+    action: string; target_user_id: string | null; expected_version: number;
+  }>();
+  if (!replay) return null;
+  if (replay.action !== action || replay.target_user_id !== targetUserId || replay.expected_version !== expectedVersion) {
+    throw new AuthError("IDEMPOTENCY_KEY_REUSED", "同一个账号操作标识不能用于不同请求。", 409);
+  }
+  if (action === "logout-all") return { browserSet: null, clearSession: true, clearBrowserSet: true, idempotent: true };
+  const row = await browserSetById(db, resolved.row.id);
+  if (!row || row.revoked_at) return { browserSet: null, clearSession: true, clearBrowserSet: true, idempotent: true };
+  const browserSet = { token: resolved.token, ...(await browserSetProjection(db, row)) };
+  const noAccounts = browserSet.state.accounts.length === 0;
+  return {
+    browserSet: noAccounts ? null : browserSet,
+    clearSession: action === "logout-current" || targetUserId === resolved.row.active_user_id,
+    clearBrowserSet: noAccounts,
+    idempotent: true,
+  };
+}
+
+async function activeBrowserSessionUser(db: ClassroomD1, set: BrowserSetRow): Promise<AuthSessionUser | null> {
+  if (!set.active_session_id || !set.active_user_id) return null;
+  const row = await db.prepare(
+    `SELECT s.id, s.user_id, s.expires_at, s.last_seen_at, s.revoked_at,
+            u.username, u.display_name, u.role, u.status, u.must_change_password
+     FROM auth_sessions s JOIN auth_users u ON u.id = s.user_id
+     WHERE s.id = ? AND s.user_id = ? AND s.revoked_at IS NULL AND s.expires_at > ?
+       AND u.status = 'active'`,
+  ).bind(set.active_session_id, set.active_user_id, nowIso()).first<SessionRow>();
+  return row ? resolveSessionIdentity(db, sessionUser(row)) : null;
+}
+
+function browserSetConflict(): AuthError {
+  return new AuthError("ACCOUNT_SET_CONFLICT", "账号列表已在其他标签页变化，请刷新列表后重试。", 409);
+}
+
+function isBrowserMutationConflict(error: unknown): boolean {
+  const message = String(error);
+  return (error instanceof AuthError && error.code === "ACCOUNT_SET_CONFLICT")
+    || message.includes("chk_auth_browser_atomic_assertion")
+    || message.includes("AUTH_BROWSER_ACTIVE_INTEGRITY")
+    || message.includes("auth_browser_mutations.set_id, auth_browser_mutations.idempotency_key");
+}
+
+function browserSetRetentionUntil(now: string): string {
+  return new Date(Date.parse(now) + BROWSER_SET_RETENTION_MS).toISOString();
+}
+
+function normalizeBrowserMutationError(error: unknown): Error {
+  return isBrowserMutationConflict(error) ? browserSetConflict() : error instanceof Error ? error : new Error(String(error));
+}
+
+async function newSessionUntil(
+  userId: string,
+  remember: boolean,
+  userAgent: string,
+  authorizedUntil: string,
+  now: string,
+): Promise<NewSession> {
+  const session = await newSession(userId, remember, userAgent, now);
+  if (Date.parse(authorizedUntil) < Date.parse(session.expiresAt)) session.expiresAt = authorizedUntil;
+  return session;
 }
 
 async function issueSession(db: ClassroomD1, user: UserRow, remember: boolean, userAgent: string): Promise<IssuedSession> {

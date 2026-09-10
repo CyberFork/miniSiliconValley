@@ -27,7 +27,8 @@
 - 未改初始密码时，Studio/Classroom 数据 API 返回 `PASSWORD_CHANGE_REQUIRED`。
 - 会话 Cookie 为 Secure、HttpOnly、SameSite，并受服务端过期与撤销控制。
 - 写操作验证真实浏览器 Origin；gateway 不得把 Origin 硬编码成可信值。
-- 全站账号菜单的“切换账号”会先在服务端撤销当前会话，再回到登录页；系统不保存其他账号密码。
+- 全站账号菜单列出本浏览器已经验证的账号；直接切换时服务端校验目标凭据并原子轮换唯一活跃 Session，不重复索要密码，也不把会话令牌或密码放入前端存储。添加／重验失败不会退出当前账号。
+- 浏览器账号集合使用独立 Secure、HttpOnly Cookie，D1 只保存令牌摘要；最多 8 个账号。退出当前只移除当前账号，退出全部撤销整个集合及其关联 Session。
 - 平台管理员的 Test 身份模拟与真实会话绑定，最长 30 分钟，只能访问一个明确的 Test Classroom；所有请求保留 actor 与 effective identity。
 
 ## 分发规范

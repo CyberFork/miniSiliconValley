@@ -1,4 +1,4 @@
-# Mini Silicon Valley 测试与验收（T-087）
+# Mini Silicon Valley 测试与验收
 
 ## 1. 自动化总闸
 
@@ -81,7 +81,7 @@ Candidate exact revision/digest
 - 过期 ControllerState version 的并发写入必须返回冲突，不得覆盖新状态。
 - Primary Admin DM 可以委派任一有效导师；Delegated 能管理本课堂，但其授权／撤销请求在 API 层返回 403 并写审计。
 - 平台管理员 Test 模拟必须同时满足明确 Test Classroom、有效目标 Membership／DM、管理员自身显式 DM 权限；Production、平台管理员目标和跨课堂请求全部拒绝。
-- 普通切换和退出都必须撤销服务端 session；Test 模拟在返回、过期、停用、凭据重发或权限撤销后立即失效。
+- 账号切换必须从服务端验证的浏览器账号集合原子轮换唯一活跃 session；添加／重验失败不影响当前账号，退出当前不影响其他账号，退出全部撤销整个集合。Test 模拟始终独立，在返回、过期、停用、凭据重发或权限撤销后立即失效。
 - Test archive 只允许真实登录的本课堂 Admin DM；归档请求使用 run/script CAS，归档记录不可更新或删除，归档后的课堂级写入全部拒绝。
 
 ## 4. 动态 `4 + N + 1`
@@ -137,7 +137,7 @@ COURSE_PLATFORM_E2E_PASS t086=view-receipt+ui-receipt+release-gates t087=navigat
 - Releases 显示 Candidate、View 回执、TEST、UI 回执、课件、Released 与“下一步主操作”。
 - `/course/` 始终标记“课程目录”，并只列出注册表中的真实 Released 课件；P、D 使用同一登录和播放器机制。
 - 00—04 都能用鼠标、键盘 Enter、刷新直达和 Cmd/Ctrl＋点击打开；URL、主标题与 `aria-current=page` 一致。
-- 右上角账号菜单显示真实账号并可进入账户中心、切换账号和退出；操作后旧 Session API 返回 401。
+- 右上角账号菜单显示真实账号列表并可进入账户中心、直接切换、添加／重验、移除、退出当前和退出全部；切换后旧 Session API 返回 401，其他账号保持可用。
 
 ### Classroom
 
@@ -173,6 +173,14 @@ npm run test:t111:browser
 ```
 
 该脚本运行编译后的真实 ClassroomHub，认证使用临时本地 D1，课堂列表与归档响应使用隔离合成数据。它验证普通点击、完整 exact 身份、run/script CAS 请求、自定义确认框、归档隔离、只读深链、exact 新建链接和 390/768px 无横向溢出；不访问生产，也不签发人工回执。数据库级原子性、权限、不可变触发器和回执失效由 `tests/classroom-atomicity.test.ts` 覆盖。
+
+T-106／T-107 多账号与官网账号入口回归：
+
+```bash
+npm run test:t106-t107:browser
+```
+
+该脚本使用隔离 D1、合成管理员／学员和正式静态官网产物，验证 A／B 免重复密码切换、失败添加保护、角色安全回跳、多标签身份守卫、未保存草稿、退出当前／全部、历史页失败关闭、匿名缓存隔离，以及桌面／390px 菜单对比度与溢出。账号密码和生产会话不进入测试证据。
 
 ### 路由
 

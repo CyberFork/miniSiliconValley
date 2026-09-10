@@ -20,6 +20,9 @@ export default async function ClassroomPage({ searchParams }: { searchParams: Pr
   const environment = query.environment === "production" ? "production" : query.environment === "test" ? "test" : undefined;
   const viewReceiptId = typeof query.viewReceipt === "string" ? query.viewReceipt : undefined;
   const uiReceiptId = typeof query.uiReceipt === "string" ? query.uiReceipt : undefined;
+  const initialNotice = query.accountNotice === "studio-role"
+    ? "账号已经切换。当前账号是学员身份，没有 Course Studio 权限，已安全返回课堂中心。"
+    : "";
   return <ClassroomHub
     user={{ userId: user.userId, username: user.username, displayName: user.displayName, role: user.role ?? "learner", impersonation: user.impersonation }}
     initialCourse={courseId && revision !== null ? {
@@ -30,5 +33,6 @@ export default async function ClassroomPage({ searchParams }: { searchParams: Pr
       ...(viewReceiptId ? { viewReceiptId } : {}),
       ...(uiReceiptId ? { uiReceiptId } : {}),
     } : null}
+    initialNotice={initialNotice}
   />;
 }

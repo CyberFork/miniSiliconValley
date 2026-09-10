@@ -5,9 +5,9 @@
       "label": "课程工作台",
       "href": "/studio/",
       "domRole": "link",
-      "beforeUrl": "http://127.0.0.1:60116/studio/",
+      "beforeUrl": "http://127.0.0.1:55425/studio/",
       "beforeTitle": "课程生产工作台",
-      "afterUrl": "http://127.0.0.1:60116/studio/",
+      "afterUrl": "http://127.0.0.1:55425/studio/",
       "afterTitle": "课程生产工作台",
       "active": true,
       "documentStatus": 200
@@ -16,9 +16,9 @@
       "label": "多角色视图验收",
       "href": "/studio/preview/",
       "domRole": "link",
-      "beforeUrl": "http://127.0.0.1:60116/studio/",
+      "beforeUrl": "http://127.0.0.1:55425/studio/",
       "beforeTitle": "课程生产工作台",
-      "afterUrl": "http://127.0.0.1:60116/studio/preview/",
+      "afterUrl": "http://127.0.0.1:55425/studio/preview/",
       "afterTitle": "多角色视图验收",
       "active": true,
       "documentStatus": 200
@@ -27,9 +27,9 @@
       "label": "验收与发布",
       "href": "/studio/releases/",
       "domRole": "link",
-      "beforeUrl": "http://127.0.0.1:60116/studio/",
+      "beforeUrl": "http://127.0.0.1:55425/studio/",
       "beforeTitle": "课程生产工作台",
-      "afterUrl": "http://127.0.0.1:60116/studio/releases/",
+      "afterUrl": "http://127.0.0.1:55425/studio/releases/",
       "afterTitle": "验收与发布",
       "active": true,
       "documentStatus": 200
@@ -38,9 +38,9 @@
       "label": "导师课件库",
       "href": "/studio/courseware/",
       "domRole": "link",
-      "beforeUrl": "http://127.0.0.1:60116/studio/",
+      "beforeUrl": "http://127.0.0.1:55425/studio/",
       "beforeTitle": "课程生产工作台",
-      "afterUrl": "http://127.0.0.1:60116/studio/courseware/",
+      "afterUrl": "http://127.0.0.1:55425/studio/courseware/",
       "afterTitle": "导师课件库",
       "active": true,
       "documentStatus": 200
@@ -69,15 +69,15 @@
     "version": "151.0.7922.176"
   },
   "account": {
-    "username": "t087-browser-d95efafd",
+    "username": "t087-browser-011aecbd",
     "role": "admin"
   },
-  "appBuildId": "source-5619dc7adeaf-dirty",
+  "appBuildId": "source-ceed48dee30f-dirty",
   "editorRoute": {
     "label": "课程编辑器",
     "href": "/studio/editor/",
     "domRole": "link",
-    "afterUrl": "http://127.0.0.1:60116/studio/editor/",
+    "afterUrl": "http://127.0.0.1:55425/studio/editor/",
     "afterTitle": "课程编排工作台",
     "openMode": "Meta/Cmd new tab",
     "fullWorkbenchPreserved": true
@@ -88,102 +88,115 @@
   "keyboardNavigation": true,
   "newTabNavigation": true,
   "accountMenu": true,
-  "serverLogout": true,
+  "accountPickerWithoutLogout": true,
+  "serverLogoutCurrentAndAll": true,
   "pageErrors": 0,
   "requestFailures": 0,
   "serverErrors": 0,
   "networkDocuments": [
     {
       "status": 200,
-      "url": "http://127.0.0.1:60116/auth/login/?returnTo=%2Fstudio%2F"
+      "url": "http://127.0.0.1:55425/auth/login/?returnTo=%2Fstudio%2F"
     },
     {
       "status": 200,
-      "url": "http://127.0.0.1:60116/studio/"
+      "url": "http://127.0.0.1:55425/studio/"
     },
     {
       "status": 200,
-      "url": "http://127.0.0.1:60116/studio/"
+      "url": "http://127.0.0.1:55425/studio/"
     },
     {
       "status": 200,
-      "url": "http://127.0.0.1:60116/studio/"
+      "url": "http://127.0.0.1:55425/studio/"
     },
     {
       "status": 200,
-      "url": "http://127.0.0.1:60116/studio/"
+      "url": "http://127.0.0.1:55425/studio/"
     },
     {
       "status": 200,
-      "url": "http://127.0.0.1:60116/studio/preview/"
+      "url": "http://127.0.0.1:55425/studio/preview/"
     },
     {
       "status": 200,
-      "url": "http://127.0.0.1:60116/studio/"
+      "url": "http://127.0.0.1:55425/studio/"
     },
     {
       "status": 200,
-      "url": "http://127.0.0.1:60116/studio/releases/"
+      "url": "http://127.0.0.1:55425/studio/releases/"
     },
     {
       "status": 200,
-      "url": "http://127.0.0.1:60116/studio/"
+      "url": "http://127.0.0.1:55425/studio/"
     },
     {
       "status": 200,
-      "url": "http://127.0.0.1:60116/studio/courseware/"
+      "url": "http://127.0.0.1:55425/studio/courseware/"
     },
     {
       "status": 200,
-      "url": "http://127.0.0.1:60116/studio/"
+      "url": "http://127.0.0.1:55425/studio/"
     },
     {
       "status": 200,
-      "url": "http://127.0.0.1:60116/studio/preview/"
+      "url": "http://127.0.0.1:55425/studio/preview/"
     },
     {
       "status": 200,
-      "url": "http://127.0.0.1:60116/classroom/"
+      "url": "http://127.0.0.1:55425/classroom/"
     },
     {
       "status": 200,
-      "url": "http://127.0.0.1:60116/account/"
+      "url": "http://127.0.0.1:55425/account/"
     },
     {
       "status": 200,
-      "url": "http://127.0.0.1:60116/course/"
+      "url": "http://127.0.0.1:55425/course/"
     },
     {
       "status": 200,
-      "url": "http://127.0.0.1:60116/studio/preview/"
+      "url": "http://127.0.0.1:55425/studio/preview/"
     },
     {
       "status": 200,
-      "url": "http://127.0.0.1:60116/studio/"
+      "url": "http://127.0.0.1:55425/studio/"
     },
     {
       "status": 308,
-      "url": "http://127.0.0.1:60116/auth/login?returnTo=%2Fstudio%2F&switched=1"
+      "url": "http://127.0.0.1:55425/auth/login?returnTo=%2Fstudio%2F&add=1"
     },
     {
       "status": 200,
-      "url": "http://127.0.0.1:60116/auth/login/?returnTo=%2Fstudio%2F&switched=1"
+      "url": "http://127.0.0.1:55425/auth/login/?returnTo=%2Fstudio%2F&add=1"
     },
     {
       "status": 200,
-      "url": "http://127.0.0.1:60116/auth/login/?returnTo=%2Fstudio%2F"
-    },
-    {
-      "status": 200,
-      "url": "http://127.0.0.1:60116/studio/"
+      "url": "http://127.0.0.1:55425/studio/"
     },
     {
       "status": 308,
-      "url": "http://127.0.0.1:60116/auth/login?signedOut=1"
+      "url": "http://127.0.0.1:55425/auth/login?returnTo=%2Fstudio%2F&select=1&signedOut=current"
     },
     {
       "status": 200,
-      "url": "http://127.0.0.1:60116/auth/login/?signedOut=1"
+      "url": "http://127.0.0.1:55425/auth/login/?returnTo=%2Fstudio%2F&select=1&signedOut=current"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:55425/auth/login/?returnTo=%2Fstudio%2F"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:55425/studio/"
+    },
+    {
+      "status": 308,
+      "url": "http://127.0.0.1:55425/auth/login?returnTo=%2Fstudio%2F&select=1&signedOut=all"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:55425/auth/login/?returnTo=%2Fstudio%2F&select=1&signedOut=all"
     }
   ],
   "screenshot": "docs/qa/t087-account-navigation/signed-out.png"

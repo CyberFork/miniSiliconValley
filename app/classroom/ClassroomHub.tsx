@@ -39,12 +39,13 @@ type InitialCourse = {
 type HubProps = {
   user: AccountMenuUser;
   initialCourse: InitialCourse;
+  initialNotice?: string;
 };
 
 const MENTOR_ROLES = ["P", "D", "M", "O"] as const;
 const ROLE_NAME = { P: "产品", D: "开发", M: "市场", O: "运营" } as const;
 
-export default function ClassroomHub({ user, initialCourse }: HubProps) {
+export default function ClassroomHub({ user, initialCourse, initialNotice = "" }: HubProps) {
   const [rooms, setRooms] = useState<ClassroomInstanceSummary[]>([]);
   const [bootstrap, setBootstrap] = useState<Bootstrap | null>(null);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -52,7 +53,7 @@ export default function ClassroomHub({ user, initialCourse }: HubProps) {
   const [roomsError, setRoomsError] = useState("");
   const [bootstrapError, setBootstrapError] = useState("");
   const [accountsError, setAccountsError] = useState("");
-  const [notice, setNotice] = useState("");
+  const [notice, setNotice] = useState(initialNotice);
   const [roomsLoading, setRoomsLoading] = useState(true);
   const [bootstrapLoading, setBootstrapLoading] = useState(true);
   const [accountsLoading, setAccountsLoading] = useState(true);

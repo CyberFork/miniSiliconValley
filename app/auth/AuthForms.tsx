@@ -1,37 +1,135 @@
 "use client";
 
-import { type FormEvent, useEffect, useMemo, useState } from "react";
-import type { AuthUser } from "../lib/auth-model";
+import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import type { AuthBrowserAccountSetSummary, AuthBrowserAccountStatus, AuthRole, AuthUser } from "../lib/auth-model";
 import { publicPath } from "../lib/public-path";
+import {
+  accountDestination,
+  announceAccountChange,
+  approveAccountNavigation,
+  listenForAccountChanges,
+  mutateBrowserAccount,
+  readBrowserAccounts,
+  ensureBrowserAccounts,
+} from "../components/browser-account-client";
 import styles from "./auth.module.css";
 
 type Envelope<T> = { ok: boolean; data?: T; error?: { code: string; message: string } };
 
-export function LoginForm({ returnTo, initialUser, signedOut, switched = false }: {
+export function LoginForm({ returnTo, initialUser, signedOut = null, addAccount = false, initialUsername = "" }: {
   returnTo: string;
   initialUser: AuthUser | null;
-  signedOut: boolean;
-  switched?: boolean;
+  signedOut?: "current" | "all" | null;
+  addAccount?: boolean;
+  initialUsername?: string;
 }) {
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState(normalizeUsernameInput(initialUsername));
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [accountSet, setAccountSet] = useState<AuthBrowserAccountSetSummary | null>(null);
+  const [accountsLoading, setAccountsLoading] = useState(true);
+  const [mode, setMode] = useState<"accounts" | "add">(addAccount ? "add" : "accounts");
+
+  const loadAccounts = useCallback(async () => {
+    setAccountsLoading(true);
+    try {
+      let state = await readBrowserAccounts();
+      if (!state && initialUser) state = await ensureBrowserAccounts();
+      setAccountSet(state);
+      if (!state?.accounts.length) setMode("add");
+    } catch (cause) {
+      setError(messageOf(cause));
+    } finally {
+      setAccountsLoading(false);
+    }
+  }, [initialUser]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => void loadAccounts(), 0);
+    const stop = listenForAccountChanges(() => void loadAccounts());
+    return () => { window.clearTimeout(timer); stop(); };
+  }, [loadAccounts]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
     setError(null);
     try {
-      const result = await api<{ user: AuthUser }>("/api/auth/login", { username, password, remember });
+      const result = await api<{ user: AuthUser; accountSet: AuthBrowserAccountSetSummary | null }>("/api/auth/login", { username, password, remember });
+      setAccountSet(result.accountSet);
+      announceAccountChange("login");
+      approveAccountNavigation();
       const destination = result.user.mustChangePassword
         ? `/account?first=1&returnTo=${encodeURIComponent(safeReturnTo(returnTo))}`
-        : safeReturnTo(returnTo);
+        : accountDestination(returnTo, result.user);
       window.location.assign(publicPath(destination));
     } catch (cause) {
       setError(messageOf(cause));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function switchAccount(targetUserId: string) {
+    if (!accountSet || busy) return;
+    if (password && !window.confirm("切换账号会清空当前输入的密码，确定继续吗？")) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await mutateBrowserAccount("switch", accountSet, targetUserId);
+      announceAccountChange("switch");
+      approveAccountNavigation();
+      const destination = result.user?.mustChangePassword
+        ? `/account?first=1&returnTo=${encodeURIComponent(safeReturnTo(returnTo))}`
+        : result.user ? accountDestination(returnTo, result.user) : safeReturnTo(returnTo);
+      window.location.replace(publicPath(destination));
+    } catch (cause) {
+      setError(messageOf(cause));
+      await loadAccounts();
+      setBusy(false);
+    }
+  }
+
+  function reauthenticate(usernameToUse: string) {
+    setUsername(usernameToUse);
+    setPassword("");
+    setMode("add");
+    setError(null);
+  }
+
+  async function removeAccount(targetUserId: string) {
+    if (!accountSet || busy) return;
+    const target = accountSet.accounts.find((account) => account.userId === targetUserId);
+    if (!target || !window.confirm(`从这台设备移除 ${target.displayName}？平台账号不会被删除。`)) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await mutateBrowserAccount("remove", accountSet, targetUserId);
+      setAccountSet(result.accountSet);
+      announceAccountChange("remove");
+    } catch (cause) {
+      setError(messageOf(cause));
+      await loadAccounts();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function logoutAll() {
+    if (!accountSet || busy || !window.confirm("清除这台设备上的全部已登录账号？之后需要重新输入密码。")) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await mutateBrowserAccount("logout-all", accountSet);
+      setAccountSet(null);
+      setMode("add");
+      announceAccountChange("logout-all");
+    } catch (cause) {
+      setError(messageOf(cause));
+      await loadAccounts();
     } finally {
       setBusy(false);
     }
@@ -44,10 +142,33 @@ export function LoginForm({ returnTo, initialUser, signedOut, switched = false }
         <h2>进入你的世界线</h2>
         <p>使用 Admin DM 分发的用户名和初始密码。首次登录会先引导你把一次性密码换成自己的密码，课堂已经通过 Membership 分配好。</p>
       </header>
-      {initialUser && <div className={styles.signedInNote}>当前已登录为 <strong>{initialUser.displayName}</strong>。你可以直接继续，或切换账号。</div>}
-      {signedOut && <div className={styles.formSuccess} role="status">已经安全退出当前账号。</div>}
-      {switched && <div className={styles.formSuccess} role="status">原账号已经在服务器端安全退出。请输入另一个账号的用户名和密码。</div>}
-      <form className={styles.authForm} onSubmit={submit} noValidate>
+      {initialUser && <div className={styles.signedInNote}>当前使用 <strong>{initialUser.displayName}</strong>。这台设备上的其他已验证账号不会因切换而退出。</div>}
+      {signedOut === "current" && <div className={styles.formSuccess} role="status">当前账号已从这台设备退出；其他已验证账号仍可直接选择。</div>}
+      {signedOut === "all" && <div className={styles.formSuccess} role="status">这台设备上的全部账号已经安全退出。</div>}
+      {(accountSet?.accounts.length || accountsLoading) && <div className={styles.tabs} role="tablist" aria-label="登录方式">
+        <button type="button" role="tab" aria-selected={mode === "accounts"} onClick={() => setMode("accounts")}>已登录账号</button>
+        <button type="button" role="tab" aria-selected={mode === "add"} onClick={() => setMode("add")}>添加账号</button>
+      </div>}
+      {mode === "accounts" && <section className={styles.accountPicker} aria-label="这台设备已登录账号">
+        {accountsLoading ? <p className={styles.pickerEmpty}>正在安全读取本设备账号…</p> : accountSet?.accounts.length ? <>
+          <div className={styles.pickerList}>{accountSet.accounts.map((account) => <article key={account.userId} data-current={account.current}>
+            <span className={styles.pickerAvatar}>{initials(account.displayName)}</span>
+            <span className={styles.pickerIdentity}><b>{account.displayName}</b><small>@{account.username} · {roleLabel(account.role)}</small><em data-status={account.status}>{accountStatusLabel(account.status)}</em></span>
+            <span className={styles.pickerActions}>
+              {account.current
+                ? <button type="button" onClick={() => { approveAccountNavigation(); window.location.assign(publicPath(safeReturnTo(returnTo))); }}>继续</button>
+                : account.status === "available"
+                  ? <button type="button" disabled={busy} onClick={() => void switchAccount(account.userId)}>切换</button>
+                  : account.status === "disabled"
+                    ? <span>不可用</span>
+                    : <button type="button" disabled={busy} onClick={() => reauthenticate(account.username)}>重新验证</button>}
+              {!account.current && <button type="button" className={styles.pickerRemove} disabled={busy} onClick={() => void removeAccount(account.userId)} aria-label={`从本设备移除 ${account.displayName}`}>×</button>}
+            </span>
+          </article>)}</div>
+          <div className={styles.pickerFooter}><button type="button" disabled={busy} onClick={() => setMode("add")}>＋ 添加另一个账号</button><button type="button" data-danger disabled={busy} onClick={() => void logoutAll()}>退出本设备全部账号</button></div>
+        </> : <div className={styles.pickerEmpty}><b>这台设备还没有可直接选择的账号</b><span>验证一次后，账号会出现在这里；不会保存明文密码。</span><button type="button" onClick={() => setMode("add")}>输入账号和密码 →</button></div>}
+      </section>}
+      {mode === "add" && <form className={styles.authForm} onSubmit={submit} noValidate>
         <label className={styles.field}>
           <span className={styles.fieldLabel}>用户名</span>
           <input name="username" value={username} onChange={(event) => setUsername(normalizeUsernameInput(event.target.value))} autoComplete="username" minLength={3} maxLength={32} required aria-invalid={Boolean(error)} />
@@ -65,8 +186,9 @@ export function LoginForm({ returnTo, initialUser, signedOut, switched = false }
         </div>
         {error && <div className={styles.formError} role="alert">{error}</div>}
         <button className={styles.primaryButton} disabled={busy || username.length < 3 || !password}>{busy ? "正在验证…" : "进入 Mini Silicon Valley →"}</button>
-        {initialUser && <button type="button" className={styles.secondaryButton} onClick={() => window.location.assign(publicPath(safeReturnTo(returnTo)))}>继续使用 {initialUser.displayName}</button>}
+        {accountSet?.accounts.length && <button type="button" className={styles.secondaryButton} onClick={() => { setPassword(""); setMode("accounts"); }}>取消，返回账号列表</button>}
       </form>
+      }
       <p className={styles.formFoot}>还没有登录凭据？请联系本课堂 Admin DM；不要使用同学的账号。</p>
     </div>
   );
@@ -97,7 +219,9 @@ export function RegisterForm({ returnTo }: { returnTo: string }) {
     }
     setBusy(true);
     try {
-      await api<{ user: AuthUser }>("/api/auth/register", { username, displayName, password, remember });
+      await api<{ user: AuthUser; accountSet: AuthBrowserAccountSetSummary | null }>("/api/auth/register", { username, displayName, password, remember });
+      announceAccountChange("register");
+      approveAccountNavigation();
       window.location.assign(publicPath(safeReturnTo(returnTo)));
     } catch (cause) {
       setError(messageOf(cause));
@@ -182,6 +306,8 @@ export function ResetPasswordForm() {
     try {
       await api("/api/auth/reset", { token, newPassword });
       setToken(null);
+      announceAccountChange("password-reset");
+      approveAccountNavigation();
       window.location.replace(publicPath("/classroom"));
     } catch (cause) {
       setError(messageOf(cause));
@@ -217,6 +343,8 @@ export function ResetPasswordForm() {
 async function api<T>(path: string, body: Record<string, unknown>): Promise<T> {
   const response = await fetch(publicPath(path), {
     method: "POST",
+    cache: "no-store",
+    credentials: "same-origin",
     headers: { Accept: "application/json", "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
@@ -243,6 +371,23 @@ function normalizeUsernameInput(value: string): string {
 
 function messageOf(cause: unknown): string {
   return cause instanceof Error ? cause.message : "账号服务没有完成这次操作。";
+}
+
+function accountStatusLabel(status: AuthBrowserAccountStatus): string {
+  return {
+    available: "可直接切换",
+    expired: "登录已到期",
+    disabled: "账号已停用",
+    reauthenticate: "需要重新验证",
+  }[status];
+}
+
+function roleLabel(role: AuthRole): string {
+  return { admin: "平台管理员", mentor: "导师账号", learner: "Young Builder", observer: "观察员" }[role];
+}
+
+function initials(value: string): string {
+  return Array.from(value.trim()).slice(0, 2).join("").toUpperCase() || "MS";
 }
 
 function scorePassword(value: string): number {

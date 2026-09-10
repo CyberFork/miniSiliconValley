@@ -29,7 +29,7 @@ Studio 路由的 active 状态由实际 section 产生。首次 HTML 就显示�
 
 ## 3. 服务端边界
 
-- 普通切换与退出调用 `/api/auth/logout`，撤销真实 Session 和关联模拟并清理浏览器 cache/storage。
+- 当时的普通切换与退出调用 `/api/auth/logout`；该历史方案已由 T-106 的服务端浏览器账号集合取代。现行行为见 `TODO_106_IMPLEMENTATION.md`，直接切换不会先退出其他已验证账号。
 - `POST/DELETE /api/auth/impersonation` 只接受真实平台管理员、明确 Test Classroom 与有效非管理员目标；最长 30 分钟。
 - 每次请求重新验证 actor、目标状态、Test 环境、Membership／DM 范围和到期时间；不信任 URL/localStorage 身份。
 - 模拟只允许绑定课堂，Studio、Account、Factory、旧 Classroom 与 Production 均失败关闭。

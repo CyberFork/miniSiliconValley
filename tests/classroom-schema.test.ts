@@ -4,7 +4,7 @@ import test from "node:test";
 import { CLASSROOM_SCHEMA_STATEMENTS } from "../db/schema-statements";
 
 const tables = [
-  "auth_users", "auth_sessions", "auth_codes", "auth_invitations", "auth_recovery_codes", "auth_reset_tokens", "auth_rate_limits", "auth_security_events",
+  "auth_users", "auth_sessions", "auth_browser_sets", "auth_browser_accounts", "auth_browser_session_links", "auth_browser_mutations", "auth_browser_atomic_assertions", "auth_codes", "auth_invitations", "auth_recovery_codes", "auth_reset_tokens", "auth_rate_limits", "auth_security_events",
   "profiles", "rooms", "teams", "memberships", "card_grants", "intelligence_nodes", "intelligence_edges",
   "challenge_runs", "challenge_actions", "reputation_entries", "ledger_accounts", "ledger_transactions",
   "team_assets", "purchase_proposals", "purchase_votes", "gratitude_votes", "worldline_entries", "audit_events",
@@ -101,6 +101,10 @@ test("unified course factory keeps release, courseware, permissions and script p
     "trg_classroom_archive_immutable_delete",
     "idx_course_acceptance_identity_contracts",
     "chk_classroom_atomic_assertion",
+    "uidx_auth_browser_sets_token_hash",
+    "uidx_auth_browser_mutations_idempotency",
+    "chk_auth_browser_atomic_assertion",
+    "trg_auth_browser_set_active_integrity",
   ]) assert.match(migration, new RegExp(marker));
   assert.match(migration, /DROP INDEX IF EXISTS `uidx_course_versions_digest`/);
   assert.match(migration, /CHECK \(`environment` in \('test', 'production'\)\)/);

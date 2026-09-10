@@ -263,7 +263,7 @@ Admin DM 只有在 TEST 解锁全部剧本页并显式结束该 Run 后，才能
 - `/screen` 使用服务端 allow-list，不依赖 CSS 或客户端隐藏。
 - inline HTML 课件在不含 `allow-same-origin` 的 sandbox iframe 中播放。
 - 写 API 使用第一方 HttpOnly Session、同源 Origin 校验、服务端 RBAC 与审计。
-- 普通账号切换先撤销服务端 Session；Test 模拟最长 30 分钟且仅限一间 Test Classroom。Production、Studio、Account、跨课堂与管理员目标失败关闭。
+- 普通账号切换从服务端维护的浏览器账号集合选择已验证身份，并原子轮换唯一活跃 Session；密码、会话令牌不进入 localStorage、URL 或页面源码。Test 模拟独立于该集合，最长 30 分钟且仅限一间 Test Classroom；Production、Studio、Account、跨课堂与管理员目标失败关闭。
 - `classroom_admin_dm_grants` 是授权真值；旧 `classroom_permissions` 仅是迁移期回滚镜像，不参与新请求的 RBAC 判断。
 
 ## 9. 数据模型与迁移
@@ -287,6 +287,15 @@ T-087 新增：
 - `auth_impersonations`
 
 迁移先把现有统一课堂的 owner 回填为 Primary，再把其他旧 Admin DM 回填为 Delegated；每课堂单一 active Primary 的唯一索引提供数据库级不变量，冲突安全 backfill 可重复执行且不会复活已撤销授权。模拟记录与真实 `auth_sessions` 级联，停用账号、重发凭据或撤销 Delegated 时主动结束。
+
+T-106 新增：
+
+- `auth_browser_sets`
+- `auth_browser_accounts`
+- `auth_browser_session_links`
+- `auth_browser_mutations`
+
+浏览器账号集合的明文能力令牌只存在 Secure、HttpOnly Cookie，D1 仅存 SHA-256 摘要。集合使用 version CAS 与幂等键处理多标签并发；数据库触发器保证 active user、active session 与集合成员一致。密码变更、账号停用和凭据重发会使旧凭据失效；空集合、退出全部和最终账号移除在同一原子批次内撤销。
 
 ## 10. 生产拓扑与统一发布
 

@@ -27,6 +27,7 @@ import { publicPath } from "../lib/public-path";
 import { normalizeTeamPublicId, TEAM_PUBLIC_ID_PATTERN } from "../lib/team-access";
 import styles from "./classroom.module.css";
 import { BrandHomeLink } from "../components/BrandHomeLink";
+import { announceAccountChange, approveAccountNavigation, mutateBrowserAccount, readBrowserAccounts } from "../components/browser-account-client";
 
 type TabId = "mission" | "identity" | "intel" | "team" | "challenge" | "growth" | "personal" | "history" | "debrief" | "dm";
 type ActionRunner = (action: ClassroomAction, successMessage?: string) => Promise<boolean>;
@@ -441,24 +442,36 @@ function Dashboard({ dashboard, displayName, signOutPath, appSession, initialTea
 
 function SignOutControl({ path, appSession, className }: { path: string; appSession: boolean; className?: string }) {
   const [signingOut, setSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState("");
   if (!appSession) return <a href={path} className={className}>退出</a>;
-  return (
+  return <>
     <button
       type="button"
       className={className}
       disabled={signingOut}
       onClick={async () => {
         setSigningOut(true);
+        setSignOutError("");
         try {
-          await fetch(publicPath("/api/auth/logout"), { method: "POST", headers: { Accept: "application/json" } });
-        } finally {
-          window.location.replace(`${publicPath("/auth/login")}?signedOut=1`);
+          const accountSet = await readBrowserAccounts();
+          if (accountSet) await mutateBrowserAccount("logout-current", accountSet);
+          else {
+            const response = await fetch(publicPath("/api/auth/logout"), { method: "POST", headers: { Accept: "application/json" } });
+            if (!response.ok) throw new Error("当前账号没有退出，请重试。");
+          }
+          announceAccountChange("logout-current");
+          approveAccountNavigation();
+          window.location.replace(`${publicPath("/auth/login")}?signedOut=current&select=1`);
+        } catch (cause) {
+          setSignOutError(messageOf(cause));
+          setSigningOut(false);
         }
       }}
     >
       {signingOut ? "退出中…" : "退出"}
     </button>
-  );
+    {signOutError && <span role="alert">{signOutError}</span>}
+  </>;
 }
 
 function Workspace(props: { tab: TabId; room: ClassroomRoomDto; working: boolean; onAction: ActionRunner; onTab: (tab: TabId) => void; onFocusTeam: (teamId: string) => void; onRefresh: () => Promise<void>; onNotice: (message: string) => void }) {

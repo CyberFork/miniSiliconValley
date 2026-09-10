@@ -56,6 +56,7 @@
   let fieldSession = null;
   let savePromise = null;
   let saveError = "";
+  let allowAccountNavigation = false;
   let libraryPreference = null;
   let libraryCollapsed = compactLibraryMedia.matches;
   let libraryReturnFocus = null;
@@ -841,6 +842,7 @@
   }
   function syncSaveControls() {
     const candidate = course ? candidateVersion(course.course.id) : null;
+    document.documentElement.dataset.msvUnsaved = dirty ? "true" : "false";
     document.querySelectorAll("[data-save-course]").forEach((button) => {
       button.disabled = !dirty || Boolean(savePromise) || inspectPackage().issues.length > 0;
       if (savePromise) button.textContent = "正在保存…";
@@ -1387,7 +1389,8 @@
     else renderLibraryDisclosure();
   });
   drawerLibraryMedia.addEventListener("change", renderLibraryDisclosure);
-  window.addEventListener("beforeunload", (event) => { if (dirty) { event.preventDefault(); event.returnValue = ""; } });
+  window.addEventListener("msv:account-change-approved", () => { allowAccountNavigation = true; });
+  window.addEventListener("beforeunload", (event) => { if (dirty && !allowAccountNavigation) { event.preventDefault(); event.returnValue = ""; } });
   renderLibraryDisclosure();
   init();
 })();

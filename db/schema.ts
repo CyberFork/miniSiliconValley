@@ -52,6 +52,95 @@ export const authSessions = sqliteTable(
 );
 
 /**
+ * Server-side account collection for one browser.  The browser only receives
+ * an opaque Secure/HttpOnly secret; switching updates the active identity in
+ * D1 and never exposes another account's session token to JavaScript.
+ */
+export const authBrowserSets = sqliteTable(
+  "auth_browser_sets",
+  {
+    id: text("id").primaryKey(),
+    tokenHash: text("token_hash").notNull(),
+    activeUserId: text("active_user_id").references(() => authUsers.id, { onDelete: "set null" }),
+    activeSessionId: text("active_session_id").references(() => authSessions.id, { onDelete: "set null" }),
+    version: integer("version").notNull().default(1),
+    expiresAt: text("expires_at").notNull(),
+    lastSeenAt: text("last_seen_at").notNull(),
+    revokedAt: text("revoked_at"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("uidx_auth_browser_sets_token_hash").on(table.tokenHash),
+    index("idx_auth_browser_sets_active").on(table.revokedAt, table.expiresAt, table.lastSeenAt),
+    check("chk_auth_browser_set_version", sql`${table.version} >= 1`),
+    check(
+      "chk_auth_browser_set_active_pair",
+      sql`(${table.activeUserId} is null and ${table.activeSessionId} is null) or (${table.activeUserId} is not null and ${table.activeSessionId} is not null)`,
+    ),
+  ],
+);
+
+export const authBrowserAccounts = sqliteTable(
+  "auth_browser_accounts",
+  {
+    setId: text("set_id").notNull().references(() => authBrowserSets.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull().references(() => authUsers.id, { onDelete: "cascade" }),
+    credentialVersion: text("credential_version").notNull(),
+    remember: integer("remember", { mode: "boolean" }).notNull().default(false),
+    expiresAt: text("expires_at").notNull(),
+    authenticatedAt: text("authenticated_at").notNull(),
+    lastUsedAt: text("last_used_at").notNull(),
+    reauthRequiredAt: text("reauth_required_at"),
+    removedAt: text("removed_at"),
+  },
+  (table) => [
+    primaryKey({ columns: [table.setId, table.userId] }),
+    index("idx_auth_browser_accounts_user").on(table.userId, table.removedAt, table.expiresAt),
+    check("chk_auth_browser_account_remember", sql`${table.remember} in (0, 1)`),
+  ],
+);
+
+export const authBrowserSessionLinks = sqliteTable(
+  "auth_browser_session_links",
+  {
+    sessionId: text("session_id").primaryKey().references(() => authSessions.id, { onDelete: "cascade" }),
+    setId: text("set_id").notNull().references(() => authBrowserSets.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull().references(() => authUsers.id, { onDelete: "cascade" }),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [index("idx_auth_browser_session_links_set_user").on(table.setId, table.userId, table.sessionId)],
+);
+
+export const authBrowserMutations = sqliteTable(
+  "auth_browser_mutations",
+  {
+    id: text("id").primaryKey(),
+    setId: text("set_id").notNull().references(() => authBrowserSets.id, { onDelete: "cascade" }),
+    action: text("action").notNull(),
+    targetUserId: text("target_user_id").references(() => authUsers.id, { onDelete: "set null" }),
+    expectedVersion: integer("expected_version").notNull(),
+    resultVersion: integer("result_version").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("uidx_auth_browser_mutations_idempotency").on(table.setId, table.idempotencyKey),
+    index("idx_auth_browser_mutations_time").on(table.setId, table.createdAt),
+    check("chk_auth_browser_mutation_action", sql`${table.action} in ('login', 'ensure', 'switch', 'logout-current', 'remove', 'logout-all')`),
+    check("chk_auth_browser_mutation_versions", sql`${table.expectedVersion} >= 1 and ${table.resultVersion} = ${table.expectedVersion} + 1`),
+  ],
+);
+
+export const authBrowserAtomicAssertions = sqliteTable(
+  "auth_browser_atomic_assertions",
+  {
+    id: integer("id").primaryKey(),
+    verifiedAt: text("verified_at").notNull(),
+  },
+  (table) => [check("chk_auth_browser_atomic_assertion", sql`${table.id} = 1`)],
+);
+
+/**
  * Short-lived password reset links issued by an administrator or by the DM of
  * a classroom that contains the learner. Only the SHA-256 digest is stored;
  * the clear token exists only in the one-time URL shown to the DM.
