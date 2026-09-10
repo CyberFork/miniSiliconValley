@@ -12,7 +12,7 @@ import {
 import { CLASSROOM_STATE_MACHINE_VERSION } from "../app/lib/classroom-factory";
 import { ClassroomError } from "../app/lib/classroom-errors";
 import { bundledCoursePackages, type CoursePackageRef } from "../app/lib/course-package";
-import { ensureBundledCourseRegistry, loadExactCoursePackage, releaseTestedCourseCandidate, saveCourseCandidate } from "../app/lib/course-registry";
+import { ensureBundledCourseRegistry, listStudioCourseVersions, loadExactCoursePackage, releaseTestedCourseCandidate, saveCourseCandidate } from "../app/lib/course-registry";
 
 type LocalStatement = D1PreparedStatement & { sql: string; execute(): D1Result };
 type LocalDatabase = ClassroomD1 & {
@@ -71,6 +71,72 @@ function database(maximum = Number.POSITIVE_INFINITY): LocalDatabase {
 function freshCourse() {
   return structuredClone(bundledCoursePackages()[0]);
 }
+
+test("Studio startup reads current exact snapshots; history bodies are loaded only on demand", async (t) => {
+  const db = database();
+  try {
+    await ensureBundledCourseRegistry(db);
+    const course = freshCourse();
+    const revisions: CoursePackageRef[] = [];
+    for (let index = 1; index <= 12; index += 1) {
+      course.title = `Startup performance fixture ${index}`;
+      revisions.push(await saveCourseCandidate(db, course, "fixture-author", revisions.at(-1) ?? null));
+    }
+    const released = revisions[8];
+    db.raw.prepare("UPDATE course_release_pointers SET revision = ?, digest = ? WHERE course_id = ?")
+      .run(released.revision, released.digest, released.courseId);
+    const started = performance.now();
+    const full = await listStudioCourseVersions(db);
+    const fullMs = performance.now() - started;
+    const currentStart = performance.now();
+    const current = await listStudioCourseVersions(db, { currentOnly: true });
+    const currentMs = performance.now() - currentStart;
+    assert.equal(full.length, 14);
+    assert.equal(current.length, 3);
+    for (const item of current) {
+      assert.deepEqual(item, full.find((version) => version.ref.courseId === item.ref.courseId && version.ref.revision === item.ref.revision));
+    }
+    assert.deepEqual(current.filter((item) => item.ref.courseId === course.course.id).map((item) => item.ref.revision), [12, 9]);
+    assert.ok(current.some((item) => item.candidate && item.ref.revision === 12));
+    assert.ok(current.some((item) => item.released && item.ref.revision === 9));
+    const history = await listStudioCourseVersions(db, { courseId: course.course.id });
+    assert.equal(history.length, 13);
+    assert.ok(history.every((item) => item.ref.courseId === course.course.id));
+    assert.deepEqual(history.at(-1)?.ref.revision, 0);
+    assert.deepEqual(await listStudioCourseVersions(db, { courseId: "missing-or-'SQL'" }), []);
+    const fullBytes = Buffer.byteLength(JSON.stringify(full));
+    const currentBytes = Buffer.byteLength(JSON.stringify(current));
+    assert.ok(currentBytes < fullBytes / 3, "startup payload must not grow with historical revisions");
+    t.diagnostic(JSON.stringify({ fullVersions: full.length, currentVersions: current.length, fullBytes, currentBytes, fullMs, currentMs }));
+  } finally { db.raw.close(); }
+});
+
+test("current-only Studio reads still verify each returned exact body digest", async () => {
+  const db = database();
+  try {
+    await ensureBundledCourseRegistry(db);
+    const prepare = db.prepare.bind(db);
+    db.prepare = ((sql: string) => {
+      const statement = prepare(sql);
+      if (sql.includes("author.display_name AS created_by_display_name")) {
+        const all = statement.all.bind(statement);
+        statement.all = (async () => {
+          const result = await all<{ package_json: string }>();
+          const first = result.results![0];
+          first.package_json = JSON.stringify({ ...JSON.parse(first.package_json), title: "tampered response" });
+          return result;
+        }) as D1PreparedStatement["all"];
+      }
+      return statement;
+    }) as ClassroomD1["prepare"];
+    await assert.rejects(listStudioCourseVersions(db, { currentOnly: true }), (error: unknown) => {
+      assert.ok(error instanceof ClassroomError);
+      assert.equal(error.code, "COURSE_REGISTRY_CORRUPT");
+      assert.equal(error.status, 500);
+      return true;
+    });
+  } finally { db.raw.close(); }
+});
 
 function expected(ref: CoursePackageRef) {
   return { courseId: ref.courseId, schemaVersion: ref.schemaVersion, revision: ref.revision, digest: ref.digest, status: "candidate" as const };

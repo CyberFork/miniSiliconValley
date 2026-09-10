@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const BUILD_ID = "t099-candidate-cas-r1";
+  const BUILD_ID = "studio-startup-r2";
   const $ = (selector) => document.querySelector(selector);
   const CardView = window.MsvCardView;
   if (!CardView) throw new Error("共享卡片渲染器未加载，无法安全预览学员卡片。");
@@ -90,13 +90,14 @@
   }
   async function loadReleaseInfo() {
     try {
-      const response = await fetch(new URL("/release.json", window.location.origin), {cache: "no-store", credentials: "same-origin"});
+      const response = await fetch(new URL("/release.json", window.location.origin), {cache: "no-store", credentials: "same-origin", signal: AbortSignal.timeout(5000)});
       const value = await response.json();
       if (!response.ok || !value?.release) throw new Error("release unavailable");
       releaseInfo = value;
     } catch {
       releaseInfo = {release: "local-dev", origin: "local"};
     }
+    if (course) renderPackageHealth();
   }
   function toast(message, error = false) {
     clearTimeout(toastTimer);
@@ -234,7 +235,7 @@
   function closeLibrary({restoreFocus = false, persist = true} = {}) { setLibraryCollapsed(true, {persist, restoreFocus}); }
 
   async function loadCatalog() {
-    studioData = await request("/api/studio/bootstrap");
+    studioData = await request("/api/studio/bootstrap?scope=current");
     const courseIds = [...new Set(studioData.versions.map((item) => item.ref.courseId))];
     catalog = courseIds.map((id) => {
       const versions = versionsFor(id);
@@ -1191,8 +1192,16 @@
   async function openHistory() {
     if (!course) return;
     if (dirty) return toast("先保存或放弃当前修改，再恢复历史版本。", true);
+    const historyCourseId = course.course.id;
+    const historyButton = $("#historyButton");
+    historyButton.disabled = true;
     try {
-      const history = versionsFor(course.course.id);
+      toast("正在读取这门课程的版本历史…");
+      const result = await request(`/api/studio/bootstrap?scope=history&course=${encodeURIComponent(historyCourseId)}`);
+      // A slow history response must not replace a newly selected course or
+      // overwrite edits made while the request was in flight.
+      if (course?.course.id !== historyCourseId || dirty) return;
+      const history = result.versions;
       const list = $("#historyList");
       list.innerHTML = history.length ? history.map((item) => `<article class="history-item">
         <div><b>r${esc(item.ref.revision)} · ${esc(item.candidate ? "当前 Candidate" : item.released ? "当前 Released" : item.ref.createdBy === "bundled" ? "内置基线" : "不可变快照")}</b><span>${esc(item.ref.createdAt || "时间未记录")} · ${esc(item.course.decks.length)} 卡组 / ${esc(item.course.decks.reduce((total, deck) => total + deck.cards.length, 0))} 张卡${exactViewReceipt(item.ref) ? " · View 已验收" : ""}${exactUiReceipt(item.ref, exactViewReceipt(item.ref)?.receiptId) ? " · UI 已验收" : ""}</span><code>${esc(item.ref.digest.slice(0, 16))}</code></div>
@@ -1208,6 +1217,7 @@
           }
           clearTimeout(timer); button.disabled = true;
           try {
+            if (course?.course.id !== historyCourseId || dirty) throw new Error("当前课程或修改状态已变化，请重新打开版本历史。");
             const source = history.find((item) => item.ref.revision === Number(button.dataset.restoreRevision) && item.ref.digest === button.dataset.restoreDigest);
             if (!source) throw new Error("历史版本已经变化，请重新打开版本历史。");
             course = structuredClone(source.course);
@@ -1222,10 +1232,14 @@
       });
       $("#historyDialog").showModal();
     } catch (error) { toast(`历史读取失败：${error.message}`, true); }
+    finally { historyButton.disabled = false; }
   }
   async function init() {
     try {
-      await loadReleaseInfo();
+      // Deployment diagnostics are not a prerequisite for course editing.
+      // Resolve them independently; a stalled release endpoint cannot block
+      // the catalog or replace the course's exact identity.
+      void loadReleaseInfo();
       await loadCatalog();
       const requested = new URLSearchParams(window.location.search).get("course");
       const preferred = catalog.some((item) => item.id === requested) ? requested : catalog[0]?.id;

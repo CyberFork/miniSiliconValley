@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "../components/NavigationLink";
 import { redirect } from "next/navigation";
 import { chatGPTSignInPath, getChatGPTUser, requireCompletedPasswordSetup } from "../chatgpt-auth";
 import StudioApp, { type StudioSection } from "./StudioApp";

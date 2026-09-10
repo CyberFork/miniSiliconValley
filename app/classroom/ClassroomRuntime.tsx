@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import Link from "../components/NavigationLink";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AccountMenu, type AccountMenuUser } from "../components/AccountMenu";

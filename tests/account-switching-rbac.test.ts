@@ -7,12 +7,17 @@ const source = (path: string) => readFileSync(new URL(path, root), "utf8");
 
 test("Studio navigation is a real-link, route-derived and recoverable surface", () => {
   const studio = source("app/studio/StudioApp.tsx");
+  const navigation = source("app/components/NavigationLink.tsx");
   for (const href of ["/studio/", "/studio/editor/", "/studio/preview/", "/studio/releases/", "/studio/courseware/"]) {
     assert.match(studio, new RegExp(href.replaceAll("/", "\\/")));
   }
-  assert.match(studio, /<a[\s\S]*href=\{item\.href\}/);
+  assert.match(studio, /<Link[\s\S]*href=\{item\.href\}/);
+  assert.match(studio, /components\/NavigationLink/);
   assert.match(studio, /aria-current=\{item\.id === section \? "page"/);
-  assert.match(studio, /正在打开…/);
+  assert.match(navigation, /return <a/);
+  assert.match(navigation, /正在打开…/);
+  assert.match(navigation, /8_000/);
+  assert.doesNotMatch(navigation, /preventDefault\s*\(/);
   assert.match(studio, /onClick=\{\(\) => void load\(\)\}>重试/);
   assert.doesNotMatch(studio, /href="#"/);
 });

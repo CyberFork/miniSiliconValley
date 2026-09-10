@@ -4,12 +4,14 @@
   // The editor is intentionally split into reusable, framework-free assets.  They
   // have hard dependencies, so loading them as sibling `next/script` elements is
   // unsafe on a real network: the main editor may execute before its projectors exist.
-  // Keep this list sequential and make this loader the only editor script entry.
+  // Preload every dependency together, then execute sequentially. Network
+  // latency must not be paid four times, but a failed dependency must still
+  // prevent the editor from starting. This remains the only script entry.
   const ASSETS = [
-    "/studio/editor-assets/ui-theme.js?v=t099-candidate-cas-r1",
-    "/studio/editor-assets/card-view.js?v=t099-candidate-cas-r1",
-    "/studio/editor-assets/course-preview.js?v=t099-candidate-cas-r1",
-    "/studio/editor-assets/editor.js?v=t099-candidate-cas-r1",
+    "/studio/editor-assets/ui-theme.js?v=studio-startup-r2",
+    "/studio/editor-assets/card-view.js?v=studio-startup-r2",
+    "/studio/editor-assets/course-preview.js?v=studio-startup-r2",
+    "/studio/editor-assets/editor.js?v=studio-startup-r2",
   ];
 
   if (window.__MSV_EDITOR_BOOT_PROMISE__) return;
@@ -49,6 +51,13 @@
   }
 
   window.__MSV_EDITOR_BOOT_PROMISE__ = (async () => {
+    for (const asset of ASSETS) {
+      const preload = document.createElement("link");
+      preload.rel = "preload";
+      preload.as = "script";
+      preload.href = asset;
+      document.head.appendChild(preload);
+    }
     for (const asset of ASSETS) await loadScript(asset);
     window.dispatchEvent(new CustomEvent("msv:editor-ready"));
   })().catch((error) => {

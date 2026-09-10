@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "../components/NavigationLink";
 import { type ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 import { BrandHomeLink } from "../components/BrandHomeLink";
@@ -86,11 +86,10 @@ export default function StudioApp({
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(true);
-  const [navigationPending, setNavigationPending] = useState<string | null>(null);
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      setData(await api<Bootstrap>("/api/studio/bootstrap"));
+      setData(await api<Bootstrap>("/api/studio/bootstrap?scope=current"));
       setError("");
     } catch (cause) {
       setError(messageOf(cause));
@@ -121,27 +120,20 @@ export default function StudioApp({
         <p className={styles.navLabel}>COURSE FACTORY</p>
         {NAV_GROUPS.map((group) => <div className={styles.navGroup} key={group.label}>
           <b>{group.label}</b>
-          {group.items.map((item) => <a
+          {group.items.map((item) => <Link
             key={item.href}
             href={item.href}
             data-active={item.id === section}
             aria-current={item.id === section ? "page" : undefined}
-            aria-busy={navigationPending === item.href || undefined}
-            onClick={(event) => {
-              if (!event.defaultPrevented && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
-                setNavigationPending(item.href);
-              }
-            }}
-          ><span>{item.code}</span>{navigationPending === item.href ? "正在打开…" : item.label}</a>)}
+          ><span>{item.code}</span>{item.label}</Link>)}
         </div>)}
       </nav>
       <section className={styles.content}>
-        {navigationPending && <div className={styles.navigationStatus} role="status">正在打开 {NAV_GROUPS.flatMap((group) => group.items).find((item) => item.href === navigationPending)?.label ?? "页面"}…</div>}
         {error && <div className={styles.error} role="alert"><span>{error}</span><button type="button" onClick={() => void load()}>重试</button></div>}
         {notice && <div className={styles.notice} role="status">{notice}</div>}
         {loading && !data ? <div className={styles.loading} role="status"><small>COURSE STUDIO · 正在打开</small><h1>{SECTION_TITLES[section]}</h1><p>正在读取课程版本与两级验收门禁…</p></div> : data ? <>
           {section === "home" && <StudioHome data={data} />}
-          {section === "preview" && <ViewAcceptance data={data} initialCourseRef={initialCourseRef} onAccepted={changed} onError={setError} />}
+          {section === "preview" && <ViewAcceptance key={initialCourseRef ? `${initialCourseRef.courseId}:${initialCourseRef.revision}:${initialCourseRef.digest ?? ""}` : "current"} data={data} initialCourseRef={initialCourseRef} onAccepted={changed} onError={setError} />}
           {section === "courseware" && <CoursewareLibrary data={data} onChanged={changed} onError={setError} />}
           {section === "releases" && <Releases data={data} onChanged={changed} onError={setError} />}
         </> : null}
@@ -167,7 +159,7 @@ function StudioHome({ data }: { data: Bootstrap }) {
       一份 CourseDefinition 先验收多角色数据视图，再用真实 Test Classroom 验收 UI；两张 exact 回执齐全后才允许发布和创建正式课堂。
     </Heading>
     <div className={styles.overviewGrid}>
-      <article className={styles.overviewCard}><b>01 · EDIT · {candidateCount} CANDIDATES</b><h2>编辑并保存 Candidate</h2><p>课程编辑器是唯一正文写入口。每次保存生成不可变 revision 与 digest，不热更新任何课堂。</p><a href="/studio/editor/">打开课程编辑器 →</a></article>
+      <article className={styles.overviewCard}><b>01 · EDIT · {candidateCount} CANDIDATES</b><h2>编辑并保存 Candidate</h2><p>课程编辑器是唯一正文写入口。每次保存生成不可变 revision 与 digest，不热更新任何课堂。</p><Link href="/studio/editor/">打开课程编辑器 →</Link></article>
       <article className={styles.overviewCard}><b>02 · VIEW · {validViewCount} PASSED</b><h2>验收 4 + N + 1</h2><p>逐 Block、逐支持人数检查四导师、N 学员、私密卡与中控投影，并签发 ViewAcceptanceReceipt。</p><Link href="/studio/preview/">开始多角色视图验收 →</Link></article>
       <article className={styles.overviewCard}><b>03—05 · UI · {validUiCount} PASSED</b><h2>真实课堂后再发布</h2><p>创建 Test Classroom、跑完真实 UI、签发 UiAcceptanceReceipt，再推进 Released 与 Production。</p><Link href="/studio/releases/">打开验收与发布 →</Link></article>
     </div>
@@ -204,10 +196,16 @@ function ViewAcceptance({ data, initialCourseRef, onAccepted, onError }: {
   onAccepted: (message: string) => Promise<void>;
   onError: (value: string) => void;
 }) {
-  const options = useMemo(() => preferredVersions(data.versions), [data.versions]);
-  const initial = options.find((version) => matchesInitial(version, initialCourseRef)) ?? options[0];
+  const options = useMemo(() => {
+    const preferred = preferredVersions(data.versions);
+    // A current Released snapshot may also be opened explicitly while a newer
+    // Candidate exists. Do not silently substitute that Candidate's content.
+    const requested = data.versions.find((version) => matchesInitial(version, initialCourseRef) && (version.candidate || version.released));
+    return requested && !preferred.some((version) => versionKey(version) === versionKey(requested)) ? [requested, ...preferred] : preferred;
+  }, [data.versions, initialCourseRef]);
+  const initial = initialCourseRef ? options.find((version) => matchesInitial(version, initialCourseRef)) : options[0];
   const [courseKey, setCourseKey] = useState(initial ? versionKey(initial) : "");
-  const source = options.find((version) => versionKey(version) === courseKey) ?? options[0];
+  const source = options.find((version) => versionKey(version) === courseKey);
   const [blockId, setBlockId] = useState(source?.course.blocks[0]?.id ?? "B01");
   const [learnerCount, setLearnerCount] = useState(source?.learnerPolicy.defaultCount ?? 4);
   const [seed, setSeed] = useState(source ? `view-acceptance-${source.learnerPolicy.defaultCount}` : "view-acceptance-4");
@@ -234,7 +232,9 @@ function ViewAcceptance({ data, initialCourseRef, onAccepted, onError }: {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [blockId, chooseBlock, source]);
-  if (!source) return <div className={styles.empty}>没有可验收的 Candidate 或 Released 课程版本。</div>;
+  if (!source) return <div className={styles.empty} role="alert"><p>{initialCourseRef
+    ? `请求的课程 ${initialCourseRef.courseId} r${initialCourseRef.revision} 不存在、digest 不匹配或已不是可验收版本；没有自动切换到其他课程。`
+    : "没有可验收的 Candidate 或 Released 课程版本。"}</p><Link href="/studio/releases/">返回验收与发布，选择当前版本 →</Link></div>;
 
   const course = source.course;
   const requiredCounts = Array.from({ length: source.learnerPolicy.maxCount - source.learnerPolicy.minCount + 1 }, (_, index) => source.learnerPolicy.minCount + index);

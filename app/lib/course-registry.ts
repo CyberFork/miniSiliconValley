@@ -161,9 +161,23 @@ export async function saveCourseCandidate(
   throw new ClassroomError("CANDIDATE_REVISION_CONTENTION", "Candidate 保存竞态未解决；本地 Working Copy 已保留。", 409);
 }
 
-export async function listStudioCourseVersions(db: ClassroomD1): Promise<StudioCourseVersion[]> {
+export async function listStudioCourseVersions(
+  db: ClassroomD1,
+  options: { currentOnly?: boolean; courseId?: string } = {},
+): Promise<StudioCourseVersion[]> {
   await ensureBundledCourseRegistry(db);
-  const result = await db.prepare(
+  // Filter in SQL, before transferring/parsing/hashing whole course packages.
+  // Startup needs the live pointers plus the latest version for an unreleased
+  // course, not every historical body. Explicit history keeps the old contract.
+  const conditions = [
+    ...(options.currentOnly ? [`(
+      (v.revision = cp.revision AND v.digest = cp.digest)
+      OR (v.revision = rp.revision AND v.digest = rp.digest)
+      OR v.revision = (SELECT MAX(latest.revision) FROM course_versions latest WHERE latest.course_id = v.course_id)
+    )`] : []),
+    ...(options.courseId ? ["v.course_id = ?"] : []),
+  ];
+  const statement = db.prepare(
     `SELECT v.*, author.display_name AS created_by_display_name,
             cp.revision AS candidate_revision, cp.digest AS candidate_digest,
             rp.revision AS released_revision, rp.digest AS released_digest, rp.released_at, rp.released_by
@@ -171,8 +185,10 @@ export async function listStudioCourseVersions(db: ClassroomD1): Promise<StudioC
      LEFT JOIN auth_users author ON author.id = v.created_by
      LEFT JOIN course_candidate_pointers cp ON cp.course_id = v.course_id
      LEFT JOIN course_release_pointers rp ON rp.course_id = v.course_id
+     ${conditions.length ? `WHERE ${conditions.join(" AND ")}` : ""}
      ORDER BY v.course_id, v.revision DESC`,
-  ).all<CourseVersionRow & {
+  );
+  const result = await (options.courseId ? statement.bind(options.courseId) : statement).all<CourseVersionRow & {
     created_by_display_name: string | null;
     candidate_revision: number | null; candidate_digest: string | null;
     released_revision: number | null; released_digest: string | null; released_at: string | null; released_by: string | null;

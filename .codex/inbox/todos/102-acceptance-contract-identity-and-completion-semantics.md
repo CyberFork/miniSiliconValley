@@ -44,3 +44,6 @@ related: [T-086, T-088, T-094, T-095]
 - [ ] Pad真实流程按T-088验收，而非仅在桌面缩小viewport。
 - [ ] 修复后重新确定需要人验收的exact Candidate；不静默把旧r11或其他版本直接发布。
 
+## 创建入口可用性关联
+
+[T-108](108-classroom-factory-empty-states-and-actionable-gates.md) 处理课程/人数下拉为空、创建按钮无反馈禁用、失效回执原因与下一步跳转。保持本任务的验收规则，不通过取消View/UI门禁修复界面问题。

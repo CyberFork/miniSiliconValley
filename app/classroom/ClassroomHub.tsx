@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import Link from "../components/NavigationLink";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { IssuedManagedCredential } from "../lib/auth-model";
@@ -158,7 +157,6 @@ function FactoryPanel({ bootstrap, accounts, currentUserId, currentUserRole, ini
   onAccounts: (accounts: IssuedManagedCredential[]) => Promise<void>;
   onError: (message: string) => void;
 }) {
-  const router = useRouter();
   const preferred = useMemo(() => preferredVersions(bootstrap.versions), [bootstrap.versions]);
   const initialEnvironment = initialCourse?.environment ?? "test";
   const [environment, setEnvironment] = useState<"test" | "production">(initialEnvironment);
@@ -242,7 +240,7 @@ function FactoryPanel({ bootstrap, accounts, currentUserId, currentUserRole, ini
         }),
       });
       await onCreated(`${environment === "test" ? "UI 验收" : "正式"}课堂已创建。队伍 ID：${result.teamPublicId}；课程、回执与四套课件 exact 版本已锁定。`);
-      router.push(`/classroom/${result.classroomId}/control`);
+      window.location.assign(`/classroom/${encodeURIComponent(result.classroomId)}/control`);
     } catch (cause) { onError(messageOf(cause)); }
     finally { setBusy(false); }
   };

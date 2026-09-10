@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "../../components/NavigationLink";
 
 import { AccountMenu, type AccountMenuUser } from "../../components/AccountMenu";
 import type { CoursewareContent } from "../../lib/courseware-store";

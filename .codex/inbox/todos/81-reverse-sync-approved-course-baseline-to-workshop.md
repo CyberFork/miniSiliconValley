@@ -18,6 +18,8 @@ tags:
 
 # 将已确认与已验收的课程基线反向同步到 Workshop
 
+> 2026-09-10 后续方向更新：用户确认 Workshop 已退出日常使用，应归档，但必须保留较深的可访问入口。见 [T-109](109-public-website-internal-navigation-and-workshop-archive.md)。本单已完成成果与历史记录保留；后续不再以持续反向同步 Workshop 为主生产线目标。归档前需备份浏览器提案/决议等数据并核对同步、打包依赖，不能直接删除。
+
 ## 原始需求
 
 当前已经积累了大量已确认的课程共识和已实现、已验收的课程内容，应当能够反向同步给 `https://minisv.vip/workshop/`，避免 Workshop 继续停留在早期课程构想。
