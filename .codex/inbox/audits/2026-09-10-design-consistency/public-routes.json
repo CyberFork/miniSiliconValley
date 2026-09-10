@@ -1,0 +1,98 @@
+{
+  "checkedAt": "2026-09-09T20:22:20.729788+00:00",
+  "method": "anonymous GET, no form submission or authentication",
+  "routes": [
+    {
+      "path": "/studio/",
+      "status": 307,
+      "location": "/auth/login?returnTo=%2Fstudio%2F",
+      "cacheControl": "no-transform"
+    },
+    {
+      "path": "/studio/editor/",
+      "status": 307,
+      "location": "/auth/login?returnTo=%2Fstudio%2Feditor%2F",
+      "cacheControl": "no-transform"
+    },
+    {
+      "path": "/course/",
+      "status": 307,
+      "location": "/auth/login?returnTo=%2Fcourse%2F",
+      "cacheControl": "no-transform"
+    },
+    {
+      "path": "/course/development-mentor-ligun/?revision=0&slide=7&step=2",
+      "status": 307,
+      "location": "/auth/login?returnTo=%2Fcourse%2Fdevelopment-mentor-ligun%2F%3Frevision%3D0%26slide%3D7%26step%3D2",
+      "cacheControl": "no-transform"
+    },
+    {
+      "path": "/courseware/development-mentor-ligun/",
+      "status": 401,
+      "location": null,
+      "cacheControl": "private, no-store, no-transform"
+    },
+    {
+      "path": "/classroom/",
+      "status": 307,
+      "location": "/auth/login?returnTo=%2Fclassroom%2F",
+      "cacheControl": "no-transform"
+    },
+    {
+      "path": "/alpha/",
+      "status": 410,
+      "location": null,
+      "cacheControl": "no-transform"
+    },
+    {
+      "path": "/control/",
+      "status": 410,
+      "location": null,
+      "cacheControl": "no-transform"
+    },
+    {
+      "path": "/api/classroom/rooms",
+      "status": 410,
+      "location": null,
+      "cacheControl": "no-transform"
+    },
+    {
+      "path": "/auth/register",
+      "status": 308,
+      "location": "/auth/register/",
+      "cacheControl": "no-transform"
+    },
+    {
+      "path": "/api/qa",
+      "status": 200,
+      "location": null,
+      "cacheControl": "no-store, private",
+      "health": {
+        "ok": true,
+        "data": {
+          "status": "ready",
+          "knowledgeEntries": 20,
+          "knowledgeGapRecording": true
+        }
+      }
+    },
+    {
+      "path": "/framework/",
+      "status": 200,
+      "location": null,
+      "cacheControl": "no-cache"
+    },
+    {
+      "path": "/parents/",
+      "status": 200,
+      "location": null,
+      "cacheControl": "no-cache"
+    },
+    {
+      "path": "/workshop/",
+      "status": 200,
+      "location": null,
+      "cacheControl": "no-cache"
+    }
+  ]
+}

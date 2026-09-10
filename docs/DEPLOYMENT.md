@@ -12,6 +12,15 @@
 
 ## 发布前门禁
 
+只能从稳定 `AI教培-mini硅谷/dev` 工程发布。发布前先确认唯一远端、同步状态和源提交：
+
+```bash
+test "$(git remote get-url origin)" = "https://github.com/CyberFork/miniSiliconValley.git"
+git fetch origin main
+test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
+test -z "$(git status --porcelain=v1 --untracked-files=all)"
+```
+
 ```bash
 npm ci
 npm run validate:data
@@ -47,10 +56,12 @@ deploy/minisv/scripts/build-chj-course.sh <chj-checkout> <courseware-output>
 npm run build:minisv-app
 npm run render:minisv-static
 
-python3 deploy/minisv/package_release.py   --legacy-root <已验收的静态基线>   --app-client-root dist/client   --app-static-root dist/minisv-static   --course-static-root <courseware-output>   --portal-root deploy/minisv/site   --output <site-output>   --release-id <RELEASE_ID>   --main-sha <40位提交SHA>
+python3 deploy/minisv/package_release.py   --legacy-root <已验收的静态基线>   --app-client-root dist/client   --app-static-root dist/minisv-static   --course-static-root <courseware-output>   --portal-root deploy/minisv/site   --output <site-output>   --release-id <RELEASE_ID>   --main-sha "$(git rev-parse HEAD)"
 ```
 
 `package_release.py` 生成 `release.json`、`sitemap.json` 和 `site/MANIFEST.sha256`。动态 `/course/` 由应用拥有；P 课件整树复制到 `/courseware/product-mentor-foundations/`，仓库中带 exact manifest 的 D／M 课件复制到各自 `/courseware/{slug}/`，三者都在全局主题转换之后写入，禁止静默改写已发布字节。
+
+打包器会再次校验 Git 根目录、`origin`、HEAD、`origin/main`、退役标记及工作树，并把结果写入 `release.json.workspaceProvenance`。默认拒绝旧工程、未推送提交和脏工作树。确有应急需求时可用 `--allow-dirty-reason "<12—500字单行原因>"`，但例外会进入发布清单，不能隐藏。
 
 ## 组装统一 bundle
 

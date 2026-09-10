@@ -131,7 +131,19 @@ class CourseReleaseTests(unittest.TestCase):
                 path.relative_to(course).as_posix(): path.read_bytes()
                 for path in course.rglob("*") if path.is_file()
             }
-            MODULE.build(legacy, client, static, course, portal, output, "t077-test", main_sha=main_sha)
+            provenance = {
+                "verified": True,
+                "canonicalRepository": MODULE.CANONICAL_REPOSITORY,
+                "sourceCommit": main_sha,
+                "originMain": main_sha,
+                "branch": "main",
+                "workspaceDirty": False,
+                "exceptionReason": None,
+            }
+            MODULE.build(
+                legacy, client, static, course, portal, output, "t077-test",
+                main_sha=main_sha, workspace_provenance=provenance,
+            )
 
             self.assertIn("current world", (output / "world" / "index.html").read_text())
             self.assertIn("current parents", (output / "parents" / "index.html").read_text())
@@ -170,6 +182,8 @@ class CourseReleaseTests(unittest.TestCase):
             self.assertIn("/course/", json.loads((output / "sitemap.json").read_text())["routes"])
             release = json.loads((output / "release.json").read_text())
             self.assertEqual(release["sources"]["main"], main_sha)
+            self.assertEqual(release["workspaceProvenance"], provenance)
+            self.assertIn("canonical-workspace-provenance", release["features"])
             self.assertEqual(release["sources"]["chjCourseUi"], MODULE.CHJ_COURSE_UI_SHA)
             self.assertEqual(release["sources"]["chjCourseTree"], MODULE.CHJ_COURSE_UI_TREE)
             self.assertIn("verbatim-product-mentor-courseware", release["features"])

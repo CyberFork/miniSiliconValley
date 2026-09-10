@@ -4,6 +4,15 @@
 
 Mini Silicon Valley 是面向青少年的、由可核验科技史驱动的有限开放世界创业学习平台。学员以 Young Builder 团队进入真实历史情境，经历调查、判断、行动、反馈和复盘，再把能力带回现实项目。
 
+## 唯一开发工程
+
+- 稳定工作目录：`AI教培-mini硅谷/dev`
+- 唯一远端：<https://github.com/CyberFork/miniSiliconValley.git>
+- `cowork/` 是作者素材与交付区，不是应用运行真值。
+- `/private/tmp/` 中的检出、构建与 bundle 均是可丢弃产物，不得作为后续开发根目录。
+
+详细边界、旧工程归档和发布来源校验见 [Development Workspace](docs/DEVELOPMENT_WORKSPACE.md)。
+
 ## 正式入口
 
 - 总导航：<https://minisv.vip/>

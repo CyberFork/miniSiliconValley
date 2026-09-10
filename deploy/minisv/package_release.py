@@ -7,6 +7,7 @@ import hashlib
 import json
 import re
 import shutil
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -29,6 +30,9 @@ CHJ_COURSE_UI_SHA = "679213a61b835335016eac7649213983a0e48489"
 CHJ_COURSE_UI_TREE = "3a041c4714190cc026f6de8e06e15cec0e5f765d"
 WORKSHOP_OVERLAY = Path(__file__).resolve().parent / "workshop"
 MAX_WORKSHOP_SNAPSHOT_BYTES = 1024 * 1024
+CANONICAL_REPOSITORY = "https://github.com/CyberFork/miniSiliconValley.git"
+CANONICAL_REPOSITORY_IDENTITY = "github.com/cyberfork/minisiliconvalley"
+RETIRED_WORKSPACE_MARKER = ".MINISV_WORKSPACE_RETIRED"
 
 
 def copy_entry(source: Path, target: Path) -> None:
@@ -137,6 +141,72 @@ def normalize_framework_brand(page: Path) -> None:
 def canonical_digest(value: object) -> str:
     body = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(body).hexdigest()
+
+
+def _git(root: Path, *arguments: str, optional: bool = False) -> str:
+    result = subprocess.run(
+        ("git", "-C", str(root), *arguments),
+        check=False,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    if result.returncode != 0:
+        if optional:
+            return ""
+        detail = result.stderr.strip() or result.stdout.strip() or "unknown git error"
+        raise ValueError(f"release workspace Git check failed: {detail}")
+    return result.stdout.strip()
+
+
+def _repository_identity(url: str) -> str:
+    value = url.strip().rstrip("/")
+    if value.endswith(".git"):
+        value = value[:-4]
+    for prefix in ("https://", "http://", "ssh://git@"):
+        if value.startswith(prefix):
+            value = value[len(prefix):]
+            break
+    if value.startswith("git@github.com:"):
+        value = "github.com/" + value[len("git@github.com:"):]
+    return value.lower()
+
+
+def verify_release_workspace(repo_root: Path, main_sha: str, *, dirty_reason: str | None = None) -> dict:
+    """Fail closed when a release is assembled outside the canonical audited checkout."""
+    root = repo_root.resolve()
+    if (root / RETIRED_WORKSPACE_MARKER).exists():
+        raise ValueError("retired MiniSV workspace cannot build a release")
+    top_level = Path(_git(root, "rev-parse", "--show-toplevel")).resolve()
+    if top_level != root:
+        raise ValueError(f"release workspace root mismatch: expected {root}, got {top_level}")
+    remote = _git(root, "config", "--get", "remote.origin.url")
+    if _repository_identity(remote) != CANONICAL_REPOSITORY_IDENTITY:
+        raise ValueError(f"release workspace origin is not canonical: {remote or 'missing'}")
+    head = _git(root, "rev-parse", "HEAD")
+    if not re.fullmatch(r"[0-9a-f]{40}", main_sha) or main_sha != head:
+        raise ValueError("--main-sha must equal the canonical workspace HEAD")
+    origin_main = _git(root, "rev-parse", "refs/remotes/origin/main")
+    if origin_main != head:
+        raise ValueError("canonical workspace HEAD is not synchronized with origin/main; fetch, commit and push first")
+    status = _git(root, "status", "--porcelain=v1", "--untracked-files=all")
+    reason = (dirty_reason or "").strip()
+    if status and not reason:
+        raise ValueError("canonical release workspace is dirty; commit the work or provide --allow-dirty-reason")
+    if reason and not status:
+        raise ValueError("--allow-dirty-reason was provided for a clean workspace")
+    if reason and (len(reason) < 12 or len(reason) > 500 or "\n" in reason):
+        raise ValueError("--allow-dirty-reason must be a single line of 12-500 characters")
+    branch = _git(root, "symbolic-ref", "--short", "-q", "HEAD", optional=True) or "detached"
+    return {
+        "verified": True,
+        "canonicalRepository": CANONICAL_REPOSITORY,
+        "sourceCommit": head,
+        "originMain": origin_main,
+        "branch": branch,
+        "workspaceDirty": bool(status),
+        "exceptionReason": reason or None,
+    }
 
 
 def validate_manifested_courseware(root: Path, *, label: str, slide_count: int) -> dict:
@@ -317,6 +387,7 @@ def build(
     chj_sha: str = CHJ_COURSE_UI_SHA,
     chj_tree: str = CHJ_COURSE_UI_TREE,
     workshop_snapshot: Path | None = None,
+    workspace_provenance: dict | None = None,
 ) -> None:
     for source in (legacy, app_client, app_static, course_static, portal):
         if not source.is_dir():
@@ -413,11 +484,17 @@ def build(
             "per-classroom-controller",
             "shared-brand-home",
             "released-workshop-snapshot",
+            "canonical-workspace-provenance",
         ],
         "sources": {
             "main": main_sha,
             "chjCourseUi": chj_sha,
             "chjCourseTree": chj_tree,
+        },
+        "workspaceProvenance": workspace_provenance or {
+            "verified": False,
+            "mode": "library-call",
+            "sourceCommit": main_sha,
         },
         "coursewareArtifact": {
             "route": "/courseware/product-mentor-foundations/",
@@ -502,13 +579,20 @@ def main() -> None:
     parser.add_argument("--chj-sha", default=CHJ_COURSE_UI_SHA)
     parser.add_argument("--chj-tree", default=CHJ_COURSE_UI_TREE)
     parser.add_argument("--workshop-snapshot", type=Path, help="validated public-redacted snapshot exported from the current Hecate Released registry")
+    parser.add_argument(
+        "--allow-dirty-reason",
+        help="exception record for a deliberately dirty canonical checkout; forbidden when the checkout is clean",
+    )
     args = parser.parse_args()
+    repo_root = Path(__file__).resolve().parents[2]
+    workspace_provenance = verify_release_workspace(repo_root, args.main_sha, dirty_reason=args.allow_dirty_reason)
     build(
         *(getattr(args, name) for name in ("legacy_root", "app_client_root", "app_static_root", "course_static_root", "portal_root", "output", "release_id")),
         main_sha=args.main_sha,
         chj_sha=args.chj_sha,
         chj_tree=args.chj_tree,
         workshop_snapshot=args.workshop_snapshot,
+        workspace_provenance=workspace_provenance,
     )
     print(f"MINISV_RELEASE_READY {args.release_id} {args.output}")
 

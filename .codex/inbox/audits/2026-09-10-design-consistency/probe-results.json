@@ -1,0 +1,56 @@
+{
+  "sourceRoot": "/private/tmp/minisv-sequence-work.axC0Th/repo",
+  "networkRequests": 0,
+  "productionWrites": 0,
+  "probes": [
+    {
+      "case": "current-candidate-projection-positive-control",
+      "result": "passed",
+      "scenarios": 195,
+      "blocks": 13,
+      "learnerCounts": [
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "seedCount": 3,
+      "checked": [
+        "card-id-order",
+        "learner-task"
+      ]
+    },
+    {
+      "case": "stale-editor-save",
+      "result": "reproduced",
+      "revisionA": 1,
+      "revisionB": 2,
+      "conflictRejected": false,
+      "previousSnapshotPreserved": true
+    },
+    {
+      "case": "concurrent-candidate-save",
+      "result": "reproduced",
+      "bothSavesReportedSuccess": true,
+      "pointerMatchesVersionDigest": false,
+      "readError": "COURSE_VERSION_NOT_FOUND"
+    },
+    {
+      "case": "courseware-release-visibility",
+      "result": "reproduced",
+      "candidatePreviewAllowedByCoursePageGate": false,
+      "oldReleasedVisibleBefore": true,
+      "oldReleasedVisibleAfterR1": false,
+      "oldBytesPreserved": true
+    },
+    {
+      "case": "qa-gap-observation-vs-review",
+      "result": "reproduced-event-semantics",
+      "sameGapId": true,
+      "resolvedStatus": "resolved_already_covered",
+      "laterObservationStatus": "pending_dm_review",
+      "note": "Latest-event aggregation reopens it; policy needs human confirmation."
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+✔ password digests use unique salts and verify without storing plaintext (4.871417ms)
+✔ reset tokens are high-entropy URL-safe secrets with deterministic digests (1.222792ms)
+✔ account validation accepts passphrases and rejects ambiguous identities (0.352417ms)
+✔ password reset stores only a digest, limits roles and atomically claims once (0.060833ms)
+✔ evidence boundary always carries a concrete Chinese meaning (0.797ms)
+✔ all registered learner projections contain no unexplained F/R/G/U code (1.4005ms)
+✔ formal classroom and eight-seat LIVE RUN render the expanded boundary labels (3.50925ms)
+✔ parent Q&A retrieval selects the relevant source-backed facts (13.575542ms)
+✔ parent Q&A request parser trims content and rejects oversized or malformed input (0.609959ms)
+✔ DeepSeek request keeps the key server-side and grounds the answer in retrieved material (3.216625ms)
+✔ parent Q&A detects and removes the internal knowledge-gap marker (0.231041ms)
+✔ knowledge-gap review changes status only through an explicit human decision (1.537584ms)
+✔ knowledge-gap recorder writes a private review list with personal data redacted (5.251666ms)
+✔ parent Q&A client calls only the same-origin server endpoint (0.42075ms)
+✔ standalone parent Q&A server exposes health, same-origin POST and safe errors (18.185542ms)
+✔ standalone server records only questions marked as knowledge gaps (6.191167ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 203.3145
