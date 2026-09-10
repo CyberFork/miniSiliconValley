@@ -196,6 +196,8 @@ T-094 起，所有 exact 课程快照统一显示 `courseDataId = {courseId}@r{r
 
 共同准入仍由 `ClassroomFactory.create()` 负责：exact CourseRelease、人数、成员与有效 ViewAcceptanceReceipt 必须一致。Production 额外要求 Released、有效 UiAcceptanceReceipt 及四套 exact 课件。创建使用单次 D1 事务／batch 写入，失败不留下半个课堂。
 
+`/classroom/#factory` 的选择界面不是准入规则本身。它展示所有当前 Candidate／Released，并把课程、View、UI、P／D／M／O 课件、4 + N 成员和 Admin DM 转换成持久可见的就绪清单；未通过的版本仍可选择和进入 exact 修复路径，但创建按钮保持失败关闭。课堂列表、课程/回执和账号分别读取、分别重试，刷新失败保留上一次成功数据与合法表单值。显式 exact 深链失效时绝不回退到另一版本。
+
 ## 6. 16 项真实 UI 验收
 
 Admin DM 只有在 TEST 解锁全部剧本页并显式结束该 Run 后，才能逐项确认并签发 UI 回执。唯一清单由 `app/lib/course-acceptance-contract.ts` 维护：

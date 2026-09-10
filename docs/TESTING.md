@@ -139,8 +139,10 @@ COURSE_PLATFORM_E2E_PASS t086=view-receipt+ui-receipt+release-gates t087=navigat
 ### Classroom
 
 - `/classroom/` 分为 `TEST · UI 验收课堂` 与 `PRODUCTION · 正式课堂`。
-- Test Factory 只列出有有效 View 回执的版本。
-- Production Factory 只列出有两张有效回执的 Released，并锁定验收过的课件。
+- Factory 展示所有当前 Candidate／Released exact 版本及逐项就绪原因；选择待验收版本不等于绕过门禁。
+- Test 创建仍要求所选 exact 版本具有有效 View 回执；Production 仍要求 Released、同版本有效 View/UI 回执并锁定验收过的四套课件。
+- 课程、账号与课堂列表独立读取；任一失败时相应区域保留上次成功数据、显示就地重试，创建区不得整块消失。
+- exact 深链失效时明确显示“未自动换课”；人数在选课前显示“请先选择课程”，创建按钮旁持续显示可操作就绪清单。
 - 导师、N 学员、Admin DM 和 screen 分别只看到权限允许内容。
 - 中控能顺序解锁、独立回看、回到最新，并在末页讲完后显式结束；作品保存／退回／接受不与剧本翻页混为一个状态机。
 - 完成后显示 16 项真实 UI 清单；签收后显示 receipt id 与发布入口。
@@ -149,6 +151,14 @@ COURSE_PLATFORM_E2E_PASS t086=view-receipt+ui-receipt+release-gates t087=navigat
 - Primary／Delegated 标签准确；Delegated 没有委派控件但仍可使用主控，直接调用委派 API 也必须失败。
 - Test 身份全程显示黄色 actor → effective 横幅，返回管理员后不残留目标私密数据。
 - Test 的“数据身份”可复制 exact courseDataId、run、block、seat、deal seed、状态版本和 cardAssignment 顺序；与当前 Candidate 不同时明确标为锁定旧版本。
+
+T-108 Classroom Factory 的隔离浏览器回归：
+
+```bash
+npm run test:t108:browser
+```
+
+该脚本使用临时本地 D1 和合成管理员，注入 bootstrap／accounts 失败与无 View 回执场景；不访问生产数据，也不会代签人工验收。
 
 ### 路由
 

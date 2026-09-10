@@ -1,0 +1,21 @@
+{
+  "ok": true,
+  "scope": "isolated local D1; no production writes",
+  "adminClassroomClick": true,
+  "dependencyRetries": true,
+  "candidateWithoutView": true,
+  "exactPreviewOrdinaryClick": true,
+  "unavailableDeepLinkNotSubstituted": true,
+  "responsive": {
+    "phone": {
+      "width": 390,
+      "height": 844,
+      "noHorizontalOverflow": true
+    },
+    "pad": {
+      "width": 768,
+      "height": 1024,
+      "noHorizontalOverflow": true
+    }
+  }
+}
