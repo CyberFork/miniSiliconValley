@@ -235,7 +235,7 @@ def main() -> None:
                     for path, heading in (
                         ("/classroom/", "课堂中心"),
                         ("/account/", "Young Builder 账户"),
-                        ("/course/", "课件是导师的工具，"),
+                        ("/course/", "课程目录"),
                     ):
                         page.goto(f"{base}{path}", wait_until="networkidle")
                         expect(page.get_by_role("heading", name=heading)).to_be_visible()

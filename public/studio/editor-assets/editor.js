@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const BUILD_ID = "studio-startup-r2";
+  const BUILD_ID = "studio-startup-r3";
   const $ = (selector) => document.querySelector(selector);
   const CardView = window.MsvCardView;
   if (!CardView) throw new Error("共享卡片渲染器未加载，无法安全预览学员卡片。");
@@ -59,6 +59,12 @@
   let libraryPreference = null;
   let libraryCollapsed = compactLibraryMedia.matches;
   let libraryReturnFocus = null;
+
+  function startupMark(name) {
+    const startup = window.__MSV_EDITOR_STARTUP__ ||= {navigationStart: 0};
+    startup[name] = Math.round(performance.now() * 10) / 10;
+    window.dispatchEvent(new CustomEvent("msv:editor-startup", {detail: {...startup}}));
+  }
 
   try {
     const stored = window.localStorage.getItem(LIBRARY_STORAGE_KEY);
@@ -235,7 +241,9 @@
   function closeLibrary({restoreFocus = false, persist = true} = {}) { setLibraryCollapsed(true, {persist, restoreFocus}); }
 
   async function loadCatalog() {
+    startupMark("bootstrapStarted");
     studioData = await request("/api/studio/bootstrap?scope=current");
+    startupMark("bootstrapFinished");
     const courseIds = [...new Set(studioData.versions.map((item) => item.ref.courseId))];
     catalog = courseIds.map((id) => {
       const versions = versionsFor(id);
@@ -257,6 +265,7 @@
     }).sort((a, b) => a.name.localeCompare(b.name, "zh-CN"));
     diagnostics = [];
     renderLibrary();
+    startupMark("courseListVisible");
   }
   function renderLibrary() {
     $("#courseList").innerHTML = catalog.map((item) => `<button class="course-item" data-course="${esc(item.id)}" aria-current="${course?.course?.id === item.id}">
@@ -307,6 +316,8 @@
       resetCardFilters();
       renderAll();
       setSaveState(`${data.candidate ? "Candidate" : data.released ? "Released" : "历史版本"} r${revision} 已载入`, "saved");
+      startupMark("firstCourseEditable");
+      window.dispatchEvent(new CustomEvent("msv:editor-ready", {detail: {...window.__MSV_EDITOR_STARTUP__}}));
     } catch (error) {
       toast(error.message, true);
       setSaveState("载入失败", "error");

@@ -40,9 +40,11 @@ function bootContext(failAt = -1) {
   };
   const context = {
     document, console: { error: (...args: unknown[]) => errors.push(args) },
-    CustomEvent: class {}, queueMicrotask, dispatchEvent() {},
+    CustomEvent: class { constructor(type: string, init?: unknown) { void type; void init; } }, queueMicrotask, dispatchEvent() {},
+    performance: { now: () => 12.3 },
     window: null as unknown,
     __MSV_EDITOR_BOOT_PROMISE__: undefined as Promise<void> | undefined,
+    __MSV_EDITOR_STARTUP__: undefined as Record<string, number> | undefined,
   };
   context.window = context;
   return { context, events, links, scripts, errors };
@@ -61,6 +63,9 @@ test("editor loader preloads all assets, executes in order, and is failure/dupli
   assert.equal(ok.links.length, 4);
   assert.deepEqual(ok.links, ok.scripts.map((script) => script.src));
   assert.equal(ok.scripts.length, 4);
+  assert.equal(ok.context.__MSV_EDITOR_STARTUP__?.loaderStart, 12.3);
+  assert.equal(ok.context.__MSV_EDITOR_STARTUP__?.preloadsStarted, 12.3);
+  assert.equal(ok.context.__MSV_EDITOR_STARTUP__?.scriptsReady, 12.3);
   vm.runInNewContext(loader, ok.context);
   assert.equal(ok.scripts.length, 4);
 

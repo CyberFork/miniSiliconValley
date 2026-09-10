@@ -11,10 +11,24 @@
     "/studio/editor-assets/ui-theme.js?v=studio-startup-r2",
     "/studio/editor-assets/card-view.js?v=studio-startup-r2",
     "/studio/editor-assets/course-preview.js?v=studio-startup-r2",
-    "/studio/editor-assets/editor.js?v=studio-startup-r2",
+    "/studio/editor-assets/editor.js?v=studio-startup-r3",
   ];
 
   if (window.__MSV_EDITOR_BOOT_PROMISE__) return;
+
+  // Keep one monotonic, browser-readable startup trace.  It is deliberately
+  // diagnostic-only: no course identity or authoring decision is derived from
+  // these numbers.  T-110's browser acceptance reads this object to separate
+  // document, script, bootstrap and first-editable time instead of treating a
+  // single load event as proof that the editor is ready.
+  const startup = window.__MSV_EDITOR_STARTUP__ = {
+    navigationStart: 0,
+    loaderStart: Math.round(performance.now() * 10) / 10,
+  };
+  function startupMark(name) {
+    startup[name] = Math.round(performance.now() * 10) / 10;
+    window.dispatchEvent(new CustomEvent("msv:editor-startup", {detail: {...startup}}));
+  }
 
   function loadScript(src) {
     return new Promise((resolve, reject) => {
@@ -58,9 +72,12 @@
       preload.href = asset;
       document.head.appendChild(preload);
     }
+    startupMark("preloadsStarted");
     for (const asset of ASSETS) await loadScript(asset);
-    window.dispatchEvent(new CustomEvent("msv:editor-ready"));
+    startupMark("scriptsReady");
+    window.dispatchEvent(new CustomEvent("msv:editor-scripts-ready", {detail: {...startup}}));
   })().catch((error) => {
+    startupMark("failed");
     showBootFailure(error);
     throw error;
   });

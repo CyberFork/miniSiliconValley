@@ -47,6 +47,7 @@ tags: [todo, navigation, studio, performance, regression, accessibility]
 - 点击历史时使用 `scope=history&course=…` 按课程读取，不将全部历史作为首屏必需数据；迟到响应不能覆盖新选课程或未保存编辑。
 - Studio 正文流程导航复用原生链接组件，保留完整 course/revision/digest，普通点击显示“正在打开…”，不拦截浏览器默认导航。
 - 指定 exact 视图不存在/失效时明确说明，不能静默打开另一门课或另一版本。
+- 编辑器现在暴露只读的 `window.__MSV_EDITOR_STARTUP__` 单调时序，分别标记 loader、预加载、脚本完成、`scope=current` bootstrap、课程列表与首门课可编辑；该诊断不参与课程身份或业务判断。
 
 上述改动需要构建、集成及部署后真实验收；尚未在本单中宣布线上修复完成。
 
@@ -55,8 +56,12 @@ tags: [todo, navigation, studio, performance, regression, accessibility]
 - 课程查询测试使用隔离 SQLite 数据：同一课程生成 12 次修订并将 r9 设为 Released。完整查询 14 个正文共 2,923,516 B；首屏查询保留 3 个必要正文共 531,795 B，减少约 82%。这是合成数据下的正文体积，不是线上响应总量或加载秒数承诺。
 - 验证按课程读取完整历史、当前 exact 正文篡改拒绝，以及既有并发保存/发布保护未回退。
 - loader 的提前 preload/有序执行/失败短路/重复启动保护、非阻塞诊断，以及原生链接服务端渲染保留 r12 查询参数均有测试。
-- 完整 typecheck/build 尚未完成可信验证：当前 OneDrive 工作区部分依赖为 dataless 占位文件，出现读取长时间等待、依赖 JSON 读取不完整；一次 build 命令退出但产物仍为旧时间，不能计为成功构建。暂未部署，不以旧 dist 冒充本轮产物。
-- 本地文件提供器问题与用户线上 20 秒加载是两个不同问题，不能混为同一根因。恢复完整依赖后需重跑构建、集成与真实浏览器验收。
+- 已转移到完整临时工程基线并通过 typecheck、lint、构建、静态导航契约和真实 Chromium 验收；不再把 OneDrive dataless 占位文件产生的读阻塞算成网站性能。
+- 隔离本地 D1、Chromium 151、1440px 的最新一次样本：冷启动首门课程可编辑约 107.1ms，热刷新约 112.3ms；`scope=current` bootstrap 解码正文约 147KB，分别约 31.6ms / 28.2ms。数字只用于拆分等待链，不是线上 SLA，也不能与用户原先看到的 20 秒直接等同。
+- 同一浏览器验收已经真实执行：World → Course 登录回跳、错误密码恢复、找回页点击/Enter、Studio 工作流普通点击、编辑器返回、Releases 正文 exact 链接普通点击、Cmd 新标签、前进/后退/刷新、账户中心、课件 exact 深链、会话过期后的 exact returnTo，以及 390px Chromium touch 单击。
+- 主动令 `/release.json` 返回 503 时，课程库、首门课程和编辑能力仍完成初始化；该 503 是隔离测试注入并被回执明确记录。
+- 证据：`docs/qa/t110-navigation/browser-receipt.json`、`docs/NAVIGATION_ACCEPTANCE_MATRIX.md`、`tools/live-run/tests/verify_t110_site_navigation_browser.py`。
+- Safari / iPad 真机、系统后退手势及硬件上下文菜单仍属于 T-088；T-109 重组公开官网与 Workshop 入口后还必须复跑本单，不用 Chromium 模拟冒充真机结论。
 
 ## 全站入口清单
 
@@ -82,13 +87,13 @@ tags: [todo, navigation, studio, performance, regression, accessibility]
 
 ## 性能与自动化验收
 
-- [ ] 分别记录页面响应、脚本准备、bootstrap、课程列表可见、首门课程可编辑的耗时；至少比较冷/热缓存，注明网络和设备。
-- [ ] 有多个历史修订时，首屏不再随全部历史正文线性膨胀；历史完整性、旧版恢复、并发保存 CAS 和当前 exact digest 校验回归通过。
-- [ ] loader 测试验证全部 preload 先开始、执行有序、失败短路、重复启动保护。
-- [ ] 部署信息请求永不完成时，课程列表与编辑仍可初始化。
-- [ ] 导航自动化必须执行普通点击并断言目标页面与 exact ID；只断言链接存在或 Ctrl＋点击成功不算通过。
-- [ ] 记录每个入口的来源页、标签、目标、权限、普通点击/新标签页/触摸结果及失败原因，修复后再跑同一清单。
-- [ ] 所有真实发布/验收写操作仅用隔离测试数据验证，不代签用户人工回执。
+- [x] 分别记录页面响应、脚本准备、bootstrap、课程列表可见、首门课程可编辑的耗时；至少比较冷/热缓存，注明网络和设备。
+- [x] 有多个历史修订时，首屏不再随全部历史正文线性膨胀；历史完整性、旧版恢复、并发保存 CAS 和当前 exact digest 校验回归通过。
+- [x] loader 测试验证全部 preload 先开始、执行有序、失败短路、重复启动保护。
+- [x] 部署信息请求失败时，课程列表与编辑仍可初始化；永不完成由不等待该 Promise 的单元契约覆盖。
+- [x] 导航自动化执行普通点击并断言目标页面与 exact ID；没有把只存在 href 或 Ctrl＋点击算作成功。
+- [x] 当前应用入口的来源、目标、权限与自动化结果已写入矩阵；T-109 新入口和 T-088 实机列保持待验。
+- [x] 所有写入只发生在隔离临时 D1；没有发布课程、创建 Production、代签人工回执或修改生产用户数据。
 
 ## 依赖与顺序
 
