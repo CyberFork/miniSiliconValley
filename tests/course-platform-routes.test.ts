@@ -11,7 +11,10 @@ const required = [
   "app/studio/releases/page.tsx",
   "app/course/page.tsx",
   "app/course/[slug]/page.tsx",
+  "app/studio/courseware/[packageId]/page.tsx",
+  "app/courseware-assets/[packageId]/[revision]/[digest]/[...path]/route.ts",
   "app/classroom/[classroomId]/page.tsx",
+  "app/classroom/[classroomId]/courseware/[mentorRole]/page.tsx",
   "app/classroom/[classroomId]/control/page.tsx",
   "app/classroom/[classroomId]/screen/page.tsx",
   "app/classroom/[classroomId]/members/page.tsx",
@@ -55,8 +58,30 @@ test("T-096 makes /course/ a registry-backed Released library for real learners 
   assert.match(player, /isCoursewareLibraryVisible\(item\)/);
   assert.match(access, /"admin", "mentor", "learner"/);
   assert.match(access, /user\.impersonation \|\| user\.mustChangePassword/);
-  assert.match(store, /item\.contentKind === "static-bundle" \|\| item\.ownerProfileId !== SYSTEM_PROFILE/);
+  assert.match(store, /availability === "playable"/);
+  assert.match(store, /courseware_releases/);
   assert.doesNotMatch(directory, /href=\{?['"]\/course\/(?:product|development)/);
+});
+
+test("T-100 separates author Candidate preview, historical releases and exact classroom playback", () => {
+  const internalPreview = readFileSync(new URL("app/studio/courseware/[packageId]/page.tsx", root), "utf8");
+  const classroomPreview = readFileSync(new URL("app/classroom/[classroomId]/courseware/[mentorRole]/page.tsx", root), "utf8");
+  const asset = readFileSync(new URL("app/courseware-assets/[packageId]/[revision]/[digest]/[...path]/route.ts", root), "utf8");
+  const runtime = readFileSync(new URL("app/classroom/ClassroomRuntime.tsx", root), "utf8");
+  const factoryStore = readFileSync(new URL("app/lib/classroom-platform-store.ts", root), "utf8");
+  const gateway = readFileSync(new URL("deploy/minisv/gateway/default.conf", root), "utf8");
+
+  assert.match(internalPreview, /item\.ownerProfileId === user\.userId/);
+  assert.match(internalPreview, /item\.availability === "placeholder"/);
+  assert.match(classroomPreview, /getClassroomInstance\(db, actor, classroomId\)/);
+  assert.match(classroomPreview, /loadCoursewareExact\(db, ref\.packageId, ref\.revision, ref\.digest\)/);
+  assert.match(classroomPreview, /尚未提供真实导师课件/);
+  assert.match(runtime, /\/classroom\/\$\{encodeURIComponent\(data\.id\)\}\/courseware\/\$\{view\.mentorRole\}/);
+  assert.match(factoryStore, /COURSEWARE_PLACEHOLDER_FORBIDDEN/);
+  assert.match(asset, /canReadCandidateBundle/);
+  assert.match(asset, /Content-Security-Policy/);
+  assert.match(asset, /X-Content-Type-Options/);
+  assert.match(gateway, /location \^~ \/courseware-assets\//);
 });
 
 test("exact Studio preview login preserves course, revision and digest", () => {

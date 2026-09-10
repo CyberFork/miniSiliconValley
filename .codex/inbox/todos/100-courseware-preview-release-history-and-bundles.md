@@ -2,7 +2,7 @@
 type: todo
 id: T-100
 title: "闭合课件内部预览、历史发布与多文件资源更新"
-status: backlog
+status: done
 created: 2026-09-10
 captured_by: project-inbox
 priority: P1
@@ -10,6 +10,7 @@ priority_basis: audit-recommendation
 parent: T-097
 depends_on: [T-098]
 related: [T-085, T-092, T-096]
+completed: 2026-09-10
 ---
 
 # 闭合课件内部预览、历史发布与多文件资源更新
@@ -40,10 +41,18 @@ related: [T-085, T-092, T-096]
 
 ## 验收
 
-- [ ] 保存未发布HTML→作者立即预览成功，普通学员/匿名不能读取。
-- [ ] r0发布并绑定课堂→保存/发布r1→老课堂仍能播放r0，新目录默认r1。
-- [ ] 新旧资源字节与各自digest均匹配，刷新/整站升级后不漂移。
-- [ ] P/D/M可登录播放；O缺少真实PPT时明确告知，不显示失效链接。
-- [ ] 静态资源匿名仍受保护，登录返回保留revision/slide/step。
-- [ ] 未修改已确认的P原始包，不用HTML改写或AI补内容绕过作者审核。
+- [x] 保存未发布HTML→作者立即预览成功，普通学员/匿名不能读取。
+- [x] r0发布并绑定课堂→保存/发布r1→老课堂仍能播放r0，新目录默认r1。
+- [x] 新旧资源字节与各自digest均匹配，刷新/整站升级后不漂移。
+- [x] P/D/M可登录播放；O缺少真实PPT时明确告知，不显示失效链接。
+- [x] 静态资源匿名仍受保护，登录返回保留revision/slide/step。
+- [x] 未修改已确认的P原始包，不用HTML改写或AI补内容绕过作者审核。
 
+## 完成回执（2026-09-10）
+
+- 新增 append-only `courseware_releases`，当前默认 pointer 与历史发布彻底分离；历史 exact revision 继续可读。
+- 新增受权限保护的 Studio Candidate exact 预览与课堂绑定 exact 课件入口；Production 继续只接受真实 Released 课件。
+- 新增目录式多文件资源包上传、分块校验、manifest/tree digest、不可变版本与 exact 资源服务；不接受压缩包，因此服务器无解压、符号链接或压缩炸弹路径。
+- O 的 system inline kit 被显式标为 placeholder；Test 可验证结构，Production 服务端拒绝，界面不再伪造可播放链接。
+- 数据库迁移、schema 生成物、Nginx 路由、Studio 管理界面、测试与实施文档同步完成。
+- 自动验证：`typecheck`、`lint`、98 项 `test:course-platform`、`build:minisv-app`、`git diff --check` 通过。部署与登录后线上烟测随本批 Todo 的统一发布执行。

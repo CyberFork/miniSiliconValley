@@ -18,6 +18,8 @@ const tables = [
   "course_view_acceptance_receipts", "course_ui_acceptance_receipts", "classroom_acceptance_bindings",
   "auth_impersonations",
   "course_exact_integrity_guard",
+  "courseware_releases", "courseware_exact_integrity_guard", "courseware_bundle_uploads",
+  "courseware_bundle_files", "courseware_bundle_chunks", "courseware_bundle_versions",
 ];
 const migrationNames = readdirSync(new URL("../drizzle/", import.meta.url)).filter((name) => /^\d{4}_.*\.sql$/.test(name)).sort();
 assert.ok(migrationNames.length >= 2, "classroom and auth migrations are required");
@@ -46,8 +48,8 @@ test("runtime schema bootstrap is idempotent and exactly mirrors the migration",
     if (/^UPDATE\s/i.test(executable)) {
       assert.match(executable, /WHERE [\s\S]*(?:IS NULL|<\s*2)/i, "data updates must be guarded and repeatable");
     } else if (/^INSERT OR IGNORE\s/i.test(executable)) {
-      assert.match(executable, /(?:classroom_admin_dm_grants|classroom_script_progress)/, "backfills must be conflict-safe and repeatable");
-    } else if (/^INSERT INTO `course_exact_integrity_guard`/i.test(executable)) {
+      assert.match(executable, /(?:classroom_admin_dm_grants|classroom_script_progress|courseware_releases)/, "backfills must be conflict-safe and repeatable");
+    } else if (/^INSERT INTO `(?:course|courseware)_exact_integrity_guard`/i.test(executable)) {
       assert.match(executable, /CASE WHEN[\s\S]*ON CONFLICT\(`id`\) DO NOTHING/, "exact preflight must fail closed and remain repeatable");
     } else if (/^DROP INDEX IF EXISTS\s/i.test(executable)) {
       assert.match(executable, /uidx_course_versions_digest/, "only the superseded digest-only identity may be dropped");
@@ -80,6 +82,10 @@ test("unified course factory keeps release, courseware, permissions and script p
     "trg_course_candidate_exact_insert",
     "trg_course_release_exact_update",
     "trg_classroom_instance_course_exact_insert",
+    "uidx_courseware_releases_exact",
+    "uidx_courseware_bundle_versions_tree",
+    "trg_courseware_version_immutable_update",
+    "trg_courseware_release_exact_insert",
   ]) assert.match(migration, new RegExp(marker));
   assert.match(migration, /DROP INDEX IF EXISTS `uidx_course_versions_digest`/);
   assert.match(migration, /CHECK \(`environment` in \('test', 'production'\)\)/);

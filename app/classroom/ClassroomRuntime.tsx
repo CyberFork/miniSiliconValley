@@ -453,7 +453,7 @@ function MentorView({ data, view, courseware }: {
     {view.privateScript.length > 0
       ? <><h3>当值导师私有提示</h3><ul>{view.privateScript.map((line) => <li key={line}>{line}</li>)}</ul></>
       : <p className={styles.standbyNote}>你当前不是主讲席：只显示自己的观察任务，不复制当值导师的私有讲稿。</p>}
-    {courseware && !data.viewer.impersonationId && <a className={styles.coursewareLink} href={`/course/${courseware.slug}/?revision=${courseware.revision}`} target="_blank" rel="noreferrer">打开 {view.mentorRole} 导师 exact 课件 →</a>}
+    {courseware && <a className={styles.coursewareLink} href={`/classroom/${encodeURIComponent(data.id)}/courseware/${view.mentorRole}/`} target="_blank" rel="noreferrer">打开 {view.mentorRole} 导师 exact 课件 →</a>}
     {data.handoffs.length > 0 && <section className={styles.handoffArtifacts}><h3>已通过的上游交付物</h3>{data.handoffs.map((handoff) => <article key={handoff.submission.id}><header><b>{handoff.artifactName} · {handoff.submission.displayName}</b><span>{handoff.fromBlockId} 由 {handoff.fromMentorRole} 导师通过</span></header><dl>{Object.entries(handoff.submission.values ?? {}).map(([key, value]) => <div key={key}><dt>{handoff.fieldLabels[key] ?? key}</dt><dd>{value}</dd></div>)}</dl></article>)}</section>}
     <p>学员这一页的任务：{data.page.studentPrompt}</p>
   </>;
@@ -509,7 +509,7 @@ function ControlView({ data, busy, requestUnlock, reset, receipt }: {
 function MembersView({ data }: { data: ClassroomInstanceDetail }) {
   if (!data.isAdminDm) return <section className={styles.card}><h1>需要 Admin DM 权限</h1></section>;
   return <><RuntimeHeading data={data} eyebrow="MEMBERSHIP · EXACT BINDINGS" /><div className={styles.membersGrid}>
-    <section className={styles.membersList}><h2>P／D／M／O 导师席</h2><ul>{data.mentors.map((item) => <li key={item.mentorRole}><span><b>{item.mentorRole} · {item.displayName}</b><br /><code>{item.profileId}</code></span><a className={styles.coursewareLink} href={`/course/${item.courseware.slug}/?revision=${item.courseware.revision}`} target="_blank" rel="noreferrer">课件 r{item.courseware.revision}</a></li>)}</ul></section>
+    <section className={styles.membersList}><h2>P／D／M／O 导师席</h2><ul>{data.mentors.map((item) => <li key={item.mentorRole}><span><b>{item.mentorRole} · {item.displayName}</b><br /><code>{item.profileId}</code></span><a className={styles.coursewareLink} href={`/classroom/${encodeURIComponent(data.id)}/courseware/${item.mentorRole}/`} target="_blank" rel="noreferrer">课件 r{item.courseware.revision}</a></li>)}</ul></section>
     <section className={styles.membersList}><h2>{data.learners.length}/{data.team.seatLimit} 学员 Membership</h2><ul>{data.learners.map((item) => <li key={item.profileId}><span><b>席位 {item.seat} · {item.displayName}</b><br /><code>{item.profileId}</code></span></li>)}</ul></section>
     <section className={styles.membersList}><h2>Admin DM 权限</h2><p>Primary 可以委派；Delegated 可以管理课堂，但不能继续授权。</p><ul>{data.admins.map((item) => <li key={item.profileId}><span><b>{item.displayName}</b><br /><code>{item.profileId}</code></span><span className={styles.state}>{item.mode === "primary" ? "PRIMARY · 可委派" : "DELEGATED · 不可转授"}</span></li>)}</ul></section>
     <section className={styles.membersList}><h2>锁定的版本</h2><ul><li><span><b>CourseRelease r{data.courseRef.revision}</b><br /><code>{data.courseRef.digest}</code></span></li>{data.courseware.map((item) => <li key={item.mentorRole}><span><b>{item.mentorRole} · {item.slug} · r{item.revision}</b><br /><code>{item.digest}</code></span></li>)}</ul></section>

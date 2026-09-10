@@ -5,6 +5,18 @@ import { CLASSROOM_MENTOR_ROLES, type ClassroomMentorRole, type ExactCoursewareR
 
 export const MAX_COURSEWARE_HTML_BYTES = 512 * 1024;
 
+export type CoursewareReleaseStatus = "current" | "historical" | null;
+export type CoursewareAvailability = "playable" | "placeholder";
+export type CoursewareVersionSummary = {
+  revision: number;
+  digest: string;
+  contentKind: "inline-html" | "static-bundle";
+  byteLength: number;
+  createdAt: string;
+  releaseStatus: CoursewareReleaseStatus;
+  treeDigest: string | null;
+};
+
 export type CoursewareSummary = {
   packageId: string;
   slug: string;
@@ -17,6 +29,8 @@ export type CoursewareSummary = {
   releasedRevision: number | null;
   releasedDigest: string | null;
   contentKind: "inline-html" | "static-bundle";
+  availability: CoursewareAvailability;
+  versions: CoursewareVersionSummary[];
   updatedAt: string;
 };
 
@@ -26,10 +40,13 @@ export type CoursewareContent = ExactCoursewareRef & {
   contentKind: "inline-html" | "static-bundle";
   htmlContent: string | null;
   entryPath: string | null;
+  availability: CoursewareAvailability;
+  releaseStatus: CoursewareReleaseStatus;
   released: boolean;
 };
 
-const SYSTEM_PROFILE = "system-courseware";
+export const SYSTEM_COURSEWARE_PROFILE = "system-courseware";
+const SYSTEM_PROFILE = SYSTEM_COURSEWARE_PROFILE;
 // These identifiers are validated again by build-chj-course.sh and the release
 // packager. Including them in the canonical value means a classroom's exact
 // P-courseware digest changes when (and only when) the pinned colleague source
@@ -111,6 +128,10 @@ function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]!);
 }
 
+export function coursewareAvailability(ownerProfileId: string, contentKind: "inline-html" | "static-bundle"): CoursewareAvailability {
+  return ownerProfileId === SYSTEM_PROFILE && contentKind === "inline-html" ? "placeholder" : "playable";
+}
+
 async function sha256(value: string): Promise<string> {
   const bytes = new TextEncoder().encode(value);
   const digest = await crypto.subtle.digest("SHA-256", bytes);
@@ -145,6 +166,10 @@ export async function ensureBundledCourseware(db: ClassroomD1): Promise<void> {
         `INSERT OR IGNORE INTO courseware_release_pointers
          (package_id, revision, digest, released_at, released_by_profile_id) VALUES (?, 0, ?, ?, ?)`,
       ).bind(item.id, digest, now, SYSTEM_PROFILE),
+      db.prepare(
+        `INSERT OR IGNORE INTO courseware_releases
+         (package_id, revision, digest, released_at, released_by_profile_id) VALUES (?, 0, ?, ?, ?)`,
+      ).bind(item.id, digest, now, SYSTEM_PROFILE),
     ]);
   }
 }
@@ -165,6 +190,34 @@ export async function listCourseware(db: ClassroomD1): Promise<CoursewareSummary
     status: "active" | "retired"; updated_at: string; latest_revision: number; latest_digest: string;
     content_kind: "inline-html" | "static-bundle"; released_revision: number | null; released_digest: string | null;
   }>();
+  const versionRows = await db.prepare(
+    `SELECT v.package_id, v.revision, v.digest, v.content_kind, v.byte_length, v.created_at,
+            bv.tree_digest,
+            CASE WHEN rp.revision = v.revision AND rp.digest = v.digest THEN 'current'
+                 WHEN cr.revision IS NOT NULL THEN 'historical' ELSE NULL END AS release_status
+     FROM courseware_versions v
+     LEFT JOIN courseware_release_pointers rp ON rp.package_id = v.package_id
+     LEFT JOIN courseware_releases cr ON cr.package_id = v.package_id AND cr.revision = v.revision AND cr.digest = v.digest
+     LEFT JOIN courseware_bundle_versions bv ON bv.package_id = v.package_id AND bv.revision = v.revision AND bv.digest = v.digest
+     ORDER BY v.package_id, v.revision DESC`,
+  ).all<{
+    package_id: string; revision: number; digest: string; content_kind: "inline-html" | "static-bundle";
+    byte_length: number; created_at: string; tree_digest: string | null; release_status: CoursewareReleaseStatus;
+  }>();
+  const versionsByPackage = new Map<string, CoursewareVersionSummary[]>();
+  for (const row of versionRows.results ?? []) {
+    const versions = versionsByPackage.get(row.package_id) ?? [];
+    versions.push({
+      revision: row.revision,
+      digest: row.digest,
+      contentKind: row.content_kind,
+      byteLength: row.byte_length,
+      createdAt: row.created_at,
+      releaseStatus: row.release_status,
+      treeDigest: row.tree_digest,
+    });
+    versionsByPackage.set(row.package_id, versions);
+  }
   return (result.results ?? []).map((row) => ({
     packageId: row.package_id,
     slug: row.slug,
@@ -177,6 +230,8 @@ export async function listCourseware(db: ClassroomD1): Promise<CoursewareSummary
     releasedRevision: row.released_revision,
     releasedDigest: row.released_digest,
     contentKind: row.content_kind,
+    availability: coursewareAvailability(row.owner_profile_id, row.content_kind),
+    versions: versionsByPackage.get(row.package_id) ?? [],
     updatedAt: row.updated_at,
   }));
 }
@@ -187,12 +242,13 @@ export async function listCourseware(db: ClassroomD1): Promise<CoursewareSummary
  * they must never masquerade as published courses. Team-authored inline HTML
  * remains eligible once explicitly released.
  */
-export function isCoursewareLibraryVisible(item: Pick<CoursewareSummary | CoursewareContent, "ownerProfileId" | "contentKind"> & { releasedRevision?: number | null; released?: boolean }): boolean {
+export function isCoursewareLibraryVisible(item: Pick<CoursewareSummary | CoursewareContent, "ownerProfileId" | "contentKind"> & { availability?: CoursewareAvailability; releasedRevision?: number | null; released?: boolean }): boolean {
   const released = "released" in item ? item.released : item.releasedRevision !== null && item.releasedRevision !== undefined;
-  return Boolean(released) && (item.contentKind === "static-bundle" || item.ownerProfileId !== SYSTEM_PROFILE);
+  const availability = item.availability ?? coursewareAvailability(item.ownerProfileId, item.contentKind);
+  return Boolean(released) && availability === "playable";
 }
 
-function requireCoursewareAuthor(user: AuthenticatedClassroomUser): void {
+export function requireCoursewareAuthor(user: AuthenticatedClassroomUser): void {
   if (user.platformRole !== "admin" && user.platformRole !== "mentor") {
     throw new ClassroomError("COURSEWARE_AUTHOR_REQUIRED", "只有导师或管理员可以管理课件。", 403);
   }
@@ -288,20 +344,27 @@ export async function releaseCoursewareVersion(
   const now = new Date().toISOString();
   const current = await db.prepare(`SELECT revision FROM courseware_release_pointers WHERE package_id = ?`).bind(ref.packageId).first<{ revision: number }>();
   if (current && current.revision > ref.revision) throw new ClassroomError("COURSEWARE_RELEASE_ROLLBACK", "不能把课件默认版本回退。", 409);
-  await db.prepare(
-    `INSERT INTO courseware_release_pointers (package_id, revision, digest, released_at, released_by_profile_id)
-     VALUES (?, ?, ?, ?, ?)
-     ON CONFLICT(package_id) DO UPDATE SET revision = excluded.revision, digest = excluded.digest,
-       released_at = excluded.released_at, released_by_profile_id = excluded.released_by_profile_id`,
-  ).bind(ref.packageId, ref.revision, ref.digest, now, user.userId).run();
+  await db.batch([
+    db.prepare(
+      `INSERT OR IGNORE INTO courseware_releases
+       (package_id, revision, digest, released_at, released_by_profile_id) VALUES (?, ?, ?, ?, ?)`,
+    ).bind(ref.packageId, ref.revision, ref.digest, now, user.userId),
+    db.prepare(
+      `INSERT INTO courseware_release_pointers (package_id, revision, digest, released_at, released_by_profile_id)
+       VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(package_id) DO UPDATE SET revision = excluded.revision, digest = excluded.digest,
+         released_at = excluded.released_at, released_by_profile_id = excluded.released_by_profile_id`,
+    ).bind(ref.packageId, ref.revision, ref.digest, now, user.userId),
+  ]);
 }
 
-export async function loadCoursewareBySlug(db: ClassroomD1, slug: string, revision?: number): Promise<CoursewareContent> {
+export async function loadCoursewareBySlug(db: ClassroomD1, slug: string, revision?: number, digest?: string): Promise<CoursewareContent> {
   await ensureBundledCourseware(db);
   const row = revision === undefined
     ? await db.prepare(`SELECT p.id AS package_id, rp.revision, rp.digest FROM courseware_packages p JOIN courseware_release_pointers rp ON rp.package_id = p.id WHERE p.slug = ? AND p.status = 'active'`).bind(slug).first<{ package_id: string; revision: number; digest: string }>()
     : await db.prepare(`SELECT p.id AS package_id, v.revision, v.digest FROM courseware_packages p JOIN courseware_versions v ON v.package_id = p.id WHERE p.slug = ? AND v.revision = ? AND p.status = 'active'`).bind(slug, revision).first<{ package_id: string; revision: number; digest: string }>();
   if (!row) throw new ClassroomError("COURSEWARE_NOT_FOUND", "没有找到这个课件版本。", 404);
+  if (digest !== undefined && row.digest !== digest) throw new ClassroomError("COURSEWARE_VERSION_NOT_FOUND", "课件 revision 与 digest 不匹配。", 404);
   return loadCoursewareExact(db, row.package_id, row.revision, row.digest);
 }
 
@@ -310,15 +373,17 @@ export async function loadCoursewareExact(db: ClassroomD1, packageId: string, re
   const row = await db.prepare(
     `SELECT p.id AS package_id, p.slug, p.title, p.mentor_role, p.owner_profile_id,
             v.revision, v.digest, v.content_kind, v.html_content, v.entry_path,
-            CASE WHEN rp.revision = v.revision AND rp.digest = v.digest THEN 1 ELSE 0 END AS released
+            CASE WHEN rp.revision = v.revision AND rp.digest = v.digest THEN 'current'
+                 WHEN cr.revision IS NOT NULL THEN 'historical' ELSE NULL END AS release_status
      FROM courseware_packages p
      JOIN courseware_versions v ON v.package_id = p.id
      LEFT JOIN courseware_release_pointers rp ON rp.package_id = p.id
+     LEFT JOIN courseware_releases cr ON cr.package_id = p.id AND cr.revision = v.revision AND cr.digest = v.digest
      WHERE p.id = ? AND v.revision = ? AND v.digest = ?`,
   ).bind(packageId, revision, digest).first<{
     package_id: string; slug: string; title: string; mentor_role: ClassroomMentorRole; owner_profile_id: string;
     revision: number; digest: string; content_kind: "inline-html" | "static-bundle"; html_content: string | null;
-    entry_path: string | null; released: number;
+    entry_path: string | null; release_status: CoursewareReleaseStatus;
   }>();
   if (!row) throw new ClassroomError("COURSEWARE_VERSION_NOT_FOUND", "找不到 exact 课件版本。", 404);
   return {
@@ -332,8 +397,14 @@ export async function loadCoursewareExact(db: ClassroomD1, packageId: string, re
     contentKind: row.content_kind,
     htmlContent: row.html_content,
     entryPath: row.entry_path,
-    released: Boolean(row.released),
+    availability: coursewareAvailability(row.owner_profile_id, row.content_kind),
+    releaseStatus: row.release_status,
+    released: row.release_status !== null,
   };
+}
+
+export function canManageCourseware(user: AuthenticatedClassroomUser, content: Pick<CoursewareContent, "ownerProfileId">): boolean {
+  return user.platformRole === "admin" || (user.platformRole === "mentor" && content.ownerProfileId === user.userId);
 }
 
 export function defaultCoursewareRefs(summaries: CoursewareSummary[]): ExactCoursewareRef[] {

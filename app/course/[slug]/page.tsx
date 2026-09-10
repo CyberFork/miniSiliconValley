@@ -15,9 +15,10 @@ function nonNegativeInteger(value: string | string[] | undefined): number | unde
   return Number.isSafeInteger(parsed) ? parsed : undefined;
 }
 
-function exactCoursewarePath(slug: string, revision?: number, slide?: number, step?: number): string {
+function exactCoursewarePath(slug: string, revision?: number, digest?: string, slide?: number, step?: number): string {
   const query = new URLSearchParams();
   if (revision !== undefined) query.set("revision", String(revision));
+  if (digest) query.set("digest", digest);
   if (slide !== undefined && slide >= 1) query.set("slide", String(slide));
   if (step !== undefined) query.set("step", String(step));
   const suffix = query.toString();
@@ -34,9 +35,10 @@ export default async function CoursewarePage({
   const { slug } = await params;
   const query = await searchParams;
   const revision = nonNegativeInteger(query.revision);
+  const digest = typeof query.digest === "string" && /^[0-9a-f]{64}$/.test(query.digest) ? query.digest : undefined;
   const slide = nonNegativeInteger(query.slide);
   const step = nonNegativeInteger(query.step);
-  const returnTo = exactCoursewarePath(slug, revision, slide, step);
+  const returnTo = exactCoursewarePath(slug, revision, digest, slide, step);
   const user = await getChatGPTUser();
   if (!user) redirect(chatGPTSignInPath(returnTo));
   requireCompletedPasswordSetup(user, returnTo);
@@ -46,7 +48,7 @@ export default async function CoursewarePage({
   await ensureClassroomSchema(db);
   let item;
   try {
-    item = await loadCoursewareBySlug(db, slug, revision);
+    item = await loadCoursewareBySlug(db, slug, revision, digest);
   } catch (error) {
     if (error instanceof ClassroomError && error.status === 404) notFound();
     throw error;

@@ -8,7 +8,7 @@ import type { IssuedManagedCredential } from "../lib/auth-model";
 import type { ClassroomInstanceSummary } from "../lib/classroom-platform-store";
 import type { UiAcceptanceReceipt, ViewAcceptanceReceipt } from "../lib/course-acceptance";
 import type { CoursePackage, CoursePackageRef } from "../lib/course-package";
-import type { CoursewareSummary } from "../lib/courseware-store";
+import { isCoursewareLibraryVisible, type CoursewareSummary } from "../lib/courseware-store";
 import { BrandHomeLink } from "../components/BrandHomeLink";
 import { AccountMenu, type AccountMenuUser } from "../components/AccountMenu";
 import factoryStyles from "./classroom-factory.module.css";
@@ -187,7 +187,7 @@ function FactoryPanel({ bootstrap, accounts, currentUserId, currentUserRole, ini
   const [busy, setBusy] = useState(false);
   const [credentials, setCredentials] = useState<IssuedManagedCredential[]>([]);
 
-  const coursewareOptions = useMemo(() => Object.fromEntries(MENTOR_ROLES.map((role) => [role, bootstrap.courseware.filter((entry) => entry.mentorRole === role && (environment === "test" ? entry.latestRevision >= 0 : entry.releasedRevision !== null))])), [bootstrap.courseware, environment]);
+  const coursewareOptions = useMemo(() => Object.fromEntries(MENTOR_ROLES.map((role) => [role, bootstrap.courseware.filter((entry) => entry.mentorRole === role && (environment === "test" ? entry.latestRevision >= 0 : isCoursewareLibraryVisible(entry)))])), [bootstrap.courseware, environment]);
   const coursewareRefs = MENTOR_ROLES.map((role) => {
     const item = (coursewareOptions[role] ?? []).find((entry) => coursewareKey(entry, environment) === coursewareKeys[role]);
     if (!item) return null;
@@ -303,7 +303,7 @@ function FactoryPanel({ bootstrap, accounts, currentUserId, currentUserRole, ini
         <label>学员人数<select value={learnerCount} onChange={(event) => chooseLearnerCount(Number(event.target.value))}>{course ? Array.from({ length: course.learnerPolicy.maxCount - course.learnerPolicy.minCount + 1 }, (_, index) => course.learnerPolicy.minCount + index).map((count) => <option value={count} key={count}>{count} 名学员</option>) : null}</select></label>
         <label>Admin DM（权限，不占导师席）<select value={currentUserRole === "mentor" ? currentUserId : adminId} disabled={currentUserRole === "mentor"} onChange={(event) => setAdminId(event.target.value)}>{accounts.filter((item) => item.role === "admin" || item.role === "mentor").map((item) => <option key={item.userId} value={item.userId}>{item.displayName} · @{item.username}</option>)}</select><small>{currentUserRole === "mentor" ? "创建者将成为本课堂初始 Admin DM；开课前可再授权其他导师。" : "平台管理员可把初始 Admin DM 授予任一导师或管理员。"}</small></label>
         <div className={`${styles.mentorRows} ${styles.wide}`}><b>四个导师 Membership</b>{MENTOR_ROLES.map((role, index) => <div className={styles.mentorRow} key={role}><b>{role}</b><span>{ROLE_NAME[role]}导师</span><select aria-label={`${role} 导师账号`} value={mentorIds[index] ?? ""} onChange={(event) => setMentorIds((value) => value.map((id, at) => at === index ? event.target.value : id))}><option value="">请选择账号</option>{mentors.map((item) => <option key={item.userId} value={item.userId}>{item.displayName} · @{item.username}</option>)}</select></div>)}</div>
-        <div className={`${factoryStyles.coursewareRows} ${styles.wide}`}><b>四套 exact 导师课件</b>{MENTOR_ROLES.map((role) => <label key={role}><span>{role} · {ROLE_NAME[role]}</span><select aria-label={`${role} 导师课件`} value={coursewareKeys[role] ?? ""} onChange={(event) => setCoursewareKeys((value) => ({ ...value, [role]: event.target.value }))} disabled={environment === "production"}><option value="">请选择课件</option>{(coursewareOptions[role] ?? []).map((item) => <option key={coursewareKey(item, environment)} value={coursewareKey(item, environment)}>{item.title} · r{environment === "production" ? item.releasedRevision : item.latestRevision}</option>)}</select></label>)}</div>
+        <div className={`${factoryStyles.coursewareRows} ${styles.wide}`}><b>四套 exact 导师课件</b>{MENTOR_ROLES.map((role) => <label key={role}><span>{role} · {ROLE_NAME[role]}</span><select aria-label={`${role} 导师课件`} value={coursewareKeys[role] ?? ""} onChange={(event) => setCoursewareKeys((value) => ({ ...value, [role]: event.target.value }))} disabled={environment === "production"}><option value="">请选择课件</option>{(coursewareOptions[role] ?? []).map((item) => <option key={coursewareKey(item, environment)} value={coursewareKey(item, environment)}>{item.title} · r{environment === "production" ? item.releasedRevision : item.latestRevision}{item.availability === "placeholder" ? " · 内部占位（无真实课件）" : ""}</option>)}</select></label>)}</div>
         {environment === "production" && !coursewareMatchesReceipt && <div className={`${styles.factoryGateError} ${styles.wide}`}>UI 验收所用课件尚未全部发布为相同 exact revision／digest。请先在导师课件库发布对应版本。</div>}
         <div className={`${styles.learnerRows} ${styles.wide}`}>{learnerIds.map((id, index) => <label key={index}>学员 {index + 1}<select aria-label={`学员 ${index + 1} 账号`} value={id} onChange={(event) => setLearnerIds((value) => value.map((item, at) => at === index ? event.target.value : item))}><option value="">请选择账号</option>{learners.map((item) => <option key={item.userId} value={item.userId}>{item.displayName} · @{item.username}</option>)}</select></label>)}</div>
         <button className={`${styles.factoryButton} ${styles.wide}`} type="button" onClick={createClassroom} disabled={busy || !course || !viewReceipt || (environment === "production" && (!uiReceipt || !coursewareMatchesReceipt))}>{busy ? "正在执行不可变工厂事务…" : environment === "test" ? "创建真实 UI 验收课堂 →" : "创建 Production 正式课堂 →"}</button>
@@ -366,7 +366,7 @@ function initialCoursewareKeys(items: CoursewareSummary[], environment: "test" |
 
 function defaultCoursewareKeys(items: CoursewareSummary[], environment: "test" | "production"): Record<string, string> {
   return Object.fromEntries(MENTOR_ROLES.map((role) => {
-    const item = items.find((entry) => entry.mentorRole === role && (environment === "test" || entry.releasedRevision !== null));
+    const item = items.find((entry) => entry.mentorRole === role && (environment === "test" || isCoursewareLibraryVisible(entry)));
     return [role, item ? coursewareKey(item, environment) : ""];
   }));
 }

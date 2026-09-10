@@ -44,7 +44,7 @@ export default async function CourseLibrary() {
       <small>{item.mentorRole} · RELEASED COURSEWARE</small>
       <h2>{item.title}</h2>
       <p className={styles.meta}>packageId · {item.packageId}<br />slug · /{item.slug}/<br />revision · r{item.releasedRevision}<br />digest · {item.releasedDigest}</p>
-      <Link href={`/course/${item.slug}/?revision=${item.releasedRevision}`}>打开只读课件 →</Link>
+      <Link href={`/course/${item.slug}/?revision=${item.releasedRevision}&digest=${item.releasedDigest}`}>打开只读课件 →</Link>
     </article>)}</section>
   </main>;
 }

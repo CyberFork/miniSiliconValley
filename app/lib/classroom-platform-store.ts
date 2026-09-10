@@ -28,6 +28,7 @@ import {
 import { courseDataIdForRef, projectCoursePackageToCampaign, type CoursePackageRef } from "./course-package";
 import {
   loadCoursewareExact,
+  isCoursewareLibraryVisible,
   type CoursewareContent,
 } from "./courseware-store";
 import {
@@ -242,6 +243,9 @@ export async function createClassroomInstance(
     const content = await loadCoursewareExact(db, requested.packageId, requested.revision, requested.digest);
     if (content.mentorRole !== role) throw new ClassroomError("COURSEWARE_ROLE_MISMATCH", `${role} 导师课件角色不匹配。`, 409);
     if (request.environment === "production" && !content.released) throw new ClassroomError("COURSEWARE_RELEASE_REQUIRED", `正式课堂的 ${role} 课件必须已发布。`, 409);
+    if (request.environment === "production" && !isCoursewareLibraryVisible(content)) {
+      throw new ClassroomError("COURSEWARE_PLACEHOLDER_FORBIDDEN", `正式课堂的 ${role} 导师仍是内部占位课件，请先上传、验收并发布真实课件。`, 409);
+    }
     trustedCourseware.push(toExactCoursewareRef(content));
   }
   const declaredBindingIssues = declaredCoursewareBindingIssues(course, trustedCourseware);

@@ -675,6 +675,92 @@ export const coursewareReleasePointers = sqliteTable("courseware_release_pointer
   releasedByProfileId: text("released_by_profile_id").notNull().references(() => profiles.id),
 });
 
+/** Append-only publication ledger; the pointer above only chooses the default. */
+export const coursewareReleases = sqliteTable(
+  "courseware_releases",
+  {
+    packageId: text("package_id").notNull().references(() => coursewarePackages.id),
+    revision: integer("revision").notNull(),
+    digest: text("digest").notNull(),
+    releasedAt: text("released_at").notNull(),
+    releasedByProfileId: text("released_by_profile_id").notNull().references(() => profiles.id),
+  },
+  (table) => [
+    primaryKey({ columns: [table.packageId, table.revision] }),
+    uniqueIndex("uidx_courseware_releases_exact").on(table.packageId, table.revision, table.digest),
+    index("idx_courseware_releases_time").on(table.releasedAt, table.packageId),
+  ],
+);
+
+export const coursewareBundleUploads = sqliteTable(
+  "courseware_bundle_uploads",
+  {
+    id: text("id").primaryKey(),
+    packageId: text("package_id"),
+    slug: text("slug").notNull(),
+    title: text("title").notNull(),
+    mentorRole: text("mentor_role").notNull(),
+    ownerProfileId: text("owner_profile_id").notNull().references(() => profiles.id),
+    entryFile: text("entry_file").notNull(),
+    fileCount: integer("file_count").notNull(),
+    totalBytes: integer("total_bytes").notNull(),
+    status: text("status").notNull().default("uploading"),
+    resultRevision: integer("result_revision"),
+    resultDigest: text("result_digest"),
+    createdAt: text("created_at").notNull(),
+    expiresAt: text("expires_at").notNull(),
+    finalizedAt: text("finalized_at"),
+  },
+  (table) => [index("idx_courseware_bundle_upload_owner_status").on(table.ownerProfileId, table.status, table.createdAt)],
+);
+
+export const coursewareBundleFiles = sqliteTable(
+  "courseware_bundle_files",
+  {
+    uploadId: text("upload_id").notNull().references(() => coursewareBundleUploads.id, { onDelete: "cascade" }),
+    path: text("path").notNull(),
+    mediaType: text("media_type").notNull(),
+    byteLength: integer("byte_length").notNull(),
+    digest: text("digest").notNull(),
+    chunkCount: integer("chunk_count").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.uploadId, table.path] })],
+);
+
+export const coursewareBundleChunks = sqliteTable(
+  "courseware_bundle_chunks",
+  {
+    uploadId: text("upload_id").notNull(),
+    path: text("path").notNull(),
+    chunkIndex: integer("chunk_index").notNull(),
+    byteLength: integer("byte_length").notNull(),
+    digest: text("digest").notNull(),
+    dataBase64: text("data_base64").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.uploadId, table.path, table.chunkIndex] })],
+);
+
+export const coursewareBundleVersions = sqliteTable(
+  "courseware_bundle_versions",
+  {
+    packageId: text("package_id").notNull().references(() => coursewarePackages.id),
+    revision: integer("revision").notNull(),
+    digest: text("digest").notNull(),
+    uploadId: text("upload_id").notNull().references(() => coursewareBundleUploads.id),
+    entryFile: text("entry_file").notNull(),
+    manifestJson: text("manifest_json").notNull(),
+    treeDigest: text("tree_digest").notNull(),
+    fileCount: integer("file_count").notNull(),
+    totalBytes: integer("total_bytes").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.packageId, table.revision] }),
+    uniqueIndex("uidx_courseware_bundle_versions_upload").on(table.uploadId),
+    uniqueIndex("uidx_courseware_bundle_versions_tree").on(table.packageId, table.treeDigest),
+  ],
+);
+
 export const roomCoursewareBindings = sqliteTable(
   "room_courseware_bindings",
   {

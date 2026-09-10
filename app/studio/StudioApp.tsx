@@ -36,6 +36,8 @@ type Bootstrap = {
 };
 
 type InitialCourseRef = { courseId: string; revision: number; digest?: string } | null;
+type PreparedBundleFile = { file: File; path: string; digest: string };
+const COURSEWARE_UPLOAD_CHUNK_BYTES = 180 * 1024;
 
 const NAV_GROUPS: Array<{
   label: string;
@@ -335,10 +337,20 @@ function Projection({ projection }: { projection: ReturnType<typeof buildStudioP
 function CoursewareLibrary({ data, onChanged, onError }: { data: Bootstrap; onChanged: (message: string) => Promise<void>; onError: (value: string) => void }) {
   const [form, setForm] = useState({ packageId: "", title: "", slug: "", mentorRole: "P", html: "" });
   const [working, setWorking] = useState(false);
-  const editable = data.courseware.filter((item) => item.contentKind === "inline-html" && (data.user.role === "admin" || item.ownerProfileId === data.user.userId));
+  const [bundleForm, setBundleForm] = useState({ packageId: "", title: "", slug: "", mentorRole: "P", entryFile: "" });
+  const [bundleFiles, setBundleFiles] = useState<PreparedBundleFile[]>([]);
+  const [bundleProgress, setBundleProgress] = useState("");
+  const editable = data.courseware.filter((item) => item.contentKind === "inline-html" && item.availability === "playable" && (data.user.role === "admin" || item.ownerProfileId === data.user.userId));
+  const bundleEditable = data.courseware.filter((item) => item.ownerProfileId !== "system-courseware" && item.versions.length > 0 && item.versions.every((version) => Boolean(version.treeDigest)) && (data.user.role === "admin" || item.ownerProfileId === data.user.userId));
   const choosePackage = (packageId: string) => {
     const item = editable.find((entry) => entry.packageId === packageId);
     setForm(item ? { packageId: item.packageId, title: item.title, slug: item.slug, mentorRole: item.mentorRole, html: "" } : { packageId: "", title: "", slug: "", mentorRole: "P", html: "" });
+  };
+  const chooseBundlePackage = (packageId: string) => {
+    const item = bundleEditable.find((entry) => entry.packageId === packageId);
+    setBundleForm(item ? { packageId: item.packageId, title: item.title, slug: item.slug, mentorRole: item.mentorRole, entryFile: "" } : { packageId: "", title: "", slug: "", mentorRole: "P", entryFile: "" });
+    setBundleFiles([]);
+    setBundleProgress("");
   };
   const save = async () => {
     setWorking(true);
@@ -352,20 +364,74 @@ function CoursewareLibrary({ data, onChanged, onError }: { data: Bootstrap; onCh
     } catch (cause) { onError(messageOf(cause)); }
     finally { setWorking(false); }
   };
+  const selectBundle = async (event: ChangeEvent<HTMLInputElement>) => {
+    const selected = [...(event.target.files ?? [])];
+    event.target.value = "";
+    if (!selected.length) return;
+    setWorking(true);
+    onError("");
+    try {
+      setBundleProgress(`正在计算 ${selected.length} 个文件的 SHA-256…`);
+      const prepared = await prepareBundleFiles(selected);
+      const entryFile = prepared.find((item) => item.path.toLowerCase() === "index.html")?.path
+        ?? prepared.find((item) => /\.html?$/i.test(item.path))?.path
+        ?? "";
+      setBundleFiles(prepared);
+      setBundleForm((current) => ({ ...current, entryFile }));
+      setBundleProgress(`已校验 ${prepared.length} 个普通文件，共 ${formatBytes(prepared.reduce((sum, item) => sum + item.file.size, 0))}。`);
+    } catch (cause) { setBundleFiles([]); setBundleProgress(""); onError(messageOf(cause)); }
+    finally { setWorking(false); }
+  };
+  const saveBundle = async () => {
+    if (!bundleFiles.length || !bundleForm.entryFile) return;
+    setWorking(true);
+    onError("");
+    try {
+      const upload = await api<{ uploadId: string; totalBytes: number }>("/api/studio/courseware/bundles", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+          ...bundleForm,
+          ...(bundleForm.packageId ? { packageId: bundleForm.packageId } : {}),
+          files: bundleFiles.map((item) => ({ path: item.path, byteLength: item.file.size, digest: item.digest, mediaType: item.file.type || undefined })),
+        }),
+      });
+      let sent = 0;
+      for (const item of bundleFiles) {
+        for (let offset = 0, chunkIndex = 0; offset < item.file.size; offset += COURSEWARE_UPLOAD_CHUNK_BYTES, chunkIndex += 1) {
+          const bytes = new Uint8Array(await item.file.slice(offset, Math.min(item.file.size, offset + COURSEWARE_UPLOAD_CHUNK_BYTES)).arrayBuffer());
+          await api(`/api/studio/courseware/bundles/${encodeURIComponent(upload.uploadId)}/chunks`, {
+            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+              path: item.path, chunkIndex, digest: await browserSha256(bytes), dataBase64: bytesToBase64(bytes),
+            }),
+          });
+          sent += bytes.byteLength;
+          setBundleProgress(`正在上传 ${item.path} · ${Math.round(sent / upload.totalBytes * 100)}%`);
+        }
+      }
+      const result = await api<{ packageId: string; revision: number; digest: string; treeDigest: string }>(`/api/studio/courseware/bundles/${encodeURIComponent(upload.uploadId)}/finalize`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: "{}",
+      });
+      setBundleFiles([]);
+      setBundleForm({ packageId: "", title: "", slug: "", mentorRole: "P", entryFile: "" });
+      setBundleProgress("");
+      await onChanged(`多文件资源包已保存为 ${result.packageId} · r${result.revision}；tree ${result.treeDigest.slice(0, 16)}…。`);
+    } catch (cause) { onError(messageOf(cause)); }
+    finally { setWorking(false); }
+  };
   return <>
     <Heading eyebrow="COURSEWARE LIBRARY · PARALLEL RESOURCE LINE" title="导师课件库">P／D／M／O 课件与 CourseDefinition 并行制作。Test Classroom 绑定 exact 版本；Production 必须复用经过 UI 验收且仍为 Released 的同一组版本。</Heading>
     <section className={styles.panel}>
       <div className={styles.sectionTitle}><div><h2>已安装课件</h2><p>点击 exact 预览，打开的就是课堂导师会使用的版本。</p></div><Link href="/course/">进入导师课件播放 →</Link></div>
       <div className={styles.coursewareGrid}>{data.courseware.map((item) => {
-        const canManage = data.user.role === "admin" || item.ownerProfileId === data.user.userId;
+        const canManage = item.ownerProfileId !== "system-courseware" && (data.user.role === "admin" || item.ownerProfileId === data.user.userId);
         return <article className={styles.coursewareCard} data-role={item.mentorRole} key={item.packageId}>
-          <header><div><small>{item.mentorRole} · MENTOR COURSEWARE</small><h3>{item.title}</h3></div><span className={styles.badge}>{item.releasedRevision === item.latestRevision ? "已发布" : "有新版本"}</span></header>
-          <div className={styles.meta}>/{item.slug}/ · r{item.latestRevision}<br />{item.latestDigest.slice(0, 16)}… · {item.contentKind}</div>
+          <header><div><small>{item.mentorRole} · MENTOR COURSEWARE</small><h3>{item.title}</h3></div><span className={styles.badge}>{item.availability === "placeholder" ? "内部占位" : item.releasedRevision === item.latestRevision ? "已发布" : "有新版本"}</span></header>
+          <div className={styles.meta}>packageId · {item.packageId}<br />/{item.slug}/ · r{item.latestRevision}<br />{item.latestDigest} · {item.contentKind}</div>
           <div className={styles.actions}>
-            <Link href={`/course/${item.slug}/?revision=${item.latestRevision}`} target="_blank" rel="noopener noreferrer">打开 exact 预览 ↗</Link>
+            {item.availability === "playable" ? <Link href={`/studio/courseware/${encodeURIComponent(item.packageId)}/?revision=${item.latestRevision}&digest=${item.latestDigest}`} target="_blank" rel="noopener noreferrer">打开内部 exact 预览 ↗</Link> : <span className={styles.placeholderAction}>尚无真实课件 · 不提供失效链接</span>}
             {canManage && item.contentKind === "inline-html" && <button className={styles.buttonSecondary} type="button" onClick={() => choosePackage(item.packageId)}>创建下一版本</button>}
             {canManage && item.releasedRevision !== item.latestRevision && <button className={styles.button} type="button" onClick={async () => { try { await api("/api/studio/courseware/release", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ packageId: item.packageId, revision: item.latestRevision, digest: item.latestDigest }) }); await onChanged(`${item.title} r${item.latestRevision} 已发布。`); } catch (cause) { onError(messageOf(cause)); } }}>发布此版本</button>}
           </div>
+          <details className={styles.versionHistory}><summary>不可变版本历史 · {item.versions.length}</summary>{item.versions.map((version) => <div key={`${version.revision}:${version.digest}`}><span>r{version.revision} · {version.releaseStatus === "current" ? "当前发布" : version.releaseStatus === "historical" ? "历史已发布" : "Candidate"}</span><code>{version.digest}</code>{version.treeDigest && <code>tree · {version.treeDigest}</code>}{item.availability === "playable" && (version.releaseStatus || canManage) && <Link href={version.releaseStatus ? `/course/${item.slug}/?revision=${version.revision}&digest=${version.digest}` : `/studio/courseware/${encodeURIComponent(item.packageId)}/?revision=${version.revision}&digest=${version.digest}`} target="_blank" rel="noopener noreferrer">打开 r{version.revision} ↗</Link>}</div>)}</details>
         </article>;
       })}</div>
     </section>
@@ -380,6 +446,21 @@ function CoursewareLibrary({ data, onChanged, onError }: { data: Bootstrap; onCh
         <label>选择新版 .html 文件<input type="file" accept="text/html,.html" onChange={(event) => void readHtml(event, (html) => setForm((current) => ({ ...current, html })), onError)} /></label>
         <label className={styles.wide}>HTML 内容<textarea value={form.html} onChange={(event) => setForm({ ...form, html: event.target.value })} /></label>
         <div className={`${styles.actions} ${styles.wide}`}><button className={styles.button} disabled={working || !form.html} type="button" onClick={save}>{working ? "保存中…" : form.packageId ? "保存为下一不可变版本" : "创建课件版本"}</button>{form.packageId && <button className={styles.buttonSecondary} type="button" onClick={() => choosePackage("")}>取消更新</button>}</div>
+      </div>
+    </section>
+    <section className={styles.panel}>
+      <h2>{bundleForm.packageId ? "为既有多文件课件创建不可变新版本" : "导入 HTML＋本地 assets 资源包"}</h2>
+      <p className={styles.panelIntro}>选择已经解压的普通文件夹；浏览器逐文件上传，服务端重新校验每个分块、文件 SHA-256 和内容树摘要。系统不接收 ZIP／符号链接／私钥，因此不会在服务器解压压缩炸弹，也不会覆盖任何旧资源。</p>
+      <div className={styles.coursewareForm}>
+        <label className={styles.wide}>操作方式<select value={bundleForm.packageId} onChange={(event) => chooseBundlePackage(event.target.value)}><option value="">创建一套新的资源包课件</option>{bundleEditable.map((item) => <option value={item.packageId} key={item.packageId}>更新：{item.title} · 当前 r{item.latestRevision}</option>)}</select></label>
+        <label>导师角色<select disabled={Boolean(bundleForm.packageId)} value={bundleForm.mentorRole} onChange={(event) => setBundleForm({ ...bundleForm, mentorRole: event.target.value })}><option value="P">P · 产品</option><option value="D">D · 开发</option><option value="M">M · 市场</option><option value="O">O · 运营</option></select></label>
+        <label>课件标题<input disabled={Boolean(bundleForm.packageId)} value={bundleForm.title} onChange={(event) => setBundleForm({ ...bundleForm, title: event.target.value })} /></label>
+        <label>URL slug<input disabled={Boolean(bundleForm.packageId)} placeholder="operations-playbook" value={bundleForm.slug} onChange={(event) => setBundleForm({ ...bundleForm, slug: event.target.value })} /></label>
+        <label>课件目录<input type="file" multiple {...({ webkitdirectory: "", directory: "" } as Record<string, string>)} onChange={(event) => void selectBundle(event)} /></label>
+        <label className={styles.wide}>HTML 入口<select value={bundleForm.entryFile} onChange={(event) => setBundleForm({ ...bundleForm, entryFile: event.target.value })}><option value="">请先选择包含 HTML 的目录</option>{bundleFiles.filter((item) => /\.html?$/i.test(item.path)).map((item) => <option value={item.path} key={item.path}>{item.path}</option>)}</select></label>
+        {bundleProgress && <div className={`${styles.bundleProgress} ${styles.wide}`} role="status">{bundleProgress}</div>}
+        {bundleFiles.length > 0 && <details className={`${styles.bundleManifest} ${styles.wide}`}><summary>上传清单 · {bundleFiles.length} 个文件 · {formatBytes(bundleFiles.reduce((sum, item) => sum + item.file.size, 0))}</summary>{bundleFiles.map((item) => <code key={item.path}>{item.path} · {formatBytes(item.file.size)} · {item.digest}</code>)}</details>}
+        <div className={`${styles.actions} ${styles.wide}`}><button className={styles.button} disabled={working || !bundleFiles.length || !bundleForm.entryFile || !bundleForm.title || !bundleForm.slug} type="button" onClick={() => void saveBundle()}>{working ? "正在校验与上传…" : bundleForm.packageId ? "保存资源包下一版本" : "创建不可变资源包"}</button>{bundleForm.packageId && <button className={styles.buttonSecondary} type="button" onClick={() => chooseBundlePackage("")}>取消更新</button>}</div>
       </div>
     </section>
   </>;
@@ -479,4 +560,43 @@ async function readHtml(event: ChangeEvent<HTMLInputElement>, onRead: (value: st
   try { onRead(await file.text()); }
   catch (cause) { onError(`读取失败：${messageOf(cause)}`); }
   finally { event.target.value = ""; }
+}
+
+async function prepareBundleFiles(files: File[]): Promise<PreparedBundleFile[]> {
+  if (files.length > 256) throw new Error("资源包最多包含 256 个文件。");
+  const rawPaths = files.map((file) => (file.webkitRelativePath || file.name).replaceAll("\\", "/"));
+  const roots = rawPaths.map((path) => path.split("/", 1)[0]);
+  const sharedRoot = roots.length > 0 && roots.every((root) => root === roots[0]) && rawPaths.every((path) => path.includes("/")) ? `${roots[0]}/` : "";
+  const prepared: PreparedBundleFile[] = [];
+  let totalBytes = 0;
+  for (let index = 0; index < files.length; index += 1) {
+    const file = files[index];
+    const path = sharedRoot ? rawPaths[index].slice(sharedRoot.length) : rawPaths[index];
+    if (file.size < 1 || file.size > 8 * 1024 * 1024) throw new Error(`文件 ${path} 必须为 1 B—8 MiB。`);
+    totalBytes += file.size;
+    if (totalBytes > 48 * 1024 * 1024) throw new Error("资源包总大小不能超过 48 MiB。");
+    prepared.push({ file, path, digest: await browserSha256(new Uint8Array(await file.arrayBuffer())) });
+  }
+  if (new Set(prepared.map((item) => item.path)).size !== prepared.length) throw new Error("资源包包含重复路径。");
+  if (!prepared.some((item) => /\.html?$/i.test(item.path))) throw new Error("资源包至少需要一个 HTML 入口文件。");
+  return prepared.sort((left, right) => left.path.localeCompare(right.path));
+}
+
+async function browserSha256(bytes: Uint8Array): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", bytes.slice().buffer);
+  return [...new Uint8Array(digest)].map((part) => part.toString(16).padStart(2, "0")).join("");
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  for (let offset = 0; offset < bytes.byteLength; offset += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(offset, Math.min(bytes.byteLength, offset + 0x8000)));
+  }
+  return btoa(binary);
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KiB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MiB`;
 }

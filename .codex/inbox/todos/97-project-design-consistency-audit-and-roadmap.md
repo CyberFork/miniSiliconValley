@@ -70,7 +70,7 @@ tags: [todo, audit, architecture, single-source-of-truth]
 - [T-099 课程保存的并发和 exact 指针一致性](99-candidate-save-concurrency-and-exact-integrity.md)：**已完成**；exact Candidate CAS、数据库不可变/引用守卫、发布竞态保护、部署只读 preflight 和浏览器显式冲突处理均已通过验证。
 
 ### P1：再完成可持续运行的版本与课堂链
-- [T-100 课件预览、历史发布与资源更新闭环](100-courseware-preview-release-history-and-bundles.md)：**已隔离复现**未发布预览被正式目录 gate 拦截；发布 r1 后旧 r0 不再可见。当前业务源码还有 fallback 链接与静态包更新通道缺口。
+- [T-100 课件预览、历史发布与资源更新闭环](100-courseware-preview-release-history-and-bundles.md)：**已完成**；Candidate 使用受控 Studio exact 预览，发布历史与默认 pointer 分离，旧 Released/旧课堂 exact 入口持续可读，并新增经服务端逐文件校验的不可变多文件资源包上传与播放链路。
 - [T-101 课堂状态原子性及弱网响应一致性](101-classroom-atomic-state-and-stale-response-protection.md)：**源码确认的非原子边界/待故障注入验证**；不能声称线上已经发生故障。
 - [T-102 验收身份、完成语义和回归矩阵](102-acceptance-contract-identity-and-completion-semantics.md)：**源码确认**验收 build ID 为固定 T-090 常量；T-095 修改投影/Runtime 后未改该标识，文档仍为14项、代码为16项。
 
