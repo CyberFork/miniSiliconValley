@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request, context: { params: Promise<{ classroomId: string }> }): Promise<Response> {
   return withPlatformApi(request, async ({ db, user }) => {
     const { classroomId } = await context.params;
-    const { expectedVersion, action, viewAsProfileId } = parseScriptAction(await readPlatformJson(request));
-    return applyScriptAction(db, user, classroomId, expectedVersion, action, viewAsProfileId);
+    const input = parseScriptAction(await readPlatformJson(request));
+    return applyScriptAction(db, user, classroomId, input);
   });
 }

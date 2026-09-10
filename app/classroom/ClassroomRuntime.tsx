@@ -1,16 +1,18 @@
 "use client";
 import Link from "../components/NavigationLink";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { AccountMenu, type AccountMenuUser } from "../components/AccountMenu";
 import type { ClassroomScriptAction } from "../lib/classroom-factory";
 import type { ClassroomInstanceDetail, ClassroomSharedScreenDetail } from "../lib/classroom-platform-store";
+import { canCommitClassroomRuntimeResponse, classroomDeviceDraftKey, classroomRuntimeRequestKey, type ClassroomRuntimeRequestIdentity } from "../lib/classroom-runtime-sync";
 import styles from "./platform.module.css";
 import manageStyles from "./platform-manage.module.css";
 
 type RuntimeView = "seat" | "control" | "members";
 type RuntimeProps = { classroomId: string; view: RuntimeView; user: AccountMenuUser };
 type NavigationState = { blockId: string | null; testSurface: string | null };
+type RuntimeSyncState = "connecting" | "online" | "offline";
 const UI_ACCEPTANCE_CHECKLIST = [
   ["sameRuntimeUi", "Test 与 Production 使用同一套页面、API 与状态机"],
   ["membershipsAndRbac", "四导师、N 学员、Admin DM 的 Membership 与 RBAC 均正确"],
@@ -55,13 +57,27 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
+  const [syncState, setSyncState] = useState<RuntimeSyncState>("connecting");
+  const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
   const [unlockTarget, setUnlockTarget] = useState<{ id: string; title: string } | null>(null);
   const observedUnlockVersion = useRef<number | null>(null);
+  const dataRef = useRef<ClassroomInstanceDetail | null>(null);
+  const loadRequestGeneration = useRef(0);
+  const activeLoad = useRef<AbortController | null>(null);
   const viewAsProfileId = navigation.testSurface && navigation.testSurface !== "control" && navigation.testSurface !== "screen"
     ? navigation.testSurface
     : undefined;
   const requestControlSurface = data?.environment === "test"
     && (navigation.testSurface === "control" || (!navigation.testSurface && view === "control"));
+  const runtimeRequestIdentity = useMemo<ClassroomRuntimeRequestIdentity>(() => ({
+    classroomId,
+    blockId: navigation.blockId,
+    viewProfileId: viewAsProfileId ?? null,
+    surface: requestControlSurface ? "control" : "seat",
+  }), [classroomId, navigation.blockId, requestControlSurface, viewAsProfileId]);
+  const requestIdentity = classroomRuntimeRequestKey(runtimeRequestIdentity);
+  const requestIdentityRef = useRef(requestIdentity);
+  useEffect(() => { requestIdentityRef.current = requestIdentity; }, [requestIdentity]);
   const writeUrl = useCallback((next: NavigationState) => {
     const url = new URL(window.location.href);
     if (next.blockId) url.searchParams.set("block", next.blockId); else url.searchParams.delete("block");
@@ -80,22 +96,60 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
     if (navigation.blockId) query.set("block", navigation.blockId);
     if (viewAsProfileId) query.set("viewAs", viewAsProfileId);
     if (requestControlSurface) query.set("surface", "control");
+    const identity = requestIdentity;
+    const requestGeneration = ++loadRequestGeneration.current;
+    activeLoad.current?.abort();
+    const controller = new AbortController();
+    activeLoad.current = controller;
+    if (!quiet) setSyncState("connecting");
     try {
-      const next = await api<ClassroomInstanceDetail>(`/api/platform/classrooms/${encodeURIComponent(classroomId)}${query.size ? `?${query}` : ""}`);
-      if (observedUnlockVersion.current !== null && next.script.version > observedUnlockVersion.current) {
+      const next = await api<ClassroomInstanceDetail>(`/api/platform/classrooms/${encodeURIComponent(classroomId)}${query.size ? `?${query}` : ""}`, { signal: controller.signal });
+      const previous = dataRef.current;
+      if (controller.signal.aborted || requestIdentityRef.current !== identity || !canCommitClassroomRuntimeResponse({
+        requestGeneration,
+        latestRequestGeneration: loadRequestGeneration.current,
+        expected: runtimeRequestIdentity,
+        actual: {
+          classroomId: next.runtimeIdentity.classroomId,
+          blockId: next.page.id,
+          viewProfileId: next.viewer.viewProfileId,
+          resetGeneration: next.runtimeIdentity.resetGeneration,
+        },
+        currentResetGeneration: previous?.runtimeIdentity.resetGeneration ?? null,
+      })) return;
+      if (previous && next.runtimeIdentity.resetGeneration > previous.runtimeIdentity.resetGeneration) {
+        setNotice(`课堂已进入新的运行 ${next.runtimeIdentity.runId}；旧运行的写入已被关闭。`);
+      } else if (observedUnlockVersion.current !== null && next.script.version > observedUnlockVersion.current) {
         setNotice(`${next.script.unlockedThroughBlockId} 已解锁；你仍停留在 ${next.page.id}，可自行翻页或一键回到最新。`);
       }
       observedUnlockVersion.current = next.script.version;
+      dataRef.current = next;
       setData(next);
+      setSyncState("online");
+      setLastSyncedAt(Date.now());
       if (!navigation.blockId) updateNavigation({ blockId: next.page.id });
       if (!quiet) setError("");
     }
-    catch (cause) { if (!quiet) setError(messageOf(cause)); }
-  }, [classroomId, navigation.blockId, requestControlSurface, updateNavigation, viewAsProfileId]);
+    catch (cause) {
+      if (isAbortError(cause) || requestGeneration !== loadRequestGeneration.current) return;
+      setSyncState("offline");
+      if (!quiet) setError(messageOf(cause));
+    }
+  }, [classroomId, navigation.blockId, requestControlSurface, requestIdentity, runtimeRequestIdentity, updateNavigation, viewAsProfileId]);
   useEffect(() => {
     const initial = window.setTimeout(() => { void load(); }, 0);
     const timer = window.setInterval(() => { if (document.visibilityState === "visible") void load(true); }, 4_000);
-    return () => { window.clearTimeout(initial); window.clearInterval(timer); };
+    const reconnect = () => { void load(); };
+    const disconnect = () => setSyncState("offline");
+    window.addEventListener("online", reconnect);
+    window.addEventListener("offline", disconnect);
+    return () => {
+      window.clearTimeout(initial);
+      window.clearInterval(timer);
+      window.removeEventListener("online", reconnect);
+      window.removeEventListener("offline", disconnect);
+      activeLoad.current?.abort();
+    };
   }, [load, view]);
 
   const navigateTo = useCallback((blockId: string) => { setNotice(""); updateNavigation({ blockId }); }, [updateNavigation]);
@@ -128,10 +182,14 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [data, navigateTo, requestBack, requestForward, view]);
 
-  const mutate = async <T,>(path: string, body: unknown, success: string): Promise<T | null> => {
+  const mutate = async <T,>(path: string, body: unknown, success: string, reload = true): Promise<T | null> => {
     setBusy(true); setError("");
-    try { const result = await api<T>(path, { method: "POST", body: JSON.stringify(body) }); setNotice(success); await load(); return result; }
-    catch (cause) { setError(messageOf(cause)); return null; }
+    try { const result = await api<T>(path, { method: "POST", body: JSON.stringify(body) }); setNotice(success); if (reload) await load(); return result; }
+    catch (cause) {
+      if (cause instanceof ApiRequestError && cause.status === 409) await load(true);
+      setError(`${messageOf(cause)}${cause instanceof ApiRequestError && cause.status === 409 ? " 已同步服务器最新状态，你的本地草稿仍保留。" : ""}`);
+      return null;
+    }
     finally { setBusy(false); }
   };
 
@@ -141,6 +199,8 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
     setUnlockTarget(null);
     const result = await mutate<ClassroomInstanceDetail["script"]>(`/api/platform/classrooms/${encodeURIComponent(classroomId)}/control`, {
       expectedVersion: data.script.version,
+      expectedRunId: data.runtimeIdentity.runId,
+      expectedResetGeneration: data.runtimeIdentity.resetGeneration,
       action: { type: "unlock-next", nextBlockId: target.id } satisfies ClassroomScriptAction,
       ...(viewAsProfileId ? { viewAsProfileId } : {}),
     }, `${target.id} 已解锁；其他人会收到通知，但不会被强制跳页。`);
@@ -155,6 +215,7 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
   return <main className={styles.runtime}>
     <RuntimeTop data={data} classroomId={classroomId} user={user} selectedSurface={String(selectedSurface)} onSwitch={switchSurface} />
     <div className={screenMode ? styles.screenShell : styles.runtimeMain}>
+      <RuntimeSync state={syncState} lastSyncedAt={lastSyncedAt} onRetry={() => void load()} />
       {error && <div className={styles.error} role="alert">{error}</div>}
       {notice && <div className={styles.notice} role="status">{notice}</div>}
       {view !== "members" && <PageNavigator data={data} busy={busy} onBack={requestBack} onForward={requestForward} onNavigate={navigateTo} />}
@@ -162,22 +223,34 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
       {view === "members" ? <MembersView data={data} /> : !roleProjectionReady ? <section className={styles.card} aria-live="polite">正在切换真实角色视图…</section> : screenMode ? <SharedScreen data={toSharedScreen(data)} />
         : selectedSurface === "control" ? <ControlView data={data} busy={busy}
           requestUnlock={() => data.scriptNavigation.nextLocked && setUnlockTarget(data.scriptNavigation.nextLocked)}
-          reset={() => mutate(`/api/platform/classrooms/${classroomId}/reset`, {}, "Test Classroom 已回到 B01；其他课堂不受影响。")}
+          reset={async () => {
+            const result = await mutate(`/api/platform/classrooms/${classroomId}/reset`, {
+              expectedRunId: data.runtimeIdentity.runId,
+              expectedResetGeneration: data.runtimeIdentity.resetGeneration,
+            }, "Test Classroom 已回到 B01；其他课堂不受影响。", false);
+            if (result) updateNavigation({ blockId: null });
+            return result;
+          }}
           receipt={(checks) => mutate(`/api/platform/classrooms/${classroomId}/receipt`, { checks, clientMatrix: currentClientMatrix() }, "UiAcceptanceReceipt 已生成；返回 Course Studio 即可发布。")}
-        /> : <SeatView
+        /> : <SeatView key={`${data.runtimeIdentity.runId}:${data.viewer.viewProfileId}:${data.page.id}`}
           data={data}
           busy={busy}
           submit={(input) => mutate(`/api/platform/classrooms/${classroomId}/submissions`, {
             blockId: data.page.id,
             ...input,
+            expectedRunId: data.runtimeIdentity.runId,
+            expectedResetGeneration: data.runtimeIdentity.resetGeneration,
             ...(viewAsProfileId ? { viewAsProfileId } : {}),
           }, input.schemaId && data.activitySchema
             ? `${data.activitySchema.name}已提交给 ${data.activitySchema.ownerMentorRole} 导师；退回修改或通过都会保留。`
             : `已保存到 ${data.page.id}；翻页不会改变这份记录。`)}
-          review={(submissionId, status, feedback, expectedUpdatedAt) => mutate(`/api/platform/classrooms/${classroomId}/submissions/${submissionId}/review`, {
+          review={(submissionId, status, feedback, expectedVersion, idempotencyKey) => mutate(`/api/platform/classrooms/${classroomId}/submissions/${submissionId}/review`, {
             status,
             feedback,
-            expectedUpdatedAt,
+            expectedVersion,
+            idempotencyKey,
+            expectedRunId: data.runtimeIdentity.runId,
+            expectedResetGeneration: data.runtimeIdentity.resetGeneration,
             ...(viewAsProfileId ? { viewAsProfileId } : {}),
           }, status === "accepted" ? "结构化成果已通过；到声明的交接页后，下游导师可以读取。" : "结构化成果已退回，学员会看到具体修改建议。")}
         />}
@@ -221,20 +294,42 @@ export function ClassroomScreenRuntime({ classroomId }: { classroomId: string })
   const [blockId, setBlockId] = useState<string | null>(() => typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("block"));
   const [data, setData] = useState<ClassroomSharedScreenDetail | null>(null);
   const [error, setError] = useState("");
+  const [syncState, setSyncState] = useState<RuntimeSyncState>("connecting");
+  const requestGeneration = useRef(0);
+  const activeRequest = useRef<AbortController | null>(null);
+  const expectedBlockRef = useRef(blockId);
+  useEffect(() => { expectedBlockRef.current = blockId; }, [blockId]);
   const load = useCallback(async (quiet = false) => {
+    const generation = ++requestGeneration.current;
+    activeRequest.current?.abort();
+    const controller = new AbortController();
+    activeRequest.current = controller;
     try {
-      const next = await api<ClassroomSharedScreenDetail>(`/api/platform/classrooms/${encodeURIComponent(classroomId)}/screen${blockId ? `?block=${encodeURIComponent(blockId)}` : ""}`);
+      const next = await api<ClassroomSharedScreenDetail>(`/api/platform/classrooms/${encodeURIComponent(classroomId)}/screen${blockId ? `?block=${encodeURIComponent(blockId)}` : ""}`, { signal: controller.signal });
+      if (controller.signal.aborted || generation !== requestGeneration.current || expectedBlockRef.current !== blockId) return;
+      if (blockId && next.page.id !== blockId) return;
       setData(next);
+      setSyncState("online");
       if (!blockId) setBlockId(next.page.id);
       if (!quiet) setError("");
     } catch (cause) {
+      if (isAbortError(cause) || generation !== requestGeneration.current) return;
+      setSyncState("offline");
       if (!quiet) setError(messageOf(cause));
     }
   }, [blockId, classroomId]);
   useEffect(() => {
     const initial = window.setTimeout(() => { void load(); }, 0);
     const timer = window.setInterval(() => { if (document.visibilityState === "visible") void load(true); }, 2_000);
-    return () => { window.clearTimeout(initial); window.clearInterval(timer); };
+    const reconnect = () => { void load(); };
+    const disconnect = () => setSyncState("offline");
+    window.addEventListener("online", reconnect);
+    window.addEventListener("offline", disconnect);
+    return () => {
+      window.clearTimeout(initial); window.clearInterval(timer);
+      window.removeEventListener("online", reconnect); window.removeEventListener("offline", disconnect);
+      activeRequest.current?.abort();
+    };
   }, [load]);
   const navigate = useCallback((nextBlockId: string) => {
     setBlockId(nextBlockId);
@@ -256,7 +351,7 @@ export function ClassroomScreenRuntime({ classroomId }: { classroomId: string })
   }, [data, navigate]);
   if (error && !data) return <RuntimeError error={error} />;
   if (!data) return <main className={styles.runtime}><div className={styles.runtimeMain}>正在连接课堂共享画面…</div></main>;
-  return <><SharedScreen data={data} /><div className={styles.screenControls}><button disabled={data.scriptNavigation.viewedIndex <= 0} onClick={() => navigate(data.scriptNavigation.unlockedBlocks[data.scriptNavigation.viewedIndex - 1]?.id)}>← 上一页</button>{data.scriptNavigation.viewedIndex < data.script.unlockedThroughIndex && <button onClick={() => navigate(data.scriptNavigation.latestUnlocked.id)}>回到最新 · {data.scriptNavigation.latestUnlocked.id}</button>}<button disabled={data.scriptNavigation.viewedIndex >= data.script.unlockedThroughIndex} onClick={() => navigate(data.scriptNavigation.unlockedBlocks[data.scriptNavigation.viewedIndex + 1]?.id)}>下一页 →</button></div></>;
+  return <><SharedScreen data={data} />{syncState === "offline" && <div className={styles.screenSync} role="status">投屏连接中断 · 正在等待网络恢复</div>}<div className={styles.screenControls}><button disabled={data.scriptNavigation.viewedIndex <= 0} onClick={() => navigate(data.scriptNavigation.unlockedBlocks[data.scriptNavigation.viewedIndex - 1]?.id)}>← 上一页</button>{data.scriptNavigation.viewedIndex < data.script.unlockedThroughIndex && <button onClick={() => navigate(data.scriptNavigation.latestUnlocked.id)}>回到最新 · {data.scriptNavigation.latestUnlocked.id}</button>}<button disabled={data.scriptNavigation.viewedIndex >= data.script.unlockedThroughIndex} onClick={() => navigate(data.scriptNavigation.unlockedBlocks[data.scriptNavigation.viewedIndex + 1]?.id)}>下一页 →</button></div></>;
 }
 
 function RuntimeTop({ data, classroomId, user, selectedSurface, onSwitch }: { data: ClassroomInstanceDetail; classroomId: string; user: AccountMenuUser; selectedSurface: string; onSwitch: (surface: string) => void }) {
@@ -312,16 +407,72 @@ function UnlockDialog({ target, busy, onCancel, onConfirm }: { target: { id: str
   </section></div>;
 }
 
+function classroomDraftKey(data: ClassroomInstanceDetail, discriminator: string): string {
+  return classroomDeviceDraftKey({
+    actorProfileId: data.viewer.actorProfileId,
+    viewProfileId: data.viewer.viewProfileId,
+    classroomId: data.runtimeIdentity.classroomId,
+    runId: data.runtimeIdentity.runId,
+    seatId: data.runtimeIdentity.seatId,
+    blockId: data.page.id,
+    discriminator,
+  });
+}
+
+function useDeviceDraft<T>(key: string, initialValue: T): [T, Dispatch<SetStateAction<T>>, (nextValue: T) => void] {
+  const [value, setValue] = useState<T>(initialValue);
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        const stored = window.localStorage.getItem(key);
+        if (stored !== null) setValue(JSON.parse(stored) as T);
+      } catch { /* Storage can be unavailable in a hardened browser; memory state still works. */ }
+      setHydrated(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [key]);
+  useEffect(() => {
+    if (!hydrated) return;
+    try { window.localStorage.setItem(key, JSON.stringify(value)); }
+    catch { /* Do not turn a storage quota/privacy mode into lost in-memory input. */ }
+  }, [hydrated, key, value]);
+  const clear = useCallback((nextValue: T) => {
+    setValue(nextValue);
+  }, []);
+  return [value, setValue, clear];
+}
+
+function newMutationKey(): string {
+  return `ui-${crypto.randomUUID()}`;
+}
+
+function RuntimeSync({ state, lastSyncedAt, onRetry }: {
+  state: RuntimeSyncState;
+  lastSyncedAt: number | null;
+  onRetry: () => void;
+}) {
+  return <div className={styles.syncStatus} data-state={state} role="status" aria-live="polite">
+    <span>{state === "offline" ? "连接中断 · 草稿保留在此设备" : state === "connecting" ? "正在同步课堂…" : "课堂已同步"}</span>
+    {lastSyncedAt && <small>最近同步 {new Date(lastSyncedAt).toLocaleTimeString("zh-CN")}</small>}
+    {state === "offline" && <button type="button" onClick={onRetry}>立即重连</button>}
+  </div>;
+}
+
 function SeatView({ data, busy, submit, review }: {
   data: ClassroomInstanceDetail;
   busy: boolean;
-  submit: (input: { kind?: string; text?: string; schemaId?: string; values?: Record<string, string> }) => Promise<unknown>;
-  review: (submissionId: string, status: "accepted" | "rejected", feedback: string, expectedUpdatedAt: string) => Promise<unknown>;
+  submit: (input: { kind?: string; text?: string; schemaId?: string; values?: Record<string, string>; expectedVersion: number; idempotencyKey: string }) => Promise<unknown>;
+  review: (submissionId: string, status: "accepted" | "rejected", feedback: string, expectedVersion: number, idempotencyKey: string) => Promise<unknown>;
 }) {
-  const [text, setText] = useState("");
   const view = data.myView;
   const role = view?.kind === "mentor" ? `${view.mentorRole} 导师` : view?.kind === "learner" ? `Young Builder ${view.learnerNumber}` : "Admin DM";
   const courseware = view?.kind === "mentor" ? data.mentors.find((mentor) => mentor.mentorRole === view.mentorRole)?.courseware : null;
+  const genericKind = view?.kind === "mentor" ? "mentor-note" : "learner-work";
+  const savedGeneric = data.submissions.find((item) => item.profileId === data.viewer.viewProfileId && item.kind === genericKind);
+  const genericDraftKey = classroomDraftKey(data, `generic:${genericKind}`);
+  const [text, setText, clearTextDraft] = useDeviceDraft(genericDraftKey, savedGeneric?.text ?? "");
+  const genericMutationKey = useRef(newMutationKey());
   return <>
     <RuntimeHeading data={data} eyebrow={`${data.environment.toUpperCase()} CLASSROOM · ${role}`} />
     <Progress data={data} />
@@ -335,12 +486,16 @@ function SeatView({ data, busy, submit, review }: {
         {view?.kind === "controller" && <p>你在本课堂拥有 Admin DM 权限，但没有占用 P／D／M／O 导师席。请从顶部进入主控。</p>}
       </section>
       {view?.kind === "learner" && data.activitySchema
-        ? <StructuredActivityForm key={`${data.activitySchema.id}:${data.submissions.find((item) => item.schemaId === data.activitySchema?.id && item.profileId === data.viewer.viewProfileId)?.updatedAt ?? "new"}`} data={data} busy={busy} submit={submit} />
+        ? <StructuredActivityForm key={`${data.runtimeIdentity.runId}:${data.viewer.viewProfileId}:${data.page.id}:${data.activitySchema.id}`} data={data} busy={busy} submit={submit} />
         : view?.kind === "mentor" && data.activitySchema?.mentorRubric
           ? <MentorStructuredReview data={data} busy={busy} review={review} />
           : view?.kind !== "controller" && <aside className={styles.card}>
         <small className={styles.eyebrow}>本页活动记录</small><h2>把结果留在 {data.page.id}</h2>
-        <form className={styles.submission} onSubmit={async (event) => { event.preventDefault(); await submit({ kind: view?.kind === "mentor" ? "mentor-note" : "learner-work", text }); setText(""); }}>
+        <form className={styles.submission} onSubmit={async (event) => {
+          event.preventDefault();
+          const result = await submit({ kind: genericKind, text, expectedVersion: savedGeneric?.version ?? 0, idempotencyKey: genericMutationKey.current });
+          if (result) { clearTextDraft(""); genericMutationKey.current = newMutationKey(); }
+        }}>
           <label htmlFor="block-work">记录真实完成的内容。翻页和回看不会删除或重新提交它。</label>
           <textarea id="block-work" value={text} onChange={(event) => setText(event.target.value)} placeholder={data.page.learnerLens.done} minLength={2} maxLength={4000} required />
           <button className={styles.button} disabled={busy || text.trim().length < 2}>保存 {data.page.id} 活动记录</button>
@@ -354,11 +509,13 @@ function SeatView({ data, busy, submit, review }: {
 function StructuredActivityForm({ data, busy, submit }: {
   data: ClassroomInstanceDetail;
   busy: boolean;
-  submit: (input: { schemaId?: string; values?: Record<string, string> }) => Promise<unknown>;
+  submit: (input: { schemaId?: string; values?: Record<string, string>; expectedVersion: number; idempotencyKey: string }) => Promise<unknown>;
 }) {
   const schema = data.activitySchema!;
   const mine = data.submissions.find((item) => item.schemaId === schema.id && item.profileId === data.viewer.viewProfileId);
-  const [values, setValues] = useState<Record<string, string>>(() => Object.fromEntries(schema.fields.map((field) => [field.id, mine?.values?.[field.id] ?? ""])));
+  const initialValues = Object.fromEntries(schema.fields.map((field) => [field.id, mine?.values?.[field.id] ?? ""]));
+  const [values, setValues, clearValuesDraft] = useDeviceDraft(classroomDraftKey(data, `schema:${schema.id}`), initialValues);
+  const mutationKey = useRef(newMutationKey());
   const valid = schema.fields.every((field) => {
     const value = (values[field.id] ?? "").trim();
     const itemCount = field.input === "list" ? value.split(/\r?\n/).map((item) => item.trim()).filter(Boolean).length : 0;
@@ -378,7 +535,8 @@ function StructuredActivityForm({ data, busy, submit }: {
     </div>}
     <form className={styles.structuredForm} onSubmit={async (event) => {
       event.preventDefault();
-      await submit({ schemaId: schema.id, values });
+      const result = await submit({ schemaId: schema.id, values, expectedVersion: mine?.version ?? 0, idempotencyKey: mutationKey.current });
+      if (result) { clearValuesDraft(values); mutationKey.current = newMutationKey(); }
     }}>
       {schema.fields.map((field, index) => <label key={field.id}>
         <span><b>{String(index + 1).padStart(2, "0")} · {field.label}</b><small>{field.learnerPrompt}</small></span>
@@ -396,7 +554,7 @@ function StructuredActivityForm({ data, busy, submit }: {
 function MentorStructuredReview({ data, busy, review }: {
   data: ClassroomInstanceDetail;
   busy: boolean;
-  review: (submissionId: string, status: "accepted" | "rejected", feedback: string, expectedUpdatedAt: string) => Promise<unknown>;
+  review: (submissionId: string, status: "accepted" | "rejected", feedback: string, expectedVersion: number, idempotencyKey: string) => Promise<unknown>;
 }) {
   const schema = data.activitySchema!;
   const submissions = data.submissions.filter((item) => item.schemaId === schema.id);
@@ -405,7 +563,7 @@ function MentorStructuredReview({ data, busy, review }: {
     <h2>{schema.name}</h2>
     <div className={styles.rubric}><b>只看这 {schema.mentorRubric?.length ?? 0} 件事</b><ol>{schema.mentorRubric?.map((item) => <li key={item}>{item}</li>)}</ol></div>
     {submissions.length
-      ? <div className={styles.reviewList}>{submissions.map((submission) => <StructuredReviewCard key={`${submission.id}:${submission.updatedAt}`} data={data} submission={submission} busy={busy} review={review} />)}</div>
+      ? <div className={styles.reviewList}>{submissions.map((submission) => <StructuredReviewCard key={submission.id} data={data} submission={submission} busy={busy} review={review} />)}</div>
       : <p>还没有学员汇总提交。先让团队把交付物各项内容说清，再由一位同学提交。</p>}
   </aside>;
 }
@@ -414,15 +572,20 @@ function StructuredReviewCard({ data, submission, busy, review }: {
   data: ClassroomInstanceDetail;
   submission: ClassroomInstanceDetail["submissions"][number];
   busy: boolean;
-  review: (submissionId: string, status: "accepted" | "rejected", feedback: string, expectedUpdatedAt: string) => Promise<unknown>;
+  review: (submissionId: string, status: "accepted" | "rejected", feedback: string, expectedVersion: number, idempotencyKey: string) => Promise<unknown>;
 }) {
   const schema = data.activitySchema!;
-  const [feedback, setFeedback] = useState(submission.reviewFeedback ?? "");
+  const [feedback, setFeedback, clearFeedbackDraft] = useDeviceDraft(classroomDraftKey(data, `review:${submission.id}`), submission.reviewFeedback ?? "");
+  const mutationKey = useRef(newMutationKey());
+  const decide = async (status: "accepted" | "rejected") => {
+    const result = await review(submission.id, status, feedback, submission.version, mutationKey.current);
+    if (result) { clearFeedbackDraft(feedback); mutationKey.current = newMutationKey(); }
+  };
   return <article className={styles.reviewCard} data-status={submission.status}>
     <header><div><b>{submission.displayName}</b><small>{submission.status === "accepted" ? "已通过" : submission.status === "rejected" ? "已退回" : "等待验收"}</small></div><time>{new Date(submission.updatedAt).toLocaleString("zh-CN")}</time></header>
     <dl>{schema.fields.map((field) => <div key={field.id}><dt>{field.label}<small>{"mentorPrompt" in field ? field.mentorPrompt : ""}</small></dt><dd>{submission.values?.[field.id] ?? "—"}</dd></div>)}</dl>
     <label><b>给学生的具体反馈</b><textarea value={feedback} maxLength={1000} onChange={(event) => setFeedback(event.target.value)} placeholder="退回时写清：哪一项不够具体、下一步去问谁或改什么。" /></label>
-    <div className={styles.reviewActions}><button className={styles.secondary} disabled={busy} onClick={() => void review(submission.id, "accepted", feedback, submission.updatedAt)}>通过并进入下游交接</button><button className={styles.danger} disabled={busy || feedback.trim().length < 2} onClick={() => void review(submission.id, "rejected", feedback, submission.updatedAt)}>退回修改</button></div>
+    <div className={styles.reviewActions}><button className={styles.secondary} disabled={busy} onClick={() => void decide("accepted")}>通过并进入下游交接</button><button className={styles.danger} disabled={busy || feedback.trim().length < 2} onClick={() => void decide("rejected")}>退回修改</button></div>
   </article>;
 }
 
@@ -686,8 +849,12 @@ function currentClientMatrix() {
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, { credentials: "same-origin", headers: init?.body ? { "content-type": "application/json", ...init.headers } : init?.headers, cache: "no-store", ...init });
-  const body = await response.json() as { ok?: boolean; data?: T; error?: { message?: string } };
-  if (!response.ok || body.ok === false) throw new Error(body.error?.message || `请求失败（${response.status}）`);
+  const body = await response.json() as { ok?: boolean; data?: T; error?: { code?: string; message?: string } };
+  if (!response.ok || body.ok === false) throw new ApiRequestError(body.error?.message || `请求失败（${response.status}）`, response.status, body.error?.code ?? "REQUEST_FAILED");
   return body.data as T;
 }
+class ApiRequestError extends Error {
+  constructor(message: string, readonly status: number, readonly code: string) { super(message); this.name = "ApiRequestError"; }
+}
+function isAbortError(value: unknown): boolean { return value instanceof DOMException && value.name === "AbortError"; }
 function messageOf(value: unknown): string { return value instanceof Error ? value.message : "操作没有完成，请重试。"; }

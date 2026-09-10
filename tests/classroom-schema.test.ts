@@ -15,6 +15,8 @@ const tables = [
   "classroom_permissions", "classroom_admin_dm_grants", "classroom_controller_states", "classroom_factory_events",
   "classroom_script_progress",
   "classroom_block_submissions", "classroom_wallet_balances",
+  "classroom_atomic_assertions", "classroom_submission_revisions", "classroom_submission_mutations",
+  "classroom_script_mutations", "classroom_reset_mutations",
   "course_view_acceptance_receipts", "course_ui_acceptance_receipts", "classroom_acceptance_bindings",
   "auth_impersonations",
   "course_exact_integrity_guard",
@@ -48,7 +50,7 @@ test("runtime schema bootstrap is idempotent and exactly mirrors the migration",
     if (/^UPDATE\s/i.test(executable)) {
       assert.match(executable, /WHERE [\s\S]*(?:IS NULL|<\s*2)/i, "data updates must be guarded and repeatable");
     } else if (/^INSERT OR IGNORE\s/i.test(executable)) {
-      assert.match(executable, /(?:classroom_admin_dm_grants|classroom_script_progress|courseware_releases)/, "backfills must be conflict-safe and repeatable");
+      assert.match(executable, /(?:classroom_admin_dm_grants|classroom_script_progress|classroom_submission_revisions|courseware_releases)/, "backfills must be conflict-safe and repeatable");
     } else if (/^INSERT INTO `(?:course|courseware)_exact_integrity_guard`/i.test(executable)) {
       assert.match(executable, /CASE WHEN[\s\S]*ON CONFLICT\(`id`\) DO NOTHING/, "exact preflight must fail closed and remain repeatable");
     } else if (/^DROP INDEX IF EXISTS\s/i.test(executable)) {
@@ -86,6 +88,10 @@ test("unified course factory keeps release, courseware, permissions and script p
     "uidx_courseware_bundle_versions_tree",
     "trg_courseware_version_immutable_update",
     "trg_courseware_release_exact_insert",
+    "uidx_classroom_submission_mutation_key",
+    "uidx_classroom_script_mutation_version",
+    "uidx_classroom_reset_mutation_generation",
+    "chk_classroom_atomic_assertion",
   ]) assert.match(migration, new RegExp(marker));
   assert.match(migration, /DROP INDEX IF EXISTS `uidx_course_versions_digest`/);
   assert.match(migration, /CHECK \(`environment` in \('test', 'production'\)\)/);

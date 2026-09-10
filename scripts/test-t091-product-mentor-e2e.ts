@@ -45,7 +45,7 @@ type Courseware = {
 };
 type Bootstrap = { user: { userId: string }; courseware: Courseware[] };
 type Credential = { userId: string; username: string; role: "mentor" | "learner" };
-type ScriptProgress = { unlockedThroughBlockId: string; unlockedThroughIndex: number; version: number };
+type ScriptProgress = { unlockedThroughBlockId: string; unlockedThroughIndex: number; version: number; runtimeIdentity?: { runId: string; resetGeneration: number } };
 type MentorView = {
   kind: "mentor";
   mentorRole: "P" | "D" | "M" | "O";
@@ -62,11 +62,14 @@ type Submission = {
   values: Record<string, string> | null;
   status: string;
   reviewFeedback: string | null;
+  version: number;
+  resetGeneration: number;
   updatedAt: string;
 };
 type Detail = {
   page: { id: string };
   script: ScriptProgress;
+  runtimeIdentity: { runId: string; resetGeneration: number };
   myView: MentorView | { kind: "learner" } | null;
   activitySchema: null | {
     id: string;
@@ -197,9 +200,9 @@ try {
 
   let progress = pB01.script;
   for (const nextBlockId of ["B02", "B03", "B04"]) {
+    const run = await runtime(room.classroomId, "B01", adminCookie);
     progress = await postData<ScriptProgress>(`/api/platform/classrooms/${room.classroomId}/control`, {
-      expectedVersion: progress.version,
-      action: { type: "unlock-next", nextBlockId },
+      expectedVersion: progress.version, ...runExpectation(run), action: { type: "unlock-next", nextBlockId },
     }, adminCookie);
   }
 
@@ -211,6 +214,7 @@ try {
   const values = productBriefValues("第一版");
   const genericSubmission = await post(`/api/platform/classrooms/${room.classroomId}/submissions`, {
     blockId: "B04", kind: "product-brief", text: "未带 schema 的提交", viewAsProfileId: learnerProfiles[0].userId,
+    ...submissionExpectation(learnerB04Before, 0, `p-generic-${room.classroomId}`),
   }, adminCookie);
   assert.equal(genericSubmission.status, 409);
   assert.equal((await genericSubmission.json() as Envelope<never>).error?.code, "SUBMISSION_SCHEMA_REQUIRED");
@@ -219,6 +223,7 @@ try {
     schemaId: "product-brief-v1",
     values,
     viewAsProfileId: learnerProfiles[0].userId,
+    ...submissionExpectation(learnerB04Before, 0, `p-submit-v1-${room.classroomId}`),
   }, adminCookie);
   const learnerB04 = await view(room.classroomId, "B04", learnerProfiles[0].userId, adminCookie);
   assert.equal(learnerB04.submissions.length, 1);
@@ -235,7 +240,8 @@ try {
   assert.equal(pB04.submissions.length, 1);
   const firstSubmission = pB04.submissions[0];
   const wrongReviewer = await post(`/api/platform/classrooms/${room.classroomId}/submissions/${firstSubmission.id}/review`, {
-    status: "rejected", feedback: "D 不应审核 P 的作品。", expectedUpdatedAt: firstSubmission.updatedAt,
+    status: "rejected", feedback: "D 不应审核 P 的作品。",
+    ...submissionExpectation(pB04, firstSubmission.version, `p-review-wrong-${room.classroomId}`),
     viewAsProfileId: mentorProfiles[1].userId,
   }, adminCookie);
   assert.equal(wrongReviewer.status, 403);
@@ -243,7 +249,7 @@ try {
   await postData(`/api/platform/classrooms/${room.classroomId}/submissions/${firstSubmission.id}/review`, {
     status: "rejected",
     feedback: "请把目标用户缩小到东川路宿舍里晚上九点后要订餐的学生。",
-    expectedUpdatedAt: firstSubmission.updatedAt,
+    ...submissionExpectation(pB04, firstSubmission.version, `p-review-reject-${room.classroomId}`),
     viewAsProfileId: mentorProfiles[0].userId,
   }, adminCookie);
   const returned = await view(room.classroomId, "B04", learnerProfiles[0].userId, adminCookie);
@@ -257,6 +263,7 @@ try {
     schemaId: "product-brief-v1",
     values: revisedValues,
     viewAsProfileId: learnerProfiles[0].userId,
+    ...submissionExpectation(returned, returned.submissions[0].version, `p-submit-v2-${room.classroomId}`),
   }, adminCookie);
   const resubmitted = await view(room.classroomId, "B04", learnerProfiles[0].userId, adminCookie);
   assert.equal(resubmitted.submissions[0].status, "submitted");
@@ -268,21 +275,22 @@ try {
   await postData(`/api/platform/classrooms/${room.classroomId}/submissions/${revisedSubmission.id}/review`, {
     status: "accepted",
     feedback: "问题、证据、最小路径和边界已对齐，可以交给开发导师。",
-    expectedUpdatedAt: revisedSubmission.updatedAt,
+    ...submissionExpectation(pB04, revisedSubmission.version, `p-review-accept-${room.classroomId}`),
     viewAsProfileId: mentorProfiles[0].userId,
   }, adminCookie);
   const accepted = await view(room.classroomId, "B04", learnerProfiles[0].userId, adminCookie);
   assert.equal(accepted.submissions[0].status, "accepted");
   const staleReplay = await post(`/api/platform/classrooms/${room.classroomId}/submissions/${revisedSubmission.id}/review`, {
-    status: "accepted", feedback: "旧版本重放", expectedUpdatedAt: revisedSubmission.updatedAt,
+    status: "accepted", feedback: "旧版本重放",
+    ...submissionExpectation(pB04, revisedSubmission.version, `p-review-stale-${room.classroomId}`),
     viewAsProfileId: mentorProfiles[0].userId,
   }, adminCookie);
   assert.equal(staleReplay.status, 409);
   assert.equal((await staleReplay.json() as Envelope<never>).error?.code, "SUBMISSION_VERSION_CONFLICT");
 
+  const runAtB04 = await runtime(room.classroomId, "B04", adminCookie);
   progress = await postData<ScriptProgress>(`/api/platform/classrooms/${room.classroomId}/control`, {
-    expectedVersion: progress.version,
-    action: { type: "unlock-next", nextBlockId: "B05" },
+    expectedVersion: progress.version, ...runExpectation(runAtB04), action: { type: "unlock-next", nextBlockId: "B05" },
   }, adminCookie);
   assert.equal(progress.unlockedThroughBlockId, "B05");
   const dB05 = await view(room.classroomId, "B05", mentorProfiles[1].userId, adminCookie);
@@ -341,6 +349,16 @@ function productBriefValues(version: string): Record<string, string> {
     "mvp-hypothesis": "一张维护及时的菜单加人工确认，是否足以让真实学生完成一次订餐。",
     boundaries: "不公开私人电话；只覆盖宿舍周边；先人工确认，不承诺所有餐厅和所有时段。",
   };
+}
+
+async function runtime(roomId: string, blockId: string, cookie: string): Promise<Detail["runtimeIdentity"]> { return (await getData<Detail>(`/api/platform/classrooms/${roomId}?block=${blockId}`, cookie)).runtimeIdentity; }
+
+function runExpectation(runtimeIdentity: Detail["runtimeIdentity"]) {
+  return { expectedRunId: runtimeIdentity.runId, expectedResetGeneration: runtimeIdentity.resetGeneration };
+}
+
+function submissionExpectation(detail: Pick<Detail, "runtimeIdentity">, expectedVersion: number, idempotencyKey: string) {
+  return { ...runExpectation(detail.runtimeIdentity), expectedVersion, idempotencyKey };
 }
 
 async function view(roomId: string, blockId: string, profileId: string, cookie: string): Promise<Detail> {

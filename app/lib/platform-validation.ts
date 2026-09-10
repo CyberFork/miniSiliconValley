@@ -72,11 +72,25 @@ export function parseFactoryRequest(value: unknown): ClassroomFactoryRequest {
   return result;
 }
 
-export function parseScriptAction(value: unknown): { expectedVersion: number; action: ClassroomScriptAction; viewAsProfileId?: string } {
+export function parseRunExpectation(raw: Record<string, unknown>): { expectedRunId: string; expectedResetGeneration: number } {
+  return {
+    expectedRunId: stringValue(raw.expectedRunId, "expectedRunId", 196),
+    expectedResetGeneration: integerValue(raw.expectedResetGeneration, "expectedResetGeneration", 0, 1_000_000),
+  };
+}
+
+export function parseScriptAction(value: unknown): {
+  expectedVersion: number;
+  expectedRunId: string;
+  expectedResetGeneration: number;
+  action: ClassroomScriptAction;
+  viewAsProfileId?: string;
+} {
   const raw = objectValue(value);
   const action = objectValue(raw.action, "action");
   if (action.type !== "unlock-next") throw new ClassroomError("INPUT_INVALID", "未知剧本解锁动作。", 400);
   return {
+    ...parseRunExpectation(raw),
     expectedVersion: integerValue(raw.expectedVersion, "expectedVersion", 1),
     action: { type: "unlock-next", nextBlockId: stringValue(action.nextBlockId, "下一页 Block", 64) },
     ...(raw.viewAsProfileId == null ? {} : { viewAsProfileId: stringValue(raw.viewAsProfileId, "测试视角账号", 128) }),

@@ -49,6 +49,7 @@ type Bootstrap = { user: { userId: string }; versions: Version[]; courseware: Co
 type Credential = { userId: string; username: string; role: "mentor" | "learner"; initialPassword: string; mustChangePassword: true };
 type ScriptProgress = { stateMachineVersion: number; unlockedThroughBlockId: string; unlockedThroughIndex: number; version: number };
 type Detail = {
+  runtimeIdentity: { runId: string; resetGeneration: number };
   id: string;
   environment: "test" | "production";
   lifecycle: string;
@@ -68,7 +69,7 @@ type Detail = {
   canDelegateAdminDm: boolean;
   viewer: { profileId: string; actorProfileId: string; impersonationId: string | null; viewProfileId?: string };
   admins: Array<{ profileId: string; mode: "primary" | "delegated"; canDelegate: boolean }>;
-  submissions: Array<{ profileId: string; kind: string; text: string }>;
+  submissions: Array<{ id: string; profileId: string; kind: string; text: string; version: number; resetGeneration: number }>;
 };
 type TestIdentity = {
   userId: string;
@@ -380,7 +381,7 @@ try {
   assert.equal(((await lockedPage.json()) as Envelope<never>).error?.code, "SCRIPT_PAGE_LOCKED");
   const unlocked = await control(testRoom.classroomId, adminDetail.script.version, { type: "unlock-next", nextBlockId: "B02" }, adminCookie);
   assert.equal(unlocked.unlockedThroughBlockId, "B02");
-  const stale = await post(`/api/platform/classrooms/${testRoom.classroomId}/control`, { expectedVersion: adminDetail.script.version, action: { type: "unlock-next", nextBlockId: "B03" } }, adminCookie);
+  const stale = await post(`/api/platform/classrooms/${testRoom.classroomId}/control`, { expectedVersion: adminDetail.script.version, ...runExpectation(adminDetail), action: { type: "unlock-next", nextBlockId: "B03" } }, adminCookie);
   assert.equal(stale.status, 409);
   assert.equal(((await stale.json()) as Envelope<never>).error?.code, "SCRIPT_VERSION_CONFLICT");
   const historicalB01 = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}?block=B01`, adminCookie);
@@ -401,7 +402,10 @@ try {
   }
   const invalidTestView = await get(`/api/platform/classrooms/${testRoom.classroomId}?block=B02&viewAs=${initial.user.userId}`, learnerCookie);
   assert.equal(invalidTestView.status, 403, "Admin DM is represented by the control tab, never by a forged profile role tab");
-  const submitted = await post(`/api/platform/classrooms/${testRoom.classroomId}/submissions`, { blockId: "B02", kind: "reflection", text: "真实测试提交", viewAsProfileId: generatedLearners[0].userId }, adminCookie);
+  const submitted = await post(`/api/platform/classrooms/${testRoom.classroomId}/submissions`, {
+    blockId: "B02", kind: "reflection", text: "真实测试提交", viewAsProfileId: generatedLearners[0].userId,
+    expectedVersion: 0, idempotencyKey: `submit-${testRoom.classroomId}-learner-1-b02`, ...runExpectation(learnerView),
+  }, adminCookie);
   assert.equal(submitted.status, 200);
   const submittedView = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}?block=B02&viewAs=${generatedLearners[0].userId}`, adminCookie);
   assert.ok(submittedView.submissions.some((item) => item.profileId === generatedLearners[0].userId && item.kind === "reflection" && item.text === "真实测试提交"));
@@ -446,17 +450,17 @@ try {
   assert.equal(((await productionViewAs.json()) as Envelope<never>).error?.code, "TEST_VIEW_PRODUCTION_FORBIDDEN");
   const productionLearnerDetail = await getData<Detail>(`/api/platform/classrooms/${production.classroomId}`, learnerCookie);
   assert.equal(productionLearnerDetail.controlView, null, "Production learner must never receive mentor/control scripts");
-  const productionLearnerUnlock = await post(`/api/platform/classrooms/${production.classroomId}/control`, { expectedVersion: 1, action: { type: "unlock-next", nextBlockId: "B02" } }, learnerCookie);
+  const productionLearnerUnlock = await post(`/api/platform/classrooms/${production.classroomId}/control`, { expectedVersion: 1, ...runExpectation(productionLearnerDetail), action: { type: "unlock-next", nextBlockId: "B02" } }, learnerCookie);
   assert.equal(productionLearnerUnlock.status, 403);
   assert.equal(((await productionLearnerUnlock.json()) as Envelope<never>).error?.code, "SCRIPT_UNLOCK_MENTOR_REQUIRED");
-  const productionMentorUnlock = await postData<ScriptProgress>(`/api/platform/classrooms/${production.classroomId}/control`, { expectedVersion: 1, action: { type: "unlock-next", nextBlockId: "B02" } }, productionMentorCookie);
+  const productionMentorUnlock = await postData<ScriptProgress>(`/api/platform/classrooms/${production.classroomId}/control`, { expectedVersion: 1, ...runExpectation(productionLearnerDetail), action: { type: "unlock-next", nextBlockId: "B02" } }, productionMentorCookie);
   assert.equal(productionMentorUnlock.unlockedThroughBlockId, "B02");
   const productionImpersonation = await post("/api/auth/impersonation", { classroomId: production.classroomId, effectiveProfileId: generatedLearners[0].userId }, adminCookie);
   assert.equal(productionImpersonation.status, 403);
   assert.equal(((await productionImpersonation.json()) as Envelope<never>).error?.code, "IMPERSONATION_PRODUCTION_FORBIDDEN");
   const before = await getData<Detail>(`/api/platform/classrooms/${production.classroomId}`, adminCookie);
   assert.deepEqual(before.courseware.find((item) => item.mentorRole === "O"), productionCoursewareRefs.find((item) => item.mentorRole === "O"));
-  const forbiddenReset = await post(`/api/platform/classrooms/${production.classroomId}/reset`, {}, adminCookie);
+  const forbiddenReset = await post(`/api/platform/classrooms/${production.classroomId}/reset`, runExpectation(before), adminCookie);
   assert.equal(forbiddenReset.status, 403);
   assert.equal(((await forbiddenReset.json()) as Envelope<never>).error?.code, "PRODUCTION_RESET_FORBIDDEN");
 
@@ -473,7 +477,7 @@ try {
     html: `<!doctype html><html><body><h1>运营导师 later r1</h1><p>既有 Production 不得静默升级。</p></body></html>`,
   }, adminCookie);
   assert.equal(laterCourseware.revision, 1);
-  await postData(`/api/platform/classrooms/${testRoom.classroomId}/reset`, {}, adminCookie);
+  await resetClassroom(testRoom.classroomId, adminCookie);
   const resetTestDetail = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}`, adminCookie);
   assert.equal(resetTestDetail.acceptance.uiReceiptId, null, "reset must detach the now-invalid UI receipt from the Test instance");
   const afterResetBootstrap = await getData<Bootstrap>("/api/studio/bootstrap", adminCookie);
@@ -542,7 +546,7 @@ try {
   assert.equal(allCards.length, 18);
   assert.equal(new Set(allCards).size, 18, "unique-within-step must isolate all 18 private cards");
 
-  await postData(`/api/platform/classrooms/${sixRoom.classroomId}/reset`, {}, adminCookie);
+  await resetClassroom(sixRoom.classroomId, adminCookie);
   const resetSixRoom = await getData<Detail>(`/api/platform/classrooms/${sixRoom.classroomId}`, adminCookie);
   assert.deepEqual(
     { lifecycle: resetSixRoom.lifecycle, unlockedThroughBlockId: resetSixRoom.script.unlockedThroughBlockId, unlockedThroughIndex: resetSixRoom.script.unlockedThroughIndex, learnerCount: resetSixRoom.learnerCount },
@@ -654,7 +658,7 @@ function mentorSeats(ids: string[]) {
 function coursewareRefs(items: Courseware[], environment: "test" | "production") {
   const preferredSlugs = {
     P: "product-mentor-foundations",
-    D: "development-mentor-field-kit",
+    D: "development-mentor-ligun",
     M: "market-mentor-user-system",
     O: "operations-mentor-field-kit",
   } as const;
@@ -717,7 +721,17 @@ async function createClassroom(body: Record<string, unknown>, cookie: string): P
 }
 
 async function control(roomId: string, expectedVersion: number, action: Record<string, unknown>, cookie: string): Promise<ScriptProgress> {
-  return postData<ScriptProgress>(`/api/platform/classrooms/${roomId}/control`, { expectedVersion, action }, cookie);
+  const detail = await getData<Detail>(`/api/platform/classrooms/${roomId}`, cookie);
+  return postData<ScriptProgress>(`/api/platform/classrooms/${roomId}/control`, { expectedVersion, ...runExpectation(detail), action }, cookie);
+}
+
+function runExpectation(detail: Pick<Detail, "runtimeIdentity">) {
+  return { expectedRunId: detail.runtimeIdentity.runId, expectedResetGeneration: detail.runtimeIdentity.resetGeneration };
+}
+
+async function resetClassroom(roomId: string, cookie: string): Promise<void> {
+  const detail = await getData<Detail>(`/api/platform/classrooms/${roomId}`, cookie);
+  await postData(`/api/platform/classrooms/${roomId}/reset`, runExpectation(detail), cookie);
 }
 
 async function completeClassroom(roomId: string, initial: ScriptProgress, cookie: string): Promise<ScriptProgress> {

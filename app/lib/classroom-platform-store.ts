@@ -151,7 +151,15 @@ export type ClassroomSubmissionDetail = {
   status: string;
   reviewFeedback: string | null;
   reviewedAt: string | null;
+  /** Monotonic only inside resetGeneration. Used for submission/review CAS. */
+  version: number;
+  resetGeneration: number;
   updatedAt: string;
+};
+
+export type ClassroomRunExpectation = {
+  expectedRunId: string;
+  expectedResetGeneration: number;
 };
 
 export type ClassroomHandoffDetail = {
@@ -637,12 +645,16 @@ export async function getClassroomInstance(
 
   const canSeeAllSubmissions = Boolean(selectedMentor) || !selectedLearner;
   const submissionResult = await db.prepare(
-    `SELECT s.id, s.block_id, s.profile_id, p.nickname, s.kind, s.payload_json, s.status, s.updated_at
-     FROM classroom_block_submissions s JOIN profiles p ON p.id = s.profile_id
+    `SELECT s.id, s.block_id, s.profile_id, p.nickname, s.kind, s.payload_json, s.status, s.updated_at,
+            sr.version AS submission_version, sr.reset_generation AS submission_reset_generation
+     FROM classroom_block_submissions s
+     JOIN classroom_submission_revisions sr ON sr.submission_id = s.id
+     JOIN profiles p ON p.id = s.profile_id
      WHERE s.room_id = ? AND s.block_id = ? AND (? = 1 OR s.profile_id = ?)
      ORDER BY s.updated_at`,
   ).bind(roomId, page.id, canSeeAllSubmissions ? 1 : 0, viewProfileId).all<{
     id: string; block_id: string; profile_id: string; nickname: string; kind: string; payload_json: string; status: string; updated_at: string;
+    submission_version: number; submission_reset_generation: number;
   }>();
   const currentSchema = submissionSchemaForBlock(course, page.id);
   const activitySchema = !currentSchema
@@ -672,6 +684,8 @@ export async function getClassroomInstance(
       status: row.status,
       reviewFeedback: payload.review?.feedback ?? null,
       reviewedAt: payload.review?.reviewedAt ?? null,
+      version: row.submission_version,
+      resetGeneration: row.submission_reset_generation,
       updatedAt: row.updated_at,
     }];
   });
@@ -685,12 +699,16 @@ export async function getClassroomInstance(
       const schema = findSubmissionSchema(course, handoff.submissionSchemaId);
       if (!schema) continue;
       const rows = await db.prepare(
-        `SELECT s.id, s.block_id, s.profile_id, p.nickname, s.kind, s.payload_json, s.status, s.updated_at
-         FROM classroom_block_submissions s JOIN profiles p ON p.id = s.profile_id
+        `SELECT s.id, s.block_id, s.profile_id, p.nickname, s.kind, s.payload_json, s.status, s.updated_at,
+                sr.version AS submission_version, sr.reset_generation AS submission_reset_generation
+         FROM classroom_block_submissions s
+         JOIN classroom_submission_revisions sr ON sr.submission_id = s.id
+         JOIN profiles p ON p.id = s.profile_id
          WHERE s.room_id = ? AND s.block_id = ? AND s.kind = ? AND s.status = 'accepted'
          ORDER BY s.updated_at DESC, s.id DESC`,
       ).bind(roomId, handoff.fromBlockId, schema.kind).all<{
         id: string; block_id: string; profile_id: string; nickname: string; kind: string; payload_json: string; status: string; updated_at: string;
+        submission_version: number; submission_reset_generation: number;
       }>();
       const row = (rows.results ?? []).find((item) => parseStoredSubmissionPayload(item.payload_json).schemaId === schema.id);
       if (!row) continue;
@@ -716,6 +734,8 @@ export async function getClassroomInstance(
           status: row.status,
           reviewFeedback: payload.review?.feedback ?? null,
           reviewedAt: payload.review?.reviewedAt ?? null,
+          version: row.submission_version,
+          resetGeneration: row.submission_reset_generation,
           updatedAt: row.updated_at,
         },
       });
@@ -862,23 +882,34 @@ export async function getClassroomSharedScreen(
   };
 }
 
+export type SubmissionMutationResult = {
+  submissionId: string;
+  version: number;
+  resetGeneration: number;
+  idempotent: boolean;
+};
+
 export async function submitClassroomBlockWork(
   db: ClassroomD1,
   user: AuthenticatedClassroomUser,
   roomId: string,
-  input: {
+  input: ClassroomRunExpectation & {
     blockId: string;
+    expectedVersion: number;
+    idempotencyKey: string;
     kind?: string;
     text?: string;
     schemaId?: string;
     values?: unknown;
     viewAsProfileId?: string;
   },
-): Promise<void> {
+): Promise<SubmissionMutationResult> {
   const detail = await getClassroomInstance(db, user, roomId, {
     blockId: input.blockId,
     ...(input.viewAsProfileId ? { viewAsProfileId: input.viewAsProfileId } : {}),
   });
+  assertRunExpectation(roomId, detail.runtimeIdentity.resetGeneration, input);
+  assertMutationInput(input.expectedVersion, input.idempotencyKey);
   const course = await loadExactCoursePackage(db, detail.courseRef);
   const declaredSchema = submissionSchemaForBlock(course, detail.page.id);
   let kind: string;
@@ -903,23 +934,112 @@ export async function submitClassroomBlockWork(
     if (text.length < 2 || text.length > 4_000) throw new ClassroomError("SUBMISSION_TEXT_INVALID", "作品内容需为 2—4000 个字符。", 400);
     payload = { text };
   }
+  const profileId = detail.viewer.viewProfileId;
+  const payloadJson = JSON.stringify(payload);
+  const payloadDigest = await mutationDigest({ operation: "submit", roomId, profileId, blockId: detail.page.id, kind, payload });
+  const replay = await submissionMutationReplay(db, roomId, profileId, input.idempotencyKey, {
+    operation: "submit",
+    submissionId: null,
+    resetGeneration: input.expectedResetGeneration,
+    expectedVersion: input.expectedVersion,
+    payloadDigest,
+    blockId: detail.page.id,
+    kind,
+  });
+  if (replay) return replay;
+
+  const existing = await db.prepare(
+    `SELECT s.id, sr.version, sr.reset_generation
+     FROM classroom_block_submissions s
+     JOIN classroom_submission_revisions sr ON sr.submission_id = s.id
+     WHERE s.room_id = ? AND s.block_id = ? AND s.profile_id = ? AND s.kind = ?`,
+  ).bind(roomId, detail.page.id, profileId, kind).first<{ id: string; version: number; reset_generation: number }>();
+  if (!existing && input.expectedVersion !== 0) {
+    throw new ClassroomError("SUBMISSION_VERSION_CONFLICT", "这份作品已变化或已被重置，请同步后再提交。", 409);
+  }
+  if (existing && (existing.version !== input.expectedVersion || existing.reset_generation !== input.expectedResetGeneration)) {
+    throw new ClassroomError("SUBMISSION_VERSION_CONFLICT", "这份作品刚被其他设备更新，请先同步再决定是否覆盖。", 409);
+  }
+
   const now = new Date().toISOString();
-  await db.batch([
-    db.prepare(
-      `INSERT INTO classroom_block_submissions
-       (id, room_id, block_id, profile_id, kind, payload_json, status, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, 'submitted', ?, ?)
-       ON CONFLICT(room_id, block_id, profile_id, kind) DO UPDATE SET
-         payload_json = excluded.payload_json, status = 'submitted', updated_at = excluded.updated_at`,
-    ).bind(crypto.randomUUID(), roomId, detail.page.id, detail.viewer.viewProfileId, kind, JSON.stringify(payload), now, now),
-    factoryEvent(db, roomId, auditActor(user), "block.submitted", withIdentityAudit(user, {
+  const mutationId = crypto.randomUUID();
+  const submissionId = existing?.id ?? crypto.randomUUID();
+  const nextVersion = input.expectedVersion + 1;
+  const auditDetail = withIdentityAudit(user, {
+    blockId: detail.page.id,
+    kind,
+    schemaId: input.schemaId ?? null,
+    projectedProfileId: profileId,
+    testView: detail.environment === "test" && profileId !== user.userId,
+    runId: input.expectedRunId,
+    resetGeneration: input.expectedResetGeneration,
+    expectedVersion: input.expectedVersion,
+    resultingVersion: nextVersion,
+    mutationId,
+  });
+  try {
+    const result = await db.batch([
+      db.prepare(
+        `INSERT INTO classroom_submission_mutations
+         (id, room_id, idempotency_key, submission_id, profile_id, block_id, kind,
+          reset_generation, operation, expected_version, resulting_version, payload_digest, created_at)
+         SELECT ?, ?, ?, ?, ?, ?, ?, ?, 'submit', ?, ?, ?, ?
+         FROM classroom_instances ci
+         WHERE ci.room_id = ? AND ci.reset_generation = ?
+           AND ((? = 0 AND NOT EXISTS (
+                  SELECT 1 FROM classroom_block_submissions s
+                  WHERE s.room_id = ? AND s.block_id = ? AND s.profile_id = ? AND s.kind = ?
+                ))
+                OR (? > 0 AND EXISTS (
+                  SELECT 1 FROM classroom_block_submissions s
+                  JOIN classroom_submission_revisions sr ON sr.submission_id = s.id
+                  WHERE s.room_id = ? AND s.block_id = ? AND s.profile_id = ? AND s.kind = ?
+                    AND sr.reset_generation = ? AND sr.version = ?
+                )))`,
+      ).bind(
+        mutationId, roomId, input.idempotencyKey, submissionId, profileId, detail.page.id, kind,
+        input.expectedResetGeneration, input.expectedVersion, nextVersion, payloadDigest, now,
+        roomId, input.expectedResetGeneration,
+        input.expectedVersion, roomId, detail.page.id, profileId, kind,
+        input.expectedVersion, roomId, detail.page.id, profileId, kind, input.expectedResetGeneration, input.expectedVersion,
+      ),
+      mutationAssertion(db, "classroom_submission_mutations", mutationId, now),
+      db.prepare(
+        `INSERT INTO classroom_block_submissions
+         (id, room_id, block_id, profile_id, kind, payload_json, status, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, 'submitted', ?, ?)
+         ON CONFLICT(room_id, block_id, profile_id, kind) DO UPDATE SET
+           payload_json = excluded.payload_json, status = 'submitted', updated_at = excluded.updated_at
+         WHERE classroom_block_submissions.id = excluded.id`,
+      ).bind(submissionId, roomId, detail.page.id, profileId, kind, payloadJson, now, now),
+      db.prepare(
+        `INSERT INTO classroom_submission_revisions
+         (submission_id, room_id, reset_generation, version, last_mutation_id, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?)
+         ON CONFLICT(submission_id) DO UPDATE SET
+           reset_generation = excluded.reset_generation, version = excluded.version,
+           last_mutation_id = excluded.last_mutation_id, updated_at = excluded.updated_at
+         WHERE classroom_submission_revisions.reset_generation = ?
+           AND classroom_submission_revisions.version = ?`,
+      ).bind(submissionId, roomId, input.expectedResetGeneration, nextVersion, mutationId, now, input.expectedResetGeneration, input.expectedVersion),
+      factoryEvent(db, roomId, auditActor(user), "block.submitted", auditDetail, now),
+    ]);
+    if (Number(result[0]?.meta?.changes ?? 0) !== 1) throw mutationConflict("SUBMISSION_VERSION_CONFLICT", "这份作品刚被其他设备更新，请同步后重试。");
+  } catch (error) {
+    const won = await submissionMutationReplay(db, roomId, profileId, input.idempotencyKey, {
+      operation: "submit",
+      submissionId,
+      resetGeneration: input.expectedResetGeneration,
+      expectedVersion: input.expectedVersion,
+      payloadDigest,
       blockId: detail.page.id,
       kind,
-      schemaId: input.schemaId ?? null,
-      projectedProfileId: detail.viewer.viewProfileId,
-      testView: detail.environment === "test" && detail.viewer.viewProfileId !== user.userId,
-    }), now),
-  ]);
+    });
+    if (won) return won;
+    if (isAtomicAssertionError(error)) throw mutationConflict("SUBMISSION_VERSION_CONFLICT", "课堂已重置或这份作品已更新，请同步后重试。");
+    throw error;
+  }
+  return { submissionId, version: nextVersion, resetGeneration: input.expectedResetGeneration, idempotent: false };
 }
 
 export async function reviewClassroomSubmission(
@@ -927,29 +1047,34 @@ export async function reviewClassroomSubmission(
   user: AuthenticatedClassroomUser,
   roomId: string,
   submissionId: string,
-  input: {
+  input: ClassroomRunExpectation & {
     status: "accepted" | "rejected";
     feedback: string;
-    expectedUpdatedAt: string;
+    expectedVersion: number;
+    idempotencyKey: string;
     viewAsProfileId?: string;
   },
-): Promise<void> {
-  // Authorize the room before looking up the opaque submission id. Otherwise
-  // a non-member could distinguish an existing UUID (later 403) from a missing
-  // UUID (early 404) and use the review endpoint as an existence oracle.
-  await getClassroomInstance(db, user, roomId);
+): Promise<SubmissionMutationResult> {
+  const currentDetail = await getClassroomInstance(db, user, roomId);
+  assertRunExpectation(roomId, currentDetail.runtimeIdentity.resetGeneration, input);
+  assertMutationInput(input.expectedVersion, input.idempotencyKey);
   const row = await db.prepare(
-    `SELECT id, block_id, profile_id, kind, payload_json, status, updated_at
-     FROM classroom_block_submissions WHERE id = ? AND room_id = ?`,
+    `SELECT s.id, s.block_id, s.profile_id, s.kind, s.payload_json, s.status, s.updated_at,
+            sr.version, sr.reset_generation
+     FROM classroom_block_submissions s
+     JOIN classroom_submission_revisions sr ON sr.submission_id = s.id
+     WHERE s.id = ? AND s.room_id = ?`,
   ).bind(submissionId, roomId).first<{
     id: string; block_id: string; profile_id: string; kind: string; payload_json: string; status: string; updated_at: string;
+    version: number; reset_generation: number;
   }>();
   if (!row) throw new ClassroomError("SUBMISSION_NOT_FOUND", "找不到这份课堂作品。", 404);
-  if (row.updated_at !== input.expectedUpdatedAt) throw new ClassroomError("SUBMISSION_VERSION_CONFLICT", "这份作品刚被重新提交或审核，请刷新后再操作。", 409);
+  assertRunExpectation(roomId, row.reset_generation, input);
   const detail = await getClassroomInstance(db, user, roomId, {
     blockId: row.block_id,
     ...(input.viewAsProfileId ? { viewAsProfileId: input.viewAsProfileId } : {}),
   });
+  assertRunExpectation(roomId, detail.runtimeIdentity.resetGeneration, input);
   const course = await loadExactCoursePackage(db, detail.courseRef);
   const payload = parseStoredSubmissionPayload(row.payload_json);
   const schema = payload.schemaId ? findSubmissionSchema(course, payload.schemaId) : null;
@@ -968,51 +1093,115 @@ export async function reviewClassroomSubmission(
   if (input.status === "accepted" && feedback.length > 1_000) {
     throw new ClassroomError("SUBMISSION_FEEDBACK_INVALID", "导师反馈不能超过 1000 字。", 400);
   }
+  const actorProfileId = auditActor(user);
+  const payloadDigest = await mutationDigest({ operation: "review", roomId, submissionId, status: input.status, feedback });
+  const replay = await submissionMutationReplay(db, roomId, actorProfileId, input.idempotencyKey, {
+    operation: "review",
+    submissionId,
+    resetGeneration: input.expectedResetGeneration,
+    expectedVersion: input.expectedVersion,
+    payloadDigest,
+    blockId: row.block_id,
+    kind: row.kind,
+  });
+  if (replay) return replay;
+  if (row.version !== input.expectedVersion) {
+    throw new ClassroomError("SUBMISSION_VERSION_CONFLICT", "这份作品刚被重新提交或审核，请同步后再操作。", 409);
+  }
   const now = new Date().toISOString();
   const nextPayload = { ...payload, review: { feedback, reviewedAt: now } };
-  const update = await db.prepare(
-    `UPDATE classroom_block_submissions SET payload_json = ?, status = ?, updated_at = ?
-     WHERE id = ? AND room_id = ? AND updated_at = ?`,
-  ).bind(JSON.stringify(nextPayload), input.status, now, submissionId, roomId, input.expectedUpdatedAt).run();
-  if (Number(update.meta?.changes ?? 0) !== 1) throw new ClassroomError("SUBMISSION_VERSION_CONFLICT", "这份作品刚被重新提交或审核，请刷新后再操作。", 409);
-  await factoryEvent(db, roomId, auditActor(user), "submission.reviewed", withIdentityAudit(user, {
-    submissionId,
-    blockId: row.block_id,
-    schemaId: schema.id,
-    status: input.status,
-    projectedProfileId: detail.viewer.viewProfileId,
-    testView: detail.environment === "test" && detail.viewer.viewProfileId !== user.userId,
-  }), now).run();
+  const mutationId = crypto.randomUUID();
+  const nextVersion = input.expectedVersion + 1;
+  try {
+    const result = await db.batch([
+      db.prepare(
+        `INSERT INTO classroom_submission_mutations
+         (id, room_id, idempotency_key, submission_id, profile_id, block_id, kind,
+          reset_generation, operation, expected_version, resulting_version, payload_digest, created_at)
+         SELECT ?, ?, ?, ?, ?, ?, ?, ?, 'review', ?, ?, ?, ?
+         FROM classroom_instances ci
+         JOIN classroom_submission_revisions sr ON sr.room_id = ci.room_id
+         WHERE ci.room_id = ? AND ci.reset_generation = ?
+           AND sr.submission_id = ? AND sr.reset_generation = ? AND sr.version = ?`,
+      ).bind(
+        mutationId, roomId, input.idempotencyKey, submissionId, actorProfileId, row.block_id, row.kind,
+        input.expectedResetGeneration, input.expectedVersion, nextVersion, payloadDigest, now,
+        roomId, input.expectedResetGeneration, submissionId, input.expectedResetGeneration, input.expectedVersion,
+      ),
+      mutationAssertion(db, "classroom_submission_mutations", mutationId, now),
+      db.prepare(
+        `UPDATE classroom_block_submissions SET payload_json = ?, status = ?, updated_at = ?
+         WHERE id = ? AND room_id = ?`,
+      ).bind(JSON.stringify(nextPayload), input.status, now, submissionId, roomId),
+      db.prepare(
+        `UPDATE classroom_submission_revisions
+         SET version = version + 1, last_mutation_id = ?, updated_at = ?
+         WHERE submission_id = ? AND room_id = ? AND reset_generation = ? AND version = ?`,
+      ).bind(mutationId, now, submissionId, roomId, input.expectedResetGeneration, input.expectedVersion),
+      factoryEvent(db, roomId, actorProfileId, "submission.reviewed", withIdentityAudit(user, {
+        submissionId,
+        blockId: row.block_id,
+        schemaId: schema.id,
+        status: input.status,
+        projectedProfileId: detail.viewer.viewProfileId,
+        testView: detail.environment === "test" && detail.viewer.viewProfileId !== user.userId,
+        runId: input.expectedRunId,
+        resetGeneration: input.expectedResetGeneration,
+        expectedVersion: input.expectedVersion,
+        resultingVersion: nextVersion,
+        mutationId,
+      }), now),
+    ]);
+    if (Number(result[0]?.meta?.changes ?? 0) !== 1) throw mutationConflict("SUBMISSION_VERSION_CONFLICT", "这份作品刚被重新提交或审核，请同步后再操作。");
+  } catch (error) {
+    const won = await submissionMutationReplay(db, roomId, actorProfileId, input.idempotencyKey, {
+      operation: "review",
+      submissionId,
+      resetGeneration: input.expectedResetGeneration,
+      expectedVersion: input.expectedVersion,
+      payloadDigest,
+      blockId: row.block_id,
+      kind: row.kind,
+    });
+    if (won) return won;
+    if (isAtomicAssertionError(error)) throw mutationConflict("SUBMISSION_VERSION_CONFLICT", "课堂已重置或这份作品已更新，请同步后重试。");
+    throw error;
+  }
+  return { submissionId, version: nextVersion, resetGeneration: input.expectedResetGeneration, idempotent: false };
 }
 
 export async function applyScriptAction(
   db: ClassroomD1,
   user: AuthenticatedClassroomUser,
   roomId: string,
-  expectedVersion: number,
-  action: ClassroomScriptAction,
-  viewAsProfileId?: string,
+  input: ClassroomRunExpectation & {
+    expectedVersion: number;
+    action: ClassroomScriptAction;
+    viewAsProfileId?: string;
+  },
 ): Promise<ClassroomScriptProgress> {
   const summary = (await listClassroomInstances(db, user)).find((item) => item.id === roomId);
   if (!summary) throw new ClassroomError("CLASSROOM_ACCESS_FORBIDDEN", "你不是这个课堂的成员或 Admin DM。", 403);
-  if (viewAsProfileId) {
+  if (input.viewAsProfileId) {
     if (summary.environment !== "test") throw new ClassroomError("TEST_VIEW_PRODUCTION_FORBIDDEN", "角色视角切换不能用于 Production Classroom。", 403);
-    await requireTestViewTarget(db, roomId, viewAsProfileId);
+    await requireTestViewTarget(db, roomId, input.viewAsProfileId);
   }
   if (summary.environment !== "test" && !summary.isAdminDm && !summary.mentorRole) {
     throw new ClassroomError("SCRIPT_UNLOCK_MENTOR_REQUIRED", "只有本课堂导师或 Admin DM 可以解锁下一页。", 403);
   }
   const row = await db.prepare(
-    `SELECT sp.*, ci.environment, ci.lifecycle, ci.course_id, ci.course_revision, ci.course_digest
+    `SELECT sp.*, ci.environment, ci.lifecycle, ci.course_id, ci.course_revision, ci.course_digest,
+            ci.reset_generation
      FROM classroom_script_progress sp
      JOIN classroom_instances ci ON ci.room_id = sp.room_id WHERE sp.room_id = ?`,
   ).bind(roomId).first<{
     state_machine_version: 2; unlocked_through_block_id: string; unlocked_through_index: number;
     version: number; created_at: string; updated_at: string; environment: ClassroomEnvironment; lifecycle: string;
-    course_id: string; course_revision: number; course_digest: string;
+    course_id: string; course_revision: number; course_digest: string; reset_generation: number;
   }>();
   if (!row) throw new ClassroomError("CLASSROOM_NOT_FOUND", "课堂不存在。", 404);
-  if (row.version !== expectedVersion) throw new ClassroomError("SCRIPT_VERSION_CONFLICT", "另一位导师刚刚解锁了页面，请同步后再操作。", 409);
+  assertRunExpectation(roomId, row.reset_generation, input);
+  if (row.version !== input.expectedVersion) throw new ClassroomError("SCRIPT_VERSION_CONFLICT", "另一位导师刚刚解锁了页面，请同步后再操作。", 409);
   const now = new Date().toISOString();
   const current: ClassroomScriptProgress = {
     stateMachineVersion: row.state_machine_version,
@@ -1023,33 +1212,65 @@ export async function applyScriptAction(
   };
   const course = await loadExactCoursePackage(db, { courseId: row.course_id, revision: row.course_revision, digest: row.course_digest });
   let next: ClassroomScriptProgress;
-  try { next = unlockNextScriptPage(current, action, course.blocks.map((block) => block.id), now); }
+  try { next = unlockNextScriptPage(current, input.action, course.blocks.map((block) => block.id), now); }
   catch (error) { throw new ClassroomError("SCRIPT_UNLOCK_INVALID", error instanceof Error ? error.message : "不能解锁这一页。", 409); }
-  const changes = await db.prepare(
-    `UPDATE classroom_script_progress
-     SET unlocked_through_block_id = ?, unlocked_through_index = ?, state_machine_version = ?,
-         version = version + 1, updated_at = ?
-     WHERE room_id = ? AND version = ? AND unlocked_through_index = ?`,
-  ).bind(next.unlockedThroughBlockId, next.unlockedThroughIndex, CLASSROOM_STATE_MACHINE_VERSION, now, roomId, expectedVersion, current.unlockedThroughIndex).run();
-  if (Number(changes.meta?.changes ?? 0) !== 1) throw new ClassroomError("SCRIPT_VERSION_CONFLICT", "另一位导师刚刚解锁了页面，请同步后再操作。", 409);
   const lifecycle = next.unlockedThroughIndex === course.blocks.length - 1 ? "completed" : "running";
-  await db.batch([
-    db.prepare(
-      `UPDATE classroom_instances SET lifecycle = ?, locked_at = CASE WHEN locked_at IS NULL AND ? = 'running' THEN ? ELSE locked_at END,
-       started_at = CASE WHEN started_at IS NULL AND ? = 'running' THEN ? ELSE started_at END,
-       completed_at = CASE WHEN ? = 'completed' THEN ? ELSE completed_at END, updated_at = ? WHERE room_id = ?`,
-    ).bind(lifecycle, lifecycle, now, lifecycle, now, lifecycle, now, now, roomId),
-    factoryEvent(db, roomId, auditActor(user), "script.page-unlocked", withIdentityAudit(user, {
-      from: current,
-      to: next,
-      projectedProfileId: viewAsProfileId ?? user.userId,
-      testView: Boolean(viewAsProfileId),
-    }), now),
-  ]);
+  const mutationId = crypto.randomUUID();
+  try {
+    const result = await db.batch([
+      db.prepare(
+        `INSERT INTO classroom_script_mutations
+         (id, room_id, reset_generation, expected_version, resulting_version,
+          from_block_id, to_block_id, actor_profile_id, created_at)
+         SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?
+         FROM classroom_script_progress sp
+         JOIN classroom_instances ci ON ci.room_id = sp.room_id
+         WHERE sp.room_id = ? AND sp.version = ? AND sp.unlocked_through_index = ?
+           AND ci.reset_generation = ?`,
+      ).bind(
+        mutationId, roomId, input.expectedResetGeneration, input.expectedVersion, next.version,
+        current.unlockedThroughBlockId, next.unlockedThroughBlockId, auditActor(user), now,
+        roomId, input.expectedVersion, current.unlockedThroughIndex, input.expectedResetGeneration,
+      ),
+      mutationAssertion(db, "classroom_script_mutations", mutationId, now),
+      db.prepare(
+        `UPDATE classroom_script_progress
+         SET unlocked_through_block_id = ?, unlocked_through_index = ?, state_machine_version = ?,
+             version = version + 1, updated_at = ?
+         WHERE room_id = ? AND version = ? AND unlocked_through_index = ?`,
+      ).bind(next.unlockedThroughBlockId, next.unlockedThroughIndex, CLASSROOM_STATE_MACHINE_VERSION, now, roomId, input.expectedVersion, current.unlockedThroughIndex),
+      db.prepare(
+        `UPDATE classroom_instances SET lifecycle = ?,
+         locked_at = CASE WHEN locked_at IS NULL AND ? = 'running' THEN ? ELSE locked_at END,
+         started_at = CASE WHEN started_at IS NULL AND ? IN ('running','completed') THEN ? ELSE started_at END,
+         completed_at = CASE WHEN ? = 'completed' THEN ? ELSE completed_at END,
+         updated_at = ?
+         WHERE room_id = ? AND reset_generation = ?`,
+      ).bind(lifecycle, lifecycle, now, lifecycle, now, lifecycle, now, now, roomId, input.expectedResetGeneration),
+      factoryEvent(db, roomId, auditActor(user), "script.page-unlocked", withIdentityAudit(user, {
+        from: current,
+        to: next,
+        projectedProfileId: input.viewAsProfileId ?? user.userId,
+        testView: Boolean(input.viewAsProfileId),
+        runId: input.expectedRunId,
+        resetGeneration: input.expectedResetGeneration,
+        mutationId,
+      }), now),
+    ]);
+    if (Number(result[0]?.meta?.changes ?? 0) !== 1) throw mutationConflict("SCRIPT_VERSION_CONFLICT", "课堂已重置或另一位导师刚刚解锁了页面，请同步后再操作。");
+  } catch (error) {
+    if (isAtomicAssertionError(error)) throw mutationConflict("SCRIPT_VERSION_CONFLICT", "课堂已重置或另一位导师刚刚解锁了页面，请同步后再操作。");
+    throw error;
+  }
   return next;
 }
 
-export async function resetTestClassroom(db: ClassroomD1, user: AuthenticatedClassroomUser, roomId: string): Promise<void> {
+export async function resetTestClassroom(
+  db: ClassroomD1,
+  user: AuthenticatedClassroomUser,
+  roomId: string,
+  input: ClassroomRunExpectation,
+): Promise<{ runId: string; resetGeneration: number }> {
   await requireAdminDm(db, user, roomId);
   const instance = await db.prepare(
     `SELECT environment, course_id, course_revision, course_digest, learner_count, reset_generation
@@ -1057,6 +1278,7 @@ export async function resetTestClassroom(db: ClassroomD1, user: AuthenticatedCla
   ).bind(roomId).first<{ environment: ClassroomEnvironment; course_id: string; course_revision: number; course_digest: string; learner_count: number; reset_generation: number }>();
   if (!instance) throw new ClassroomError("CLASSROOM_NOT_FOUND", "课堂不存在。", 404);
   if (instance.environment !== "test") throw new ClassroomError("PRODUCTION_RESET_FORBIDDEN", "正式课堂不能重置。", 403);
+  assertRunExpectation(roomId, instance.reset_generation, input);
   const exactRef = { courseId: instance.course_id, revision: instance.course_revision, digest: instance.course_digest };
   const course = await loadExactCoursePackage(db, exactRef);
   const campaign = projectCoursePackageToCampaign(course, { ...exactRef, schemaVersion: course.schemaVersion, status: "candidate" });
@@ -1073,7 +1295,15 @@ export async function resetTestClassroom(db: ClassroomD1, user: AuthenticatedCla
   const now = new Date().toISOString();
   const nextResetGeneration = instance.reset_generation + 1;
   const nextDealSeed = classroomDealSeed(roomId, nextResetGeneration);
+  const mutationId = crypto.randomUUID();
   const statements: D1PreparedStatement[] = [
+    db.prepare(
+      `INSERT INTO classroom_reset_mutations
+       (id, room_id, from_generation, to_generation, actor_profile_id, created_at)
+       SELECT ?, ?, ?, ?, ?, ? FROM classroom_instances
+       WHERE room_id = ? AND environment = 'test' AND reset_generation = ?`,
+    ).bind(mutationId, roomId, instance.reset_generation, nextResetGeneration, auditActor(user), now, roomId, instance.reset_generation),
+    mutationAssertion(db, "classroom_reset_mutations", mutationId, now),
     db.prepare(`DELETE FROM card_grants WHERE room_id = ?`).bind(roomId),
     db.prepare(`DELETE FROM intelligence_edges WHERE room_id = ?`).bind(roomId),
     db.prepare(`DELETE FROM intelligence_nodes WHERE room_id = ?`).bind(roomId),
@@ -1097,7 +1327,7 @@ export async function resetTestClassroom(db: ClassroomD1, user: AuthenticatedCla
        SET state_machine_version = ?, unlocked_through_block_id = ?, unlocked_through_index = 0,
            version = version + 1, updated_at = ? WHERE room_id = ?`,
     ).bind(CLASSROOM_STATE_MACHINE_VERSION, course.blocks[0].id, now, roomId),
-    db.prepare(`UPDATE classroom_instances SET lifecycle = 'ready', reset_generation = reset_generation + 1, locked_at = NULL, started_at = NULL, completed_at = NULL, updated_at = ? WHERE room_id = ?`).bind(now, roomId),
+    db.prepare(`UPDATE classroom_instances SET lifecycle = 'ready', reset_generation = reset_generation + 1, locked_at = NULL, started_at = NULL, completed_at = NULL, updated_at = ? WHERE room_id = ? AND reset_generation = ?`).bind(now, roomId, instance.reset_generation),
     db.prepare(`UPDATE classroom_acceptance_bindings SET ui_receipt_id = NULL WHERE room_id = ?`).bind(roomId),
   ];
   for (const learner of learners.results ?? []) {
@@ -1128,9 +1358,17 @@ export async function resetTestClassroom(db: ClassroomD1, user: AuthenticatedCla
       fromRunId: classroomRunId(roomId, instance.reset_generation),
       toRunId: classroomRunId(roomId, nextResetGeneration),
       dealSeed: nextDealSeed,
+      mutationId,
     }), now),
   );
-  await db.batch(statements);
+  try {
+    const result = await db.batch(statements);
+    if (Number(result[0]?.meta?.changes ?? 0) !== 1) throw mutationConflict("CLASSROOM_RUN_CONFLICT", "课堂已经被另一位导师重置，请同步最新运行。");
+  } catch (error) {
+    if (isAtomicAssertionError(error)) throw mutationConflict("CLASSROOM_RUN_CONFLICT", "课堂已经被另一位导师重置，请同步最新运行。");
+    throw error;
+  }
+  return { runId: classroomRunId(roomId, nextResetGeneration), resetGeneration: nextResetGeneration };
 }
 
 export async function acceptTestClassroom(
@@ -1674,6 +1912,105 @@ async function requireTestViewTarget(db: ClassroomD1, roomId: string, profileId:
 
 function toExactCoursewareRef(content: CoursewareContent): ExactCoursewareRef {
   return { mentorRole: content.mentorRole, packageId: content.packageId, slug: content.slug, revision: content.revision, digest: content.digest };
+}
+
+function assertRunExpectation(roomId: string, actualResetGeneration: number, expected: ClassroomRunExpectation): void {
+  const actualRunId = classroomRunId(roomId, actualResetGeneration);
+  if (expected.expectedResetGeneration !== actualResetGeneration || expected.expectedRunId !== actualRunId) {
+    throw new ClassroomError(
+      "CLASSROOM_RUN_CONFLICT",
+      "课堂已经进入另一次运行；旧页面不能继续写入，请同步后重试。",
+      409,
+      [`expected ${expected.expectedRunId || "(missing)"}`, `actual ${actualRunId}`],
+    );
+  }
+}
+
+function assertMutationInput(expectedVersion: number, idempotencyKey: string): void {
+  if (!Number.isInteger(expectedVersion) || expectedVersion < 0) {
+    throw new ClassroomError("SUBMISSION_VERSION_INVALID", "作品版本必须是非负整数。", 400);
+  }
+  if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/.test(idempotencyKey)) {
+    throw new ClassroomError("IDEMPOTENCY_KEY_INVALID", "幂等键格式无效。", 400);
+  }
+}
+
+function mutationAssertion(
+  db: ClassroomD1,
+  table: "classroom_submission_mutations" | "classroom_script_mutations" | "classroom_reset_mutations",
+  mutationId: string,
+  now: string,
+): D1PreparedStatement {
+  return db.prepare(
+    `INSERT INTO classroom_atomic_assertions (id, verified_at)
+     SELECT CASE WHEN EXISTS (SELECT 1 FROM ${table} WHERE id = ?) THEN 1 ELSE 0 END, ?
+     ON CONFLICT(id) DO NOTHING`,
+  ).bind(mutationId, now);
+}
+
+function mutationConflict(code: string, message: string): ClassroomError {
+  return new ClassroomError(code, message, 409);
+}
+
+function isAtomicAssertionError(error: unknown): boolean {
+  return error instanceof Error && /chk_classroom_atomic_assertion|CHECK constraint failed:\s*classroom_atomic_assertions/i.test(error.message);
+}
+
+async function mutationDigest(value: unknown): Promise<string> {
+  const bytes = new TextEncoder().encode(JSON.stringify(value));
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
+  return [...digest].map((part) => part.toString(16).padStart(2, "0")).join("");
+}
+
+type SubmissionReplayExpectation = {
+  operation: "submit" | "review";
+  submissionId: string | null;
+  resetGeneration: number;
+  expectedVersion: number;
+  payloadDigest: string;
+  blockId: string;
+  kind: string;
+};
+
+async function submissionMutationReplay(
+  db: ClassroomD1,
+  roomId: string,
+  profileId: string,
+  idempotencyKey: string,
+  expected: SubmissionReplayExpectation,
+): Promise<SubmissionMutationResult | null> {
+  const row = await db.prepare(
+    `SELECT submission_id, block_id, kind, reset_generation, operation, expected_version,
+            resulting_version, payload_digest
+     FROM classroom_submission_mutations
+     WHERE room_id = ? AND profile_id = ? AND idempotency_key = ?`,
+  ).bind(roomId, profileId, idempotencyKey).first<{
+    submission_id: string;
+    block_id: string;
+    kind: string;
+    reset_generation: number;
+    operation: "submit" | "review";
+    expected_version: number;
+    resulting_version: number;
+    payload_digest: string;
+  }>();
+  if (!row) return null;
+  const same = row.operation === expected.operation
+    && (expected.submissionId === null || row.submission_id === expected.submissionId)
+    && row.block_id === expected.blockId
+    && row.kind === expected.kind
+    && row.reset_generation === expected.resetGeneration
+    && row.expected_version === expected.expectedVersion
+    && row.payload_digest === expected.payloadDigest;
+  if (!same) {
+    throw new ClassroomError("IDEMPOTENCY_KEY_REUSED", "同一个幂等键已经用于另一项课堂写入，请同步页面后重试。", 409);
+  }
+  return {
+    submissionId: row.submission_id,
+    version: row.resulting_version,
+    resetGeneration: row.reset_generation,
+    idempotent: true,
+  };
 }
 
 function factoryEvent(db: ClassroomD1, roomId: string, actor: string, type: string, detail: Record<string, unknown>, now: string): D1PreparedStatement {

@@ -911,6 +911,94 @@ export const classroomBlockSubmissions = sqliteTable(
   ],
 );
 
+export const classroomAtomicAssertions = sqliteTable(
+  "classroom_atomic_assertions",
+  {
+    id: integer("id").primaryKey(),
+    verifiedAt: text("verified_at").notNull(),
+  },
+  (table) => [check("chk_classroom_atomic_assertion", sql`${table.id} = 1`)],
+);
+
+export const classroomSubmissionRevisions = sqliteTable(
+  "classroom_submission_revisions",
+  {
+    submissionId: text("submission_id").primaryKey().references(() => classroomBlockSubmissions.id, { onDelete: "cascade" }),
+    roomId: text("room_id").notNull().references(() => rooms.id, { onDelete: "cascade" }),
+    resetGeneration: integer("reset_generation").notNull().default(0),
+    version: integer("version").notNull().default(1),
+    lastMutationId: text("last_mutation_id").notNull(),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (table) => [
+    index("idx_classroom_submission_revisions_run").on(table.roomId, table.resetGeneration, table.version),
+    check("chk_classroom_submission_revision_generation", sql`${table.resetGeneration} >= 0`),
+    check("chk_classroom_submission_revision_version", sql`${table.version} >= 1`),
+  ],
+);
+
+export const classroomSubmissionMutations = sqliteTable(
+  "classroom_submission_mutations",
+  {
+    id: text("id").primaryKey(),
+    roomId: text("room_id").notNull().references(() => rooms.id, { onDelete: "cascade" }),
+    idempotencyKey: text("idempotency_key").notNull(),
+    submissionId: text("submission_id").notNull(),
+    profileId: text("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    blockId: text("block_id").notNull(),
+    kind: text("kind").notNull(),
+    resetGeneration: integer("reset_generation").notNull(),
+    operation: text("operation").notNull(),
+    expectedVersion: integer("expected_version").notNull(),
+    resultingVersion: integer("resulting_version").notNull(),
+    payloadDigest: text("payload_digest").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("uidx_classroom_submission_mutation_key").on(table.roomId, table.profileId, table.idempotencyKey),
+    index("idx_classroom_submission_mutations_submission").on(table.roomId, table.submissionId, table.createdAt),
+    check("chk_classroom_submission_mutation_operation", sql`${table.operation} in ('submit', 'review')`),
+    check("chk_classroom_submission_mutation_generation", sql`${table.resetGeneration} >= 0`),
+    check("chk_classroom_submission_mutation_versions", sql`${table.expectedVersion} >= 0 and ${table.resultingVersion} = ${table.expectedVersion} + 1`),
+  ],
+);
+
+export const classroomScriptMutations = sqliteTable(
+  "classroom_script_mutations",
+  {
+    id: text("id").primaryKey(),
+    roomId: text("room_id").notNull().references(() => rooms.id, { onDelete: "cascade" }),
+    resetGeneration: integer("reset_generation").notNull(),
+    expectedVersion: integer("expected_version").notNull(),
+    resultingVersion: integer("resulting_version").notNull(),
+    fromBlockId: text("from_block_id").notNull(),
+    toBlockId: text("to_block_id").notNull(),
+    actorProfileId: text("actor_profile_id").notNull().references(() => profiles.id),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("uidx_classroom_script_mutation_version").on(table.roomId, table.resetGeneration, table.resultingVersion),
+    check("chk_classroom_script_mutation_generation", sql`${table.resetGeneration} >= 0`),
+    check("chk_classroom_script_mutation_versions", sql`${table.expectedVersion} >= 1 and ${table.resultingVersion} = ${table.expectedVersion} + 1`),
+  ],
+);
+
+export const classroomResetMutations = sqliteTable(
+  "classroom_reset_mutations",
+  {
+    id: text("id").primaryKey(),
+    roomId: text("room_id").notNull().references(() => rooms.id, { onDelete: "cascade" }),
+    fromGeneration: integer("from_generation").notNull(),
+    toGeneration: integer("to_generation").notNull(),
+    actorProfileId: text("actor_profile_id").notNull().references(() => profiles.id),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("uidx_classroom_reset_mutation_generation").on(table.roomId, table.fromGeneration),
+    check("chk_classroom_reset_mutation_generations", sql`${table.fromGeneration} >= 0 and ${table.toGeneration} = ${table.fromGeneration} + 1`),
+  ],
+);
+
 export const classroomWalletBalances = sqliteTable(
   "classroom_wallet_balances",
   {

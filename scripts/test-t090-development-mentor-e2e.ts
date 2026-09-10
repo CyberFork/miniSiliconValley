@@ -29,16 +29,16 @@ type Courseware = {
 };
 type Bootstrap = { user: { userId: string }; courseware: Courseware[] };
 type Credential = { userId: string; username: string; role: "mentor" | "learner" };
-type ScriptProgress = { unlockedThroughBlockId: string; unlockedThroughIndex: number; version: number };
+type ScriptProgress = { unlockedThroughBlockId: string; unlockedThroughIndex: number; version: number; runtimeIdentity?: { runId: string; resetGeneration: number } };
 type Card = { id: string; boundary: string; body: string; simulationCategory?: string };
 type MentorView = {
   kind: "mentor"; mentorRole: "P" | "D" | "M" | "O"; privateScript: string[];
   contentContext: { mode: "owner" | "handoff" | "none"; checkpoint: null | { id: string }; coursewareCue: null | { slideStart: number; slideEnd: number } };
 };
 type LearnerView = { kind: "learner"; privateDeckId: string; privateCards: Card[] };
-type Submission = { id: string; profileId: string; schemaId: string | null; values: Record<string, string> | null; status: string; reviewFeedback: string | null; updatedAt: string };
+type Submission = { id: string; profileId: string; schemaId: string | null; values: Record<string, string> | null; status: string; reviewFeedback: string | null; version: number; resetGeneration: number; updatedAt: string };
 type Detail = {
-  page: { id: string }; script: ScriptProgress; myView: MentorView | LearnerView | { kind: "controller" } | null;
+  page: { id: string }; runtimeIdentity: { runId: string; resetGeneration: number }; script: ScriptProgress; myView: MentorView | LearnerView | { kind: "controller" } | null;
   activitySchema: null | { id: string; kind: string; ownerMentorRole?: string; fields: Array<Record<string, unknown>>; mentorRubric: null | string[] };
   submissions: Submission[];
   handoffs: Array<{ artifactName: string; fieldLabels: Record<string, string>; fromMentorRole: string; toMentorRole: string; fromBlockId: string; availableAtBlockId: string; submission: Submission }>;
@@ -138,10 +138,12 @@ try {
   assert.equal(learnerB04.activitySchema?.id, "product-brief-v1");
   await postData(`/api/platform/classrooms/${roomId}/submissions`, {
     blockId: "B04", schemaId: "product-brief-v1", values: productBriefValues(), viewAsProfileId: learnerProfiles[0].userId,
+    ...submissionExpectation(learnerB04, 0, `d-upstream-submit-${roomId}`),
   }, adminCookie);
   const pB04 = await view(roomId, "B04", mentorProfiles[0].userId, adminCookie);
   await postData(`/api/platform/classrooms/${roomId}/submissions/${pB04.submissions[0].id}/review`, {
-    status: "accepted", feedback: "产品问题、路径和边界已通过，交给 D。", expectedUpdatedAt: pB04.submissions[0].updatedAt,
+    status: "accepted", feedback: "产品问题、路径和边界已通过，交给 D。",
+    ...submissionExpectation(pB04, pB04.submissions[0].version, `d-upstream-review-${roomId}`),
     viewAsProfileId: mentorProfiles[0].userId,
   }, adminCookie);
   const dB05 = await view(roomId, "B05", mentorProfiles[1].userId, adminCookie);
@@ -165,6 +167,7 @@ try {
   invalidValues["sub-sticks"] = "只有一根子棍｜无法完成分层";
   const invalid = await post(`/api/platform/classrooms/${roomId}/submissions`, {
     blockId: "B08", schemaId: "development-stick-v1", values: invalidValues, viewAsProfileId: learnerProfiles[0].userId,
+    ...submissionExpectation(learnerB08, 0, `d-invalid-submit-${roomId}`),
   }, adminCookie);
   assert.equal(invalid.status, 400);
   assert.equal((await invalid.json() as Envelope<never>).error?.code, "SUBMISSION_VALUES_INVALID");
@@ -172,6 +175,7 @@ try {
   const firstValues = developmentStickValues("第一版");
   await postData(`/api/platform/classrooms/${roomId}/submissions`, {
     blockId: "B08", schemaId: "development-stick-v1", values: firstValues, viewAsProfileId: learnerProfiles[0].userId,
+    ...submissionExpectation(learnerB08, 0, `d-submit-v1-${roomId}`),
   }, adminCookie);
   assert.equal((await view(roomId, "B08", learnerProfiles[1].userId, adminCookie)).submissions.length, 0, "other learners cannot read the draft");
   assert.equal((await view(roomId, "B08", mentorProfiles[0].userId, adminCookie)).submissions.length, 0, "P cannot read D-owned raw submissions");
@@ -183,17 +187,20 @@ try {
   const outsiderCookie = await login(fixture.outsider.username, `${password} outsider`);
   for (const probedId of [firstSubmission.id, "00000000-0000-4000-8000-000000000000"]) {
     const probe = await post(`/api/platform/classrooms/${roomId}/submissions/${probedId}/review`, {
-      status: "accepted", feedback: "", expectedUpdatedAt: firstSubmission.updatedAt,
+      status: "accepted", feedback: "",
+      ...submissionExpectation(dB08, firstSubmission.version, `d-outsider-${roomId}-${probedId}`),
     }, outsiderCookie);
     assert.equal(probe.status, 403, "non-members must not learn whether a submission UUID exists");
     assert.equal((await probe.json() as Envelope<never>).error?.code, "CLASSROOM_ACCESS_FORBIDDEN");
   }
   const wrongReviewer = await post(`/api/platform/classrooms/${roomId}/submissions/${firstSubmission.id}/review`, {
-    status: "accepted", feedback: "P 不应审核 D 交付物", expectedUpdatedAt: firstSubmission.updatedAt, viewAsProfileId: mentorProfiles[0].userId,
+    status: "accepted", feedback: "P 不应审核 D 交付物", viewAsProfileId: mentorProfiles[0].userId,
+    ...submissionExpectation(dB08, firstSubmission.version, `d-wrong-review-${roomId}`),
   }, adminCookie);
   assert.equal(wrongReviewer.status, 403);
   await postData(`/api/platform/classrooms/${roomId}/submissions/${firstSubmission.id}/review`, {
-    status: "rejected", feedback: "请把测试改成两台设备同时提交，并写清名单最终只能有一条。", expectedUpdatedAt: firstSubmission.updatedAt,
+    status: "rejected", feedback: "请把测试改成两台设备同时提交，并写清名单最终只能有一条。",
+    ...submissionExpectation(dB08, firstSubmission.version, `d-review-reject-${roomId}`),
     viewAsProfileId: mentorProfiles[1].userId,
   }, adminCookie);
   const returned = await view(roomId, "B08", learnerProfiles[0].userId, adminCookie);
@@ -204,20 +211,23 @@ try {
   revisedValues.tests = "两台设备同时提交同一相机同一时段 → 只有一台显示成功且管理员名单只有一条";
   await postData(`/api/platform/classrooms/${roomId}/submissions`, {
     blockId: "B08", schemaId: "development-stick-v1", values: revisedValues, viewAsProfileId: learnerProfiles[0].userId,
+    ...submissionExpectation(returned, returned.submissions[0].version, `d-submit-v2-${roomId}`),
   }, adminCookie);
   dB08 = await view(roomId, "B08", mentorProfiles[1].userId, adminCookie);
   assert.equal(dB08.submissions[0].status, "submitted");
   assert.equal(dB08.submissions[0].reviewFeedback, null);
   await postData(`/api/platform/classrooms/${roomId}/submissions/${dB08.submissions[0].id}/review`, {
-    status: "accepted", feedback: "三级立棍、验收、红线、测试和纠偏已对齐。", expectedUpdatedAt: dB08.submissions[0].updatedAt,
+    status: "accepted", feedback: "三级立棍、验收、红线、测试和纠偏已对齐。",
+    ...submissionExpectation(dB08, dB08.submissions[0].version, `d-review-accept-${roomId}`),
     viewAsProfileId: mentorProfiles[1].userId,
   }, adminCookie);
   const refreshedAccepted = await view(roomId, "B08", learnerProfiles[0].userId, adminCookie);
   assert.equal(refreshedAccepted.submissions[0].status, "accepted");
   assert.deepEqual(refreshedAccepted.submissions[0].values, revisedValues);
 
+  const runAtB08 = await runtime(roomId, "B08", adminCookie);
   await postData<ScriptProgress>(`/api/platform/classrooms/${roomId}/control`, {
-    expectedVersion: progress.version, action: { type: "unlock-next", nextBlockId: "B09" },
+    expectedVersion: progress.version, ...runExpectation(runAtB08), action: { type: "unlock-next", nextBlockId: "B09" },
   }, adminCookie);
   const mB09 = await view(roomId, "B09", mentorProfiles[2].userId, adminCookie);
   assert.equal(mB09.handoffs.length, 1);
@@ -267,8 +277,9 @@ async function unlockThrough(roomId: string, current: ScriptProgress, targetBloc
   const target = Number(targetBlockId.slice(1));
   while (progress.unlockedThroughIndex + 1 < target) {
     const nextBlockId = `B${String(progress.unlockedThroughIndex + 2).padStart(2, "0")}`;
+    const run = await runtime(roomId, progress.unlockedThroughBlockId, cookie);
     progress = await postData<ScriptProgress>(`/api/platform/classrooms/${roomId}/control`, {
-      expectedVersion: progress.version, action: { type: "unlock-next", nextBlockId },
+      expectedVersion: progress.version, ...runExpectation(run), action: { type: "unlock-next", nextBlockId },
     }, cookie);
   }
   return progress;
@@ -302,6 +313,16 @@ function developmentStickValues(version: string): Record<string, string> {
     tests: "两台设备同时提交同一时段 → 只有一次成功且管理员名单只有一条",
     "correction-log": "偏差是页面先报成功、保存随后失败；旧测试只看提示；纠偏为保存完成后再回读名单。",
   };
+}
+
+async function runtime(roomId: string, blockId: string, cookie: string): Promise<Detail["runtimeIdentity"]> { return (await getData<Detail>(`/api/platform/classrooms/${roomId}?block=${blockId}`, cookie)).runtimeIdentity; }
+
+function runExpectation(runtimeIdentity: Detail["runtimeIdentity"]) {
+  return { expectedRunId: runtimeIdentity.runId, expectedResetGeneration: runtimeIdentity.resetGeneration };
+}
+
+function submissionExpectation(detail: Pick<Detail, "runtimeIdentity">, expectedVersion: number, idempotencyKey: string) {
+  return { ...runExpectation(detail.runtimeIdentity), expectedVersion, idempotencyKey };
 }
 
 async function view(roomId: string, blockId: string, profileId: string, cookie: string): Promise<Detail> {
