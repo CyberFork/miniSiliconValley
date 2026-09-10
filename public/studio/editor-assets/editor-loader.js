@@ -10,7 +10,8 @@
   const ASSETS = [
     "/studio/editor-assets/ui-theme.js?v=studio-startup-r2",
     "/studio/editor-assets/card-view.js?v=studio-startup-r2",
-    "/studio/editor-assets/course-preview.js?v=studio-startup-r2",
+    "/studio/editor-assets/course-projection-core.js?v=course-projector-v7",
+    "/studio/editor-assets/course-preview.js?v=course-projector-v7",
     "/studio/editor-assets/editor.js?v=studio-startup-r3",
   ];
 

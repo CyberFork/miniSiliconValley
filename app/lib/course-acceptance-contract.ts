@@ -4,7 +4,7 @@
  * concrete artifact, but a pure styling release does not invalidate receipts
  * while these contracts remain compatible.
  */
-export const COURSE_PROJECTOR_CONTRACT_VERSION = "course-projector-v6";
+export const COURSE_PROJECTOR_CONTRACT_VERSION = "course-projector-v7";
 export const CLASSROOM_RUNTIME_CONTRACT_VERSION = "classroom-runtime-v3";
 
 export const UI_ACCEPTANCE_CHECKLIST = [

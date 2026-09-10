@@ -12,6 +12,7 @@ import type { ClassroomCampaign } from "./classroom-model";
 import { resolveLearnerPolicy, validateCourseInstantiation } from "./course-platform";
 import { requireValidUiAcceptanceReceipt, requireValidViewAcceptanceReceipt } from "./course-acceptance";
 import { migrateCourseFieldIsolation } from "./course-field-model";
+import { projectReleasedCourseSummary, type PublicReleasedCourseSummary } from "./public-course-projection";
 
 export interface CourseReleaseApproval {
   schemaVersion: number;
@@ -506,6 +507,25 @@ export async function listReleasedCourseCampaigns(db: ClassroomD1): Promise<Clas
   return result;
 }
 
+/** Public, allow-listed summaries; never return the stored CourseDefinition body. */
+export async function listPublicReleasedCourseSummaries(db: ClassroomD1): Promise<PublicReleasedCourseSummary[]> {
+  await ensureBundledCourseRegistry(db);
+  const rows = await allRows<ReleasedPointerRow>(
+    db.prepare(
+      `SELECT v.*, p.released_at, p.released_by, p.approval_json
+       FROM course_release_pointers p
+       JOIN course_versions v ON v.course_id = p.course_id AND v.revision = p.revision AND v.digest = p.digest
+       ORDER BY v.course_id`,
+    ),
+  );
+  const summaries: PublicReleasedCourseSummary[] = [];
+  for (const row of rows) {
+    const { course, ref } = await verifiedCourseFromRow(row);
+    summaries.push(projectReleasedCourseSummary(course, ref));
+  }
+  return summaries;
+}
+
 export async function loadReleasedCourseCampaign(db: ClassroomD1, courseId: string): Promise<ClassroomCampaign> {
   await ensureBundledCourseRegistry(db);
   const row = await db.prepare(
@@ -629,6 +649,14 @@ export function reconcileCourseCardGrantIds(
 }
 
 async function campaignFromRow(row: ReleasedPointerRow, status: "candidate" | "released" = "released"): Promise<ClassroomCampaign> {
+  const { course, ref } = await verifiedCourseFromRow(row, status);
+  return projectCoursePackageToCampaign(course, ref);
+}
+
+async function verifiedCourseFromRow(
+  row: ReleasedPointerRow,
+  status: "candidate" | "released" = "released",
+): Promise<{ course: CoursePackage; ref: CoursePackageRef }> {
   let parsed: unknown;
   try {
     parsed = JSON.parse(row.package_json);
@@ -640,18 +668,21 @@ async function campaignFromRow(row: ReleasedPointerRow, status: "candidate" | "r
   if (course.course.id !== row.course_id || actual !== row.digest) {
     throw new ClassroomError("COURSE_REGISTRY_CORRUPT", `课程 ${row.course_id} r${row.revision} 未通过 digest 校验。`, 500);
   }
-  return projectCoursePackageToCampaign(course, {
-    courseId: row.course_id,
-    schemaVersion: row.schema_version,
-    revision: row.revision,
-    digest: row.digest,
-    status,
-    createdAt: row.created_at,
-    createdBy: row.created_by,
-    releasedAt: row.released_at,
-    releasedBy: row.released_by,
-    approvalRunId: parseApprovalRunId(row.approval_json),
-  });
+  return {
+    course,
+    ref: {
+      courseId: row.course_id,
+      schemaVersion: row.schema_version,
+      revision: row.revision,
+      digest: row.digest,
+      status,
+      createdAt: row.created_at,
+      createdBy: row.created_by,
+      releasedAt: row.released_at,
+      releasedBy: row.released_by,
+      approvalRunId: parseApprovalRunId(row.approval_json),
+    },
+  };
 }
 
 async function digestFromJson(json: string): Promise<string> {

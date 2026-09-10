@@ -76,7 +76,7 @@ CourseDefinition Working Copy
 唯一可编辑课程原型，包含：
 
 - 一世界、两轨线、三玩法、四导师、五步骤、六分钟 Demo。
-- Macro Step、Block、中控脚本、P／D／M／O 导师任务与学员任务。
+- Macro Step、Block、中控脚本、P（产品）／D（开发）／M（市场）／O（运营）导师任务与学员任务。
 - 卡组、卡牌、来源、F／R／G／U 边界和发牌策略。
 - `learnerPolicy`：支持人数、默认人数、每人手牌数与发牌规则。
 - 可选 `contentPackages`：案例、剧本所有权、少量课件检查点、结构化交付物、跨导师交接和待审核项。
@@ -187,13 +187,16 @@ TEST archive 也不删除历史回执。它保留原回执供审计查询，但�
 }
 ```
 
-`buildStudioProjection()` 是 Editor 辅助视图和正式 Preview 验收的共享投影器。它必须证明：
+`app/lib/course-projection-core.ts` 是确定性人数、任务、checkpoint 卡组、hash、shuffle、发牌、导师／学员／中控基础投影的唯一源码。服务端直接导入它；构建脚本以同一源码生成 `public/studio/editor-assets/course-projection-core.js`，Editor 辅助视图只负责 DOM、编辑路径和排版。`npm run check:course-projector` 会拒绝过期或被手改的浏览器产物。
+
+`buildStudioProjection()` 使用该核心生成正式 Preview 验收数据。它必须证明：
 
 - N=2 不生成虚假空席；N=6 能生成六份独立任务和私密视图。
 - 卡牌容量满足 `learnerCount × cardsPerLearner`。
 - `unique-within-step` 不重复发牌；固定 seed 的结果可复现。
 - 第五名以后使用通用学员任务模板，不能依赖写死的 learner01—learner04。
 - 任一声明支持人数无法实例化时，不能签发 View 回执。
+- 人数越界只可作为带明确错误的编辑诊断场景显示，不得静默裁剪；unknown Block 和空循环卡组在浏览器、服务端均使用同一失败语义。
 
 Preview 无副作用：不创建 Classroom、Membership、手牌、账本或审计记录。
 
@@ -209,7 +212,9 @@ Activity 按 block 保存并覆盖同 kind 的工作记录；Economy／卡牌与
 
 Stage 1 `/studio/preview/` 是桌面内部内容投影验收：单页展示 4 导师、N 学员和中控摘要，支持完整字段核验及 hover/点击固定展开。Stage 2 才是真实 `/classroom/{id}/` Test Classroom UI；两级 exact 回执门禁后才能 Released。
 
-T-094 起，所有 exact 课程快照统一显示 `courseDataId = {courseId}@r{revision}:{digest}`。Test Runtime 另外公开 `classroomId / runId / blockId / seatId / membershipId / dealSeed / deckId / state versions / resetGeneration / cardAssignmentId` 的内部诊断。浏览器预览与服务端共享相同 UTF-16 hash、`courseId:deckId:seed` 和 checkpoint 卡组选择契约；数据库随机 assignment ID 不参与卡片显示排序。只有显式 Test reset 才生成新 runId 与 dealSeed。
+T-094 起，所有 exact 课程快照统一显示 `courseDataId = {courseId}@r{revision}:{digest}`。Test Runtime 另外公开 `classroomId / runId / blockId / seatId / membershipId / dealSeed / deckId / state versions / resetGeneration / cardAssignmentId` 的内部诊断。T-103 起浏览器预览与服务端由同一源码生成相同 UTF-16 hash、`courseId:deckId:seed`、checkpoint 卡组选择、任务和角色投影；数据库随机 assignment ID 不参与卡片显示排序。只有显式 Test reset 才生成新 runId 与 dealSeed。
+
+公开站点若展示动态课程，只能调用 Released-only 的公共 allow-list 投影：课程摘要、五步、桌游机制、人数范围和六分钟终局。Candidate、Block 导师讲稿、私密卡、rubric、review queue、字段所有权、来源内部信息和课堂运行状态都不进入公开 DTO；Original Timeline 仍是独立只读史实底座，课程编辑和课堂状态无写回路径。
 
 共同准入仍由 `ClassroomFactory.create()` 负责：exact CourseRelease、人数、成员与有效 ViewAcceptanceReceipt 必须一致。Production 额外要求 Released、有效 UiAcceptanceReceipt 及四套 exact 课件。创建使用单次 D1 事务／batch 写入，失败不留下半个课堂。
 

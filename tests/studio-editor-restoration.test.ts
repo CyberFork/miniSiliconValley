@@ -19,18 +19,18 @@ test("the full direct-edit Course Studio replaces the regressed summary-card edi
   assert.match(html, /id="seatPreviewGrid"/);
   assert.match(html, /id="previewController"/);
   assert.match(html, /id="fieldDialog"/);
-  assert.doesNotMatch(html, /<script[^>]+src="[^"]*\/studio\/editor-assets\/(?:ui-theme|card-view|course-preview|editor)\.js[^"]*"/);
+  assert.doesNotMatch(html, /<script[^>]+src="[^"]*\/studio\/editor-assets\/(?:ui-theme|card-view|course-projection-core|course-preview|editor)\.js[^"]*"/);
 
   const page = source("app/studio/editor/page.tsx");
   assert.match(page, /workbench\.html\?raw/);
   assert.match(page, /editor-assets\/editor-loader\.js/);
-  assert.doesNotMatch(page, /\/studio\/editor-assets\/(?:ui-theme|card-view|course-preview|editor)\.js/);
+  assert.doesNotMatch(page, /\/studio\/editor-assets\/(?:ui-theme|card-view|course-projection-core|course-preview|editor)\.js/);
   assert.match(page, /dangerouslySetInnerHTML/);
 });
 
 test("editor-loader script ordering and failure surface are explicit and deterministic", () => {
   const loader = source("public/studio/editor-assets/editor-loader.js");
-  const phaseOrder = ["ui-theme.js", "card-view.js", "course-preview.js", "editor.js"];
+  const phaseOrder = ["ui-theme.js", "card-view.js", "course-projection-core.js", "course-preview.js", "editor.js"];
   const positions = phaseOrder.map((name) => loader.indexOf(name));
   assert.ok(positions.every((index) => index >= 0), "editor loader is missing one or more ordered dependencies");
   for (let index = 1; index < positions.length; index += 1) {
@@ -76,6 +76,7 @@ test("T-094 editor surfaces immutable data identity and does not fabricate it fo
 test("the browser projector renders the same full editor for 4 mentors plus dynamic N learners", () => {
   const context: Record<string, unknown> = {};
   vm.runInNewContext(source("public/studio/editor-assets/card-view.js"), context);
+  vm.runInNewContext(source("public/studio/editor-assets/course-projection-core.js"), context);
   vm.runInNewContext(source("public/studio/editor-assets/course-preview.js"), context);
   const preview = context.MsvCoursePreview as {
     projectCourse: (course: unknown, options: Record<string, unknown>) => {
@@ -83,6 +84,7 @@ test("the browser projector renders the same full editor for 4 mentors plus dyna
       learners: Array<{ id: string; taskPath: string; cards: unknown[] }>;
       mentors: unknown[];
       deal: { dealtCount: number; uniqueCount: number };
+      capacity: { ok: boolean; issues: Array<{ message: string }> };
     };
   };
   assert.ok(preview);
@@ -106,7 +108,10 @@ test("the browser projector renders the same full editor for 4 mentors plus dyna
   assert.equal(projected.learners[4].taskPath, "blocks.0.learnerTaskTemplate.task");
   assert.equal(projected.deal.dealtCount, 18);
   assert.equal(projected.deal.uniqueCount, 18);
-  assert.equal(preview.projectCourse(course, { blockIndex: 0, seed: "editor-regression", learnerCount: 24, status: "ready" }).learners.length, 6);
+  const invalid = preview.projectCourse(course, { blockIndex: 0, seed: "editor-regression", learnerCount: 24, status: "ready" });
+  assert.equal(invalid.learners.length, 24, "an invalid authoring scenario must not be silently clipped");
+  assert.equal(invalid.capacity.ok, false);
+  assert.match(invalid.capacity.issues[0].message, /当前选择 24 名/);
 });
 
 test("desktop editor CSS preserves the old three-column workbench and responsive no-overlap fallbacks", () => {

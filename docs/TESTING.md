@@ -95,6 +95,8 @@ Candidate exact revision/digest
 - 声明的 `maxCount` 无法实例化时不能签 View 回执、创建 Test 或 Released。
 - `fieldModel` 的每个非公共字段必须有唯一 fieldId、owner 和 JSON path；learner01—06、四导师与卡片互不串改。
 - 浏览器与服务端在相同 courseDataId、block、seat、seed 下必须产生相同 cardId 顺序；checkpoint 卡组覆盖规则也必须一致。
+- `npm run check:course-projector` 必须通过；浏览器核心必须由 `app/lib/course-projection-core.ts` 重新生成，禁止维护第二份手写 hash/shuffle/deal。
+- 回归矩阵覆盖 13 Block × 2/4/6 人 × 5 个预览状态共 195 场，并比较卡牌正文、来源、顺序、导师字段和中控字段；另测 Unicode seed、unknown Block、空卡组和显式循环发牌。
 
 ## 5. HTTP + D1 E2E 场景
 

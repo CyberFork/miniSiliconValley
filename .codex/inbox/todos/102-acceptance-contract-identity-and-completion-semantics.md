@@ -63,3 +63,9 @@ related: [T-086, T-088, T-094, T-095]
 - `npm run build:minisv-app`、应用 smoke、真实 HTTP + 隔离 D1 E2E：通过。
 - Chromium 自动化验证 exact 身份展开、13 页解锁、末页仍未结束、显式结束弹窗、16 项清单和无横向溢出；它只产生工程 QA 证据，没有签发人工回执。
 - T-088 Pad 实机人工验收仍待执行，本任务未声称完成。
+
+## T-103 兼容契约后续（2026-09-11）
+
+- 投影核心已由服务端/浏览器两份手写实现收敛为一份源码和可重建浏览器产物。
+- 因为人数越界不再静默裁剪，unknown Block 与空循环卡组改为统一失败语义，projector compatibility contract 从 v6 更新为 `course-projector-v7`。
+- 历史 v6 回执保留但对当前 v7 门禁失效；未迁移、伪造或自动签发任何人工回执。

@@ -16,7 +16,7 @@ Mini Silicon Valley 是面向青少年的、由可核验科技史驱动的有限
 ## 正式入口
 
 - 总导航：<https://minisv.vip/>
-- 历史世界：<https://minisv.vip/world/>
+- 历史世界（只读）：<https://minisv.vip/world/>
 - 课堂列表：<https://minisv.vip/classroom/>
 - 导师课件库：<https://minisv.vip/course/>
 - Course Studio：<https://minisv.vip/studio/>
@@ -24,7 +24,7 @@ Mini Silicon Valley 是面向青少年的、由可核验科技史驱动的有限
 - 家长问答：<https://minisv.vip/parents/>
 - 内容工坊：<https://minisv.vip/workshop/>
 
-`/course/` 是需要导师或管理员登录的课件库，不是整门课程大纲。同事交付的产品导师原版课件作为一个不可变 CoursewarePackage 发布在 `/courseware/product-mentor-foundations/`。旧 `/alpha/` 和全局 `/control/` 已退休并返回 410。
+`/course/` 是登录后的 admin／mentor／learner 均可只读浏览 Released 课件的课件库，不是整门课程大纲；Candidate 和内部 fallback 不进入目录。匿名课程摘要使用独立的 Released-only 公共投影，不泄漏私密卡、内部剧本或未审核内容。同事交付的产品导师原版课件作为一个不可变 CoursewarePackage 发布在 `/courseware/product-mentor-foundations/`。旧 `/alpha/` 和全局 `/control/` 已退休并返回 410。
 
 ## 课程平台主棍
 

@@ -10,32 +10,21 @@
   const expandBoundaryText = CardView.expandBoundaryText || ((value) => String(value ?? ""));
   const renderLearnerCard = CardView.renderLearnerCard || (() => "");
 
-  const LEGACY_LEARNER_POLICY = {
-    defaultCount: 4, minCount: 2, maxCount: 4, cardsPerLearner: 3, dealPolicy: "unique-within-step",
-  };
-  function learnerPolicy(course) {
-    const value = course?.learnerPolicy || LEGACY_LEARNER_POLICY;
-    return {
-      defaultCount: Number(value.defaultCount || 4),
-      minCount: Number(value.minCount || 2),
-      maxCount: Number(value.maxCount || 4),
-      cardsPerLearner: Number(value.cardsPerLearner || 3),
-      dealPolicy: value.dealPolicy === "repeat-when-needed" ? "repeat-when-needed" : "unique-within-step",
-    };
+  const ProjectionCore = root.MsvCourseProjectionCore;
+  if (!ProjectionCore) {
+    throw new Error("共享课程投影器未载入；编辑器已安全停止，课程数据没有被修改。");
   }
-  function learnersForCourse(course, requestedCount) {
-    const policy = learnerPolicy(course);
-    const raw = Number.isInteger(Number(requestedCount)) ? Number(requestedCount) : policy.defaultCount;
-    const count = Math.max(policy.minCount, Math.min(policy.maxCount, raw));
-    return Array.from({length: count}, (_, index) => {
-      const number = index + 1;
-      return {
-        id: `learner${String(number).padStart(2, "0")}`,
-        window: `W${String(number + 3).padStart(2, "0")}`,
-        title: `Young Builder ${String(number).padStart(2, "0")}`,
-      };
-    });
+
+  const LEGACY_LEARNER_POLICY = ProjectionCore.LEGACY_LEARNER_POLICY;
+  const learnerPolicy = ProjectionCore.resolveLearnerPolicy;
+  const learnersForCourse = ProjectionCore.learnersForCourse;
+  const hash32 = ProjectionCore.hashSeed;
+  const randomFromSeed = ProjectionCore.randomFromSeed;
+  const privateDeckForBlock = ProjectionCore.privateDeckForBlock;
+  function deterministicDeal(course, stepIndex, seed, learnerCount, blockId) {
+    return ProjectionCore.deterministicDeal(course, {stepIndex, seed, learnerCount, blockId});
   }
+
   const MENTOR_WINDOWS = ["W00", "W01", "W02", "W03"];
   const STATUS_LABELS = {
     ready: "待执行",
@@ -56,81 +45,6 @@
     manualInteraction: "线下与多角色视窗怎样配合",
   };
   const MODE_LABELS = {yarn: "毛线信息", american: "美式攻坚", euro: "德式经营"};
-
-  function hash32(value) {
-    let hash = 2166136261;
-    const text = String(value ?? "");
-    // Keep this byte-for-byte equivalent to app/lib/course-platform.ts.
-    // charCodeAt is intentional: codePointAt/for..of diverges for astral
-    // Unicode characters and would make Editor Preview deal different cards
-    // from the Test Classroom for the same courseDataId + seed.
-    for (let index = 0; index < text.length; index += 1) {
-      hash ^= text.charCodeAt(index);
-      hash = Math.imul(hash, 16777619);
-    }
-    return hash >>> 0;
-  }
-
-  function randomFromSeed(seed) {
-    let value = hash32(seed) || 0x6d2b79f5;
-    return () => {
-      value += 0x6d2b79f5;
-      let result = value;
-      result = Math.imul(result ^ (result >>> 15), result | 1);
-      result ^= result + Math.imul(result ^ (result >>> 7), result | 61);
-      return ((result ^ (result >>> 14)) >>> 0) / 4294967296;
-    };
-  }
-
-  function privateDeckForBlock(course, block) {
-    const declaredDeckId = (course?.contentPackages?.scriptPackages || [])
-      .flatMap((scriptPackage) => scriptPackage.checkpoints || [])
-      .find((checkpoint) => (checkpoint.blockIds || []).includes(block?.id))
-      ?.privateDeckIds?.[0];
-    const deck = declaredDeckId
-      ? (course?.decks || []).find((item) => item.id === declaredDeckId)
-      : (course?.decks || []).find((item) => item.macroStepId === block?.macroStepId);
-    if (!deck) throw new Error(`${block?.id || "当前 Block"} 找不到可用的学员私密卡组。`);
-    return deck;
-  }
-
-  function deterministicDeal(course, stepIndex, seed, learnerCount, blockId) {
-    const step = course?.macroSteps?.[stepIndex];
-    const block = blockId ? (course?.blocks || []).find((item) => item.id === blockId) : null;
-    const deck = block
-      ? privateDeckForBlock(course, block)
-      : (course?.decks || []).find((item) => item.macroStepId === step?.id);
-    if (!deck) throw new Error(`${blockId || step?.id || "当前步骤"} 找不到可用的学员私密卡组。`);
-    const deckIndex = (course?.decks || []).findIndex((item) => item.id === deck.id);
-    const cards = Array.isArray(deck?.cards) ? deck.cards.map((card, cardIndex) => ({card, cardIndex})) : [];
-    const random = randomFromSeed(`${course?.course?.id}:${deck?.id}:${seed}`);
-    for (let index = cards.length - 1; index > 0; index -= 1) {
-      const target = Math.floor(random() * (index + 1));
-      [cards[index], cards[target]] = [cards[target], cards[index]];
-    }
-    const policy = learnerPolicy(course);
-    const learners = learnersForCourse(course, learnerCount);
-    const handSize = Math.max(0, Number(policy.cardsPerLearner || deck?.cardsPerLearner || 3));
-    const hands = {};
-    learners.forEach((learner, learnerIndex) => {
-      const start = learnerIndex * handSize;
-      let selected = cards.slice(start, start + handSize);
-      if (selected.length < handSize && policy.dealPolicy === "repeat-when-needed" && cards.length) {
-        selected = Array.from({length: handSize}, (_, cardIndex) => cards[(start + cardIndex) % cards.length]);
-      }
-      hands[learner.id] = selected.map(({card, cardIndex}) => ({
-        ...card,
-        sourcePath: `decks.${deckIndex}.cards.${cardIndex}`,
-        stableId: card.id,
-        state: "held",
-      }));
-    });
-    return {
-      deck, deckIndex, hands, learners, handSize,
-      dealtCount: Object.values(hands).flat().length,
-      uniqueCount: new Set(Object.values(hands).flat().map((card) => card.id)).size,
-    };
-  }
 
   function flattenCards(course) {
     const sourceMap = new Map((course?.sources || []).map((source) => [source.id, source]));
@@ -198,9 +112,10 @@
     const status = STATUS_LABELS[options.status] ? options.status : "ready";
     const seed = String(options.seed || "MSV-PREVIEW-01");
     const policy = learnerPolicy(course);
-    const learnerCount = Number.isInteger(Number(options.learnerCount)) ? Number(options.learnerCount) : policy.defaultCount;
-    const learnersForPreview = learnersForCourse(course, learnerCount);
-    const deal = deterministicDeal(course, stepIndex, seed, learnerCount, block.id);
+    const learnerCount = ProjectionCore.requestedLearnerCount(course, options.learnerCount);
+    const roleProjection = ProjectionCore.buildCoreRoleProjection(course, {blockId: block.id, learnerCount, seed});
+    const learnersForPreview = roleProjection.deal.learners;
+    const deal = roleProjection.deal;
     const blockPath = `blocks.${blockIndex}`;
     const stepPath = `macroSteps.${stepIndex}`;
     const mentorDefinitions = course.formula?.fourMentors || [];
@@ -214,8 +129,9 @@
       macroStepId: step.id, macroStepName: step.name, macroStepOrder: step.order,
       progress, courseName: course.course.name, caseName: course.case.name,
     };
-    const mentors = mentorDefinitions.map((mentor, mentorIndex) => {
-      const task = block.seatTasks?.[mentor.id] || {};
+    const mentors = roleProjection.mentorViews.map((projectedMentor, mentorIndex) => {
+      const mentor = mentorDefinitions[mentorIndex] || {id: projectedMentor.seatId, code: projectedMentor.mentorRole, name: projectedMentor.label, promise: ""};
+      const task = projectedMentor;
       return {
         ...base,
         id: mentor.id,
@@ -225,7 +141,7 @@
         title: `${mentor.id === "mentor01" ? "主 DM · " : ""}${mentor.name}`,
         titlePath: `formula.fourMentors.${mentorIndex}.name`,
         kicker: mentor.id === "mentor01" ? "主 DM · 总控主持" : `协作导师 · ${mentor.code} 专业线`,
-        subidentity: task.state === "active" ? "本块由你主导" : task.state === "support" ? "本块协作支援" : "本块观察待命，不抢讲",
+        subidentity: task.activity === "active" ? "本块由你主导" : task.activity === "support" ? "本块协作支援" : "本块观察待命，不抢讲",
         subidentityPath: `${blockPath}.seatTasks.${mentor.id}.state`,
         taskTitle: "现在做什么",
         task: task.task,
@@ -255,9 +171,10 @@
         footerLeft: `${course.course.id} · 编辑预览`, footerRight: `r${revision} · ${String(digest).slice(0, 16)}`,
       };
     });
-    const learners = learnersForPreview.map((learner, learnerIndex) => {
+    const learners = roleProjection.learnerViews.map((projectedLearner, learnerIndex) => {
+      const learner = learnersForPreview[learnerIndex];
       const fixedTask = block.seatTasks?.[learner.id];
-      const task = fixedTask || block.learnerTaskTemplate || {badge: "Young Builder", task: block.studentPrompt};
+      const task = projectedLearner;
       const taskPath = fixedTask ? `${blockPath}.seatTasks.${learner.id}.task` : block.learnerTaskTemplate ? `${blockPath}.learnerTaskTemplate.task` : `${blockPath}.studentPrompt`;
       const random = randomFromSeed(`${seed}|metrics|${learner.id}|${block.id}`);
       return {
@@ -301,10 +218,11 @@
     });
     return {
       kind: "preview-course-state",
-      blockIndex, stepIndex, block, step, blockPath, stepPath, status, seed, deal,
+      blockIndex, stepIndex, block, step, blockPath, stepPath, status, seed, deal, roleProjection,
+      capacity: roleProjection.controllerView.capacity,
       revision, digest, seats: [...mentors, ...learners], mentors, learners,
       controller: {
-        ...base, block, step, lead: mentorDefinitions.find((mentor) => mentor.id === block.leadMentorId),
+        ...base, block, step, lead: mentorDefinitions.find((mentor) => mentor.id === roleProjection.controllerView.leadMentorId),
         guide, blockPath, stepPath, editable: true, editorPreview: true,
       },
     };

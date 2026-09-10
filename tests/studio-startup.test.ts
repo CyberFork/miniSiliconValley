@@ -54,27 +54,27 @@ test("editor loader preloads all assets, executes in order, and is failure/dupli
   const loader = source("public/studio/editor-assets/editor-loader.js");
   const ok = bootContext();
   vm.runInNewContext(loader, ok.context);
-  // Before even the first load event, all four network hints are present.
-  assert.equal(ok.links.length, 4);
+  // Before even the first load event, every ordered dependency has a network hint.
+  assert.equal(ok.links.length, 5);
   assert.equal(ok.scripts.length, 1);
-  assert.ok(ok.events.slice(0, 4).every((event) => event.startsWith("preload:")));
+  assert.ok(ok.events.slice(0, 5).every((event) => event.startsWith("preload:")));
   assert.ok(ok.context.__MSV_EDITOR_BOOT_PROMISE__);
   await ok.context.__MSV_EDITOR_BOOT_PROMISE__;
-  assert.equal(ok.links.length, 4);
+  assert.equal(ok.links.length, 5);
   assert.deepEqual(ok.links, ok.scripts.map((script) => script.src));
-  assert.equal(ok.scripts.length, 4);
+  assert.equal(ok.scripts.length, 5);
   assert.equal(ok.context.__MSV_EDITOR_STARTUP__?.loaderStart, 12.3);
   assert.equal(ok.context.__MSV_EDITOR_STARTUP__?.preloadsStarted, 12.3);
   assert.equal(ok.context.__MSV_EDITOR_STARTUP__?.scriptsReady, 12.3);
   vm.runInNewContext(loader, ok.context);
-  assert.equal(ok.scripts.length, 4);
+  assert.equal(ok.scripts.length, 5);
 
   const failed = bootContext(1);
   vm.runInNewContext(loader, failed.context);
   assert.ok(failed.context.__MSV_EDITOR_BOOT_PROMISE__);
   await assert.rejects(failed.context.__MSV_EDITOR_BOOT_PROMISE__);
   assert.equal(failed.errors.length, 1);
-  assert.equal(failed.links.length, 4);
+  assert.equal(failed.links.length, 5);
   assert.equal(failed.scripts.length, 2);
 });
 
