@@ -131,7 +131,7 @@ try {
     blocks: Array<{ id: string }>;
     learnerPolicy?: { minCount: number; maxCount: number };
   };
-  const candidate = await postData<ExactRef>("/api/studio/candidates", { course }, adminCookie);
+  const candidate = await postData<ExactRef>("/api/studio/candidates", { course, expectedCandidateRef: null }, adminCookie);
   assert.equal(candidate.status, "candidate");
   const viewReceipt = await postData<{ receiptId: string; valid: boolean }>("/api/studio/view-acceptance", {
     courseRef: candidate,

@@ -42,6 +42,8 @@ export interface CoursePackageRef {
   status: "candidate" | "approved" | "released";
   createdAt?: string | null;
   createdBy?: string | null;
+  /** Display-only lookup for Studio conflict/history UI; never part of exact identity. */
+  createdByDisplayName?: string | null;
   releasedAt?: string | null;
   releasedBy?: string | null;
   approvalRunId?: string | null;

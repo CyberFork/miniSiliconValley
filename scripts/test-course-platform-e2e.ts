@@ -182,7 +182,10 @@ try {
   assert.match(validatedWorkingCopy.metadata.digest, /^[0-9a-f]{64}$/);
   const candidateBody = structuredClone(google.course);
   candidateBody.title = `${candidateBody.title} · E2E Candidate`;
-  const candidate = await postData<ExactRef>("/api/studio/candidates", { course: candidateBody }, adminCookie);
+  const missingCandidateBase = await post("/api/studio/candidates", { course: candidateBody }, adminCookie);
+  assert.equal(missingCandidateBase.status, 400);
+  assert.equal(((await missingCandidateBase.json()) as Envelope<never>).error?.code, "CANDIDATE_BASE_REQUIRED");
+  const candidate = await postData<ExactRef>("/api/studio/candidates", { course: candidateBody, expectedCandidateRef: null }, adminCookie);
   assert.equal(candidate.status, "candidate");
   assert.equal(candidate.revision, 1);
 
@@ -459,7 +462,7 @@ try {
 
   const nextCandidateBody = structuredClone(candidateBody);
   nextCandidateBody.title = `${nextCandidateBody.title} · later edit`;
-  const laterCandidate = await postData<ExactRef>("/api/studio/candidates", { course: nextCandidateBody }, adminCookie);
+  const laterCandidate = await postData<ExactRef>("/api/studio/candidates", { course: nextCandidateBody, expectedCandidateRef: candidate }, adminCookie);
   assert.ok(laterCandidate.revision > released.revision);
   const laterViewReceipt = await acceptView(laterCandidate, nextCandidateBody, adminCookie);
   const laterCourseware = await postData<CoursewareVersion>("/api/studio/courseware", {
@@ -484,7 +487,7 @@ try {
   insufficientBody.title = `${insufficientBody.title} · incomplete six learner promise`;
   insufficientBody.learnerPolicy = { defaultCount: 4, minCount: 2, maxCount: 6, cardsPerLearner: 3, dealPolicy: "unique-within-step" };
   for (const block of insufficientBody.blocks) block.learnerTaskTemplate = { badge: "Young Builder", task: block.studentPrompt };
-  const insufficientCandidate = await postData<ExactRef>("/api/studio/candidates", { course: insufficientBody }, adminCookie);
+  const insufficientCandidate = await postData<ExactRef>("/api/studio/candidates", { course: insufficientBody, expectedCandidateRef: laterCandidate }, adminCookie);
   const invalidatedViewState = await getData<Bootstrap>("/api/studio/bootstrap", adminCookie);
   const staleLaterView = invalidatedViewState.viewReceipts.find((item) => item.receiptId === laterViewReceipt.receiptId);
   assert.equal(staleLaterView?.valid, false, "saving a new Candidate must invalidate the superseded non-Released View receipt");
@@ -510,7 +513,7 @@ try {
   assert.equal(((await refusedTestCreation.json()) as Envelope<never>).error?.code, "VIEW_ACCEPTANCE_RECEIPT_INVALID");
 
   const dynamicBody = expandForSix(structuredClone(nextCandidateBody));
-  const dynamicCandidate = await postData<ExactRef>("/api/studio/candidates", { course: dynamicBody }, adminCookie);
+  const dynamicCandidate = await postData<ExactRef>("/api/studio/candidates", { course: dynamicBody, expectedCandidateRef: insufficientCandidate }, adminCookie);
   const dynamicViewReceipt = await acceptView(dynamicCandidate, dynamicBody, adminCookie);
   const sixRoom = await createClassroom({
     environment: "test",

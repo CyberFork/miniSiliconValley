@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const BUILD_ID = "t095-field-isolation-t094-data-identity-r1";
+  const BUILD_ID = "t099-candidate-cas-r1";
   const $ = (selector) => document.querySelector(selector);
   const CardView = window.MsvCardView;
   if (!CardView) throw new Error("共享卡片渲染器未加载，无法安全预览学员卡片。");
@@ -31,6 +31,7 @@
   let course = null;
   let courseMeta = null;
   let lastCandidateMeta = null;
+  let candidateBaseRef = null;
   let revision = 0;
   let activeStep = 0;
   let activeBlock = 0;
@@ -50,6 +51,8 @@
   let redoStack = [];
   let changedPaths = new Set();
   let savedSnapshot = "";
+  let mergeBaseSnapshot = "";
+  let conflictSession = null;
   let fieldSession = null;
   let savePromise = null;
   let saveError = "";
@@ -73,7 +76,13 @@
       throw new Error("登录已失效，正在返回登录页。");
     }
     const envelope = await response.json();
-    if (!response.ok || !envelope.ok) throw new Error(envelope.error?.message || "请求失败");
+    if (!response.ok || !envelope.ok) {
+      const error = new Error(envelope.error?.message || "请求失败");
+      error.code = envelope.error?.code || "REQUEST_FAILED";
+      error.details = Array.isArray(envelope.error?.details) ? envelope.error.details : [];
+      error.status = response.status;
+      throw error;
+    }
     return envelope.data;
   }
   function post(path, body) {
@@ -171,6 +180,17 @@
       source: version.ref.createdBy === "bundled" ? "bundled" : "authored",
     };
   }
+  function candidateRefFor(version) {
+    if (!version) return null;
+    const ref = version.ref || version;
+    return {
+      courseId: ref.courseId,
+      schemaVersion: Number(ref.schemaVersion || version.course?.schemaVersion || 1),
+      revision: Number(ref.revision),
+      digest: ref.digest,
+      status: "candidate",
+    };
+  }
   function exactCourseDataId(meta = courseMeta) {
     if (!course?.course?.id || !meta?.digest || !Number.isInteger(Number(meta.revision))) return null;
     return `${course.course.id}@r${Number(meta.revision)}:${meta.digest}`;
@@ -256,9 +276,11 @@
       setSaveState("正在载入", "loading");
       const data = preferredVersion(courseId);
       if (!data) throw new Error("找不到这门课程的 CourseDefinition。");
+      const candidate = candidateVersion(courseId);
       course = structuredClone(data.course);
       courseMeta = metadataFor(data);
-      lastCandidateMeta = metadataFor(candidateVersion(courseId) || data);
+      lastCandidateMeta = metadataFor(candidate || data);
+      candidateBaseRef = candidateRefFor(candidate);
       revision = data.ref.revision;
       activeStep = 0;
       activeBlock = 0;
@@ -275,6 +297,8 @@
       redoStack = [];
       changedPaths = new Set();
       savedSnapshot = JSON.stringify(course);
+      mergeBaseSnapshot = savedSnapshot;
+      conflictSession = null;
       if (drawerLibraryMedia.matches) closeLibrary({restoreFocus: true, persist: false});
       $("#emptyState").hidden = true;
       $("#editor").hidden = false;
@@ -979,29 +1003,157 @@
       return true;
     } catch (error) { toast(`结构未通过：${error.message}`, true); return false; }
   }
+  const MISSING = Symbol("missing");
+  function jsonEqual(left, right) {
+    if (left === MISSING || right === MISSING) return left === right;
+    return JSON.stringify(left) === JSON.stringify(right);
+  }
+  function mergeObject(value) { return value && value !== MISSING && typeof value === "object" && !Array.isArray(value); }
+  function threeWayMerge(base, local, remote, path = "$") {
+    if (jsonEqual(local, base)) return {value: remote, conflicts: []};
+    if (jsonEqual(remote, base) || jsonEqual(local, remote)) return {value: local, conflicts: []};
+    if (mergeObject(base) || (mergeObject(local) && mergeObject(remote))) {
+      const baseObject = mergeObject(base) ? base : {};
+      const localObject = mergeObject(local) ? local : {};
+      const remoteObject = mergeObject(remote) ? remote : {};
+      const result = {};
+      const conflicts = [];
+      for (const key of new Set([...Object.keys(baseObject), ...Object.keys(localObject), ...Object.keys(remoteObject)])) {
+        const child = threeWayMerge(
+          Object.prototype.hasOwnProperty.call(baseObject, key) ? baseObject[key] : MISSING,
+          Object.prototype.hasOwnProperty.call(localObject, key) ? localObject[key] : MISSING,
+          Object.prototype.hasOwnProperty.call(remoteObject, key) ? remoteObject[key] : MISSING,
+          `${path}.${key}`,
+        );
+        if (child.value !== MISSING) result[key] = child.value;
+        conflicts.push(...child.conflicts);
+      }
+      return {value: result, conflicts};
+    }
+    // Conflicting scalar/array edits are never resolved silently.  The local
+    // value is only applied after the editor explicitly confirms the dialog.
+    return {value: local, conflicts: [path]};
+  }
+  function changedFieldPaths(base, value, path = "$") {
+    if (jsonEqual(base, value)) return [];
+    if (mergeObject(base) && mergeObject(value)) {
+      const paths = [];
+      for (const key of new Set([...Object.keys(base), ...Object.keys(value)])) {
+        paths.push(...changedFieldPaths(
+          Object.prototype.hasOwnProperty.call(base, key) ? base[key] : MISSING,
+          Object.prototype.hasOwnProperty.call(value, key) ? value[key] : MISSING,
+          `${path}.${key}`,
+        ));
+      }
+      return paths;
+    }
+    return [path];
+  }
+  function conflictChangeList(paths) {
+    if (!paths.length) return "无";
+    const visible = paths.slice(0, 12).map((path) => `<code>${esc(path)}</code>`).join("");
+    return `${visible}${paths.length > 12 ? `<small>还有 ${paths.length - 12} 处…</small>` : ""}`;
+  }
+  async function openCandidateConflict(error) {
+    await loadCatalog();
+    const remote = candidateVersion(course.course.id);
+    const base = mergeBaseSnapshot ? JSON.parse(mergeBaseSnapshot) : {};
+    const local = structuredClone(course);
+    const remoteCourse = remote?.course || {};
+    const merged = threeWayMerge(base, local, remoteCourse);
+    const localChanges = changedFieldPaths(base, local);
+    const remoteChanges = changedFieldPaths(base, remoteCourse);
+    conflictSession = {base, local, remote, merged, localChanges, remoteChanges};
+    const expected = candidateBaseRef ? `r${candidateBaseRef.revision} · ${shortDigest(candidateBaseRef.digest)}` : "尚无 Candidate";
+    const current = remote ? `r${remote.ref.revision} · ${shortDigest(remote.ref.digest)}` : "当前无 Candidate";
+    $("#conflictSummary").innerHTML = `<b>你的 Working Copy 没有丢失。</b><p>你从 ${esc(expected)} 开始编辑；服务器现在是 ${esc(current)}。系统拒绝了静默覆盖。</p>`;
+    $("#conflictRemoteMeta").textContent = remote
+      ? `最新保存：${remote.ref.createdByDisplayName || remote.ref.createdBy || "未知编辑者"} · ${remote.ref.createdAt || "时间未记录"}`
+      : "服务器当前没有 Candidate。";
+    $("#conflictLocalChanges").innerHTML = conflictChangeList(localChanges);
+    $("#conflictRemoteChanges").innerHTML = conflictChangeList(remoteChanges);
+    $("#conflictOverlap").innerHTML = conflictChangeList(merged.conflicts);
+    $("#conflictMerge").textContent = merged.conflicts.length ? `合并并确认 ${merged.conflicts.length} 处冲突` : "安全合并到最新版";
+    $("#conflictMerge").dataset.armed = "false";
+    $("#conflictReload").dataset.armed = "false";
+    $("#conflictReload").textContent = "放弃本地修改并重载";
+    $("#conflictDialog").showModal();
+    toast(error.message, true);
+  }
+  function loadConflictRemote() {
+    const remote = conflictSession?.remote;
+    if (!remote) return toast("最新 Candidate 不可用，请保留本地内容并刷新。", true);
+    course = structuredClone(remote.course);
+    courseMeta = metadataFor(remote);
+    lastCandidateMeta = metadataFor(remote);
+    candidateBaseRef = candidateRefFor(remote);
+    revision = remote.ref.revision;
+    dirty = false;
+    savedSnapshot = JSON.stringify(course);
+    mergeBaseSnapshot = savedSnapshot;
+    changedPaths = new Set(); undoStack = []; redoStack = [];
+    conflictSession = null;
+    $("#conflictDialog").close(); renderAll();
+    setSaveState(`Candidate r${revision} 已重载`, "saved");
+    toast("已放弃本地改动并载入最新 Candidate。");
+  }
+  function applyConflictMerge() {
+    const session = conflictSession;
+    if (!session?.remote) return toast("没有可合并的最新 Candidate。", true);
+    course = structuredClone(session.merged.value);
+    courseMeta = null;
+    lastCandidateMeta = metadataFor(session.remote);
+    candidateBaseRef = candidateRefFor(session.remote);
+    revision = session.remote.ref.revision;
+    mergeBaseSnapshot = JSON.stringify(session.remote.course);
+    savedSnapshot = mergeBaseSnapshot;
+    dirty = true;
+    changedPaths = new Set(session.localChanges.length ? session.localChanges : ["*"]);
+    undoStack = []; redoStack = [];
+    conflictSession = null;
+    $("#conflictDialog").close(); renderAll();
+    setSaveState("合并后待保存", "dirty");
+    toast("已以最新 Candidate 为基线合并本地改动；请检查后再次保存。");
+  }
   async function save() {
     if (savePromise) return savePromise;
     if (inspectPackage().issues.length) return toast("课程包不完整，已阻止保存。请先查看顶部诊断。", true);
     savePromise = (async () => {
+      const submitted = structuredClone(course);
+      const submittedSnapshot = JSON.stringify(submitted);
+      const expectedCandidateRef = candidateBaseRef ? {...candidateBaseRef} : null;
       try {
         saveError = "";
         setSaveState("正在保存 Candidate", "loading");
         syncSaveControls();
-        const ref = await post("/api/studio/candidates", {course});
+        const ref = await post("/api/studio/candidates", {course: submitted, expectedCandidateRef});
         await loadCatalog();
         const saved = versionsFor(ref.courseId).find((item) => item.ref.revision === ref.revision && item.ref.digest === ref.digest);
         if (!saved) throw new Error("Candidate 已写入，但重新读取 exact 版本失败；请刷新后核对。");
-        course = structuredClone(saved.course);
-        courseMeta = metadataFor(saved); lastCandidateMeta = metadataFor(saved); revision = saved.ref.revision;
-        dirty = false; changedPaths = new Set(); savedSnapshot = JSON.stringify(course); undoStack = []; redoStack = [];
+        const editedWhileSaving = JSON.stringify(course) !== submittedSnapshot;
+        if (!editedWhileSaving) course = structuredClone(saved.course);
+        courseMeta = editedWhileSaving ? null : metadataFor(saved);
+        lastCandidateMeta = metadataFor(saved);
+        candidateBaseRef = candidateRefFor(saved);
+        revision = saved.ref.revision;
+        mergeBaseSnapshot = JSON.stringify(saved.course);
+        savedSnapshot = mergeBaseSnapshot;
+        dirty = editedWhileSaving;
+        changedPaths = editedWhileSaving ? new Set(changedFieldPaths(saved.course, course)) : new Set();
+        if (!editedWhileSaving) { undoStack = []; redoStack = []; }
         renderAll();
-        setSaveState(`Candidate r${revision} 已保存`, "saved");
-        toast(`Candidate r${revision} 已保存。下一步前往多角色视图验收；已开始的课堂完全不受影响。`);
+        setSaveState(editedWhileSaving ? `Candidate r${revision} 已保存，仍有新修改` : `Candidate r${revision} 已保存`, editedWhileSaving ? "dirty" : "saved");
+        toast(editedWhileSaving
+          ? `Candidate r${revision} 已保存；保存期间的新输入仍留在 Working Copy。`
+          : `Candidate r${revision} 已保存。下一步前往多角色视图验收；已开始的课堂完全不受影响。`);
         return ref;
       } catch (error) {
         saveError = error.message || "未知保存错误";
         setSaveState("Candidate 保存失败", "error");
-        toast(error.message, true);
+        if (error.code === "CANDIDATE_SAVE_CONFLICT") {
+          try { await openCandidateConflict(error); }
+          catch (conflictError) { toast(`冲突已阻止覆盖，但最新版本读取失败：${conflictError.message}`, true); }
+        } else toast(error.message, true);
         return null;
       } finally {
         savePromise = null;
@@ -1026,7 +1178,11 @@
     try {
       const value = JSON.parse(await file.text()); await post("/api/studio/validate", {course: value});
       const item = catalog.find((entry) => entry.id === value.course.id);
-      course = value; courseMeta = null; lastCandidateMeta = metadataFor(candidateVersion(value.course.id) || preferredVersion(value.course.id)); revision = item?.latestRevision || 0; activeStep = 0; activeBlock = 0; activeCard = 0; dirty = true; mode = "studio"; changedPaths = new Set(["*"]);
+      const candidate = candidateVersion(value.course.id);
+      const baseline = candidate || preferredVersion(value.course.id);
+      course = value; courseMeta = null; lastCandidateMeta = metadataFor(candidate || baseline); candidateBaseRef = candidateRefFor(candidate); revision = candidate?.ref.revision ?? item?.latestRevision ?? 0; activeStep = 0; activeBlock = 0; activeCard = 0; dirty = true; mode = "studio"; changedPaths = new Set(["*"]);
+      mergeBaseSnapshot = baseline ? JSON.stringify(baseline.course) : "{}";
+      savedSnapshot = mergeBaseSnapshot;
       previewLearnerCount = Preview.learnerPolicy(course).defaultCount;
       $("#emptyState").hidden = true; $("#editor").hidden = false; $("#download").disabled = false; renderAll(); markDirty("*");
       toast("JSON 已导入并通过完整检查；请保存为 Candidate。");
@@ -1056,8 +1212,9 @@
             if (!source) throw new Error("历史版本已经变化，请重新打开版本历史。");
             course = structuredClone(source.course);
             course.authoring = {...(course.authoring || {}), restoredFrom: {revision: source.ref.revision, digest: source.ref.digest}, restoredAt: new Date().toISOString()};
-            courseMeta = null; lastCandidateMeta = metadataFor(candidateVersion(course.course.id) || source); revision = candidateVersion(course.course.id)?.ref.revision ?? source.ref.revision;
-            dirty = true; savedSnapshot = JSON.stringify(candidateVersion(course.course.id)?.course || source.course); changedPaths = new Set(["*"]); undoStack = []; redoStack = [];
+            const candidate = candidateVersion(course.course.id);
+            courseMeta = null; lastCandidateMeta = metadataFor(candidate || source); candidateBaseRef = candidateRefFor(candidate); revision = candidate?.ref.revision ?? source.ref.revision;
+            dirty = true; savedSnapshot = JSON.stringify(candidate?.course || source.course); mergeBaseSnapshot = savedSnapshot; changedPaths = new Set(["*"]); undoStack = []; redoStack = [];
             $("#historyDialog").close(); renderAll(); setSaveState(`历史 r${source.ref.revision} 已载入`, "dirty");
             toast(`历史 r${source.ref.revision} 已载入 Working Copy；保存时会生成新的不可变 Candidate，不会覆盖旧历史。`);
           } catch (error) { button.disabled = false; toast(`载入失败：${error.message}`, true); }
@@ -1091,6 +1248,32 @@
   $("#closeLibrary").onclick = (event) => libraryCollapsed ? openLibrary(event.currentTarget) : closeLibrary({restoreFocus: drawerLibraryMedia.matches});
   $("#libraryBackdrop").onclick = () => closeLibrary({restoreFocus: true});
   $("#fieldClose").onclick = () => $("#fieldDialog").close();
+  $("#conflictKeep").onclick = () => $("#conflictDialog").close();
+  $("#conflictReload").onclick = (event) => {
+    const button = event.currentTarget;
+    if (button.dataset.armed !== "true") {
+      button.dataset.armed = "true";
+      button.textContent = "再次点击：确认放弃本地修改";
+      setTimeout(() => {
+        if (button.dataset.armed === "true") {
+          button.dataset.armed = "false";
+          button.textContent = "放弃本地修改并重载";
+        }
+      }, 6000);
+      return;
+    }
+    loadConflictRemote();
+  };
+  $("#conflictMerge").onclick = (event) => {
+    const button = event.currentTarget;
+    const count = conflictSession?.merged?.conflicts?.length || 0;
+    if (count && button.dataset.armed !== "true") {
+      button.dataset.armed = "true";
+      button.textContent = `再次点击：在 ${count} 处采用我的值`;
+      return;
+    }
+    applyConflictMerge();
+  };
   $("#previousBlock").onclick = () => selectedBlock(activeBlock - 1);
   $("#nextBlock").onclick = () => selectedBlock(activeBlock + 1);
   $("#timelineDensity").onchange = renderTimeline;
@@ -1160,7 +1343,7 @@
       });
       cloned.authoring = {...(cloned.authoring || {}), clonedFrom: {courseId: oldId, revision: source.ref.revision, digest: source.ref.digest}, clonedAt: new Date().toISOString()};
       await post("/api/studio/validate", {course: cloned});
-      const ref = await post("/api/studio/candidates", {course: cloned});
+      const ref = await post("/api/studio/candidates", {course: cloned, expectedCandidateRef: null});
       await loadCatalog();
       $("#cloneDialog").close();
       await openCourse(ref.courseId);

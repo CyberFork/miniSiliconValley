@@ -153,7 +153,7 @@ def main() -> None:
 
                     bootstrap = api(page, "/api/studio/bootstrap")
                     course = json.loads(CANDIDATE.read_text(encoding="utf-8"))
-                    candidate = api(page, "/api/studio/candidates", "POST", {"course": course})
+                    candidate = api(page, "/api/studio/candidates", "POST", {"course": course, "expectedCandidateRef": None})
                     receipt = api(page, "/api/studio/view-acceptance", "POST", {
                         "courseRef": candidate,
                         "reviewedBlockIds": [block["id"] for block in course["blocks"]],

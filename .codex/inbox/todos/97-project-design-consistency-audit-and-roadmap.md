@@ -67,7 +67,7 @@ tags: [todo, audit, architecture, single-source-of-truth]
 
 ### P0：先稳定源头与数据写入
 - [T-098 收口唯一工程与发布基线](98-canonical-workspace-and-release-provenance.md)：**已完成**；`dev` 已切换到 canonical 远端，旧树、Todo 与审计证据已保全，发布来源默认失败关闭。
-- [T-099 课程保存的并发和 exact 指针一致性](99-candidate-save-concurrency-and-exact-integrity.md)：**已隔离复现**两个保存均成功、Candidate 指向不存在的 digest；另有旧编辑副本静默覆盖新正文。
+- [T-099 课程保存的并发和 exact 指针一致性](99-candidate-save-concurrency-and-exact-integrity.md)：**已完成**；exact Candidate CAS、数据库不可变/引用守卫、发布竞态保护、部署只读 preflight 和浏览器显式冲突处理均已通过验证。
 
 ### P1：再完成可持续运行的版本与课堂链
 - [T-100 课件预览、历史发布与资源更新闭环](100-courseware-preview-release-history-and-bundles.md)：**已隔离复现**未发布预览被正式目录 gate 拦截；发布 r1 后旧 r0 不再可见。当前业务源码还有 fallback 链接与静态包更新通道缺口。

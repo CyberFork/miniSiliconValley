@@ -13,9 +13,9 @@ for (const migrationName of migrationNames) {
       .filter(Boolean)
       .map((statement) =>
         statement
-          .replace(/^CREATE TABLE /, "CREATE TABLE IF NOT EXISTS ")
-          .replace(/^CREATE UNIQUE INDEX /, "CREATE UNIQUE INDEX IF NOT EXISTS ")
-          .replace(/^CREATE INDEX /, "CREATE INDEX IF NOT EXISTS "),
+          .replace(/^((?:--[^\n]*(?:\n|$))*)CREATE TABLE /, "$1CREATE TABLE IF NOT EXISTS ")
+          .replace(/^((?:--[^\n]*(?:\n|$))*)CREATE UNIQUE INDEX /, "$1CREATE UNIQUE INDEX IF NOT EXISTS ")
+          .replace(/^((?:--[^\n]*(?:\n|$))*)CREATE INDEX /, "$1CREATE INDEX IF NOT EXISTS "),
       ),
   );
 }

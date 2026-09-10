@@ -6,9 +6,9 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>课程编辑器 · Mini Silicon Valley</title>
   <link rel="icon" href="/favicon.svg">
-  <link rel="stylesheet" href="/studio/editor-assets/editor.css?v=t095-t094-r1">
-  <link rel="stylesheet" href="/studio/editor-assets/course-preview.css?v=t095-t094-r1">
-  <link rel="stylesheet" href="/studio/editor-assets/ui-theme.css?v=t095-t094-r1">
+  <link rel="stylesheet" href="/studio/editor-assets/editor.css?v=t099-candidate-cas-r1">
+  <link rel="stylesheet" href="/studio/editor-assets/course-preview.css?v=t099-candidate-cas-r1">
+  <link rel="stylesheet" href="/studio/editor-assets/ui-theme.css?v=t099-candidate-cas-r1">
 </head>
 <body>
 <header class="topbar">
@@ -212,6 +212,20 @@
     <div class="impact-report" id="impactReport" role="status"></div>
   </form>
 </dialog>
-<script src="/studio/editor-assets/editor-loader.js?v=t095-t094-r1"></script>
+<dialog id="conflictDialog" class="dialog conflict-dialog" aria-labelledby="conflictDialogTitle">
+  <form method="dialog">
+    <div class="dialog-title"><div><span class="eyebrow">SAFE SAVE · COMPARE AND MERGE</span><h2 id="conflictDialogTitle">发现新的 Candidate</h2></div><button type="button" id="conflictKeep" class="button ghost">保留本地并关闭</button></div>
+    <div id="conflictSummary" class="conflict-summary" role="alert"></div>
+    <p id="conflictRemoteMeta" class="conflict-remote-meta"></p>
+    <div class="conflict-columns">
+      <section><b>你在本地改了</b><div id="conflictLocalChanges" class="conflict-paths"></div></section>
+      <section><b>对方在最新版改了</b><div id="conflictRemoteChanges" class="conflict-paths"></div></section>
+      <section><b>需要你确认的同路径冲突</b><div id="conflictOverlap" class="conflict-paths"></div></section>
+    </div>
+    <p class="field-help">“合并”会先保留对方的新字段，再放入你的改动；同一路径都被修改时，只有再次确认才采用你的值。合并后仍需手动点击保存。</p>
+    <div class="dialog-actions conflict-actions"><button type="button" id="conflictReload" class="button danger-button">放弃本地修改并重载</button><button type="button" id="conflictMerge" class="button primary">安全合并到最新版</button></div>
+  </form>
+</dialog>
+<script src="/studio/editor-assets/editor-loader.js?v=t099-candidate-cas-r1"></script>
 </body>
 </html>

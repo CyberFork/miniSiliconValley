@@ -137,7 +137,7 @@ def main() -> None:
                     released = next(item for item in bootstrap["versions"] if item["released"] and item["ref"]["courseId"] == "google-1995-2004")
                     course = released["course"]
                     course["title"] = f"{course['title']} · T086 Browser {stamp}"
-                    candidate = api(control, "/api/studio/candidates", "POST", {"course": course})
+                    candidate = api(control, "/api/studio/candidates", "POST", {"course": course, "expectedCandidateRef": None})
                     policy = released["learnerPolicy"]
                     receipt = api(control, "/api/studio/view-acceptance", "POST", {
                         "courseRef": candidate,

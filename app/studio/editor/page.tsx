@@ -35,6 +35,6 @@ export default async function CourseEditorPage() {
       user={{ userId: user.userId, username: user.username, displayName: user.displayName, role: user.role, impersonation: user.impersonation }}
       returnTo="/studio/editor/"
     /></div>
-    <Script src="/studio/editor-assets/editor-loader.js?v=t095-t094-r1" strategy="afterInteractive" />
+    <Script src="/studio/editor-assets/editor-loader.js?v=t099-candidate-cas-r1" strategy="afterInteractive" />
   </>;
 }

@@ -79,7 +79,7 @@ try {
   assert.equal((await get("/courseware/market-mentor-user-system/index.html", adminCookie)).status, 200);
 
   const rawCourse = JSON.parse(await readFile(candidatePath, "utf8")) as { blocks: Array<{ id: string }> };
-  const candidate = await postData<ExactRef>("/api/studio/candidates", { course: rawCourse }, adminCookie);
+  const candidate = await postData<ExactRef>("/api/studio/candidates", { course: rawCourse, expectedCandidateRef: null }, adminCookie);
   const viewReceipt = await postData<{ receiptId: string; valid: boolean }>("/api/studio/view-acceptance", {
     courseRef: candidate,
     reviewedBlockIds: rawCourse.blocks.map((block) => block.id),

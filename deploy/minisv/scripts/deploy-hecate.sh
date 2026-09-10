@@ -199,7 +199,7 @@ with tarfile.open(archive, 'r:gz') as source:
             raise SystemExit(f'unsafe release archive member: {member.name}')
     source.extractall(target, filter='data')
 PY
-[[ -f "$INCOMING/MANIFEST.sha256" && -f "$INCOMING/site/MANIFEST.sha256"    && -f "$INCOMING/app/dist/server/index.js" && -f "$INCOMING/app/dist/server/wrangler.json"    && -f "$INCOMING/app/dist/client/vinext-client-entry-manifest.json"    && -f "$INCOMING/ops/compose.yml"    && -f "$INCOMING/ops/launchd/com.minisv.cloudflared.plist"    && -f "$INCOMING/ops/launchd/$CLASSROOM_LABEL.plist" ]] || { echo "unified release archive incomplete" >&2; exit 2; }
+[[ -f "$INCOMING/MANIFEST.sha256" && -f "$INCOMING/site/MANIFEST.sha256"    && -f "$INCOMING/app/dist/server/index.js" && -f "$INCOMING/app/dist/server/wrangler.json"    && -f "$INCOMING/app/dist/client/vinext-client-entry-manifest.json"    && -f "$INCOMING/ops/compose.yml"    && -f "$INCOMING/ops/scripts/preflight-course-registry-integrity.py"    && -f "$INCOMING/ops/launchd/com.minisv.cloudflared.plist"    && -f "$INCOMING/ops/launchd/$CLASSROOM_LABEL.plist" ]] || { echo "unified release archive incomplete" >&2; exit 2; }
 "$PYTHON" -B - "$INCOMING" <<'PY'
 from pathlib import Path
 import importlib.util, sys
@@ -275,6 +275,12 @@ if [[ -d "$CLASSROOM_ROOT/data" ]]; then
   tar -czf "$BACKUP/classroom-data-before.tgz" -C "$CLASSROOM_ROOT" data
   chmod 600 "$BACKUP/classroom-data-before.tgz"
 fi
+# T-099 migration adds exact digest guards.  Inspect the stopped database in
+# read-only mode only after its complete backup exists; abort rather than
+# guessing how to repair any historical mismatch.
+"$PYTHON" "$TARGET/ops/scripts/preflight-course-registry-integrity.py" \
+  "$CLASSROOM_ROOT/data" --json-output "$BACKUP/course-registry-preflight.json"
+chmod 600 "$BACKUP/course-registry-preflight.json"
 
 # Retire both global mutable runtimes. Every controller is now keyed by
 # classroomId inside the D1-backed worker included in this same release.

@@ -63,6 +63,15 @@ class DeployScriptContractTests(unittest.TestCase):
         self.assertIn("classroom-data-before.tgz", self.script)
         self.assertIn('"$PYTHON" -B - "$INCOMING"', self.script)
 
+    def test_course_registry_preflight_runs_read_only_after_backup_and_before_switch(self) -> None:
+        backup = self.script.index("classroom-data-before.tgz")
+        preflight = self.script.index('"$PYTHON" "$TARGET/ops/scripts/preflight-course-registry-integrity.py"')
+        switch = self.script.index('"$PYTHON" "$TARGET/ops/scripts/switch-current.py"')
+        self.assertLess(backup, preflight)
+        self.assertLess(preflight, switch)
+        self.assertIn("course-registry-preflight.json", self.script)
+        self.assertIn('-f "$INCOMING/ops/scripts/preflight-course-registry-integrity.py"', self.script)
+
     def test_failed_mutating_deploy_restores_the_previous_release(self) -> None:
         self.assertIn("rollback_failed_deploy()", self.script)
         self.assertIn("trap rollback_failed_deploy ERR", self.script)

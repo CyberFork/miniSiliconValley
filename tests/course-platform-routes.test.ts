@@ -80,6 +80,21 @@ test("T-086 release and factory APIs enforce two exact acceptance receipts", () 
   assert.match(store, /coursewareRefs: trustedCourseware/);
 });
 
+test("T-099 Candidate API and editor require an exact base and expose a non-destructive conflict flow", () => {
+  const route = readFileSync(new URL("app/api/studio/candidates/route.ts", root), "utf8");
+  const editor = readFileSync(new URL("public/studio/editor-assets/editor.js", root), "utf8");
+  const workbench = readFileSync(new URL("app/studio/editor/workbench.html", root), "utf8");
+  assert.match(route, /hasOwnProperty\.call\(raw, "expectedCandidateRef"\)/);
+  assert.match(route, /CANDIDATE_BASE_REQUIRED/);
+  assert.match(route, /saveCourseCandidate\(db, raw\.course, user\.userId, expectedCandidateRef\)/);
+  assert.match(editor, /expectedCandidateRef/);
+  assert.match(editor, /CANDIDATE_SAVE_CONFLICT/);
+  assert.match(editor, /threeWayMerge/);
+  for (const marker of ["conflictDialog", "conflictLocalChanges", "conflictRemoteChanges", "conflictMerge", "conflictReload"]) {
+    assert.match(workbench, new RegExp(marker));
+  }
+});
+
 test("gateway owns Studio, Course and per-classroom app routes and retires global Alpha/Control", () => {
   const gateway = readFileSync(new URL("deploy/minisv/gateway/default.conf", root), "utf8");
   assert.match(gateway, /\(studio\|course\|classroom\|account\)/);

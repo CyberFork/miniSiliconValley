@@ -17,6 +17,7 @@ const tables = [
   "classroom_block_submissions", "classroom_wallet_balances",
   "course_view_acceptance_receipts", "course_ui_acceptance_receipts", "classroom_acceptance_bindings",
   "auth_impersonations",
+  "course_exact_integrity_guard",
 ];
 const migrationNames = readdirSync(new URL("../drizzle/", import.meta.url)).filter((name) => /^\d{4}_.*\.sql$/.test(name)).sort();
 assert.ok(migrationNames.length >= 2, "classroom and auth migrations are required");
@@ -46,6 +47,10 @@ test("runtime schema bootstrap is idempotent and exactly mirrors the migration",
       assert.match(executable, /WHERE [\s\S]*(?:IS NULL|<\s*2)/i, "data updates must be guarded and repeatable");
     } else if (/^INSERT OR IGNORE\s/i.test(executable)) {
       assert.match(executable, /(?:classroom_admin_dm_grants|classroom_script_progress)/, "backfills must be conflict-safe and repeatable");
+    } else if (/^INSERT INTO `course_exact_integrity_guard`/i.test(executable)) {
+      assert.match(executable, /CASE WHEN[\s\S]*ON CONFLICT\(`id`\) DO NOTHING/, "exact preflight must fail closed and remain repeatable");
+    } else if (/^DROP INDEX IF EXISTS\s/i.test(executable)) {
+      assert.match(executable, /uidx_course_versions_digest/, "only the superseded digest-only identity may be dropped");
     } else {
       assert.match(executable, /IF NOT EXISTS/, "DDL bootstrap must be repeatable");
     }
@@ -69,7 +74,14 @@ test("unified course factory keeps release, courseware, permissions and script p
     "uidx_course_view_acceptance_exact",
     "uidx_course_ui_acceptance_run",
     "idx_classroom_acceptance_view",
+    "uidx_course_versions_exact",
+    "trg_course_version_immutable_update",
+    "trg_course_version_immutable_delete",
+    "trg_course_candidate_exact_insert",
+    "trg_course_release_exact_update",
+    "trg_classroom_instance_course_exact_insert",
   ]) assert.match(migration, new RegExp(marker));
+  assert.match(migration, /DROP INDEX IF EXISTS `uidx_course_versions_digest`/);
   assert.match(migration, /CHECK \(`environment` in \('test', 'production'\)\)/);
   assert.match(migration, /CHECK \(`mentor_role` in \('P', 'D', 'M', 'O'\)\)/);
   assert.match(migration, /CHECK \(`state` in \('ready', 'executing', 'awaiting-acceptance', 'accepted', 'completed', 'error'\)\)/);

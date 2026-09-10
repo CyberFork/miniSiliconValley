@@ -2,8 +2,9 @@
 type: todo
 id: T-099
 title: "修复多人保存课程时的覆盖与exact指针损坏"
-status: backlog
+status: done
 created: 2026-09-10
+completed: 2026-09-10
 captured_by: project-inbox
 priority: P0
 priority_basis: audit-recommendation
@@ -35,11 +36,21 @@ related: [T-094, T-095]
 
 ## 验收
 
-- [ ] A/B同基线并发不同正文：一方成功，另一方明确冲突；无孤立pointer。
-- [ ] 旧基线顺序保存也被识别，而不只测试同时请求。
-- [ ] 每个成功返回ref能立即loadExact成功且digest匹配。
-- [ ] 同正文重试幂等；失败请求不写“成功保存”审计。
-- [ ] 发布/保存并发、恢复历史为新版本、fieldModel迁移后保持约束。
-- [ ] 接口、数据库真实事务和浏览器冲突提示都测试，不只断言源码含某个字符串。
-- [ ] 不修改运行中Classroom和旧不可变快照。
+- [x] A/B同基线并发不同正文：一方成功，另一方明确冲突；无孤立pointer。
+- [x] 旧基线顺序保存也被识别，而不只测试同时请求。
+- [x] 每个成功返回ref能立即loadExact成功且digest匹配。
+- [x] 同正文重试幂等；失败请求不写“成功保存”审计。
+- [x] 发布/保存并发、恢复历史为新版本、fieldModel迁移后保持约束。
+- [x] 接口、数据库真实事务和浏览器冲突提示都测试，不只断言源码含某个字符串。
+- [x] 不修改运行中Classroom和旧不可变快照。
 
+## 完成记录（2026-09-10）
+
+- Candidate 保存 API 已改为 exact `expectedCandidateRef` CAS；首次创建必须显式传 `null`，旧基线返回 `409 CANDIDATE_SAVE_CONFLICT`。
+- revision 分配、不可变快照插入、Candidate pointer 移动和成功事件写入组成原子条件批次；相同正文重试幂等，不再用 `INSERT OR IGNORE` 掩盖不同正文竞争。
+- `0008_candidate_cas_and_exact_integrity.sql` 增加迁移前失败关闭检查、九类 exact 引用守卫，以及 `course_versions` UPDATE/DELETE 不可变守卫。
+- 发布路径增加 exact Candidate CAS，验收后发生新保存时不发布旧 Candidate。
+- Studio 编辑器保留 Working Copy，展示基线、最新作者/时间与双方字段路径；同路径合并和破坏性重载均需二次确认，合并后必须手动再保存。
+- Hecate 部署脚本先停止服务并备份，再以只读 SQLite preflight 检查；发现错配、损坏或多个注册库时中止，不自动修复。
+- 实际验证：平台测试 92/92、部署测试 45/45、T-099 并发/数据库测试 8/8、TypeScript、ESLint、构建、完整 E2E 和 Chromium 151 真实浏览器流程全部通过。
+- 证据与说明：`docs/TODO_099_IMPLEMENTATION.md`、`docs/qa/t099-candidate-conflict/browser-receipt.json`、`docs/qa/t099-candidate-conflict/candidate-conflict.png`。
