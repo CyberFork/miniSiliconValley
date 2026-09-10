@@ -33,7 +33,7 @@ test("React surfaces share one accessible root-home logo primitive", async () =>
     assert.doesNotMatch(shell, /data-msv-theme-slot/, `${path} must not reserve space for the retired theme switch`);
   }
   const authCss = await source("app/auth/auth.module.css");
-  assert.match(authCss, /@media \(max-width: 700px\)[\s\S]*\.navLinks a \{ display: none; \}/, "mobile auth navigation must not leave off-canvas focusable links");
+  assert.match(authCss, /@media \(max-width: 700px\)[\s\S]*\.navLinks\s*>\s*a \{ display: none; \}/, "mobile auth navigation must not leave off-canvas focusable links");
 });
 
 test("static operational surfaces use the same mark and absolute root link", async () => {

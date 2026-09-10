@@ -111,7 +111,7 @@ test("production admin and DM manual matches the actual classroom controls", asy
     "完成整门课程",
     "个人声望 RP、个人钱包 C 和团队资金 C",
     "CONTROLLER_VERSION_CONFLICT",
-    "生成 exact 验收回执",
+    "签发 UiAcceptanceReceipt",
     "重置 Test 实例",
     "Production · 仅 Released、不可重置",
   ]) {

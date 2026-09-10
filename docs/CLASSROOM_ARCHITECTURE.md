@@ -1,3 +1,5 @@
+> 历史／已退休（T-105）：本文仅供历史追溯，不是当前运行规范。旧 `/api/classroom/*` 已退休并返回 410；请以 [COURSE_PLATFORM_ARCHITECTURE.md](COURSE_PLATFORM_ARCHITECTURE.md) 和 `/api/platform/classrooms` 现行架构为准。
+
 # Young Builder 协作课堂架构
 
 > 本文描述当前 `mini_silicon_valley_world` 工作区中的实现，而不是产品路线图。课堂服务是原有历史世界之上的独立受保护入口；凡本文标为“审计注意”的内容，表示代码当前行为或边界，不代表已实现额外能力。

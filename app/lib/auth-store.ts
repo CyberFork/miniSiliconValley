@@ -612,6 +612,120 @@ export async function createManagedUsers(
   }));
 }
 
+export type StudioAssignableAccount = {
+  userId: string;
+  username: string;
+  displayName: string;
+  role: "admin" | "mentor" | "learner";
+  status: "active";
+};
+
+/**
+ * Return the smallest account directory needed by ClassroomFactory.
+ *
+ * Platform administrators have the explicit global directory capability.
+ * Mentors see themselves, accounts they created, and people in a classroom
+ * they already share. A mentor may also resolve one exact username or display
+ * name supplied by that person; this deliberately does not implement a fuzzy
+ * or browseable global directory.
+ */
+export async function listStudioAssignableAccounts(
+  db: ClassroomD1,
+  actor: Pick<AuthSessionUser, "userId" | "role">,
+  rawQuery?: string | null,
+): Promise<StudioAssignableAccount[]> {
+  assertAuth(actor.role === "admin" || actor.role === "mentor", "MENTOR_REQUIRED", "只有导师或平台管理员可以选择课堂账号。", 403);
+  const query = rawQuery?.trim() ?? "";
+  assertAuth(query.length <= 64, "ACCOUNT_LOOKUP_QUERY_INVALID", "账号查询不能超过 64 个字符。", 400);
+  if (query) {
+    assertAuth(query.length >= 2, "ACCOUNT_LOOKUP_QUERY_INVALID", "请输入至少 2 个字符的完整用户名或昵称。", 400);
+    const result = await db.prepare(
+      `SELECT id, username, display_name, role, status
+       FROM auth_users
+       WHERE status = 'active' AND role IN ('admin', 'mentor', 'learner')
+         AND (username = ? COLLATE NOCASE OR display_name = ? COLLATE NOCASE)
+       ORDER BY CASE role WHEN 'admin' THEN 1 WHEN 'mentor' THEN 2 ELSE 3 END, username
+       LIMIT 12`,
+    ).bind(query, query).all<{
+      id: string;
+      username: string;
+      display_name: string;
+      role: "admin" | "mentor" | "learner";
+      status: "active";
+    }>();
+    return (result.results ?? []).map(studioAssignableAccount);
+  }
+
+  if (actor.role === "admin") {
+    const result = await db.prepare(
+      `SELECT id, username, display_name, role, status
+       FROM auth_users
+       WHERE status = 'active' AND role IN ('admin', 'mentor', 'learner')
+       ORDER BY CASE role WHEN 'admin' THEN 1 WHEN 'mentor' THEN 2 ELSE 3 END, username
+       LIMIT 200`,
+    ).all<{
+      id: string;
+      username: string;
+      display_name: string;
+      role: "admin" | "mentor" | "learner";
+      status: "active";
+    }>();
+    return (result.results ?? []).map(studioAssignableAccount);
+  }
+
+  const result = await db.prepare(
+    `WITH actor_rooms(room_id) AS (
+       SELECT room_id FROM memberships
+       WHERE profile_id = ? AND status = 'active'
+       UNION
+       SELECT room_id FROM classroom_admin_dm_grants
+       WHERE profile_id = ? AND revoked_at IS NULL
+     ), scoped_user_ids(user_id) AS (
+       SELECT ?
+       UNION
+       SELECT user_id FROM auth_security_events
+       WHERE actor_user_id = ? AND action = 'auth.managed-account.created' AND user_id IS NOT NULL
+       UNION
+       SELECT m.profile_id FROM memberships m
+       JOIN actor_rooms ar ON ar.room_id = m.room_id
+       WHERE m.status = 'active'
+       UNION
+       SELECT g.profile_id FROM classroom_admin_dm_grants g
+       JOIN actor_rooms ar ON ar.room_id = g.room_id
+       WHERE g.revoked_at IS NULL
+     )
+     SELECT u.id, u.username, u.display_name, u.role, u.status
+     FROM auth_users u
+     JOIN scoped_user_ids scoped ON scoped.user_id = u.id
+     WHERE u.status = 'active' AND u.role IN ('admin', 'mentor', 'learner')
+     ORDER BY CASE u.role WHEN 'admin' THEN 1 WHEN 'mentor' THEN 2 ELSE 3 END, u.username
+     LIMIT 200`,
+  ).bind(actor.userId, actor.userId, actor.userId, actor.userId).all<{
+    id: string;
+    username: string;
+    display_name: string;
+    role: "admin" | "mentor" | "learner";
+    status: "active";
+  }>();
+  return (result.results ?? []).map(studioAssignableAccount);
+}
+
+function studioAssignableAccount(row: {
+  id: string;
+  username: string;
+  display_name: string;
+  role: "admin" | "mentor" | "learner";
+  status: "active";
+}): StudioAssignableAccount {
+  return {
+    userId: row.id,
+    username: row.username,
+    displayName: row.display_name,
+    role: row.role,
+    status: row.status,
+  };
+}
+
 export type TestIdentityAccountAction = "disable" | "activate" | "reset-credential";
 
 /**

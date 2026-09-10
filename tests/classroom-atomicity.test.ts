@@ -13,6 +13,8 @@ import {
   listAcceptanceClassrooms,
   listUiAcceptanceReceipts,
   requireValidUiAcceptanceReceipt,
+  studioUiAcceptanceSummary,
+  studioViewAcceptanceSummary,
 } from "../app/lib/course-acceptance";
 import type { ClassroomFactoryRequest, ClassroomMentorRole } from "../app/lib/classroom-factory";
 import {
@@ -96,6 +98,7 @@ const admin: AuthenticatedClassroomUser = {
   displayName: "Atomic Admin",
   platformRole: "admin",
 };
+const acceptanceAdmin = { userId: admin.userId, platformRole: "admin" as const };
 const mentorIds: Record<ClassroomMentorRole, string> = {
   P: "atomic-mentor-p",
   D: "atomic-mentor-d",
@@ -119,6 +122,7 @@ async function fixture(mutateCourse?: (course: Record<string, unknown>) => void)
   roomId: string;
   request: ClassroomFactoryRequest;
   sourceCourse: Record<string, unknown>;
+  viewReceipt: Awaited<ReturnType<typeof createViewAcceptanceReceipt>>;
 }> {
   const db = database();
   seedAccount(db, admin.userId, "admin");
@@ -163,7 +167,7 @@ async function fixture(mutateCourse?: (course: Record<string, unknown>) => void)
     learnerProfileIds: learnerIds,
   };
   const created = await createClassroomInstance(db, admin, request);
-  return { db, roomId: created.classroomId, request, sourceCourse };
+  return { db, roomId: created.classroomId, request, sourceCourse, viewReceipt };
 }
 
 async function expectCode(promise: Promise<unknown>, code: string): Promise<void> {
@@ -188,6 +192,25 @@ function scriptState(db: LocalDatabase, roomId: string) {
      WHERE sp.room_id = ?`,
   ).get(roomId, roomId, roomId) } as { version: number; block_id: string; lifecycle: string; mutations: number; events: number };
 }
+
+test("T-105 scopes Studio classroom indexes to assigned mentors and redacts acceptance summaries", async () => {
+  const { db, roomId, viewReceipt } = await fixture();
+  try {
+    const outsiderId = "atomic-mentor-outsider";
+    seedAccount(db, outsiderId, "mentor");
+    const assignedMentor = { userId: mentorIds.P, platformRole: "mentor" as const };
+    const outsiderMentor = { userId: outsiderId, platformRole: "mentor" as const };
+
+    assert.deepEqual((await listAcceptanceClassrooms(db, assignedMentor)).map((room) => room.roomId), [roomId]);
+    assert.deepEqual(await listAcceptanceClassrooms(db, outsiderMentor), []);
+    assert.deepEqual((await listAcceptanceClassrooms(db, acceptanceAdmin)).map((room) => room.roomId), [roomId]);
+
+    const viewSummary = studioViewAcceptanceSummary(viewReceipt);
+    assert.equal(Object.hasOwn(viewSummary, "reviewerProfileId"), false);
+    assert.equal(Object.hasOwn(viewSummary, "checks"), false);
+    assert.equal(Object.hasOwn(viewSummary, "scenarios"), false);
+  } finally { db.raw.close(); }
+});
 
 test("applyScriptAction couples progress, lifecycle, and audit writes atomically", async () => {
   const { db, roomId } = await fixture();
@@ -577,7 +600,7 @@ test("Test Classroom archive is atomic, idempotent, immutable, isolated and read
     assert.equal(rooms.find((room) => room.id === unaffected.classroomId)?.archive, null, "another Test Classroom must remain active");
     const detail = await getClassroomInstance(db, admin, roomId);
     assert.equal(detail.archive?.archivedAt, archived.archivedAt, "archived exact data remains readable");
-    const acceptance = await listAcceptanceClassrooms(db);
+    const acceptance = await listAcceptanceClassrooms(db, acceptanceAdmin);
     assert.equal(acceptance.find((room) => room.roomId === roomId)?.archivedAt, archived.archivedAt);
 
     await expectCode(applyScriptAction(db, admin, roomId, {
@@ -630,7 +653,16 @@ test("archiving retains a UI receipt as historical evidence but invalidates futu
     const issued = await acceptTestClassroom(db, admin, roomId, checks, [
       { browser: "local-test-fixture", platform: "node-sqlite", viewport: { width: 1280, height: 800 } },
     ]);
-    assert.ok((await listUiAcceptanceReceipts(db)).find((receipt) => receipt.receiptId === issued.receiptId)?.valid);
+    const persistedReceipt = (await listUiAcceptanceReceipts(db, acceptanceAdmin)).find((receipt) => receipt.receiptId === issued.receiptId);
+    assert.ok(persistedReceipt?.valid);
+    const outsiderId = "atomic-ui-outsider";
+    seedAccount(db, outsiderId, "mentor");
+    assert.ok((await listUiAcceptanceReceipts(db, { userId: mentorIds.P, platformRole: "mentor" })).some((receipt) => receipt.receiptId === issued.receiptId));
+    assert.deepEqual(await listUiAcceptanceReceipts(db, { userId: outsiderId, platformRole: "mentor" }), []);
+    const uiSummary = studioUiAcceptanceSummary(persistedReceipt);
+    for (const forbidden of ["roomId", "dealSeed", "mentorMemberships", "learnerMemberships", "adminDmProfileIds", "checks", "clientMatrix", "auditSummary", "acceptedByProfileId"]) {
+      assert.equal(Object.hasOwn(uiSummary, forbidden), false, `${forbidden} must not leave Studio bootstrap`);
+    }
 
     await archiveTestClassroom(db, admin, roomId, {
       ...run,
@@ -638,7 +670,7 @@ test("archiving retains a UI receipt as historical evidence but invalidates futu
       idempotencyKey: "archive-after-receipt-0001",
       reason: "receipt retention policy test",
     });
-    const retained = (await listUiAcceptanceReceipts(db)).find((receipt) => receipt.receiptId === issued.receiptId);
+    const retained = (await listUiAcceptanceReceipts(db, acceptanceAdmin)).find((receipt) => receipt.receiptId === issued.receiptId);
     assert.ok(retained, "the receipt must remain queryable for history");
     assert.equal(retained.valid, false);
     assert.ok(retained.invalidReasons.some((reason) => reason.includes("已归档") && reason.includes("历史证据")));

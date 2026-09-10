@@ -132,7 +132,7 @@ test("both campaigns have a continuous seven-part six-minute ending", () => {
   }
 });
 
-test("campaign selection is carried from dashboard UI through API validation into persisted rooms", async () => {
+test("legacy campaign material remains readable by migration code while its public writer stays retired", async () => {
   const [ui, route, validation, store] = await Promise.all([
     readFile(new URL("../app/classroom/ClassroomApp.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/api/classroom/rooms/route.ts", import.meta.url), "utf8"),
@@ -141,7 +141,8 @@ test("campaign selection is carried from dashboard UI through API validation int
   ]);
   assert.match(ui, /选择课件/);
   assert.match(ui, /campaignId/);
-  assert.match(route, /createClassroomRoom\(db, user, title, campaignId\)/);
+  assert.match(route, /retiredClassroomApi\(request\)/);
+  assert.doesNotMatch(route, /createClassroomRoom|classroom-store/);
   assert.match(validation, /CAMPAIGN_NOT_FOUND/);
   assert.match(store, /campaign\.id, firstChapter\.id/);
   assert.match(store, /loadRoomCourseCampaign\(db, \{ id: room\.id, campaign_id: room\.campaign_id \}\)/);

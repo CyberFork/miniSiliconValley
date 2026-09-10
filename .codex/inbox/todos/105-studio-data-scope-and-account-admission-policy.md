@@ -2,7 +2,7 @@
 type: todo
 id: T-105
 title: "收口Studio验收数据可见范围与课程账号准入"
-status: backlog
+status: completed
 created: 2026-09-10
 captured_by: project-inbox
 priority: P1
@@ -48,9 +48,17 @@ related: [T-085, T-087, T-096]
 
 ## 验收
 
-- [ ] mentor A不能从bootstrap/回执查询读取无权限课堂B的成员详情；授权教务能按权限看到必要摘要。
-- [ ] 非本课堂Admin DM不能靠平台角色读取课堂私密信息。
-- [ ] 公开注册的最终政策写入文档、UI、API和测试，learner正式课件访问需求仍满足。
-- [ ] Candidate预览、Released学员阅读、Test身份模拟分别校验，不通过放开/course绕过。
-- [ ] 旧API在正式网关和应用入口都符合退休策略；新旧状态机不并行写同一课堂。
-- [ ] 做跨租户/跨团队回归使用本地合成账号，不主动访问真实生产学员数据。
+- [x] mentor A不能从bootstrap/回执查询读取无权限课堂B的成员详情；授权教务能按权限看到必要摘要。
+- [x] 非本课堂Admin DM不能靠平台角色读取课堂私密信息。
+- [x] 公开注册的最终政策写入文档、UI、API和测试，learner正式课件访问需求仍满足。
+- [x] Candidate预览、Released学员阅读、Test身份模拟分别校验，不通过放开/course绕过。
+- [x] 旧API在正式网关和应用入口都符合退休策略；新旧状态机不并行写同一课堂。
+- [x] 做跨租户/跨团队回归使用本地合成账号，不主动访问真实生产学员数据。
+
+## 完成记录（2026-09-11）
+
+- Studio bootstrap 的 Test／Production 课堂与 UI 回执索引已在服务端按 active Membership／Admin DM grant 过滤；平台管理员只接收不含成员 ID、seed、checks、client matrix 和 audit 的必要摘要。
+- 开放注册政策固定为 `open-learner-v1`：只创建 active learner，可读 Released 课件，不自动加入 Classroom，不获得 Studio、Candidate 或 Test 身份模拟权限。
+- Classroom Factory 增加完整用户名／昵称的 exact 查找；不提供全局模糊目录，查到账号后仍需明确分配 Membership。
+- 旧 `/api/classroom/*` 七个既有入口在应用层永久返回 410，POST 会先安全排空请求体；现行写入只允许 `/api/platform/classrooms`。
+- 定向 145 项课程平台测试、241 项全量源码测试、minisv 编译、自托管账号／准入 smoke、旧 API E2E、课程平台 E2E、P／D 导师 E2E 全部通过。测试均使用临时 D1 与合成账号；没有访问生产学员数据，也没有代签人工验收。

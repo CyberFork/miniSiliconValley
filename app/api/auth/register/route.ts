@@ -18,7 +18,22 @@ export async function POST(request: Request): Promise<Response> {
       cookieHeader: request.headers.get("cookie"),
     });
     return authResponse(
-      { ok: true, data: { user: issued.user, accountSet: issued.browserSet?.state ?? null } },
+      {
+        ok: true,
+        data: {
+          user: issued.user,
+          accountSet: issued.browserSet?.state ?? null,
+          admission: {
+            policyVersion: "open-learner-v1",
+            role: "learner",
+            releasedCourseware: true,
+            classroomMembership: "required",
+            studio: false,
+            candidatePreview: false,
+            testImpersonation: false,
+          },
+        },
+      },
       201,
       issuedSessionHeaders(issued),
     );

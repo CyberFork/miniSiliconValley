@@ -90,6 +90,45 @@ export type AcceptanceClassroomSummary = {
   archivedAt: string | null;
 };
 
+/**
+ * The Studio bootstrap is an index, not an acceptance-receipt export API.
+ * These projections intentionally omit reviewer/member profile IDs, deal
+ * seeds, per-client details, checks and audit payloads.
+ */
+export type StudioViewAcceptanceSummary = Pick<
+  ViewAcceptanceReceipt,
+  | "receiptId"
+  | "courseRef"
+  | "status"
+  | "projectorVersion"
+  | "sourceCommit"
+  | "appBuildId"
+  | "acceptedAt"
+  | "valid"
+  | "invalidReasons"
+>;
+
+export type StudioUiAcceptanceSummary = Pick<
+  UiAcceptanceReceipt,
+  | "receiptId"
+  | "viewReceiptId"
+  | "courseRef"
+  | "learnerCount"
+  | "coursewareRefs"
+  | "runtimeContractVersion"
+  | "sourceCommit"
+  | "appBuildId"
+  | "status"
+  | "acceptedAt"
+  | "valid"
+  | "invalidReasons"
+>;
+
+export type StudioAcceptanceViewer = {
+  userId: string;
+  platformRole: "admin" | "mentor";
+};
+
 type ViewReceiptRow = {
   id: string;
   receipt_schema_version: number;
@@ -493,7 +532,27 @@ export async function recordUiAcceptanceReceipt(
   return receipt;
 }
 
-export async function listUiAcceptanceReceipts(db: ClassroomD1): Promise<UiAcceptanceReceipt[]> {
+export async function listUiAcceptanceReceipts(
+  db: ClassroomD1,
+  viewer: StudioAcceptanceViewer,
+): Promise<UiAcceptanceReceipt[]> {
+  assertStudioAcceptanceViewer(viewer);
+  const mentorScope = viewer.platformRole === "mentor"
+    ? `WHERE (
+         EXISTS (
+           SELECT 1 FROM memberships scope_membership
+           WHERE scope_membership.room_id = ci.room_id
+             AND scope_membership.profile_id = ?
+             AND scope_membership.status = 'active'
+         )
+         OR EXISTS (
+           SELECT 1 FROM classroom_admin_dm_grants scope_grant
+           WHERE scope_grant.room_id = ci.room_id
+             AND scope_grant.profile_id = ?
+             AND scope_grant.revoked_at IS NULL
+         )
+       )`
+    : "";
   const rows = await db.prepare(
     `SELECT r.*, ci.reset_generation AS current_reset_generation, ci.lifecycle AS classroom_lifecycle,
             ca.archived_at AS classroom_archived_at,
@@ -505,8 +564,9 @@ export async function listUiAcceptanceReceipts(db: ClassroomD1): Promise<UiAccep
      JOIN classroom_instances ci ON ci.room_id = r.room_id
      LEFT JOIN classroom_archives ca ON ca.room_id = ci.room_id
      LEFT JOIN course_acceptance_build_identities ai ON ai.receipt_id = r.id AND ai.receipt_kind = 'ui'
+     ${mentorScope}
      ORDER BY r.created_at DESC LIMIT 200`,
-  ).all<UiReceiptRow>();
+  ).bind(...(viewer.platformRole === "mentor" ? [viewer.userId, viewer.userId] : [])).all<UiReceiptRow>();
   const result: UiAcceptanceReceipt[] = [];
   for (const row of rows.results ?? []) {
     const viewValid = await isViewReceiptCurrentlyValid(db, row.view_receipt_id, {
@@ -565,7 +625,27 @@ export async function requireValidUiAcceptanceReceipt(
   return receipt;
 }
 
-export async function listAcceptanceClassrooms(db: ClassroomD1): Promise<AcceptanceClassroomSummary[]> {
+export async function listAcceptanceClassrooms(
+  db: ClassroomD1,
+  viewer: StudioAcceptanceViewer,
+): Promise<AcceptanceClassroomSummary[]> {
+  assertStudioAcceptanceViewer(viewer);
+  const mentorScope = viewer.platformRole === "mentor"
+    ? `WHERE (
+         EXISTS (
+           SELECT 1 FROM memberships scope_membership
+           WHERE scope_membership.room_id = ci.room_id
+             AND scope_membership.profile_id = ?
+             AND scope_membership.status = 'active'
+         )
+         OR EXISTS (
+           SELECT 1 FROM classroom_admin_dm_grants scope_grant
+           WHERE scope_grant.room_id = ci.room_id
+             AND scope_grant.profile_id = ?
+             AND scope_grant.revoked_at IS NULL
+         )
+       )`
+    : "";
   const rows = await db.prepare(
     `SELECT r.id, r.title, ci.environment, ci.lifecycle, ci.course_id, ci.course_revision, ci.course_digest,
             ci.learner_count, ci.updated_at, b.view_receipt_id, b.ui_receipt_id,
@@ -574,8 +654,9 @@ export async function listAcceptanceClassrooms(db: ClassroomD1): Promise<Accepta
      JOIN rooms r ON r.id = ci.room_id
      JOIN classroom_acceptance_bindings b ON b.room_id = ci.room_id
      LEFT JOIN classroom_archives ca ON ca.room_id = ci.room_id
+     ${mentorScope}
      ORDER BY ci.updated_at DESC LIMIT 300`,
-  ).all<{
+  ).bind(...(viewer.platformRole === "mentor" ? [viewer.userId, viewer.userId] : [])).all<{
     id: string; title: string; environment: "test" | "production"; lifecycle: string;
     course_id: string; course_revision: number; course_digest: string; learner_count: number;
     updated_at: string; view_receipt_id: string; ui_receipt_id: string | null; archived_at: string | null;
@@ -592,6 +673,43 @@ export async function listAcceptanceClassrooms(db: ClassroomD1): Promise<Accepta
     updatedAt: row.updated_at,
     archivedAt: row.archived_at,
   }));
+}
+
+export function studioViewAcceptanceSummary(receipt: ViewAcceptanceReceipt): StudioViewAcceptanceSummary {
+  return {
+    receiptId: receipt.receiptId,
+    courseRef: receipt.courseRef,
+    status: receipt.status,
+    projectorVersion: receipt.projectorVersion,
+    sourceCommit: receipt.sourceCommit,
+    appBuildId: receipt.appBuildId,
+    acceptedAt: receipt.acceptedAt,
+    valid: receipt.valid,
+    invalidReasons: [...receipt.invalidReasons],
+  };
+}
+
+export function studioUiAcceptanceSummary(receipt: UiAcceptanceReceipt): StudioUiAcceptanceSummary {
+  return {
+    receiptId: receipt.receiptId,
+    viewReceiptId: receipt.viewReceiptId,
+    courseRef: receipt.courseRef,
+    learnerCount: receipt.learnerCount,
+    coursewareRefs: receipt.coursewareRefs.map((ref) => ({ ...ref })),
+    runtimeContractVersion: receipt.runtimeContractVersion,
+    sourceCommit: receipt.sourceCommit,
+    appBuildId: receipt.appBuildId,
+    status: receipt.status,
+    acceptedAt: receipt.acceptedAt,
+    valid: receipt.valid,
+    invalidReasons: [...receipt.invalidReasons],
+  };
+}
+
+function assertStudioAcceptanceViewer(viewer: StudioAcceptanceViewer): void {
+  if (!viewer.userId || (viewer.platformRole !== "admin" && viewer.platformRole !== "mentor")) {
+    throw new ClassroomError("STUDIO_ROLE_REQUIRED", "Course Studio 只对导师和管理员开放。", 403);
+  }
 }
 
 function mapViewReceipt(row: ViewReceiptRow): ViewAcceptanceReceipt {

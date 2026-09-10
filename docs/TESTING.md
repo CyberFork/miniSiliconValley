@@ -1,3 +1,5 @@
+> 当前政策（T-105）：测试文档不得把旧 `/api/classroom/*` 视为当前可写接口；旧路由预期返回 410，当前课堂 API 为 `/api/platform/classrooms`。公开注册用户始终是 active learner，不能借此获得课堂 membership、Studio、Candidate 预览或 Test 身份模拟权限。
+
 # Mini Silicon Valley 测试与验收
 
 ## 1. 自动化总闸

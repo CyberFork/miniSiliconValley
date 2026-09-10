@@ -29,13 +29,6 @@ let server: ChildProcess | null = null;
 let diagnostics = "";
 
 type Envelope<T> = { ok: boolean; data?: T; error?: { code: string; message: string } };
-type RoomDto = {
-  campaign: { id: string; chapterCount: number; organization: string };
-  room: { teams: Array<{ id: string; publicId: string; memberCount: number }> };
-  viewer: { memberId: string; role: string; canManageFacilitators: boolean };
-  dmSecrets: null | { joinRequests: Array<{ id: string; profileId: string; status: string }> };
-  members: Array<{ id: string; username: string | null; role: string; isRoomOwner: boolean }>;
-};
 
 try {
   await writeFile(fixturePath, JSON.stringify(accountFixture), { mode: 0o600 });
@@ -71,17 +64,20 @@ try {
   const loginPage = await smokeFetch(`${internalBase}/auth/login`, { headers: proxyHeaders() });
   assert.equal(loginPage.status, 200);
   const loginHtml = await loginPage.text();
-  assert.match(loginHtml, /使用 Admin DM 分发的用户名和初始密码/);
-  assert.match(loginHtml, /还没有登录凭据？请联系本课堂 Admin DM/);
-  assert.ok(loginHtml.includes(`${appPrefix}/auth/recover`));
-  assert.ok(!loginHtml.includes(`${appPrefix}/auth/register`), "formal classroom login must not route users into independent-experience registration");
+  assert.match(loginHtml, /使用你的 Mini Silicon Valley 账号登录/);
+  assert.match(loginHtml, /直接注册 Young Builder/);
+  assert.ok(loginHtml.includes(`${appPrefix}/auth/register`), "open learner registration must be discoverable from login");
   assert.doesNotMatch(loginHtml, /域名验证码|登录验证码|团队邀请代码|signin-with-chatgpt|WWW-Authenticate/i);
+
+  const addAccountLoginPage = await smokeFetch(`${internalBase}/auth/login?add=1`, { headers: proxyHeaders() });
+  assert.equal(addAccountLoginPage.status, 200);
+  assert.ok((await addAccountLoginPage.text()).includes(`${appPrefix}/auth/recover`), "the explicit password form must retain a normal recovery link");
 
   const registerPage = await smokeFetch(`${internalBase}/auth/register`, { headers: proxyHeaders() });
   assert.equal(registerPage.status, 200);
   const registerHtml = await registerPage.text();
-  assert.match(registerHtml, /这是独立体验账号入口/);
-  assert.match(registerHtml, /正式课堂使用 Admin DM 预创建并分发的账号/);
+  assert.match(registerHtml, /可长期使用的 Young Builder 学员账号/);
+  assert.match(registerHtml, /不会自动加入任何课堂/);
   assert.doesNotMatch(registerHtml, /MSV-[A-Z0-9-]{8,}/);
 
   const anonymousClassroom = await smokeFetch(`${internalBase}/classroom/`, { headers: proxyHeaders(), redirect: "manual" });
@@ -93,7 +89,7 @@ try {
   assert.equal(teamLoginLocation.pathname, `${appPrefix}/auth/login`);
   assert.equal(teamLoginLocation.searchParams.get("returnTo"), "/classroom/");
   assert.ok(!teamLoginLocation.search.includes("TEAM-MHKNJEAG"), "retired team-application query must not survive the T-085 membership flow");
-  assert.equal((await smokeFetch(`${internalBase}/api/classroom/bootstrap`, { headers: proxyHeaders() })).status, 401);
+  assert.equal((await smokeFetch(`${internalBase}/api/classroom/bootstrap`, { headers: proxyHeaders() })).status, 410);
 
   const wrong = await post("/api/auth/login", { username: "smoke-dm", password: "wrong password value", remember: false });
   assert.equal(wrong.status, 401);
@@ -137,128 +133,69 @@ try {
   });
   assert.equal(newBuilderRegistration.status, 201, await newBuilderRegistration.clone().text());
   const registrationCookie = cookieFrom(newBuilderRegistration);
-  const registrationBody = await newBuilderRegistration.json() as Envelope<{ user: { username: string; role: string } }>;
+  const registrationBody = await newBuilderRegistration.json() as Envelope<{
+    user: { username: string; role: string };
+    admission: {
+      policyVersion: string;
+      role: string;
+      releasedCourseware: boolean;
+      classroomMembership: string;
+      studio: boolean;
+      candidatePreview: boolean;
+      testImpersonation: boolean;
+    };
+  }>;
   assert.equal(registrationBody.data?.user.username, "new-builder");
   assert.equal(registrationBody.data?.user.role, "learner");
+  assert.deepEqual(registrationBody.data?.admission, {
+    policyVersion: "open-learner-v1",
+    role: "learner",
+    releasedCourseware: true,
+    classroomMembership: "required",
+    studio: false,
+    candidatePreview: false,
+    testImpersonation: false,
+  });
   assert.equal((await post("/api/auth/register", {
     username: "new-builder", displayName: "重复账号", password: "Duplicate builder secure passphrase 2026!", remember: false,
   })).status, 409);
 
-  const directRegistration = await post("/api/auth/register", {
-    username: "direct-builder", displayName: "直接加入者", password: "Direct builder secure passphrase 2026!", remember: false,
-  });
-  assert.equal(directRegistration.status, 201, await directRegistration.clone().text());
-  const directCookie = cookieFrom(directRegistration);
-
   const learnerLogin = await post("/api/auth/login", { username: "smoke-1", password: `${password}1`, remember: false });
   assert.equal(learnerLogin.status, 200, await learnerLogin.clone().text());
   const learnerCookie = cookieFrom(learnerLogin);
-  assert.equal((await post("/api/classroom/rooms", { title: "学员不应创建的课堂" }, learnerCookie)).status, 403);
 
-  const created = await postData<{ roomId: string; teamPublicId: string }>("/api/classroom/rooms", { title: `${deployment} 简化账户冒烟课堂` }, dmCookie);
-  assert.ok(created.roomId);
-  assert.match(created.teamPublicId, /^TEAM-[A-Z2-9]{8}$/);
-  const campaignDashboard = await getData<{ campaigns: Array<{ id: string; chapterCount: number }> }>("/api/classroom/bootstrap", dmCookie);
-  assert.deepEqual(campaignDashboard.campaigns.map((campaign) => [campaign.id, campaign.chapterCount] as const).sort(([left], [right]) => left.localeCompare(right)), [
-    ["eleme-2008-find-problem", 5],
-    ["google-1995-2004", 5],
-  ]);
-  const elemeCreated = await postData<{ roomId: string; teamPublicId: string }>("/api/classroom/rooms", {
-    title: "饿了么五步课件冒烟",
-    campaignId: "eleme-2008-find-problem",
-  }, dmCookie);
-  const elemeRoom = await getData<RoomDto>(`/api/classroom/rooms/${elemeCreated.roomId}`, dmCookie);
-  assert.equal(elemeRoom.campaign.id, "eleme-2008-find-problem");
-  assert.equal(elemeRoom.campaign.chapterCount, 5);
-  assert.equal(elemeRoom.campaign.organization, "饿了么：2008 宿舍订餐五步创业战役");
+  assert.deepEqual(await getData<unknown[]>("/api/platform/classrooms", registrationCookie), [], "registration must not create a classroom Membership");
+  assert.equal((await get("/api/studio/bootstrap", registrationCookie)).status, 403, "open registration must not grant Studio or Candidate access");
+  const releasedCourseware = await smokeFetch(`${internalBase}/course/`, { headers: proxyHeaders(registrationCookie) });
+  assert.equal(releasedCourseware.status, 200, "a real learner may browse Released courseware");
+  assert.match(await releasedCourseware.text(), /COURSE LIBRARY|课程目录/);
 
-  const mentorBeforeAssignment = await getData<{ profile: { canRequestTeamSeat: boolean }; rooms: unknown[] }>("/api/classroom/bootstrap", mentorCookie);
-  assert.equal(mentorBeforeAssignment.profile.canRequestTeamSeat, false);
-  assert.equal(mentorBeforeAssignment.rooms.length, 0, "mentor must not see an admin-created room before explicit assignment");
-  assert.equal((await post("/api/classroom/join", { teamPublicId: created.teamPublicId }, mentorCookie)).status, 403, "mentor must never consume a learner seat");
-  assert.equal((await get(`/api/classroom/rooms/${created.roomId}`, mentorCookie)).status, 403);
-  await postData(`/api/classroom/rooms/${created.roomId}/actions`, { type: "assign-facilitator", username: "SMOKE-MENTOR" }, dmCookie);
-  const mentorDashboard = await getData<{ rooms: Array<{ id: string; role: string }> }>("/api/classroom/bootstrap", mentorCookie);
-  assert.deepEqual(mentorDashboard.rooms.map((candidate) => [candidate.id, candidate.role]), [[created.roomId, "dm"]]);
-  const mentorRoom = await getData<RoomDto>(`/api/classroom/rooms/${created.roomId}`, mentorCookie);
-  assert.equal(mentorRoom.viewer.role, "dm");
-  assert.equal(mentorRoom.viewer.canManageFacilitators, false, "assigned mentor may host but may not alter classroom ownership");
-  assert.equal(mentorRoom.room.teams[0]?.memberCount, 0, "facilitator must not occupy a P/D/M/O seat");
-  assert.equal(mentorRoom.members.filter((candidate) => candidate.role === "dm").length, 2);
-  assert.equal(mentorRoom.members.find((candidate) => candidate.username === "smoke-dm")?.isRoomOwner, true);
-  assert.equal(mentorRoom.members.find((candidate) => candidate.username === "smoke-mentor")?.isRoomOwner, false);
-  assert.equal((await post(`/api/classroom/rooms/${created.roomId}/actions`, { type: "assign-facilitator", username: "smoke-dm" }, mentorCookie)).status, 403);
-  await postData(`/api/classroom/rooms/${created.roomId}/actions`, { type: "set-timer", minutes: 3 }, mentorCookie);
-
-  const mentorInLearnerSearch = await getData<Array<{ username: string }>>(
-    `/api/classroom/rooms/${created.roomId}/learners?q=${encodeURIComponent("smoke-mentor")}`, dmCookie,
+  const mentorKnownAccounts = await getData<Array<{ username: string }>>("/api/studio/accounts", mentorCookie);
+  assert.deepEqual(mentorKnownAccounts.map((account) => account.username), ["smoke-mentor"], "mentor directory must default to its scoped roster");
+  const exactAccount = await getData<Array<{ username: string; role: string }>>(
+    `/api/studio/accounts?q=${encodeURIComponent("new-builder")}`,
+    mentorCookie,
   );
-  assert.equal(mentorInLearnerSearch.length, 0, "mentor belongs in facilitator management, not learner search");
+  assert.deepEqual(exactAccount.map((account) => [account.username, account.role]), [["new-builder", "learner"]]);
+  assert.deepEqual(await getData<unknown[]>(`/api/studio/accounts?q=${encodeURIComponent("new")}`, mentorCookie), [], "partial global account search must stay disabled");
 
-  const sharedClassroom = await smokeFetch(`${internalBase}/classroom/?team=${created.teamPublicId}`, { headers: proxyHeaders(learnerCookie) });
-  assert.equal(sharedClassroom.status, 200);
-  const sharedClassroomHtml = await sharedClassroom.text();
-  assert.match(sharedClassroomHtml, /课堂中心/, "T-086 classroom route must render the unified Test + Production hub");
-  assert.doesNotMatch(sharedClassroomHtml, /initialTeamPublicId/);
-
-  const wrongTeamPublicId = "TEAM-MSVMENTO";
-  const wrongTeamJoin = await post("/api/classroom/join", { teamPublicId: wrongTeamPublicId }, registrationCookie);
-  assert.equal(wrongTeamJoin.status, 404);
-  const wrongTeamEnvelope = await wrongTeamJoin.json() as Envelope<never>;
-  assert.equal(wrongTeamEnvelope.ok, false);
-  assert.match(wrongTeamEnvelope.error?.message ?? "", /没有找到这个队伍|检查队伍ID/);
-
-  const observerLogin = await post("/api/auth/login", { username: "smoke-observer", password: `${password} observer`, remember: false });
-  assert.equal(observerLogin.status, 200, await observerLogin.clone().text());
-  assert.equal((await post("/api/classroom/join", { teamPublicId: created.teamPublicId }, cookieFrom(observerLogin))).status, 403);
-
-  const joinRequest = await postData<{ requestId: string; status: string; alreadyPending: boolean }>(
-    "/api/classroom/join", { teamPublicId: created.teamPublicId }, learnerCookie,
-  );
-  assert.equal(joinRequest.status, "pending");
-  assert.equal(joinRequest.alreadyPending, false);
-  const duplicateJoin = await postData<{ requestId: string; alreadyPending: boolean }>(
-    "/api/classroom/join", { teamPublicId: created.teamPublicId }, learnerCookie,
-  );
-  assert.equal(duplicateJoin.requestId, joinRequest.requestId);
-  assert.equal(duplicateJoin.alreadyPending, true);
-  const pendingDashboard = await getData<{ rooms: unknown[]; joinRequests: Array<{ id: string; status: string }> }>("/api/classroom/bootstrap", learnerCookie);
-  assert.equal(pendingDashboard.rooms.length, 0, "pending request must not grant classroom access");
-  assert.equal(pendingDashboard.joinRequests.find((request) => request.id === joinRequest.requestId)?.status, "pending");
-  assert.equal((await get("/api/classroom/rooms/" + created.roomId, learnerCookie)).status, 403);
-
-  let dmRoom = await getData<RoomDto>(`/api/classroom/rooms/${created.roomId}`, dmCookie);
-  assert.equal(dmRoom.dmSecrets?.joinRequests.find((request) => request.id === joinRequest.requestId)?.status, "pending");
-  await postData(`/api/classroom/rooms/${created.roomId}/actions`, { type: "decide-join-request", requestId: joinRequest.requestId, decision: "approve" }, dmCookie);
-  const approvedDashboard = await getData<{ rooms: Array<{ id: string }>; joinRequests: Array<{ id: string; status: string }> }>("/api/classroom/bootstrap", learnerCookie);
-  assert.equal(approvedDashboard.rooms[0]?.id, created.roomId);
-  assert.equal(approvedDashboard.joinRequests.find((request) => request.id === joinRequest.requestId)?.status, "approved");
-  assert.equal((await get(`/api/classroom/rooms/${created.roomId}`, learnerCookie)).status, 200);
-
-  dmRoom = await getData<RoomDto>(`/api/classroom/rooms/${created.roomId}`, dmCookie);
-  const teamId = dmRoom.room.teams[0]?.id;
-  assert.ok(teamId);
-  const search = await getData<Array<{ profileId: string; username: string }>>(
-    `/api/classroom/rooms/${created.roomId}/learners?q=${encodeURIComponent("direct")}`, dmCookie,
-  );
-  const directBuilder = search.find((candidate) => candidate.username === "direct-builder");
-  assert.ok(directBuilder);
-  await postData(`/api/classroom/rooms/${created.roomId}/actions`, { type: "add-learner", teamId, profileId: directBuilder.profileId }, dmCookie);
-  assert.equal((await get(`/api/classroom/rooms/${created.roomId}`, directCookie)).status, 200);
-  dmRoom = await getData<RoomDto>(`/api/classroom/rooms/${created.roomId}`, dmCookie);
-  const directMember = dmRoom.members.find((candidate) => candidate.username === "direct-builder");
-  assert.ok(directMember);
-  await postData(`/api/classroom/rooms/${created.roomId}/actions`, { type: "remove-member", memberId: directMember.id }, dmCookie);
-  assert.equal((await get(`/api/classroom/rooms/${created.roomId}`, directCookie)).status, 403, "removed member must immediately lose room access");
-
-  await postData(`/api/classroom/rooms/${created.roomId}/actions`, { type: "create-team", name: "Beta Builders" }, dmCookie);
-  dmRoom = await getData<RoomDto>(`/api/classroom/rooms/${created.roomId}`, dmCookie);
-  assert.equal(dmRoom.room.teams.length, 2);
-  assert.equal(new Set(dmRoom.room.teams.map((team) => team.publicId)).size, 2);
-
-  const ownerMember = dmRoom.members.find((candidate) => candidate.isRoomOwner);
-  assert.ok(ownerMember);
-  assert.equal((await post(`/api/classroom/rooms/${created.roomId}/actions`, { type: "remove-facilitator", memberId: ownerMember.id }, dmCookie)).status, 409, "room owner must remain the final accountable facilitator");
+  const legacyChecks: Array<{ path: string; method: "GET" | "POST" }> = [
+    { path: "/api/classroom/bootstrap", method: "GET" },
+    { path: "/api/classroom/join", method: "POST" },
+    { path: "/api/classroom/rooms", method: "POST" },
+    { path: "/api/classroom/rooms/retired-room", method: "GET" },
+    { path: "/api/classroom/rooms/retired-room/actions", method: "POST" },
+    { path: "/api/classroom/rooms/retired-room/export", method: "GET" },
+    { path: "/api/classroom/rooms/retired-room/learners?q=new-builder", method: "GET" },
+  ];
+  for (const legacy of legacyChecks) {
+    const response = legacy.method === "GET"
+      ? await get(legacy.path, learnerCookie)
+      : await post(legacy.path, { sentinel: "retired" }, learnerCookie);
+    assert.equal(response.status, 410, `${legacy.path} must fail closed in the application`);
+    const body = await response.json() as Envelope<never>;
+    assert.equal(body.error?.code, "LEGACY_CLASSROOM_API_RETIRED");
+  }
 
   const resetLink = await postData<{ resetUrl: string; username: string; expiresAt: string }>(
     "/api/auth/admin/reset-links", { username: "new-builder" }, dmCookie,
@@ -291,12 +228,6 @@ try {
   assert.equal((await post("/api/auth/login", { username: "smoke-1", password: `${password}1`, remember: false })).status, 401);
   assert.equal((await post("/api/auth/login", { username: "smoke-1", password: changedPassword, remember: false })).status, 200);
 
-  dmRoom = await getData<RoomDto>(`/api/classroom/rooms/${created.roomId}`, dmCookie);
-  const assignedMentor = dmRoom.members.find((candidate) => candidate.username === "smoke-mentor");
-  assert.ok(assignedMentor);
-  await postData(`/api/classroom/rooms/${created.roomId}/actions`, { type: "remove-facilitator", memberId: assignedMentor.id }, dmCookie);
-  assert.equal((await get(`/api/classroom/rooms/${created.roomId}`, mentorCookie)).status, 403, "removed facilitator must immediately lose room access");
-
   const assetPath = homeHtml.match(new RegExp(`["'](${escapeRegExp(appPrefix)}\\/_next\\/[^"']+)["']`))?.[1];
   assert.ok(assetPath, `HTML must emit assets beneath the ${deployment} base path`);
   assert.equal((await smokeFetch(`${internalBase}${assetPath.slice(appPrefix.length)}`, { headers: proxyHeaders() })).status, 200);
@@ -314,7 +245,7 @@ try {
   assert.equal(limited.status, 429);
   assert.match(limited.headers.get("retry-after") ?? "", /^\d+$/);
 
-  console.log(`${deployment.toUpperCase()}_APP_SMOKE_PASS auth=password registration=open reset=single-use-fragment team=request-approve-direct-add-remove facilitator=assign-host-remove rbac=server-enforced`);
+  console.log(`${deployment.toUpperCase()}_APP_SMOKE_PASS auth=password registration=open-learner membership=required released-courseware=allowed studio=forbidden legacy-classroom=410 reset=single-use-fragment`);
 } catch (error) {
   if (diagnostics.trim()) console.error(`WRANGLER_DIAGNOSTICS\n${diagnostics}`);
   throw error;

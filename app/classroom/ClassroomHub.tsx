@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { IssuedManagedCredential } from "../lib/auth-model";
 import type { ClassroomInstanceSummary } from "../lib/classroom-platform-store";
-import type { UiAcceptanceReceipt, ViewAcceptanceReceipt } from "../lib/course-acceptance";
+import type { StudioUiAcceptanceSummary, StudioViewAcceptanceSummary } from "../lib/course-acceptance";
 import type { CoursePackage, CoursePackageRef } from "../lib/course-package";
 import { isCoursewareLibraryVisible, type CoursewareSummary } from "../lib/courseware-store";
 import { buildFactoryChecklist } from "../lib/classroom-factory-readiness";
@@ -25,8 +25,8 @@ type StudioVersion = {
 type Bootstrap = {
   versions: StudioVersion[];
   courseware: CoursewareSummary[];
-  viewReceipts: ViewAcceptanceReceipt[];
-  uiReceipts: UiAcceptanceReceipt[];
+  viewReceipts: StudioViewAcceptanceSummary[];
+  uiReceipts: StudioUiAcceptanceSummary[];
 };
 type InitialCourse = {
   courseId: string;
@@ -100,6 +100,12 @@ export default function ClassroomHub({ user, initialCourse, initialNotice = "" }
       setAccountsLoading(false);
     }
   }, [canUseStudio]);
+
+  const lookupAccounts = useCallback(async (query: string) => {
+    const matches = await api<Account[]>(`/api/studio/accounts?q=${encodeURIComponent(query)}`);
+    setAccounts((current) => mergeAccounts(current, matches));
+    return matches;
+  }, []);
 
   const refreshAll = useCallback(async () => {
     setActionError("");
@@ -198,6 +204,7 @@ export default function ClassroomHub({ user, initialCourse, initialNotice = "" }
         onRefresh={refreshAll}
         onRetryBootstrap={loadBootstrap}
         onRetryAccounts={loadAccounts}
+        onLookupAccounts={lookupAccounts}
         onCreated={async (message) => { setNotice(message); await loadRooms(); }}
         onAccounts={async (created) => {
           setNotice(`已生成 ${created.length} 个账号。明文初始密码只在下方显示这一次。`);
@@ -269,7 +276,7 @@ function ArchiveDialog({ room, reason, busy, onReason, onCancel, onConfirm }: {
   </div>;
 }
 
-function FactoryPanel({ bootstrap, accounts, bootstrapError, accountsError, bootstrapLoading, accountsLoading, currentUserId, currentUserRole, initialCourse, onRefresh, onRetryBootstrap, onRetryAccounts, onCreated, onAccounts, onError }: {
+function FactoryPanel({ bootstrap, accounts, bootstrapError, accountsError, bootstrapLoading, accountsLoading, currentUserId, currentUserRole, initialCourse, onRefresh, onRetryBootstrap, onRetryAccounts, onLookupAccounts, onCreated, onAccounts, onError }: {
   bootstrap: Bootstrap | null;
   accounts: Account[];
   bootstrapError: string;
@@ -282,6 +289,7 @@ function FactoryPanel({ bootstrap, accounts, bootstrapError, accountsError, boot
   onRefresh: () => Promise<void>;
   onRetryBootstrap: () => Promise<void>;
   onRetryAccounts: () => Promise<void>;
+  onLookupAccounts: (query: string) => Promise<Account[]>;
   onCreated: (message: string) => Promise<void>;
   onAccounts: (accounts: IssuedManagedCredential[]) => Promise<void>;
   onError: (message: string) => void;
@@ -317,13 +325,14 @@ function FactoryPanel({ bootstrap, accounts, bootstrapError, accountsError, boot
     onRefresh={onRefresh}
     onRetryBootstrap={onRetryBootstrap}
     onRetryAccounts={onRetryAccounts}
+    onLookupAccounts={onLookupAccounts}
     onCreated={onCreated}
     onAccounts={onAccounts}
     onError={onError}
   />;
 }
 
-function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, bootstrapLoading, accountsLoading, currentUserId, currentUserRole, initialCourse, onRefresh, onRetryBootstrap, onRetryAccounts, onCreated, onAccounts, onError }: {
+function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, bootstrapLoading, accountsLoading, currentUserId, currentUserRole, initialCourse, onRefresh, onRetryBootstrap, onRetryAccounts, onLookupAccounts, onCreated, onAccounts, onError }: {
   bootstrap: Bootstrap;
   accounts: Account[];
   bootstrapError: string;
@@ -336,6 +345,7 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
   onRefresh: () => Promise<void>;
   onRetryBootstrap: () => Promise<void>;
   onRetryAccounts: () => Promise<void>;
+  onLookupAccounts: (query: string) => Promise<Account[]>;
   onCreated: (message: string) => Promise<void>;
   onAccounts: (accounts: IssuedManagedCredential[]) => Promise<void>;
   onError: (message: string) => void;
@@ -366,6 +376,9 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
   const [credentials, setCredentials] = useState<IssuedManagedCredential[]>([]);
   const [submitError, setSubmitError] = useState("");
   const [accountActionError, setAccountActionError] = useState("");
+  const [accountQuery, setAccountQuery] = useState("");
+  const [accountLookupBusy, setAccountLookupBusy] = useState(false);
+  const [accountLookupNotice, setAccountLookupNotice] = useState("");
   const submitErrorRef = useRef<HTMLDivElement>(null);
   const operationLockRef = useRef(false);
   const effectiveLearnerCount = course ? clampCount(learnerCount || course.learnerPolicy.defaultCount, course.learnerPolicy) : 0;
@@ -439,6 +452,27 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
     } finally {
       operationLockRef.current = false;
       setBusy(false);
+    }
+  };
+
+  const lookupAccount = async () => {
+    const query = accountQuery.trim();
+    setAccountLookupNotice("");
+    setAccountActionError("");
+    if (query.length < 2) {
+      setAccountActionError("请输入完整用户名或昵称，至少 2 个字符；系统不会显示可浏览的全站账号目录。");
+      return;
+    }
+    setAccountLookupBusy(true);
+    try {
+      const matches = await onLookupAccounts(query);
+      setAccountLookupNotice(matches.length
+        ? `已把 ${matches.map((item) => `${item.displayName} · @${item.username}`).join("、")} 加入下方账号选择列表。`
+        : "没有找到完全匹配的有效账号。请让对方确认用户名或显示名称后重试。");
+    } catch (cause) {
+      setAccountActionError(messageOf(cause));
+    } finally {
+      setAccountLookupBusy(false);
     }
   };
 
@@ -547,6 +581,13 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
         <h3>{environment === "test" ? "创建真实 UI 验收课堂" : "创建正式课堂"}</h3>
         <ol>{environment === "test" ? <><li>选择 Candidate 或 Released exact 版本</li><li>完成该版本的多角色视图检查</li><li>配置真实 N 与 4 + N 个成员</li><li>绑定计划投产的四套 exact 课件</li></> : <><li>选择已经 Released 的 exact 版本</li><li>绑定同版本有效 View + UI 检查记录</li><li>四套课件必须已发布且与验收一致</li><li>Production 不提供测试重置</li></>}</ol>
         <button type="button" onClick={createAccounts} disabled={busy || !course || effectiveLearnerCount < 1}>{busy ? "正在处理…" : course ? `一键生成 4＋${effectiveLearnerCount} 个测试账号` : "先选择课程再生成账号"}</button>
+        <form className={styles.accountLookup} onSubmit={(event) => { event.preventDefault(); void lookupAccount(); }}>
+          <label htmlFor="factory-account-lookup">查找自行注册的账号</label>
+          <input id="factory-account-lookup" value={accountQuery} onChange={(event) => setAccountQuery(event.target.value.slice(0, 64))} placeholder="完整用户名或昵称" autoComplete="off" />
+          <button type="submit" disabled={accountLookupBusy || accountQuery.trim().length < 2}>{accountLookupBusy ? "正在查找…" : "精确查找并加入列表"}</button>
+          <small>只做完全匹配，不开放全站模糊搜索。找到后仍需在下方明确分配 Membership。</small>
+        </form>
+        {accountLookupNotice && <p className={styles.asideNotice} role="status">{accountLookupNotice}</p>}
         {accountActionError && <p className={styles.asideError} role="alert">{accountActionError}</p>}
       </aside>
       <div className={styles.factoryForm}>
@@ -599,6 +640,15 @@ function CredentialReceipt({ credentials }: { credentials: IssuedManagedCredenti
   const csv = ["username,displayName,role,initialPassword,mustChangePassword", ...credentials.map((item) => [item.username, item.displayName, item.role, item.initialPassword, "true"].map(csvCell).join(","))].join("\n");
   const download = () => { const url = URL.createObjectURL(new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" })); const anchor = document.createElement("a"); anchor.href = url; anchor.download = `minisv-accounts-${Date.now()}.csv`; anchor.click(); URL.revokeObjectURL(url); };
   return <section className={styles.credentials}><header><div><b>一次性账号分发回执</b><p>离开页面后不能再次读取明文密码。首次登录必须修改密码。</p></div><button type="button" onClick={download}>下载 CSV</button></header><div className={styles.credentialGrid}>{credentials.map((item) => <code key={item.userId}>{item.displayName}<br />@{item.username}<br />{item.initialPassword}</code>)}</div></section>;
+}
+
+function mergeAccounts(current: Account[], incoming: Account[]): Account[] {
+  const merged = new Map(current.map((account) => [account.userId, account]));
+  for (const account of incoming) merged.set(account.userId, account);
+  return [...merged.values()].sort((left, right) => {
+    const order = { admin: 0, mentor: 1, learner: 2 } as const;
+    return order[left.role] - order[right.role] || left.username.localeCompare(right.username);
+  });
 }
 
 function preferredVersions(versions: StudioVersion[]): StudioVersion[] {
@@ -678,7 +728,7 @@ function coursewareKey(item: CoursewareSummary, environment: "test" | "productio
   return `${item.packageId}:${environment === "production" ? item.releasedRevision : item.latestRevision}:${environment === "production" ? item.releasedDigest : item.latestDigest}`;
 }
 
-function initialCoursewareKeys(items: CoursewareSummary[], environment: "test" | "production", receipt?: UiAcceptanceReceipt): Record<string, string> {
+function initialCoursewareKeys(items: CoursewareSummary[], environment: "test" | "production", receipt?: StudioUiAcceptanceSummary): Record<string, string> {
   if (environment === "production" && receipt) {
     return Object.fromEntries(MENTOR_ROLES.map((role) => {
       const accepted = receipt.coursewareRefs.find((ref) => ref.mentorRole === role);
@@ -696,7 +746,7 @@ function defaultCoursewareKeys(items: CoursewareSummary[], environment: "test" |
   }));
 }
 
-function preserveCoursewareKeys(current: Record<string, string>, items: CoursewareSummary[], environment: "test" | "production", receipt?: UiAcceptanceReceipt): Record<string, string> {
+function preserveCoursewareKeys(current: Record<string, string>, items: CoursewareSummary[], environment: "test" | "production", receipt?: StudioUiAcceptanceSummary): Record<string, string> {
   const fallback = initialCoursewareKeys(items, environment, receipt);
   return Object.fromEntries(MENTOR_ROLES.map((role) => {
     const available = items.some((item) => item.mentorRole === role

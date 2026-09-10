@@ -1,3 +1,5 @@
+> 当前政策（T-105）：公开注册保持开放并始终创建 active learner；可浏览 Released 课件，但不会自动获得任何 Classroom membership。正式课堂必须由 Admin DM 分配 membership；无 Studio、Candidate 预览、Test 身份模拟权限。旧 `/api/classroom/*` 已退休并返回 410，课堂 API 仅使用 `/api/platform/classrooms`。Studio 数据按最小化原则暴露：导师仅可见其 membership 或 active Admin-DM grant 课堂的验收摘要，平台 admin 可见必要全局摘要；bootstrap 不暴露成员/profile ID、dealSeed、详细 clientMatrix/audit/checks。
+
 # Mini Silicon Valley 课程平台架构
 
 > 状态：T-111 本地实现后的现行架构
@@ -166,6 +168,8 @@ TEST archive 也不删除历史回执。它保留原回执供审计查询，但�
 - Primary 只能把 Delegated Admin DM 授予有效导师。Delegated 可运行课堂但不能递归授予／撤销；权限按 Classroom 隔离。
 - 平台 admin 不自动穿透所有课堂，仍需要 Membership 或课堂 Admin DM 权限。
 - 平台 admin 若显式拥有 Test Classroom 的 Admin DM，可在真实 Session 上短时模拟该课堂非管理员成员；actor、effective identity 与 scope 始终同时保留。
+- Studio bootstrap 只返回课程索引及脱敏验收摘要：普通导师只能看到自己具有 active Membership 或 Admin DM grant 的课堂；平台管理员可查看跨课堂必要摘要，但不会因此获得课堂详情或成员数据读取权。
+- Classroom Factory 的默认账号列表按管理关系和共同课堂收敛。导师可用对方主动提供的完整用户名／昵称做 exact 查找，以接纳自行注册学员；系统不提供可遍历的全站模糊账号目录，查找成功也不会自动创建 Membership。
 
 ## 4. 共享投影与动态人数
 
@@ -257,6 +261,7 @@ Admin DM 只有在 TEST 解锁全部剧本页并显式结束该 Run 后，才能
 
 - `/studio/*`：平台 mentor／admin，且必须完成首次改密。
 - `/course/*`：真实 admin／mentor／learner 登录账号只读访问 Released 课件；Candidate、测试模拟身份和内部 fallback 不进入目录。
+- `/auth/register`：公开创建 active learner；不创建 Classroom Membership，也不授予 Studio、Candidate 或 Test 身份模拟权限。
 - Classroom：仅该实例 Membership 或 Admin DM。
 - 学员只收到自己的任务、持久化手牌、提交、RP 与钱包。
 - 导师不接收其他导师不需要的私密脚本。

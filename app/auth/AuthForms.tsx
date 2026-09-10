@@ -140,7 +140,7 @@ export function LoginForm({ returnTo, initialUser, signedOut = null, addAccount 
       <header className={styles.cardHeading}>
         <span>ACCOUNT ACCESS</span>
         <h2>进入你的世界线</h2>
-        <p>使用 Admin DM 分发的用户名和初始密码。首次登录会先引导你把一次性密码换成自己的密码，课堂已经通过 Membership 分配好。</p>
+        <p>使用你的 Mini Silicon Valley 账号登录。导师分发的一次性密码首次登录后必须更换；自行注册的 Young Builder 需要由 Admin DM 明确加入课堂。</p>
       </header>
       {initialUser && <div className={styles.signedInNote}>当前使用 <strong>{initialUser.displayName}</strong>。这台设备上的其他已验证账号不会因切换而退出。</div>}
       {signedOut === "current" && <div className={styles.formSuccess} role="status">当前账号已从这台设备退出；其他已验证账号仍可直接选择。</div>}
@@ -189,7 +189,7 @@ export function LoginForm({ returnTo, initialUser, signedOut = null, addAccount 
         {accountSet?.accounts.length && <button type="button" className={styles.secondaryButton} onClick={() => { setPassword(""); setMode("accounts"); }}>取消，返回账号列表</button>}
       </form>
       }
-      <p className={styles.formFoot}>还没有登录凭据？请联系本课堂 Admin DM；不要使用同学的账号。</p>
+      <p className={styles.formFoot}>还没有账号？ <a className={styles.textLink} href={`${publicPath("/auth/register")}?returnTo=${encodeURIComponent(returnTo)}`}>直接注册 Young Builder</a>；注册后把用户名或昵称告诉 Admin DM，由导师加入课堂。</p>
     </div>
   );
 }
@@ -235,7 +235,7 @@ export function RegisterForm({ returnTo }: { returnTo: string }) {
       <header className={styles.cardHeading}>
         <span>CREATE YOUNG BUILDER ID</span>
         <h2>直接创建成长账号</h2>
-        <p>这是独立体验账号入口。正式课堂使用 Admin DM 预创建并分发的账号，Membership 会在开课前直接绑定。</p>
+        <p>注册会创建一个可长期使用的 Young Builder 学员账号。你可以立即查看 World 与已发布课件；加入具体课堂仍需 Admin DM 明确分配 Membership。</p>
       </header>
       <form className={styles.authForm} onSubmit={submit} noValidate>
         <label className={styles.field}><span className={styles.fieldLabel}>用户名 <small>3–32位，注册后保持稳定</small></span><input value={username} onChange={(event) => setUsername(normalizeUsernameInput(event.target.value))} autoComplete="username" minLength={3} maxLength={32} pattern="[a-z][a-z0-9_-]{2,31}" required /><p className={styles.fieldHint}>以小写字母开头，可使用数字、- 和 _。</p></label>
@@ -251,8 +251,9 @@ export function RegisterForm({ returnTo }: { returnTo: string }) {
         <div className={styles.checkRow}><label><input type="checkbox" checked={agreed} onChange={(event) => setAgreed(event.target.checked)} />我会保护私密情报、尊重队友，不共享个人密码</label></div>
         {confirmation && confirmation !== password && <div className={styles.formError}>两次输入的密码不一致。</div>}
         {error && <div className={styles.formError} role="alert">{error}</div>}
-        <button className={styles.primaryButton} disabled={busy || !agreed || password.length < 12 || password !== confirmation}>{busy ? "正在创建身份…" : "创建账号并进入课堂 →"}</button>
+        <button className={styles.primaryButton} disabled={busy || !agreed || password.length < 12 || password !== confirmation}>{busy ? "正在创建身份…" : "创建账号并进入学习入口 →"}</button>
       </form>
+      <div className={styles.formSuccess} role="note">账号边界：注册不会自动加入任何课堂，也不会获得 Course Studio、Candidate 预览或 Test 身份切换权限。</div>
       <p className={styles.formFoot}>已经有账号？ <a className={styles.textLink} href={`${publicPath("/auth/login")}?returnTo=${encodeURIComponent(returnTo)}`}>返回登录</a></p>
     </div>
   );

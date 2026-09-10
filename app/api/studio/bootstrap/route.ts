@@ -8,6 +8,8 @@ import {
   listAcceptanceClassrooms,
   listUiAcceptanceReceipts,
   listViewAcceptanceReceipts,
+  studioUiAcceptanceSummary,
+  studioViewAcceptanceSummary,
 } from "../../../lib/course-acceptance";
 import { listStudioCourseVersions } from "../../../lib/course-registry";
 import { listCourseware } from "../../../lib/courseware-store";
@@ -29,19 +31,23 @@ export async function GET(request: Request): Promise<Response> {
       throw new ClassroomError("COURSE_ID_REQUIRED", "查看历史时请选择一门课程。", 400);
     }
     const historyOnly = scope === "history";
+    const acceptanceViewer = {
+      userId: user.userId,
+      platformRole: user.platformRole === "admin" ? "admin" as const : "mentor" as const,
+    };
     const [versions, courseware, viewReceipts, uiReceipts, acceptanceClassrooms] = await Promise.all([
       listStudioCourseVersions(db, { currentOnly: scope === "current", ...(historyOnly ? { courseId: courseId! } : {}) }),
       historyOnly ? Promise.resolve([]) : listCourseware(db),
       historyOnly ? Promise.resolve([]) : listViewAcceptanceReceipts(db),
-      historyOnly ? Promise.resolve([]) : listUiAcceptanceReceipts(db),
-      historyOnly ? Promise.resolve([]) : listAcceptanceClassrooms(db),
+      historyOnly ? Promise.resolve([]) : listUiAcceptanceReceipts(db, acceptanceViewer),
+      historyOnly ? Promise.resolve([]) : listAcceptanceClassrooms(db, acceptanceViewer),
     ]);
     return {
       user: { userId: user.userId, displayName: user.displayName, role: user.platformRole },
       versions: versions.map(studioVersionSummary),
       courseware,
-      viewReceipts,
-      uiReceipts,
+      viewReceipts: viewReceipts.map(studioViewAcceptanceSummary),
+      uiReceipts: uiReceipts.map(studioUiAcceptanceSummary),
       acceptanceClassrooms,
       acceptanceRuntime: {
         projectorVersion: COURSE_PROJECTOR_VERSION,

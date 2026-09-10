@@ -1,3 +1,5 @@
+> 当前政策（T-105）：公开注册始终创建 active learner；Released 课件可浏览但不授予 Classroom membership。正式课堂仅由 Admin DM 分配 membership。Studio、Candidate 预览与 Test 身份模拟权限不向公开注册用户开放。旧 `/api/classroom/*` 已退休并返回 410；当前课堂 API 仅为 `/api/platform/classrooms`。
+
 # Mini Silicon Valley 架构说明
 
 本文件描述当前 T-106／T-107 架构。详细领域决策见 [COURSE_PLATFORM_ARCHITECTURE.md](COURSE_PLATFORM_ARCHITECTURE.md)。历史 Alpha、固定九弹窗和旧 Course Registry 文档仅供追溯，不再是运行规范。
@@ -44,6 +46,7 @@ CourseDefinition（D1 course_versions）
 - 平台 `admin`／`mentor` 可进入 Studio、预创建账号和创建课堂。
 - 导师创建课堂时必须把自己列为初始 Admin DM；平台 admin 可指定任一导师／管理员。
 - Classroom 访问必须来自导师 Membership、学员 Membership 或该课堂 Admin DM 权限；平台 admin 不自动穿透所有课堂。
+- Studio 的跨课堂索引按上述关系过滤并只返回脱敏摘要；平台 admin 的全局摘要能力不等于课堂详情权限。
 - 学员仅收到自己的任务、自己持久化手牌、自己的提交和账户值；不会收到中控验收门或导师私密脚本。
 - `/screen` 使用专门的 allow-list API，不从浏览器端隐藏私密字段。
 - `/course/` 与 `/course/{slug}/` 对真实管理员、导师和学员开放；inline HTML 在无 `allow-same-origin` 的 sandbox iframe 中播放，静态 bundle 统一经 cookie-only 网关保护。

@@ -7,7 +7,8 @@ import { BrandHomeLink } from "../components/BrandHomeLink";
 import { AccountMenu, type AccountMenuUser } from "../components/AccountMenu";
 import type {
   AcceptanceClassroomSummary,
-  UiAcceptanceReceipt,
+  StudioUiAcceptanceSummary,
+  StudioViewAcceptanceSummary,
   ViewAcceptanceReceipt,
 } from "../lib/course-acceptance";
 import { courseDataIdForRef, type CoursePackage, type CoursePackageRef } from "../lib/course-package";
@@ -29,8 +30,8 @@ type Bootstrap = {
   user: { userId: string; displayName: string; role: string };
   versions: Version[];
   courseware: CoursewareSummary[];
-  viewReceipts: ViewAcceptanceReceipt[];
-  uiReceipts: UiAcceptanceReceipt[];
+  viewReceipts: StudioViewAcceptanceSummary[];
+  uiReceipts: StudioUiAcceptanceSummary[];
   acceptanceClassrooms: AcceptanceClassroomSummary[];
   acceptanceRuntime: {
     projectorVersion: string;

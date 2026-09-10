@@ -207,3 +207,44 @@ test("retired POST endpoints drain request bodies before returning tombstones", 
     assert.match(source, /await request\.text\(\)/, `${relative} must drain the request stream before responding`);
   }
 });
+
+test("T-105 scopes Studio bootstrap data and permanently tombstones the legacy classroom API", () => {
+  const bootstrap = readFileSync(new URL("app/api/studio/bootstrap/route.ts", root), "utf8");
+  const acceptance = readFileSync(new URL("app/lib/course-acceptance.ts", root), "utf8");
+  const accounts = readFileSync(new URL("app/api/studio/accounts/route.ts", root), "utf8");
+  const registration = readFileSync(new URL("app/api/auth/register/route.ts", root), "utf8");
+  const registerUi = readFileSync(new URL("app/auth/AuthForms.tsx", root), "utf8");
+  const legacyShared = readFileSync(new URL("app/api/classroom/_shared.ts", root), "utf8");
+
+  assert.match(bootstrap, /listUiAcceptanceReceipts\(db, acceptanceViewer\)/);
+  assert.match(bootstrap, /listAcceptanceClassrooms\(db, acceptanceViewer\)/);
+  assert.match(bootstrap, /studioViewAcceptanceSummary/);
+  assert.match(bootstrap, /studioUiAcceptanceSummary/);
+  assert.match(acceptance, /scope_membership\.profile_id = \?/);
+  assert.match(acceptance, /scope_grant\.profile_id = \?/);
+  for (const forbidden of ["reviewerProfileId", "mentorMemberships", "learnerMemberships", "adminDmProfileIds", "dealSeed", "clientMatrix", "auditSummary"]) {
+    const summaryArea = acceptance.slice(acceptance.indexOf("export function studioViewAcceptanceSummary"), acceptance.indexOf("function assertStudioAcceptanceViewer"));
+    assert.doesNotMatch(summaryArea, new RegExp(`${forbidden}:\\s*receipt\\.`), `${forbidden} must not be projected into bootstrap`);
+  }
+  assert.match(accounts, /listStudioAssignableAccounts/);
+  assert.match(accounts, /searchParams\.get\("q"\)/);
+  assert.match(registration, /policyVersion:\s*"open-learner-v1"/);
+  assert.match(registration, /classroomMembership:\s*"required"/);
+  assert.match(registerUi, /不会自动加入任何课堂/);
+  assert.match(legacyShared, /LEGACY_CLASSROOM_API_RETIRED/);
+  assert.match(legacyShared, /drainRequestBody/);
+
+  for (const relative of [
+    "app/api/classroom/bootstrap/route.ts",
+    "app/api/classroom/join/route.ts",
+    "app/api/classroom/rooms/route.ts",
+    "app/api/classroom/rooms/[roomId]/route.ts",
+    "app/api/classroom/rooms/[roomId]/actions/route.ts",
+    "app/api/classroom/rooms/[roomId]/export/route.ts",
+    "app/api/classroom/rooms/[roomId]/learners/route.ts",
+  ]) {
+    const source = readFileSync(new URL(relative, root), "utf8");
+    assert.match(source, /retiredClassroomApi\(request\)/, `${relative} must use the application tombstone`);
+    assert.doesNotMatch(source, /classroom-store|withClassroomApi|createClassroomRoom|applyClassroomAction/, `${relative} must not reach the old writer`);
+  }
+});

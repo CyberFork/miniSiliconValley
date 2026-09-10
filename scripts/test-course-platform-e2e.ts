@@ -160,7 +160,7 @@ try {
   }
   assert.ok(editorHtml.includes("/studio/editor-assets/editor-loader.js"));
   assert.doesNotMatch(editorHtml, /\/studio\/editor-assets\/(?:ui-theme|card-view|course-preview|editor)\.js/);
-  assert.ok(editorHtml.includes("账户中心") && editorHtml.includes("切换账号") && editorHtml.includes("退出登录"));
+  assert.ok(editorHtml.includes("账户中心") && editorHtml.includes("添加账号") && editorHtml.includes("退出当前账号"));
   assert.equal((await get("/studio/editor-assets/editor-loader.js", adminCookie)).status, 200);
   for (const [path, title] of [
     ["/studio/", "课程生产工作台"],
@@ -173,7 +173,7 @@ try {
     const html = await response.text();
     assert.ok(html.includes(title), `${path} missing route title ${title}`);
     assert.ok(html.includes("href=\"/studio/editor/\"") && html.includes("href=\"/studio/preview/\"") && html.includes("href=\"/studio/releases/\""), `${path} must render real navigation hrefs`);
-    assert.ok(html.includes("账户中心") && html.includes("切换账号") && html.includes("退出登录"), `${path} missing unified account menu`);
+    assert.ok(html.includes("账户中心") && html.includes("添加账号") && html.includes("退出当前账号"), `${path} missing unified account menu`);
   }
 
   const google = initial.versions.find((item) => item.ref.courseId === "google-1995-2004" && item.released);
@@ -212,7 +212,7 @@ try {
   const coursewarePage = await get(`/course/${customOperationsCourseware.slug}/?revision=0`, adminCookie);
   assert.equal(coursewarePage.status, 200);
   const coursewareHtml = await coursewarePage.text();
-  assert.ok(coursewareHtml.includes("账户中心") && coursewareHtml.includes("切换账号") && coursewareHtml.includes("退出登录"), "protected Courseware must keep the unified account menu");
+  assert.ok(coursewareHtml.includes("账户中心") && coursewareHtml.includes("添加账号") && coursewareHtml.includes("退出当前账号"), "protected Courseware must keep the unified account menu");
   const testedCoursewareRefs = coursewareRefs(initial.courseware, "test").map((ref) => ref.mentorRole === "O" ? {
     mentorRole: customOperationsCourseware.mentorRole,
     packageId: customOperationsCourseware.packageId,

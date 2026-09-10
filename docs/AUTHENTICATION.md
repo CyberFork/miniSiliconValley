@@ -1,22 +1,25 @@
+> 当前政策（T-105）：公开注册保持开放，始终创建 active learner；可浏览 Released 课件但不自动获得 Classroom membership。正式课堂必须由 Admin DM 分配 membership。无 Studio、Candidate 预览或 Test 身份模拟权限。
+
 # Mini Silicon Valley 身份、账号切换与课堂委派
 
-## 正式课堂账号流
+## 账号准入与正式课堂流
 
 ```text
-导师／管理员预创建账号
-  → 明文初始密码只显示一次
-  → 用户登录
-  → 强制首次改密
-  → 依据 Membership／Admin DM 进入课堂
+路径 A：学员自行注册 → active learner → 浏览 World／Released 课件
+路径 B：导师预创建账号 → 单次初始密码 → 学员首次改密
+
+任一路径
+  → Admin DM 在 Classroom Factory／成员管理中明确分配 Membership
+  → 学员进入被分配的具体 Classroom
 ```
 
-正式 Classroom 不依赖注册邀请码、验证码登录、队伍申请或公开 TEAM ID 入队。`/auth/register` 只保留独立体验账号用途，公开注册只能产生 learner，不能获得任何 Classroom Membership。
+正式 Classroom 不依赖注册邀请码、验证码登录、队伍申请或公开 TEAM ID 入队。`/auth/register` 始终只创建 active learner；它不是入队动作，也不会附带任何 Classroom Membership。自行注册者把完整用户名或昵称告诉 Admin DM 后，导师可通过 exact 查找把该账号加入待配置列表，再显式分配席位。
 
 ## 角色
 
 - `admin`：平台管理角色；可进入 Studio、预创建账号和创建课堂，但不会自动穿透所有 Classroom。
 - `mentor`：导师角色；可进入 Studio、预创建账号、创建课堂，并在不同 Classroom 承担 P/D/M/O Membership。
-- `learner`：只进入已有 Membership 的 Classroom。
+- `learner`：无需 Membership 即可浏览 World 与 Released 课件；只进入自己已有 Membership 的 Classroom。
 - `Primary Admin DM`：Classroom 创建时确定的根管理权限；可与 P/D/M/O 导师重合，也可以是平台管理员；只有它能委派。
 - `Delegated Admin DM`：Primary 授予某位有效导师的课堂管理权限；可管理课堂，但不能继续授权或撤销他人。
 
