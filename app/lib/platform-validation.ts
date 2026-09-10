@@ -79,6 +79,22 @@ export function parseRunExpectation(raw: Record<string, unknown>): { expectedRun
   };
 }
 
+export function parseArchiveClassroomRequest(value: unknown): {
+  expectedRunId: string;
+  expectedResetGeneration: number;
+  expectedScriptVersion: number;
+  idempotencyKey: string;
+  reason?: string;
+} {
+  const raw = objectValue(value);
+  return {
+    ...parseRunExpectation(raw),
+    expectedScriptVersion: integerValue(raw.expectedScriptVersion, "剧本版本", 1, 1_000_000),
+    idempotencyKey: stringValue(raw.idempotencyKey, "幂等键", 128),
+    ...(raw.reason == null ? {} : { reason: stringValue(raw.reason, "归档备注", 500) }),
+  };
+}
+
 export function parseScriptAction(value: unknown): {
   expectedVersion: number;
   expectedRunId: string;

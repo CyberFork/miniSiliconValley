@@ -328,8 +328,14 @@ def main() -> None:
                     unsafe_page.goto(f"{base}/auth/login/?returnTo=https%3A%2F%2Fevil.example%2Fescape", wait_until="networkidle")
                     login(unsafe_page, username, password, "/classroom/")
                     expect(unsafe_page.get_by_role("heading", name="课堂中心")).to_be_visible()
+                    create_test = unsafe_page.get_by_role("link", name="＋ 新建测试课堂")
+                    expect(create_test).to_have_attribute("href", "#factory")
+                    create_test.click()
+                    expect(unsafe_page.locator("#factory")).to_be_visible()
+                    assert urlparse(unsafe_page.url).fragment == "factory"
                     unsafe.close()
                     result["auth"]["foreignReturnToRejected"] = True
+                    result["studio"]["testClassroomCreateOrdinaryClick"] = True
 
                     page.goto(f"{base}/studio/releases/", wait_until="networkidle")
                     page.screenshot(path=str(QA / "releases-exact-navigation.png"), full_page=True)

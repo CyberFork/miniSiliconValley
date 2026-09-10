@@ -436,10 +436,13 @@ export async function createManagedUsers(
   assertAuth(inputs.length >= 1 && inputs.length <= 24, "ACCOUNT_BATCH_SIZE_INVALID", "一次可以创建 1—24 个账号。", 400);
   if (roomId) {
     const permission = await db.prepare(
-      `SELECT id FROM classroom_admin_dm_grants
-       WHERE room_id = ? AND profile_id = ? AND revoked_at IS NULL`,
-    ).bind(roomId, actor.userId).first<{ id: string }>();
+      `SELECT g.id, ca.archived_at
+       FROM classroom_admin_dm_grants g
+       LEFT JOIN classroom_archives ca ON ca.room_id = g.room_id
+       WHERE g.room_id = ? AND g.profile_id = ? AND g.revoked_at IS NULL`,
+    ).bind(roomId, actor.userId).first<{ id: string; archived_at: string | null }>();
     assertAuth(permission, "CLASSROOM_ADMIN_REQUIRED", "此操作需要本课堂 Admin DM 权限。", 403);
+    assertAuth(!permission.archived_at, "CLASSROOM_ARCHIVED", "这场 Test Classroom 已归档并永久只读，不能再创建课堂账号。", 409);
   } else {
     assertAuth(actor.role === "admin" || actor.role === "mentor", "MENTOR_REQUIRED", "只有导师或平台管理员可以预创建课堂账号。", 403);
   }
@@ -519,7 +522,7 @@ export async function manageTestClassroomIdentity(
   const targetProfileId = input.targetProfileId.trim();
   assertAuth(classroomId && classroomId.length <= 128 && targetProfileId && targetProfileId.length <= 128, "TEST_IDENTITY_INPUT_INVALID", "测试课堂或目标账号无效。", 400);
   const target = await db.prepare(
-    `SELECT u.id, u.username, u.display_name, u.role, u.status, ci.environment,
+    `SELECT u.id, u.username, u.display_name, u.role, u.status, ci.environment, ca.archived_at,
             target_grant.delegation_mode AS admin_dm_mode,
             CASE WHEN actor_grant.id IS NULL THEN 0 ELSE 1 END AS actor_is_admin_dm,
             CASE WHEN m.id IS NOT NULL OR target_grant.id IS NOT NULL THEN 1 ELSE 0 END AS target_has_scope
@@ -531,6 +534,7 @@ export async function manageTestClassroomIdentity(
        ON target_grant.room_id = ci.room_id AND target_grant.profile_id = u.id AND target_grant.revoked_at IS NULL
      LEFT JOIN classroom_admin_dm_grants actor_grant
        ON actor_grant.room_id = ci.room_id AND actor_grant.profile_id = ? AND actor_grant.revoked_at IS NULL
+     LEFT JOIN classroom_archives ca ON ca.room_id = ci.room_id
      WHERE ci.room_id = ?`,
   ).bind(targetProfileId, actor.userId, classroomId).first<{
     id: string;
@@ -539,6 +543,7 @@ export async function manageTestClassroomIdentity(
     role: AuthRole;
     status: "active" | "disabled";
     environment: "test" | "production";
+    archived_at: string | null;
     admin_dm_mode: "primary" | "delegated" | null;
     actor_is_admin_dm: number;
     target_has_scope: number;
@@ -546,6 +551,7 @@ export async function manageTestClassroomIdentity(
   assertAuth(target, "TEST_IDENTITY_NOT_FOUND", "没有找到这个课堂测试账号。", 404);
   assertAuth(target.environment === "test", "TEST_CLASSROOM_REQUIRED", "账号恢复只能用于 Test Classroom。", 403);
   assertAuth(target.actor_is_admin_dm, "CLASSROOM_ADMIN_REQUIRED", "平台管理员必须显式拥有本课堂 Admin DM 权限。", 403);
+  assertAuth(!target.archived_at, "CLASSROOM_ARCHIVED", "这场 Test Classroom 已归档并永久只读，不能再管理测试账号。", 409);
   assertAuth(target.role !== "admin" && target.target_has_scope, "TEST_IDENTITY_TARGET_FORBIDDEN", "目标必须是本 Test Classroom 的非管理员成员。", 403);
   if (input.action === "disable") {
     assertAuth(target.admin_dm_mode !== "primary", "PRIMARY_ADMIN_DM_DISABLE_FORBIDDEN", "不能停用本课堂 Primary Admin DM。", 403);

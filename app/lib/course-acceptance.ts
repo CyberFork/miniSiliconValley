@@ -87,6 +87,7 @@ export type AcceptanceClassroomSummary = {
   viewReceiptId: string;
   uiReceiptId: string | null;
   updatedAt: string;
+  archivedAt: string | null;
 };
 
 type ViewReceiptRow = {
@@ -139,6 +140,7 @@ type UiReceiptRow = {
   accepted_by_profile_id: string;
   current_reset_generation?: number;
   classroom_lifecycle?: string;
+  classroom_archived_at?: string | null;
 };
 
 export function acceptanceLearnerCounts(course: ReturnType<typeof validateCoursePackage>): number[] {
@@ -387,6 +389,7 @@ export async function recordUiAcceptanceReceipt(
        FROM classroom_instances ci
        JOIN classroom_acceptance_bindings binding ON binding.room_id = ci.room_id
        WHERE ci.room_id = ? AND ci.environment = 'test' AND ci.lifecycle = 'completed'
+         AND NOT EXISTS (SELECT 1 FROM classroom_archives ca WHERE ca.room_id = ci.room_id)
          AND ci.reset_generation = ? AND ci.state_machine_version = ? AND binding.view_receipt_id = ?`,
     ).bind(
       proposedId,
@@ -450,6 +453,7 @@ export async function recordUiAcceptanceReceipt(
          AND EXISTS (
            SELECT 1 FROM classroom_instances ci
            WHERE ci.room_id = ? AND ci.environment = 'test' AND ci.lifecycle = 'completed'
+             AND NOT EXISTS (SELECT 1 FROM classroom_archives ca WHERE ca.room_id = ci.room_id)
              AND ci.reset_generation = ? AND ci.state_machine_version = ?
          )`,
     ).bind(
@@ -469,12 +473,14 @@ export async function recordUiAcceptanceReceipt(
   ]);
   const row = await db.prepare(
     `SELECT r.*, ci.reset_generation AS current_reset_generation, ci.lifecycle AS classroom_lifecycle,
+            ca.archived_at AS classroom_archived_at,
             ai.projector_contract_version AS identity_projector_contract_version,
             ai.runtime_contract_version AS identity_runtime_contract_version,
             ai.source_commit AS identity_source_commit,
             ai.app_build_id AS identity_app_build_id
      FROM course_ui_acceptance_receipts r
      JOIN classroom_instances ci ON ci.room_id = r.room_id
+     LEFT JOIN classroom_archives ca ON ca.room_id = ci.room_id
      LEFT JOIN course_acceptance_build_identities ai ON ai.receipt_id = r.id AND ai.receipt_kind = 'ui'
      WHERE r.room_id = ? AND r.reset_generation = ? AND r.course_id = ? AND r.revision = ? AND r.digest = ?
        AND r.courseware_bundle_digest = ? AND r.app_build_id = ?`,
@@ -490,12 +496,14 @@ export async function recordUiAcceptanceReceipt(
 export async function listUiAcceptanceReceipts(db: ClassroomD1): Promise<UiAcceptanceReceipt[]> {
   const rows = await db.prepare(
     `SELECT r.*, ci.reset_generation AS current_reset_generation, ci.lifecycle AS classroom_lifecycle,
+            ca.archived_at AS classroom_archived_at,
             ai.projector_contract_version AS identity_projector_contract_version,
             ai.runtime_contract_version AS identity_runtime_contract_version,
             ai.source_commit AS identity_source_commit,
             ai.app_build_id AS identity_app_build_id
      FROM course_ui_acceptance_receipts r
      JOIN classroom_instances ci ON ci.room_id = r.room_id
+     LEFT JOIN classroom_archives ca ON ca.room_id = ci.room_id
      LEFT JOIN course_acceptance_build_identities ai ON ai.receipt_id = r.id AND ai.receipt_kind = 'ui'
      ORDER BY r.created_at DESC LIMIT 200`,
   ).all<UiReceiptRow>();
@@ -520,12 +528,14 @@ export async function requireValidUiAcceptanceReceipt(
 ): Promise<UiAcceptanceReceipt> {
   const row = await db.prepare(
     `SELECT r.*, ci.reset_generation AS current_reset_generation, ci.lifecycle AS classroom_lifecycle,
+            ca.archived_at AS classroom_archived_at,
             ai.projector_contract_version AS identity_projector_contract_version,
             ai.runtime_contract_version AS identity_runtime_contract_version,
             ai.source_commit AS identity_source_commit,
             ai.app_build_id AS identity_app_build_id
      FROM course_ui_acceptance_receipts r
      JOIN classroom_instances ci ON ci.room_id = r.room_id
+     LEFT JOIN classroom_archives ca ON ca.room_id = ci.room_id
      LEFT JOIN course_acceptance_build_identities ai ON ai.receipt_id = r.id AND ai.receipt_kind = 'ui'
      WHERE r.id = ?`,
   ).bind(receiptId).first<UiReceiptRow>();
@@ -558,15 +568,17 @@ export async function requireValidUiAcceptanceReceipt(
 export async function listAcceptanceClassrooms(db: ClassroomD1): Promise<AcceptanceClassroomSummary[]> {
   const rows = await db.prepare(
     `SELECT r.id, r.title, ci.environment, ci.lifecycle, ci.course_id, ci.course_revision, ci.course_digest,
-            ci.learner_count, ci.updated_at, b.view_receipt_id, b.ui_receipt_id
+            ci.learner_count, ci.updated_at, b.view_receipt_id, b.ui_receipt_id,
+            ca.archived_at
      FROM classroom_instances ci
      JOIN rooms r ON r.id = ci.room_id
      JOIN classroom_acceptance_bindings b ON b.room_id = ci.room_id
+     LEFT JOIN classroom_archives ca ON ca.room_id = ci.room_id
      ORDER BY ci.updated_at DESC LIMIT 300`,
   ).all<{
     id: string; title: string; environment: "test" | "production"; lifecycle: string;
     course_id: string; course_revision: number; course_digest: string; learner_count: number;
-    updated_at: string; view_receipt_id: string; ui_receipt_id: string | null;
+    updated_at: string; view_receipt_id: string; ui_receipt_id: string | null; archived_at: string | null;
   }>();
   return (rows.results ?? []).map((row) => ({
     roomId: row.id,
@@ -578,6 +590,7 @@ export async function listAcceptanceClassrooms(db: ClassroomD1): Promise<Accepta
     viewReceiptId: row.view_receipt_id,
     uiReceiptId: row.ui_receipt_id,
     updatedAt: row.updated_at,
+    archivedAt: row.archived_at,
   }));
 }
 
@@ -611,6 +624,7 @@ function mapUiReceipt(row: UiReceiptRow, viewValid: boolean): UiAcceptanceReceip
   if (row.status !== "accepted") invalidReasons.push("回执状态不是 accepted");
   if (row.current_reset_generation !== row.reset_generation) invalidReasons.push("Test Classroom 已在签发后重置");
   if (row.classroom_lifecycle !== "completed") invalidReasons.push("Test Classroom 当前不是 completed");
+  if (row.classroom_archived_at) invalidReasons.push("来源 Test Classroom 已归档；回执仅保留为历史证据");
   if (row.state_machine_version !== CLASSROOM_STATE_MACHINE_VERSION) invalidReasons.push("课堂状态机版本已变化");
   if (!row.identity_runtime_contract_version) invalidReasons.push("回执缺少可追溯构建身份");
   if (row.identity_runtime_contract_version !== CLASSROOM_RUNTIME_CONTRACT_VERSION) invalidReasons.push("课堂运行时兼容契约已变化");

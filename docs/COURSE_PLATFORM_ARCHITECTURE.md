@@ -1,7 +1,7 @@
 # Mini Silicon Valley 课程平台架构
 
-> 状态：T-090 本地实现后的现行架构
-> 日期：2026-09-09
+> 状态：T-111 本地实现后的现行架构
+> 日期：2026-09-11
 > 基础架构：T-085 统一课程工厂
 > 当前闭环：两次验收、一次发布
 
@@ -130,6 +130,8 @@ T-095 起，新 Candidate 还包含 `fieldModel`：它只为正文中已有值�
 
 TEST reset 不删除历史回执，但会增加 reset generation、解除当前课堂绑定并使旧回执失效。回执不能移植到另一间课堂或另一组课件。
 
+TEST archive 也不删除历史回执。它保留原回执供审计查询，但立即使其失去后续发布与 Production 准入资格，并明确标记“来源 Test Classroom 已归档”。
+
 ### CoursewarePackage
 
 - 每个课件版本不可变，并拥有 canonical bundle digest。
@@ -143,6 +145,17 @@ TEST reset 不删除历史回执，但会增加 reset generation、解除当前�
 - 拥有独立 ControllerState、Membership、手牌、提交、RP、钱包、团队资金和审计。
 - `classroom_acceptance_bindings` 保存创建时使用的 View 回执与当前 UI 回执。
 - TEST 与 PRODUCTION 的数据和 ControllerState 以 classroomId 隔离。
+- 同一 exact 版本可以创建多场独立 TEST；不同 revision 也可并存。保存新 Candidate 或 reset 旧课堂都不会替换既有 exact 引用。
+
+### Test Classroom Archive
+
+归档不是新的 run lifecycle，而是一张一对一、不可变的 `classroom_archives` 保留标记。`classroom_instances.lifecycle` 保留归档前的真实值；`rooms.status=archived` 只为旧运行时提供兼容镜像。
+
+- 只有该课堂真实登录的 Admin DM 可以归档；Test 身份模拟、普通成员和 Production 失败关闭。
+- 请求必须匹配 exact `runId + resetGeneration + scriptVersion`，并在一个 D1 batch 中写入标记、状态镜像、更新时间和审计事件。
+- 归档后所有课堂级写入均由服务端拒绝；剧本、成员、作品、经济记录、课件和审计仍可只读回看。
+- 系统不提供原地恢复或永久删除。继续测试时，从历史卡片携带相同 `courseId/revision/digest` 创建新 TEST。
+- 已有 UI 回执保留为历史证据，但不再可用于新的发布或 Production 创建。
 
 ### Account、Membership 与 Admin DM
 
@@ -198,6 +211,8 @@ T-094 起，所有 exact 课程快照统一显示 `courseDataId = {courseId}@r{r
 
 `/classroom/#factory` 的选择界面不是准入规则本身。它展示所有当前 Candidate／Released，并把课程、View、UI、P／D／M／O 课件、4 + N 成员和 Admin DM 转换成持久可见的就绪清单；未通过的版本仍可选择和进入 exact 修复路径，但创建按钮保持失败关闭。课堂列表、课程/回执和账号分别读取、分别重试，刷新失败保留上一次成功数据与合法表单值。显式 exact 深链失效时绝不回退到另一版本。
 
+TEST 区标题旁永久提供普通链接“新建测试课堂”。课堂卡公开完整 `classroomId / courseId@revision / digest / learnerCount / lifecycle / updatedAt`，避免多个版本或同版本多次测试相互混淆。已归档 Test 从活跃区移入独立历史区；Studio 的当前验收计数不把它当成活跃 Test。
+
 ## 6. 16 项真实 UI 验收
 
 Admin DM 只有在 TEST 解锁全部剧本页并显式结束该 Run 后，才能逐项确认并签发 UI 回执。唯一清单由 `app/lib/course-acceptance-contract.ts` 维护：
@@ -229,9 +244,11 @@ Admin DM 只有在 TEST 解锁全部剧本页并显式结束该 Run 后，才能
 - View 回执缺失、过期、投影器不兼容或容量校验失败。
 - TEST 未完成或 16 项检查不全。
 - UI 回执来自另一课堂、另一 reset generation 或另一套课件。
+- UI 回执来源 TEST 已归档；历史内容仍可查，但不能继续作为当前发布证据。
 - PRODUCTION 绑定 Candidate、未发布课件或未经验收的课件。
 - 课堂开始后试图替换课程或课件版本。
 - 并发 ControllerState 写入使用旧 version。
+- 归档请求使用旧 run/script version，或归档后继续尝试提交、审核、改成员、重置或签收。
 - 投屏载荷包含私密卡、导师讲稿、账号、钱包或未公开提交。
 
 失效不会篡改历史回执；系统通过当前 Candidate／Released pointer、projector/runtime compatibility contracts、reset generation 和 exact digest 动态判断有效性。`sourceCommit`／`appBuildId` 保留实际验收构建的来源记录，但兼容契约不变时，纯 CSS 构建不会单独使回执失效。

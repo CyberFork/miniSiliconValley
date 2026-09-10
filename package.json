@@ -38,6 +38,7 @@
     "test:studio-editor:browser": "npm run build:minisv-app && python3 tools/live-run/tests/verify_studio_editor_restoration_browser.py",
     "test:t087:browser": "npm run build:minisv-app && python3 tools/live-run/tests/verify_t087_browser.py",
     "test:t110:browser": "npm run build:minisv-app && python3 tools/live-run/tests/verify_t110_site_navigation_browser.py",
+    "test:t111:browser": "npm run build:minisv-app && python3 tools/live-run/tests/verify_t111_test_classroom_lifecycle_browser.py",
     "test:t108:browser": "npm run build:minisv-app && python3 tools/live-run/tests/verify_t108_classroom_factory_browser.py",
     "test:t086:browser": "npm run build:minisv-app && python3 tools/live-run/tests/verify_t086_script_runtime_browser.py",
     "test:t091:browser": "npm run build:minisv-app && python3 tools/live-run/tests/verify_t091_product_mentor_browser.py",

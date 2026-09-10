@@ -1036,6 +1036,36 @@ export const classroomFinishMutations = sqliteTable(
   ],
 );
 
+/**
+ * A Test Classroom archive is a one-way, immutable retention marker.  It is
+ * deliberately separate from classroomInstances.lifecycle so the last real
+ * run state remains auditable.  We do not offer in-place restore or hard
+ * delete: create another Test instance from the same exact release instead.
+ */
+export const classroomArchives = sqliteTable(
+  "classroom_archives",
+  {
+    id: text("id").primaryKey(),
+    roomId: text("room_id").notNull().references(() => rooms.id, { onDelete: "restrict" }),
+    previousLifecycle: text("previous_lifecycle").notNull(),
+    resetGeneration: integer("reset_generation").notNull(),
+    scriptVersion: integer("script_version").notNull(),
+    archivedByProfileId: text("archived_by_profile_id").notNull().references(() => profiles.id, { onDelete: "restrict" }),
+    idempotencyKey: text("idempotency_key").notNull(),
+    reason: text("reason").notNull().default(""),
+    archivedAt: text("archived_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("uidx_classroom_archive_room").on(table.roomId),
+    uniqueIndex("uidx_classroom_archive_idempotency").on(table.roomId, table.archivedByProfileId, table.idempotencyKey),
+    index("idx_classroom_archives_actor_time").on(table.archivedByProfileId, table.archivedAt),
+    check("chk_classroom_archive_lifecycle", sql`${table.previousLifecycle} in ('draft', 'ready', 'running', 'completed', 'reset')`),
+    check("chk_classroom_archive_generation", sql`${table.resetGeneration} >= 0`),
+    check("chk_classroom_archive_script_version", sql`${table.scriptVersion} >= 1`),
+    check("chk_classroom_archive_reason", sql`length(${table.reason}) <= 500`),
+  ],
+);
+
 export const classroomWalletBalances = sqliteTable(
   "classroom_wallet_balances",
   {

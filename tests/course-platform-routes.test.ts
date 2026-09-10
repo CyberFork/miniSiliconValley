@@ -20,6 +20,7 @@ const required = [
   "app/classroom/[classroomId]/members/page.tsx",
   "app/api/platform/classrooms/[classroomId]/screen/route.ts",
   "app/api/platform/classrooms/[classroomId]/finish/route.ts",
+  "app/api/platform/classrooms/[classroomId]/archive/route.ts",
   "app/api/studio/view-acceptance/route.ts",
   "app/api/platform/classrooms/[classroomId]/receipt/route.ts",
 ];
@@ -104,6 +105,25 @@ test("T-086 release and factory APIs enforce two exact acceptance receipts", () 
   assert.match(factory, /viewAcceptanceReceiptId/);
   assert.match(factory, /uiAcceptanceReceiptId/);
   assert.match(store, /coursewareRefs: trustedCourseware/);
+});
+
+test("T-111 exposes exact Test Classroom creation and one-way archive management", () => {
+  const hub = readFileSync(new URL("app/classroom/ClassroomHub.tsx", root), "utf8");
+  const runtime = readFileSync(new URL("app/classroom/ClassroomRuntime.tsx", root), "utf8");
+  const route = readFileSync(new URL("app/api/platform/classrooms/[classroomId]/archive/route.ts", root), "utf8");
+  const store = readFileSync(new URL("app/lib/classroom-platform-store.ts", root), "utf8");
+  for (const marker of ["classroomId", "digest", "updatedAt", "新建测试课堂", "已归档测试课堂", "确认归档为只读"]) {
+    assert.match(hub, new RegExp(marker), `missing lifecycle UI marker ${marker}`);
+  }
+  assert.match(hub, /expectedRunId/);
+  assert.match(hub, /expectedResetGeneration/);
+  assert.match(hub, /expectedScriptVersion/);
+  assert.match(route, /parseArchiveClassroomRequest/);
+  assert.match(route, /archiveTestClassroom/);
+  assert.match(store, /classroom\.test-archived/);
+  assert.match(store, /restorePolicy:\s*"create-new-test"/);
+  assert.match(runtime, /永久只读/);
+  assert.doesNotMatch(hub, /\b(?:prompt|confirm)\s*\(/);
 });
 
 test("T-099 Candidate API and editor require an exact base and expose a non-destructive conflict flow", () => {

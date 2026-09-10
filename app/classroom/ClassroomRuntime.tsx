@@ -167,6 +167,10 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
   }, [data, navigateTo, requestBack, requestForward, view]);
 
   const mutate = async <T,>(path: string, body: unknown, success: string, reload = true): Promise<T | null> => {
+    if (dataRef.current?.archive) {
+      setError("这场 Test Classroom 已归档并永久只读；请回到课堂中心，从同一 exact 版本新建课堂继续测试。");
+      return null;
+    }
     setBusy(true); setError("");
     try { const result = await api<T>(path, { method: "POST", body: JSON.stringify(body) }); setNotice(success); if (reload) await load(); return result; }
     catch (cause) {
@@ -209,18 +213,20 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
   if (error && !data) return <RuntimeError error={error} />;
   if (!data) return <main className={styles.runtime}><div className={styles.runtimeMain}>正在连接这一个 Classroom 实例…</div></main>;
   const screenMode = data.environment === "test" && selectedSurface === "screen";
+  const readOnly = Boolean(data.archive);
   const roleProjectionReady = data.environment !== "test" || selectedSurface === "control" || selectedSurface === "screen"
     || data.viewer.viewProfileId === selectedSurface;
   return <main className={styles.runtime}>
     <RuntimeTop data={data} classroomId={classroomId} user={user} selectedSurface={String(selectedSurface)} onSwitch={switchSurface} />
     <div className={screenMode ? styles.screenShell : styles.runtimeMain}>
       <RuntimeSync state={syncState} lastSyncedAt={lastSyncedAt} onRetry={() => void load()} />
+      {data.archive && <div className={styles.archiveRuntimeBanner} role="status"><div><b>只读归档 · {new Date(data.archive.archivedAt).toLocaleString("zh-CN")}</b><span>保留 {data.archive.previousLifecycle} 运行、作品、资金与审计证据；不能重置、提交、改成员或签发新回执。</span></div><Link href={factoryHrefForArchived(data)}>以此 exact 版本新建 Test →</Link></div>}
       {error && <div className={styles.error} role="alert">{error}</div>}
       {notice && <div className={styles.notice} role="status">{notice}</div>}
       {view !== "members" && <PageNavigator data={data} busy={busy} onBack={requestBack} onForward={requestForward} onNavigate={navigateTo} />}
       {view !== "members" && data.environment === "test" && <RuntimeDiagnostics data={data} />}
       {view === "members" ? <MembersView data={data} /> : !roleProjectionReady ? <section className={styles.card} aria-live="polite">正在切换真实角色视图…</section> : screenMode ? <SharedScreen data={toSharedScreen(data)} />
-        : selectedSurface === "control" ? <ControlView data={data} busy={busy}
+        : selectedSurface === "control" ? <ControlView data={data} busy={busy || readOnly}
           requestUnlock={() => data.scriptNavigation.nextLocked && setUnlockTarget(data.scriptNavigation.nextLocked)}
           requestFinish={() => setFinishOpen(true)}
           reset={async () => {
@@ -234,7 +240,7 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
           receipt={(checks) => mutate(`/api/platform/classrooms/${classroomId}/receipt`, { checks, clientMatrix: currentClientMatrix() }, "UiAcceptanceReceipt 已生成；返回 Course Studio 即可发布。")}
         /> : <SeatView key={`${data.runtimeIdentity.runId}:${data.viewer.viewProfileId}:${data.page.id}`}
           data={data}
-          busy={busy}
+          busy={busy || readOnly}
           submit={(input) => mutate(`/api/platform/classrooms/${classroomId}/submissions`, {
             blockId: data.page.id,
             ...input,
@@ -707,7 +713,7 @@ function MembersView({ data }: { data: ClassroomInstanceDetail }) {
     <section className={styles.membersList}><h2>{data.learners.length}/{data.team.seatLimit} 学员 Membership</h2><ul>{data.learners.map((item) => <li key={item.profileId}><span><b>席位 {item.seat} · {item.displayName}</b><br /><code>{item.profileId}</code></span></li>)}</ul></section>
     <section className={styles.membersList}><h2>Admin DM 权限</h2><p>Primary 可以委派；Delegated 可以管理课堂，但不能继续授权。</p><ul>{data.admins.map((item) => <li key={item.profileId}><span><b>{item.displayName}</b><br /><code>{item.profileId}</code></span><span className={styles.state}>{item.mode === "primary" ? "PRIMARY · 可委派" : "DELEGATED · 不可转授"}</span></li>)}</ul></section>
     <section className={styles.membersList}><h2>锁定的版本</h2><ul><li><span><b>CourseRelease r{data.courseRef.revision}</b><br /><code>{data.courseRef.digest}</code></span></li>{data.courseware.map((item) => <li key={item.mentorRole}><span><b>{item.mentorRole} · {item.slug} · r{item.revision}</b><br /><code>{item.digest}</code></span></li>)}</ul></section>
-  </div><MemberActions data={data} />{data.environment === "test" && data.viewer.platformRole === "admin" && !data.viewer.impersonationId && <TestIdentityManager data={data} />}</>;
+  </div>{data.archive ? <section className={styles.archiveRuntimeBanner}><div><b>成员与账号管理已冻结</b><span>归档课堂只用于审计回看；要更换席位或账号，请创建新的 Test Classroom。</span></div></section> : <><MemberActions data={data} />{data.environment === "test" && data.viewer.platformRole === "admin" && !data.viewer.impersonationId && <TestIdentityManager data={data} />}</>}</>;
 }
 
 type Assignable = {
@@ -865,6 +871,17 @@ function toSharedScreen(data: ClassroomInstanceDetail): ClassroomSharedScreenDet
     script: data.script,
     scriptNavigation: { ...data.scriptNavigation, nextLocked: null, canUnlockNext: false },
   };
+}
+
+function factoryHrefForArchived(data: ClassroomInstanceDetail): string {
+  const query = new URLSearchParams({
+    course: data.courseRef.courseId,
+    revision: String(data.courseRef.revision),
+    digest: data.courseRef.digest,
+    environment: "test",
+    ...(data.acceptance.viewReceiptId ? { viewReceipt: data.acceptance.viewReceiptId } : {}),
+  });
+  return `/classroom/?${query.toString()}#factory`;
 }
 
 function RuntimeError({ error }: { error: string }) { return <main className={styles.runtime}><div className={styles.runtimeMain}><div className={styles.error} role="alert"><b>无法进入课堂</b><p>{error}</p></div><Link className={styles.coursewareLink} href="/classroom/">返回我的课堂</Link></div></main>; }

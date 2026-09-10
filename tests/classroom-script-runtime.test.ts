@@ -64,7 +64,7 @@ test("T-094 exposes one exact runtime identity and preserves projector card orde
 
 test("the Classroom Center uses native browser link semantics", () => {
   const hub = source("app/classroom/ClassroomHub.tsx");
-  assert.match(hub, /<a href=\{`\/classroom\/\$\{encodeURIComponent\(room\.id\)\}\/`\}>进入我的课堂/);
+  assert.match(hub, /<a href=\{`\/classroom\/\$\{encodeURIComponent\(room\.id\)\}\/`\}>\{archived \? "打开只读档案 →" : "进入我的课堂 →"\}<\/a>/);
   assert.doesNotMatch(hub, /onClick=.*进入我的课堂/);
 });
 

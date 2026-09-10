@@ -6,17 +6,28 @@ import test from "node:test";
 import type { ClassroomD1 } from "../db";
 import type { AuthenticatedClassroomUser } from "../app/lib/classroom-api";
 import { ClassroomError } from "../app/lib/classroom-errors";
-import { acceptanceLearnerCounts, createViewAcceptanceReceipt } from "../app/lib/course-acceptance";
+import {
+  UI_ACCEPTANCE_REQUIRED_CHECKS,
+  acceptanceLearnerCounts,
+  createViewAcceptanceReceipt,
+  listAcceptanceClassrooms,
+  listUiAcceptanceReceipts,
+  requireValidUiAcceptanceReceipt,
+} from "../app/lib/course-acceptance";
 import type { ClassroomFactoryRequest, ClassroomMentorRole } from "../app/lib/classroom-factory";
 import {
   applyScriptAction,
+  archiveTestClassroom,
+  acceptTestClassroom,
   classroomRunId,
   createClassroomInstance,
   finishClassroomRun,
   getClassroomInstance,
+  listClassroomInstances,
   resetTestClassroom,
   reviewClassroomSubmission,
   submitClassroomBlockWork,
+  updateClassroomMembership,
 } from "../app/lib/classroom-platform-store";
 import { ensureBundledCourseRegistry, loadExactCoursePackage, saveCourseCandidate } from "../app/lib/course-registry";
 import { ensureBundledCourseware, listCourseware } from "../app/lib/courseware-store";
@@ -103,7 +114,12 @@ function seedAccount(db: LocalDatabase, id: string, role: "admin" | "mentor" | "
   ).run(id, id, id, role, now, now, now);
 }
 
-async function fixture(mutateCourse?: (course: Record<string, unknown>) => void): Promise<{ db: LocalDatabase; roomId: string }> {
+async function fixture(mutateCourse?: (course: Record<string, unknown>) => void): Promise<{
+  db: LocalDatabase;
+  roomId: string;
+  request: ClassroomFactoryRequest;
+  sourceCourse: Record<string, unknown>;
+}> {
   const db = database();
   seedAccount(db, admin.userId, "admin");
   for (const id of Object.values(mentorIds)) seedAccount(db, id, "mentor");
@@ -147,14 +163,18 @@ async function fixture(mutateCourse?: (course: Record<string, unknown>) => void)
     learnerProfileIds: learnerIds,
   };
   const created = await createClassroomInstance(db, admin, request);
-  return { db, roomId: created.classroomId };
+  return { db, roomId: created.classroomId, request, sourceCourse };
 }
 
 async function expectCode(promise: Promise<unknown>, code: string): Promise<void> {
+  return expectClassroomError(promise, code, 409);
+}
+
+async function expectClassroomError(promise: Promise<unknown>, code: string, status: number): Promise<void> {
   await assert.rejects(promise, (error: unknown) => {
     assert.ok(error instanceof ClassroomError);
     assert.equal(error.code, code);
-    assert.equal(error.status, 409);
+    assert.equal(error.status, status);
     return true;
   });
 }
@@ -466,6 +486,169 @@ test("reset rolls back at every write node and invalidates old-run unlocks and s
     const detail = await getClassroomInstance(db, admin, roomId);
     assert.equal(detail.runtimeIdentity.runId, classroomRunId(roomId, 1));
     assert.equal(detail.script.unlockedThroughBlockId, "B01");
+  } finally { db.raw.close(); }
+});
+
+test("multiple Test Classrooms coexist across the same exact version and a later Candidate", async () => {
+  const { db, roomId, request, sourceCourse } = await fixture();
+  try {
+    const sameExact = await createClassroomInstance(db, admin, { ...request, title: "Same exact · second run" });
+    assert.notEqual(sameExact.classroomId, roomId);
+
+    const nextCourse = structuredClone(sourceCourse);
+    nextCourse.title = `${String(nextCourse.title)} · next candidate`;
+    const nextRef = await saveCourseCandidate(db, nextCourse, admin.userId, request.courseRef);
+    assert.equal(nextRef.revision, request.courseRef.revision + 1);
+    assert.notEqual(nextRef.digest, request.courseRef.digest);
+    const nextPackage = await loadExactCoursePackage(db, nextRef);
+    const nextViewReceipt = await createViewAcceptanceReceipt(db, {
+      courseRef: nextRef,
+      reviewedBlockIds: nextPackage.blocks.map((block) => block.id),
+      reviewedLearnerCounts: acceptanceLearnerCounts(nextPackage),
+    }, admin.userId);
+    const laterExact = await createClassroomInstance(db, admin, {
+      ...request,
+      title: "Later Candidate · independent run",
+      courseRef: nextRef,
+      viewAcceptanceReceiptId: nextViewReceipt.receiptId,
+    });
+
+    const rooms = await listClassroomInstances(db, admin);
+    const original = rooms.find((room) => room.id === roomId);
+    const duplicate = rooms.find((room) => room.id === sameExact.classroomId);
+    const later = rooms.find((room) => room.id === laterExact.classroomId);
+    assert.ok(original && duplicate && later);
+    assert.deepEqual(original.courseRef, duplicate.courseRef, "same exact version must remain reusable");
+    assert.equal(later.courseRef.revision, nextRef.revision);
+    assert.equal(later.courseRef.digest, nextRef.digest);
+    assert.equal(original.courseRef.revision, request.courseRef.revision, "a new Candidate must not hot-update an existing classroom");
+    assert.equal(original.courseRef.digest, request.courseRef.digest);
+    assert.equal(new Set([roomId, sameExact.classroomId, laterExact.classroomId]).size, 3);
+  } finally { db.raw.close(); }
+});
+
+test("Test Classroom archive is atomic, idempotent, immutable, isolated and read-only", async () => {
+  const { db, roomId, request } = await fixture();
+  try {
+    const unaffected = await createClassroomInstance(db, admin, { ...request, title: "Unaffected sibling" });
+    const run = { expectedRunId: classroomRunId(roomId, 0), expectedResetGeneration: 0 };
+    const input = {
+      ...run,
+      expectedScriptVersion: 1,
+      idempotencyKey: "archive-atomic-fixture-0001",
+      reason: "r-next 已替代本轮测试",
+    };
+    const learner: AuthenticatedClassroomUser = {
+      userId: learnerIds[0], displayName: "Learner", platformRole: "learner",
+    };
+    await expectClassroomError(archiveTestClassroom(db, learner, roomId, input), "ADMIN_DM_REQUIRED", 403);
+    await expectCode(archiveTestClassroom(db, admin, roomId, { ...input, expectedScriptVersion: 2 }), "SCRIPT_VERSION_CONFLICT");
+
+    const snapshot = () => ({ ...db.raw.prepare(
+      `SELECT r.status, ci.lifecycle, ci.updated_at,
+              (SELECT COUNT(*) FROM classroom_archives WHERE room_id = ?) AS archives,
+              (SELECT COUNT(*) FROM classroom_factory_events WHERE room_id = ? AND type = 'classroom.test-archived') AS events
+       FROM rooms r JOIN classroom_instances ci ON ci.room_id = r.id WHERE r.id = ?`,
+    ).get(roomId, roomId, roomId) }) as { status: string; lifecycle: string; updated_at: string; archives: number; events: number };
+    const before = snapshot();
+    for (let index = 0; index < 5; index += 1) {
+      db.failNextBatchAt = index;
+      await assert.rejects(archiveTestClassroom(db, admin, roomId, input), new RegExp(`INJECTED_BATCH_FAILURE:${index}/5`));
+      assert.deepEqual(snapshot(), before, `archive statement ${index} left partial retained state`);
+    }
+
+    const archived = await archiveTestClassroom(db, admin, roomId, input);
+    assert.equal(archived.archived, true);
+    assert.equal(archived.idempotent, false);
+    assert.equal(archived.restorePolicy, "create-new-test");
+    assert.deepEqual(await archiveTestClassroom(db, admin, roomId, input), { ...archived, idempotent: true });
+    await expectCode(
+      archiveTestClassroom(db, admin, roomId, { ...input, idempotencyKey: "archive-atomic-fixture-0002" }),
+      "CLASSROOM_ALREADY_ARCHIVED",
+    );
+
+    const after = snapshot();
+    assert.equal(after.status, "archived");
+    assert.equal(after.lifecycle, before.lifecycle, "archive must retain the last real run lifecycle");
+    assert.equal(after.archives, 1);
+    assert.equal(after.events, 1);
+    const rooms = await listClassroomInstances(db, admin);
+    assert.equal(rooms.find((room) => room.id === roomId)?.archive?.reason, input.reason);
+    assert.equal(rooms.find((room) => room.id === unaffected.classroomId)?.archive, null, "another Test Classroom must remain active");
+    const detail = await getClassroomInstance(db, admin, roomId);
+    assert.equal(detail.archive?.archivedAt, archived.archivedAt, "archived exact data remains readable");
+    const acceptance = await listAcceptanceClassrooms(db);
+    assert.equal(acceptance.find((room) => room.roomId === roomId)?.archivedAt, archived.archivedAt);
+
+    await expectCode(applyScriptAction(db, admin, roomId, {
+      ...run, expectedVersion: 1, action: { type: "unlock-next", nextBlockId: "B02" },
+    }), "CLASSROOM_ARCHIVED");
+    await expectCode(resetTestClassroom(db, admin, roomId, run), "CLASSROOM_ARCHIVED");
+    await expectCode(submitClassroomBlockWork(db, admin, roomId, {
+      ...run, blockId: "B01", expectedVersion: 0, idempotencyKey: "archived-submit-fixture",
+      kind: "reflection", text: "归档后不能写入。", viewAsProfileId: learnerIds[0],
+    }), "CLASSROOM_ARCHIVED");
+    await expectCode(updateClassroomMembership(db, admin, roomId, {
+      type: "replace-learner", seat: 1, profileId: learnerIds[0],
+    }), "CLASSROOM_ARCHIVED");
+    assert.throws(() => db.raw.prepare("UPDATE classroom_archives SET reason = 'rewrite' WHERE room_id = ?").run(roomId), /CLASSROOM_ARCHIVE_IMMUTABLE:update/);
+    assert.throws(() => db.raw.prepare("DELETE FROM classroom_archives WHERE room_id = ?").run(roomId), /CLASSROOM_ARCHIVE_IMMUTABLE:delete/);
+  } finally { db.raw.close(); }
+});
+
+test("Production Classroom cannot enter the Test archive lifecycle", async () => {
+  const { db, roomId } = await fixture();
+  try {
+    db.raw.prepare("UPDATE classroom_instances SET environment = 'production' WHERE room_id = ?").run(roomId);
+    await expectClassroomError(archiveTestClassroom(db, admin, roomId, {
+      expectedRunId: classroomRunId(roomId, 0),
+      expectedResetGeneration: 0,
+      expectedScriptVersion: 1,
+      idempotencyKey: "archive-production-forbidden-0001",
+    }), "PRODUCTION_ARCHIVE_FORBIDDEN", 403);
+    assert.equal(db.raw.prepare("SELECT COUNT(*) AS count FROM classroom_archives WHERE room_id = ?").get(roomId)?.count, 0);
+  } finally { db.raw.close(); }
+});
+
+test("archiving retains a UI receipt as historical evidence but invalidates future release use", async () => {
+  const { db, roomId, request } = await fixture();
+  try {
+    const run = { expectedRunId: classroomRunId(roomId, 0), expectedResetGeneration: 0 };
+    let scriptVersion = 1;
+    for (let index = 2; index <= 13; index += 1) {
+      const progress = await applyScriptAction(db, admin, roomId, {
+        ...run,
+        expectedVersion: scriptVersion,
+        action: { type: "unlock-next", nextBlockId: `B${String(index).padStart(2, "0")}` },
+      });
+      scriptVersion = progress.version;
+    }
+    await finishClassroomRun(db, admin, roomId, {
+      ...run, expectedScriptVersion: scriptVersion, idempotencyKey: "finish-before-archive-receipt-0001",
+    });
+    const checks = Object.fromEntries(UI_ACCEPTANCE_REQUIRED_CHECKS.map((key) => [key, true]));
+    const issued = await acceptTestClassroom(db, admin, roomId, checks, [
+      { browser: "local-test-fixture", platform: "node-sqlite", viewport: { width: 1280, height: 800 } },
+    ]);
+    assert.ok((await listUiAcceptanceReceipts(db)).find((receipt) => receipt.receiptId === issued.receiptId)?.valid);
+
+    await archiveTestClassroom(db, admin, roomId, {
+      ...run,
+      expectedScriptVersion: scriptVersion,
+      idempotencyKey: "archive-after-receipt-0001",
+      reason: "receipt retention policy test",
+    });
+    const retained = (await listUiAcceptanceReceipts(db)).find((receipt) => receipt.receiptId === issued.receiptId);
+    assert.ok(retained, "the receipt must remain queryable for history");
+    assert.equal(retained.valid, false);
+    assert.ok(retained.invalidReasons.some((reason) => reason.includes("已归档") && reason.includes("历史证据")));
+    await expectCode(requireValidUiAcceptanceReceipt(
+      db,
+      request.courseRef,
+      issued.receiptId,
+      request.viewAcceptanceReceiptId,
+      request.coursewareRefs,
+    ), "UI_ACCEPTANCE_RECEIPT_INVALID");
   } finally { db.raw.close(); }
 });
 

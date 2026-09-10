@@ -67,6 +67,8 @@ Admin DM 是单个课堂的可分配权限，不是第五位导师。平台管�
 5. 指定 Admin DM。导师创建课堂时本人必须是初始 Admin DM。
 6. 点击“创建真实 UI 验收课堂”。
 
+如果已经存在 r9 测试课堂，不需要重置或删除它才能测试 r12。直接点击 TEST 区标题旁的“＋ 新建测试课堂”，选择 r12 的 exact `courseId/revision/digest` 并创建独立实例。同一 exact 版本也可以为不同人数、成员或发牌运行创建多场 Test。
+
 TEST Factory 会列出所有当前 Candidate／Released 并逐项显示“待视图检查／回执失效／已就绪”；没有有效 ViewAcceptanceReceipt 的版本可以被选择和检查，但不能创建。伪造或过期回执仍会被服务端拒绝。
 
 如果课程、账号或课堂列表读取失败，使用对应区域的“重试”或“刷新创建条件”；页面会保留上次成功读取的数据以及仍合法的课堂名、人数和成员选择。若从 exact 深链进入后看到“当前不可用（未自动换课）”，先使用该版本旁的 exact 视图验收入口或明确手动选择其他版本，不要假定系统已经替你切换。
@@ -118,6 +120,18 @@ PRODUCTION 不提供 reset。Studio 保存、重新发布、Preview 或 TEST res
 
 两组使用同一套真实课堂组件。不存在第二套“UI Preview”页面、API 或状态机。
 
+每张课堂卡显示完整 classroomId、课程 exact revision/digest、最后更新时间、run generation、学员人数与 lifecycle。默认名称带课程版本；建议自定义名称再补充测试目的，例如“饿了么 r12 · 6人隐私回归”。
+
+## 管理旧 Test Classroom
+
+在 `/classroom/` 使用三个互不替代的动作：
+
+1. **重置**：在同一课堂开启新 run，适合相同成员和 exact 版本重新跑一遍。
+2. **归档**：该课堂 Admin DM 在活跃卡片点击“归档测试课堂”，阅读影响说明并确认。课堂进入只读历史，所有数据保留。
+3. **永久删除**：系统不提供。课程回执、作品和审计可能依赖该实例，硬删会制造悬空证据。
+
+归档后可打开只读档案继续回看，也可点击“以此 exact 版本新建”创建另一场 Test。系统不原地恢复归档课堂。若归档课堂已有 UI 回执，该回执仍可在历史中查询，但不能用于新的 Released 或 Production；请在新 Test 中重新完成人工验收。
+
 ## 常见阻断
 
 - `VIEW_ACCEPTANCE_RECEIPT_INVALID`：exact 版本／digest 或投影兼容契约已变化；重新完成视图验收。单独的兼容构建更新不会自动使回执失效。
@@ -130,6 +144,10 @@ PRODUCTION 不提供 reset。Studio 保存、重新发布、Preview 或 TEST res
 - `PRODUCTION_RELEASE_REQUIRED`：正式课堂尝试使用 Candidate。
 - `COURSEWARE_RELEASE_REQUIRED`：正式课堂课件尚未发布。
 - `PRODUCTION_RESET_FORBIDDEN`：正式课堂禁止重置。
+- `PRODUCTION_ARCHIVE_FORBIDDEN`：归档入口只服务 Test Classroom，正式课堂不能归档。
+- `CLASSROOM_ARCHIVED`：该 Test 已进入只读历史；从相同 exact 版本创建新 Test 后继续。
+- `CLASSROOM_ALREADY_ARCHIVED`：另一个 Admin DM 已完成归档；刷新后从历史区打开。
+- `CLASSROOM_ARCHIVE_CONFLICT`／`SCRIPT_VERSION_CONFLICT`：确认期间 run 或剧本边界变化；刷新并重新核对后再归档。
 - `CLASSROOM_ACCESS_FORBIDDEN`：当前账号没有该实例的 Membership 或 Admin DM。
 - `410 Gone`：使用了退休的 `/alpha` 或全局 `/control`；改用实例路由。
 

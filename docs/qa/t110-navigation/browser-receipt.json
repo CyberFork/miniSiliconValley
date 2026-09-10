@@ -23,55 +23,56 @@
     "startupCold": {
       "phasesMs": {
         "navigationStart": 0,
-        "loaderStart": 40.8,
-        "preloadsStarted": 41.1,
-        "bootstrapStarted": 63.6,
-        "scriptsReady": 63.8,
-        "bootstrapFinished": 96.1,
-        "courseListVisible": 100,
-        "firstCourseEditable": 107.1
+        "loaderStart": 48.2,
+        "preloadsStarted": 48.5,
+        "bootstrapStarted": 69,
+        "scriptsReady": 69.2,
+        "bootstrapFinished": 101.8,
+        "courseListVisible": 108.7,
+        "firstCourseEditable": 117.4
       },
       "navigationMs": {
-        "responseStart": 13.5,
-        "responseEnd": 15.800000190734863,
-        "domContentLoaded": 34.5,
-        "load": 38.90000009536743
+        "responseStart": 13.399999856948853,
+        "responseEnd": 16,
+        "domContentLoaded": 25.399999856948853,
+        "load": 43.89999985694885
       },
       "bootstrapResource": {
-        "start": 63.80000019073486,
-        "responseEnd": 95.40000009536743,
-        "duration": 31.59999990463257,
-        "transferSize": 47259,
-        "encodedBodySize": 46959,
+        "start": 69.09999990463257,
+        "responseEnd": 101.20000004768372,
+        "duration": 32.10000014305115,
+        "transferSize": 47261,
+        "encodedBodySize": 46961,
         "decodedBodySize": 147092
       }
     },
     "startupWarm": {
       "phasesMs": {
         "navigationStart": 0,
-        "loaderStart": 51.6,
-        "preloadsStarted": 51.7,
-        "bootstrapStarted": 79.2,
-        "scriptsReady": 79.3,
-        "bootstrapFinished": 108.1,
-        "courseListVisible": 108.2,
-        "firstCourseEditable": 112.3
+        "loaderStart": 53.1,
+        "preloadsStarted": 53.4,
+        "bootstrapStarted": 89.6,
+        "scriptsReady": 89.7,
+        "bootstrapFinished": 119.2,
+        "courseListVisible": 119.5,
+        "firstCourseEditable": 123.3
       },
       "navigationMs": {
-        "responseStart": 20.800000190734863,
+        "responseStart": 20.90000009536743,
         "responseEnd": 23.300000190734863,
-        "domContentLoaded": 37.60000014305115,
-        "load": 50.10000014305115
+        "domContentLoaded": 38.90000009536743,
+        "load": 51.10000014305115
       },
       "bootstrapResource": {
-        "start": 79.30000019073486,
-        "responseEnd": 107.5,
-        "duration": 28.199999809265137,
-        "transferSize": 47259,
-        "encodedBodySize": 46959,
+        "start": 89.70000004768372,
+        "responseEnd": 118.60000014305115,
+        "duration": 28.90000009536743,
+        "transferSize": 47261,
+        "encodedBodySize": 46961,
         "decodedBodySize": 147092
       }
-    }
+    },
+    "testClassroomCreateOrdinaryClick": true
   },
   "course": {
     "accountCenterOrdinaryClick": true,

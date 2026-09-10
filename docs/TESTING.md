@@ -53,6 +53,7 @@ Candidate exact revision/digest
 - 锁定 exact Candidate、View 回执、Test Classroom、N、seed、reset generation、state machine、4 + N Membership、Admin DM 和四套课件。
 - 保存 browser／platform／viewport client matrix、app build、操作者和审计摘要。
 - TEST reset 后历史回执保留但立即失效，课堂当前 binding 被清空。
+- TEST archive 后历史回执同样保留但立即失效，并显示“仅保留为历史证据”。
 - 重复签发同一业务指纹返回同一持久 receipt id。
 
 ### Released 与 Production
@@ -67,6 +68,7 @@ Candidate exact revision/digest
 ## 3. 课程工厂、权限与隐私
 
 - Test／Production 共用 `ClassroomFactory`、页面、API 和 state machine version。
+- 同一 exact 版本可创建多场独立 Test，不同 Candidate revision 也可并存；每场锁定自己的 exact 引用和数据。
 - 两种环境都要求有效 ViewAcceptanceReceipt。
 - Test 接受 Candidate 或 Released；Production 额外要求有效 UiAcceptanceReceipt。
 - P／D／M／O 恰好四个不同导师账号；学员账号数等于 N。
@@ -80,6 +82,7 @@ Candidate exact revision/digest
 - Primary Admin DM 可以委派任一有效导师；Delegated 能管理本课堂，但其授权／撤销请求在 API 层返回 403 并写审计。
 - 平台管理员 Test 模拟必须同时满足明确 Test Classroom、有效目标 Membership／DM、管理员自身显式 DM 权限；Production、平台管理员目标和跨课堂请求全部拒绝。
 - 普通切换和退出都必须撤销服务端 session；Test 模拟在返回、过期、停用、凭据重发或权限撤销后立即失效。
+- Test archive 只允许真实登录的本课堂 Admin DM；归档请求使用 run/script CAS，归档记录不可更新或删除，归档后的课堂级写入全部拒绝。
 
 ## 4. 动态 `4 + N + 1`
 
@@ -139,6 +142,8 @@ COURSE_PLATFORM_E2E_PASS t086=view-receipt+ui-receipt+release-gates t087=navigat
 ### Classroom
 
 - `/classroom/` 分为 `TEST · UI 验收课堂` 与 `PRODUCTION · 正式课堂`。
+- TEST 标题旁固定显示普通链接“＋ 新建测试课堂”；不需要滚到旧课堂之后寻找入口。
+- 课堂卡显示完整 classroomId、courseId@revision、digest、updatedAt、run generation、人数和 lifecycle；同版本多场不得只靠相同标题区分。
 - Factory 展示所有当前 Candidate／Released exact 版本及逐项就绪原因；选择待验收版本不等于绕过门禁。
 - Test 创建仍要求所选 exact 版本具有有效 View 回执；Production 仍要求 Released、同版本有效 View/UI 回执并锁定验收过的四套课件。
 - 课程、账号与课堂列表独立读取；任一失败时相应区域保留上次成功数据、显示就地重试，创建区不得整块消失。
@@ -147,6 +152,7 @@ COURSE_PLATFORM_E2E_PASS t086=view-receipt+ui-receipt+release-gates t087=navigat
 - 中控能顺序解锁、独立回看、回到最新，并在末页讲完后显式结束；作品保存／退回／接受不与剧本翻页混为一个状态机。
 - 完成后显示 16 项真实 UI 清单；签收后显示 receipt id 与发布入口。
 - TEST 有 reset；PRODUCTION 永远不显示 reset。
+- 活跃 TEST 另有自定义二次确认的归档操作；归档后移入只读历史区，另一课堂不受影响，可从原 exact 版本新建，不提供永久删除或原地恢复。
 - 页面无横向遮挡、控件重叠、按钮无响应、资源 404 或 console error。
 - Primary／Delegated 标签准确；Delegated 没有委派控件但仍可使用主控，直接调用委派 API 也必须失败。
 - Test 身份全程显示黄色 actor → effective 横幅，返回管理员后不残留目标私密数据。
@@ -159,6 +165,14 @@ npm run test:t108:browser
 ```
 
 该脚本使用临时本地 D1 和合成管理员，注入 bootstrap／accounts 失败与无 View 回执场景；不访问生产数据，也不会代签人工验收。
+
+T-111 多 Test 与归档回归：
+
+```bash
+npm run test:t111:browser
+```
+
+该脚本运行编译后的真实 ClassroomHub，认证使用临时本地 D1，课堂列表与归档响应使用隔离合成数据。它验证普通点击、完整 exact 身份、run/script CAS 请求、自定义确认框、归档隔离、只读深链、exact 新建链接和 390/768px 无横向溢出；不访问生产，也不签发人工回执。数据库级原子性、权限、不可变触发器和回执失效由 `tests/classroom-atomicity.test.ts` 覆盖。
 
 ### 路由
 

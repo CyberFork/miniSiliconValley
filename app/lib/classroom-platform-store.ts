@@ -76,6 +76,14 @@ export type ClassroomInstanceSummary = {
   adminDmMode: AdminDmDelegationMode | null;
   canDelegateAdminDm: boolean;
   acceptance: { viewReceiptId: string | null; uiReceiptId: string | null };
+  /** One-way retention marker. The last real lifecycle remains in `lifecycle`. */
+  archive: {
+    archivedAt: string;
+    archivedByProfileId: string;
+    previousLifecycle: string;
+    reason: string;
+  } | null;
+  resetGeneration: number;
   updatedAt: string;
 };
 
@@ -174,6 +182,20 @@ export type ClassroomSubmissionDetail = {
 export type ClassroomRunExpectation = {
   expectedRunId: string;
   expectedResetGeneration: number;
+};
+
+export type ArchiveTestClassroomInput = ClassroomRunExpectation & {
+  expectedScriptVersion: number;
+  idempotencyKey: string;
+  reason?: string;
+};
+
+export type ArchiveTestClassroomResult = {
+  archived: true;
+  archivedAt: string;
+  classroomId: string;
+  idempotent: boolean;
+  restorePolicy: "create-new-test";
 };
 
 export type ClassroomHandoffDetail = {
@@ -448,14 +470,15 @@ export async function createClassroomInstance(
 export async function listClassroomInstances(db: ClassroomD1, user: AuthenticatedClassroomUser): Promise<ClassroomInstanceSummary[]> {
   const result = await db.prepare(
     `SELECT r.id, r.title, ci.environment, ci.lifecycle, ci.learner_count, ci.course_id, ci.course_revision,
-            ci.course_digest, ci.updated_at, cv.schema_version,
+            ci.course_digest, ci.reset_generation, ci.updated_at, cv.schema_version,
             CASE WHEN rp.course_id IS NULL THEN 0 ELSE 1 END AS course_released,
             sp.state_machine_version, sp.unlocked_through_block_id, sp.unlocked_through_index,
             sp.version AS script_version, sp.updated_at AS script_updated_at,
             ms.mentor_role, lm.seat AS learner_seat,
             CASE WHEN g.id IS NULL THEN 0 ELSE 1 END AS is_admin_dm,
             g.delegation_mode AS admin_dm_mode, COALESCE(g.can_delegate, 0) AS can_delegate_admin_dm,
-            ab.view_receipt_id, ab.ui_receipt_id
+            ab.view_receipt_id, ab.ui_receipt_id,
+            ca.archived_at, ca.archived_by_profile_id, ca.previous_lifecycle, ca.reason AS archive_reason
      FROM rooms r
      JOIN classroom_instances ci ON ci.room_id = r.id
      JOIN course_versions cv ON cv.course_id = ci.course_id AND cv.revision = ci.course_revision AND cv.digest = ci.course_digest
@@ -466,9 +489,12 @@ export async function listClassroomInstances(db: ClassroomD1, user: Authenticate
      LEFT JOIN memberships lm ON lm.room_id = r.id AND lm.profile_id = ? AND lm.role = 'learner' AND lm.status = 'active'
      LEFT JOIN classroom_admin_dm_grants g
        ON g.room_id = r.id AND g.profile_id = ? AND g.revoked_at IS NULL
+     LEFT JOIN classroom_archives ca ON ca.room_id = r.id
      WHERE (ms.profile_id IS NOT NULL OR lm.profile_id IS NOT NULL OR g.id IS NOT NULL)
        AND (? IS NULL OR (r.id = ? AND ci.environment = 'test'))
-     ORDER BY CASE ci.lifecycle WHEN 'running' THEN 0 WHEN 'ready' THEN 1 ELSE 2 END, ci.updated_at DESC`,
+     ORDER BY CASE WHEN ca.room_id IS NULL THEN 0 ELSE 1 END,
+              CASE ci.lifecycle WHEN 'running' THEN 0 WHEN 'ready' THEN 1 ELSE 2 END,
+              ci.updated_at DESC`,
   ).bind(
     user.userId,
     user.userId,
@@ -484,6 +510,9 @@ export async function listClassroomInstances(db: ClassroomD1, user: Authenticate
     learner_seat: number | null; is_admin_dm: number; admin_dm_mode: AdminDmDelegationMode | null;
     can_delegate_admin_dm: number; course_released: number;
     view_receipt_id: string | null; ui_receipt_id: string | null;
+    reset_generation: number;
+    archived_at: string | null; archived_by_profile_id: string | null;
+    previous_lifecycle: string | null; archive_reason: string | null;
   }>();
   return (result.results ?? []).map((row) => ({
     id: row.id,
@@ -511,6 +540,13 @@ export async function listClassroomInstances(db: ClassroomD1, user: Authenticate
     adminDmMode: row.admin_dm_mode,
     canDelegateAdminDm: Boolean(row.can_delegate_admin_dm),
     acceptance: { viewReceiptId: row.view_receipt_id, uiReceiptId: row.ui_receipt_id },
+    archive: row.archived_at && row.archived_by_profile_id && row.previous_lifecycle ? {
+      archivedAt: row.archived_at,
+      archivedByProfileId: row.archived_by_profile_id,
+      previousLifecycle: row.previous_lifecycle,
+      reason: row.archive_reason ?? "",
+    } : null,
+    resetGeneration: row.reset_generation,
     updatedAt: row.updated_at,
   }));
 }
@@ -763,7 +799,7 @@ export async function getClassroomInstance(
        COALESCE((SELECT balance_tenths FROM ledger_accounts WHERE kind = 'team-treasury' AND room_id = ? LIMIT 1), 0) AS treasury`,
   ).bind(viewProfileId, roomId, roomId, viewProfileId, roomId).first<{ rp: number; wallet: number; treasury: number }>();
 
-  const canUnlockNext = summary.script.unlockedThroughIndex < course.blocks.length - 1
+  const canUnlockNext = !summary.archive && summary.script.unlockedThroughIndex < course.blocks.length - 1
     && (summary.environment === "test" || summary.isAdminDm || Boolean(summary.mentorRole));
   const nextBlock = course.blocks[summary.script.unlockedThroughIndex + 1] ?? null;
   return {
@@ -901,6 +937,29 @@ export async function getClassroomSharedScreen(
   };
 }
 
+/**
+ * Reject every new write after a Test Classroom has entered retained history.
+ * Reads intentionally remain available so the exact script, submissions and
+ * audit evidence can still be inspected.
+ */
+export async function requireWritableClassroom(db: ClassroomD1, roomId: string): Promise<void> {
+  const row = await db.prepare(
+    `SELECT ci.room_id, ca.archived_at
+     FROM classroom_instances ci
+     LEFT JOIN classroom_archives ca ON ca.room_id = ci.room_id
+     WHERE ci.room_id = ?`,
+  ).bind(roomId).first<{ room_id: string; archived_at: string | null }>();
+  if (!row) throw new ClassroomError("CLASSROOM_NOT_FOUND", "课堂不存在。", 404);
+  if (row.archived_at) {
+    throw new ClassroomError(
+      "CLASSROOM_ARCHIVED",
+      "这场 Test Classroom 已归档并永久只读；如需继续测试，请从同一 exact 版本新建课堂。",
+      409,
+      [`archivedAt ${row.archived_at}`],
+    );
+  }
+}
+
 export type SubmissionMutationResult = {
   submissionId: string;
   version: number;
@@ -927,6 +986,7 @@ export async function submitClassroomBlockWork(
     blockId: input.blockId,
     ...(input.viewAsProfileId ? { viewAsProfileId: input.viewAsProfileId } : {}),
   });
+  await requireWritableClassroom(db, roomId);
   assertRunExpectation(roomId, detail.runtimeIdentity.resetGeneration, input);
   assertMutationInput(input.expectedVersion, input.idempotencyKey);
   const course = await loadExactCoursePackage(db, detail.courseRef);
@@ -1005,6 +1065,7 @@ export async function submitClassroomBlockWork(
          SELECT ?, ?, ?, ?, ?, ?, ?, ?, 'submit', ?, ?, ?, ?
          FROM classroom_instances ci
          WHERE ci.room_id = ? AND ci.reset_generation = ?
+           AND NOT EXISTS (SELECT 1 FROM classroom_archives ca WHERE ca.room_id = ci.room_id)
            AND ((? = 0 AND NOT EXISTS (
                   SELECT 1 FROM classroom_block_submissions s
                   WHERE s.room_id = ? AND s.block_id = ? AND s.profile_id = ? AND s.kind = ?
@@ -1075,6 +1136,7 @@ export async function reviewClassroomSubmission(
   },
 ): Promise<SubmissionMutationResult> {
   const currentDetail = await getClassroomInstance(db, user, roomId);
+  await requireWritableClassroom(db, roomId);
   assertRunExpectation(roomId, currentDetail.runtimeIdentity.resetGeneration, input);
   assertMutationInput(input.expectedVersion, input.idempotencyKey);
   const row = await db.prepare(
@@ -1141,6 +1203,7 @@ export async function reviewClassroomSubmission(
          FROM classroom_instances ci
          JOIN classroom_submission_revisions sr ON sr.room_id = ci.room_id
          WHERE ci.room_id = ? AND ci.reset_generation = ?
+           AND NOT EXISTS (SELECT 1 FROM classroom_archives ca WHERE ca.room_id = ci.room_id)
            AND sr.submission_id = ? AND sr.reset_generation = ? AND sr.version = ?`,
       ).bind(
         mutationId, roomId, input.idempotencyKey, submissionId, actorProfileId, row.block_id, row.kind,
@@ -1201,6 +1264,7 @@ export async function applyScriptAction(
 ): Promise<ClassroomScriptProgress> {
   const summary = (await listClassroomInstances(db, user)).find((item) => item.id === roomId);
   if (!summary) throw new ClassroomError("CLASSROOM_ACCESS_FORBIDDEN", "你不是这个课堂的成员或 Admin DM。", 403);
+  if (summary.archive) throw new ClassroomError("CLASSROOM_ARCHIVED", "这场 Test Classroom 已归档并永久只读；请从同一 exact 版本新建课堂继续测试。", 409);
   if (input.viewAsProfileId) {
     if (summary.environment !== "test") throw new ClassroomError("TEST_VIEW_PRODUCTION_FORBIDDEN", "角色视角切换不能用于 Production Classroom。", 403);
     await requireTestViewTarget(db, roomId, input.viewAsProfileId);
@@ -1259,7 +1323,8 @@ export async function applyScriptAction(
          FROM classroom_script_progress sp
          JOIN classroom_instances ci ON ci.room_id = sp.room_id
          WHERE sp.room_id = ? AND sp.version = ? AND sp.unlocked_through_index = ?
-           AND ci.reset_generation = ?`,
+           AND ci.reset_generation = ?
+           AND NOT EXISTS (SELECT 1 FROM classroom_archives ca WHERE ca.room_id = ci.room_id)`,
       ).bind(
         mutationId, roomId, input.expectedResetGeneration, input.expectedVersion, next.version,
         current.unlockedThroughBlockId, next.unlockedThroughBlockId, auditActor(user), now,
@@ -1315,6 +1380,119 @@ export type FinishClassroomRunResult = {
 };
 
 /**
+ * Move one exact Test Classroom into immutable, read-only history.  Archival
+ * never deletes users, memberships, course versions, receipts or another
+ * Classroom, and it never rewrites the run's final lifecycle.
+ */
+export async function archiveTestClassroom(
+  db: ClassroomD1,
+  user: AuthenticatedClassroomUser,
+  roomId: string,
+  input: ArchiveTestClassroomInput,
+): Promise<ArchiveTestClassroomResult> {
+  if (user.impersonationId) {
+    throw new ClassroomError("IMPERSONATION_ARCHIVE_FORBIDDEN", "测试身份不能归档课堂；请先返回真实账号。", 403);
+  }
+  await requireAdminDm(db, user, roomId);
+  assertArchiveMutationInput(input);
+  const actorProfileId = auditActor(user);
+  const replay = await archiveMutationReplay(db, roomId, actorProfileId, input);
+  if (replay) return replay;
+
+  const row = await db.prepare(
+    `SELECT ci.environment, ci.lifecycle, ci.reset_generation,
+            sp.version AS script_version, ab.ui_receipt_id
+     FROM classroom_instances ci
+     JOIN classroom_script_progress sp ON sp.room_id = ci.room_id
+     LEFT JOIN classroom_acceptance_bindings ab ON ab.room_id = ci.room_id
+     WHERE ci.room_id = ?`,
+  ).bind(roomId).first<{
+    environment: ClassroomEnvironment;
+    lifecycle: string;
+    reset_generation: number;
+    script_version: number;
+    ui_receipt_id: string | null;
+  }>();
+  if (!row) throw new ClassroomError("CLASSROOM_NOT_FOUND", "课堂不存在。", 404);
+  if (row.environment !== "test") {
+    throw new ClassroomError("PRODUCTION_ARCHIVE_FORBIDDEN", "正式课堂不能通过测试课堂归档入口处理。", 403);
+  }
+  assertRunExpectation(roomId, row.reset_generation, input);
+  if (row.script_version !== input.expectedScriptVersion) {
+    throw mutationConflict("SCRIPT_VERSION_CONFLICT", "课堂剧本边界刚刚变化，请同步后再决定是否归档。");
+  }
+
+  const reason = input.reason?.trim() ?? "";
+  const now = new Date().toISOString();
+  const mutationId = crypto.randomUUID();
+  try {
+    const result = await db.batch([
+      db.prepare(
+        `INSERT INTO classroom_archives
+         (id, room_id, previous_lifecycle, reset_generation, script_version,
+          archived_by_profile_id, idempotency_key, reason, archived_at)
+         SELECT ?, ci.room_id, ci.lifecycle, ci.reset_generation, sp.version, ?, ?, ?, ?
+         FROM classroom_instances ci
+         JOIN classroom_script_progress sp ON sp.room_id = ci.room_id
+         WHERE ci.room_id = ? AND ci.environment = 'test'
+           AND ci.reset_generation = ? AND sp.version = ?
+           AND NOT EXISTS (SELECT 1 FROM classroom_archives ca WHERE ca.room_id = ci.room_id)`,
+      ).bind(
+        mutationId,
+        actorProfileId,
+        input.idempotencyKey,
+        reason,
+        now,
+        roomId,
+        input.expectedResetGeneration,
+        input.expectedScriptVersion,
+      ),
+      mutationAssertion(db, "classroom_archives", mutationId, now),
+      db.prepare(
+        `UPDATE rooms SET status = 'archived', version = version + 1, updated_at = ?
+         WHERE id = ? AND EXISTS (SELECT 1 FROM classroom_archives ca WHERE ca.room_id = rooms.id)`,
+      ).bind(now, roomId),
+      db.prepare(
+        `UPDATE classroom_instances SET updated_at = ?
+         WHERE room_id = ? AND reset_generation = ?
+           AND EXISTS (SELECT 1 FROM classroom_archives ca WHERE ca.room_id = classroom_instances.room_id)`,
+      ).bind(now, roomId, input.expectedResetGeneration),
+      factoryEvent(db, roomId, actorProfileId, "classroom.test-archived", withIdentityAudit(user, {
+        mutationId,
+        runId: input.expectedRunId,
+        resetGeneration: input.expectedResetGeneration,
+        scriptVersion: input.expectedScriptVersion,
+        previousLifecycle: row.lifecycle,
+        reason,
+        uiAcceptanceReceiptId: row.ui_receipt_id,
+        receiptPolicy: "historical-only-after-archive",
+        restorePolicy: "create-new-test",
+        hardDeletePolicy: "forbidden",
+      }), now),
+    ]);
+    if (Number(result[0]?.meta?.changes ?? 0) !== 1
+      || Number(result[2]?.meta?.changes ?? 0) !== 1
+      || Number(result[3]?.meta?.changes ?? 0) !== 1) {
+      throw mutationConflict("CLASSROOM_ARCHIVE_CONFLICT", "课堂状态刚刚变化或已被归档，请同步后重试。");
+    }
+  } catch (error) {
+    const won = await archiveMutationReplay(db, roomId, actorProfileId, input);
+    if (won) return won;
+    if (isAtomicAssertionError(error)) {
+      throw mutationConflict("CLASSROOM_ARCHIVE_CONFLICT", "课堂状态刚刚变化或已被另一位 Admin DM 归档，请同步后重试。");
+    }
+    throw error;
+  }
+  return {
+    archived: true,
+    archivedAt: now,
+    classroomId: roomId,
+    idempotent: false,
+    restorePolicy: "create-new-test",
+  };
+}
+
+/**
  * Explicitly ends a v3 classroom run after its final script page is unlocked.
  * Script unlock, evidence review, and classroom completion deliberately remain
  * separate operations. Optional evidence gates are owned by CourseDefinition.
@@ -1328,6 +1506,7 @@ export async function finishClassroomRun(
   assertFinishMutationInput(input.expectedScriptVersion, input.idempotencyKey);
   const summary = (await listClassroomInstances(db, user)).find((item) => item.id === roomId);
   if (!summary) throw new ClassroomError("CLASSROOM_ACCESS_FORBIDDEN", "你不是这个课堂的成员或 Admin DM。", 403);
+  if (summary.archive) throw new ClassroomError("CLASSROOM_ARCHIVED", "这场 Test Classroom 已归档并永久只读；不能再结束或修改运行。", 409);
   if (input.viewAsProfileId) {
     if (summary.environment !== "test") {
       throw new ClassroomError("TEST_VIEW_PRODUCTION_FORBIDDEN", "角色视角切换不能用于 Production Classroom。", 403);
@@ -1422,6 +1601,7 @@ export async function finishClassroomRun(
          JOIN classroom_script_progress sp ON sp.room_id = ci.room_id
          WHERE ci.room_id = ? AND ci.reset_generation = ? AND ci.state_machine_version = ?
            AND ci.lifecycle IN ('ready', 'running') AND sp.version = ? AND sp.unlocked_through_index = ?
+           AND NOT EXISTS (SELECT 1 FROM classroom_archives ca WHERE ca.room_id = ci.room_id)
            AND NOT EXISTS (
              SELECT 1 FROM classroom_finish_mutations fm
              WHERE fm.room_id = ci.room_id AND fm.reset_generation = ci.reset_generation
@@ -1489,6 +1669,7 @@ export async function resetTestClassroom(
   input: ClassroomRunExpectation,
 ): Promise<{ runId: string; resetGeneration: number }> {
   await requireAdminDm(db, user, roomId);
+  await requireWritableClassroom(db, roomId);
   const instance = await db.prepare(
     `SELECT environment, course_id, course_revision, course_digest, learner_count, reset_generation
      FROM classroom_instances WHERE room_id = ?`,
@@ -1518,7 +1699,8 @@ export async function resetTestClassroom(
       `INSERT INTO classroom_reset_mutations
        (id, room_id, from_generation, to_generation, actor_profile_id, created_at)
        SELECT ?, ?, ?, ?, ?, ? FROM classroom_instances
-       WHERE room_id = ? AND environment = 'test' AND reset_generation = ?`,
+       WHERE room_id = ? AND environment = 'test' AND reset_generation = ?
+         AND NOT EXISTS (SELECT 1 FROM classroom_archives ca WHERE ca.room_id = classroom_instances.room_id)`,
     ).bind(mutationId, roomId, instance.reset_generation, nextResetGeneration, auditActor(user), now, roomId, instance.reset_generation),
     mutationAssertion(db, "classroom_reset_mutations", mutationId, now),
     db.prepare(`DELETE FROM card_grants WHERE room_id = ?`).bind(roomId),
@@ -1596,6 +1778,7 @@ export async function acceptTestClassroom(
   clientMatrix: UiAcceptanceClient[],
 ) {
   await requireAdminDm(db, user, roomId);
+  await requireWritableClassroom(db, roomId);
   const detail = await getClassroomInstance(db, user, roomId);
   if (detail.environment !== "test") throw new ClassroomError("TEST_CLASSROOM_REQUIRED", "只有 Test Classroom 可以生成验收回执。", 409);
   if (detail.script.unlockedThroughIndex !== detail.course.blockCount - 1) {
@@ -1814,6 +1997,7 @@ export async function updateClassroomMembership(
   action: ClassroomMembershipAction,
 ): Promise<void> {
   const callerGrant = await requireAdminDm(db, user, roomId);
+  await requireWritableClassroom(db, roomId);
   const instance = await db.prepare(`SELECT lifecycle, learner_count FROM classroom_instances WHERE room_id = ?`).bind(roomId).first<{ lifecycle: string; learner_count: number }>();
   if (!instance) throw new ClassroomError("CLASSROOM_NOT_FOUND", "课堂不存在。", 404);
   if (action.type === "relinquish-admin-dm") {
@@ -2171,9 +2355,16 @@ function assertFinishMutationInput(expectedScriptVersion: number, idempotencyKey
   }
 }
 
+function assertArchiveMutationInput(input: ArchiveTestClassroomInput): void {
+  assertFinishMutationInput(input.expectedScriptVersion, input.idempotencyKey);
+  if ((input.reason?.trim().length ?? 0) > 500) {
+    throw new ClassroomError("CLASSROOM_ARCHIVE_REASON_INVALID", "归档备注不能超过 500 个字符。", 400);
+  }
+}
+
 function mutationAssertion(
   db: ClassroomD1,
-  table: "classroom_submission_mutations" | "classroom_script_mutations" | "classroom_reset_mutations" | "classroom_finish_mutations",
+  table: "classroom_submission_mutations" | "classroom_script_mutations" | "classroom_reset_mutations" | "classroom_finish_mutations" | "classroom_archives",
   mutationId: string,
   now: string,
 ): D1PreparedStatement {
@@ -2182,6 +2373,47 @@ function mutationAssertion(
      SELECT CASE WHEN EXISTS (SELECT 1 FROM ${table} WHERE id = ?) THEN 1 ELSE 0 END, ?
      ON CONFLICT(id) DO NOTHING`,
   ).bind(mutationId, now);
+}
+
+async function archiveMutationReplay(
+  db: ClassroomD1,
+  roomId: string,
+  actorProfileId: string,
+  input: ArchiveTestClassroomInput,
+): Promise<ArchiveTestClassroomResult | null> {
+  const row = await db.prepare(
+    `SELECT reset_generation, script_version, archived_by_profile_id, idempotency_key, reason, archived_at
+     FROM classroom_archives WHERE room_id = ?`,
+  ).bind(roomId).first<{
+    reset_generation: number;
+    script_version: number;
+    archived_by_profile_id: string;
+    idempotency_key: string;
+    reason: string;
+    archived_at: string;
+  }>();
+  if (!row) return null;
+  const same = row.archived_by_profile_id === actorProfileId
+    && row.idempotency_key === input.idempotencyKey
+    && row.reset_generation === input.expectedResetGeneration
+    && row.script_version === input.expectedScriptVersion
+    && row.reason === (input.reason?.trim() ?? "")
+    && input.expectedRunId === classroomRunId(roomId, row.reset_generation);
+  if (!same) {
+    throw new ClassroomError(
+      "CLASSROOM_ALREADY_ARCHIVED",
+      "这场 Test Classroom 已经归档；历史内容保持只读，不能再次改写归档记录。",
+      409,
+      [`archivedAt ${row.archived_at}`],
+    );
+  }
+  return {
+    archived: true,
+    archivedAt: row.archived_at,
+    classroomId: roomId,
+    idempotent: true,
+    restorePolicy: "create-new-test",
+  };
 }
 
 async function finishMutationReplay(

@@ -248,7 +248,8 @@ function ViewAcceptance({ data, initialCourseRef, onAccepted, onError }: {
   const validation = validateCourseInstantiation(course, learnerCount);
   const projection = buildStudioProjection(course, { learnerCount, blockId, seed });
   const courseDataId = courseDataIdForRef(source.ref);
-  const exactTestClassrooms = data.acceptanceClassrooms.filter((room) => room.environment === "test" && sameRef(room.courseRef, source.ref));
+  const exactTestClassrooms = data.acceptanceClassrooms.filter((room) => room.environment === "test" && !room.archivedAt && sameRef(room.courseRef, source.ref));
+  const archivedExactTests = data.acceptanceClassrooms.filter((room) => room.environment === "test" && room.archivedAt && sameRef(room.courseRef, source.ref));
   const blocksComplete = course.blocks.every((block) => reviewedBlocks.includes(block.id));
   const countsComplete = requiredCounts.every((count) => reviewedCounts.includes(count));
 
@@ -293,7 +294,7 @@ function ViewAcceptance({ data, initialCourseRef, onAccepted, onError }: {
     <section className={styles.panel}>
       <div className={styles.acceptanceHeader}>
         <label className={styles.field}>验收课程 exact 版本<select value={versionKey(source)} onChange={(event) => chooseVersion(event.target.value)}>{options.map((version) => <option key={versionKey(version)} value={versionKey(version)}>{version.course.course.name} · r{version.ref.revision} · {version.candidate ? "Candidate" : "Released"}</option>)}</select></label>
-        <div className={styles.exactRef}><b>{source.candidate ? "CANDIDATE" : "RELEASED"} · r{source.ref.revision}</b><code>{courseDataId}</code><code>{source.ref.digest}</code><small>投影契约 {data.acceptanceRuntime.projectorContractVersion} · 运行契约 {data.acceptanceRuntime.runtimeContractVersion} · {exactTestClassrooms.length} 场 exact Test Classroom</small><small>源码 {data.acceptanceRuntime.sourceCommit} · 构建 {data.acceptanceRuntime.appBuildId}</small></div>
+        <div className={styles.exactRef}><b>{source.candidate ? "CANDIDATE" : "RELEASED"} · r{source.ref.revision}</b><code>{courseDataId}</code><code>{source.ref.digest}</code><small>投影契约 {data.acceptanceRuntime.projectorContractVersion} · 运行契约 {data.acceptanceRuntime.runtimeContractVersion} · {exactTestClassrooms.length} 场活跃 exact Test Classroom{archivedExactTests.length ? ` · ${archivedExactTests.length} 场已归档` : ""}</small><small>源码 {data.acceptanceRuntime.sourceCommit} · 构建 {data.acceptanceRuntime.appBuildId}</small></div>
       </div>
       {exactTestClassrooms.length > 0 && <div className={styles.acceptedBanner}><b>同一数据快照的 Test Classroom</b><span>这里与课堂中控／席位使用相同 revision + digest；实际发牌 seed 只在课堂创建后产生。</span>{exactTestClassrooms.map((room) => <Link key={room.roomId} href={`/classroom/${room.roomId}/control`}>{room.roomId.slice(0, 8)} · {room.lifecycle} →</Link>)}</div>}
       {existing ? <div className={styles.acceptedBanner}><b>✓ 视图验收已通过</b><span>{existing.receiptId} · {new Date(existing.acceptedAt).toLocaleString("zh-CN")}</span><Link href={factoryHref("test", source.ref, existing.receiptId)}>创建 UI 验收课堂 →</Link></div> : <div className={styles.reviewProgress}>
@@ -525,7 +526,7 @@ function preferredVersions(versions: Version[]): Version[] {
 
 function pipelineStatus(data: Bootstrap, version: Version) {
   const view = findViewReceipt(data, version.ref);
-  const tests = data.acceptanceClassrooms.filter((room) => room.environment === "test" && sameRef(room.courseRef, version.ref) && (!view || room.viewReceiptId === view.receiptId));
+  const tests = data.acceptanceClassrooms.filter((room) => room.environment === "test" && !room.archivedAt && sameRef(room.courseRef, version.ref) && (!view || room.viewReceiptId === view.receiptId));
   const ui = data.uiReceipts.find((receipt) => receipt.valid && sameRef(receipt.courseRef, version.ref) && (!view || receipt.viewReceiptId === view.receiptId));
   const production = data.acceptanceClassrooms.filter((room) => room.environment === "production" && sameRef(room.courseRef, version.ref));
   const nextLabel = !view ? "验收多角色视图" : !tests.length ? "创建真实 UI 验收课堂" : !ui ? "跑完 Test 并签发 UI 回执" : !version.released ? "发布为 Released" : "创建正式课堂";

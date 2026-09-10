@@ -1,0 +1,48 @@
+{
+  "ok": true,
+  "scope": "compiled app + temporary local D1 + intercepted synthetic classroom lifecycle; no production writes",
+  "browser": {
+    "engine": "Chromium",
+    "version": "151.0.7922.176"
+  },
+  "ordinaryCreateAnchor": true,
+  "exactIdentity": true,
+  "customArchiveDialog": true,
+  "archiveCasPayload": {
+    "expectedRunId": "t111-room-a:run:4",
+    "expectedResetGeneration": 4,
+    "expectedScriptVersion": 7
+  },
+  "isolatedArchive": true,
+  "exactDeepLink": true,
+  "exactRecreateLink": {
+    "course": [
+      "eleme-2008-find-problem"
+    ],
+    "revision": [
+      "12"
+    ],
+    "digest": [
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    ],
+    "environment": [
+      "test"
+    ],
+    "viewReceipt": [
+      "view-receipt-t111"
+    ]
+  },
+  "responsive": {
+    "phone": {
+      "inner": 390,
+      "root": 390,
+      "body": 390
+    },
+    "pad": {
+      "inner": 768,
+      "root": 768,
+      "body": 768
+    }
+  },
+  "humanAcceptanceReceiptCreated": false
+}
