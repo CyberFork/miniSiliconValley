@@ -1,11 +1,13 @@
 import type { CoursePackageRef } from "./course-package";
 
 /**
- * Version 2 replaces the coupled execute/accept/advance controller with an
- * append-only script-unlock frontier.  Activity submissions and economy data
- * remain independent of this value.
+ * Version 3 keeps the append-only script-unlock frontier from v2, but reaching
+ * the last page no longer marks the classroom complete. A mentor explicitly
+ * confirms the end of the run after the finale; activity/evidence gates remain
+ * separately declared by the CourseDefinition.
  */
-export const CLASSROOM_STATE_MACHINE_VERSION = 2 as const;
+export const CLASSROOM_STATE_MACHINE_VERSION = 3 as const;
+export const LEGACY_CLASSROOM_STATE_MACHINE_VERSION = 2 as const;
 export const CLASSROOM_MENTOR_ROLES = ["P", "D", "M", "O"] as const;
 export type ClassroomMentorRole = (typeof CLASSROOM_MENTOR_ROLES)[number];
 export type ClassroomEnvironment = "test" | "production";
@@ -33,7 +35,7 @@ export interface ClassroomFactoryRequest {
 }
 
 export interface ClassroomScriptProgress {
-  stateMachineVersion: typeof CLASSROOM_STATE_MACHINE_VERSION;
+  stateMachineVersion: typeof CLASSROOM_STATE_MACHINE_VERSION | typeof LEGACY_CLASSROOM_STATE_MACHINE_VERSION;
   unlockedThroughBlockId: string;
   unlockedThroughIndex: number;
   version: number;
@@ -180,7 +182,7 @@ export function unlockNextScriptPage(
     throw new Error(`下一页必须是 ${expectedBlockId}，不能跳页或解锁旧页。`);
   }
   return {
-    stateMachineVersion: CLASSROOM_STATE_MACHINE_VERSION,
+    stateMachineVersion: current.stateMachineVersion,
     unlockedThroughBlockId: expectedBlockId,
     unlockedThroughIndex: expectedIndex,
     version: current.version + 1,

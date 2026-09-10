@@ -32,7 +32,13 @@ type Bootstrap = {
   viewReceipts: ViewAcceptanceReceipt[];
   uiReceipts: UiAcceptanceReceipt[];
   acceptanceClassrooms: AcceptanceClassroomSummary[];
-  acceptanceRuntime: { projectorVersion: string; appBuildId: string };
+  acceptanceRuntime: {
+    projectorVersion: string;
+    projectorContractVersion: string;
+    runtimeContractVersion: string;
+    sourceCommit: string;
+    appBuildId: string;
+  };
 };
 
 type InitialCourseRef = { courseId: string; revision: number; digest?: string } | null;
@@ -287,7 +293,7 @@ function ViewAcceptance({ data, initialCourseRef, onAccepted, onError }: {
     <section className={styles.panel}>
       <div className={styles.acceptanceHeader}>
         <label className={styles.field}>验收课程 exact 版本<select value={versionKey(source)} onChange={(event) => chooseVersion(event.target.value)}>{options.map((version) => <option key={versionKey(version)} value={versionKey(version)}>{version.course.course.name} · r{version.ref.revision} · {version.candidate ? "Candidate" : "Released"}</option>)}</select></label>
-        <div className={styles.exactRef}><b>{source.candidate ? "CANDIDATE" : "RELEASED"} · r{source.ref.revision}</b><code>{courseDataId}</code><code>{source.ref.digest}</code><small>{data.acceptanceRuntime.projectorVersion} · {data.acceptanceRuntime.appBuildId} · {exactTestClassrooms.length} 场 exact Test Classroom</small></div>
+        <div className={styles.exactRef}><b>{source.candidate ? "CANDIDATE" : "RELEASED"} · r{source.ref.revision}</b><code>{courseDataId}</code><code>{source.ref.digest}</code><small>投影契约 {data.acceptanceRuntime.projectorContractVersion} · 运行契约 {data.acceptanceRuntime.runtimeContractVersion} · {exactTestClassrooms.length} 场 exact Test Classroom</small><small>源码 {data.acceptanceRuntime.sourceCommit} · 构建 {data.acceptanceRuntime.appBuildId}</small></div>
       </div>
       {exactTestClassrooms.length > 0 && <div className={styles.acceptedBanner}><b>同一数据快照的 Test Classroom</b><span>这里与课堂中控／席位使用相同 revision + digest；实际发牌 seed 只在课堂创建后产生。</span>{exactTestClassrooms.map((room) => <Link key={room.roomId} href={`/classroom/${room.roomId}/control`}>{room.roomId.slice(0, 8)} · {room.lifecycle} →</Link>)}</div>}
       {existing ? <div className={styles.acceptedBanner}><b>✓ 视图验收已通过</b><span>{existing.receiptId} · {new Date(existing.acceptedAt).toLocaleString("zh-CN")}</span><Link href={factoryHref("test", source.ref, existing.receiptId)}>创建 UI 验收课堂 →</Link></div> : <div className={styles.reviewProgress}>
@@ -479,9 +485,9 @@ function Releases({ data, onChanged, onError }: { data: Bootstrap; onChanged: (m
           <header><div><small>{version.ref.courseId} · r{version.ref.revision}</small><h3>{version.course.course.name}</h3></div><span className={styles.badge}>{version.released ? "RELEASED" : "CANDIDATE"}</span></header>
           <p className={styles.meta}>{version.ref.digest}</p>
           <div className={styles.gateStack}>
-            <GateDetail index="1" label="多角色视图验收" passed={Boolean(status.view)} detail={status.view ? `${status.view.receiptId} · ${status.view.projectorVersion}` : "缺少当前 exact 版本的有效回执"} />
+            <GateDetail index="1" label="多角色视图验收" passed={Boolean(status.view)} detail={status.view ? `${status.view.receiptId} · ${status.view.projectorVersion} · ${status.view.sourceCommit} / ${status.view.appBuildId}` : "缺少当前 exact 版本的有效回执"} />
             <GateDetail index="2" label="UI 验收课堂" passed={status.tests.length > 0} detail={status.tests.length ? `${status.tests.length} 场 Test · ${status.tests[0].lifecycle}` : "尚未创建"} />
-            <GateDetail index="3" label="真实 UI 验收回执" passed={Boolean(status.ui)} detail={status.ui ? `${status.ui.receiptId} · ${status.ui.learnerCount} 学员 · 4 套课件` : "尚未完成／回执已失效"} />
+            <GateDetail index="3" label="真实 UI 验收回执" passed={Boolean(status.ui)} detail={status.ui ? `${status.ui.receiptId} · ${status.ui.runtimeContractVersion} · ${status.ui.sourceCommit} / ${status.ui.appBuildId} · ${status.ui.learnerCount} 学员 · 4 套课件` : "尚未完成／回执已失效"} />
             <GateDetail index="4" label="正式发布" passed={version.released} detail={version.released ? `Released r${version.ref.revision}` : "等待两级 exact 回执"} />
             <GateDetail index="5" label="正式课堂" passed={status.production.length > 0} detail={`${status.production.length} 场 Production`} />
           </div>

@@ -1,23 +1,32 @@
 {
   "ok": true,
-  "base": "http://127.0.0.1:59660",
+  "base": "http://127.0.0.1:54218",
   "independentClients": true,
   "roleTabs": 10,
   "browser": {
     "engine": "Chromium",
     "version": "151.0.7922.176"
   },
-  "classroomId": "c7419942-900e-468b-bca0-79211f658140",
+  "classroomId": "90fe4aab-a453-4f27-adf5-992f50f96148",
   "candidate": {
     "courseId": "google-1995-2004",
     "schemaVersion": 1,
     "revision": 1,
-    "digest": "b53d2b4715f5d6553c0dd8e3c086d8d657049d05de7d3a25e5d4298af9aaaeb5",
+    "digest": "cc177d45eb48ecdd958f792f7c613898857e07e427825c1ccae3587795af5cee",
     "status": "candidate",
-    "createdAt": "2026-09-09T06:28:21.990Z",
-    "createdBy": "t086-admin-6a2acc72"
+    "createdAt": "2026-09-10T18:02:24.625Z",
+    "createdBy": "t086-admin-2f505986",
+    "createdByDisplayName": "T086 剧本验收管理员",
+    "fieldMigration": [
+      {
+        "action": "created-field-model",
+        "ownerId": null,
+        "path": "fieldModel",
+        "detail": "872 个可编辑字段已建立稳定 scope / owner / path 索引。"
+      }
+    ]
   },
-  "viewReceiptId": "5edc16a3-6c9b-49f3-9154-d850c2e01888",
+  "viewReceiptId": "f508d156-ddfc-48ac-8385-f8a44d10ad91",
   "stage1Keyboard": true,
   "stage1FullFields": true,
   "nativeClassroomLink": true,
@@ -30,6 +39,9 @@
     "End"
   ],
   "realRoleSubmission": true,
+  "explicitFinish": true,
+  "acceptanceChecklistItems": 16,
+  "runtimeIdentityVisible": true,
   "mobileGeometry": {
     "width": 390,
     "body": 390,
@@ -39,6 +51,7 @@
   "requestFailures": 0,
   "screenshots": [
     "docs/qa/t086-script-runtime/historical-and-role-tabs.png",
-    "docs/qa/t086-script-runtime/mobile-control.png"
+    "docs/qa/t086-script-runtime/mobile-control.png",
+    "docs/qa/t086-script-runtime/explicit-finish.png"
   ]
 }

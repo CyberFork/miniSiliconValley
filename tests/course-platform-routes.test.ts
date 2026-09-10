@@ -19,6 +19,7 @@ const required = [
   "app/classroom/[classroomId]/screen/page.tsx",
   "app/classroom/[classroomId]/members/page.tsx",
   "app/api/platform/classrooms/[classroomId]/screen/route.ts",
+  "app/api/platform/classrooms/[classroomId]/finish/route.ts",
   "app/api/studio/view-acceptance/route.ts",
   "app/api/platform/classrooms/[classroomId]/receipt/route.ts",
 ];

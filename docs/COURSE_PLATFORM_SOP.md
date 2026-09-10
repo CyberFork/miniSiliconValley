@@ -56,7 +56,7 @@ Admin DM 是单个课堂的可分配权限，不是第五位导师。平台管�
 6. 检查固定 seed 下发牌稳定、私密卡隔离且满足不重复规则。
 7. 全部遍历完成后点击“确认并签发 ViewAcceptanceReceipt”。
 
-服务端会重新计算“全部 Block × 全部支持人数”矩阵，不能仅凭浏览器勾选生成回执。课程 digest、投影器兼容版本或验收构建版本变化后，旧回执自动失效。
+服务端会重新计算“全部 Block × 全部支持人数”矩阵，不能仅凭浏览器勾选生成回执。课程 exact revision／digest 或投影兼容契约变化后，旧回执自动失效。回执同时记录实际 `sourceCommit`／`appBuildId` 以追溯验收构建；兼容契约不变时，纯样式构建不会自动令旧回执失效。
 
 ## 3. 创建真实 UI 验收课堂
 
@@ -74,26 +74,13 @@ Admin DM 是单个课堂的可分配权限，不是第五位导师。平台管�
 使用真实导师、学员、Admin DM 和投屏路由完整运行：
 
 ```text
-准备 → 执行 → 收齐结果 → 接受／退回 → 下一 Block
-最后 Block：接受 → 完成整门课程
+打开已解锁剧本页 → 学员体验／讨论／保存作品 → 导师可独立审核作品
+→ 当期导师弹窗确认解锁下一页 → 最后一页讲完 → 导师另行确认结束本次 Run
 ```
 
-完成后，Admin DM 在中控逐项确认 14 项检查：
+解锁、作品状态与课堂结束是三个解耦系统：作品可以被退回、重试或接受，但不会阻止回看或解锁下一页；末页被解锁也不会自动代表 Demo、作品或课堂已经完成。只有 CourseDefinition 显式声明 `rules.completion.requiredAcceptedSubmissionSchemaIds` 时，对应作品的“已通过”才会在导师确认结束时成为可选证据门槛。
 
-- TEST／PRODUCTION 同源运行时；
-- Membership 与 RBAC；
-- 四导师任务及 exact 课件；
-- 学员任务；
-- 学员私密卡、RP 与钱包隔离；
-- 公共投屏脱敏；
-- Block 执行、退回、重试与推进；
-- 五大步和全部 Block 完成；
-- 刷新与重新登录；
-- 并发版本冲突；
-- TEST reset；
-- 手机、电脑与投屏布局；
-- 运行实例不受 Studio 后续保存影响；
-- 课程与课件 exact 版本。
+课堂明确结束后，Admin DM 在中控逐项确认下方 16 项检查：
 
 点击“签发 UiAcceptanceReceipt”。回执锁定课堂 ID、N、seed、reset generation、状态机版本、4 + N Membership、Admin DM、四套课件、浏览器／视口、构建 ID、操作者、时间与审计摘要。
 
@@ -131,9 +118,11 @@ PRODUCTION 不提供 reset。Studio 保存、重新发布、Preview 或 TEST res
 
 ## 常见阻断
 
-- `VIEW_ACCEPTANCE_RECEIPT_INVALID`：版本、digest、投影器或构建已变化；重新完成视图验收。
+- `VIEW_ACCEPTANCE_RECEIPT_INVALID`：exact 版本／digest 或投影兼容契约已变化；重新完成视图验收。单独的兼容构建更新不会自动使回执失效。
 - `VIEW_ACCEPTANCE_CAPACITY_INVALID`：某个声明支持的人数无法投影；补齐动态任务或卡牌后保存新 Candidate。
-- `UI_ACCEPTANCE_CHECKS_INCOMPLETE`：14 项真实 UI 检查没有全部确认。
+- `UI_ACCEPTANCE_CHECKS_INCOMPLETE`：16 项真实 UI 检查没有全部确认。
+- `TEST_CLASSROOM_FINISH_REQUIRED`：剧本页已全部解锁，但导师尚未显式确认结束本次 Run。
+- `CLASSROOM_FINISH_EVIDENCE_REQUIRED`：本课程显式声明的必需作品尚未通过；作品仍可继续补充并再次审核。
 - `UI_ACCEPTANCE_RECEIPT_INVALID`：UI 回执已因 reset／版本变化失效，或课程、View 回执、课件包不匹配。
 - `CONTROLLER_VERSION_CONFLICT`：另一位 Admin DM 已推进；刷新后按新版本操作。
 - `PRODUCTION_RELEASE_REQUIRED`：正式课堂尝试使用 Candidate。
@@ -148,8 +137,29 @@ PRODUCTION 不提供 reset。Studio 保存、重新发布、Preview 或 TEST res
 - [ ] 所有 Block 与所有支持人数都已验收。
 - [ ] ViewAcceptanceReceipt 有效。
 - [ ] 真实 TEST 已完整运行。
-- [ ] 14 项 UI 检查已完成。
+- [ ] 末页解锁后已由导师单独确认结束本次 Run。
+- [ ] 16 项 UI 检查已完成。
 - [ ] UiAcceptanceReceipt 有效。
 - [ ] 四套课件 exact 版本与回执一致且已发布。
 - [ ] Released 已生成。
 - [ ] PRODUCTION 页面显示永久环境标识且没有 reset。
+
+
+<!-- ui-acceptance-checklist:start -->
+- `sameRuntimeUi`：Test 与 Production 使用同一套页面、API 与状态机
+- `membershipsAndRbac`：四导师、N 学员、Admin DM 的 Membership 与 RBAC 均正确
+- `mentorTasksAndCourseware`：四位导师各自看到正确任务与 exact 课件入口
+- `learnerTasks`：每名学员都能看懂并完成当前私人任务
+- `learnerPrivacy`：学员只看到自己的私密卡、RP 与个人钱包
+- `sharedScreenRedaction`：公共投屏未泄漏手牌、讲稿、账号、钱包或未公开提交
+- `scriptUnlockFlow`：导师确认后只顺序解锁下一页，不能跳页、重复或倒退
+- `independentNavigation`：多人独立回看；新页解锁只通知、不强制其他窗口跳页
+- `testRoleSwitching`：Test 角色 Tab 能真实切换中控、四导师、全部学员和投屏
+- `explicitClassroomFinish`：末页解锁后由导师另行确认结束；解锁、结束和作品验收没有混为一件事
+- `refreshAndRelogin`：刷新和重新登录后，席位、手牌与课堂进度保持正确
+- `concurrencyConflict`：旧版本并发操作被拒绝，没有覆盖较新的解锁边界
+- `testReset`：Test reset 已实测且只重置本课堂，不影响其他实例
+- `responsiveLayouts`：手机、电脑与公共投屏尺寸均已人工检查
+- `immutableRuntime`：Studio 后续保存没有热更新正在运行的课堂
+- `exactVersions`：课程与 P／D／M／O 课件 revision／digest 与锁定值一致
+<!-- ui-acceptance-checklist:end -->

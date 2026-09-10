@@ -39,7 +39,8 @@ export interface CoursePackageRef {
   schemaVersion: number;
   revision: number;
   digest: string;
-  status: "candidate" | "approved" | "released";
+  /** Pointer state only. Historical snapshots are archived, not implicitly approved. */
+  status: "candidate" | "archived" | "released";
   createdAt?: string | null;
   createdBy?: string | null;
   /** Display-only lookup for Studio conflict/history UI; never part of exact identity. */
@@ -218,6 +219,15 @@ export interface CourseContentPackages {
   scriptPackages: CourseScriptPackage[];
   submissionSchemas: CourseSubmissionSchema[];
   reviewQueue: CourseContentReviewItem[];
+}
+
+export interface CourseCompletionPolicy {
+  mode: "explicit-mentor-confirmation";
+  /**
+   * Optional evidence gates.  Unlocking never depends on these; they are read
+   * only when a mentor explicitly ends the classroom run.
+   */
+  requiredAcceptedSubmissionSchemaIds: string[];
 }
 
 export interface CoursePackage {
@@ -480,6 +490,22 @@ export function validateCoursePackage(value: unknown): CoursePackage {
   for (const [key, expected] of Object.entries(requiredRules)) if (rules[key] !== expected) throw new Error(`$.rules.${key} 必须为 ${JSON.stringify(expected)}。`);
   exactArray(textArray(rules.executionStates, "$.rules.executionStates"), ["ready", "executing", "awaiting-acceptance", "error", "completed"], "$.rules.executionStates");
   text(rules.historyBoundary, "$.rules.historyBoundary");
+  const completionPolicy = rules.completion === undefined
+    ? null
+    : record(rules.completion, "$.rules.completion");
+  if (completionPolicy) {
+    if (completionPolicy.mode !== "explicit-mentor-confirmation") {
+      throw new Error("$.rules.completion.mode 必须为 explicit-mentor-confirmation。");
+    }
+    const requiredSchemas = textArray(
+      completionPolicy.requiredAcceptedSubmissionSchemaIds,
+      "$.rules.completion.requiredAcceptedSubmissionSchemaIds",
+      true,
+    );
+    if (new Set(requiredSchemas).size !== requiredSchemas.length) {
+      throw new Error("$.rules.completion.requiredAcceptedSubmissionSchemaIds 不能重复。");
+    }
+  }
   if (root.contentPackages !== undefined) {
     validateContentPackages(root.contentPackages, {
       courseId,
@@ -504,6 +530,17 @@ export function validateCoursePackage(value: unknown): CoursePackage {
         });
       })),
     });
+    if (completionPolicy) {
+      const knownSchemas = new Set(
+        array(record(root.contentPackages, "$.contentPackages").submissionSchemas, "$.contentPackages.submissionSchemas")
+          .map((raw, index) => text(record(raw, `$.contentPackages.submissionSchemas[${index}]`).id, `$.contentPackages.submissionSchemas[${index}].id`)),
+      );
+      for (const schemaId of completionPolicy.requiredAcceptedSubmissionSchemaIds as string[]) {
+        if (!knownSchemas.has(schemaId)) throw new Error(`$.rules.completion 引用了未知作品结构 ${schemaId}。`);
+      }
+    }
+  } else if (completionPolicy && (completionPolicy.requiredAcceptedSubmissionSchemaIds as unknown[]).length) {
+    throw new Error("$.rules.completion 声明作品门槛时必须提供 contentPackages.submissionSchemas。");
   }
   if (root.fieldModel !== undefined) {
     validateCourseFieldModel(value as CoursePackage, root.fieldModel as unknown as CourseFieldModel);
@@ -514,6 +551,16 @@ export function validateCoursePackage(value: unknown): CoursePackage {
     if (authoring.revision !== undefined && (!Number.isInteger(authoring.revision) || Number(authoring.revision) < 0)) throw new Error("$.authoring.revision 必须为非负整数。" );
   }
   return value as CoursePackage;
+}
+
+export function resolveCourseCompletionPolicy(course: CoursePackage): CourseCompletionPolicy {
+  const raw = course.rules.completion;
+  if (raw === undefined) return { mode: "explicit-mentor-confirmation", requiredAcceptedSubmissionSchemaIds: [] };
+  const completion = raw as Record<string, unknown>;
+  return {
+    mode: "explicit-mentor-confirmation",
+    requiredAcceptedSubmissionSchemaIds: [...(completion.requiredAcceptedSubmissionSchemaIds as string[])],
+  };
 }
 
 function validateContentPackages(

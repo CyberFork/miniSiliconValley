@@ -39,7 +39,7 @@
 ## Classroom 实例
 
 - `/classroom/{id}/`：当前登录人的真实导师／学员席位。
-- `/classroom/{id}/control`：该实例的 Admin DM 中控、14 项 UI 验收与回执签发。
+- `/classroom/{id}/control`：该实例的 Admin DM 中控、显式结束、16 项 UI 验收与回执签发。
 - `/classroom/{id}/screen`：成员可打开的服务端脱敏共同投屏。
 - `/classroom/{id}/members`：该实例的成员、席位和 Primary／Delegated Admin DM 管理；符合条件的 Test Classroom 还提供测试账号管理与受限身份模拟。
 

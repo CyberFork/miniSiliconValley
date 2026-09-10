@@ -12,6 +12,7 @@ import {
   applyScriptAction,
   classroomRunId,
   createClassroomInstance,
+  finishClassroomRun,
   getClassroomInstance,
   resetTestClassroom,
   reviewClassroomSubmission,
@@ -102,7 +103,7 @@ function seedAccount(db: LocalDatabase, id: string, role: "admin" | "mentor" | "
   ).run(id, id, id, role, now, now, now);
 }
 
-async function fixture(): Promise<{ db: LocalDatabase; roomId: string }> {
+async function fixture(mutateCourse?: (course: Record<string, unknown>) => void): Promise<{ db: LocalDatabase; roomId: string }> {
   const db = database();
   seedAccount(db, admin.userId, "admin");
   for (const id of Object.values(mentorIds)) seedAccount(db, id, "mentor");
@@ -110,12 +111,11 @@ async function fixture(): Promise<{ db: LocalDatabase; roomId: string }> {
   await ensureBundledCourseRegistry(db);
   await ensureBundledCourseware(db);
 
-  const ref = await saveCourseCandidate(
-    db,
-    JSON.parse(readFileSync(new URL("../tools/live-run/courses/candidates/eleme-2008-unified-t095.json", import.meta.url), "utf8")),
-    admin.userId,
-    null,
-  );
+  const sourceCourse = JSON.parse(
+    readFileSync(new URL("../tools/live-run/courses/candidates/eleme-2008-unified-t095.json", import.meta.url), "utf8"),
+  ) as Record<string, unknown>;
+  mutateCourse?.(sourceCourse);
+  const ref = await saveCourseCandidate(db, sourceCourse, admin.userId, null);
   const course = await loadExactCoursePackage(db, ref);
   const viewReceipt = await createViewAcceptanceReceipt(db, {
     courseRef: ref,
@@ -209,6 +209,118 @@ test("two mentors racing one script version produce exactly one complete mutatio
     assert.ok(rejected?.reason instanceof ClassroomError);
     assert.equal(rejected.reason.code, "SCRIPT_VERSION_CONFLICT");
     assert.deepEqual(scriptState(db, roomId), { version: 2, block_id: "B02", lifecycle: "running", mutations: 1, events: 2 });
+  } finally { db.raw.close(); }
+});
+
+test("v3 final unlock stays running and explicit finish is atomic and idempotent", async () => {
+  const { db, roomId } = await fixture();
+  try {
+    const run = { expectedRunId: classroomRunId(roomId, 0), expectedResetGeneration: 0 };
+    await expectCode(finishClassroomRun(db, admin, roomId, {
+      ...run,
+      expectedScriptVersion: 1,
+      idempotencyKey: "finish-before-final-0001",
+    }), "CLASSROOM_FINISH_SCRIPT_INCOMPLETE");
+
+    let version = 1;
+    for (let index = 2; index <= 13; index += 1) {
+      const progress = await applyScriptAction(db, admin, roomId, {
+        ...run,
+        expectedVersion: version,
+        action: { type: "unlock-next", nextBlockId: `B${String(index).padStart(2, "0")}` },
+      });
+      version = progress.version;
+    }
+    const snapshot = () => ({ ...db.raw.prepare(
+      `SELECT ci.lifecycle, ci.completed_at, ci.state_machine_version, sp.version,
+              (SELECT COUNT(*) FROM classroom_finish_mutations WHERE room_id = ?) AS mutations,
+              (SELECT COUNT(*) FROM classroom_factory_events WHERE room_id = ? AND type = 'classroom.run-finished') AS events
+       FROM classroom_instances ci JOIN classroom_script_progress sp ON sp.room_id = ci.room_id
+       WHERE ci.room_id = ?`,
+    ).get(roomId, roomId, roomId) }) as {
+      lifecycle: string;
+      completed_at: string | null;
+      state_machine_version: number;
+      version: number;
+      mutations: number;
+      events: number;
+    };
+    const before = snapshot();
+    assert.deepEqual(before, {
+      lifecycle: "running",
+      completed_at: null,
+      state_machine_version: 3,
+      version: 13,
+      mutations: 0,
+      events: 0,
+    });
+
+    const input = {
+      ...run,
+      expectedScriptVersion: version,
+      idempotencyKey: "finish-atomic-run-0001",
+    };
+    for (let index = 0; index < 4; index += 1) {
+      db.failNextBatchAt = index;
+      await assert.rejects(
+        finishClassroomRun(db, admin, roomId, input),
+        new RegExp(`INJECTED_BATCH_FAILURE:${index}/4`),
+      );
+      assert.deepEqual(snapshot(), before, `finish statement ${index} left partial state`);
+    }
+    const result = await finishClassroomRun(db, admin, roomId, input);
+    assert.equal(result.completed, true);
+    assert.equal(result.idempotent, false);
+    assert.deepEqual(snapshot(), {
+      lifecycle: "completed",
+      completed_at: result.completedAt,
+      state_machine_version: 3,
+      version: 13,
+      mutations: 1,
+      events: 1,
+    });
+    assert.deepEqual(await finishClassroomRun(db, admin, roomId, input), { ...result, idempotent: true });
+  } finally { db.raw.close(); }
+});
+
+test("completion evidence is optional unless the exact CourseDefinition explicitly requires it", async () => {
+  const { db, roomId } = await fixture((course) => {
+    const rules = course.rules as Record<string, unknown>;
+    rules.completion = {
+      mode: "explicit-mentor-confirmation",
+      requiredAcceptedSubmissionSchemaIds: ["product-brief-v1"],
+    };
+  });
+  try {
+    const run = { expectedRunId: classroomRunId(roomId, 0), expectedResetGeneration: 0 };
+    let version = 1;
+    for (let index = 2; index <= 13; index += 1) {
+      const progress = await applyScriptAction(db, admin, roomId, {
+        ...run,
+        expectedVersion: version,
+        action: { type: "unlock-next", nextBlockId: `B${String(index).padStart(2, "0")}` },
+      });
+      version = progress.version;
+    }
+    const finishInput = {
+      ...run,
+      expectedScriptVersion: version,
+      idempotencyKey: "finish-required-evidence-0001",
+    };
+    await expectCode(finishClassroomRun(db, admin, roomId, finishInput), "CLASSROOM_FINISH_EVIDENCE_REQUIRED");
+    const now = "2026-09-10T09:00:00.000Z";
+    db.raw.prepare(
+      `INSERT INTO classroom_block_submissions
+       (id, room_id, block_id, profile_id, kind, payload_json, status, created_at, updated_at)
+       VALUES (?, ?, 'B04', ?, 'product-brief', ?, 'accepted', ?, ?)`,
+    ).run("finish-evidence-submission", roomId, learnerIds[0], JSON.stringify({ schemaId: "product-brief-v1", values: {} }), now, now);
+    db.raw.prepare(
+      `INSERT INTO classroom_submission_revisions
+       (submission_id, room_id, reset_generation, version, last_mutation_id, updated_at)
+       VALUES (?, ?, 0, 1, 'finish-evidence-fixture', ?)`,
+    ).run("finish-evidence-submission", roomId, now);
+    const finished = await finishClassroomRun(db, admin, roomId, finishInput);
+    assert.equal(finished.completed, true);
   } finally { db.raw.close(); }
 });
 

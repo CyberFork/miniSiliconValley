@@ -4,6 +4,7 @@ import { ClassroomError } from "./classroom-errors";
 import {
   CLASSROOM_MENTOR_ROLES,
   CLASSROOM_STATE_MACHINE_VERSION,
+  LEGACY_CLASSROOM_STATE_MACHINE_VERSION,
   assertClassroomFactoryRequest,
   buildClassroomFactoryPlan,
   unlockNextScriptPage,
@@ -25,7 +26,12 @@ import {
   loadExactCoursePackage,
   type StudioCourseVersion,
 } from "./course-registry";
-import { courseDataIdForRef, projectCoursePackageToCampaign, type CoursePackageRef } from "./course-package";
+import {
+  courseDataIdForRef,
+  projectCoursePackageToCampaign,
+  resolveCourseCompletionPolicy,
+  type CoursePackageRef,
+} from "./course-package";
 import {
   loadCoursewareExact,
   isCoursewareLibraryVisible,
@@ -44,6 +50,9 @@ import {
 } from "./course-submission";
 import {
   COURSE_ACCEPTANCE_APP_BUILD_ID,
+  COURSE_ACCEPTANCE_SOURCE_COMMIT,
+  COURSE_PROJECTOR_CONTRACT_VERSION,
+  CLASSROOM_RUNTIME_CONTRACT_VERSION,
   recordUiAcceptanceReceipt,
   requireValidUiAcceptanceReceipt,
   requireValidViewAcceptanceReceipt,
@@ -131,6 +140,11 @@ export type ClassroomInstanceDetail = ClassroomInstanceSummary & {
     controllerStateVersion: number;
     resetGeneration: number;
     cacheEpoch: string;
+    /** Concrete deployed artifact; separate from compatibility contracts. */
+    sourceCommit: string;
+    appBuildId: string;
+    projectorContractVersion: string;
+    runtimeContractVersion: string;
     cardAssignments: Array<{ cardAssignmentId: string; cardId: string }>;
     candidateComparison: {
       exactMatch: boolean;
@@ -464,7 +478,8 @@ export async function listClassroomInstances(db: ClassroomD1, user: Authenticate
   ).all<{
     id: string; title: string; environment: ClassroomEnvironment; lifecycle: string; learner_count: number;
     course_id: string; course_revision: number; course_digest: string; schema_version: number; updated_at: string;
-    state_machine_version: 2; unlocked_through_block_id: string; unlocked_through_index: number;
+    state_machine_version: typeof CLASSROOM_STATE_MACHINE_VERSION | typeof LEGACY_CLASSROOM_STATE_MACHINE_VERSION;
+    unlocked_through_block_id: string; unlocked_through_index: number;
     script_version: number; script_updated_at: string; mentor_role: ClassroomMentorRole | null;
     learner_seat: number | null; is_admin_dm: number; admin_dm_mode: AdminDmDelegationMode | null;
     can_delegate_admin_dm: number; course_released: number;
@@ -841,6 +856,10 @@ export async function getClassroomInstance(
       controllerStateVersion: runtimeRow.controller_state_version,
       resetGeneration: runtimeRow.reset_generation,
       cacheEpoch: `reset-${runtimeRow.reset_generation}:script-${summary.script.version}:controller-${runtimeRow.controller_state_version}`,
+      sourceCommit: COURSE_ACCEPTANCE_SOURCE_COMMIT,
+      appBuildId: COURSE_ACCEPTANCE_APP_BUILD_ID,
+      projectorContractVersion: COURSE_PROJECTOR_CONTRACT_VERSION,
+      runtimeContractVersion: CLASSROOM_RUNTIME_CONTRACT_VERSION,
       cardAssignments: privateAssignments,
       candidateComparison: {
         exactMatch: runtimeRow.candidate_revision === summary.courseRef.revision && runtimeRow.candidate_digest === summary.courseRef.digest,
@@ -1195,11 +1214,19 @@ export async function applyScriptAction(
      FROM classroom_script_progress sp
      JOIN classroom_instances ci ON ci.room_id = sp.room_id WHERE sp.room_id = ?`,
   ).bind(roomId).first<{
-    state_machine_version: 2; unlocked_through_block_id: string; unlocked_through_index: number;
+    state_machine_version: typeof CLASSROOM_STATE_MACHINE_VERSION | typeof LEGACY_CLASSROOM_STATE_MACHINE_VERSION;
+    unlocked_through_block_id: string; unlocked_through_index: number;
     version: number; created_at: string; updated_at: string; environment: ClassroomEnvironment; lifecycle: string;
     course_id: string; course_revision: number; course_digest: string; reset_generation: number;
   }>();
   if (!row) throw new ClassroomError("CLASSROOM_NOT_FOUND", "课堂不存在。", 404);
+  if (row.state_machine_version !== CLASSROOM_STATE_MACHINE_VERSION
+    && row.state_machine_version !== LEGACY_CLASSROOM_STATE_MACHINE_VERSION) {
+    throw new ClassroomError("CLASSROOM_STATE_MACHINE_UNSUPPORTED", "课堂状态机版本无法由当前应用安全推进。", 409, [
+      `actual ${row.state_machine_version}`,
+      `supported ${LEGACY_CLASSROOM_STATE_MACHINE_VERSION}, ${CLASSROOM_STATE_MACHINE_VERSION}`,
+    ]);
+  }
   assertRunExpectation(roomId, row.reset_generation, input);
   if (row.version !== input.expectedVersion) throw new ClassroomError("SCRIPT_VERSION_CONFLICT", "另一位导师刚刚解锁了页面，请同步后再操作。", 409);
   const now = new Date().toISOString();
@@ -1214,7 +1241,13 @@ export async function applyScriptAction(
   let next: ClassroomScriptProgress;
   try { next = unlockNextScriptPage(current, input.action, course.blocks.map((block) => block.id), now); }
   catch (error) { throw new ClassroomError("SCRIPT_UNLOCK_INVALID", error instanceof Error ? error.message : "不能解锁这一页。", 409); }
-  const lifecycle = next.unlockedThroughIndex === course.blocks.length - 1 ? "completed" : "running";
+  // v3 separates the script frontier from classroom completion. Existing v2
+  // Production runs retain their original auto-complete behavior so a deploy
+  // never rewrites the meaning of an already-started immutable classroom.
+  const lifecycle = row.state_machine_version === LEGACY_CLASSROOM_STATE_MACHINE_VERSION
+    && next.unlockedThroughIndex === course.blocks.length - 1
+    ? "completed"
+    : "running";
   const mutationId = crypto.randomUUID();
   try {
     const result = await db.batch([
@@ -1238,7 +1271,7 @@ export async function applyScriptAction(
          SET unlocked_through_block_id = ?, unlocked_through_index = ?, state_machine_version = ?,
              version = version + 1, updated_at = ?
          WHERE room_id = ? AND version = ? AND unlocked_through_index = ?`,
-      ).bind(next.unlockedThroughBlockId, next.unlockedThroughIndex, CLASSROOM_STATE_MACHINE_VERSION, now, roomId, input.expectedVersion, current.unlockedThroughIndex),
+      ).bind(next.unlockedThroughBlockId, next.unlockedThroughIndex, next.stateMachineVersion, now, roomId, input.expectedVersion, current.unlockedThroughIndex),
       db.prepare(
         `UPDATE classroom_instances SET lifecycle = ?,
          locked_at = CASE WHEN locked_at IS NULL AND ? = 'running' THEN ? ELSE locked_at END,
@@ -1254,6 +1287,8 @@ export async function applyScriptAction(
         testView: Boolean(input.viewAsProfileId),
         runId: input.expectedRunId,
         resetGeneration: input.expectedResetGeneration,
+        stateMachineVersion: row.state_machine_version,
+        classroomLifecycle: lifecycle,
         mutationId,
       }), now),
     ]);
@@ -1263,6 +1298,188 @@ export async function applyScriptAction(
     throw error;
   }
   return next;
+}
+
+export type FinishClassroomRunInput = ClassroomRunExpectation & {
+  expectedScriptVersion: number;
+  idempotencyKey: string;
+  viewAsProfileId?: string;
+};
+
+export type FinishClassroomRunResult = {
+  completed: true;
+  completedAt: string;
+  runId: string;
+  resetGeneration: number;
+  idempotent: boolean;
+};
+
+/**
+ * Explicitly ends a v3 classroom run after its final script page is unlocked.
+ * Script unlock, evidence review, and classroom completion deliberately remain
+ * separate operations. Optional evidence gates are owned by CourseDefinition.
+ */
+export async function finishClassroomRun(
+  db: ClassroomD1,
+  user: AuthenticatedClassroomUser,
+  roomId: string,
+  input: FinishClassroomRunInput,
+): Promise<FinishClassroomRunResult> {
+  assertFinishMutationInput(input.expectedScriptVersion, input.idempotencyKey);
+  const summary = (await listClassroomInstances(db, user)).find((item) => item.id === roomId);
+  if (!summary) throw new ClassroomError("CLASSROOM_ACCESS_FORBIDDEN", "你不是这个课堂的成员或 Admin DM。", 403);
+  if (input.viewAsProfileId) {
+    if (summary.environment !== "test") {
+      throw new ClassroomError("TEST_VIEW_PRODUCTION_FORBIDDEN", "角色视角切换不能用于 Production Classroom。", 403);
+    }
+    await requireTestViewTarget(db, roomId, input.viewAsProfileId);
+  }
+  if (summary.environment !== "test" && !summary.isAdminDm && !summary.mentorRole) {
+    throw new ClassroomError("CLASSROOM_FINISH_MENTOR_REQUIRED", "只有本课堂导师或 Admin DM 可以确认结束。", 403);
+  }
+
+  const actorProfileId = auditActor(user);
+  const existing = await finishMutationReplay(db, roomId, actorProfileId, input);
+  if (existing) return existing;
+  const row = await db.prepare(
+    `SELECT ci.environment, ci.lifecycle, ci.course_id, ci.course_revision, ci.course_digest,
+            ci.reset_generation, ci.state_machine_version, ci.completed_at,
+            sp.version AS script_version, sp.unlocked_through_index
+     FROM classroom_instances ci
+     JOIN classroom_script_progress sp ON sp.room_id = ci.room_id
+     WHERE ci.room_id = ?`,
+  ).bind(roomId).first<{
+    environment: ClassroomEnvironment;
+    lifecycle: string;
+    course_id: string;
+    course_revision: number;
+    course_digest: string;
+    reset_generation: number;
+    state_machine_version: number;
+    completed_at: string | null;
+    script_version: number;
+    unlocked_through_index: number;
+  }>();
+  if (!row) throw new ClassroomError("CLASSROOM_NOT_FOUND", "课堂不存在。", 404);
+  assertRunExpectation(roomId, row.reset_generation, input);
+  if (row.state_machine_version === LEGACY_CLASSROOM_STATE_MACHINE_VERSION) {
+    throw new ClassroomError(
+      "CLASSROOM_FINISH_LEGACY_RUN",
+      "这是一场旧版课堂：末页解锁已按原规则自动结束。Test Classroom 可重置后切换到新版显式结束规则。",
+      409,
+    );
+  }
+  if (row.state_machine_version !== CLASSROOM_STATE_MACHINE_VERSION) {
+    throw new ClassroomError("CLASSROOM_STATE_MACHINE_UNSUPPORTED", "课堂状态机版本无法由当前应用安全结束。", 409);
+  }
+  if (row.script_version !== input.expectedScriptVersion) {
+    throw mutationConflict("SCRIPT_VERSION_CONFLICT", "剧本解锁边界刚刚变化，请同步后再确认结束。");
+  }
+  if (row.lifecycle === "completed") {
+    throw new ClassroomError("CLASSROOM_ALREADY_COMPLETED", "本次课堂已经结束。", 409);
+  }
+
+  const exactRef = { courseId: row.course_id, revision: row.course_revision, digest: row.course_digest };
+  const course = await loadExactCoursePackage(db, exactRef);
+  if (row.unlocked_through_index !== course.blocks.length - 1) {
+    throw new ClassroomError("CLASSROOM_FINISH_SCRIPT_INCOMPLETE", "请先解锁并讲完最后一页，再确认结束本次课堂。", 409, [
+      `已解锁 ${row.unlocked_through_index + 1}/${course.blocks.length}`,
+    ]);
+  }
+  const completion = resolveCourseCompletionPolicy(course);
+  if (completion.requiredAcceptedSubmissionSchemaIds.length) {
+    const acceptedRows = await db.prepare(
+      `SELECT s.payload_json
+       FROM classroom_block_submissions s
+       JOIN classroom_submission_revisions sr ON sr.submission_id = s.id
+       WHERE s.room_id = ? AND s.status = 'accepted' AND sr.reset_generation = ?`,
+    ).bind(roomId, row.reset_generation).all<{ payload_json: string }>();
+    const acceptedSchemaIds = new Set(
+      (acceptedRows.results ?? [])
+        .map((item) => parseStoredSubmissionPayload(item.payload_json).schemaId)
+        .filter((schemaId): schemaId is string => Boolean(schemaId)),
+    );
+    const missing = completion.requiredAcceptedSubmissionSchemaIds.filter((schemaId) => !acceptedSchemaIds.has(schemaId));
+    if (missing.length) {
+      throw new ClassroomError(
+        "CLASSROOM_FINISH_EVIDENCE_REQUIRED",
+        "本课程明确要求的成果尚未全部通过导师验收；剧本已经解锁，但暂不能结束课堂。",
+        409,
+        missing.map((schemaId) => `待通过：${schemaId}`),
+      );
+    }
+  }
+
+  const mutationId = crypto.randomUUID();
+  const now = new Date().toISOString();
+  try {
+    const result = await db.batch([
+      db.prepare(
+        `INSERT INTO classroom_finish_mutations
+         (id, room_id, reset_generation, expected_script_version, actor_profile_id, idempotency_key, created_at)
+         SELECT ?, ?, ?, ?, ?, ?, ?
+         FROM classroom_instances ci
+         JOIN classroom_script_progress sp ON sp.room_id = ci.room_id
+         WHERE ci.room_id = ? AND ci.reset_generation = ? AND ci.state_machine_version = ?
+           AND ci.lifecycle IN ('ready', 'running') AND sp.version = ? AND sp.unlocked_through_index = ?
+           AND NOT EXISTS (
+             SELECT 1 FROM classroom_finish_mutations fm
+             WHERE fm.room_id = ci.room_id AND fm.reset_generation = ci.reset_generation
+           )`,
+      ).bind(
+        mutationId,
+        roomId,
+        input.expectedResetGeneration,
+        input.expectedScriptVersion,
+        actorProfileId,
+        input.idempotencyKey,
+        now,
+        roomId,
+        input.expectedResetGeneration,
+        CLASSROOM_STATE_MACHINE_VERSION,
+        input.expectedScriptVersion,
+        course.blocks.length - 1,
+      ),
+      mutationAssertion(db, "classroom_finish_mutations", mutationId, now),
+      db.prepare(
+        `UPDATE classroom_instances
+         SET lifecycle = 'completed',
+             locked_at = COALESCE(locked_at, ?),
+             started_at = COALESCE(started_at, ?),
+             completed_at = ?, updated_at = ?
+         WHERE room_id = ? AND reset_generation = ? AND state_machine_version = ?
+           AND lifecycle IN ('ready', 'running')
+           AND EXISTS (SELECT 1 FROM classroom_finish_mutations WHERE id = ?)`,
+      ).bind(now, now, now, now, roomId, input.expectedResetGeneration, CLASSROOM_STATE_MACHINE_VERSION, mutationId),
+      factoryEvent(db, roomId, actorProfileId, "classroom.run-finished", withIdentityAudit(user, {
+        runId: input.expectedRunId,
+        resetGeneration: input.expectedResetGeneration,
+        scriptVersion: input.expectedScriptVersion,
+        stateMachineVersion: CLASSROOM_STATE_MACHINE_VERSION,
+        requiredAcceptedSubmissionSchemaIds: completion.requiredAcceptedSubmissionSchemaIds,
+        projectedProfileId: input.viewAsProfileId ?? user.userId,
+        testView: Boolean(input.viewAsProfileId),
+        mutationId,
+      }), now),
+    ]);
+    if (Number(result[0]?.meta?.changes ?? 0) !== 1 || Number(result[2]?.meta?.changes ?? 0) !== 1) {
+      throw mutationConflict("CLASSROOM_FINISH_CONFLICT", "课堂状态刚刚变化，请同步后再确认结束。");
+    }
+  } catch (error) {
+    const replay = await finishMutationReplay(db, roomId, actorProfileId, input);
+    if (replay) return replay;
+    if (isAtomicAssertionError(error)) {
+      throw mutationConflict("CLASSROOM_FINISH_CONFLICT", "课堂已重置、结束或剧本边界刚刚变化，请同步后重试。");
+    }
+    throw error;
+  }
+  return {
+    completed: true,
+    completedAt: now,
+    runId: input.expectedRunId,
+    resetGeneration: input.expectedResetGeneration,
+    idempotent: false,
+  };
 }
 
 export async function resetTestClassroom(
@@ -1321,13 +1538,13 @@ export async function resetTestClassroom(
     db.prepare(`UPDATE classroom_wallet_balances SET balance_tenths = 0, updated_at = ? WHERE room_id = ?`).bind(now, roomId),
     db.prepare(`UPDATE memberships SET pdmo_role = NULL, support_commitment = NULL, updated_at = ? WHERE room_id = ?`).bind(now, roomId),
     db.prepare(`UPDATE rooms SET phase = 'identity', chapter_id = ?, version = version + 1, paused = 0, paused_at = NULL, phase_deadline_at = NULL, player_timeline_frozen = 0, history_revealed = 0, updated_at = ? WHERE id = ?`).bind(campaign.chapters[0].id, now, roomId),
-    db.prepare(`UPDATE classroom_controller_states SET block_id = ?, block_index = 0, state = 'ready', attempt = 1, error_message = NULL, version = version + 1, updated_at = ? WHERE room_id = ?`).bind(course.blocks[0].id, now, roomId),
+    db.prepare(`UPDATE classroom_controller_states SET state_machine_version = ?, block_id = ?, block_index = 0, state = 'ready', attempt = 1, error_message = NULL, version = version + 1, updated_at = ? WHERE room_id = ?`).bind(CLASSROOM_STATE_MACHINE_VERSION, course.blocks[0].id, now, roomId),
     db.prepare(
       `UPDATE classroom_script_progress
        SET state_machine_version = ?, unlocked_through_block_id = ?, unlocked_through_index = 0,
            version = version + 1, updated_at = ? WHERE room_id = ?`,
     ).bind(CLASSROOM_STATE_MACHINE_VERSION, course.blocks[0].id, now, roomId),
-    db.prepare(`UPDATE classroom_instances SET lifecycle = 'ready', reset_generation = reset_generation + 1, locked_at = NULL, started_at = NULL, completed_at = NULL, updated_at = ? WHERE room_id = ? AND reset_generation = ?`).bind(now, roomId, instance.reset_generation),
+    db.prepare(`UPDATE classroom_instances SET lifecycle = 'ready', state_machine_version = ?, reset_generation = reset_generation + 1, locked_at = NULL, started_at = NULL, completed_at = NULL, updated_at = ? WHERE room_id = ? AND reset_generation = ?`).bind(CLASSROOM_STATE_MACHINE_VERSION, now, roomId, instance.reset_generation),
     db.prepare(`UPDATE classroom_acceptance_bindings SET ui_receipt_id = NULL WHERE room_id = ?`).bind(roomId),
   ];
   for (const learner of learners.results ?? []) {
@@ -1384,6 +1601,13 @@ export async function acceptTestClassroom(
   if (detail.script.unlockedThroughIndex !== detail.course.blockCount - 1) {
     throw new ClassroomError("TEST_NOT_COMPLETED", "请先在真实课堂 UI 中逐页确认并解锁全部剧本页。", 409);
   }
+  if (detail.lifecycle !== "completed") {
+    throw new ClassroomError(
+      "TEST_CLASSROOM_FINISH_REQUIRED",
+      "全部剧本页已经解锁，但本次课堂尚未由导师明确确认结束。",
+      409,
+    );
+  }
   if (detail.mentors.length !== 4 || detail.learners.length !== detail.learnerCount || detail.courseware.length !== 4) {
     throw new ClassroomError("TEST_INSTANCE_INCOMPLETE", "课堂成员或四导师课件绑定不完整，不能签发验收回执。", 409);
   }
@@ -1434,6 +1658,9 @@ export async function acceptTestClassroom(
       scriptUnlockVersion: detail.script.version,
       unlockedThroughBlockId: detail.script.unlockedThroughBlockId,
       appBuildId: COURSE_ACCEPTANCE_APP_BUILD_ID,
+      sourceCommit: COURSE_ACCEPTANCE_SOURCE_COMMIT,
+      projectorContractVersion: COURSE_PROJECTOR_CONTRACT_VERSION,
+      runtimeContractVersion: CLASSROOM_RUNTIME_CONTRACT_VERSION,
       ...identityAudit(user),
     },
   }, auditActor(user));
@@ -1935,9 +2162,18 @@ function assertMutationInput(expectedVersion: number, idempotencyKey: string): v
   }
 }
 
+function assertFinishMutationInput(expectedScriptVersion: number, idempotencyKey: string): void {
+  if (!Number.isInteger(expectedScriptVersion) || expectedScriptVersion < 1) {
+    throw new ClassroomError("SCRIPT_VERSION_INVALID", "剧本版本必须是正整数。", 400);
+  }
+  if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/.test(idempotencyKey)) {
+    throw new ClassroomError("IDEMPOTENCY_KEY_INVALID", "幂等键格式无效。", 400);
+  }
+}
+
 function mutationAssertion(
   db: ClassroomD1,
-  table: "classroom_submission_mutations" | "classroom_script_mutations" | "classroom_reset_mutations",
+  table: "classroom_submission_mutations" | "classroom_script_mutations" | "classroom_reset_mutations" | "classroom_finish_mutations",
   mutationId: string,
   now: string,
 ): D1PreparedStatement {
@@ -1946,6 +2182,48 @@ function mutationAssertion(
      SELECT CASE WHEN EXISTS (SELECT 1 FROM ${table} WHERE id = ?) THEN 1 ELSE 0 END, ?
      ON CONFLICT(id) DO NOTHING`,
   ).bind(mutationId, now);
+}
+
+async function finishMutationReplay(
+  db: ClassroomD1,
+  roomId: string,
+  actorProfileId: string,
+  input: FinishClassroomRunInput,
+): Promise<FinishClassroomRunResult | null> {
+  const row = await db.prepare(
+    `SELECT fm.reset_generation, fm.expected_script_version, fm.idempotency_key, fm.created_at,
+            ci.lifecycle, ci.completed_at
+     FROM classroom_finish_mutations fm
+     JOIN classroom_instances ci ON ci.room_id = fm.room_id
+     WHERE fm.room_id = ? AND fm.actor_profile_id = ? AND fm.idempotency_key = ?`,
+  ).bind(roomId, actorProfileId, input.idempotencyKey).first<{
+    reset_generation: number;
+    expected_script_version: number;
+    idempotency_key: string;
+    created_at: string;
+    lifecycle: string;
+    completed_at: string | null;
+  }>();
+  if (!row) return null;
+  if (row.reset_generation !== input.expectedResetGeneration
+    || row.expected_script_version !== input.expectedScriptVersion
+    || input.expectedRunId !== classroomRunId(roomId, row.reset_generation)) {
+    throw new ClassroomError(
+      "IDEMPOTENCY_KEY_REUSED",
+      "这个结束操作幂等键已经用于另一课堂状态；请同步后重新操作。",
+      409,
+    );
+  }
+  if (row.lifecycle !== "completed") {
+    throw mutationConflict("CLASSROOM_FINISH_CONFLICT", "结束确认已经被接收，但课堂状态尚未一致，请同步后重试。");
+  }
+  return {
+    completed: true,
+    completedAt: row.completed_at ?? row.created_at,
+    runId: input.expectedRunId,
+    resetGeneration: input.expectedResetGeneration,
+    idempotent: true,
+  };
 }
 
 function mutationConflict(code: string, message: string): ClassroomError {

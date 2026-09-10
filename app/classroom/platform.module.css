@@ -32,3 +32,5 @@
 .syncStatus{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:8px 11px;color:#b8cbc7;background:#102730;border-left:5px solid #5aa99f;font:800 11px var(--font-mono)}
 .syncStatus[data-state=connecting]{border-color:#e5b847}.syncStatus[data-state=offline]{color:#fff0d9;background:#6f302a;border-color:#ef7557}.syncStatus small{margin-left:auto;color:inherit;opacity:.78}.syncStatus button{min-height:32px;padding:0 10px;color:#14252c;background:#e5b847;border:0;font-weight:900}.screenSync{position:fixed;z-index:12;top:16px;left:50%;padding:10px 14px;transform:translateX(-50%);color:#fff0d9;background:#96382e;border:2px solid #e5b847;font-weight:900}
 @media(max-width:700px){.syncStatus{align-items:flex-start;flex-wrap:wrap}.syncStatus small{width:100%;margin-left:0}.syncStatus button{margin-left:auto}}
+
+.finishCallout{display:grid;width:100%;gap:8px;margin-top:10px;padding:14px;color:#17272c;background:#f2dfae;border-left:7px solid #c5523c}.finishCallout p{margin:0;max-width:760px}.finishCallout .button{width:max-content}

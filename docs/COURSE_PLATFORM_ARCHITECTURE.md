@@ -107,12 +107,12 @@ T-095 起，新 Candidate 还包含 `fieldModel`：它只为正文中已有值�
 - 精确绑定 `courseId + revision + digest`。
 - 共享投影器成功覆盖课程声明的全部 Block 和每个支持人数。
 - 四导师、N 学员、动态任务、中控、卡组容量、稳定发牌和私密卡分配均通过。
-- 保存签发者、场景矩阵、检查结果、`projectorVersion`、`appBuildId` 与时间。
+- 保存签发者、场景矩阵、检查结果、projector compatibility contract、实际 `sourceCommit`／`appBuildId` 与时间。
 
 有效性同时取决于：
 
 - 该 exact 版本仍是当前 Candidate 或 Released；
-- 当前投影器版本与构建兼容；
+- 当前 projector compatibility contract 兼容；
 - 回执结果为 passed。
 
 一个未发布 Candidate 被新 Candidate 替代后，旧 View 回执自动失效。当前 Released 的回执仍可用于其正式课堂。
@@ -122,11 +122,11 @@ T-095 起，新 Candidate 还包含 `fieldModel`：它只为正文中已有值�
 签发条件：
 
 - 绑定 exact CourseRelease、有效 ViewAcceptanceReceipt 和一间 TEST Classroom。
-- TEST 已完成同一版本状态机的全部 Block。
+- TEST 已解锁同一版本状态机的全部 Block，并由导师另行显式结束该 Run。
 - 锁定学员人数、seed、reset generation、四导师 Membership、N 学员 Membership、Admin DM。
 - 锁定 P／D／M／O 四套 CoursewarePackage 的 exact revision／digest。
-- 14 项真实 UI 检查全部确认。
-- 保存浏览器／平台／视口矩阵、`appBuildId`、操作者、时间和审计摘要。
+- 16 项真实 UI 检查全部确认。
+- 保存浏览器／平台／视口矩阵、projector/runtime compatibility contracts、实际 `sourceCommit`／`appBuildId`、操作者、时间和审计摘要。
 
 TEST reset 不删除历史回执，但会增加 reset generation、解除当前课堂绑定并使旧回执失效。回执不能移植到另一间课堂或另一组课件。
 
@@ -188,32 +188,36 @@ P/D/M/O 任一导师和 Admin DM 可在 Production 弹窗确认顺序解锁；�
 
 Activity 按 block 保存并覆盖同 kind 的工作记录；Economy／卡牌与浏览、解锁彻底解耦。回看或解锁不要求重新提交，也不重置已有数据。“重新提交”不是剧本流程状态：只有用户主动再次保存同一 block/kind 才更新该记录。课程可以声明任意命名的结构化作品，例如 `ProductBrief` 和 `DevelopmentStick`，共同使用 `submitted → rejected → submitted → accepted`；状态只属于作品，绝不阻塞剧本回看或偷偷改动经济数据。列表字段可以声明最少／最多条数，并在客户端和服务端同时失败关闭。已通过作品可以按 ScriptPackage 的显式规则投影给下一位导师，未通过草稿不跨专业泄漏。遗留 `classroom_controller_states` 仅作兼容镜像，Runtime 不读取。
 
+解锁末页不自动改变 v3 Classroom lifecycle。导师必须在中控弹窗中另行确认结束；该确认使用 run identity、script version、幂等键和原子 mutation。默认课程不设作品门槛；只有 exact CourseDefinition 的 `rules.completion.requiredAcceptedSubmissionSchemaIds` 明确列出的 schema，才会在“结束”操作时检查已通过证据。已有 v2 课堂保留原先末页自动完成语义，Test reset 后才升级到 v3，既有 Production 不被静默改写。
+
 Stage 1 `/studio/preview/` 是桌面内部内容投影验收：单页展示 4 导师、N 学员和中控摘要，支持完整字段核验及 hover/点击固定展开。Stage 2 才是真实 `/classroom/{id}/` Test Classroom UI；两级 exact 回执门禁后才能 Released。
 
 T-094 起，所有 exact 课程快照统一显示 `courseDataId = {courseId}@r{revision}:{digest}`。Test Runtime 另外公开 `classroomId / runId / blockId / seatId / membershipId / dealSeed / deckId / state versions / resetGeneration / cardAssignmentId` 的内部诊断。浏览器预览与服务端共享相同 UTF-16 hash、`courseId:deckId:seed` 和 checkpoint 卡组选择契约；数据库随机 assignment ID 不参与卡片显示排序。只有显式 Test reset 才生成新 runId 与 dealSeed。
 
 共同准入仍由 `ClassroomFactory.create()` 负责：exact CourseRelease、人数、成员与有效 ViewAcceptanceReceipt 必须一致。Production 额外要求 Released、有效 UiAcceptanceReceipt 及四套 exact 课件。创建使用单次 D1 事务／batch 写入，失败不留下半个课堂。
 
-## 6. 14 项真实 UI 验收
+## 6. 16 项真实 UI 验收
 
-Admin DM 只有在 TEST 完成全部课程后，才能逐项确认并签发 UI 回执：
+Admin DM 只有在 TEST 解锁全部剧本页并显式结束该 Run 后，才能逐项确认并签发 UI 回执。唯一清单由 `app/lib/course-acceptance-contract.ts` 维护：
 
-1. TEST／PRODUCTION 使用同源运行时。
-2. Membership 与 RBAC 正确。
-3. 四导师任务与 exact 课件正确。
-4. 学员任务正确。
-5. 私密卡、RP 与钱包隔离。
-6. 公共投屏脱敏。
-7. Block 执行、退回、重试与推进正确。
-8. 五大步与全部 Block 完成。
-9. 刷新后状态恢复。
-10. 重新登录后身份与席位恢复。
-11. 并发版本冲突被拒绝并可恢复。
-12. TEST reset 行为正确。
-13. 手机、桌面和投屏布局通过。
-14. 运行中实例不受 Studio 后续保存影响，课程与课件 exact 引用不漂移。
+1. Test 与 Production 使用同一套页面、API 与状态机。
+2. 四导师、N 学员、Admin DM 的 Membership 与 RBAC 均正确。
+3. 四位导师各自看到正确任务与 exact 课件入口。
+4. 每名学员都能看懂并完成当前私人任务。
+5. 学员只看到自己的私密卡、RP 与个人钱包。
+6. 公共投屏未泄漏手牌、讲稿、账号、钱包或未公开提交。
+7. 导师确认后只顺序解锁下一页，不能跳页、重复或倒退。
+8. 多人独立回看；新页解锁只通知、不强制其他窗口跳页。
+9. Test 角色 Tab 能真实切换中控、四导师、全部学员和投屏。
+10. 末页解锁后由导师另行确认结束；解锁、结束和作品验收没有混为一件事。
+11. 刷新和重新登录后，席位、手牌与课堂进度保持正确。
+12. 旧版本并发操作被拒绝，没有覆盖较新的解锁边界。
+13. Test reset 已实测且只重置本课堂，不影响其他实例。
+14. 手机、电脑与公共投屏尺寸均已人工检查。
+15. Studio 后续保存没有热更新正在运行的课堂。
+16. 课程与 P／D／M／O 课件 revision／digest 与锁定值一致。
 
-浏览器复选框只表达人工结果；签发 API 仍会校验课堂环境、生命周期、状态机、成员、课件、View 回执、reset generation 和构建版本。
+浏览器复选框只表达人工结果；签发 API 仍会校验课堂环境、显式结束后的 lifecycle、状态机、成员、课件、View 回执、reset generation 和兼容契约。自动化只能验证门禁，不能替人签发这张人工回执。
 
 ## 7. 失败关闭与失效规则
 
@@ -221,14 +225,14 @@ Admin DM 只有在 TEST 完成全部课程后，才能逐项确认并签发 UI �
 
 - Candidate／receipt 的 revision 或 digest 不一致。
 - View 回执缺失、过期、投影器不兼容或容量校验失败。
-- TEST 未完成或 14 项检查不全。
+- TEST 未完成或 16 项检查不全。
 - UI 回执来自另一课堂、另一 reset generation 或另一套课件。
 - PRODUCTION 绑定 Candidate、未发布课件或未经验收的课件。
 - 课堂开始后试图替换课程或课件版本。
 - 并发 ControllerState 写入使用旧 version。
 - 投屏载荷包含私密卡、导师讲稿、账号、钱包或未公开提交。
 
-失效不会篡改历史回执；系统通过当前 Candidate／Released pointer、投影器与构建版本、reset generation 和 exact digest 动态判断有效性。
+失效不会篡改历史回执；系统通过当前 Candidate／Released pointer、projector/runtime compatibility contracts、reset generation 和 exact digest 动态判断有效性。`sourceCommit`／`appBuildId` 保留实际验收构建的来源记录，但兼容契约不变时，纯 CSS 构建不会单独使回执失效。
 
 ## 8. 权限与隐私边界
 
@@ -307,3 +311,8 @@ Script Layer 只保存 append-only `unlockedThroughBlockId`、`unlockedThroughBl
 0007 迁移只将旧 `blockIndex` 解释为已解锁边界，保留提交、卡牌、RP、钱包、团队资金与 Activity。Activity 按 block/kind 覆盖保存；Economy、卡牌与浏览/解锁解耦，回看或解锁不重置数据。“重新提交”不是状态，只有用户主动再次保存同一 block/kind 才更新记录。`classroom_controller_states` 仅兼容镜像，Runtime 不读取。
 
 操作路径：导师在 `/classroom/{id}/` 保存工作并在 Production 弹窗确认解锁；学员仅使用自己的席位回看并点击“回到最新”；验收者在 Test 依次检查 `/control`、角色席位与 `/screen`，确认隐私、并发和刷新恢复后签发 UI 回执。
+
+
+## 完成契约与证据边界
+
+末页解锁、导师 explicit finish、可选 evidence gates 与作品验收彼此解耦；默认没有作品门槛，只有 CourseDefinition.rules.completion 显式声明 requiredAcceptedSubmissionSchemaIds 才要求对应作品。sourceCommit/appBuildId 表示 actual build provenance；projector/runtime contract 是兼容契约，纯 CSS 变化在兼容契约不变时不自动使回执失效。历史快照称 archived，不得冒充当前版本。证据层级为源码、纯函数、API+DB、浏览器、人工、部署；不得伪造人工回执。Pad 实机验收仍属 T-088，尚未完成。

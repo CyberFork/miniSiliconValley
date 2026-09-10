@@ -5,10 +5,12 @@ import test from "node:test";
 
 import type { ClassroomD1 } from "../db";
 import {
-  COURSE_ACCEPTANCE_APP_BUILD_ID,
   COURSE_ACCEPTANCE_RECEIPT_SCHEMA_VERSION,
   COURSE_PROJECTOR_VERSION,
+  requireValidUiAcceptanceReceipt,
+  requireValidViewAcceptanceReceipt,
 } from "../app/lib/course-acceptance";
+import { CLASSROOM_RUNTIME_CONTRACT_VERSION } from "../app/lib/course-acceptance-contract";
 import { CLASSROOM_STATE_MACHINE_VERSION } from "../app/lib/classroom-factory";
 import { ClassroomError } from "../app/lib/classroom-errors";
 import { bundledCoursePackages, type CoursePackageRef } from "../app/lib/course-package";
@@ -295,6 +297,8 @@ test("Candidate save winning before release commit makes the checked release fai
   const db = database();
   try {
     const now = "2026-09-10T00:00:00Z";
+    const historicalAppBuildId = "historical-build-t102";
+    const historicalSourceCommit = "0".repeat(40);
     db.raw.prepare("INSERT INTO profiles (id,nickname,created_at,updated_at) VALUES (?,?,?,?)").run("reviewer", "Reviewer", now, now);
     await ensureBundledCourseRegistry(db);
     const course = freshCourse();
@@ -313,7 +317,15 @@ test("Candidate save winning before release commit makes the checked release fai
       `INSERT INTO course_view_acceptance_receipts
        (id,receipt_schema_version,course_id,revision,digest,status,scenarios_json,checks_json,projector_version,app_build_id,reviewer_profile_id,accepted_at,created_at)
        VALUES (?,?,?,?,?,'accepted','[]','{}',?,?,?,?,?)`,
-    ).run("view-t099", COURSE_ACCEPTANCE_RECEIPT_SCHEMA_VERSION, candidate.courseId, candidate.revision, candidate.digest, COURSE_PROJECTOR_VERSION, COURSE_ACCEPTANCE_APP_BUILD_ID, "reviewer", now, now);
+    ).run("view-t099", COURSE_ACCEPTANCE_RECEIPT_SCHEMA_VERSION, candidate.courseId, candidate.revision, candidate.digest, COURSE_PROJECTOR_VERSION, historicalAppBuildId, "reviewer", now, now);
+    db.raw.prepare(
+      `INSERT INTO course_acceptance_build_identities
+       (receipt_id,receipt_kind,projector_contract_version,runtime_contract_version,source_commit,app_build_id,created_at)
+       VALUES (?,?,?,?,?,?,?)`,
+    ).run(
+      "view-t099", "view", COURSE_PROJECTOR_VERSION, "not-applicable",
+      historicalSourceCommit, historicalAppBuildId, now,
+    );
     db.raw.prepare(
       `INSERT INTO course_ui_acceptance_receipts
        (id,receipt_schema_version,room_id,view_receipt_id,course_id,revision,digest,learner_count,deal_seed,reset_generation,state_machine_version,courseware_bundle_digest,courseware_refs_json,mentor_memberships_json,learner_memberships_json,admin_dm_json,checks_json,client_matrix_json,app_build_id,audit_summary_json,status,accepted_at,accepted_by_profile_id,created_at)
@@ -322,7 +334,21 @@ test("Candidate save winning before release commit makes the checked release fai
       "ui-t099", COURSE_ACCEPTANCE_RECEIPT_SCHEMA_VERSION, "room-t099", "view-t099",
       candidate.courseId, candidate.revision, candidate.digest, 4, "seed", 0,
       CLASSROOM_STATE_MACHINE_VERSION, "bundle-t099", "[]", "[]", "[]", "[]", "{}", "[]",
-      COURSE_ACCEPTANCE_APP_BUILD_ID, "{}", "accepted", now, "reviewer", now,
+      historicalAppBuildId, "{}", "accepted", now, "reviewer", now,
+    );
+    db.raw.prepare(
+      `INSERT INTO course_acceptance_build_identities
+       (receipt_id,receipt_kind,projector_contract_version,runtime_contract_version,source_commit,app_build_id,created_at)
+       VALUES (?,?,?,?,?,?,?)`,
+    ).run(
+      "ui-t099", "ui", COURSE_PROJECTOR_VERSION, CLASSROOM_RUNTIME_CONTRACT_VERSION,
+      historicalSourceCommit, historicalAppBuildId, now,
+    );
+    assert.equal((await requireValidViewAcceptanceReceipt(db, candidate, "view-t099")).appBuildId, historicalAppBuildId);
+    assert.equal(
+      (await requireValidUiAcceptanceReceipt(db, candidate, "ui-t099", "view-t099")).appBuildId,
+      historicalAppBuildId,
+      "a different concrete build stays valid while its compatibility contracts still match",
     );
     const changed = structuredClone(course); changed.title += " · wins race";
     db.beforeBatch = async (statements) => {

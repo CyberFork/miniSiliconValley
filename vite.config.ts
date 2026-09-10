@@ -1,5 +1,6 @@
 import vinext from "vinext";
 import { defineConfig } from "vite";
+import { execFileSync } from "node:child_process";
 import hostingConfig from "./.openai/hosting.json";
 import { sites } from "./build/sites-vite-plugin";
 
@@ -15,6 +16,27 @@ const publicBase = process.env.MSV_PUBLIC_BASE ?? "/";
 if (!publicBase.startsWith("/") || !publicBase.endsWith("/") || publicBase.includes("..") || publicBase.includes("//")) {
   throw new Error(`MSV_PUBLIC_BASE must be a normalized absolute path ending in /: ${publicBase}`);
 }
+
+function sourceCommit(): string {
+  const explicit = process.env.MSV_SOURCE_COMMIT?.trim();
+  if (explicit) {
+    if (!/^[0-9a-f]{40}$/.test(explicit)) throw new Error("MSV_SOURCE_COMMIT must be a full lowercase git SHA.");
+    return explicit;
+  }
+  try {
+    return execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+  } catch {
+    return "unknown-source-commit";
+  }
+}
+
+const buildSourceCommit = sourceCommit();
+const buildIsDirty = (() => {
+  try { return Boolean(execFileSync("git", ["status", "--porcelain", "--untracked-files=normal"], { encoding: "utf8" }).trim()); }
+  catch { return true; }
+})();
+const appBuildId = process.env.MSV_APP_BUILD_ID?.trim()
+  || `source-${buildSourceCommit.slice(0, 12)}${buildIsDirty ? "-dirty" : ""}`;
 
 const runtimeVars: Record<string, string> = {};
 for (const key of [
@@ -64,6 +86,10 @@ export default defineConfig(async () => {
 
   return {
     base: publicBase,
+    define: {
+      __MSV_SOURCE_COMMIT__: JSON.stringify(buildSourceCommit),
+      __MSV_APP_BUILD_ID__: JSON.stringify(appBuildId),
+    },
     server: isCodexSeatbeltSandbox
       ? { watch: { useFsEvents: false, usePolling: true } }
       : undefined,

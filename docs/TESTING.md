@@ -27,8 +27,9 @@ npm run test:minisv-app
 ```text
 Candidate exact revision/digest
   → ViewAcceptanceReceipt
-  → TEST Classroom 完成全部 Block
-  → 14 项 UI 检查
+  → TEST Classroom 解锁全部 Block
+  → 导师显式确认结束本次 Run
+  → 16 项 UI 检查
   → UiAcceptanceReceipt
   → Released
   → PRODUCTION Classroom
@@ -39,15 +40,16 @@ Candidate exact revision/digest
 - 只读取已保存 Candidate，不读取浏览器 Working Copy。
 - 使用共享 `buildStudioProjection()` 遍历全部 Block 和课程声明的每个支持人数。
 - 校验 `4 + N + 1` 视图、动态任务、卡牌容量、固定 seed、不重复发牌和私密卡分配。
-- exact revision／digest、projector version 或 app build 不一致时失效。
+- exact revision／digest 或 projector compatibility contract 不一致时失效。
+- 回执同时记录实际 `sourceCommit`／`appBuildId` 以追溯验收过的构建；兼容契约不变时，纯样式构建不会自动使旧回执失效。
 - 未发布 Candidate 被新 Candidate 取代后，旧回执失效。
 - 当前 Released 可继续保留其 exact 有效回执。
 - 重复签发同一业务指纹返回同一持久 receipt id。
 
 ### UiAcceptanceReceipt
 
-- 只能由完成全部 Block 的 TEST Classroom 签发。
-- 14 个必检项缺一即拒绝。
+- 只能由已解锁全部 Block、且由导师另行显式结束的 TEST Classroom 签发。
+- 16 个必检项缺一即拒绝。
 - 锁定 exact Candidate、View 回执、Test Classroom、N、seed、reset generation、state machine、4 + N Membership、Admin DM 和四套课件。
 - 保存 browser／platform／viewport client matrix、app build、操作者和审计摘要。
 - TEST reset 后历史回执保留但立即失效，课堂当前 binding 被清空。
@@ -97,20 +99,21 @@ Candidate exact revision/digest
 2. 证明伪造 View 回执不能创建 Test。
 3. 创建绑定四套 exact 课件的 TEST。
 4. 触发真实并发 409，并在完整运行前测试 reset。
-5. 推进并接受全部 13 Block。
-6. 证明不完整的 14 项检查不能签收。
-7. 签发并重复签发 Ui 回执，验证持久 id 与 classroom binding。
-8. 证明缺少 UI 回执不能发布。
-9. 使用双回执发布 Released。
-10. 用同一组 exact 课件创建 PRODUCTION。
-11. reset TEST，验证 UI 回执失效而 PRODUCTION 不漂移。
-12. 新 Candidate 使旧未发布 Candidate 的 View 回执失效。
-13. 构造容量不足课程，证明 View／Test 失败关闭。
-14. 验证 N=6、动态任务、手牌隔离、Admin DM 权限与数据隔离。
-15. 验证 Studio 00—04 真实 href、统一账号菜单、服务端登出与安全 returnTo。
-16. 验证 Primary／Delegated 非递归委派、主动退出、立即撤销和跨课堂隔离。
-17. 验证 Test 导师／学员／Delegated 身份模拟、actor/effective 审计、Production／Studio／Account 失败关闭。
-18. 验证 Test 身份停用、启用、一次性凭据重发及相关会话撤销。
+5. 顺序解锁全部 13 Block，并证明末页解锁后 lifecycle 仍为 `running`。
+6. 证明未显式结束时不能签 UI 回执，再显式结束并验证幂等重放。
+7. 证明不完整的 16 项检查不能签收。
+8. 签发并重复签发 Ui 回执，验证持久 id 与 classroom binding。
+9. 证明缺少 UI 回执不能发布。
+10. 使用双回执发布 Released。
+11. 用同一组 exact 课件创建 PRODUCTION。
+12. reset TEST，验证 UI 回执失效而 PRODUCTION 不漂移。
+13. 新 Candidate 使旧未发布 Candidate 的 View 回执失效。
+14. 构造容量不足课程，证明 View／Test 失败关闭。
+15. 验证 N=6、动态任务、手牌隔离、Admin DM 权限与数据隔离。
+16. 验证 Studio 00—04 真实 href、统一账号菜单、服务端登出与安全 returnTo。
+17. 验证 Primary／Delegated 非递归委派、主动退出、立即撤销和跨课堂隔离。
+18. 验证 Test 导师／学员／Delegated 身份模拟、actor/effective 审计、Production／Studio／Account 失败关闭。
+19. 验证 Test 身份停用、启用、一次性凭据重发及相关会话撤销。
 
 成功标记包含：
 
@@ -139,8 +142,8 @@ COURSE_PLATFORM_E2E_PASS t086=view-receipt+ui-receipt+release-gates t087=navigat
 - Test Factory 只列出有有效 View 回执的版本。
 - Production Factory 只列出有两张有效回执的 Released，并锁定验收过的课件。
 - 导师、N 学员、Admin DM 和 screen 分别只看到权限允许内容。
-- 中控能执行、收齐、退回／重试、接受、推进和完成。
-- 完成后显示 14 项真实 UI 清单；签收后显示 receipt id 与发布入口。
+- 中控能顺序解锁、独立回看、回到最新，并在末页讲完后显式结束；作品保存／退回／接受不与剧本翻页混为一个状态机。
+- 完成后显示 16 项真实 UI 清单；签收后显示 receipt id 与发布入口。
 - TEST 有 reset；PRODUCTION 永远不显示 reset。
 - 页面无横向遮挡、控件重叠、按钮无响应、资源 404 或 console error。
 - Primary／Delegated 标签准确；Delegated 没有委派控件但仍可使用主控，直接调用委派 API 也必须失败。
@@ -181,3 +184,23 @@ npm run test:release
 ```
 
 它额外覆盖历史世界、Work 旧构建、Parent Q&A 和旧资料兼容。历史文档中的“课程大纲”或旧 Classroom 路由不是现行语义；以本文件、`COURSE_PLATFORM_ARCHITECTURE.md` 与 `MSV_SITE_MAP.md` 为准。
+
+
+<!-- ui-acceptance-checklist:start -->
+- `sameRuntimeUi`：Test 与 Production 使用同一套页面、API 与状态机
+- `membershipsAndRbac`：四导师、N 学员、Admin DM 的 Membership 与 RBAC 均正确
+- `mentorTasksAndCourseware`：四位导师各自看到正确任务与 exact 课件入口
+- `learnerTasks`：每名学员都能看懂并完成当前私人任务
+- `learnerPrivacy`：学员只看到自己的私密卡、RP 与个人钱包
+- `sharedScreenRedaction`：公共投屏未泄漏手牌、讲稿、账号、钱包或未公开提交
+- `scriptUnlockFlow`：导师确认后只顺序解锁下一页，不能跳页、重复或倒退
+- `independentNavigation`：多人独立回看；新页解锁只通知、不强制其他窗口跳页
+- `testRoleSwitching`：Test 角色 Tab 能真实切换中控、四导师、全部学员和投屏
+- `explicitClassroomFinish`：末页解锁后由导师另行确认结束；解锁、结束和作品验收没有混为一件事
+- `refreshAndRelogin`：刷新和重新登录后，席位、手牌与课堂进度保持正确
+- `concurrencyConflict`：旧版本并发操作被拒绝，没有覆盖较新的解锁边界
+- `testReset`：Test reset 已实测且只重置本课堂，不影响其他实例
+- `responsiveLayouts`：手机、电脑与公共投屏尺寸均已人工检查
+- `immutableRuntime`：Studio 后续保存没有热更新正在运行的课堂
+- `exactVersions`：课程与 P／D／M／O 课件 revision／digest 与锁定值一致
+<!-- ui-acceptance-checklist:end -->

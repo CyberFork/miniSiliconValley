@@ -21,7 +21,7 @@ export function integerValue(value: unknown, label: string, minimum = 0, maximum
 export function parseCourseRef(value: unknown): CoursePackageRef {
   const raw = objectValue(value, "courseRef");
   const status = raw.status;
-  if (status !== "candidate" && status !== "released" && status !== "approved") throw new ClassroomError("INPUT_INVALID", "courseRef.status 无效。", 400);
+  if (status !== "candidate" && status !== "released" && status !== "archived") throw new ClassroomError("INPUT_INVALID", "courseRef.status 无效。", 400);
   return {
     courseId: stringValue(raw.courseId, "courseId", 64),
     schemaVersion: integerValue(raw.schemaVersion, "schemaVersion", 1, 100),

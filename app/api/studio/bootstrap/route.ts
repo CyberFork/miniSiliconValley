@@ -1,6 +1,9 @@
 import { studioVersionSummary } from "../../../lib/classroom-platform-store";
 import {
   COURSE_ACCEPTANCE_APP_BUILD_ID,
+  COURSE_ACCEPTANCE_SOURCE_COMMIT,
+  COURSE_PROJECTOR_CONTRACT_VERSION,
+  CLASSROOM_RUNTIME_CONTRACT_VERSION,
   COURSE_PROJECTOR_VERSION,
   listAcceptanceClassrooms,
   listUiAcceptanceReceipts,
@@ -42,6 +45,9 @@ export async function GET(request: Request): Promise<Response> {
       acceptanceClassrooms,
       acceptanceRuntime: {
         projectorVersion: COURSE_PROJECTOR_VERSION,
+        projectorContractVersion: COURSE_PROJECTOR_CONTRACT_VERSION,
+        runtimeContractVersion: CLASSROOM_RUNTIME_CONTRACT_VERSION,
+        sourceCommit: COURSE_ACCEPTANCE_SOURCE_COMMIT,
         appBuildId: COURSE_ACCEPTANCE_APP_BUILD_ID,
       },
     };

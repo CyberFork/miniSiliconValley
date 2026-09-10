@@ -615,6 +615,24 @@ export const courseUiAcceptanceReceipts = sqliteTable(
   ],
 );
 
+export const courseAcceptanceBuildIdentities = sqliteTable(
+  "course_acceptance_build_identities",
+  {
+    receiptId: text("receipt_id").notNull(),
+    receiptKind: text("receipt_kind").notNull(),
+    projectorContractVersion: text("projector_contract_version").notNull(),
+    runtimeContractVersion: text("runtime_contract_version").notNull(),
+    sourceCommit: text("source_commit").notNull(),
+    appBuildId: text("app_build_id").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.receiptId, table.receiptKind] }),
+    index("idx_course_acceptance_identity_contracts").on(table.receiptKind, table.projectorContractVersion, table.runtimeContractVersion),
+    check("chk_course_acceptance_identity_kind", sql`${table.receiptKind} in ('view', 'ui')`),
+  ],
+);
+
 /** Binds every Test/Production instance to the receipts that admitted it. */
 export const classroomAcceptanceBindings = sqliteTable(
   "classroom_acceptance_bindings",
@@ -996,6 +1014,25 @@ export const classroomResetMutations = sqliteTable(
   (table) => [
     uniqueIndex("uidx_classroom_reset_mutation_generation").on(table.roomId, table.fromGeneration),
     check("chk_classroom_reset_mutation_generations", sql`${table.fromGeneration} >= 0 and ${table.toGeneration} = ${table.fromGeneration} + 1`),
+  ],
+);
+
+export const classroomFinishMutations = sqliteTable(
+  "classroom_finish_mutations",
+  {
+    id: text("id").primaryKey(),
+    roomId: text("room_id").notNull().references(() => rooms.id, { onDelete: "cascade" }),
+    resetGeneration: integer("reset_generation").notNull(),
+    expectedScriptVersion: integer("expected_script_version").notNull(),
+    actorProfileId: text("actor_profile_id").notNull().references(() => profiles.id),
+    idempotencyKey: text("idempotency_key").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("uidx_classroom_finish_run").on(table.roomId, table.resetGeneration),
+    uniqueIndex("uidx_classroom_finish_idempotency").on(table.roomId, table.actorProfileId, table.idempotencyKey),
+    check("chk_classroom_finish_generation", sql`${table.resetGeneration} >= 0`),
+    check("chk_classroom_finish_script_version", sql`${table.expectedScriptVersion} >= 1`),
   ],
 );
 

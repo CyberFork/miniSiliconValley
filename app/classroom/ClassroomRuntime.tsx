@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type 
 import { AccountMenu, type AccountMenuUser } from "../components/AccountMenu";
 import type { ClassroomScriptAction } from "../lib/classroom-factory";
 import type { ClassroomInstanceDetail, ClassroomSharedScreenDetail } from "../lib/classroom-platform-store";
+import { UI_ACCEPTANCE_CHECKLIST, type UiAcceptanceChecks } from "../lib/course-acceptance-contract";
 import { canCommitClassroomRuntimeResponse, classroomDeviceDraftKey, classroomRuntimeRequestKey, type ClassroomRuntimeRequestIdentity } from "../lib/classroom-runtime-sync";
 import styles from "./platform.module.css";
 import manageStyles from "./platform-manage.module.css";
@@ -13,26 +14,7 @@ type RuntimeView = "seat" | "control" | "members";
 type RuntimeProps = { classroomId: string; view: RuntimeView; user: AccountMenuUser };
 type NavigationState = { blockId: string | null; testSurface: string | null };
 type RuntimeSyncState = "connecting" | "online" | "offline";
-const UI_ACCEPTANCE_CHECKLIST = [
-  ["sameRuntimeUi", "Test 与 Production 使用同一套页面、API 与状态机"],
-  ["membershipsAndRbac", "四导师、N 学员、Admin DM 的 Membership 与 RBAC 均正确"],
-  ["mentorTasksAndCourseware", "四位导师各自看到正确任务与 exact 课件入口"],
-  ["learnerTasks", "每名学员都能看懂并完成当前私人任务"],
-  ["learnerPrivacy", "学员只看到自己的私密卡、RP 与个人钱包"],
-  ["sharedScreenRedaction", "公共投屏未泄漏手牌、讲稿、账号、钱包或未公开提交"],
-  ["scriptUnlockFlow", "导师确认后只顺序解锁下一页，不能跳页、重复或倒退"],
-  ["independentNavigation", "多人独立回看；新页解锁只通知、不强制其他窗口跳页"],
-  ["testRoleSwitching", "Test 角色 Tab 能真实切换中控、四导师、全部学员和投屏"],
-  ["fiveStepCompletion", "五大步及全部 Block 已在真实 UI 中完整走完"],
-  ["refreshAndRelogin", "刷新和重新登录后，席位、手牌与课堂进度保持正确"],
-  ["concurrencyConflict", "旧版本并发操作被拒绝，没有覆盖较新的解锁边界"],
-  ["testReset", "Test reset 已实测且只重置本课堂，不影响其他实例"],
-  ["responsiveLayouts", "手机、电脑与公共投屏尺寸均已人工检查"],
-  ["immutableRuntime", "Studio 后续保存没有热更新正在运行的课堂"],
-  ["exactVersions", "课程与 P／D／M／O 课件 revision／digest 与锁定值一致"],
-] as const;
-type TestReceiptCheckKey = (typeof UI_ACCEPTANCE_CHECKLIST)[number][0];
-type TestReceiptChecks = Record<TestReceiptCheckKey, boolean>;
+type TestReceiptChecks = UiAcceptanceChecks;
 const BOUNDARY = {
   F: { short: "F 有来源", title: "有来源的事实" },
   R: { short: "R 课堂模拟", title: "课堂平行世界中的模拟" },
@@ -60,6 +42,8 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
   const [syncState, setSyncState] = useState<RuntimeSyncState>("connecting");
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
   const [unlockTarget, setUnlockTarget] = useState<{ id: string; title: string } | null>(null);
+  const [finishOpen, setFinishOpen] = useState(false);
+  const finishMutationKey = useRef(newMutationKey());
   const observedUnlockVersion = useRef<number | null>(null);
   const dataRef = useRef<ClassroomInstanceDetail | null>(null);
   const loadRequestGeneration = useRef(0);
@@ -207,6 +191,21 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
     if (result) navigateTo(target.id);
   };
 
+  const finish = async () => {
+    if (!data) return;
+    const result = await mutate<{ completed: true }>(`/api/platform/classrooms/${encodeURIComponent(classroomId)}/finish`, {
+      expectedScriptVersion: data.script.version,
+      expectedRunId: data.runtimeIdentity.runId,
+      expectedResetGeneration: data.runtimeIdentity.resetGeneration,
+      idempotencyKey: finishMutationKey.current,
+      ...(viewAsProfileId ? { viewAsProfileId } : {}),
+    }, "本次课堂已经明确结束；剧本、作品、RP 与资金记录均保持原样。");
+    if (result) {
+      finishMutationKey.current = newMutationKey();
+      setFinishOpen(false);
+    }
+  };
+
   if (error && !data) return <RuntimeError error={error} />;
   if (!data) return <main className={styles.runtime}><div className={styles.runtimeMain}>正在连接这一个 Classroom 实例…</div></main>;
   const screenMode = data.environment === "test" && selectedSurface === "screen";
@@ -223,6 +222,7 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
       {view === "members" ? <MembersView data={data} /> : !roleProjectionReady ? <section className={styles.card} aria-live="polite">正在切换真实角色视图…</section> : screenMode ? <SharedScreen data={toSharedScreen(data)} />
         : selectedSurface === "control" ? <ControlView data={data} busy={busy}
           requestUnlock={() => data.scriptNavigation.nextLocked && setUnlockTarget(data.scriptNavigation.nextLocked)}
+          requestFinish={() => setFinishOpen(true)}
           reset={async () => {
             const result = await mutate(`/api/platform/classrooms/${classroomId}/reset`, {
               expectedRunId: data.runtimeIdentity.runId,
@@ -256,6 +256,7 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
         />}
     </div>
     {unlockTarget && <UnlockDialog target={unlockTarget} busy={busy} onCancel={() => setUnlockTarget(null)} onConfirm={() => void unlock()} />}
+    {finishOpen && <FinishDialog data={data} busy={busy} onCancel={() => setFinishOpen(false)} onConfirm={() => void finish()} />}
   </main>;
 }
 
@@ -282,6 +283,9 @@ function RuntimeDiagnostics({ data }: { data: ClassroomInstanceDetail }) {
       <span><small>block / deck</small><code>{diagnostic.blockId} / {diagnostic.deckId} r{diagnostic.deckRevision}</code></span>
       <span><small>deal seed</small><code>{diagnostic.dealSeed}</code></span>
       <span><small>state / reset / cache</small><code>{diagnostic.scriptStateVersion} / {diagnostic.resetGeneration} / {diagnostic.cacheEpoch}</code></span>
+      <span><small>source / app build</small><code>{diagnostic.sourceCommit} / {diagnostic.appBuildId}</code></span>
+      <span><small>projector / runtime contract</small><code>{diagnostic.projectorContractVersion} / {diagnostic.runtimeContractVersion}</code></span>
+      <span><small>exact courseware refs</small><code>{data.courseware.map((item) => `${item.mentorRole}:${item.slug}@r${item.revision}:${item.digest.slice(0, 12)}`).join(" · ")}</code></span>
       <span><small>当前 Candidate</small><code>{candidate ? `${candidate.courseId}@r${candidate.revision}:${candidate.digest}` : "没有 Candidate 指针"}</code></span>
       <span><small>本视角 cardAssignment</small><code>{diagnostic.cardAssignments.length ? diagnostic.cardAssignments.map((item) => `${item.cardAssignmentId}:${item.cardId}`).join(" · ") : "当前视角无私密发牌"}</code></span>
     </div>
@@ -404,6 +408,30 @@ function UnlockDialog({ target, busy, onCancel, onConfirm }: { target: { id: str
   }, [busy, onCancel]);
   return <div className={styles.dialogBackdrop} role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onCancel(); }}><section className={styles.dialog} role="dialog" aria-modal="true" aria-labelledby="unlock-title">
     <small className={styles.eyebrow}>导师确认 · 只增加可见页</small><h2 id="unlock-title">解锁 {target.id}？</h2><p><b>{target.title}</b></p><ul><li>全员会收到“新页已解锁”的通知。</li><li>其他人的屏幕不会被强制跳转。</li><li>提交、手牌、RP、钱包与团队资金都不会变化。</li><li>解锁后不能重新锁回去。</li></ul><div className={styles.dialogActions}><button className={styles.secondary} disabled={busy} onClick={onCancel}>取消</button><button className={styles.button} disabled={busy} onClick={onConfirm}>{busy ? "处理中…" : "确认解锁并进入"}</button></div>
+  </section></div>;
+}
+
+function FinishDialog({ data, busy, onCancel, onConfirm }: {
+  data: ClassroomInstanceDetail;
+  busy: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape" && !busy) onCancel(); };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [busy, onCancel]);
+  return <div className={styles.dialogBackdrop} role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onCancel(); }}><section className={styles.dialog} role="dialog" aria-modal="true" aria-labelledby="finish-title">
+    <small className={styles.eyebrow}>导师确认 · 结束本次运行</small><h2 id="finish-title">确认本次课堂已经结束？</h2>
+    <p><b>{data.title}</b> · {data.runtimeIdentity.runId}</p>
+    <ul>
+      <li>这一步只把当前课堂运行标记为“已结束”，不会解锁或修改任何剧本页。</li>
+      <li>学员作品、导师反馈、手牌、RP、个人钱包与团队资金全部原样保留。</li>
+      <li>课程如明确声明必需成果，服务端会在此刻检查“已通过”，但作品从不阻塞翻页。</li>
+      <li>{data.environment === "test" ? "Test Classroom 仍可由 Admin DM 单独重置后重新验收。" : "Production Classroom 结束后不能重置，请确认现场流程已完成。"}</li>
+    </ul>
+    <div className={styles.dialogActions}><button className={styles.secondary} disabled={busy} onClick={onCancel}>继续上课</button><button className={styles.button} disabled={busy} onClick={onConfirm}>{busy ? "正在确认…" : "确认结束本次课堂"}</button></div>
   </section></div>;
 }
 
@@ -630,14 +658,15 @@ function Progress({ data }: { data: ClassroomInstanceDetail }) {
   return <div className={styles.progress} aria-label={`已解锁 ${data.script.unlockedThroughIndex + 1}/${data.course.blockCount}，正在看第 ${data.scriptNavigation.viewedIndex + 1} 页`}>{Array.from({ length: data.course.blockCount }, (_, index) => <span key={index} data-done={index <= data.script.unlockedThroughIndex} data-current={index === data.scriptNavigation.viewedIndex} />)}</div>;
 }
 
-function ControlView({ data, busy, requestUnlock, reset, receipt }: {
+function ControlView({ data, busy, requestUnlock, requestFinish, reset, receipt }: {
   data: ClassroomInstanceDetail;
   busy: boolean;
   requestUnlock: () => void;
+  requestFinish: () => void;
   reset: () => Promise<unknown>;
   receipt: (checks: TestReceiptChecks) => Promise<unknown>;
 }) {
-  const [receiptChecks, setReceiptChecks] = useState<TestReceiptChecks>(() => Object.fromEntries(UI_ACCEPTANCE_CHECKLIST.map(([key]) => [key, false])) as TestReceiptChecks);
+  const [receiptChecks, setReceiptChecks] = useState<TestReceiptChecks>(() => Object.fromEntries(UI_ACCEPTANCE_CHECKLIST.map((item) => [item.id, false])) as TestReceiptChecks);
   const control = data.controlView;
   if (!control) return <section className={styles.card}><h1>没有主持提示权限</h1></section>;
   const atFrontier = data.scriptNavigation.viewedIndex === data.script.unlockedThroughIndex;
@@ -654,13 +683,15 @@ function ControlView({ data, busy, requestUnlock, reset, receipt }: {
         <div className={styles.controlActions}>
           {atFrontier && !allUnlocked && data.scriptNavigation.canUnlockNext && <button className={styles.button} disabled={busy} onClick={requestUnlock}>确认解锁 {data.scriptNavigation.nextLocked?.id}</button>}
           {!atFrontier && <p>你正在回看；使用上方“回到最新解锁”后才能继续解锁。</p>}
-          {allUnlocked && data.environment === "test" && data.acceptance.uiReceiptId && <div className={styles.receiptSuccess}><b>✓ UiAcceptanceReceipt 已签发</b><code>{data.acceptance.uiReceiptId}</code><br/><Link href="/studio/releases/">返回验收与发布 →</Link></div>}
-          {allUnlocked && data.environment === "test" && !data.acceptance.uiReceiptId && data.isAdminDm && <fieldset className={styles.receiptChecks}>
+          {allUnlocked && data.lifecycle !== "completed" && <div className={styles.finishCallout}><b>全部剧本页已经解锁，但课堂还没有结束。</b><p>请先讲完结尾与 Demo／复盘，再单独确认结束。解锁末页不会自动代表作品或课堂完成。</p><button className={styles.button} disabled={busy || !atFrontier} onClick={requestFinish}>{atFrontier ? "确认结束本次课堂" : "先回到最新解锁页"}</button></div>}
+          {allUnlocked && data.lifecycle === "completed" && <div className={styles.receiptSuccess}><b>✓ 本次课堂已明确结束</b><code>{data.runtimeIdentity.runId}</code></div>}
+          {allUnlocked && data.lifecycle === "completed" && data.environment === "test" && data.acceptance.uiReceiptId && <div className={styles.receiptSuccess}><b>✓ UiAcceptanceReceipt 已签发</b><code>{data.acceptance.uiReceiptId}</code><br/><Link href="/studio/releases/">返回验收与发布 →</Link></div>}
+          {allUnlocked && data.lifecycle === "completed" && data.environment === "test" && !data.acceptance.uiReceiptId && data.isAdminDm && <fieldset className={styles.receiptChecks}>
             <legend>签发回执前，逐项确认真实 Test Classroom</legend>
-            {UI_ACCEPTANCE_CHECKLIST.map(([key, label]) => <label key={key}><input type="checkbox" checked={receiptChecks[key]} onChange={(event) => setReceiptChecks((current) => ({ ...current, [key]: event.target.checked }))} />{label}</label>)}
+            {UI_ACCEPTANCE_CHECKLIST.map((item) => <label key={item.id}><input type="checkbox" checked={receiptChecks[item.id]} onChange={(event) => setReceiptChecks((current) => ({ ...current, [item.id]: event.target.checked }))} />{item.label}</label>)}
             <button className={styles.button} disabled={busy || Object.values(receiptChecks).some((value) => !value)} onClick={() => receipt(receiptChecks)}>签发 UiAcceptanceReceipt</button>
           </fieldset>}
-          {allUnlocked && data.environment === "test" && !data.acceptance.uiReceiptId && !data.isAdminDm && <p>所有角色都可以完成视图验收；不可变的 UiAcceptanceReceipt 由本课堂 Admin DM 签发。</p>}
+          {allUnlocked && data.lifecycle === "completed" && data.environment === "test" && !data.acceptance.uiReceiptId && !data.isAdminDm && <p>所有角色都可以完成视图验收；不可变的 UiAcceptanceReceipt 由本课堂 Admin DM 签发。</p>}
           {data.environment === "test" && data.isAdminDm && <button className={styles.danger} disabled={busy} onClick={reset}>重置 Test 实例</button>}
         </div>
       </section>

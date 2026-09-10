@@ -144,10 +144,17 @@ def main() -> None:
                         "reviewedBlockIds": [block["id"] for block in course["blocks"]],
                         "reviewedLearnerCounts": list(range(policy["minCount"], policy["maxCount"] + 1)),
                     })
+                    preferred_courseware = {
+                        "P": "product-mentor-foundations",
+                        "D": "development-mentor-ligun",
+                        "M": "market-mentor-user-system",
+                        "O": "operations-mentor-field-kit",
+                    }
                     courseware = [{
                         "mentorRole": item["mentorRole"], "packageId": item["packageId"], "slug": item["slug"],
-                        "revision": item["releasedRevision"], "digest": item["releasedDigest"],
-                    } for item in bootstrap["courseware"]]
+                        "revision": item["latestRevision"], "digest": item["latestDigest"],
+                    } for item in bootstrap["courseware"] if preferred_courseware.get(item["mentorRole"]) == item["slug"]]
+                    assert {item["mentorRole"] for item in courseware} == {"P", "D", "M", "O"}, courseware
                     classroom = api(control, "/api/platform/classrooms", "POST", {
                         "environment": "test",
                         "title": "T086 角色可见剧本浏览器验收",
@@ -225,6 +232,31 @@ def main() -> None:
                     assert geometry["root"] <= geometry["width"] + 1
                     observer.screenshot(path=str(QA / "mobile-control.png"), full_page=True)
 
+                    # T-102 keeps three meanings separate: final-page unlock,
+                    # explicit mentor finish, and any optional artifact review.
+                    # Exercise the actual control UI without fabricating the
+                    # human acceptance receipt.
+                    diagnostics = control.locator("details").filter(has_text="TEST 数据身份")
+                    diagnostics.locator("summary").click()
+                    expect(diagnostics.get_by_text("source / app build", exact=True)).to_be_visible()
+                    expect(diagnostics.get_by_text("projector / runtime contract", exact=True)).to_be_visible()
+                    for block_number in range(3, 14):
+                        control.get_by_role("button", name="确认解锁下一页 →").click()
+                        expect(control.get_by_role("dialog")).to_be_visible()
+                        control.get_by_role("button", name="确认解锁并进入").click()
+                        expect(control.locator("h1").filter(has_text=f"B{block_number:02d} ·")).to_be_visible(timeout=10_000)
+                    expect(control.get_by_text("全部剧本页已经解锁，但课堂还没有结束。", exact=True)).to_be_visible()
+                    control.get_by_role("button", name="确认结束本次课堂", exact=True).click()
+                    finish_dialog = control.get_by_role("dialog")
+                    expect(finish_dialog).to_be_visible()
+                    expect(finish_dialog.get_by_text("不会解锁或修改任何剧本页", exact=False)).to_be_visible()
+                    finish_dialog.get_by_role("button", name="确认结束本次课堂", exact=True).click()
+                    expect(control.get_by_text("✓ 本次课堂已明确结束", exact=True)).to_be_visible(timeout=10_000)
+                    checklist = control.locator("fieldset").filter(has_text="签发回执前")
+                    expect(checklist).to_be_visible()
+                    assert checklist.locator('input[type="checkbox"]').count() == 16
+                    control.screenshot(path=str(QA / "explicit-finish.png"), full_page=True)
+
                     assert not errors, errors
                     assert not failed, failed
                     result.update({
@@ -242,12 +274,16 @@ def main() -> None:
                         "keyboardNavigation": ["ArrowLeft", "ArrowRight", "Home", "End"],
                         "roleTabs": tabs.count(),
                         "realRoleSubmission": True,
+                        "explicitFinish": True,
+                        "acceptanceChecklistItems": 16,
+                        "runtimeIdentityVisible": True,
                         "mobileGeometry": geometry,
                         "pageErrors": 0,
                         "requestFailures": 0,
                         "screenshots": [
                             "docs/qa/t086-script-runtime/historical-and-role-tabs.png",
                             "docs/qa/t086-script-runtime/mobile-control.png",
+                            "docs/qa/t086-script-runtime/explicit-finish.png",
                         ],
                     })
                     browser.close()

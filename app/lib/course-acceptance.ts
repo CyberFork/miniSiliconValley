@@ -4,33 +4,19 @@ import { CLASSROOM_MENTOR_ROLES, CLASSROOM_STATE_MACHINE_VERSION, type ExactCour
 import { coursePackageDigest, validateCoursePackage, type CoursePackageRef } from "./course-package";
 import { buildStudioProjection, resolveLearnerPolicy, validateCourseInstantiation } from "./course-platform";
 import { coursewareBundleDigest } from "./courseware-store";
+import { MSV_APP_BUILD_ID, MSV_SOURCE_COMMIT } from "./build-identity";
+import {
+  CLASSROOM_RUNTIME_CONTRACT_VERSION,
+  COURSE_PROJECTOR_CONTRACT_VERSION,
+  UI_ACCEPTANCE_REQUIRED_CHECKS,
+} from "./course-acceptance-contract";
 
-export const COURSE_PROJECTOR_VERSION = "course-projector-v5";
-// T-090 extends the role projection contract with a source-free D simulation,
-// checkpoint-specific private decks and the generic DevelopmentStick review /
-// handoff flow. Old View/UI receipts must not authorize Production under this
-// materially different projection and classroom build.
-export const COURSE_ACCEPTANCE_APP_BUILD_ID = "minisv-t090-development-v1";
-export const COURSE_ACCEPTANCE_RECEIPT_SCHEMA_VERSION = 1;
-
-export const UI_ACCEPTANCE_REQUIRED_CHECKS = [
-  "sameRuntimeUi",
-  "membershipsAndRbac",
-  "mentorTasksAndCourseware",
-  "learnerTasks",
-  "learnerPrivacy",
-  "sharedScreenRedaction",
-  "scriptUnlockFlow",
-  "independentNavigation",
-  "testRoleSwitching",
-  "fiveStepCompletion",
-  "refreshAndRelogin",
-  "concurrencyConflict",
-  "testReset",
-  "responsiveLayouts",
-  "immutableRuntime",
-  "exactVersions",
-] as const;
+/** @deprecated Use COURSE_PROJECTOR_CONTRACT_VERSION for new code. */
+export const COURSE_PROJECTOR_VERSION = COURSE_PROJECTOR_CONTRACT_VERSION;
+export const COURSE_ACCEPTANCE_APP_BUILD_ID = MSV_APP_BUILD_ID;
+export const COURSE_ACCEPTANCE_SOURCE_COMMIT = MSV_SOURCE_COMMIT;
+export const COURSE_ACCEPTANCE_RECEIPT_SCHEMA_VERSION = 2;
+export { CLASSROOM_RUNTIME_CONTRACT_VERSION, COURSE_PROJECTOR_CONTRACT_VERSION, UI_ACCEPTANCE_REQUIRED_CHECKS };
 
 type ExactCourseRef = Pick<CoursePackageRef, "courseId" | "revision" | "digest">;
 
@@ -49,6 +35,7 @@ export type ViewAcceptanceReceipt = {
   scenarios: ViewAcceptanceScenario[];
   checks: Record<string, boolean>;
   projectorVersion: string;
+  sourceCommit: string;
   appBuildId: string;
   reviewerProfileId: string;
   acceptedAt: string;
@@ -79,6 +66,8 @@ export type UiAcceptanceReceipt = {
   adminDmProfileIds: string[];
   checks: Record<string, boolean>;
   clientMatrix: UiAcceptanceClient[];
+  runtimeContractVersion: string;
+  sourceCommit: string;
   appBuildId: string;
   auditSummary: Record<string, unknown>;
   status: "accepted" | "rejected";
@@ -111,6 +100,10 @@ type ViewReceiptRow = {
   checks_json: string;
   projector_version: string;
   app_build_id: string;
+  identity_projector_contract_version?: string | null;
+  identity_runtime_contract_version?: string | null;
+  identity_source_commit?: string | null;
+  identity_app_build_id?: string | null;
   reviewer_profile_id: string;
   accepted_at: string;
   pointer_current?: number;
@@ -136,6 +129,10 @@ type UiReceiptRow = {
   checks_json: string;
   client_matrix_json: string;
   app_build_id: string;
+  identity_projector_contract_version?: string | null;
+  identity_runtime_contract_version?: string | null;
+  identity_source_commit?: string | null;
+  identity_app_build_id?: string | null;
   audit_summary_json: string;
   status: "accepted" | "rejected";
   accepted_at: string;
@@ -224,7 +221,8 @@ export async function createViewAcceptanceReceipt(
 
   const now = new Date().toISOString();
   const proposedId = crypto.randomUUID();
-  await db.prepare(
+  await db.batch([
+    db.prepare(
     `INSERT OR IGNORE INTO course_view_acceptance_receipts
      (id, receipt_schema_version, course_id, revision, digest, status, scenarios_json, checks_json,
       projector_version, app_build_id, reviewer_profile_id, accepted_at, created_at)
@@ -255,11 +253,36 @@ export async function createViewAcceptanceReceipt(
     input.courseRef.courseId,
     input.courseRef.revision,
     input.courseRef.digest,
-  ).run();
+    ),
+    db.prepare(
+      `INSERT OR IGNORE INTO course_acceptance_build_identities
+       (receipt_id, receipt_kind, projector_contract_version, runtime_contract_version,
+        source_commit, app_build_id, created_at)
+       SELECT r.id, 'view', ?, 'not-applicable', ?, ?, ?
+       FROM course_view_acceptance_receipts r
+       WHERE r.course_id = ? AND r.revision = ? AND r.digest = ?
+         AND r.projector_version = ? AND r.app_build_id = ?`,
+    ).bind(
+      COURSE_PROJECTOR_CONTRACT_VERSION,
+      COURSE_ACCEPTANCE_SOURCE_COMMIT,
+      COURSE_ACCEPTANCE_APP_BUILD_ID,
+      now,
+      input.courseRef.courseId,
+      input.courseRef.revision,
+      input.courseRef.digest,
+      COURSE_PROJECTOR_VERSION,
+      COURSE_ACCEPTANCE_APP_BUILD_ID,
+    ),
+  ]);
   const row = await db.prepare(
     `SELECT r.*,
+            ai.projector_contract_version AS identity_projector_contract_version,
+            ai.runtime_contract_version AS identity_runtime_contract_version,
+            ai.source_commit AS identity_source_commit,
+            ai.app_build_id AS identity_app_build_id,
             CASE WHEN cp.course_id IS NOT NULL OR rp.course_id IS NOT NULL THEN 1 ELSE 0 END AS pointer_current
      FROM course_view_acceptance_receipts r
+     LEFT JOIN course_acceptance_build_identities ai ON ai.receipt_id = r.id AND ai.receipt_kind = 'view'
      LEFT JOIN course_candidate_pointers cp ON cp.course_id = r.course_id AND cp.revision = r.revision AND cp.digest = r.digest
      LEFT JOIN course_release_pointers rp ON rp.course_id = r.course_id AND rp.revision = r.revision AND rp.digest = r.digest
      WHERE r.course_id = ? AND r.revision = ? AND r.digest = ? AND r.projector_version = ? AND r.app_build_id = ?`,
@@ -275,8 +298,13 @@ export async function createViewAcceptanceReceipt(
 export async function listViewAcceptanceReceipts(db: ClassroomD1): Promise<ViewAcceptanceReceipt[]> {
   const rows = await db.prepare(
     `SELECT r.*,
+            ai.projector_contract_version AS identity_projector_contract_version,
+            ai.runtime_contract_version AS identity_runtime_contract_version,
+            ai.source_commit AS identity_source_commit,
+            ai.app_build_id AS identity_app_build_id,
             CASE WHEN cp.course_id IS NOT NULL OR rp.course_id IS NOT NULL THEN 1 ELSE 0 END AS pointer_current
      FROM course_view_acceptance_receipts r
+     LEFT JOIN course_acceptance_build_identities ai ON ai.receipt_id = r.id AND ai.receipt_kind = 'view'
      LEFT JOIN course_candidate_pointers cp ON cp.course_id = r.course_id AND cp.revision = r.revision AND cp.digest = r.digest
      LEFT JOIN course_release_pointers rp ON rp.course_id = r.course_id AND rp.revision = r.revision AND rp.digest = r.digest
      ORDER BY r.created_at DESC LIMIT 200`,
@@ -291,8 +319,13 @@ export async function requireValidViewAcceptanceReceipt(
 ): Promise<ViewAcceptanceReceipt> {
   const row = await db.prepare(
     `SELECT r.*,
+            ai.projector_contract_version AS identity_projector_contract_version,
+            ai.runtime_contract_version AS identity_runtime_contract_version,
+            ai.source_commit AS identity_source_commit,
+            ai.app_build_id AS identity_app_build_id,
             CASE WHEN cp.course_id IS NOT NULL OR rp.course_id IS NOT NULL THEN 1 ELSE 0 END AS pointer_current
      FROM course_view_acceptance_receipts r
+     LEFT JOIN course_acceptance_build_identities ai ON ai.receipt_id = r.id AND ai.receipt_kind = 'view'
      LEFT JOIN course_candidate_pointers cp ON cp.course_id = r.course_id AND cp.revision = r.revision AND cp.digest = r.digest
      LEFT JOIN course_release_pointers rp ON rp.course_id = r.course_id AND rp.revision = r.revision AND rp.digest = r.digest
      WHERE r.id = ?`,
@@ -348,7 +381,8 @@ export async function recordUiAcceptanceReceipt(
        (id, receipt_schema_version, room_id, view_receipt_id, course_id, revision, digest, learner_count,
         deal_seed, reset_generation, state_machine_version, courseware_bundle_digest, courseware_refs_json,
         mentor_memberships_json, learner_memberships_json, admin_dm_json, checks_json, client_matrix_json,
-        app_build_id, audit_summary_json, status, accepted_at, accepted_by_profile_id, created_at)
+        app_build_id, audit_summary_json,
+        status, accepted_at, accepted_by_profile_id, created_at)
        SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'accepted', ?, ?, ?
        FROM classroom_instances ci
        JOIN classroom_acceptance_bindings binding ON binding.room_id = ci.room_id
@@ -384,6 +418,28 @@ export async function recordUiAcceptanceReceipt(
       input.viewReceiptId,
     ),
     db.prepare(
+      `INSERT OR IGNORE INTO course_acceptance_build_identities
+       (receipt_id, receipt_kind, projector_contract_version, runtime_contract_version,
+        source_commit, app_build_id, created_at)
+       SELECT r.id, 'ui', ?, ?, ?, ?, ?
+       FROM course_ui_acceptance_receipts r
+       WHERE r.room_id = ? AND r.reset_generation = ? AND r.course_id = ? AND r.revision = ? AND r.digest = ?
+         AND r.courseware_bundle_digest = ? AND r.app_build_id = ?`,
+    ).bind(
+      COURSE_PROJECTOR_CONTRACT_VERSION,
+      CLASSROOM_RUNTIME_CONTRACT_VERSION,
+      COURSE_ACCEPTANCE_SOURCE_COMMIT,
+      COURSE_ACCEPTANCE_APP_BUILD_ID,
+      now,
+      input.roomId,
+      input.resetGeneration,
+      input.courseRef.courseId,
+      input.courseRef.revision,
+      input.courseRef.digest,
+      coursewareDigest,
+      COURSE_ACCEPTANCE_APP_BUILD_ID,
+    ),
+    db.prepare(
       `UPDATE classroom_acceptance_bindings
        SET ui_receipt_id = (
          SELECT id FROM course_ui_acceptance_receipts
@@ -412,8 +468,14 @@ export async function recordUiAcceptanceReceipt(
     ),
   ]);
   const row = await db.prepare(
-    `SELECT r.*, ci.reset_generation AS current_reset_generation, ci.lifecycle AS classroom_lifecycle
-     FROM course_ui_acceptance_receipts r JOIN classroom_instances ci ON ci.room_id = r.room_id
+    `SELECT r.*, ci.reset_generation AS current_reset_generation, ci.lifecycle AS classroom_lifecycle,
+            ai.projector_contract_version AS identity_projector_contract_version,
+            ai.runtime_contract_version AS identity_runtime_contract_version,
+            ai.source_commit AS identity_source_commit,
+            ai.app_build_id AS identity_app_build_id
+     FROM course_ui_acceptance_receipts r
+     JOIN classroom_instances ci ON ci.room_id = r.room_id
+     LEFT JOIN course_acceptance_build_identities ai ON ai.receipt_id = r.id AND ai.receipt_kind = 'ui'
      WHERE r.room_id = ? AND r.reset_generation = ? AND r.course_id = ? AND r.revision = ? AND r.digest = ?
        AND r.courseware_bundle_digest = ? AND r.app_build_id = ?`,
   ).bind(input.roomId, input.resetGeneration, input.courseRef.courseId, input.courseRef.revision, input.courseRef.digest, coursewareDigest, COURSE_ACCEPTANCE_APP_BUILD_ID).first<UiReceiptRow>();
@@ -427,9 +489,14 @@ export async function recordUiAcceptanceReceipt(
 
 export async function listUiAcceptanceReceipts(db: ClassroomD1): Promise<UiAcceptanceReceipt[]> {
   const rows = await db.prepare(
-    `SELECT r.*, ci.reset_generation AS current_reset_generation, ci.lifecycle AS classroom_lifecycle
+    `SELECT r.*, ci.reset_generation AS current_reset_generation, ci.lifecycle AS classroom_lifecycle,
+            ai.projector_contract_version AS identity_projector_contract_version,
+            ai.runtime_contract_version AS identity_runtime_contract_version,
+            ai.source_commit AS identity_source_commit,
+            ai.app_build_id AS identity_app_build_id
      FROM course_ui_acceptance_receipts r
      JOIN classroom_instances ci ON ci.room_id = r.room_id
+     LEFT JOIN course_acceptance_build_identities ai ON ai.receipt_id = r.id AND ai.receipt_kind = 'ui'
      ORDER BY r.created_at DESC LIMIT 200`,
   ).all<UiReceiptRow>();
   const result: UiAcceptanceReceipt[] = [];
@@ -452,9 +519,14 @@ export async function requireValidUiAcceptanceReceipt(
   coursewareRefs?: ExactCoursewareRef[],
 ): Promise<UiAcceptanceReceipt> {
   const row = await db.prepare(
-    `SELECT r.*, ci.reset_generation AS current_reset_generation, ci.lifecycle AS classroom_lifecycle
+    `SELECT r.*, ci.reset_generation AS current_reset_generation, ci.lifecycle AS classroom_lifecycle,
+            ai.projector_contract_version AS identity_projector_contract_version,
+            ai.runtime_contract_version AS identity_runtime_contract_version,
+            ai.source_commit AS identity_source_commit,
+            ai.app_build_id AS identity_app_build_id
      FROM course_ui_acceptance_receipts r
      JOIN classroom_instances ci ON ci.room_id = r.room_id
+     LEFT JOIN course_acceptance_build_identities ai ON ai.receipt_id = r.id AND ai.receipt_kind = 'ui'
      WHERE r.id = ?`,
   ).bind(receiptId).first<UiReceiptRow>();
   const viewValid = row ? await isViewReceiptCurrentlyValid(db, row.view_receipt_id, ref) : false;
@@ -511,10 +583,11 @@ export async function listAcceptanceClassrooms(db: ClassroomD1): Promise<Accepta
 
 function mapViewReceipt(row: ViewReceiptRow): ViewAcceptanceReceipt {
   const invalidReasons: string[] = [];
+  if (row.receipt_schema_version !== COURSE_ACCEPTANCE_RECEIPT_SCHEMA_VERSION) invalidReasons.push("视图验收回执结构版本已变化");
   if (row.status !== "accepted") invalidReasons.push("回执状态不是 accepted");
   if (!row.pointer_current) invalidReasons.push("课程已产生新的 Candidate，且本版本也不是当前 Released");
-  if (row.projector_version !== COURSE_PROJECTOR_VERSION) invalidReasons.push("共享投影器版本已变化");
-  if (row.app_build_id !== COURSE_ACCEPTANCE_APP_BUILD_ID) invalidReasons.push("Course Studio 验收构建版本已变化");
+  if (!row.identity_projector_contract_version) invalidReasons.push("回执缺少可追溯构建身份");
+  if (row.identity_projector_contract_version !== COURSE_PROJECTOR_CONTRACT_VERSION) invalidReasons.push("共享投影器兼容契约已变化");
   return {
     receiptId: row.id,
     schemaVersion: row.receipt_schema_version,
@@ -522,8 +595,9 @@ function mapViewReceipt(row: ViewReceiptRow): ViewAcceptanceReceipt {
     status: row.status,
     scenarios: parseJson<ViewAcceptanceScenario[]>(row.scenarios_json, []),
     checks: parseJson<Record<string, boolean>>(row.checks_json, {}),
-    projectorVersion: row.projector_version,
-    appBuildId: row.app_build_id,
+    projectorVersion: row.identity_projector_contract_version ?? row.projector_version,
+    sourceCommit: row.identity_source_commit ?? "legacy-untracked",
+    appBuildId: row.identity_app_build_id ?? row.app_build_id,
     reviewerProfileId: row.reviewer_profile_id,
     acceptedAt: row.accepted_at,
     valid: invalidReasons.length === 0,
@@ -533,11 +607,14 @@ function mapViewReceipt(row: ViewReceiptRow): ViewAcceptanceReceipt {
 
 function mapUiReceipt(row: UiReceiptRow, viewValid: boolean): UiAcceptanceReceipt {
   const invalidReasons: string[] = [];
+  if (row.receipt_schema_version !== COURSE_ACCEPTANCE_RECEIPT_SCHEMA_VERSION) invalidReasons.push("课堂 UI 验收回执结构版本已变化");
   if (row.status !== "accepted") invalidReasons.push("回执状态不是 accepted");
   if (row.current_reset_generation !== row.reset_generation) invalidReasons.push("Test Classroom 已在签发后重置");
   if (row.classroom_lifecycle !== "completed") invalidReasons.push("Test Classroom 当前不是 completed");
   if (row.state_machine_version !== CLASSROOM_STATE_MACHINE_VERSION) invalidReasons.push("课堂状态机版本已变化");
-  if (row.app_build_id !== COURSE_ACCEPTANCE_APP_BUILD_ID) invalidReasons.push("课堂 UI 验收构建版本已变化");
+  if (!row.identity_runtime_contract_version) invalidReasons.push("回执缺少可追溯构建身份");
+  if (row.identity_runtime_contract_version !== CLASSROOM_RUNTIME_CONTRACT_VERSION) invalidReasons.push("课堂运行时兼容契约已变化");
+  if (row.identity_projector_contract_version !== COURSE_PROJECTOR_CONTRACT_VERSION) invalidReasons.push("共享投影器兼容契约已变化");
   if (!viewValid) invalidReasons.push("关联的多角色视图验收回执已失效");
   return {
     receiptId: row.id,
@@ -556,7 +633,9 @@ function mapUiReceipt(row: UiReceiptRow, viewValid: boolean): UiAcceptanceReceip
     adminDmProfileIds: parseJson(row.admin_dm_json, []),
     checks: parseJson(row.checks_json, {}),
     clientMatrix: parseJson(row.client_matrix_json, []),
-    appBuildId: row.app_build_id,
+    runtimeContractVersion: row.identity_runtime_contract_version ?? "legacy-untracked",
+    sourceCommit: row.identity_source_commit ?? "legacy-untracked",
+    appBuildId: row.identity_app_build_id ?? row.app_build_id,
     auditSummary: parseJson(row.audit_summary_json, {}),
     status: row.status,
     acceptedAt: row.accepted_at,

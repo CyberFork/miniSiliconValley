@@ -32,7 +32,7 @@ const fixture = {
 };
 
 type Envelope<T> = { ok: boolean; data?: T; error?: { code: string; message: string; details?: unknown } };
-type ExactRef = { courseId: string; schemaVersion: number; revision: number; digest: string; status: "candidate" | "released" | "approved" };
+type ExactRef = { courseId: string; schemaVersion: number; revision: number; digest: string; status: "candidate" | "released" | "archived" };
 type Courseware = {
   packageId: string;
   slug: string;

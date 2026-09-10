@@ -25,7 +25,7 @@ let server: ChildProcess | null = null;
 let diagnostics = "";
 
 type Envelope<T> = { ok: boolean; data?: T; error?: { code: string; message: string } };
-type ExactRef = { courseId: string; schemaVersion: number; revision: number; digest: string; status: "candidate" | "released" | "approved" };
+type ExactRef = { courseId: string; schemaVersion: number; revision: number; digest: string; status: "candidate" | "released" | "archived" };
 type Version = { ref: ExactRef; candidate: boolean; released: boolean; course: CourseDefinition };
 type CourseDefinition = {
   title: string;
@@ -414,6 +414,26 @@ try {
   const finalProgress = await completeClassroom(testRoom.classroomId, learnerUnlocked, adminCookie);
   assert.equal(finalProgress.unlockedThroughBlockId, "B13");
   assert.equal(finalProgress.unlockedThroughIndex, 12);
+  const finalUnlockedDetail = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}`, adminCookie);
+  assert.equal(finalUnlockedDetail.lifecycle, "running", "unlocking the final script page must not complete a v3 classroom");
+  const prematureReceipt = await post(`/api/platform/classrooms/${testRoom.classroomId}/receipt`, { checks: uiAcceptanceChecks(), clientMatrix: acceptanceClients() }, adminCookie);
+  assert.equal(prematureReceipt.status, 409);
+  assert.equal(((await prematureReceipt.json()) as Envelope<never>).error?.code, "TEST_CLASSROOM_FINISH_REQUIRED");
+  const finishKey = `finish-${testRoom.classroomId}-run-0`;
+  const finished = await postData<{ completed: true; idempotent: boolean }>(`/api/platform/classrooms/${testRoom.classroomId}/finish`, {
+    ...runExpectation(finalUnlockedDetail),
+    expectedScriptVersion: finalProgress.version,
+    idempotencyKey: finishKey,
+  }, adminCookie);
+  assert.equal(finished.completed, true);
+  assert.equal(finished.idempotent, false);
+  const finishReplay = await postData<{ completed: true; idempotent: boolean }>(`/api/platform/classrooms/${testRoom.classroomId}/finish`, {
+    ...runExpectation(finalUnlockedDetail),
+    expectedScriptVersion: finalProgress.version,
+    idempotencyKey: finishKey,
+  }, adminCookie);
+  assert.equal(finishReplay.idempotent, true);
+  assert.equal((await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}`, adminCookie)).lifecycle, "completed");
   const blockedRelease = await post("/api/studio/releases", { courseRef: candidate, viewReceiptId: viewReceipt.receiptId, uiReceiptId: "missing-ui-receipt" }, adminCookie);
   assert.equal(blockedRelease.status, 409);
   assert.equal(((await blockedRelease.json()) as Envelope<never>).error?.code, "UI_ACCEPTANCE_RECEIPT_INVALID");
@@ -424,7 +444,7 @@ try {
   const receipt = await postData<{ receiptId: string; viewReceiptId: string; coursewareBundleDigest: string; appBuildId: string }>(`/api/platform/classrooms/${testRoom.classroomId}/receipt`, { checks: uiAcceptanceChecks(), clientMatrix: acceptanceClients() }, adminCookie);
   assert.match(receipt.coursewareBundleDigest, /^[0-9a-f]{64}$/);
   assert.equal(receipt.viewReceiptId, viewReceipt.receiptId);
-  assert.equal(receipt.appBuildId, "minisv-t090-development-v1");
+  assert.ok(receipt.appBuildId.length > 0);
   const receiptBoundDetail = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}`, adminCookie);
   assert.equal(receiptBoundDetail.acceptance.uiReceiptId, receipt.receiptId);
   const repeatedReceipt = await postData<{ receiptId: string; coursewareBundleDigest: string }>(`/api/platform/classrooms/${testRoom.classroomId}/receipt`, { checks: uiAcceptanceChecks(), clientMatrix: acceptanceClients() }, adminCookie);
@@ -695,7 +715,7 @@ function uiAcceptanceChecks() {
     scriptUnlockFlow: true,
     independentNavigation: true,
     testRoleSwitching: true,
-    fiveStepCompletion: true,
+    explicitClassroomFinish: true,
     refreshAndRelogin: true,
     concurrencyConflict: true,
     testReset: true,

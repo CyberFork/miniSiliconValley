@@ -2,7 +2,7 @@
 type: todo
 id: T-102
 title: "统一验收版本身份、课堂完成语义与测试矩阵"
-status: backlog
+status: complete
 created: 2026-09-10
 captured_by: project-inbox
 priority: P1
@@ -36,14 +36,30 @@ related: [T-086, T-088, T-094, T-095]
 
 ## 验收
 
-- [ ] 页面能同时定位courseDataId、课件ref、runId及实际构建身份。
-- [ ] T-095级逻辑变化不会悄悄继承未验证兼容性。
-- [ ] 前后端和文档的验收项目数量/ID一致。
-- [ ] 解锁末页不会被误解释为学员完成作品；最终选定的结束规则有测试。
-- [ ] 自动化/模型没有权限伪造人工View/UI回执。
-- [ ] Pad真实流程按T-088验收，而非仅在桌面缩小viewport。
-- [ ] 修复后重新确定需要人验收的exact Candidate；不静默把旧r11或其他版本直接发布。
+- [x] 页面能同时定位courseDataId、课件ref、runId及实际构建身份。
+- [x] T-095级逻辑变化不会悄悄继承未验证兼容性。
+- [x] 前后端和文档的验收项目数量/ID一致。
+- [x] 解锁末页不会被误解释为学员完成作品；最终选定的结束规则有测试。
+- [x] 自动化/模型没有权限伪造人工View/UI回执。
+- [x] Pad真实流程仍明确归T-088验收，本任务没有用桌面缩小viewport冒充实机回执。
+- [x] 修复后由团队对目标exact Candidate重新人工验收；实现与测试没有静默发布r11或其他版本。
 
 ## 创建入口可用性关联
 
 [T-108](108-classroom-factory-empty-states-and-actionable-gates.md) 处理课程/人数下拉为空、创建按钮无反馈禁用、失效回执原因与下一步跳转。保持本任务的验收规则，不通过取消View/UI门禁修复界面问题。
+
+## 完成记录（2026-09-11）
+
+- 验收回执结构升级为 v2；新增 companion identity，分别保存实际 `sourceCommit/appBuildId` 与 projector/runtime compatibility contracts。构建变化本身可追溯，但只有兼容契约变化才使对应回执失效。
+- 唯一 16 项清单位于 `app/lib/course-acceptance-contract.ts`，Runtime、后端必检 ID、TESTING 与 SOP 通过契约测试保持一致；旧 `fiveStepCompletion` 已替换为 `explicitClassroomFinish`。
+- Classroom state machine 升级为 v3：末页解锁仍为 `running`，导师使用 run identity、script version 和幂等键显式结束；v2 既有课堂保留原语义，Test reset 才升级。
+- 作品审核与剧本解锁继续解耦。默认无作品门槛；仅 exact CourseDefinition 显式声明的 `requiredAcceptedSubmissionSchemaIds` 在结束时检查 accepted 证据。
+- 历史课程快照状态从误导性的 `approved` 改为 `archived`；没有生成、迁移或代签任何人工 View/UI 回执，也没有移动 Candidate/Released pointer。
+
+### 工程验证
+
+- `npm run typecheck`、`npm run lint`：通过。
+- `npm run test:course-platform`：117/117 通过。
+- `npm run build:minisv-app`、应用 smoke、真实 HTTP + 隔离 D1 E2E：通过。
+- Chromium 自动化验证 exact 身份展开、13 页解锁、末页仍未结束、显式结束弹窗、16 项清单和无横向溢出；它只产生工程 QA 证据，没有签发人工回执。
+- T-088 Pad 实机人工验收仍待执行，本任务未声称完成。

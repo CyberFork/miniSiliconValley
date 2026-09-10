@@ -211,7 +211,7 @@ export async function listStudioCourseVersions(
         schemaVersion: row.schema_version,
         revision: row.revision,
         digest: row.digest,
-        status: released ? "released" : candidate ? "candidate" : "approved",
+        status: released ? "released" : candidate ? "candidate" : "archived",
         createdAt: row.created_at,
         createdBy: row.created_by,
         createdByDisplayName: row.created_by_display_name,
