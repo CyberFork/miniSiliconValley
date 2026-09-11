@@ -117,3 +117,4 @@ tags: [todo, navigation, studio, performance, regression, accessibility]
 - 本地真实 Chromium 回归继续覆盖 Studio 普通点击、Enter、Cmd 新标签、前进／后退、exact 深链、登录回跳、Test 新建／归档和 390px 触摸模拟。
 - 尚未勾选的 iPad 单触、系统上下文菜单、Windows Ctrl／中键和桌面／iPad Safari 项属于 T-088 的实体设备与异浏览器验收；在这些人工行完成前，本单保持 `in-progress`，不以生产部署自动关闭。
 - 人工补测已标准化为 `docs/qa/t110-navigation/REAL_BROWSER_ACCEPTANCE_TEMPLATE.md`：每一种实际设备／浏览器组合单独记录 release、Build ID、最终 URL、PASS/FAIL/BLOCK 和脱敏证据；不会把源码 `href` 或 Chromium 结果冒充 Safari／Windows 硬件回执。
+- 当前平台发布已前进到 `20260911T120044CST-t088-privacy-r1`（App Build ID `ff9a3525-ed80-4d65-b7a3-c2395ef4b6e4`）。该版本继续通过 Hecate health、双端 public smoke 与匿名生产 Chromium；上述 Safari／Windows 原生输入组合仍未执行，故状态不变。

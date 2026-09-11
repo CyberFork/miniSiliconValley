@@ -364,4 +364,5 @@ T-086 的回执数据模型可以并行开发，但第一轮真实 UI 验收和 
 - Classroom 已增加后台／bfcache 隐私屏：`pagehide` 或文档隐藏时覆盖完整 viewport，`pageshow` 返回后恢复原页；自动化验证遮挡几何和前台恢复，真实 iPad 的系统快照时序仍保留人工门禁。
 - 机器证据与真机步骤见 `docs/TODO_088_ENGINEERING_ACCEPTANCE.md` 和 `docs/qa/t088-tablet-mobile/browser-receipt.json`；真实设备执行时必须为 iPad Safari 与 Android Chrome 各填写一份 `docs/qa/t088-tablet-mobile/REAL_DEVICE_ACCEPTANCE_TEMPLATE.md`。
 - **未关闭边界**：真实 iPad Safari、Android 触摸设备的软键盘/旋转/锁屏/系统手势仍须人类执行；当前没有签发人工 UiAcceptanceReceipt，故本 Todo 保持 `in-progress`。
-- 工程版本已随 `20260911T100357CST-public-ia-t109-r4` 发布到 Hecate `minisv.vip`，生产健康、公共入口和浏览器水合检查通过；现在可直接用目标实体设备执行 `docs/TODO_088_ENGINEERING_ACCEPTANCE.md` 中的人工矩阵。发布成功不改变上述真实设备门槛。
+- 后台／bfcache 隐私屏已随 `20260911T120044CST-t088-privacy-r1` 发布到 Hecate `minisv.vip`（源码 `7244ead4fcca36d7d5b5c52c352bf1bbaaafc3e0`，App Build ID `ff9a3525-ed80-4d65-b7a3-c2395ef4b6e4`）。发布后 Hecate health、双端 public smoke、匿名生产浏览器、390px 公共首页和生产 bundle 标记均通过；没有登录生产账号、改写生产课堂或代签回执。
+- 现在可直接用目标实体设备执行 `docs/TODO_088_ENGINEERING_ACCEPTANCE.md` 中的人工矩阵。平台代码发布成功不改变上述真实设备门槛，也不授权创建 Production Classroom。

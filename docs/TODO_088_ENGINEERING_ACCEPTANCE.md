@@ -60,15 +60,18 @@ npm run test:t088:browser
 
 ```text
 docs/qa/t088-tablet-mobile/browser-receipt.json
+docs/qa/t088-tablet-mobile/production-machine-evidence.json
 docs/qa/t090-development-mentor/t088-ipad-mini-portrait.png
 docs/qa/t090-development-mentor/t088-ipad-pro-landscape.png
 docs/qa/t090-development-mentor/t088-android-tablet-portrait.png
 docs/qa/t090-development-mentor/t088-phone-390.png
 ```
 
+生产平台已部署 `20260911T120044CST-t088-privacy-r1`，源码为 `7244ead4fcca36d7d5b5c52c352bf1bbaaafc3e0`，App Build ID 为 `ff9a3525-ed80-4d65-b7a3-c2395ef4b6e4`。Hecate health、public smoke、匿名 Chromium 页面与生产 bundle 中的隐私屏标记均已验证。该检查没有登录生产账号或改写课堂数据；因此只证明目标代码已交付，不把生产 bundle 检查冒充真实 iPad／Android 系统快照验收。
+
 ## 3. 真实设备人工门禁
 
-自动化不能模拟 Safari 的软键盘、系统返回手势、锁屏快照、Home Indicator、Apple Pencil，也不能代表 Android 厂商 WebView。Production 前由团队在真实设备逐项执行：
+自动化不能模拟 Safari 的软键盘、系统返回手势、锁屏快照、Home Indicator、Apple Pencil，也不能代表 Android 厂商 WebView。创建正式 Production Classroom 或签发最终 UI 回执前，由团队在真实设备逐项执行：
 
 人工执行时请为 **iPad Safari** 与 **Android Chrome** 各复制并填写一份标准记录，不要在聊天或口头结论中代替证据：
 

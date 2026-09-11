@@ -81,9 +81,9 @@ tags: [todo, audit, architecture, single-source-of-truth]
 
 ## 实施收口进度（2026-09-11）
 
-- T-098～T-109 与 T-111 已完成并部署至 Hecate；最终统一发布为 `20260911T100357CST-public-ia-t109-r4`，健康检查、双端 public smoke、生产浏览器与历史预览数据路由均通过。
+- T-098～T-109 与 T-111 已完成并部署至 Hecate；当前统一平台发布为 `20260911T120044CST-t088-privacy-r1`（源码 `7244ead4fcca36d7d5b5c52c352bf1bbaaafc3e0`），在 T-109 r4 基线上补入课堂后台／bfcache 隐私屏。健康检查、双端 public smoke、匿名生产浏览器、历史预览数据路由与生产 bundle 标记均通过，未操作生产课堂数据。
 - T-110 已在 T-109 后通过 Chromium 总回归，仍等待 T-088 的 Safari／真实触摸设备行，因此保持 `in-progress`。
-- T-088 已用真实隔离 Candidate、Test Classroom 和学员账号完成 10 组 Chromium 响应式／粗指针工程验收：无横向溢出、关键控件不小于 44×44、编辑字段不小于 16px、私卡隔离、触摸翻页、结构化提交、导师退回／重交／通过和离线恢复均通过。
+- T-088 已用真实隔离 Candidate、Test Classroom 和学员账号完成 10 组 Chromium 响应式／粗指针工程验收：无横向溢出、关键控件不小于 44×44、编辑字段不小于 16px、私卡隔离、触摸翻页、结构化提交、导师退回／重交／通过、离线恢复和完整 viewport 隐私遮挡均通过。
 - 真实 iPad Safari 与 Android 触摸设备仍必须由人执行；标准记录模板为 `docs/qa/t088-tablet-mobile/REAL_DEVICE_ACCEPTANCE_TEMPLATE.md`。本总单不会用模拟器结果代签 ViewAcceptanceReceipt 或 UiAcceptanceReceipt。工程发布完成后，唯一剩余关闭条件是两类设备的可追溯人工验收记录。
 
 ## 5. 推荐依赖与执行顺序
