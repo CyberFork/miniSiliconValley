@@ -84,34 +84,25 @@ class GatewayContractTests(unittest.TestCase):
         self.assertIn("proxy_set_header Origin $http_origin;", self.proxy)
         self.assertNotIn("proxy_set_header Origin https://minisv.vip;", self.proxy)
 
-    def test_portal_reports_live_hecate_health_instead_of_static_status(self) -> None:
-        site = ROOT / "site"
-        if not site.is_dir():
-            site = ROOT.parent / "site"
-        portal = (site / "index.html").read_text()
-        script = (site / "portal.js").read_text()
-        self.assertIn('src="/portal.js"', portal)
-        self.assertIn('data-health-state="checking"', portal)
-        self.assertIn('requestJson("/healthz")', script)
-        self.assertIn('requestJson("/release.json")', script)
-        self.assertIn('health.origin !== "hecate"', script)
-        self.assertIn("location = /portal.js", self.gateway)
-        self.assertNotIn("静态导航", portal)
-
-    def test_public_portal_exposes_courseware_classroom_and_studio(self) -> None:
+    def test_public_site_semantics_and_private_workshop_boundary(self) -> None:
         site = ROOT / "site"
         portal = (site / "index.html").read_text()
-        healthcheck = (ROOT / "scripts" / "healthcheck-hecate.sh").read_text()
-        self.assertIn('<a href="/course/">导师课件</a>', portal)
-        self.assertIn('class="route route-course" href="/course/"', portal)
-        self.assertIn('href="/studio/"', portal)
-        self.assertIn("(studio|course|classroom|account)", self.gateway)
-        self.assertIn("/courseware/product-mentor-foundations/index.html", self.gateway)
-        self.assertIn("probe /course/ 307", healthcheck)
-        self.assertIn("probe /studio/ 307", healthcheck)
-        self.assertIn("probe /courseware/product-mentor-foundations/ 401", healthcheck)
-        self.assertIn("probe /courseware/development-mentor-ligun/ 401", healthcheck)
-        self.assertIn("probe /courseware/market-mentor-user-system/ 401", healthcheck)
+        robots = (site / "robots.txt").read_text()
+        sitemap = (site / "sitemap.xml").read_text()
+        self.assertIn('href="/world/"', portal)
+        for route in ("/framework/", "/parents/", "/classroom/", "/course/"):
+            self.assertIn(route, portal)
+        for private in ("/studio/", "/workshop/", "Tunnel", "release.json"):
+            self.assertNotIn(private, portal)
+        self.assertIn("/workshop/_source/", self.gateway)
+        self.assertIn("auth_request /_minisv_studio_archive_auth;", self.gateway)
+        self.assertIn("/api/auth/studio-archive-access", self.gateway)
+        self.assertIn("location @minisv_workshop_login", self.gateway)
+        self.assertIn("return 307 /auth/login/?returnTo=%2Fworkshop%2F;", self.gateway)
+        self.assertIn("location = /api/public/courses", self.gateway)
+        self.assertIn("Disallow: /workshop/", robots)
+        self.assertIn("/world/", sitemap)
+        self.assertNotIn("/workshop/", sitemap)
 
     def test_released_static_courseware_bytes_share_one_auth_gate(self) -> None:
         self.assertIn("location = /_minisv_courseware_auth", self.gateway)

@@ -2,16 +2,16 @@
 type: todo
 id: T-097
 title: "新模型全项目设计一致性审计与优化总单"
-status: backlog
+status: in-progress
 created: 2026-09-10
-updated: 2026-09-10
+updated: 2026-09-11
 captured_by: project-inbox
 audit_status: completed
 implementation_status: in-progress
 priority: P0
 priority_basis: audit-recommendation
-related: [T-085, T-086, T-088, T-090, T-091, T-094, T-095, T-096]
-children: [T-098, T-099, T-100, T-101, T-102, T-103, T-104, T-105]
+related: [T-085, T-086, T-088, T-090, T-091, T-094, T-095, T-096, T-109, T-110, T-111]
+children: [T-098, T-099, T-100, T-101, T-102, T-103, T-104, T-105, T-109, T-110, T-111]
 tags: [todo, audit, architecture, single-source-of-truth]
 ---
 
@@ -71,13 +71,20 @@ tags: [todo, audit, architecture, single-source-of-truth]
 
 ### P1：再完成可持续运行的版本与课堂链
 - [T-100 课件预览、历史发布与资源更新闭环](100-courseware-preview-release-history-and-bundles.md)：**已完成**；Candidate 使用受控 Studio exact 预览，发布历史与默认 pointer 分离，旧 Released/旧课堂 exact 入口持续可读，并新增经服务端逐文件校验的不可变多文件资源包上传与播放链路。
-- [T-101 课堂状态原子性及弱网响应一致性](101-classroom-atomic-state-and-stale-response-protection.md)：**源码确认的非原子边界/待故障注入验证**；不能声称线上已经发生故障。
-- [T-102 验收身份、完成语义和回归矩阵](102-acceptance-contract-identity-and-completion-semantics.md)：**源码确认**验收 build ID 为固定 T-090 常量；T-095 修改投影/Runtime 后未改该标识，文档仍为14项、代码为16项。
+- [T-101 课堂状态原子性及弱网响应一致性](101-classroom-atomic-state-and-stale-response-protection.md)：**已完成**；课堂推进、结束、重置、提交、审核与归档均使用服务端 CAS、事务和幂等键，故障注入与迟到响应保护通过。
+- [T-102 验收身份、完成语义和回归矩阵](102-acceptance-contract-identity-and-completion-semantics.md)：**已完成**；构建身份、16 项验收清单、显式完成语义和真实矩阵已统一。
 
 ### P1/P2：内容与权限收口，避免下一轮漂移
-- [T-103 共享投影器及对外课程语义同步](103-shared-projection-and-public-course-semantics.md)：当前结果通过，但浏览器/TS仍是两套实现；权威文档 D=设计、Runtime D=开发，README漏写学员课件权限等已确认文字冲突。
-- [T-104 两类人工审核清单与缺口复发规则](104-human-review-queues-and-gap-recurrence.md)：**已隔离复现事件语义**：同一问题再次出现会写 pending，按文档 latest-event 汇总时覆盖已解决状态。课程 reviewQueue 与 QA gaps 必须分别由人处理。
-- [T-105 Studio 数据范围与账号准入一致性](105-studio-data-scope-and-account-admission-policy.md)：**源码确认、未登录线上越权测试**：Studio bootstrap 给所有 mentor 返回全局验收清单；公开自注册与预配账号的产品边界待明确。
+- [T-103 共享投影器及对外课程语义同步](103-shared-projection-and-public-course-semantics.md)：**已完成**；生成式共享投影核心和 P/D/M/O 对外语义已收口。
+- [T-104 两类人工审核清单与缺口复发规则](104-human-review-queues-and-gap-recurrence.md)：**已完成**；课程内容审核与家长 QA 缺口分离、追加式审计和复发规则已实现，仍只允许人作出终态判断。
+- [T-105 Studio 数据范围与账号准入一致性](105-studio-data-scope-and-account-admission-policy.md)：**已完成**；Studio 数据按授权范围裁剪，公开自注册只产生学员账号，显式课堂加入与角色授权保持服务端控制。
+
+## 实施收口进度（2026-09-11）
+
+- T-098～T-108 已完成；T-109 已完成工程实现并等待本轮 Hecate 原子部署，T-111 已完成。
+- T-110 已在 T-109 后通过 Chromium 总回归，仍等待 T-088 的 Safari／真实触摸设备行，因此保持 `in-progress`。
+- T-088 已用真实隔离 Candidate、Test Classroom 和学员账号完成 10 组 Chromium 响应式／粗指针工程验收：无横向溢出、关键控件不小于 44×44、编辑字段不小于 16px、私卡隔离、触摸翻页、结构化提交、导师退回／重交／通过和离线恢复均通过。
+- 真实 iPad Safari 与 Android 触摸设备仍必须由人执行；本总单不会用模拟器结果代签 ViewAcceptanceReceipt 或 UiAcceptanceReceipt。工程发布完成后，唯一剩余关闭条件是该设备验收记录。
 
 ## 5. 推荐依赖与执行顺序
 

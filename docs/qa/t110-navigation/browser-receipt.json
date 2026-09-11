@@ -20,56 +20,57 @@
     "metaNewTabPreserved": true,
     "backForwardRefresh": true,
     "diagnosticFailureNonBlocking": true,
+    "historyArchiveDiscoverable": true,
     "startupCold": {
       "phasesMs": {
         "navigationStart": 0,
-        "loaderStart": 34,
-        "preloadsStarted": 34.2,
-        "bootstrapStarted": 51.2,
-        "scriptsReady": 51.4,
-        "bootstrapFinished": 79.3,
-        "courseListVisible": 82.9,
-        "firstCourseEditable": 89
+        "loaderStart": 42.2,
+        "preloadsStarted": 42.5,
+        "bootstrapStarted": 71.7,
+        "scriptsReady": 71.8,
+        "bootstrapFinished": 101.9,
+        "courseListVisible": 108,
+        "firstCourseEditable": 116.7
       },
       "navigationMs": {
-        "responseStart": 10.799999952316284,
-        "responseEnd": 13.400000095367432,
-        "domContentLoaded": 25.59999990463257,
-        "load": 29.5
+        "responseStart": 10.700000047683716,
+        "responseEnd": 13.200000047683716,
+        "domContentLoaded": 35.40000009536743,
+        "load": 40.10000014305115
       },
       "bootstrapResource": {
-        "start": 51.299999952316284,
-        "responseEnd": 78.70000004768372,
-        "duration": 27.40000009536743,
-        "transferSize": 47259,
-        "encodedBodySize": 46959,
-        "decodedBodySize": 147092
+        "start": 71.70000004768372,
+        "responseEnd": 101.29999995231628,
+        "duration": 29.59999990463257,
+        "transferSize": 47267,
+        "encodedBodySize": 46967,
+        "decodedBodySize": 147112
       }
     },
     "startupWarm": {
       "phasesMs": {
         "navigationStart": 0,
-        "loaderStart": 44.8,
-        "preloadsStarted": 44.9,
-        "bootstrapStarted": 75.4,
-        "scriptsReady": 75.5,
-        "bootstrapFinished": 101.1,
-        "courseListVisible": 101.4,
-        "firstCourseEditable": 105.3
+        "loaderStart": 54.1,
+        "preloadsStarted": 54.3,
+        "bootstrapStarted": 87.7,
+        "scriptsReady": 87.7,
+        "bootstrapFinished": 117.1,
+        "courseListVisible": 117.3,
+        "firstCourseEditable": 121.9
       },
       "navigationMs": {
-        "responseStart": 17.299999952316284,
-        "responseEnd": 19.799999952316284,
-        "domContentLoaded": 31.799999952316284,
-        "load": 43.19999980926514
+        "responseStart": 20.09999990463257,
+        "responseEnd": 22.799999952316284,
+        "domContentLoaded": 39.09999990463257,
+        "load": 51
       },
       "bootstrapResource": {
-        "start": 75.39999985694885,
-        "responseEnd": 100.5,
-        "duration": 25.100000143051147,
-        "transferSize": 47259,
-        "encodedBodySize": 46959,
-        "decodedBodySize": 147092
+        "start": 87.69999980926514,
+        "responseEnd": 116.39999985694885,
+        "duration": 28.700000047683716,
+        "transferSize": 47267,
+        "encodedBodySize": 46967,
+        "decodedBodySize": 147112
       }
     },
     "testClassroomCreateOrdinaryClick": true

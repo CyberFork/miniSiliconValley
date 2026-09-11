@@ -1,2 +1,14 @@
 User-agent: *
 Allow: /
+Allow: /world/
+Allow: /framework/
+Allow: /parents/
+Disallow: /auth/
+Disallow: /account/
+Disallow: /classroom/
+Disallow: /course/
+Disallow: /courseware/
+Disallow: /studio/
+Disallow: /workshop/
+Disallow: /api/
+Sitemap: https://minisv.vip/sitemap.xml

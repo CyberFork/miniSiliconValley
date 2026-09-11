@@ -12,7 +12,7 @@ const expectSource = (file: string, pattern: RegExp, label: string) => {
 
 test("navigation baseline pages exist", () => {
   for (const file of [
-    "app/page.tsx", "app/studio/page.tsx", "app/studio/editor/page.tsx",
+    "app/page.tsx", "app/world/page.tsx", "app/studio/page.tsx", "app/studio/editor/page.tsx", "app/studio/history/page.tsx",
     "app/classroom/page.tsx", "app/course/page.tsx", "app/account/page.tsx",
     "app/auth/login/page.tsx", "app/auth/register/page.tsx",
   ]) assert.ok(exists(file), `核心入口缺失: ${file}`);
@@ -54,4 +54,20 @@ test("retired routes are not reintroduced as navigation hrefs", () => {
     assert.doesNotMatch(source, /href\s*=\s*["'`]\/alpha(?:[/?"'`]|$)/, `退休入口 /alpha 不得出现在 ${file}`);
     assert.doesNotMatch(source, /href\s*=\s*["'`]\/control(?:[/?"'`]|$)/, `全局 /control 不得出现在 ${file}`);
   }
+});
+
+test("T-109 separates the public website, teaching services and internal history", () => {
+  const portal = read("deploy/minisv/site/index.html");
+  const studio = read("app/studio/StudioApp.tsx");
+  const archiveAccess = read("app/api/auth/studio-archive-access/route.ts");
+  for (const route of ["/world/", "/framework/", "/parents/", "/classroom/", "/course/"]) {
+    assert.match(portal, new RegExp(`href=["']${route.replaceAll("/", "\\/")}`), `官网缺少 ${route}`);
+  }
+  assert.doesNotMatch(portal, /href=["']\/(?:studio|workshop)\//, "公开官网不得暴露内部工作入口");
+  assert.match(studio, /href:\s*"\/studio\/history\/"/);
+  assert.match(studio, /href="\/workshop\/"/);
+  assert.match(studio, /href:\s*"\/classroom\/#factory"/);
+  assert.match(archiveAccess, /\["admin", "mentor"\]/);
+  assert.match(archiveAccess, /user\.impersonation \|\| user\.mustChangePassword/);
+  assert.doesNotMatch(archiveAccess, /"learner"/);
 });

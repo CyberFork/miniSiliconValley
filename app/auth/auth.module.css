@@ -288,3 +288,28 @@
   .authPage *,
   .accountPage * { scroll-behavior: auto !important; transition: none !important; }
 }
+
+/* T-088 · authentication and account safety remain usable with touch only. */
+@media (max-width: 980px), (pointer: coarse) {
+  .authNav,
+  .accountNav {
+    padding-top: env(safe-area-inset-top);
+    padding-right: max(18px, env(safe-area-inset-right));
+    padding-left: max(18px, env(safe-area-inset-left));
+  }
+  .formPanel,
+  .accountMain {
+    padding-right: max(20px, env(safe-area-inset-right));
+    padding-bottom: max(64px, calc(env(safe-area-inset-bottom) + 32px));
+    padding-left: max(20px, env(safe-area-inset-left));
+  }
+  .field input,
+  .field select { font-size: 16px; scroll-margin-block: 18svh 36svh; }
+  .showPassword,
+  .tinyButton,
+  .pickerActions button,
+  .pickerFooter button,
+  .pickerEmpty button { min-height: 44px; }
+  .pickerActions .pickerRemove { width: 44px; }
+  .checkRow label { min-height: 44px; }
+}

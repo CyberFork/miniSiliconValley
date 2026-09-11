@@ -390,7 +390,7 @@ function Dashboard({ dashboard, displayName, signOutPath, appSession, initialTea
     <main className={styles.dashboardPage}>
       <nav className={styles.publicNav} aria-label="Mini Silicon Valley">
         <BrandHomeLink />
-        <div><a href={publicPath("/")}>历史世界</a><a href="/framework/">课程框架</a>{appSession && <a href={publicPath("/account")}>账户中心</a>}<SignOutControl path={signOutPath} appSession={appSession} /></div>
+        <div><a href={publicPath("/")}>首页</a><a href="/world/">历史世界</a><a href="/framework/">课程大纲</a>{appSession && <a href={publicPath("/account")}>账户中心</a>}<SignOutControl path={signOutPath} appSession={appSession} /></div>
       </nav>
       <header className={styles.dashboardHero}>
         <div><span className={styles.eyebrow}>YOUNG BUILDER CONTROL ROOM</span><h1>欢迎回来，{nickname}</h1><p>账号：@{dashboard?.profile.username ?? "—"} · {accountLabel}。{canRequestTeamSeat ? "输入公开队伍ID提交申请（学员席位）；DM审批后，课堂会自动出现在下方。" : canHostRoom ? "导师不加入P/D/M/O队伍；课堂创建者在“授课导师”区域指派你后，课堂会自动出现在下方。" : "观察员不申请学员席位，也不主持课堂。"}</p></div>

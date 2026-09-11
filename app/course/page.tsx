@@ -10,7 +10,7 @@ import { isCoursewareLibraryVisible, listCourseware } from "../lib/courseware-st
 import styles from "./course.module.css";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "课程目录" };
+export const metadata: Metadata = { title: "课件查看" };
 
 export default async function CourseLibrary() {
   const user = await getChatGPTUser();
@@ -25,10 +25,10 @@ export default async function CourseLibrary() {
   const canManage = user.role === "admin" || user.role === "mentor";
   return <main className={styles.page}>
     <header className={styles.top}>
-      <BrandHomeLink title="课程目录" />
+      <BrandHomeLink title="课件查看" />
       <nav>
         <Link href="/classroom/">课堂中心</Link>
-        {canManage && <Link href="/studio/courseware/">管理导师课件</Link>}
+        {canManage && <Link href="/studio/courseware/">管理课件</Link>}
         <AccountMenu
           user={{ userId: user.userId, username: user.username, displayName: user.displayName, role: user.role, impersonation: null }}
           returnTo="/course/"
@@ -37,8 +37,8 @@ export default async function CourseLibrary() {
     </header>
     <section className={styles.hero}>
       <small>COURSE LIBRARY · RELEASED &amp; READ-ONLY</small>
-      <h1>课程目录</h1>
-      <p>导师和 Young Builder 在这里查看已经正式发布的课件。每张卡都来自真实 CoursewarePackage 注册表，并锁定不可变 revision 与 digest；编辑和发布只在 Course Studio 进行。</p>
+      <h1>课件查看</h1>
+      <p>导师和 Young Builder 在这里浏览、播放自己有权访问的正式课件。这里是只读课件库，不是完整课程大纲；每张卡都来自真实 CoursewarePackage 注册表，并锁定不可变 revision 与 digest。编辑和发布只在 Course Studio 进行。</p>
     </section>
     <section className={styles.grid}>{items.map((item) => <article className={styles.card} data-role={item.mentorRole} key={item.packageId}>
       <small>{item.mentorRole} · RELEASED COURSEWARE</small>

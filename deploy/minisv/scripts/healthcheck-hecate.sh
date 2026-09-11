@@ -39,11 +39,15 @@ probe /courseware/development-mentor-ligun/ 401
 probe /courseware/market-mentor-user-system/ 401
 probe /framework/ 200
 probe /parents/ 200
+probe /robots.txt 200
+probe /sitemap.xml 200
+probe /api/public/courses 200
 probe /api/qa 200
 # The review endpoint is loopback-only and must never be a public route.
 probe /internal/knowledge-gaps 404
-probe /workshop/ 200
-probe /workshop/confirmed-baseline.json 200
+probe /workshop/ 307
+probe /workshop/confirmed-baseline.json 307
+probe /workshop/_source/index.html 404
 probe /favicon.svg 200
 probe /this-worldline-does-not-exist 404
 probe /classroom/ 307

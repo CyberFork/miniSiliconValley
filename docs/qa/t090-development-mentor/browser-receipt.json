@@ -1,6 +1,6 @@
 {
   "ok": true,
-  "base": "http://127.0.0.1:60423",
+  "base": "http://127.0.0.1:50325",
   "browser": {
     "engine": "Chromium",
     "version": "151.0.7922.176"
@@ -9,16 +9,181 @@
     "courseId": "eleme-2008-find-problem",
     "schemaVersion": 1,
     "revision": 1,
-    "digest": "bbb3d912b94b93127422d83cd03c1ad1aca3119b48f38797af1718dc99db281a",
+    "digest": "aa0a114e7269611965264057648c2820fc67c04a88d67a5c1d814352d4e6a457",
     "status": "candidate",
-    "createdAt": "2026-09-09T12:38:28.131Z",
-    "createdBy": "t090-admin-96028112"
+    "createdAt": "2026-09-11T00:30:14.150Z",
+    "createdBy": "t090-admin-be255788",
+    "createdByDisplayName": "T090 Admin DM",
+    "fieldMigration": [
+      {
+        "action": "created-seat",
+        "ownerId": "learner05",
+        "path": "blocks.0.seatTasks.learner05",
+        "detail": "B01 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner06",
+        "path": "blocks.0.seatTasks.learner06",
+        "detail": "B01 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner05",
+        "path": "blocks.1.seatTasks.learner05",
+        "detail": "B02 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner06",
+        "path": "blocks.1.seatTasks.learner06",
+        "detail": "B02 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner05",
+        "path": "blocks.2.seatTasks.learner05",
+        "detail": "B03 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner06",
+        "path": "blocks.2.seatTasks.learner06",
+        "detail": "B03 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner05",
+        "path": "blocks.3.seatTasks.learner05",
+        "detail": "B04 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner06",
+        "path": "blocks.3.seatTasks.learner06",
+        "detail": "B04 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner05",
+        "path": "blocks.4.seatTasks.learner05",
+        "detail": "B05 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner06",
+        "path": "blocks.4.seatTasks.learner06",
+        "detail": "B05 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner05",
+        "path": "blocks.5.seatTasks.learner05",
+        "detail": "B06 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner06",
+        "path": "blocks.5.seatTasks.learner06",
+        "detail": "B06 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner05",
+        "path": "blocks.6.seatTasks.learner05",
+        "detail": "B07 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner06",
+        "path": "blocks.6.seatTasks.learner06",
+        "detail": "B07 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner05",
+        "path": "blocks.7.seatTasks.learner05",
+        "detail": "B08 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner06",
+        "path": "blocks.7.seatTasks.learner06",
+        "detail": "B08 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner05",
+        "path": "blocks.8.seatTasks.learner05",
+        "detail": "B09 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner06",
+        "path": "blocks.8.seatTasks.learner06",
+        "detail": "B09 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner05",
+        "path": "blocks.9.seatTasks.learner05",
+        "detail": "B10 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner06",
+        "path": "blocks.9.seatTasks.learner06",
+        "detail": "B10 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner05",
+        "path": "blocks.10.seatTasks.learner05",
+        "detail": "B11 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner06",
+        "path": "blocks.10.seatTasks.learner06",
+        "detail": "B11 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner05",
+        "path": "blocks.11.seatTasks.learner05",
+        "detail": "B12 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner06",
+        "path": "blocks.11.seatTasks.learner06",
+        "detail": "B12 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner05",
+        "path": "blocks.12.seatTasks.learner05",
+        "detail": "B13 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-seat",
+        "ownerId": "learner06",
+        "path": "blocks.12.seatTasks.learner06",
+        "detail": "B13 从只读模板深复制为独立席位节点。"
+      },
+      {
+        "action": "created-field-model",
+        "ownerId": null,
+        "path": "fieldModel",
+        "detail": "981 个可编辑字段已建立稳定 scope / owner / path 索引。"
+      }
+    ]
   },
-  "viewReceiptId": "322cf6a4-4931-4cb5-8005-43daa4b4be07",
+  "viewReceiptId": "9afd56ca-3a71-4208-ad7f-94c165a1bfc3",
   "classrooms": {
-    "2": "2857dd94-05b7-469b-a338-dc8ff0b8eac8",
-    "4": "0a290490-23dd-40a7-bdf0-0a871e840883",
-    "6": "e5e14ac9-c7ce-42a8-815b-99669b6d0a96"
+    "2": "4f8e613e-1eda-4429-91ee-0c6b21923af0",
+    "4": "ec4c8b45-4ca9-432c-81b5-18aaa27a9fb8",
+    "6": "ba172f36-933a-476e-9b35-317df7c151aa"
   },
   "projection": {
     "learnerCounts": [
@@ -80,6 +245,214 @@
       "root": 1024
     }
   },
+  "t088LearnerPad": {
+    "session": "real learner account; no Admin DM viewAs",
+    "exactCourse": {
+      "courseId": "eleme-2008-find-problem",
+      "schemaVersion": 1,
+      "revision": 1,
+      "digest": "aa0a114e7269611965264057648c2820fc67c04a88d67a5c1d814352d4e6a457",
+      "status": "candidate"
+    },
+    "blockRange": "B05-B08",
+    "privateCards": {
+      "count": 2,
+      "isolatedFromLearner2": true
+    },
+    "touchOnlyNavigation": true,
+    "structuredFormFields": 10,
+    "accountMenuTouchAccessible": {
+      "hoverNone": true,
+      "pointerCoarse": true,
+      "criticalControlCount": 31,
+      "undersized": [],
+      "editorCount": 10,
+      "smallEditors": []
+    },
+    "responsiveViewports": [
+      {
+        "id": "ipad-mini-portrait",
+        "width": 744,
+        "height": 1133,
+        "geometry": {
+          "width": 744,
+          "body": 744,
+          "root": 744
+        },
+        "touch": {
+          "hoverNone": true,
+          "pointerCoarse": true,
+          "criticalControlCount": 34,
+          "undersized": [],
+          "editorCount": 10,
+          "smallEditors": []
+        }
+      },
+      {
+        "id": "ipad-mini-landscape",
+        "width": 1133,
+        "height": 744,
+        "geometry": {
+          "width": 1133,
+          "body": 1133,
+          "root": 1133
+        },
+        "touch": {
+          "hoverNone": true,
+          "pointerCoarse": true,
+          "criticalControlCount": 34,
+          "undersized": [],
+          "editorCount": 10,
+          "smallEditors": []
+        }
+      },
+      {
+        "id": "ipad-portrait",
+        "width": 820,
+        "height": 1180,
+        "geometry": {
+          "width": 820,
+          "body": 820,
+          "root": 820
+        },
+        "touch": {
+          "hoverNone": true,
+          "pointerCoarse": true,
+          "criticalControlCount": 34,
+          "undersized": [],
+          "editorCount": 10,
+          "smallEditors": []
+        }
+      },
+      {
+        "id": "ipad-landscape",
+        "width": 1180,
+        "height": 820,
+        "geometry": {
+          "width": 1180,
+          "body": 1180,
+          "root": 1180
+        },
+        "touch": {
+          "hoverNone": true,
+          "pointerCoarse": true,
+          "criticalControlCount": 34,
+          "undersized": [],
+          "editorCount": 10,
+          "smallEditors": []
+        }
+      },
+      {
+        "id": "ipad-pro-portrait",
+        "width": 1024,
+        "height": 1366,
+        "geometry": {
+          "width": 1024,
+          "body": 1024,
+          "root": 1024
+        },
+        "touch": {
+          "hoverNone": true,
+          "pointerCoarse": true,
+          "criticalControlCount": 34,
+          "undersized": [],
+          "editorCount": 10,
+          "smallEditors": []
+        }
+      },
+      {
+        "id": "ipad-pro-landscape",
+        "width": 1366,
+        "height": 1024,
+        "geometry": {
+          "width": 1366,
+          "body": 1366,
+          "root": 1366
+        },
+        "touch": {
+          "hoverNone": true,
+          "pointerCoarse": true,
+          "criticalControlCount": 34,
+          "undersized": [],
+          "editorCount": 10,
+          "smallEditors": []
+        }
+      },
+      {
+        "id": "android-tablet-portrait",
+        "width": 800,
+        "height": 1280,
+        "geometry": {
+          "width": 800,
+          "body": 800,
+          "root": 800
+        },
+        "touch": {
+          "hoverNone": true,
+          "pointerCoarse": true,
+          "criticalControlCount": 34,
+          "undersized": [],
+          "editorCount": 10,
+          "smallEditors": []
+        }
+      },
+      {
+        "id": "android-tablet-landscape",
+        "width": 1280,
+        "height": 800,
+        "geometry": {
+          "width": 1280,
+          "body": 1280,
+          "root": 1280
+        },
+        "touch": {
+          "hoverNone": true,
+          "pointerCoarse": true,
+          "criticalControlCount": 34,
+          "undersized": [],
+          "editorCount": 10,
+          "smallEditors": []
+        }
+      },
+      {
+        "id": "phone-390",
+        "width": 390,
+        "height": 844,
+        "geometry": {
+          "width": 390,
+          "body": 390,
+          "root": 390
+        },
+        "touch": {
+          "hoverNone": true,
+          "pointerCoarse": true,
+          "criticalControlCount": 31,
+          "undersized": [],
+          "editorCount": 10,
+          "smallEditors": []
+        }
+      },
+      {
+        "id": "phone-430",
+        "width": 430,
+        "height": 932,
+        "geometry": {
+          "width": 430,
+          "body": 430,
+          "root": 430
+        },
+        "touch": {
+          "hoverNone": true,
+          "pointerCoarse": true,
+          "criticalControlCount": 31,
+          "undersized": [],
+          "editorCount": 10,
+          "smallEditors": []
+        }
+      }
+    ],
+    "automationBoundary": "Chromium responsive/touch automation only; physical iPad Safari and Android touch-device human acceptance are still required and were not attested."
+  },
   "pageErrors": 0,
   "requestFailures": 0,
   "screenshots": [
@@ -88,6 +461,10 @@
     "docs/qa/t090-development-mentor/learner-development-stick-mobile.png",
     "docs/qa/t090-development-mentor/m-handoff-mobile.png",
     "docs/qa/t090-development-mentor/development-stick-ipad-portrait.png",
-    "docs/qa/t090-development-mentor/private-cards-ipad-landscape.png"
+    "docs/qa/t090-development-mentor/private-cards-ipad-landscape.png",
+    "docs/qa/t090-development-mentor/t088-ipad-mini-portrait.png",
+    "docs/qa/t090-development-mentor/t088-ipad-pro-landscape.png",
+    "docs/qa/t090-development-mentor/t088-android-tablet-portrait.png",
+    "docs/qa/t090-development-mentor/t088-phone-390.png"
   ]
 }

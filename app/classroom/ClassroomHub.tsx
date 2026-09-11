@@ -156,13 +156,13 @@ export default function ClassroomHub({ user, initialCourse, initialNotice = "" }
       <BrandHomeLink title="MSV CLASSROOM" subtitle="课堂中心 · 单一真实运行时" />
       <nav aria-label="课堂导航">
         {canUseStudio && <Link href="/studio/">课程生产工作台</Link>}
-        {canUseStudio && <Link href="/course/">导师课件播放</Link>}
+        <Link href="/course/">课件查看</Link>
         <AccountMenu user={user} returnTo="/classroom/" />
       </nav>
     </header>
     <div className={styles.main}>
       <section className={styles.hero}>
-        <div><small>CLASSROOM CENTER · TEST + PRODUCTION</small><h1>课堂中心</h1><p>UI 验收课堂和正式课堂使用同一套页面、API、权限与状态机；永久环境标识防止把测试数据误当成正式学习记录。</p></div>
+        <div><small>{canUseStudio ? "CLASSROOM CENTER · TEST + PRODUCTION" : "MY CLASSROOMS · YOUNG BUILDER"}</small><h1>{canUseStudio ? "课堂中心" : "我的课堂"}</h1><p>{canUseStudio ? "UI 验收课堂和正式课堂使用同一套页面、API、权限与状态机；永久环境标识防止把测试数据误当成正式学习记录。" : "这里列出导师已经分配给你的课堂。进入后只会看到自己的席位、已解锁剧本和可访问课件；创建与验收工具不会向学员开放。"}</p></div>
         <div className={styles.identity}><b>{user.displayName}</b><span>{user.role === "admin" ? "平台管理员" : user.role === "mentor" ? "导师账号" : "Young Builder"}</span></div>
       </section>
       {actionError && <div className={styles.error} role="alert">{actionError}</div>}
@@ -170,15 +170,15 @@ export default function ClassroomHub({ user, initialCourse, initialNotice = "" }
       {roomsError && <DependencyNotice label="课堂列表" message={roomsError} retained={rooms.length > 0} onRetry={loadRooms} />}
       {roomsLoading && !rooms.length ? <div className={styles.empty}>正在读取彼此隔离的课堂实例…</div> : <>
         <RoomGroup
-          title="UI 验收课堂"
+          title={canUseStudio ? "UI 验收课堂" : "我的练习课堂"}
           environment="test"
           rooms={testRooms}
-          description="TEST · 绑定已通过视图验收的 Candidate／Released；可重置，不进入正式学习档案。"
+          description={canUseStudio ? "TEST · 绑定已通过视图验收的 Candidate／Released；可重置，不进入正式学习档案。" : "导师安排的练习或界面测试课堂；内容与正式学习档案隔离。"}
           createHref={canUseStudio ? "#factory" : undefined}
           onArchive={requestArchive}
         />
         <RoomGroup
-          title="正式课堂"
+          title={canUseStudio ? "正式课堂" : "我的正式课堂"}
           environment="production"
           rooms={productionRooms}
           description="PRODUCTION · 只绑定 Released 与 UI 验收过的同一组 exact 课件；不可重置。"
@@ -240,7 +240,8 @@ function RoomGroup({ title, environment, rooms, description, createHref, archive
   archived?: boolean;
   onArchive?: (room: ClassroomInstanceSummary) => void;
 }) {
-  return <section className={styles.section} data-room-group={environment}>
+  const sectionId = archived ? "archived-test-classrooms" : environment === "production" ? "production-classrooms" : "test-classrooms";
+  return <section className={styles.section} id={sectionId} data-room-group={environment}>
     <header className={styles.sectionHeader}><div><span className={styles.environmentBadge} data-env={environment}>{archived ? "ARCHIVE" : environment.toUpperCase()}</span><h2>{title}</h2><p>{description}</p></div><div className={styles.sectionHeaderActions}><b>{rooms.length} 场</b>{createHref && <a className={styles.sectionAction} href={createHref}>＋ 新建测试课堂</a>}</div></header>
     {rooms.length ? <div className={styles.grid}>{rooms.map((room) => <RoomCard key={room.id} room={room} archived={archived} onArchive={onArchive} />)}</div> : <div className={styles.empty}>{environment === "test" ? <>还没有分配给你的 UI 验收课堂。课程通过多角色视图验收后，使用上方<strong>新建测试课堂</strong>进入创建区。</> : "还没有分配给你的正式课堂。Candidate 必须拿到两张有效回执并发布后才能创建。"}</div>}
   </section>;

@@ -47,3 +47,14 @@
 
 /* T-105 · scoped account discovery for self-registered learners. */
 .accountLookup{display:grid;gap:7px;margin-top:18px;padding-top:16px;border-top:1px solid #587078}.accountLookup label{color:#f8efd8;font-weight:900}.accountLookup input{width:100%;min-height:44px;box-sizing:border-box;padding:9px 11px;color:#14252c;background:#fffaf0;border:2px solid #72bbb2;border-radius:0;font:inherit}.accountLookup input:focus-visible{outline:3px solid #e5b847;outline-offset:2px}.accountLookup button{margin-top:0}.accountLookup small{color:#b8cbc7;line-height:1.45}.asideNotice{margin:10px 0 0;padding:10px;color:#14252c;background:#d9eade;border-left:5px solid #5dad9f;line-height:1.45}
+
+/* T-088 · learner Pad is a first-class touch-only classroom surface. */
+.runtime button,.runtime a,.runtime input,.runtime textarea,.runtime select{touch-action:manipulation}
+.runtimeTop a{display:inline-flex;align-items:center}
+.runtimeTop{padding-top:max(12px,env(safe-area-inset-top));padding-right:max(18px,env(safe-area-inset-right));padding-left:max(18px,env(safe-area-inset-left))}
+.runtimeMain{padding-right:max(clamp(18px,4vw,50px),env(safe-area-inset-right));padding-bottom:max(clamp(18px,4vw,50px),calc(env(safe-area-inset-bottom) + 18px));padding-left:max(clamp(18px,4vw,50px),env(safe-area-inset-left))}
+.testRoleTabs{padding-right:max(18px,env(safe-area-inset-right));padding-left:max(18px,env(safe-area-inset-left))}
+.submission textarea,.structuredForm input,.structuredForm textarea,.reviewCard textarea{font-size:16px;scroll-margin-block:18svh 36svh}
+.privateCard{overflow-wrap:anywhere}
+@media(pointer:coarse){.runtime button,.runtime a,.runtime select{min-height:44px}.testRoleTabs button,.pageNavigator button,.pageNavigator select,.syncStatus button{min-height:44px}}
+@media(max-width:700px){.runtimeTop{padding-top:max(10px,env(safe-area-inset-top));padding-right:max(12px,env(safe-area-inset-right));padding-left:max(12px,env(safe-area-inset-left))}.runtimeMain{padding-top:18px;padding-right:max(12px,env(safe-area-inset-right));padding-bottom:max(42px,calc(env(safe-area-inset-bottom) + 24px));padding-left:max(12px,env(safe-area-inset-left))}.testRoleTabs{padding-right:max(12px,env(safe-area-inset-right));padding-left:max(12px,env(safe-area-inset-left))}.pageNavigator select,.pageNavigator button{min-height:48px}.card{padding:16px}.privateCard{padding:16px;font-size:16px}.privateCard p,.privateCard span{line-height:1.6}.structuredForm input,.structuredForm textarea,.submission textarea,.reviewCard textarea{font-size:16px}.screenControls{right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));left:max(10px,env(safe-area-inset-left))}}

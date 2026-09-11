@@ -37,6 +37,8 @@ test("curriculum: five 0→1 stages plus a six-minute finale are complete", () =
 test("curriculum UI: the historical world points to the independent course site", async () => {
   const world = await readFile(new URL("../app/components/WorldApp.tsx", import.meta.url), "utf8");
 
-  assert.ok(world.includes('<a href={publicPath("/course/")}>导师课件</a>'));
+  assert.ok(world.includes('<a href={publicPath("/")}>首页</a>'));
+  assert.ok(world.includes('<a href={publicPath("/classroom/")}>去上课</a>'));
+  assert.ok(world.includes('<a href={publicPath("/course/")}>课件查看</a>'));
   assert.doesNotMatch(world, /view === "curriculum"|setView\("curriculum"\)/);
 });

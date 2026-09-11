@@ -4,8 +4,8 @@
 
 ## 来源与标签
 
-- 来源：`app/page.tsx`（公共历史世界首页）、`app/components/NavigationLink.tsx`（原生锚封装）、`app/classroom/ClassroomHub.tsx`、`app/studio/StudioRoute.tsx`、`app/studio/editor/page.tsx`、`app/course/page.tsx`、`app/course/[slug]/CoursewareFrame.tsx`、`app/account/page.tsx`、`app/auth/*`。
-- 标签：`首页`、`Studio`、`Editor`、`Classroom`、`Course`、`Auth/Account`。
+- 来源：`deploy/minisv/site/index.html`（公开官网）、`app/world/page.tsx`（完整历史世界）、`app/components/NavigationLink.tsx`（原生锚封装）、`app/classroom/ClassroomHub.tsx`、`app/studio/StudioRoute.tsx`、`app/studio/editor/page.tsx`、`app/course/page.tsx`、`app/course/[slug]/CoursewareFrame.tsx`、`app/account/page.tsx`、`app/auth/*`。
+- 标签：`官网`、`World`、`Studio`、`Editor`、`Classroom`、`Course`、`Auth/Account`、`Workshop Archive`。
 - 统一约束：核心入口必须最终生成真实 `a[href]`；不使用 `javascript:`、纯 `onClick` 或强制 `_blank` 代替导航。`NavigationLink` 不调用 `preventDefault`，因此左键、Enter、触摸、Ctrl/Cmd/Shift/Alt 新标签行为由浏览器保留。
 
 ## 机器基线
@@ -27,12 +27,15 @@
 - `Account`：账户菜单 → 账户中心普通点击通过。
 - `Touch simulation`：390×844、Chromium `hasTouch` 单次 tap 进入多角色视图，无横向溢出。它不是 iPad Safari 真机回执。
 - `Classroom`：T-086 浏览器回执已覆盖课堂卡片普通点击、具体课堂深链、Block 回看、角色视角和移动几何；其余内导航继续在 T-109 后的全站复跑中验证。
+- `T-109 公开区`：官网普通点击进入 World、方法框架、家长入口、去上课和课件查看；1440px／390px 无横向溢出，World 滑杆和触摸入口可用，公开 HTML 不含内部入口。
+- `T-109 内部历史`：Studio 侧栏和资料页均能普通点击进入 `/studio/history/`；归档说明页可找到 `/workshop/`，Workshop 不回流官网主导航。
+- `T-111 回归`：TEST 顶部新建、exact 版本深链、归档和“用相同版本新建”普通链接在 T-109 后复跑通过。
+- `T-088 工程回归`：真实 learner 会话以可见按钮从 B05 触摸前进到 B08；10 个 Pad/手机 viewport 无横向溢出，学员关键控件均不小于 44×44，输入字号不小于 16px，账号菜单与退出可触摸。该结果仍不是 iPad Safari/Android 真机回执。
 
-机器回执：`docs/qa/t110-navigation/browser-receipt.json`。
+机器回执：`docs/qa/t110-navigation/browser-receipt.json`、`docs/qa/t109-public-internal-ia/browser-receipt.json`、`docs/qa/t111-test-classrooms/browser-automated-evidence.json`、`docs/qa/t088-tablet-mobile/browser-receipt.json`。
 
 ## 尚未关闭的矩阵行
 
-- T-109 尚未建立的新官网主导航、World 独立入口、课程框架、家长问答、Workshop 归档入口：实现后复跑 T-110，不能拿当前旧首页代替。
 - Classroom 的成员管理、公共投屏、exact 导师课件和所有返回入口：当前已有源码契约／局部 T-086 证据，T-109 后需要同一轮全链路浏览器回归。
 - 注册、重置密码的完整写流程与无权限/404 页面：认证 API 测试已覆盖数据语义，浏览器导航矩阵仍需补齐。
 - Windows Ctrl＋点击、中键、右键新标签与 Safari Cmd＋点击：保留浏览器原生 anchor 契约，但还没有对应硬件回执。

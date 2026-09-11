@@ -2,9 +2,9 @@
 type: todo
 id: T-088
 title: "将无实体键盘的 iPad／平板作为学员课堂一等设备"
-status: backlog
+status: in-progress
 created: 2026-09-09
-updated: 2026-09-10
+updated: 2026-09-11
 captured_by: project-inbox
 depends_on:
   - T-085
@@ -353,3 +353,13 @@ T-086 的回执数据模型可以并行开发，但第一轮真实 UI 验收和 
 - [T-101](101-classroom-atomic-state-and-stale-response-protection.md) 补充弱网、轮询乱序、切页与导师反馈期间输入不丢的测试，直接服务无键盘 Pad。
 - [T-102](102-acceptance-contract-identity-and-completion-semantics.md) 明确真实设备、exact 版本与实际构建身份；桌面小视口不能替代触屏／软键盘实机。
 - 不再创建另一份重复的“移动端适配”任务，也不把导师编辑器改为手机端作为本任务交付条件。
+
+
+## 2026-09-11 工程实现与自动化记录
+
+- 已完成 Pad/手机 safe-area、`100svh`、触摸目标、16px 软键盘输入字号和触摸操作优化。
+- 已将 T-090 真实 Candidate/Test Classroom/导师反馈/弱网恢复环境扩展为 T-088 学员端验收；新增 `npm run test:t088:browser`。
+- 使用真实 learner 会话覆盖 10 个目标 viewport：0 横向溢出、0 个关键控件小于 44×44、0 个表单字号小于 16px、0 page error。
+- 登录、账号菜单、私密卡隔离、B05→B08 触摸翻页、十字段提交、退回/重交/通过与断网恢复均进入同一机器证据。
+- 证据与真机步骤见 `docs/TODO_088_ENGINEERING_ACCEPTANCE.md` 和 `docs/qa/t088-tablet-mobile/browser-receipt.json`。
+- **未关闭边界**：真实 iPad Safari、Android 触摸设备的软键盘/旋转/锁屏/系统手势仍须人类执行；当前没有签发人工 UiAcceptanceReceipt，故本 Todo 保持 `in-progress`。

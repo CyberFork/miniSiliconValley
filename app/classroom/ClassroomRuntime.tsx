@@ -402,7 +402,7 @@ function PageNavigator({ data, busy, onBack, onForward, onNavigate }: { data: Cl
     <label><span>我的浏览位置</span><select value={data.page.id} onChange={(event) => onNavigate(event.target.value)}>{data.scriptNavigation.unlockedBlocks.map((block) => <option key={block.id} value={block.id}>{block.id} · {block.title}</option>)}</select></label>
     {historical && <button className={styles.latestButton} onClick={() => onNavigate(data.scriptNavigation.latestUnlocked.id)}>回到最新解锁 · {data.scriptNavigation.latestUnlocked.id}</button>}
     <button disabled={busy || (data.script.unlockedThroughIndex >= data.course.blockCount - 1 && !historical)} onClick={onForward}>{historical ? "下一页 →" : data.scriptNavigation.canUnlockNext ? "确认解锁下一页 →" : "下一页尚未解锁"}</button>
-    <small>←/→ 翻页 · Home 回 B01 · End 回最新；每个人独立浏览</small>
+    <small>点按按钮或下拉框翻页；有键盘时也可用 ←/→、Home、End。每个人独立浏览。</small>
   </section>;
 }
 
@@ -563,7 +563,7 @@ function StructuredActivityForm({ data, busy, submit }: {
     <small className={styles.eyebrow}>团队交付物 · {schema.ownerMentorRole} 导师验收</small>
     <h2>{schema.name}</h2>
     <p>{schema.learnerIntro}</p>
-    {mine && <div className={styles.submissionStatus} data-status={mine.status}>
+    {mine && <div className={styles.submissionStatus} data-status={mine.status} role="status" aria-live="polite">
       <b>{mine.status === "accepted" ? `✓ ${schema.ownerMentorRole} 导师已通过` : mine.status === "rejected" ? `↺ ${schema.ownerMentorRole} 导师已退回` : `已提交 · 等待 ${schema.ownerMentorRole} 导师`}</b>
       {mine.reviewFeedback && <span>导师建议：{mine.reviewFeedback}</span>}
     </div>}

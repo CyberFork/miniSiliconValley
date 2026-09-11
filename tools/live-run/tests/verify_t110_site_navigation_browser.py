@@ -159,8 +159,8 @@ def main() -> None:
                     briefing = page.get_by_role("button", name="进入迷你硅谷 →")
                     if briefing.is_visible():
                         briefing.click()
-                    expect(page.get_by_role("link", name="导师课件")).to_be_visible()
-                    page.get_by_role("link", name="导师课件").click()
+                    expect(page.get_by_role("link", name="课件查看")).to_be_visible()
+                    page.get_by_role("link", name="课件查看").click()
                     page.wait_for_url("**/auth/login/**")
                     query = parse_qs(urlparse(page.url).query)
                     assert query.get("returnTo") == ["/course/"], query
@@ -199,6 +199,12 @@ def main() -> None:
                     page.locator('nav[aria-label="Course Studio"] a[href="/studio/"]').click()
                     page.wait_for_url("**/studio/")
                     expect(page.get_by_role("heading", name="课程生产工作台")).to_be_visible()
+                    page.locator('nav[aria-label="Course Studio"] a[href="/studio/history/"]').click()
+                    page.wait_for_url("**/studio/history/")
+                    expect(page.get_by_role("heading", name="资料与历史")).to_be_visible()
+                    expect(page.get_by_role("link", name="打开只读历史归档 →")).to_have_attribute("href", "/workshop/")
+                    page.locator('nav[aria-label="Course Studio"] a[href="/studio/"]').click()
+                    page.wait_for_url("**/studio/")
                     editor_entry = page.get_by_role("link", name="打开课程编辑器 →")
                     editor_entry.click()
                     page.wait_for_url("**/studio/editor/")
@@ -253,6 +259,7 @@ def main() -> None:
                         "ordinaryWorkflowLinks": True, "keyboardEnter": True,
                         "exactPreviewHref": exact_href, "metaNewTabPreserved": True,
                         "backForwardRefresh": True, "diagnosticFailureNonBlocking": True,
+                        "historyArchiveDiscoverable": True,
                         "startupCold": cold, "startupWarm": warm,
                     }
 
@@ -260,7 +267,7 @@ def main() -> None:
                     # back/forward and Cmd-new-tab.  Account Center is also a real
                     # navigation target rather than a menu-only label.
                     page.goto(f"{base}/course/", wait_until="networkidle")
-                    expect(page.get_by_role("heading", name="课程目录")).to_be_visible()
+                    expect(page.get_by_role("heading", name="课件查看")).to_be_visible()
                     page.locator('summary[aria-label="账户菜单：T110 导航验收管理员"]').click()
                     page.get_by_role("link", name="账户中心").click()
                     page.wait_for_url("**/account/")
@@ -277,7 +284,7 @@ def main() -> None:
                     assert path_query(page.url) == course_href
                     expect(page.get_by_role("heading", name=course_title)).to_be_visible()
                     page.go_back(wait_until="networkidle")
-                    expect(page.get_by_role("heading", name="课程目录")).to_be_visible()
+                    expect(page.get_by_role("heading", name="课件查看")).to_be_visible()
                     page.go_forward(wait_until="networkidle")
                     expect(page.get_by_role("heading", name=course_title)).to_be_visible()
                     page.go_back(wait_until="networkidle")

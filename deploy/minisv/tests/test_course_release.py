@@ -77,6 +77,16 @@ class CourseReleaseTests(unittest.TestCase):
                 ("public-deploy.js", "void 0;"), ("manifest.json", "{}"),
             ):
                 (legacy / name).write_text(value)
+            expected_workshop_source = {
+                target_name: (legacy / source_name).read_bytes()
+                for source_name, target_name in (
+                    ("launch.html", "index.html"),
+                    ("app.js", "app.js"),
+                    ("styles.css", "styles.css"),
+                    ("public-deploy.js", "public-deploy.js"),
+                    ("manifest.json", "manifest.json"),
+                )
+            }
             (client / "favicon.svg").write_text("<svg xmlns='http://www.w3.org/2000/svg'/>")
             development = client / "courseware" / "development-mentor-ligun"
             (development / "index.html").write_text("<html><body><h1>先立棍，再让 AI 跑</h1></body></html>")
@@ -108,6 +118,7 @@ class CourseReleaseTests(unittest.TestCase):
                 "contentTreeSha256": market_tree,
             }))
             (static / "world" / "index.html").write_text('<html><head></head><body><a href="/course/">课程大纲</a>current world</body></html>')
+            (static / "world-preview.json").write_text('{"schemaVersion":1,"markers":["world"]}\n')
             (static / "parents" / "index.html").write_text('<html><head></head><body><a class="msv-brand-home" href="/"><img src="/favicon.svg">current parents</a></body></html>')
             course_html = (
                 '<html><head><link rel="stylesheet" href="/courseware/product-mentor-foundations/_next/chj.css"></head>'
@@ -118,7 +129,8 @@ class CourseReleaseTests(unittest.TestCase):
             (course / "_next" / "chj.css").write_bytes(b"/* colleague bytes */")
             (course / "assets" / "home-workbench.png").write_bytes(b"\x89PNG\r\n\x1a\ncolleague")
             (portal / "index.html").write_text('<html><head></head><body><a href="/course/">课程大纲</a></body></html>')
-            (portal / "404.html").write_text('<html><head></head><body><a href="/">返回 Mini Silicon Valley 主页</a></body></html>')
+            (portal / "404.html").write_text('<html><head></head><body><a href="/">返回 MINI硅谷首页</a></body></html>')
+            (portal / "sitemap.xml").write_text('<urlset><url><loc>https://minisv.vip/</loc></url></urlset>\n')
             for name in ("portal.css", "portal.js", "ui-theme.css", "ui-theme.js", "robots.txt", "site.webmanifest"):
                 if name == "ui-theme.js":
                     value = 'var routes = ["/framework/", "/parents/"]; link.href = "/course/";'
@@ -166,20 +178,31 @@ class CourseReleaseTests(unittest.TestCase):
                 market_tree,
             )
             workshop_html = (output / "workshop" / "index.html").read_text()
-            self.assertIn("msv-workshop-released-baseline", workshop_html)
-            self.assertIn('href="/" aria-label="返回 Mini Silicon Valley 主页"', workshop_html)
+            self.assertIn("msv-workshop-archive", workshop_html)
+            self.assertIn('data-workshop-mode="archive-readonly"', workshop_html)
+            archive_js = (output / "workshop" / "archive.js").read_text()
+            for forbidden in ("setItem", "removeItem", "clear("):
+                self.assertNotIn(forbidden, archive_js)
+            self.assertTrue((output / "workshop").is_dir())
+            self.assertIn('href="/" aria-label="返回 MINI硅谷首页"', workshop_html)
             self.assertIn('src="/favicon.svg"', workshop_html)
-            self.assertIn("connect-src 'self'", workshop_html)
-            self.assertIn("img-src 'self' data:", workshop_html)
             self.assertIn('data-msv-theme="adventure"', workshop_html)
             self.assertNotIn("data-msv-theme-slot", workshop_html)
-            self.assertIn('data-panel="baseline"', workshop_html)
-            for name in ("baseline.css", "baseline.js", "confirmed-baseline.json", "workshop-snapshot.schema.json"):
+            for name in ("archive.css", "archive.js", "confirmed-baseline.json", "workshop-snapshot.schema.json"):
                 self.assertTrue((output / "workshop" / name).is_file(), name)
+            exact_source = output / "workshop" / "_source"
+            self.assertTrue((exact_source / "SOURCE-MANIFEST.json").is_file())
+            self.assertEqual({
+                path.relative_to(exact_source).as_posix(): path.read_bytes()
+                for path in exact_source.rglob("*")
+                if path.is_file() and path.name != "SOURCE-MANIFEST.json"
+            }, expected_workshop_source)
             snapshot = json.loads((output / "workshop" / "confirmed-baseline.json").read_text())
             self.assertEqual(snapshot["source"]["channel"], "released")
             self.assertEqual(snapshot["scope"], "public-redacted-summary")
-            self.assertIn("/course/", json.loads((output / "sitemap.json").read_text())["routes"])
+            self.assertEqual(json.loads((output / "sitemap.json").read_text())["routes"], ["/", "/world/", "/framework/", "/parents/"])
+            self.assertTrue((output / "world-preview.json").is_file())
+            self.assertTrue((output / "sitemap.xml").is_file())
             release = json.loads((output / "release.json").read_text())
             self.assertEqual(release["sources"]["main"], main_sha)
             self.assertEqual(release["workspaceProvenance"], provenance)
@@ -189,6 +212,7 @@ class CourseReleaseTests(unittest.TestCase):
             self.assertIn("verbatim-product-mentor-courseware", release["features"])
             self.assertIn("shared-brand-home", release["features"])
             self.assertIn("released-workshop-snapshot", release["features"])
+            self.assertIn("read-only-workshop-history-archive", release["features"])
             self.assertFalse(release["coursewareArtifact"]["transformed"])
             self.assertEqual(release["coursewareArtifact"]["mentorRole"], "P")
             self.assertEqual(release["coursewareArtifact"]["files"], len(source_snapshot))

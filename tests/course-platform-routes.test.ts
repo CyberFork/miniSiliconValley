@@ -10,6 +10,7 @@ const required = [
   "app/studio/reviews/page.tsx",
   "app/studio/courseware/page.tsx",
   "app/studio/releases/page.tsx",
+  "app/studio/history/page.tsx",
   "app/course/page.tsx",
   "app/course/[slug]/page.tsx",
   "app/studio/courseware/[packageId]/page.tsx",
@@ -25,6 +26,7 @@ const required = [
   "app/api/studio/view-acceptance/route.ts",
   "app/api/studio/content-reviews/route.ts",
   "app/api/studio/parent-qa-reviews/route.ts",
+  "app/api/auth/studio-archive-access/route.ts",
   "app/api/platform/classrooms/[classroomId]/receipt/route.ts",
 ];
 
@@ -39,7 +41,7 @@ test("T-086 navigation names the two acceptance gates and keeps UI preview on re
   const editor = readFileSync(new URL("public/studio/editor-assets/editor.js", root), "utf8");
   const classroom = readFileSync(new URL("app/classroom/ClassroomHub.tsx", root), "utf8");
   const course = readFileSync(new URL("app/course/page.tsx", root), "utf8");
-  for (const marker of ["课程生产工作台", "多角色视图验收", "验收与发布", "导师课件库", "导师课件播放", "课堂中心"]) {
+  for (const marker of ["课程生产工作台", "多角色视图验收", "验收与发布", "导师课件库", "课件查看", "Test 课堂验收", "正式课堂", "资料与历史"]) {
     assert.match(studio + classroom + course, new RegExp(marker), `missing navigation label ${marker}`);
   }
   assert.match(studio, /ViewAcceptanceReceipt/);

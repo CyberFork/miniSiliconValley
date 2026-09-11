@@ -13,6 +13,7 @@ import { publicPath } from "../lib/public-path";
 import styles from "../auth/auth.module.css";
 import { BrandHomeLink } from "../components/BrandHomeLink";
 import { AccountMenu } from "../components/AccountMenu";
+import Link from "../components/NavigationLink";
 import { announceAccountChange, approveAccountNavigation, mutateBrowserAccount } from "../components/browser-account-client";
 
 type Envelope<T> = { ok: boolean; data?: T; error?: { code: string; message: string } };
@@ -68,7 +69,7 @@ export default function AccountClient({ initialUser, firstLogin = false, returnT
       <a className={styles.skipLink} href="#account-main">跳到账户内容</a>
       <nav className={styles.accountNav} aria-label="Mini Silicon Valley">
         <BrandHomeLink />
-        <div className={styles.navLinks}><a href={publicPath("/")}>历史世界</a><a href="/framework/">课程框架</a><a href={publicPath("/classroom")}>进入课堂</a><AccountMenu user={user} returnTo="/account/" /></div>
+        <div className={styles.navLinks}><a href={publicPath("/")}>首页</a><a href="/world/">历史世界</a><Link href="/course/">课件查看</Link><a href={publicPath("/classroom")}>进入课堂</a><AccountMenu user={user} returnTo="/account/" /></div>
       </nav>
       <div className={styles.accountMain} id="account-main">
         <header className={styles.accountHero}>

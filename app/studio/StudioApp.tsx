@@ -18,7 +18,7 @@ import { buildStudioProjection, resolveLearnerPolicy, validateCourseInstantiatio
 import type { CoursewareSummary } from "../lib/courseware-store";
 import styles from "./studio.module.css";
 
-export type StudioSection = "home" | "editor" | "preview" | "reviews" | "courseware" | "releases";
+export type StudioSection = "home" | "editor" | "preview" | "reviews" | "courseware" | "releases" | "history";
 
 type Version = {
   ref: CoursePackageRef;
@@ -67,12 +67,19 @@ const NAV_GROUPS: Array<{
     label: "资源管理",
     items: [
       { id: "courseware", href: "/studio/courseware/", code: "05", label: "导师课件库" },
-      { href: "/course/", code: "06", label: "导师课件播放" },
+      { href: "/course/", code: "06", label: "课件查看" },
     ],
   },
   {
     label: "课堂交付",
-    items: [{ href: "/classroom/", code: "07", label: "课堂中心" }],
+    items: [
+      { href: "/classroom/#factory", code: "07", label: "Test 课堂验收" },
+      { href: "/classroom/#production-classrooms", code: "08", label: "正式课堂" },
+    ],
+  },
+  {
+    label: "资料与历史",
+    items: [{ id: "history", href: "/studio/history/", code: "09", label: "早期课程工作坊" }],
   },
 ];
 
@@ -83,6 +90,7 @@ const SECTION_TITLES: Record<StudioSection, string> = {
   reviews: "人工审核工作台",
   courseware: "导师课件库",
   releases: "验收与发布",
+  history: "资料与历史",
 };
 
 export default function StudioApp({
@@ -99,6 +107,12 @@ export default function StudioApp({
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(true);
   const load = useCallback(async () => {
+    if (section === "history") {
+      setData(null);
+      setError("");
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       setData(await api<Bootstrap>("/api/studio/bootstrap?scope=current"));
@@ -108,7 +122,7 @@ export default function StudioApp({
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [section]);
   useEffect(() => {
     const timer = window.setTimeout(() => { void load(); }, 0);
     return () => window.clearTimeout(timer);
@@ -141,15 +155,17 @@ export default function StudioApp({
         </div>)}
       </nav>
       <section className={styles.content}>
-        {error && <div className={styles.error} role="alert"><span>{error}</span><button type="button" onClick={() => void load()}>重试</button></div>}
-        {notice && <div className={styles.notice} role="status">{notice}</div>}
-        {loading && !data ? <div className={styles.loading} role="status"><small>COURSE STUDIO · 正在打开</small><h1>{SECTION_TITLES[section]}</h1><p>正在读取课程版本与两级验收门禁…</p></div> : data ? <>
-          {section === "home" && <StudioHome data={data} />}
-          {section === "preview" && <ViewAcceptance key={initialCourseRef ? `${initialCourseRef.courseId}:${initialCourseRef.revision}:${initialCourseRef.digest ?? ""}` : "current"} data={data} initialCourseRef={initialCourseRef} onAccepted={changed} onError={setError} />}
-          {section === "reviews" && <HumanReviewWorkbench data={data} onChanged={changed} onError={setError} />}
-          {section === "courseware" && <CoursewareLibrary data={data} onChanged={changed} onError={setError} />}
-          {section === "releases" && <Releases data={data} onChanged={changed} onError={setError} />}
-        </> : null}
+        {section === "history" ? <StudioHistory /> : <>
+          {error && <div className={styles.error} role="alert"><span>{error}</span><button type="button" onClick={() => void load()}>重试</button></div>}
+          {notice && <div className={styles.notice} role="status">{notice}</div>}
+          {loading && !data ? <div className={styles.loading} role="status"><small>COURSE STUDIO · 正在打开</small><h1>{SECTION_TITLES[section]}</h1><p>正在读取课程版本与两级验收门禁…</p></div> : data ? <>
+            {section === "home" && <StudioHome data={data} />}
+            {section === "preview" && <ViewAcceptance key={initialCourseRef ? `${initialCourseRef.courseId}:${initialCourseRef.revision}:${initialCourseRef.digest ?? ""}` : "current"} data={data} initialCourseRef={initialCourseRef} onAccepted={changed} onError={setError} />}
+            {section === "reviews" && <HumanReviewWorkbench data={data} onChanged={changed} onError={setError} />}
+            {section === "courseware" && <CoursewareLibrary data={data} onChanged={changed} onError={setError} />}
+            {section === "releases" && <Releases data={data} onChanged={changed} onError={setError} />}
+          </> : null}
+        </>}
       </section>
     </div>
   </main>;
@@ -174,7 +190,7 @@ function StudioHome({ data }: { data: Bootstrap }) {
     <div className={styles.overviewGrid}>
       <article className={styles.overviewCard}><b>01 · EDIT · {candidateCount} CANDIDATES</b><h2>编辑并保存 Candidate</h2><p>课程编辑器是唯一正文写入口。每次保存生成不可变 revision 与 digest，不热更新任何课堂。</p><Link href="/studio/editor/">打开课程编辑器 →</Link></article>
       <article className={styles.overviewCard}><b>02 · VIEW · {validViewCount} PASSED</b><h2>验收 4 + N + 1</h2><p>逐 Block、逐支持人数检查四导师、N 学员、私密卡与中控投影，并签发 ViewAcceptanceReceipt。</p><Link href="/studio/preview/">开始多角色视图验收 →</Link></article>
-      <article className={styles.overviewCard}><b>03—05 · UI · {validUiCount} PASSED</b><h2>真实课堂后再发布</h2><p>创建 Test Classroom、跑完真实 UI、签发 UiAcceptanceReceipt，再推进 Released 与 Production。</p><Link href="/studio/releases/">打开验收与发布 →</Link></article>
+      <article className={styles.overviewCard}><b>03 · UI · {validUiCount} PASSED</b><h2>进入真实 Test Classroom</h2><p>使用正式课堂同一套 UI、API 与状态机跑完整流程，再签发 UiAcceptanceReceipt；测试数据始终与 Production 隔离。</p><Link href="/classroom/#factory">创建或继续 Test 课堂 →</Link></article>
     </div>
     <section className={styles.panel}>
       <h2>不可跳过的生产线</h2>
@@ -184,6 +200,27 @@ function StudioHome({ data }: { data: Bootstrap }) {
       <p className={styles.panelIntro}>导师课件库是并行资源线：四套 P／D／M／O exact 课件必须在创建 Test Classroom 前汇合。</p>
     </section>
     <PipelineList data={data} versions={versions} />
+  </>;
+}
+
+function StudioHistory() {
+  return <>
+    <Heading eyebrow="INTERNAL HISTORY · READ ONLY" title="资料与历史">
+      这里保存早期课程设计的来路，帮助团队理解为什么形成今天的 CourseDefinition、五步创业闭环与课堂状态机；它不参与现行编辑、验收或发布。
+    </Heading>
+    <section className={`${styles.panel} ${styles.historyLead}`}>
+      <div><small>EARLY WORKSHOP · FROZEN</small><h2>早期课程工作坊</h2><p>Workshop 已冻结为只读历史归档。旧交互原件随 Release 保留用于审计和回退，但不能从网页访问；在线归档只展示 Released 脱敏基线，并只读检查当前浏览器里的旧记录。</p></div>
+      <a className={styles.historyLaunch} href="/workshop/">打开只读历史归档 →</a>
+    </section>
+    <div className={styles.historyGrid}>
+      <article><b>现在改课程</b><p>课程正文只有 Course Studio 编辑器一个写入口；保存会生成新的不可变 revision 与 digest。</p><Link href="/studio/editor/">去课程编辑器 →</Link></article>
+      <article><b>现在做验收</b><p>先检查 4 + N + 1 多角色视图，再用真实 Test Classroom 验收最终 UI，不能用归档内容代签回执。</p><Link href="/studio/preview/">去多角色视图验收 →</Link></article>
+      <article><b>找当前发布结果</b><p>Released、两级验收回执和正式课堂门禁都以当前 Registry 与 Studio 为准。</p><Link href="/studio/releases/">去验收与发布 →</Link></article>
+    </div>
+    <section className={styles.historyBoundary} aria-labelledby="history-browser-title">
+      <div><small>ONE BROWSER AT A TIME</small><h2 id="history-browser-title">浏览器记录不会自动集中</h2></div>
+      <p>旧 Workshop 把部分讨论保存在使用者自己的浏览器中。服务器无法读取别的电脑、浏览器或浏览器配置文件；必须在每个曾经使用过的浏览器里分别打开归档并导出，才能形成完整人工备份。</p>
+    </section>
   </>;
 }
 

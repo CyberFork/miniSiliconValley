@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { WorldApp } from "./components/WorldApp";
 
-const canonicalUrl = process.env.MSV_CANONICAL_URL ?? "https://mini-silicon-valley-rpg.cyberforker.chatgpt.site";
+const canonicalUrl = process.env.MSV_CANONICAL_URL ?? "https://minisv.vip/world/";
 
 export const metadata: Metadata = {
   title: { absolute: "Mini Silicon Valley | 真实科技史创业 RPG" },

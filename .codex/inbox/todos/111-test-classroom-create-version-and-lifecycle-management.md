@@ -81,4 +81,5 @@ tags: [todo, test-classroom, lifecycle, version, navigation, studio]
 - 已有 UI 回执保留为历史证据但动态失效，不能继续发布或创建 Production；Studio 不把归档 Test 计入当前验收状态。
 - 永久删除和原地恢复明确不提供；历史卡可携带原 exact 引用创建全新 Test。
 - 自动化通过 TypeScript、ESLint、134 项平台测试（新增测试后的最终数量以本轮提交证据为准）、生产构建与编译后 ClassroomHub 浏览器回归；未访问生产数据、未代签人工回执。
+- T-109 后再次通过 158/158 平台测试与独立编译后浏览器回归：普通新建入口、exact 版本深链、自定义归档确认、CAS 载荷、隔离归档、手机／Pad 响应式均保持有效；未创建人工验收回执。
 - 完整架构、API、安全边界与测试方法见 `docs/TODO_111_IMPLEMENTATION.md`；浏览器机器证据见 `docs/qa/t111-test-classrooms/`。

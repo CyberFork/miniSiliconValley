@@ -1,49 +1,124 @@
 (() => {
   "use strict";
-  const panel = document.querySelector("[data-health-state]");
-  const title = document.getElementById("status-title");
-  const detail = document.getElementById("status-detail");
-  if (!panel || !title || !detail) return;
+  const root = document.querySelector("[data-world-preview]");
+  if (!root) return;
+  const range = root.querySelector("[data-world-range]");
+  const yearOutput = root.querySelector("[data-world-year]");
+  const eraOutput = root.querySelector("[data-world-era]");
+  const layersRoot = root.querySelector("[data-world-layers]");
+  const hotspotsRoot = root.querySelector("[data-world-hotspots]");
+  const story = root.querySelector("[data-world-story]");
+  const status = root.querySelector("[data-world-status]");
+  if (!(range instanceof HTMLInputElement) || !yearOutput || !eraOutput || !layersRoot || !hotspotsRoot || !story || !status) return;
 
-  const requestJson = async (path) => {
-    const response = await fetch(path, {
-      cache: "no-store",
-      credentials: "same-origin",
-      headers: { Accept: "application/json" },
-    });
-    if (!response.ok) throw new Error(`${path} ${response.status}`);
-    return response.json();
+  let catalog = null;
+  const layerNodes = [];
+  const hotspotNodes = [];
+
+  const eraLabel = (year) => year < 1954
+    ? "果园与车库"
+    : year < 1989
+      ? "芯片与个人计算"
+      : year < 2006
+        ? "互联网起飞"
+        : "移动、云与 AI";
+
+  const layerOpacity = (index, year, layers) => {
+    const anchors = layers.map((item) => item.year);
+    if (year <= anchors[0]) return index === 0 ? 1 : 0;
+    if (year >= anchors[anchors.length - 1]) return index === anchors.length - 1 ? 1 : 0;
+    let lower = 0;
+    while (lower < anchors.length - 1 && year > anchors[lower + 1]) lower += 1;
+    const upper = Math.min(lower + 1, anchors.length - 1);
+    const progress = (year - anchors[lower]) / (anchors[upper] - anchors[lower]);
+    if (index === lower) return 1 - progress;
+    if (index === upper) return progress;
+    return 0;
   };
 
-  Promise.all([requestJson("/healthz"), requestJson("/release.json")])
-    .then(([health, release]) => {
-      if (!health.ok || health.origin !== "hecate" || release.origin !== "hecate") {
-        throw new Error("production identity mismatch");
-      }
-      panel.dataset.healthState = "online";
-      title.textContent = "Hecate 生产服务在线";
-      const built = release.builtAt
-        ? new Date(release.builtAt).toLocaleString("zh-CN", { hour12: false })
-        : "时间未知";
-      detail.replaceChildren(
-        document.createTextNode("HTTPS Tunnel 已连接 · 所有入口由 Hecate 提供"),
-        document.createElement("br"),
-        Object.assign(document.createElement("small"), {
-          textContent: `发布 ${release.release || "未知"} · ${built}`,
-        }),
-      );
-    })
-    .catch(() => {
-      panel.dataset.healthState = "offline";
-      title.textContent = "连接状态需要检查";
-      detail.replaceChildren(
-        document.createTextNode("未能确认 Hecate 生产网关，请稍后刷新。"),
-        document.createElement("br"),
-        Object.assign(document.createElement("small"), {
-          textContent: "导航仍可使用；导师可进入主控台查看详细状态。",
-        }),
-      );
+  const closestEvent = (year) => catalog.events.reduce((closest, event) => {
+    const distance = Math.abs(event.year - year);
+    const previousDistance = Math.abs(closest.year - year);
+    return distance < previousDistance || (distance === previousDistance && event.year <= year) ? event : closest;
+  }, catalog.events[0]);
+
+  const renderYear = (rawYear) => {
+    if (!catalog) return;
+    const year = Math.max(catalog.yearRange.min, Math.min(catalog.yearRange.max, Math.round(Number(rawYear))));
+    range.value = String(year);
+    yearOutput.textContent = String(year);
+    eraOutput.textContent = eraLabel(year);
+    layerNodes.forEach((node, index) => { node.style.opacity = String(layerOpacity(index, year, catalog.layers)); });
+    const active = closestEvent(year);
+    hotspotNodes.forEach(({ node, event }) => {
+      const distance = Math.abs(event.year - year);
+      node.dataset.active = String(event.id === active.id);
+      node.style.opacity = String(distance <= 24 || event.id === active.id ? Math.max(.28, 1 - distance / 34) : .12);
     });
+    story.replaceChildren();
+    const meta = document.createElement("small");
+    meta.textContent = `${active.year} · ${active.place} · ${active.sourceCount} 条来源`;
+    const title = document.createElement("h3");
+    title.textContent = active.title;
+    const significance = document.createElement("p");
+    significance.textContent = active.significance;
+    story.append(meta, title, significance);
+    root.querySelectorAll("[data-world-jump]").forEach((button) => {
+      button.dataset.active = String(Number(button.dataset.worldJump) === year);
+    });
+  };
+
+  fetch("/world-preview.json", {
+    cache: "no-store",
+    credentials: "same-origin",
+    headers: { Accept: "application/json" },
+  }).then(async (response) => {
+    if (!response.ok) throw new Error(`world preview ${response.status}`);
+    const value = await response.json();
+    if (value?.schemaVersion !== 1 || value?.source !== "historyCatalog" || !Array.isArray(value.layers) || !value.layers.length || !Array.isArray(value.events) || !value.events.length) {
+      throw new Error("world preview schema mismatch");
+    }
+    catalog = value;
+    range.min = String(value.yearRange.min);
+    range.max = String(value.yearRange.max);
+    layersRoot.replaceChildren();
+    value.layers.forEach((layer, index) => {
+      const image = document.createElement("img");
+      image.src = layer.src;
+      image.alt = "";
+      image.decoding = "async";
+      image.loading = index === 2 ? "eager" : "lazy";
+      layersRoot.append(image);
+      layerNodes.push(image);
+    });
+    hotspotsRoot.replaceChildren();
+    value.events.forEach((event) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.style.left = `${event.map.x}%`;
+      button.style.top = `${event.map.y}%`;
+      button.setAttribute("aria-label", `${event.year} · ${event.title}`);
+      button.addEventListener("click", () => renderYear(event.year));
+      hotspotsRoot.append(button);
+      hotspotNodes.push({ node: button, event });
+    });
+    root.setAttribute("aria-busy", "false");
+    status.textContent = `${value.events.length} 个精选节点 · 完整世界保留全部事件与来源`;
+    renderYear(range.value);
+  }).catch(() => {
+    root.setAttribute("aria-busy", "false");
+    status.textContent = "轻量地图暂时没有载入；完整历史世界仍可打开。";
+    story.replaceChildren(
+      Object.assign(document.createElement("small"), { textContent: "OFFLINE FALLBACK" }),
+      Object.assign(document.createElement("h3"), { textContent: "地图画面仍在，历史节点请进入完整世界" }),
+      Object.assign(document.createElement("p"), { textContent: "这里不会用演示数据替代真实历史目录。" }),
+    );
+  });
+
+  range.addEventListener("input", () => renderYear(range.value));
+  root.querySelectorAll("[data-world-jump]").forEach((button) => {
+    button.addEventListener("click", () => renderYear(button.dataset.worldJump));
+  });
 })();
 
 (() => {
@@ -207,6 +282,11 @@
         panel.append(row);
       }
       const actions = element("div", "portal-account-actions");
+      actions.append(actionLink("我的课堂", "/classroom/", "portal-account-action"));
+      actions.append(actionLink("课件查看", "/course/", "portal-account-action"));
+      if (current && (current.role === "admin" || current.role === "mentor")) {
+        actions.append(actionLink("Course Studio · 内部工作台", "/studio/", "portal-account-action portal-account-wide"));
+      }
       actions.append(actionLink("账户中心", "/account/", "portal-account-action"));
       actions.append(actionLink("＋ 添加账号", `${loginPath()}&add=1`, "portal-account-action"));
       const logoutCurrent = element("button", "portal-account-action", "退出当前账号");

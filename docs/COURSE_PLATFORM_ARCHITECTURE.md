@@ -2,10 +2,19 @@
 
 # Mini Silicon Valley 课程平台架构
 
-> 状态：T-111 本地实现后的现行架构
+> 状态：T-109 本地实现后的现行架构
 > 日期：2026-09-11
 > 基础架构：T-085 统一课程工厂
 > 当前闭环：两次验收、一次发布
+
+## 0. 一套底层、两个入口区
+
+`minisv.vip` 只按使用目的分为两区，不复制账号、课程或课堂系统：
+
+- **对外官网与教学服务**：`/`、`/world/`、`/framework/`、`/parents/` 匿名介绍；`/classroom/`、`/course/`、`/account/` 登录后上课、查看课件和管理本人账号。
+- **对内 Course Studio**：`/studio/` 编辑、验收、发布和管理资源；TEST 的主要发现入口在 Studio，但运行本身仍是同一个 Classroom。Workshop 只从 Studio 的“资料与历史”深层进入。
+
+“对外”不等于全部免登录，“入口归到 Studio”也不产生第二套 Test 系统。权限始终由服务端 Session、RBAC、Membership、Admin DM grant 与 exact 版本规则决定，而不是由导航是否显示决定。
 
 ## 1. 不可跳过的生产线
 
@@ -29,7 +38,15 @@ CourseDefinition Working Copy
 
 两张回执均为不可变证据，而不是可手改的布尔状态。服务端在创建课堂、签发回执和发布时都会重新核验 exact 引用。
 
-## 2. 三个产品面
+## 2. 两区中的产品面
+
+### Public Website：品牌与参与入口
+
+`/` 是真正的公开官网，不是运维门户。它使用经过批准的对外课程口径，解释课程价值、真实历史与平行世界、毛线／美式／德式三种玩法、P/D/M/O 四导师支持、五步创业实践和最终六分钟 Demo。
+
+首页轻量历史地图由 `historyCatalog` 在构建时生成 `world-preview.json`；它与完整 `/world/` 共用史实来源，不维护第二份历史数据库。公开页面只能读取 Released-only allow-list 摘要，不得包含 Candidate、导师讲稿、私密卡、课堂状态、账号、回执或部署诊断。
+
+搜索策略按职责拆分：官网、World、方法框架与家长入口允许索引；认证、账户、课堂、课件、Studio、Workshop、API 与运维端点一律 noindex。
 
 ### Course Studio：课程生产
 
@@ -39,14 +56,19 @@ CourseDefinition Working Copy
 /studio/preview/     02 多角色视图验收
 /studio/releases/    03 验收与发布
 /studio/courseware/  04 导师课件库
-/course/             05 导师课件播放
+/course/             05 课件查看（登录后 Released-only）
+/classroom/#factory  06 Test 课堂验收
+/classroom/#production-classrooms  07 正式课堂
+/studio/history/     08 资料与历史
+/workshop/           09 早期课程工作坊只读归档
 ```
 
 - Editor 是 CourseDefinition 正文的唯一写入口。
 - Preview 只读已保存 Candidate，不读取浏览器未保存 Working Copy。
 - Releases 汇总 Candidate、两张回执、课件绑定、Released 与下一步主操作。
 - Courseware 是并行资源线，不是 CourseDefinition 的下一步骤。
-- `/course/` 只负责导师课件播放，不代表完整课程大纲。
+- `/course/` 是真实 admin／mentor／learner 的课件查看服务，不代表完整课程大纲；公开官网课程介绍不占用该路径。
+- Workshop 不再参与课程生产线。它只保留脱敏 Released 基线和当前浏览器遗留记录的只读导出能力；原工具源码在 release 中逐字节留档，但由 Gateway 永久阻断 Web 读取。
 
 ### Classroom：真实课堂交付
 
@@ -58,16 +80,16 @@ CourseDefinition Working Copy
 /classroom/{classroomId}/members   成员、席位、Admin DM 与 Test 身份管理
 ```
 
-课堂中心永久分为：
+课堂中心永久分为（仅向相应权限展示管理能力）：
 
 - `TEST · UI 验收课堂`：可绑定 Candidate 或 Released，可重置，不进入正式学习档案。
 - `PRODUCTION · 正式课堂`：只能绑定 Released，不可重置，进入正式学习与审计。
 
-所谓“UI 预览”就是一间真实 TEST Classroom。系统不维护第二套预览页面、API 或状态机。
+所谓“UI 预览”就是一间真实 TEST Classroom。系统不维护第二套预览页面、API 或状态机。普通 learner 的课堂首页只呈现自己的练习／正式课堂，不出现 Factory、内部回执或全局测试列表。
 
 ### 历史世界：学习叙事
 
-`/world/` 仍负责真实科技史、时间轴、地图和关卡入口。它消费发布后的课程内容，不拥有另一份可编辑课程真值。
+`/world/` 仍负责真实科技史、时间轴、地图和关卡入口。它消费发布后的课程内容，不拥有另一份可编辑课程真值。官网地图只是由同一目录构建的轻量选段，不能写回 World 或 Classroom。
 
 ## 3. 领域对象
 
@@ -266,6 +288,7 @@ Admin DM 只有在 TEST 解锁全部剧本页并显式结束该 Run 后，才能
 
 - `/studio/*`：平台 mentor／admin，且必须完成首次改密。
 - `/course/*`：真实 admin／mentor／learner 登录账号只读访问 Released 课件；Candidate、测试模拟身份和内部 fallback 不进入目录。
+- `/workshop/*`：真实 mentor／admin 登录账号只读访问；匿名安全回登录，learner 拒绝，Test 模拟身份失败关闭。`/workshop/_source/*` 对所有公网请求固定 404。
 - `/auth/register`：公开创建 active learner；不创建 Classroom Membership，也不授予 Studio、Candidate 或 Test 身份模拟权限。
 - Classroom：仅该实例 Membership 或 Admin DM。
 - 学员只收到自己的任务、持久化手牌、提交、RP 与钱包。
@@ -312,7 +335,7 @@ T-106 新增：
 ```text
 Cloudflare Tunnel
   → 127.0.0.1:18780  Nginx gateway
-      ├─ current/site                 静态世界、门户、原版 P 导师课件
+      ├─ current/site                 官网、World、公开介绍、Workshop 归档外壳与 exact 导师课件
       ├─ 127.0.0.1:18787             Vinext/Worker + D1-compatible data
       └─ 127.0.0.1:18789             Parent Q&A
 127.0.0.1:18792                       cloudflared metrics
@@ -329,6 +352,8 @@ Cloudflare Tunnel
 
 新导航不得再暴露这些路径。现行工作流只使用 `/studio/*`、`/course/*` 和 `/classroom/{classroomId}/*`。
 
+Workshop 保留 `/workshop/` 作为历史 URL，但只可由 Studio → 资料与历史发现；它不出现在官网、World、上课或课件主导航。旧可写源码只能作为不可服务的 release 取证副本存在。
+
 ## 12. 不可破坏的架构约束
 
 - Editor 是课程正文唯一写入口，不能退化为仅编辑原始 JSON。
@@ -342,7 +367,7 @@ Cloudflare Tunnel
 
 具体操作步骤见 [Course Platform SOP](COURSE_PLATFORM_SOP.md)，验证命令与矩阵见 [Testing](TESTING.md)。
 
-## 9. Script Runtime、迁移与操作手册
+## 13. Script Runtime、迁移与操作手册
 
 Script Layer 只保存 append-only `unlockedThroughBlockId`、`unlockedThroughBlockIndex`、`version`（B01 初始）；每个浏览器通过 `?block=Bxx` 独立查看，通知不强制跳转，历史页可一键回最新，键盘支持 `←/→/Home/End`。Production 解锁确认仅限任一 P/D/M/O 导师或 Admin DM，Test 可由任意参与者在角色 Tabs 测试；Production 禁止 `viewAs`。`leadMentorId` 仅为主讲建议。
 
@@ -351,6 +376,6 @@ Script Layer 只保存 append-only `unlockedThroughBlockId`、`unlockedThroughBl
 操作路径：导师在 `/classroom/{id}/` 保存工作并在 Production 弹窗确认解锁；学员仅使用自己的席位回看并点击“回到最新”；验收者在 Test 依次检查 `/control`、角色席位与 `/screen`，确认隐私、并发和刷新恢复后签发 UI 回执。
 
 
-## 完成契约与证据边界
+## 14. 完成契约与证据边界
 
 末页解锁、导师 explicit finish、可选 evidence gates 与作品验收彼此解耦；默认没有作品门槛，只有 CourseDefinition.rules.completion 显式声明 requiredAcceptedSubmissionSchemaIds 才要求对应作品。sourceCommit/appBuildId 表示 actual build provenance；projector/runtime contract 是兼容契约，纯 CSS 变化在兼容契约不变时不自动使回执失效。历史快照称 archived，不得冒充当前版本。证据层级为源码、纯函数、API+DB、浏览器、人工、部署；不得伪造人工回执。Pad 实机验收仍属 T-088，尚未完成。

@@ -58,32 +58,39 @@ body {
   max-width: 100%;
 }
 
-.msv-course-nav-link {
+.msv-public-nav {
+  display: flex;
+  width: 100%;
+  min-height: 66px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px max(18px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+  color: #fffaf0;
+  background: var(--msv-adventure-navy);
+  border-top: 6px solid var(--msv-adventure-mint);
+}
+
+.msv-public-nav a {
   display: inline-flex;
-  min-height: 36px;
+  min-height: 40px;
   align-items: center;
   justify-content: center;
   padding: 8px 12px;
   color: #fffaf0 !important;
-  background: var(--msv-adventure-navy);
-  border: 1px solid var(--msv-adventure-mint) !important;
+  border: 1px solid #668687 !important;
   border-radius: 0 !important;
-  box-shadow: 3px 3px 0 var(--msv-adventure-yellow);
   font: 800 11px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
   text-decoration: none !important;
   white-space: nowrap;
 }
 
-.msv-course-nav-link:hover {
+.msv-public-nav a:hover,
+.msv-public-nav a[aria-current="page"] {
   color: var(--msv-adventure-navy) !important;
   background: var(--msv-adventure-yellow);
-}
-
-.msv-course-nav-link[data-placement="floating"] {
-  position: fixed;
-  z-index: 2147482999;
-  top: max(12px, env(safe-area-inset-top));
-  right: max(12px, env(safe-area-inset-right));
+  border-color: var(--msv-adventure-yellow) !important;
 }
 
 /* Adventure is the canonical product skin. Layout remains owned by each page;
@@ -259,10 +266,8 @@ html[data-msv-theme="adventure"][data-msv-surface="dark"] :is(.seat, .overview, 
 }
 
 @media (max-width: 480px) {
-  .msv-course-nav-link[data-placement="floating"] {
-    top: max(8px, env(safe-area-inset-top));
-    right: max(8px, env(safe-area-inset-right));
-  }
+  .msv-public-nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .msv-public-nav a { white-space: normal; text-align: center; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -63,6 +63,13 @@ tags: [todo, navigation, studio, performance, regression, accessibility]
 - 证据：`docs/qa/t110-navigation/browser-receipt.json`、`docs/NAVIGATION_ACCEPTANCE_MATRIX.md`、`tools/live-run/tests/verify_t110_site_navigation_browser.py`。
 - Safari / iPad 真机、系统后退手势及硬件上下文菜单仍属于 T-088；T-109 重组公开官网与 Workshop 入口后还必须复跑本单，不用 Chromium 模拟冒充真机结论。
 
+### T-109 后总回归（2026-09-11）
+
+- 已在重组后的官网、World、Course、Account、Studio、Workshop 与 Test Classroom 上复跑真实 Chromium 导航脚本，而不是只扫描 `href`。
+- 普通点击、Enter、Cmd 新标签、前进／后退／刷新、登录 exact returnTo、390px 单次触摸、T-111 Test 新建与归档入口均通过；页面错误、请求失败和非预期服务端错误为 0。
+- Studio 冷启动首门课程可编辑约 116.7ms，热启动约 121.9ms；`scope=current` bootstrap 约 147KB。该隔离本地数据仅用于防性能回退，不作为生产 SLA。
+- 机器回执已刷新：`docs/qa/t110-navigation/browser-receipt.json`。桌面 Safari、iPad Safari、系统后退手势和硬件上下文菜单仍留给 T-088 真机验收，因此本单保持 `in-progress`。
+
 ## 全站入口清单
 
 - [ ] 官网及公共页面：logo 回首页、主导航、World、框架介绍、家长信息/问答、去上课。

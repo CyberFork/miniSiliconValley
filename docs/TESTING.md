@@ -139,7 +139,7 @@ COURSE_PLATFORM_E2E_PASS t086=view-receipt+ui-receipt+release-gates t087=navigat
 - 保存 Candidate 后出现“前往多角色视图验收”。
 - Preview 显示 exact revision／digest，能遍历全部 Block 和支持人数；未遍历完整时不能签收。
 - Releases 显示 Candidate、View 回执、TEST、UI 回执、课件、Released 与“下一步主操作”。
-- `/course/` 始终标记“课程目录”，并只列出注册表中的真实 Released 课件；P、D 使用同一登录和播放器机制。
+- `/course/` 始终标记“课件查看”，并只列出注册表中的真实 Released 课件；P、D、M 使用同一登录和播放器机制。
 - 00—04 都能用鼠标、键盘 Enter、刷新直达和 Cmd/Ctrl＋点击打开；URL、主标题与 `aria-current=page` 一致。
 - 右上角账号菜单显示真实账号列表并可进入账户中心、直接切换、添加／重验、移除、退出当前和退出全部；切换后旧 Session API 返回 401，其他账号保持可用。
 
@@ -186,10 +186,27 @@ npm run test:t106-t107:browser
 
 该脚本使用隔离 D1、合成管理员／学员和正式静态官网产物，验证 A／B 免重复密码切换、失败添加保护、角色安全回跳、多标签身份守卫、未保存草稿、退出当前／全部、历史页失败关闭、匿名缓存隔离，以及桌面／390px 菜单对比度与溢出。账号密码和生产会话不进入测试证据。
 
+T-109 官网、World 与 Workshop 只读归档回归：
+
+```bash
+npm run test:t109:browser
+```
+
+该脚本从当前应用构建同源 `world-preview.json`，再用隔离 Chromium 验证官网桌面／390px 布局、World 滑杆、官网五个主要普通点击入口、公开 HTML 不含内部链接，以及 Workshop 十个合成 localStorage 键的只读展示、完整导出和刷新后逐字节不变。它不访问生产账号，不会上传浏览器记录，也不能代替资料所有者逐设备导出或 T-088 的 iPad Safari 真机验收。
+
+T-088 学员 Pad 无键盘工程回归：
+
+```bash
+npm run test:t088:browser
+```
+
+该脚本复用 T-090 的真实 Candidate、隔离 Test Classroom、私密发牌、结构化提交、导师退回／通过和弱网恢复，再以真实 learner 账号（非 Admin DM `viewAs`）覆盖 10 个 iPad／Android Pad／手机 viewport。它断言页面无横向溢出、关键触摸目标至少 44×44、编辑字号至少 16px、核心前进动作可 `tap`、账号退出入口可触摸且页面不依赖 hover。回执明确保持真实 iPad Safari 与 Android 触摸设备为人工门禁；Chromium 响应式自动化不能代签 UiAcceptanceReceipt。
+
 ### 路由
 
 - `/alpha/`、`/control/`、`/control/editor/` 返回 410。
 - `/api/internal/*` 公网返回 404。
+- `/workshop/_source/*` 公网返回 404；`/workshop/` 匿名跳登录、learner 拒绝、mentor/admin 只读。
 - 新导航不出现退休入口。
 
 ## 7. 部署包与发布演练

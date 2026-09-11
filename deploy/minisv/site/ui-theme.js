@@ -14,6 +14,7 @@
   }
 
   function clearRetiredPreference() {
+    if (/^\/workshop(?:\/|$)/.test(window.location.pathname)) return;
     try {
       window.localStorage.removeItem(LEGACY_STORAGE_KEY);
     } catch {
@@ -38,18 +39,29 @@
     }));
   }
 
-  function mountCourseShortcut() {
-    if (document.getElementById("msv-course-shortcut")) return;
+  function mountPublicNavigator() {
+    if (document.getElementById("msv-public-nav")) return;
     var pathname = window.location.pathname.replace(/\/+$/, "/");
     if (["/framework/", "/parents/"].indexOf(pathname) === -1) return;
-    var link = document.createElement("a");
-    link.id = "msv-course-shortcut";
-    link.className = "msv-course-nav-link";
-    link.dataset.placement = "floating";
-    link.href = "/course/";
-    link.textContent = "导师课件 ↗";
-    link.setAttribute("aria-label", "打开导师课件库");
-    document.body.appendChild(link);
+    var nav = document.createElement("nav");
+    nav.id = "msv-public-nav";
+    nav.className = "msv-public-nav";
+    nav.setAttribute("aria-label", "MINI硅谷公共服务导航");
+    [
+      ["首页", "/"],
+      ["历史世界", "/world/"],
+      ["课程大纲", "/framework/"],
+      ["家长入口", "/parents/"],
+      ["上课入口", "/classroom/"],
+      ["课件查看", "/course/"],
+    ].forEach(function (item) {
+      var link = document.createElement("a");
+      link.href = item[1];
+      link.textContent = item[0];
+      if (item[1] === pathname) link.setAttribute("aria-current", "page");
+      nav.appendChild(link);
+    });
+    document.body.appendChild(nav);
   }
 
   // The latest Adventure skin is the single product UI. Apply the root
@@ -59,12 +71,12 @@
   if (document.readyState === "complete") {
     window.setTimeout(function () {
       applyCanonicalTheme();
-      mountCourseShortcut();
+      mountPublicNavigator();
     }, 0);
   } else {
     window.addEventListener("load", function () {
       applyCanonicalTheme();
-      mountCourseShortcut();
+      mountPublicNavigator();
     }, { once: true });
   }
 })();

@@ -360,10 +360,12 @@ export function WorldApp() {
       <header className="topbar">
         <BrandHomeLink className="brand-lockup" subtitle="有限开放世界创业 RPG · v1.0" />
         <nav className="primary-nav" aria-label="主导航">
+          <a href={publicPath("/")}>首页</a>
           <button type="button" aria-current={view === "world" ? "page" : undefined} className={view === "world" ? "is-active" : ""} onClick={() => setView("world")}>
             历史世界
           </button>
-          <a href={publicPath("/course/")}>导师课件</a>
+          <a href={publicPath("/classroom/")}>去上课</a>
+          <a href={publicPath("/course/")}>课件查看</a>
           {([
             ["missions", `互动战役 ${completedCount}/8`],
             ["dossier", "学习档案"],

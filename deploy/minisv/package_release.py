@@ -17,7 +17,7 @@ DEVELOPMENT_COURSEWARE = Path("courseware/development-mentor-ligun")
 MARKET_COURSEWARE = Path("courseware/market-mentor-user-system")
 REQUIRED_PAGES = (
     "index.html", "404.html", "world/index.html", "framework/index.html",
-    "parents/index.html", "workshop/index.html",
+    "parents/index.html", "world-preview.json", "workshop/index.html",
     "courseware/product-mentor-foundations/index.html",
     "courseware/development-mentor-ligun/index.html",
     "courseware/market-mentor-user-system/index.html",
@@ -106,6 +106,11 @@ def inject_theme_assets(text: str) -> str:
 def transform_tree(root: Path) -> None:
     for path in sorted(root.rglob("*")):
         if not path.is_file() or path.suffix.lower() not in TEXT_SUFFIXES:
+            continue
+        # Exact legacy Workshop source is retained inside each release for
+        # rollback/audit only. It is blocked at the gateway and must remain
+        # byte-identical rather than receiving URL or theme rewrites.
+        if "_source" in path.relative_to(root).parts:
             continue
         try:
             original = path.read_text(encoding="utf-8")
@@ -295,66 +300,62 @@ def validate_workshop_snapshot(path: Path) -> dict:
 
 
 def apply_workshop_overlay(workshop: Path, snapshot_source: Path | None = None) -> None:
-    """Add the versioned Released-baseline projection without forking Workshop state."""
-    required = (
-        "baseline-panel.html", "baseline.css", "baseline.js",
-        "confirmed-baseline.json", "workshop-snapshot.schema.json",
-    )
+    """Freeze the early Workshop as a gated, read-only history archive.
+
+    The previous interactive bundle is preserved exactly below ``_source`` for
+    release rollback and forensic comparison, while the served ``index.html``
+    is replaced by a repo-owned reader. The reader may inspect/export existing
+    browser records but contains no local mutation or course-write path.
+    """
+    required = ("archive.html", "archive.css", "archive.js", "workshop-snapshot.schema.json")
     source_snapshot = snapshot_source or (WORKSHOP_OVERLAY / "confirmed-baseline.json")
-    missing = [name for name in required if not ((source_snapshot if name == "confirmed-baseline.json" else WORKSHOP_OVERLAY / name)).is_file()]
+    missing = [name for name in required if not (WORKSHOP_OVERLAY / name).is_file()]
+    if not source_snapshot.is_file():
+        missing.append("confirmed-baseline.json")
     if missing:
-        raise ValueError(f"Workshop overlay is incomplete: {', '.join(missing)}")
+        raise ValueError(f"Workshop archive assets are incomplete: {', '.join(missing)}")
     validate_workshop_snapshot(source_snapshot)
     page = workshop / "index.html"
-    text = page.read_text(encoding="utf-8")
-    if "msv-workshop-released-baseline" in text:
-        raise ValueError("Workshop baseline overlay was applied twice")
+    if not page.is_file():
+        raise ValueError("Workshop legacy entry is missing")
+    if "msv-workshop-archive" in page.read_text(encoding="utf-8"):
+        raise ValueError("Workshop archive was applied twice")
 
-    # The public Snapshot is same-origin and redacted; all other network and
-    # embedding restrictions remain unchanged.
-    text = text.replace("connect-src 'none'", "connect-src 'self'", 1)
-    text = text.replace("img-src data:", "img-src 'self' data:", 1)
-    if 'rel="icon"' not in text:
-        text = text.replace("</title>", '</title>\n  <link rel="icon" href="/favicon.svg">', 1)
+    source_dir = workshop / "_source"
+    if source_dir.exists():
+        raise ValueError("Workshop exact source archive already exists")
+    source_dir.mkdir()
+    for item in sorted(workshop.iterdir(), key=lambda entry: entry.name):
+        if item == source_dir:
+            continue
+        shutil.move(str(item), str(source_dir / item.name))
+    source_digest, source_files, source_bytes = tree_digest(source_dir)
+    (source_dir / "SOURCE-MANIFEST.json").write_text(json.dumps({
+        "schemaVersion": 1,
+        "purpose": "exact-legacy-workshop-rollback-source",
+        "sha256": source_digest,
+        "files": source_files,
+        "bytes": source_bytes,
+    }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
-    old_brand = re.compile(
-        r'<div class="brand-lockup"[^>]*>\s*<span class="brand-mark"[^>]*>MSV</span>\s*<span>(.*?)</span>\s*</div>\s*<div class="session-health">',
-        re.DOTALL,
-    )
-    replacement = (
-        '<a class="brand-lockup msv-static-brand" href="/" aria-label="返回 Mini Silicon Valley 主页">'
-        '<img src="/favicon.svg" alt="" width="64" height="64"><span>\\1</span></a>'
-        '\n    <div class="session-health">'
-    )
-    text, brand_count = old_brand.subn(replacement, text, count=1)
-    if brand_count != 1:
-        raise ValueError("Workshop brand shell was not recognized")
-
-    nav_marker = '<button class="nav-item" type="button" data-section="decisions">'
-    nav_item = '<button class="nav-item" type="button" data-section="baseline"><span>01A</span>已确认基线 <b id="baselineNavBadge">R</b></button>\n        '
-    if nav_marker not in text:
-        raise ValueError("Workshop navigation marker is missing")
-    text = text.replace(nav_marker, nav_item + nav_marker, 1)
-
-    panel = (WORKSHOP_OVERLAY / "baseline-panel.html").read_text(encoding="utf-8")
-    main_end = "</main>"
-    if main_end not in text:
-        raise ValueError("Workshop workspace closing marker is missing")
-    text = text.replace(main_end, f"      <!-- msv-workshop-released-baseline -->\n      {panel}\n    {main_end}", 1)
-    text = text.replace("</head>", '  <link rel="stylesheet" href="baseline.css">\n</head>', 1)
-    text = text.replace("</body>", '  <script src="baseline.js"></script>\n</body>', 1)
-    page.write_text(text, encoding="utf-8")
-
-    for name in required[1:]:
-        copy_entry(source_snapshot if name == "confirmed-baseline.json" else WORKSHOP_OVERLAY / name, workshop / name)
+    copy_entry(WORKSHOP_OVERLAY / "archive.html", workshop / "index.html")
+    copy_entry(WORKSHOP_OVERLAY / "archive.css", workshop / "archive.css")
+    copy_entry(WORKSHOP_OVERLAY / "archive.js", workshop / "archive.js")
+    copy_entry(WORKSHOP_OVERLAY / "workshop-snapshot.schema.json", workshop / "workshop-snapshot.schema.json")
+    copy_entry(source_snapshot, workshop / "confirmed-baseline.json")
 
     verified = page.read_text(encoding="utf-8")
+    script = (workshop / "archive.js").read_text(encoding="utf-8")
     for marker in (
-        "msv-workshop-released-baseline", 'href="/" aria-label="返回 Mini Silicon Valley 主页"',
-        'src="/favicon.svg"', 'data-panel="baseline"', 'src="baseline.js"', 'href="baseline.css"',
+        "msv-workshop-archive", 'href="/" aria-label="返回 MINI硅谷首页"',
+        'src="/favicon.svg"', 'data-workshop-mode="archive-readonly"',
+        'src="archive.js"', 'href="archive.css"',
     ):
         if marker not in verified:
-            raise ValueError(f"Workshop overlay is missing marker {marker!r}")
+            raise ValueError(f"Workshop archive is missing marker {marker!r}")
+    for forbidden in ("localStorage.setItem", "localStorage.removeItem", "localStorage.clear"):
+        if forbidden in script:
+            raise ValueError(f"Workshop archive reader contains forbidden mutation {forbidden}")
 
 
 def tree_digest(root: Path) -> tuple[str, int, int]:
@@ -422,6 +423,7 @@ def build(
     # Current main owns the public world shell. /course/ is served dynamically
     # by the authenticated app; the colleague artifact is copied separately.
     copy_entry(app_static / "world" / "index.html", output / "world" / "index.html")
+    copy_entry(app_static / "world-preview.json", output / "world-preview.json")
     # Parent Q&A must be rendered from the same current application build as
     # the authentication and classroom surfaces. Reusing legacy qa.html here
     # silently dropped the shared brand/home component from new releases.
@@ -437,10 +439,14 @@ def build(
         copy_entry(legacy / source_name, workshop / target_name)
     if (legacy / "assets").exists(): copy_entry(legacy / "assets", workshop / "assets")
 
+    # Freeze the original Workshop before any global text transformation. Its
+    # exact source stays under a gateway-blocked directory; only the read-only
+    # archive shell and redacted Released snapshot are served.
+    apply_workshop_overlay(output / "workshop", workshop_snapshot)
+
     for item in portal.iterdir(): copy_entry(item, output / item.name)
     transform_tree(output)
     normalize_framework_brand(output / "framework" / "index.html")
-    apply_workshop_overlay(output / "workshop", workshop_snapshot)
 
     # Never pass the colleague-owned build through rewrite_text() or the shared
     # theme injector. It is an independently built, immutable P-mentor
@@ -486,6 +492,7 @@ def build(
             "per-classroom-controller",
             "shared-brand-home",
             "released-workshop-snapshot",
+            "read-only-workshop-history-archive",
             "canonical-workspace-provenance",
         ],
         "sources": {
@@ -519,12 +526,11 @@ def build(
             "transformed": False,
         },
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    (output / "sitemap.json").write_text(json.dumps({"routes": [
-        "/", "/world/", "/studio/", "/studio/editor/", "/studio/preview/", "/studio/reviews/", "/studio/courseware/", "/studio/releases/",
-        "/course/", "/courseware/product-mentor-foundations/", "/courseware/development-mentor-ligun/",
-        "/courseware/market-mentor-user-system/",
-        "/classroom/", "/framework/", "/parents/", "/workshop/",
-    ]}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    (output / "sitemap.json").write_text(json.dumps({
+        "schemaVersion": 2,
+        "scope": "public-website",
+        "routes": ["/", "/world/", "/framework/", "/parents/"],
+    }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     errors = []
     for relative in REQUIRED_PAGES:

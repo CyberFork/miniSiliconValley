@@ -1,0 +1,231 @@
+{
+  "ok": true,
+  "scope": "T-088 learner touch-only engineering acceptance",
+  "sourceHarness": "T-090 real Candidate + isolated Test Classroom + real learner account",
+  "browser": {
+    "engine": "Chromium",
+    "version": "151.0.7922.176"
+  },
+  "exactCourse": {
+    "courseId": "eleme-2008-find-problem",
+    "schemaVersion": 1,
+    "revision": 1,
+    "digest": "aa0a114e7269611965264057648c2820fc67c04a88d67a5c1d814352d4e6a457",
+    "status": "candidate"
+  },
+  "automated": {
+    "login": true,
+    "realLearnerSession": true,
+    "privateCardIsolation": true,
+    "touchOnlyBlockNavigation": true,
+    "structuredSubmissionAndMentorFeedback": {
+      "fields": 10,
+      "learnerRubricRedacted": true,
+      "listCardinality": true,
+      "offlineRecovery": true,
+      "privacy": true,
+      "returned": true,
+      "resubmitted": true,
+      "accepted": true
+    },
+    "offlineRecovery": true,
+    "accountMenuAndExitReachable": true,
+    "responsiveViewports": [
+      {
+        "id": "ipad-mini-portrait",
+        "width": 744,
+        "height": 1133,
+        "geometry": {
+          "width": 744,
+          "body": 744,
+          "root": 744
+        },
+        "touch": {
+          "hoverNone": true,
+          "pointerCoarse": true,
+          "criticalControlCount": 34,
+          "undersized": [],
+          "editorCount": 10,
+          "smallEditors": []
+        }
+      },
+      {
+        "id": "ipad-mini-landscape",
+        "width": 1133,
+        "height": 744,
+        "geometry": {
+          "width": 1133,
+          "body": 1133,
+          "root": 1133
+        },
+        "touch": {
+          "hoverNone": true,
+          "pointerCoarse": true,
+          "criticalControlCount": 34,
+          "undersized": [],
+          "editorCount": 10,
+          "smallEditors": []
+        }
+      },
+      {
+        "id": "ipad-portrait",
+        "width": 820,
+        "height": 1180,
+        "geometry": {
+          "width": 820,
+          "body": 820,
+          "root": 820
+        },
+        "touch": {
+          "hoverNone": true,
+          "pointerCoarse": true,
+          "criticalControlCount": 34,
+          "undersized": [],
+          "editorCount": 10,
+          "smallEditors": []
+        }
+      },
+      {
+        "id": "ipad-landscape",
+        "width": 1180,
+        "height": 820,
+        "geometry": {
+          "width": 1180,
+          "body": 1180,
+          "root": 1180
+        },
+        "touch": {
+          "hoverNone": true,
+          "pointerCoarse": true,
+          "criticalControlCount": 34,
+          "undersized": [],
+          "editorCount": 10,
+          "smallEditors": []
+        }
+      },
+      {
+        "id": "ipad-pro-portrait",
+        "width": 1024,
+        "height": 1366,
+        "geometry": {
+          "width": 1024,
+          "body": 1024,
+          "root": 1024
+        },
+        "touch": {
+          "hoverNone": true,
+          "pointerCoarse": true,
+          "criticalControlCount": 34,
+          "undersized": [],
+          "editorCount": 10,
+          "smallEditors": []
+        }
+      },
+      {
+        "id": "ipad-pro-landscape",
+        "width": 1366,
+        "height": 1024,
+        "geometry": {
+          "width": 1366,
+          "body": 1366,
+          "root": 1366
+        },
+        "touch": {
+          "hoverNone": true,
+          "pointerCoarse": true,
+          "criticalControlCount": 34,
+          "undersized": [],
+          "editorCount": 10,
+          "smallEditors": []
+        }
+      },
+      {
+        "id": "android-tablet-portrait",
+        "width": 800,
+        "height": 1280,
+        "geometry": {
+          "width": 800,
+          "body": 800,
+          "root": 800
+        },
+        "touch": {
+          "hoverNone": true,
+          "pointerCoarse": true,
+          "criticalControlCount": 34,
+          "undersized": [],
+          "editorCount": 10,
+          "smallEditors": []
+        }
+      },
+      {
+        "id": "android-tablet-landscape",
+        "width": 1280,
+        "height": 800,
+        "geometry": {
+          "width": 1280,
+          "body": 1280,
+          "root": 1280
+        },
+        "touch": {
+          "hoverNone": true,
+          "pointerCoarse": true,
+          "criticalControlCount": 34,
+          "undersized": [],
+          "editorCount": 10,
+          "smallEditors": []
+        }
+      },
+      {
+        "id": "phone-390",
+        "width": 390,
+        "height": 844,
+        "geometry": {
+          "width": 390,
+          "body": 390,
+          "root": 390
+        },
+        "touch": {
+          "hoverNone": true,
+          "pointerCoarse": true,
+          "criticalControlCount": 31,
+          "undersized": [],
+          "editorCount": 10,
+          "smallEditors": []
+        }
+      },
+      {
+        "id": "phone-430",
+        "width": 430,
+        "height": 932,
+        "geometry": {
+          "width": 430,
+          "body": 430,
+          "root": 430
+        },
+        "touch": {
+          "hoverNone": true,
+          "pointerCoarse": true,
+          "criticalControlCount": 31,
+          "undersized": [],
+          "editorCount": 10,
+          "smallEditors": []
+        }
+      }
+    ],
+    "pageErrors": 0,
+    "requestFailures": 0
+  },
+  "screenshots": [
+    "docs/qa/t090-development-mentor/t088-ipad-mini-portrait.png",
+    "docs/qa/t090-development-mentor/t088-ipad-pro-landscape.png",
+    "docs/qa/t090-development-mentor/t088-android-tablet-portrait.png",
+    "docs/qa/t090-development-mentor/t088-phone-390.png"
+  ],
+  "humanDeviceGates": {
+    "status": "required-not-attested",
+    "ipadSafari": "Pending physical touch/soft-keyboard/rotation/lock-screen rehearsal",
+    "androidChrome": "Pending physical touch/soft-keyboard/rotation/lock-screen rehearsal",
+    "uiAcceptanceReceiptSigned": false
+  },
+  "boundary": "Chromium responsive/touch automation only; physical iPad Safari and Android touch-device human acceptance are still required and were not attested."
+}

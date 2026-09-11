@@ -2,8 +2,9 @@
 type: todo
 id: T-109
 title: "重组官网、教学与内部入口，整合 World 并深层归档 Workshop"
-status: backlog
+status: in-progress
 created: 2026-09-10
+updated: 2026-09-11
 captured_by: project-inbox
 priority: P1
 priority_basis: user-feedback-and-architecture-proposal
@@ -89,4 +90,15 @@ UI 补充确认：**“记得整体都使用新的 UI 哦，也就是那个 skil
 - 全站跳转专项见 [T-110](110-sitewide-navigation-and-studio-startup-regressions.md)：所有入口必须普通点击即可跳转，并覆盖 Enter、触摸及 Ctrl/Cmd 新标签页；不能仅验证 href 或组合键可用。新 UI 上线前复用该清单回归。
 - 本任务是组织与官网建设，不替代 T-106/T-107 账号能力或 T-108 创建流程修复；这些用户已遇到的阻塞可先修，不必等待整个官网。
 - T-103 提供统一的对外课程口径；T-105 提供访问范围边界。
-- 先确认入口与内容，再归档/做官网，最后联调上线；本轮尚未执行归档或部署。
+- 先确认入口与内容，再归档/做官网，最后联调上线；初始建单时未执行归档或部署，后续实施状态以以下工程记录为准。
+
+## 工程实施记录（2026-09-11）
+
+- 已按确认的信息架构实现公开官网、同源 World 预览、受保护的课堂／课件入口，以及 Studio 内“资料与历史 → 早期课程工作坊”深层入口；公开导航没有暴露 Studio 或 Workshop。
+- 首页 World 预览和 `/world/` 完整探索共用 `historyCatalog`，构建时生成可校验的 `world-preview.json`，没有复制第二份历史数据库或嵌入旧平台 iframe。
+- Workshop 已实现鉴权后的只读归档外壳、精确基线识别、原始 localStorage 键导出及 `_source` 禁止访问；归档不会继续写入，也不会被搜索索引收录。
+- Gateway、静态发布打包、健康检查、站点地图、robots、公共课程 allow-list、账号 returnTo 与共享导航已同步调整；不改变 CourseRelease、ClassroomInstance 或验收门禁。
+- 新增 `tools/live-run/tests/verify_t109_public_internal_ia_browser.py`。Chromium 桌面 1440px、手机 390px 的公开入口、普通点击、内部入口隔离、归档授权／只读／导出／刷新不变和横向溢出均通过；证据位于 `docs/qa/t109-public-internal-ia/`。
+- T-109 后已重新执行 T-110 与 T-111 浏览器回归，普通点击、Enter、exact 深链、Test 新建／归档继续通过；平台测试 158/158、部署测试 52/52、typecheck、lint、生产构建和数据校验通过。
+- 仍未把 Chromium 触摸模拟冒充 iPad Safari／Android 真机验收。相关硬件门槛继续由 T-088 独立跟踪，不阻塞本任务的工程部署，但不能据此签发人工 UI 回执。
+- 当前状态保持 `in-progress`，待 Hecate `minisv.vip` 原子部署与线上只读验收完成后关闭。

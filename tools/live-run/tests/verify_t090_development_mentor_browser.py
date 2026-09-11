@@ -20,6 +20,18 @@ REPO = Path(__file__).resolve().parents[3]
 CHROME = Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
 QA = REPO / "docs" / "qa" / "t090-development-mentor"
 CANDIDATE = REPO / "tools" / "live-run" / "courses" / "candidates" / "eleme-2008-product-development-t090.json"
+T088_VIEWPORTS = [
+    {"id": "ipad-mini-portrait", "width": 744, "height": 1133},
+    {"id": "ipad-mini-landscape", "width": 1133, "height": 744},
+    {"id": "ipad-portrait", "width": 820, "height": 1180},
+    {"id": "ipad-landscape", "width": 1180, "height": 820},
+    {"id": "ipad-pro-portrait", "width": 1024, "height": 1366},
+    {"id": "ipad-pro-landscape", "width": 1366, "height": 1024},
+    {"id": "android-tablet-portrait", "width": 800, "height": 1280},
+    {"id": "android-tablet-landscape", "width": 1280, "height": 800},
+    {"id": "phone-390", "width": 390, "height": 844},
+    {"id": "phone-430", "width": 430, "height": 932},
+]
 
 
 def free_port() -> int:
@@ -88,6 +100,58 @@ def assert_no_page_overflow(page) -> dict[str, int]:
     return geometry
 
 
+def audit_learner_touch_surface(page) -> dict[str, object]:
+    """Measure only learner-critical controls that must work without hover."""
+    audit = page.evaluate(
+        """() => {
+          const selectors = [
+            'header[class*="runtimeTop"] a',
+            'header[class*="runtimeTop"] summary',
+            'header[class*="runtimeTop"] details button',
+            'header[class*="runtimeTop"] details a',
+            'nav[aria-label="Test Classroom 角色视角"] button',
+            'section[aria-label="已解锁剧本导航"] button',
+            'section[aria-label="已解锁剧本导航"] select',
+            'aside[class*="structuredActivity"] input',
+            'aside[class*="structuredActivity"] textarea',
+            'aside[class*="structuredActivity"] button',
+          ];
+          const controls = [...new Set(selectors.flatMap((selector) => [...document.querySelectorAll(selector)]))]
+            .filter((element) => {
+              const style = getComputedStyle(element);
+              const box = element.getBoundingClientRect();
+              return style.display !== 'none' && style.visibility !== 'hidden' && box.width > 0 && box.height > 0;
+            });
+          const measurements = controls.map((element) => {
+            const box = element.getBoundingClientRect();
+            return {
+              tag: element.tagName.toLowerCase(),
+              name: (element.getAttribute('aria-label') || element.textContent || element.getAttribute('name') || '').trim().slice(0, 80),
+              width: Math.round(box.width * 10) / 10,
+              height: Math.round(box.height * 10) / 10,
+            };
+          });
+          const undersized = measurements.filter((item) => item.width < 44 || item.height < 44);
+          const editors = [...document.querySelectorAll('aside[class*="structuredActivity"] input, aside[class*="structuredActivity"] textarea')]
+            .filter((element) => getComputedStyle(element).display !== 'none');
+          const smallEditors = editors.map((element) => ({tag: element.tagName.toLowerCase(), fontSize: parseFloat(getComputedStyle(element).fontSize)}))
+            .filter((item) => item.fontSize < 16);
+          return {
+            hoverNone: matchMedia('(hover: none)').matches,
+            pointerCoarse: matchMedia('(pointer: coarse)').matches,
+            criticalControlCount: measurements.length,
+            undersized,
+            editorCount: editors.length,
+            smallEditors,
+          };
+        }"""
+    )
+    assert audit["hoverNone"], audit
+    assert not audit["undersized"], audit
+    assert not audit["smallEditors"], audit
+    return audit
+
+
 def preferred_courseware(bootstrap: dict) -> list[dict]:
     slugs = {
         "P": "product-mentor-foundations",
@@ -106,12 +170,16 @@ def preferred_courseware(bootstrap: dict) -> list[dict]:
     return selected
 
 
-def unlock_through(page, room_id: str, progress: dict, target: str) -> dict:
+def unlock_through(page, room_id: str, detail: dict, target: str) -> dict:
+    progress = detail["script"]
+    identity = detail["runtimeIdentity"]
     target_number = int(target[1:])
     while progress["unlockedThroughIndex"] + 1 < target_number:
         next_id = f"B{progress['unlockedThroughIndex'] + 2:02d}"
         progress = api(page, f"/api/platform/classrooms/{room_id}/control", "POST", {
             "expectedVersion": progress["version"],
+            "expectedRunId": identity["runId"],
+            "expectedResetGeneration": identity["resetGeneration"],
             "action": {"type": "unlock-next", "nextBlockId": next_id},
         })
     return progress
@@ -239,7 +307,7 @@ def main() -> None:
                         room_id = classroom["classroomId"]
                         rooms[learner_count] = room_id
                         detail = api(desktop, f"/api/platform/classrooms/{room_id}")
-                        unlock_through(desktop, room_id, detail["script"], "B05")
+                        unlock_through(desktop, room_id, detail, "B05")
                         desktop.goto(f"{base}/classroom/{room_id}/?block=B05", wait_until="networkidle")
                         tabs = desktop.locator('nav[aria-label="Test Classroom 角色视角"] button')
                         assert tabs.count() == learner_count + 6, (learner_count, tabs.count())
@@ -269,10 +337,15 @@ def main() -> None:
                     # Prepare a real accepted ProductBrief so D receives only the
                     # accepted upstream artifact when the simulation starts.
                     room_id = rooms[4]
+                    b04_detail = api(desktop, f"/api/platform/classrooms/{room_id}?block=B04&viewAs={learners[0]['username']}")
                     api(desktop, f"/api/platform/classrooms/{room_id}/submissions", "POST", {
                         "blockId": "B04",
                         "schemaId": "product-brief-v1",
                         "values": product_brief_values(),
+                        "expectedVersion": 0,
+                        "idempotencyKey": f"t090-product-brief-{stamp}",
+                        "expectedRunId": b04_detail["runtimeIdentity"]["runId"],
+                        "expectedResetGeneration": b04_detail["runtimeIdentity"]["resetGeneration"],
                         "viewAsProfileId": learners[0]["username"],
                     })
                     p_b04 = api(desktop, f"/api/platform/classrooms/{room_id}?block=B04&viewAs={mentors[0]['username']}")
@@ -280,7 +353,10 @@ def main() -> None:
                     api(desktop, f"/api/platform/classrooms/{room_id}/submissions/{brief['id']}/review", "POST", {
                         "status": "accepted",
                         "feedback": "问题、路径与边界足够具体，可以交给 D。",
-                        "expectedUpdatedAt": brief["updatedAt"],
+                        "expectedVersion": brief["version"],
+                        "idempotencyKey": f"t090-product-brief-review-{stamp}",
+                        "expectedRunId": p_b04["runtimeIdentity"]["runId"],
+                        "expectedResetGeneration": p_b04["runtimeIdentity"]["resetGeneration"],
                         "viewAsProfileId": mentors[0]["username"],
                     })
 
@@ -304,12 +380,12 @@ def main() -> None:
                     expect(desktop.get_by_text("B04 由 P 导师通过", exact=True)).to_be_visible()
                     expect(desktop.get_by_text("ProductBrief／产品定义卡", exact=False)).to_be_visible()
                     exact_link = desktop.get_by_role("link", name="打开 D 导师 exact 课件 →")
-                    expect(exact_link).to_have_attribute("href", re.compile(r"/course/development-mentor-ligun/\?revision=0$"))
+                    expect(exact_link).to_have_attribute("href", f"/classroom/{room_id}/courseware/D/")
                     desktop_geometry = assert_no_page_overflow(desktop)
                     desktop.screenshot(path=str(QA / "b05-d-owner-and-handoff.png"), full_page=True)
 
                     detail = api(desktop, f"/api/platform/classrooms/{room_id}")
-                    unlock_through(desktop, room_id, detail["script"], "B08")
+                    unlock_through(desktop, room_id, detail, "B08")
 
                     # A separate touch-enabled mobile session proves that core
                     # learner/review/navigation work needs neither hover nor a keyboard.
@@ -412,6 +488,69 @@ def main() -> None:
                     tablet_landscape_geometry = assert_no_page_overflow(mobile)
                     mobile.screenshot(path=str(QA / "private-cards-ipad-landscape.png"), full_page=False)
 
+                    # T-088 uses a real learner session (not Admin DM viewAs) and
+                    # runs the learner-critical surface through the complete
+                    # supported responsive matrix. Chromium automation is only
+                    # engineering evidence; physical Safari/Android remain human gates.
+                    learner_context = browser.new_context(
+                        viewport={"width": 744, "height": 1133},
+                        has_touch=True,
+                        is_mobile=True,
+                    )
+                    learner_page = learner_context.new_page()
+                    learner_errors: list[str] = []
+                    learner_failed: list[str] = []
+                    learner_page.on("pageerror", lambda error: learner_errors.append(str(error)))
+                    learner_page.on("requestfailed", lambda request: learner_failed.append(request.url) if request.resource_type in ("document", "script", "stylesheet") else None)
+                    login(
+                        learner_page,
+                        base,
+                        learners[0]["username"],
+                        learners[0]["password"],
+                        f"/classroom/{room_id}/?block=B05",
+                    )
+                    expect(learner_page.get_by_role("heading", name=re.compile(r"B05 ·"))).to_be_visible(timeout=10_000)
+                    expect(learner_page.locator('article[class*="privateCard"]')).to_have_count(2)
+                    learner_private_titles = learner_page.locator('article[class*="privateCard"] b').all_text_contents()
+                    assert learner_private_titles == hand_one, (learner_private_titles, hand_one)
+                    assert set(learner_private_titles).isdisjoint(hand_two), (learner_private_titles, hand_two)
+
+                    # One path reaches the form exclusively through visible touch
+                    # controls; the remaining viewports revisit the same exact page.
+                    for expected_block in ("B06", "B07", "B08"):
+                        learner_page.get_by_role("button", name="下一页 →", exact=True).tap()
+                        expect(learner_page.get_by_role("heading", name=re.compile(fr"{expected_block} ·"))).to_be_visible(timeout=10_000)
+                    expect(learner_page.get_by_role("heading", name="DevelopmentStick／开发立棍卡")).to_be_visible()
+
+                    learner_viewport_matrix: list[dict[str, object]] = []
+                    t088_screenshots: list[str] = []
+                    for viewport in T088_VIEWPORTS:
+                        learner_page.set_viewport_size({"width": viewport["width"], "height": viewport["height"]})
+                        learner_page.goto(f"{base}/classroom/{room_id}/?block=B08", wait_until="networkidle")
+                        expect(learner_page.get_by_role("heading", name="DevelopmentStick／开发立棍卡")).to_be_visible(timeout=10_000)
+                        expect(learner_page.locator('aside[class*="structuredActivity"] form input, aside[class*="structuredActivity"] form textarea')).to_have_count(10)
+                        geometry = assert_no_page_overflow(learner_page)
+                        touch = audit_learner_touch_surface(learner_page)
+                        learner_viewport_matrix.append({**viewport, "geometry": geometry, "touch": touch})
+                        if viewport["id"] in {"ipad-mini-portrait", "ipad-pro-landscape", "android-tablet-portrait", "phone-390"}:
+                            screenshot = f"t088-{viewport['id']}.png"
+                            learner_page.screenshot(path=str(QA / screenshot), full_page=False)
+                            t088_screenshots.append(f"docs/qa/t090-development-mentor/{screenshot}")
+
+                    # The compact account menu must expose identity and exit
+                    # controls without a hover gesture on a shared learner device.
+                    learner_page.set_viewport_size({"width": 390, "height": 844})
+                    learner_page.goto(f"{base}/classroom/{room_id}/?block=B08", wait_until="networkidle")
+                    learner_page.locator('header[class*="runtimeTop"] details > summary').tap()
+                    expect(learner_page.get_by_text("这台设备的账号", exact=True)).to_be_visible()
+                    expect(learner_page.get_by_role("button", name="退出当前账号", exact=True)).to_be_visible()
+                    account_touch = audit_learner_touch_surface(learner_page)
+                    learner_page.locator('header[class*="runtimeTop"] details > summary').tap()
+
+                    assert not learner_errors, learner_errors
+                    assert not learner_failed, learner_failed
+                    learner_context.close()
+
                     # Desktop keyboard navigation remains a convenience for
                     # internal mentors and does not mutate the unlock frontier.
                     desktop.goto(f"{base}/classroom/{room_id}/?block=B09", wait_until="networkidle")
@@ -443,6 +582,17 @@ def main() -> None:
                             "tabletPortrait": tablet_portrait_geometry,
                             "tabletLandscape": tablet_landscape_geometry,
                         },
+                        "t088LearnerPad": {
+                            "session": "real learner account; no Admin DM viewAs",
+                            "exactCourse": {key: candidate[key] for key in ("courseId", "schemaVersion", "revision", "digest", "status")},
+                            "blockRange": "B05-B08",
+                            "privateCards": {"count": 2, "isolatedFromLearner2": True},
+                            "touchOnlyNavigation": True,
+                            "structuredFormFields": 10,
+                            "accountMenuTouchAccessible": account_touch,
+                            "responsiveViewports": learner_viewport_matrix,
+                            "automationBoundary": "Chromium responsive/touch automation only; physical iPad Safari and Android touch-device human acceptance are still required and were not attested.",
+                        },
                         "pageErrors": 0,
                         "requestFailures": 0,
                         "screenshots": [
@@ -452,6 +602,7 @@ def main() -> None:
                             "docs/qa/t090-development-mentor/m-handoff-mobile.png",
                             "docs/qa/t090-development-mentor/development-stick-ipad-portrait.png",
                             "docs/qa/t090-development-mentor/private-cards-ipad-landscape.png",
+                            *t088_screenshots,
                         ],
                     })
                     mobile_context.close()
