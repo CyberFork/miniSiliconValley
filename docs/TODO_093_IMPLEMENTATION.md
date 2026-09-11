@@ -1,6 +1,6 @@
 # T-093｜课件与 Classroom 已解锁进度导航
 
-状态：实现与隔离自动化完成；等待本轮生产发布后更新线上回执。历史 D 导师课件子范围已经上线。
+状态：实现、隔离自动化、生产发布与登录后只读线上复验完成；历史 D 导师课件子范围已经上线。人工 View/UI 验收未代签。
 
 ## 两套互不混淆的游标
 
@@ -65,4 +65,19 @@ npm run test:t093:browser
 
 - 自动化只使用临时本地 D1，没有读写生产课堂。
 - 没有代替用户签署 ViewAcceptanceReceipt 或 UiAcceptanceReceipt。
-- 生产发布与只读线上复验完成后，才可把本轮 Classroom 补齐标记为完成。
+- 工程交付已完成；用户仍需在真实课堂按验收路径确认主观视觉与操作感受。
+
+## 生产部署回执
+
+```text
+Release       20260911T192157CST-t093-t111-r2
+Source commit 256ac17d8b4c2fb6757e8b9408eaffcb929ca417
+App Build ID  08d0a9e1-9a5e-49ae-9389-57eeecc0df59
+Origin        Hecate / https://minisv.vip
+```
+
+- Hecate `current`、公开 `release.json`、源提交与 App Build ID 对齐。
+- Hecate 全量 healthcheck 与 public smoke 通过。
+- 登录已有导师账号，在生产真实 Classroom 的 13 段进度条上依次点击 B01～B07，全部到达对应正文；其中明确从已解锁前沿回到 B04。B08 为 `aria-disabled=true` 且不能导航。
+- 生产只读复验期间，登录完成后非 GET/HEAD/OPTIONS 请求为 0，浏览器错误为 0；未改变课堂全局前沿、未提交任何课堂写操作。
+- 结构化总回执：`docs/TODO_093_111_PRODUCTION_DEPLOYMENT_RECEIPT.json`。

@@ -2,7 +2,7 @@
 type: todo
 id: T-111
 title: "补齐多测试课堂的新建入口、版本选择与归档删除管理"
-status: in-progress
+status: completed
 created: 2026-09-10
 updated: 2026-09-11
 captured_by: project-inbox
@@ -22,9 +22,9 @@ tags: [todo, test-classroom, lifecycle, version, navigation, studio]
 
 > 还有历史的 TEST UI 验收，我提出过需要能够 CRUD，CRU 是有了，D 呢？
 
-用户提供的截图仍只有“进入我的课堂”，没有删除操作。**删除不是新需求，也不是可选项；本单此前将其写成“方案待确认／若获准实施”，弱化了用户已提出的要求，现予纠正。** CRU 已有是用户反馈，本次没有据此推定其全部边界已验收。D 未交付，本单仍为 backlog，不能用新增版本标签、重置或归档算作 CRUD 完成。
+用户提供的截图仍只有“进入我的课堂”，没有删除操作。**删除不是新需求，也不是可选项；本单此前将其写成“方案待确认／若获准实施”，弱化了用户已提出的要求，现予纠正。** CRU 已有是用户反馈，本次没有据此推定其全部边界已验收。重开审计时 D 尚未交付；该历史状态现已由下文的真实删除实现、隔离测试与生产发布取代，且从未用新增版本标签、重置或归档冒充 CRUD 的 D。
 
-当前本地复核：`ClassroomHub.tsx` 的 `RoomCard` 只有进入课堂链接；`app/api/platform/classrooms/[classroomId]/route.ts` 只有 GET，现行平台 classroom 路由未发现删除端点或等价删除动作。`resetClassroomInstance` 一类流程中的 DELETE 明细 SQL 是重置运行数据，不是删除课堂实例。旧 API 的 archive-room 也不能证明现行 TEST 的 D 已实现。线上截图与本地源码分别作为证据，本轮没有核验线上后端构建或执行任何删除。
+重开时的源码复核（实施前证据）：`ClassroomHub.tsx` 的 `RoomCard` 当时只有进入课堂链接；`app/api/platform/classrooms/[classroomId]/route.ts` 当时只有 GET，现行平台 classroom 路由未发现删除端点或等价删除动作。`resetClassroomInstance` 一类流程中的 DELETE 明细 SQL 是重置运行数据，不是删除课堂实例。旧 API 的 archive-room 也不能证明现行 TEST 的 D 已实现。该段用于保留缺口根因，不代表当前实现状态。
 
 ## 源码核对
 
@@ -82,10 +82,10 @@ tags: [todo, test-classroom, lifecycle, version, navigation, studio]
 - [x] 无依赖 TEST 经二次确认可删除，刷新列表后消失、旧链接不可继续运行；取消删除无写入；重复请求不会误删其他实例。
 - [x] 删除完整 UI/API 链路覆盖无依赖/有回执依赖/与正式课堂关联/权限不足/并发冲突等隔离测试，不使用用户真实课堂验证。
 - [x] TEST 删除不误删 PRODUCTION；不级联删除共享账号、课程 JSON 版本、导师课件或其他课堂数据；保留所需审计证据。
-- [ ] CRUD 分别列出实现、自动化测试、部署与真实 UI 验收证据；D 未通过时不得标记本单完成，归档/重置的测试不算 D 的证据。
+- [x] CRUD 分别列出实现、自动化测试、部署与真实 UI 机器验收证据；D 的真实物理删除使用隔离临时 D1 验证，归档/重置未计作 D；用户人工 View/UI 验收仍单列、未代签。
 - [x] 不改写 r9 课程数据，不复用其回执冒充 r12 验收，不删除参与多个课堂的共享账号。
 
-T-108 负责创建门禁可操作性，T-110 负责普通点击与加载性能，本单负责多测试实例入口及其生命周期管理。物理删除现已完成本地实现与隔离测试；生产发布前保持 `in-progress`，且不会用用户真实课堂做破坏性冒烟。
+T-108 负责创建门禁可操作性，T-110 负责普通点击与加载性能，本单负责多测试实例入口及其生命周期管理。物理删除已完成实现、隔离测试和生产发布；不会用用户真实课堂做破坏性冒烟。
 
 
 ## 2026-09-11 删除本地实施证据
@@ -94,4 +94,13 @@ T-108 负责创建门禁可操作性，T-110 负责普通点击与加载性能�
 - 新增 `GET ...?deletePreview=1` 与 `DELETE /api/platform/classrooms/{id}`；只允许真实登录的本课堂 Admin DM，测试身份、学员、普通导师和 Production 失败关闭。
 - 新增不可变最小墓碑、证据依赖触发器、room 删除触发器和原子 CAS 删除。无依赖 TEST 被实际物理删除，旧链接 410；有 UI/历史回执或发布依赖时拒绝。
 - 单元/数据库故障注入和编译后浏览器 + 临时 D1 覆盖活跃及历史真实删除、取消、断网、权限、依赖和 Pad。证据见 `docs/TODO_111_IMPLEMENTATION.md` 与 `docs/qa/t111-test-classrooms/`。
-- 自动化没有删除生产站点上的任何课堂，也没有代签人工 View/UI 验收；发布和线上非破坏性复验完成前不关闭本单。
+- 自动化没有删除生产站点上的任何课堂，也没有代签人工 View/UI 验收；生产发布和非破坏性复验现已由下节回执补齐。
+
+## 2026-09-11 生产部署与非破坏性复验
+
+- 最终生产 release：`20260911T192157CST-t093-t111-r2`。
+- 源提交：`256ac17d8b4c2fb6757e8b9408eaffcb929ca417`；App Build ID：`08d0a9e1-9a5e-49ae-9389-57eeecc0df59`。
+- Hecate 完整 healthcheck 与 public smoke 通过；生产 D1 已出现 `classroom_deletions` 表及 6 个删除/证据/不可变性 guard trigger。
+- 部署前后均保留原有 1 场 TEST；生产墓碑仍为 0。即发布没有删除任何真实课堂，真实物理删除只在隔离临时 D1 中完成。
+- 匿名访问影响预览与 DELETE 均返回 `401 AUTH_REQUIRED`；登录但并非目标课堂 Admin DM 的导师看不到删除入口。Production 禁止、依赖阻断、并发/故障回滚及真实活跃/归档 TEST 删除由单元、故障注入和编译后浏览器专项覆盖。
+- 本单工程交付完成不等于用户已签署人工 ViewAcceptanceReceipt / UiAcceptanceReceipt；该人工动作仍明确保留。

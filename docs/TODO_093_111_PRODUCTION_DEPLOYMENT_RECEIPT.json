@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "t093-t111-production-deployment-20260911-r2",
+  "generatedAt": "2026-09-11T19:41:00+08:00",
+  "scope": [
+    "T-093 Classroom unlocked progress navigation",
+    "T-111 Test Classroom physical deletion"
+  ],
+  "release": {
+    "id": "20260911T192157CST-t093-t111-r2",
+    "sourceCommit": "256ac17d8b4c2fb6757e8b9408eaffcb929ca417",
+    "appBuildId": "08d0a9e1-9a5e-49ae-9389-57eeecc0df59",
+    "origin": "hecate",
+    "canonicalOrigin": "https://minisv.vip",
+    "appSha256": "8ab72e711465319e7453aaad2bc3ecaf233c82d8167a3b5c1b0bc94c5ebde4bb",
+    "siteSha256": "d83428c029aa387e9e7e200880903aef10052cf4aa7c630287b947fbc38d2215"
+  },
+  "deployment": {
+    "hecateCurrent": "releases/20260911T192157CST-t093-t111-r2",
+    "healthcheck": "MINISV_HECATE_HEALTHY",
+    "publicSmoke": "MINISV_PUBLIC_SMOKE_OK",
+    "publicOriginHeader": "hecate",
+    "releaseIdentityMatched": true,
+    "productionDataWasNotDestructivelyTested": true
+  },
+  "preservedCourseware": {
+    "route": "/courseware/product-mentor-foundations/",
+    "sha256": "15bf2e2c133f08318ef1b2c8a6ce0766d9045fb38b9d3baa54bac71b96a74907",
+    "files": 103,
+    "bytes": 114367157,
+    "transformed": false
+  },
+  "automatedTests": {
+    "platform": "161/161 passed",
+    "dataValidation": "203 events, 5 stages, 0 errors, 0 warnings",
+    "deploymentUnitTests": "53/53 passed",
+    "brandInteractionMissionRender": "16/16 passed",
+    "gitDiffCheck": "passed"
+  },
+  "t093": {
+    "implementationEvidence": "docs/qa/t093-classroom-progress/browser-automated-evidence.json",
+    "isolatedBrowser": {
+      "realClassroomProgressControl": true,
+      "scenario": "viewing B04, unlocked through B07",
+      "mouseKeyboardTouch": true,
+      "lockedApiStatus": 409,
+      "independentObserverStayedAtB04": true,
+      "globalFrontierStayedAtB07": true,
+      "mutatingRequestsFromProgress": 0,
+      "minimumHitAreaPx": 44,
+      "padHorizontalOverflow": false
+    },
+    "productionAuthenticatedReadOnly": {
+      "progressSegments": 13,
+      "availableThrough": "B07",
+      "reached": ["B01", "B02", "B03", "B04", "B05", "B06", "B07"],
+      "b08Locked": true,
+      "mutatingRequestsAfterLogin": 0,
+      "consoleErrors": 0
+    }
+  },
+  "t111": {
+    "implementationEvidence": "docs/qa/t111-test-classrooms/browser-automated-evidence.json",
+    "isolatedBrowserAndD1": {
+      "activeTestPhysicallyDeleted": true,
+      "archivedTestPhysicallyDeleted": true,
+      "oldLinksStatus": 410,
+      "cancelWasNoop": true,
+      "idempotentRetry": true,
+      "evidenceBlockerVerified": true,
+      "networkFailurePreservedTarget": true,
+      "learnerApiStatus": 403,
+      "padHorizontalOverflow": false
+    },
+    "productionNonDestructive": {
+      "existingTestClassroomsBefore": 1,
+      "existingTestClassroomsAfter": 1,
+      "deletionTombstones": 0,
+      "deletionGuardTriggers": 6,
+      "anonymousPreviewStatus": 401,
+      "anonymousDeleteStatus": 401,
+      "nonAdminDmDeleteButtonHidden": true,
+      "realProductionClassroomDeleted": false
+    }
+  },
+  "acceptanceBoundary": {
+    "humanViewAcceptanceSignedByAutomation": false,
+    "humanUiAcceptanceSignedByAutomation": false,
+    "t097OverallStatus": "in-progress"
+  }
+}

@@ -2,7 +2,7 @@
 type: todo
 id: T-093
 title: "让课件分段进度条可点击跳转到已解锁状态"
-status: in-progress
+status: completed
 created: 2026-09-09
 updated: 2026-09-11
 captured_by: project-inbox
@@ -29,7 +29,7 @@ tags:
 
 # 让课件分段进度条可点击跳转到已解锁状态
 
-> **2026-09-11 重开：D 导师 PPT 子范围已有交付，但 Classroom 分段进度条跳转遗漏。Classroom 范围现已完成本地实现与隔离自动化；生产发布和线上只读复验完成前，本单保持 `in-progress`。**
+> **2026-09-11 完成：D 导师 PPT 子范围与 Classroom 分段进度条跳转均已交付。Classroom 实现、隔离自动化、生产发布和线上只读真实进度条复验均有证据；人工 View/UI 验收仍由用户本人签署。**
 
 > PPT 子范围历史完成回执（2026-09-09）：已在本地编辑源与 public/courseware/development-mentor-ligun/ 同步实现；专项 Chromium 验收通过。固定 r0 digest 为 cafb8878e710a698237631523428dff7e0832180415c1b5605acbe6f3ddcf69d，内容树为 ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234。完整记录见仓库 docs/TODO_093_IMPLEMENTATION.md。
 
@@ -64,7 +64,7 @@ tags:
 - [x] 学员和导师真实 UI、DM 相应视图，以及使用相同色条的预览/投屏入口逐一记录覆盖情况。
 - [x] Tab、Enter/Space 与 Pad 触摸可用，点击热区不遮挡相邻控件；当前/锁定状态可被辅助技术识别。
 - [x] 覆盖刷新、浏览器前进后退、角色切换与迟到响应；已有 PageNavigator 和快捷键无回归。
-- [ ] 提交覆盖真实进度条点击的测试，而非仅测试下拉框导航或 PPT；记录发布构建身份和对应线上复验结果。
+- [x] 提交覆盖真实进度条点击的测试，而非仅测试下拉框导航或 PPT；记录发布构建身份和对应线上复验结果。
 
 以下保留原 PPT 需求、验收与部署历史；其中“不改变 Classroom 全局 Block”与本次“改变个人浏览 Block”并不冲突。
 
@@ -170,3 +170,11 @@ T-093 固定 r0 已随 `20260910T020748CST-t095-t096-course-platform-r3` 再次�
 - 编译后 Chromium + 临时 D1 已复现 B04 / 解锁至 B07：鼠标、触摸、Enter、Space、浏览器前进后退、导师、学员和投屏均通过；B08 UI 与直接 API 均不可越界。
 - 自动化确认全局前沿、另一用户浏览位置、exact 课程引用与未保存草稿不变，进度操作产生 0 个写请求。
 - 证据见 `docs/TODO_093_IMPLEMENTATION.md` 与 `docs/qa/t093-classroom-progress/`。本记录没有代签人工 View/UI 验收。
+
+## 2026-09-11 Classroom 生产部署与只读复验
+
+- 最终生产 release：`20260911T192157CST-t093-t111-r2`。
+- 源提交：`256ac17d8b4c2fb6757e8b9408eaffcb929ca417`；App Build ID：`08d0a9e1-9a5e-49ae-9389-57eeecc0df59`。
+- Hecate `current` 指向上述不可变 release；完整 healthcheck 与 public smoke 均通过，`release.json` 与源提交一致，公开响应标记 `x-minisv-origin: hecate`。
+- 使用已有导师账号执行**登录后的只读生产复验**：真实 Classroom 显示 13 段、已解锁至 B07；依次通过真实进度按钮到达 B01～B07（包括从前沿回到 B04），B08 保持锁定；登录后记录到的非 GET/HEAD/OPTIONS 请求为 0，浏览器错误为 0。
+- 线上复验没有推进课堂、提交、发牌、重置、删除或签署验收回执；用户仍需按下文路径完成主观 UI 验收。

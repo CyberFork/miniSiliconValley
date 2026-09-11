@@ -1,6 +1,6 @@
 # T-111｜多 Test Classroom、归档与依赖受控删除
 
-> 状态：实现与隔离自动化完成；等待本轮生产发布后更新线上回执
+> 状态：实现、隔离自动化、生产发布与非破坏性线上复验完成；人工 View/UI 验收未代签
 > 日期：2026-09-11
 
 ## 1. 生命周期不是同义按钮
@@ -99,3 +99,18 @@ npm run test:t111:browser
 - 自动化只操作临时 D1，绝不拿用户真实 TEST / Production 做破坏性冒烟。
 - 线上复验只检查构建身份、鉴权门禁、页面/脚本标记和只读 API 行为。
 - 没有代替用户签署 ViewAcceptanceReceipt 或 UiAcceptanceReceipt。
+
+## 8. 生产部署回执
+
+```text
+Release       20260911T192157CST-t093-t111-r2
+Source commit 256ac17d8b4c2fb6757e8b9408eaffcb929ca417
+App Build ID  08d0a9e1-9a5e-49ae-9389-57eeecc0df59
+Origin        Hecate / https://minisv.vip
+```
+
+- Hecate `current`、公开 `release.json` 与不可变 bundle 身份一致；完整 healthcheck 和 public smoke 通过。
+- 生产 D1 非破坏性只读检查：当前仍有原来的 1 场 TEST，`classroom_deletions` 为 0；删除表及 TEST-only、证据、不可变墓碑、archive、room guard 共 6 个 trigger 均存在。
+- 匿名 `deletePreview` 与 `DELETE` 均返回 `401 AUTH_REQUIRED`；已有导师账号若不是目标课堂真实 Admin DM，课堂卡不渲染删除按钮。
+- 生产没有执行真实删除。实际 D 证据来自编译后真实 UI/API + 临时 D1：活跃和已归档 TEST 均被物理删除、旧链接 410、幂等/权限/证据/网络失败/事务回滚均已覆盖。
+- 结构化总回执：`docs/TODO_093_111_PRODUCTION_DEPLOYMENT_RECEIPT.json`。
