@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "kind": "automated-production-browser-evidence",
+  "humanAcceptance": false,
+  "recordedAt": "2026-09-11T10:58:59+08:00",
+  "origin": "https://minisv.vip",
+  "release": "20260911T100357CST-public-ia-t109-r4",
+  "mainSha": "662ed523d4cc241c3c858d0895e555b2a971f957",
+  "browser": {
+    "engine": "Chromium",
+    "mode": "headless",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  "routes": {
+    "/": {
+      "status": 200,
+      "url": "https://minisv.vip/",
+      "title": "MINI硅谷｜把真实科技史玩成一次创业",
+      "pageErrors": [],
+      "consoleErrors": [],
+      "requestFailures": []
+    },
+    "/world/": {
+      "status": 200,
+      "url": "https://minisv.vip/world/",
+      "title": "MINI硅谷历史世界｜真实科技史创业 RPG",
+      "pageErrors": [],
+      "consoleErrors": [],
+      "requestFailures": []
+    },
+    "/framework/": {
+      "status": 200,
+      "url": "https://minisv.vip/framework/",
+      "title": "Mini Silicon Valley｜课程游戏系统 1·2·3·4·5·6",
+      "pageErrors": [],
+      "consoleErrors": [],
+      "requestFailures": [],
+      "publicNav": true,
+      "homeLink": true,
+      "nativeHydratedBrand": true,
+      "react418": false
+    },
+    "/parents/": {
+      "status": 200,
+      "url": "https://minisv.vip/parents/",
+      "title": "家长问答 | Mini Silicon Valley",
+      "pageErrors": [],
+      "consoleErrors": [],
+      "requestFailures": []
+    },
+    "/auth/login/": {
+      "status": 200,
+      "url": "https://minisv.vip/auth/login/",
+      "title": "登录 | Mini Silicon Valley",
+      "pageErrors": [],
+      "consoleErrors": [],
+      "requestFailures": []
+    }
+  },
+  "worldPreview": {
+    "status": 200,
+    "schemaVersion": 1,
+    "source": "historyCatalog",
+    "layers": 4,
+    "events": 7
+  },
+  "assertions": {
+    "allDocuments200": true,
+    "noPageErrors": true,
+    "noConsoleErrors": true,
+    "noRequestFailures": true,
+    "frameworkHydratesWithoutReact418": true,
+    "homepageHistoryCatalogLoaded": true
+  },
+  "remainingHumanGate": "T-088 real iPad Safari and Android touch-device acceptance"
+}

@@ -104,3 +104,11 @@ docs/qa/t109-public-internal-ia/workshop-readonly-archive.png
 ## 6. 回退
 
 T-109 与 app、Gateway、Parent-QA 一起进入单一不可变 Hecate release。回退只切换 `~/Services/minisv/current` 到上一份整包；运行 D1、账号、secrets、Parent-QA 数据和浏览器 localStorage 均位于 release 外，不被静态回退覆盖。不得单独回退首页而保留不匹配的 Gateway/鉴权规则。
+
+## 7. 生产交付
+
+- 最终 release：`20260911T100357CST-public-ia-t109-r4`。
+- canonical source：`662ed523d4cc241c3c858d0895e555b2a971f957`，Hecate `minisv.vip`。
+- Gateway 为 `/world-preview.json` 设置明确的 release-owned 静态路由；首页历史组件不再静默进入 offline fallback。
+- 部署后 Hecate health、远端／外部 public smoke 均通过。Chromium 依次加载官网、World、课程框架、家长问答和登录页，页面异常、console error 与关键资源失败均为 0；课程框架无 React hydration 418。
+- 生产机器证据：`docs/qa/t109-public-internal-ia/production-r4-machine-evidence.json`。这不是人工 View/UI 回执，也不替代 T-088 的真实平板测试。

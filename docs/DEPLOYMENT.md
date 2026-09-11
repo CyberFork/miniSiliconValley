@@ -87,14 +87,16 @@ MANIFEST.sha256
 
 在 Hecate 以受控环境变量运行 bundle 内的 `ops/scripts/deploy-hecate.sh`。脚本会：
 
+> **部署脚本也属于 release。** 新 release 必须从待部署 archive／已校验 staging bundle 中提取并执行它自己的 `ops/scripts/deploy-hecate.sh`；禁止用 `~/Services/minisv/current/ops/scripts/deploy-hecate.sh` 启动更新版本。部署编排、令牌同步、manifest 门禁与回滚步骤会随 bundle 一起演进，旧 `current` 脚本无法安全推断新 release 的前置条件。目标脚本仍须在任何运行态变更前完成 archive 和 manifest 校验。
+
 1. 验证 archive 安全性、根/site manifests、Worker、Parent-QA 内容清单和全部 launchd plist。
 2. 将包放入不可变 `~/Services/minisv/releases/<RELEASE_ID>`。
 3. 在改动运行态前校验主应用与 Parent-QA 的内部审核令牌一致；缺失时安全生成／补齐，不一致时失败关闭且不回显令牌。
 4. 停止课堂 worker 与 Parent-QA，分别备份 D1-compatible 数据和 QA NDJSON 数据目录。
-4. 退休 18790/18791 全局服务。
-5. 原子切换 `~/Services/minisv/current`，再启动同版本应用与 gateway。
-6. 保留健康且配置未变的 cloudflared，避免无意义断流。
-7. 执行 loopback health；失败时恢复之前捕获的 symlink、配置和 launchd。
+5. 退休 18790/18791 全局服务。
+6. 原子切换 `~/Services/minisv/current`，再启动同版本应用与 gateway。
+7. 保留健康且配置未变的 cloudflared，避免无意义断流。
+8. 执行 loopback health；失败时恢复之前捕获的 symlink、配置和 launchd。
 
 发布后执行：
 
