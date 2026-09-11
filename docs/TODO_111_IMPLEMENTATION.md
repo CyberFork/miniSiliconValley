@@ -1,134 +1,101 @@
-# T-111｜多 Test Classroom 与只读归档实现
+# T-111｜多 Test Classroom、归档与依赖受控删除
 
-> 状态：本地实现与自动化验证完成，等待统一发布队列部署  
-> 日期：2026-09-11  
-> 受众：课程负责人、Admin DM、平台开发与 QA
+> 状态：实现与隔离自动化完成；等待本轮生产发布后更新线上回执
+> 日期：2026-09-11
 
-## 1. 交付结果
+## 1. 生命周期不是同义按钮
 
-课堂中心现在把 Test Classroom 当作可并存的独立运行实例，而不是一门课只有一个“测试槽位”：
+- **重置**：保留 classroomId，开始新的 run generation。
+- **归档**：保留整场数据和历史证据，只读，不可原地恢复。
+- **删除**：对无阻断依赖的指定 TEST 做物理级联删除；活跃列表、历史列表与旧运行链接都不再可用。
 
-- TEST 区标题旁固定显示“＋ 新建测试课堂”，普通单击即可定位 `#factory`。
-- 同一 exact 课程版本可以创建多场 Test；r9、r12 等不同 revision 也能并存。
-- 每张课堂卡明确显示 `classroomId`、`courseId@revision`、完整 digest、最后更新时间、run generation、学员人数和真实 lifecycle。
-- 默认课堂名包含课程名和 revision；手动改名后，切换环境或课程不会覆盖用户名称。
-- 活跃 Test 可由该课堂 Admin DM 归档；归档后进入独立历史区，仍可打开 exact 只读档案，或从同一 exact 版本创建新 Test。
-- 不实现硬删除或原地恢复。需要继续测试时创建新实例，避免审计、作品与验收回执悬空。
+归档不能代替删除。删除后只留下不含学员正文、私卡正文或作品内容的不可变最小墓碑，用于幂等重放、旧链接 410 与安全审计。
 
-## 2. 生命周期决策
+## 2. UI 流程
 
-三个操作的语义严格分开：
+课堂中心的活跃 TEST 卡和“已归档测试课堂”历史卡，都为该课堂真实 Admin DM 显示“删除测试课堂”。Production 和无权限账号不显示入口。
 
-1. **重置**：同一 `classroomId` 开启下一个 run generation，清理本 run 的可变测试数据。
-2. **归档**：不改变最后一个真实 lifecycle，只增加一次不可变保留标记；整个课堂从此只读。
-3. **永久删除**：当前产品不提供。课堂可能被 UI 回执、发布记录、作品或审计引用，硬删风险大于收益。
+自定义二次确认框在任何写入前从服务端读取并展示：
 
-数据库新增 `classroom_archives`。它是一对一、只增不改的记录：
+- 标题、classroomId、TEST / lifecycle、exact course revision 与 digest；
+- 将删除的 Membership、提交、私卡、经济、运行/课堂审计记录数量；
+- 明确保留的共享账号、课程 JSON、导师课件、其他课堂和平台级证据；
+- 每一组阻断依赖及其 reference ID。
 
-```text
-room_id + previous_lifecycle + reset_generation + script_version
-+ archived_by_profile_id + idempotency_key + reason + archived_at
-```
+用户必须勾选“确认永久删除这一个 TEST”后才能提交。取消不产生请求。网络失败、并发冲突或新增依赖时，弹窗保留并重新读取目标，明确写出“删除没有执行”。
 
-数据库触发器保证：
-
-- 只有 `environment=test` 的 ClassroomInstance 可写入。
-- 归档记录不能 `UPDATE` 或 `DELETE`。
-- `room_id` 唯一，一场课堂只能进入历史一次。
-
-`rooms.status = archived` 仅作旧运行时兼容镜像；`classroom_archives` 才是当前归档真值。`classroom_instances.lifecycle` 保留归档前的 `ready/running/completed`，因此历史不会被伪装成另一个运行阶段。
-
-## 3. API 与并发契约
-
-入口：
+## 3. API 与权限
 
 ```http
-POST /api/platform/classrooms/{classroomId}/archive
-Content-Type: application/json
+GET    /api/platform/classrooms/{classroomId}?deletePreview=1
+DELETE /api/platform/classrooms/{classroomId}
 ```
 
-请求必须同时携带：
+两者都要求真实登录的该课堂 Admin DM；测试身份模拟、普通导师、学员和 Production 均被服务端拒绝。DELETE 需要：
 
-```json
-{
-  "expectedRunId": "{classroomId}:run:{resetGeneration}",
-  "expectedResetGeneration": 4,
-  "expectedScriptVersion": 7,
-  "idempotencyKey": "archive.<uuid>",
-  "reason": "r13 已替代本轮测试"
-}
+```text
+expectedRunId + expectedResetGeneration + expectedScriptVersion
++ expectedStateToken + confirmClassroomId + idempotencyKey + optional reason
 ```
 
-服务端按真实账号校验该课堂 Admin DM 权限。Test 身份模拟、普通导师、学员和 Production 均不能归档。归档事务一次写入：
+同一操作者以完全相同幂等键重试会得到同一删除结果；其他请求返回 410，不会误删同名或相邻课堂。
 
-1. 不可变归档标记；
-2. 原子断言；
-3. legacy room 状态镜像；
-4. Classroom 更新时间；
-5. `classroom.test-archived` 审计事件。
+## 4. 依赖门禁
 
-run generation 或 script version 在确认弹窗打开后发生变化时，归档失败关闭，不会留下半个归档。同一操作者以同一幂等键重放会返回同一结果；其他重放明确返回 `CLASSROOM_ALREADY_ARCHIVED`。
+以下任一引用存在即禁止删除，并建议保留只读归档：
 
-## 4. 只读边界
+1. `course_ui_acceptance_receipts` 真实 UI 验收回执；
+2. `course_test_receipts` 历史验收记录；
+3. `course_release_pointers.approval_json` 发布批准链；
+4. 通过该 UI 回执建立的 Production Classroom。
 
-归档后仍允许：
+应用层预览和 DELETE 会重复检查；数据库 `trg_classroom_deletion_evidence_guard` 再次失败关闭，直接 SQL 也不能绕过证据边界。
 
-- 查看任意已解锁剧本页；
-- 切换历史角色视角；
-- 查看成员、作品、手牌、资金和诊断信息；
-- 打开锁定的 exact 导师课件；
-- 从相同 exact 课程版本创建另一场 Test。
+## 5. 原子删除与数据边界
 
-归档后服务端拒绝：
+`drizzle/0015_test_classroom_deletions.sql` 新增：
 
-- 解锁下一页或结束 run；
-- reset；
-- 学员提交与导师审核；
-- 修改导师、学员或 Admin DM；
-- 创建该课堂专属账号或管理 Test 身份；
-- 签发新的 UiAcceptanceReceipt。
+- `classroom_deletions`：无 rooms 外键、不可 UPDATE/DELETE 的墓碑；
+- TEST-only 与 evidence guard；
+- room delete guard：ClassroomInstance 必须先有合法墓碑；
+- archive delete guard：只有同一事务已经写入墓碑时，归档标记才允许被清理。
 
-浏览器也显示醒目的只读横幅并隐藏／禁用写操作，但前端限制不是权限边界；所有关键写入口均由服务端再次检查。
+一次 D1 batch 完成：墓碑 CAS → 事务断言 → 删除可选归档标记 → 删除 room 并依靠 FK 级联清除课堂私有行 → 写平台安全事件。任一节点失败，整批回滚。
 
-## 5. 验收回执政策
+确认预览使用 room/script/run、factory events、submission revisions 以及五类影响计数作 CAS 见证；确认期间发生作品更新、课堂动作、发牌/经济/审计行新增或证据依赖，都中止而不留下半删除状态。
 
-归档不会删除已签发的 UiAcceptanceReceipt。该回执继续可查询并保留其原始内容，但即时变为无效，原因明确显示：
-
-> 来源 Test Classroom 已归档；回执仅保留为历史证据。
-
-因此，归档来源课堂后不能再用旧 UI 回执发布新 Released 或创建新的 Production。若仍需发布，创建新 Test，重新完整运行并进行人工 UI 验收。
-
-Studio 的发布流水线只把未归档 Test 算作活跃验收课堂；历史数量单独显示，避免“已有归档课堂”被误判为当前可验收状态。
+全局 `auth_users`、`profiles`、`course_versions`、`courseware_versions`、其他课堂与跨课堂账号从不作为删除目标。
 
 ## 6. 自动化证据
 
-核心验证：
+单元/数据库测试覆盖：
+
+- 无依赖活跃 TEST 的真实物理删除、旧链接 410、列表消失；
+- 无依赖归档 TEST 从历史入口真实删除；
+- 5 个 batch 节点逐点故障注入全部回滚；
+- 同幂等键重放、不同键拒绝、目标隔离与共享资源计数不变；
+- 作品同数量更新和新审计行两类 stale preview 均冲突；
+- UI 回执/发布证据数据库门禁、Production 目标拒绝、学员权限拒绝；
+- 墓碑不可改删，且不含测试中的私有作品正文。
+
+编译后浏览器 + 临时本地 D1 覆盖：
+
+- 活跃列表打开弹窗、取消无写入、勾选二次确认后真实删除；
+- 历史列表真实删除归档 TEST；
+- 旧链接均为 410；幂等重试有效；
+- 合成自动化 UI 回执显示具体 blocker（明确不是人工验收）；
+- 中断 DELETE 网络后目标仍在，界面明确说明未执行；
+- 学员无按钮且 API 为 403；Pad 无横向溢出。
+
+机器证据：`docs/qa/t111-test-classrooms/browser-automated-evidence.json`。
 
 ```bash
-npm run typecheck
-npm run lint
-npm run test:course-platform
-npm run build:minisv-app
 npm run test:t111:browser
 ```
 
-覆盖：
+## 7. 发布边界
 
-- 同 exact 多实例和新 Candidate 多 revision 并存；
-- 原课堂不会被新 Candidate 热更新；
-- 五个事务节点逐点故障注入均完整回滚；
-- 无权限、Production、陈旧 run/script、重复请求失败关闭；
-- 归档只影响目标 Test，其他课堂保持活跃；
-- 归档记录数据库级不可变；
-- 所有当前课堂写入口只读保护；
-- 旧 UI 回执保留但失效；
-- 编译后真实 ClassroomHub 的普通点击、定向深链、自定义确认框与 390/768px 布局。
-
-浏览器自动化只使用临时本地 D1 和被拦截的合成课堂列表，没有访问生产数据，也没有代签人工验收回执。机器证据在 `docs/qa/t111-test-classrooms/`。
-
-## 7. 部署注意
-
-- 先应用 `drizzle/0012_test_classroom_archives.sql`，再切换包含归档查询的新应用，避免应用先查询不存在的表。
-- 发布包必须包含同步生成的 `db/schema-statements.ts`。
-- 部署后只做鉴权、页面、API schema 与空数据冒烟；不得拿真实课堂执行归档验证。
-- 本功能随当前统一 Hecate／`minisv.vip` 发布队列上线，不部署到 Windows 或旧 `work.cyberforker.com` 路径。
+- 部署前必须先备份停止状态的 D1 数据；新应用启动时幂等创建删除表与升级归档 guard。
+- 自动化只操作临时 D1，绝不拿用户真实 TEST / Production 做破坏性冒烟。
+- 线上复验只检查构建身份、鉴权门禁、页面/脚本标记和只读 API 行为。
+- 没有代替用户签署 ViewAcceptanceReceipt 或 UiAcceptanceReceipt。

@@ -50,7 +50,7 @@
     "test:t091:browser": "npm run build:minisv-app && python3 tools/live-run/tests/verify_t091_product_mentor_browser.py",
     "test:t090:browser": "npm run build:minisv-app && python3 tools/live-run/tests/verify_t090_development_mentor_browser.py",
     "test:t088:browser": "npm run build:minisv-app && python3 tools/live-run/tests/verify_t088_tablet_learner_browser.py",
-    "test:t093:browser": "python3 tools/live-run/tests/verify_t093_courseware_progress.py",
+    "test:t093:browser": "npm run build:minisv-app && python3 tools/live-run/tests/verify_t093_courseware_progress.py && python3 tools/live-run/tests/verify_t093_classroom_progress_browser.py",
     "test:t099:browser": "npm run build:minisv-app && python3 tools/live-run/tests/verify_t099_candidate_conflict_browser.py",
     "test:market-courseware:browser": "python3 tools/live-run/tests/verify_market_mentor_courseware_browser.py",
     "test:portal:live": "node scripts/test-msv-portal-live.mjs",

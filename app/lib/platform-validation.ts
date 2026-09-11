@@ -95,6 +95,26 @@ export function parseArchiveClassroomRequest(value: unknown): {
   };
 }
 
+export function parseDeleteClassroomRequest(value: unknown): {
+  expectedRunId: string;
+  expectedResetGeneration: number;
+  expectedScriptVersion: number;
+  expectedStateToken: string;
+  confirmClassroomId: string;
+  idempotencyKey: string;
+  reason?: string;
+} {
+  const raw = objectValue(value);
+  return {
+    ...parseRunExpectation(raw),
+    expectedScriptVersion: integerValue(raw.expectedScriptVersion, "剧本版本", 1, 1_000_000),
+    expectedStateToken: stringValue(raw.expectedStateToken, "删除预览状态", 64),
+    confirmClassroomId: stringValue(raw.confirmClassroomId, "二次确认 classroomId", 128),
+    idempotencyKey: stringValue(raw.idempotencyKey, "幂等键", 128),
+    ...(raw.reason == null || raw.reason === "" ? {} : { reason: stringValue(raw.reason, "删除备注", 500) }),
+  };
+}
+
 export function parseScriptAction(value: unknown): {
   expectedVersion: number;
   expectedRunId: string;

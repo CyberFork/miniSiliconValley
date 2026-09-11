@@ -92,19 +92,21 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
   const requestIdentity = classroomRuntimeRequestKey(runtimeRequestIdentity);
   const requestIdentityRef = useRef(requestIdentity);
   useEffect(() => { requestIdentityRef.current = requestIdentity; }, [requestIdentity]);
-  const writeUrl = useCallback((next: NavigationState) => {
-    const url = new URL(window.location.href);
-    if (next.blockId) url.searchParams.set("block", next.blockId); else url.searchParams.delete("block");
-    if (next.testSurface) url.searchParams.set("as", next.testSurface); else url.searchParams.delete("as");
-    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
-  }, []);
-  const updateNavigation = useCallback((update: Partial<NavigationState>) => {
+  const updateNavigation = useCallback((update: Partial<NavigationState>, history: "push" | "replace" = "push") => {
     setNavigation((current) => {
       const next = { ...current, ...update };
-      writeUrl(next);
+      const url = new URL(window.location.href);
+      if (next.blockId) url.searchParams.set("block", next.blockId); else url.searchParams.delete("block");
+      if (next.testSurface) url.searchParams.set("as", next.testSurface); else url.searchParams.delete("as");
+      window.history[history === "replace" ? "replaceState" : "pushState"](null, "", `${url.pathname}${url.search}${url.hash}`);
       return next;
     });
-  }, [writeUrl]);
+  }, []);
+  useEffect(() => {
+    const restoreFromHistory = () => setNavigation(initialNavigation());
+    window.addEventListener("popstate", restoreFromHistory);
+    return () => window.removeEventListener("popstate", restoreFromHistory);
+  }, []);
   const load = useCallback(async (quiet = false) => {
     const query = new URLSearchParams();
     if (navigation.blockId) query.set("block", navigation.blockId);
@@ -141,7 +143,7 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
       setData(next);
       setSyncState("online");
       setLastSyncedAt(Date.now());
-      if (!navigation.blockId) updateNavigation({ blockId: next.page.id });
+      if (!navigation.blockId) updateNavigation({ blockId: next.page.id }, "replace");
       if (!quiet) setError("");
     }
     catch (cause) {
@@ -166,7 +168,17 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
     };
   }, [load, view]);
 
-  const navigateTo = useCallback((blockId: string) => { setNotice(""); updateNavigation({ blockId }); }, [updateNavigation]);
+  const navigateTo = useCallback((blockId: string) => {
+    if (navigation.blockId === blockId) {
+      setNotice(`你正在查看 ${blockId}；课堂解锁边界没有变化。`);
+      return;
+    }
+    setNotice("");
+    updateNavigation({ blockId });
+  }, [navigation.blockId, updateNavigation]);
+  const explainLocked = useCallback((blockId: string) => {
+    setNotice(`${blockId} 尚未解锁；请等待导师从中控确认。你的浏览位置和课堂数据都没有变化。`);
+  }, []);
   const switchSurface = useCallback((testSurface: string) => { setNotice(""); updateNavigation({ testSurface }); }, [updateNavigation]);
   const selectedSurface = data?.environment === "test"
     ? navigation.testSurface ?? (view === "control" || data.myView?.kind === "controller" ? "control" : data.viewer.viewProfileId)
@@ -254,7 +266,7 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
       {data.archive && <div className={styles.archiveRuntimeBanner} role="status"><div><b>只读归档 · {new Date(data.archive.archivedAt).toLocaleString("zh-CN")}</b><span>保留 {data.archive.previousLifecycle} 运行、作品、资金与审计证据；不能重置、提交、改成员或签发新回执。</span></div><Link href={factoryHrefForArchived(data)}>以此 exact 版本新建 Test →</Link></div>}
       {error && <div className={styles.error} role="alert">{error}</div>}
       {notice && <div className={styles.notice} role="status">{notice}</div>}
-      {view !== "members" && <PageNavigator data={data} busy={busy} onBack={requestBack} onForward={requestForward} onNavigate={navigateTo} />}
+      {view !== "members" && <PageNavigator data={data} busy={busy} onBack={requestBack} onForward={requestForward} onNavigate={navigateTo} onLocked={explainLocked} />}
       {view !== "members" && data.environment === "test" && <RuntimeDiagnostics data={data} />}
       {view === "members" ? <MembersView data={data} /> : !roleProjectionReady ? <section className={styles.card} aria-live="polite">正在切换真实角色视图…</section> : screenMode ? <SharedScreen data={toSharedScreen(data)} />
         : selectedSurface === "control" ? <ControlView data={data} busy={busy || readOnly}
@@ -426,7 +438,7 @@ function TestRoleTabs({ data, selected, onSwitch }: { data: ClassroomInstanceDet
   </nav>;
 }
 
-function PageNavigator({ data, busy, onBack, onForward, onNavigate }: { data: ClassroomInstanceDetail; busy: boolean; onBack: () => void; onForward: () => void; onNavigate: (blockId: string) => void }) {
+function PageNavigator({ data, busy, onBack, onForward, onNavigate, onLocked }: { data: ClassroomInstanceDetail; busy: boolean; onBack: () => void; onForward: () => void; onNavigate: (blockId: string) => void; onLocked: (blockId: string) => void }) {
   const historical = data.scriptNavigation.viewedIndex < data.script.unlockedThroughIndex;
   return <section className={styles.pageNavigator} aria-label="已解锁剧本导航">
     <button disabled={busy || data.scriptNavigation.viewedIndex <= 0} onClick={onBack}>← 上一页</button>
@@ -434,6 +446,7 @@ function PageNavigator({ data, busy, onBack, onForward, onNavigate }: { data: Cl
     {historical && <button className={styles.latestButton} onClick={() => onNavigate(data.scriptNavigation.latestUnlocked.id)}>回到最新解锁 · {data.scriptNavigation.latestUnlocked.id}</button>}
     <button disabled={busy || (data.script.unlockedThroughIndex >= data.course.blockCount - 1 && !historical)} onClick={onForward}>{historical ? "下一页 →" : data.scriptNavigation.canUnlockNext ? "确认解锁下一页 →" : "下一页尚未解锁"}</button>
     <small>点按按钮或下拉框翻页；有键盘时也可用 ←/→、Home、End。每个人独立浏览。</small>
+    <Progress data={data} onNavigate={onNavigate} onLocked={onLocked} />
   </section>;
 }
 
@@ -540,7 +553,6 @@ function SeatView({ data, busy, submit, review }: {
   const genericMutationKey = useRef(newMutationKey());
   return <>
     <RuntimeHeading data={data} eyebrow={`${data.environment.toUpperCase()} CLASSROOM · ${role}`} />
-    <Progress data={data} />
     <div className={styles.taskGrid}>
       <section className={styles.card}>
         <small className={styles.eyebrow}>这一页只做一件事</small>
@@ -691,8 +703,33 @@ function RuntimeHeading({ data, eyebrow }: { data: ClassroomInstanceDetail; eyeb
   return <section className={styles.runtimeHeading}><div><small>{eyebrow}</small><h1>{data.page.id} · {data.page.title}</h1><p>{data.course.title} · 第 {data.page.macroStepOrder}/5 步 · 我的页 {data.scriptNavigation.viewedIndex + 1}/{data.course.blockCount} · 已解锁至 {data.script.unlockedThroughBlockId}</p></div><div className={styles.balance}><span><b>{data.economy.personalRp} RP</b><small>我的声望</small></span><span><b>{(data.economy.personalWalletTenths / 10).toFixed(1)} C</b><small>我的钱包</small></span><span><b>{(data.economy.teamTreasuryTenths / 10).toFixed(1)} C</b><small>团队资金</small></span></div></section>;
 }
 
-function Progress({ data }: { data: ClassroomInstanceDetail }) {
-  return <div className={styles.progress} aria-label={`已解锁 ${data.script.unlockedThroughIndex + 1}/${data.course.blockCount}，正在看第 ${data.scriptNavigation.viewedIndex + 1} 页`}>{Array.from({ length: data.course.blockCount }, (_, index) => <span key={index} data-done={index <= data.script.unlockedThroughIndex} data-current={index === data.scriptNavigation.viewedIndex} />)}</div>;
+function Progress({ data, onNavigate, onLocked }: {
+  data: ClassroomInstanceDetail;
+  onNavigate: (blockId: string) => void;
+  onLocked: (blockId: string) => void;
+}) {
+  return <div className={styles.progress} role="group" aria-label={`剧本进度：已解锁 ${data.script.unlockedThroughIndex + 1}/${data.course.blockCount}，正在看第 ${data.scriptNavigation.viewedIndex + 1} 页`}>
+    {data.scriptNavigation.blocks.map((block) => {
+      const unlocked = block.index <= data.script.unlockedThroughIndex;
+      const current = block.index === data.scriptNavigation.viewedIndex;
+      const state = current ? "current" : unlocked ? "unlocked" : "locked";
+      const stateLabel = current ? "当前正在查看" : unlocked ? "已解锁，可回看" : "尚未解锁";
+      return <button
+        key={block.id}
+        type="button"
+        className={styles.progressSegment}
+        data-state={state}
+        aria-current={current ? "step" : undefined}
+        aria-disabled={!unlocked || undefined}
+        aria-label={`${block.id}，${block.title}，${stateLabel}`}
+        title={`${block.id} · ${block.title} · ${stateLabel}`}
+        onClick={(event) => {
+          event.stopPropagation();
+          if (unlocked) onNavigate(block.id); else onLocked(block.id);
+        }}
+      ><span aria-hidden="true" /></button>;
+    })}
+  </div>;
 }
 
 function ControlView({ data, busy, requestUnlock, requestFinish, reset, receipt }: {
@@ -709,7 +746,7 @@ function ControlView({ data, busy, requestUnlock, requestFinish, reset, receipt 
   const atFrontier = data.scriptNavigation.viewedIndex === data.script.unlockedThroughIndex;
   const allUnlocked = data.script.unlockedThroughIndex === data.course.blockCount - 1;
   return <>
-    <RuntimeHeading data={data} eyebrow="LIVE RUN SCRIPT · HOST NOTES" /><Progress data={data} />
+    <RuntimeHeading data={data} eyebrow="LIVE RUN SCRIPT · HOST NOTES" />
     <div className={styles.controlGrid}>
       <section className={styles.scriptBlock}>
         <small>主持提示 · {data.page.id} · 解锁边界 {data.script.unlockedThroughBlockId}</small><h2>{data.page.title}</h2>

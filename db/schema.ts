@@ -1160,8 +1160,9 @@ export const classroomFinishMutations = sqliteTable(
 /**
  * A Test Classroom archive is a one-way, immutable retention marker.  It is
  * deliberately separate from classroomInstances.lifecycle so the last real
- * run state remains auditable.  We do not offer in-place restore or hard
- * delete: create another Test instance from the same exact release instead.
+ * run state remains auditable. In-place restore is never offered. A later,
+ * separately authorized deletion may remove an archive only after writing an
+ * immutable classroomDeletions tombstone.
  */
 export const classroomArchives = sqliteTable(
   "classroom_archives",
@@ -1184,6 +1185,43 @@ export const classroomArchives = sqliteTable(
     check("chk_classroom_archive_generation", sql`${table.resetGeneration} >= 0`),
     check("chk_classroom_archive_script_version", sql`${table.scriptVersion} >= 1`),
     check("chk_classroom_archive_reason", sql`length(${table.reason}) <= 500`),
+  ],
+);
+
+/**
+ * Minimal immutable audit evidence left after an unreferenced Test Classroom
+ * is physically removed. There is deliberately no rooms foreign key: the row
+ * must outlive the deleted instance and must never retain learner payloads.
+ */
+export const classroomDeletions = sqliteTable(
+  "classroom_deletions",
+  {
+    roomId: text("room_id").primaryKey(),
+    classroomTitle: text("classroom_title").notNull(),
+    environment: text("environment").notNull(),
+    courseId: text("course_id").notNull(),
+    courseRevision: integer("course_revision").notNull(),
+    courseDigest: text("course_digest").notNull(),
+    previousLifecycle: text("previous_lifecycle").notNull(),
+    resetGeneration: integer("reset_generation").notNull(),
+    scriptVersion: integer("script_version").notNull(),
+    wasArchived: integer("was_archived", { mode: "boolean" }).notNull().default(false),
+    deletedByProfileId: text("deleted_by_profile_id").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    reason: text("reason").notNull().default(""),
+    snapshotJson: text("snapshot_json").notNull(),
+    snapshotDigest: text("snapshot_digest").notNull(),
+    deletedAt: text("deleted_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("uidx_classroom_deletion_idempotency").on(table.deletedByProfileId, table.idempotencyKey),
+    index("idx_classroom_deletions_actor_time").on(table.deletedByProfileId, table.deletedAt),
+    check("chk_classroom_deletion_test_only", sql`${table.environment} = 'test'`),
+    check("chk_classroom_deletion_generation", sql`${table.resetGeneration} >= 0`),
+    check("chk_classroom_deletion_script_version", sql`${table.scriptVersion} >= 1`),
+    check("chk_classroom_deletion_archived", sql`${table.wasArchived} in (0, 1)`),
+    check("chk_classroom_deletion_reason", sql`length(${table.reason}) <= 500`),
+    check("chk_classroom_deletion_snapshot_digest", sql`length(${table.snapshotDigest}) = 64`),
   ],
 );
 

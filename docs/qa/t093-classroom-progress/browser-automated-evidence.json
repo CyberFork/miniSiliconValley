@@ -1,0 +1,38 @@
+{
+  "ok": true,
+  "scope": "compiled Classroom + temporary local D1; no production writes",
+  "browser": {
+    "engine": "Chromium",
+    "version": "151.0.7922.176"
+  },
+  "scenario": {
+    "viewing": "B04",
+    "unlockedThrough": "B07",
+    "blockCount": 13
+  },
+  "realProgressControl": true,
+  "mouse": [
+    "B02",
+    "B04-current",
+    "mentor-B03",
+    "screen-B05"
+  ],
+  "touch": [
+    "B06"
+  ],
+  "keyboard": [
+    "Enter-B07",
+    "Space-B04",
+    "Enter-locked-B08"
+  ],
+  "lockedServerStatus": 409,
+  "independentObserverStayedAtB04": true,
+  "globalFrontierStayedAtB07": true,
+  "exactCourseUnchanged": true,
+  "draftRestored": true,
+  "browserBackForward": true,
+  "mutatingRequestsFromProgress": [],
+  "minimumHitAreaPx": 44,
+  "padNoHorizontalOverflow": true,
+  "humanAcceptanceReceiptCreated": false
+}

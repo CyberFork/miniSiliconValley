@@ -20,12 +20,14 @@ import type { ClassroomFactoryRequest, ClassroomMentorRole } from "../app/lib/cl
 import {
   applyScriptAction,
   archiveTestClassroom,
+  deleteTestClassroom,
   acceptTestClassroom,
   classroomRunId,
   createClassroomInstance,
   finishClassroomRun,
   getClassroomInstance,
   listClassroomInstances,
+  previewTestClassroomDeletion,
   resetTestClassroom,
   reviewClassroomSubmission,
   submitClassroomBlockWork,
@@ -550,6 +552,150 @@ test("multiple Test Classrooms coexist across the same exact version and a later
   } finally { db.raw.close(); }
 });
 
+test("dependency-free Test Classroom deletion is atomic, physical, idempotent and globally isolated", async () => {
+  const { db, roomId, request } = await fixture();
+  try {
+    const unaffected = await createClassroomInstance(db, admin, { ...request, title: "Deletion-isolated sibling" });
+    await submitClassroomBlockWork(db, admin, roomId, {
+      expectedRunId: classroomRunId(roomId, 0),
+      expectedResetGeneration: 0,
+      blockId: "B01",
+      expectedVersion: 0,
+      idempotencyKey: "delete-private-payload-fixture",
+      kind: "learner-work",
+      text: "THIS_PRIVATE_CLASSROOM_PAYLOAD_MUST_NOT_ENTER_THE_TOMBSTONE",
+      viewAsProfileId: learnerIds[0],
+    });
+    const preview = await previewTestClassroomDeletion(db, admin, roomId);
+    assert.equal(preview.canDelete, true);
+    assert.equal(preview.blockers.length, 0);
+    assert.equal(preview.classroom.id, roomId);
+    assert.equal(preview.classroom.environment, "test");
+    assert.ok(preview.impact.memberships >= 6);
+    assert.equal(preview.impact.submissions, 1);
+    assert.match(preview.stateToken, /^[0-9a-f]{64}$/);
+
+    const staleInput = {
+      expectedRunId: classroomRunId(roomId, preview.classroom.resetGeneration),
+      expectedResetGeneration: preview.classroom.resetGeneration,
+      expectedScriptVersion: preview.classroom.scriptVersion,
+      expectedStateToken: preview.stateToken,
+      confirmClassroomId: roomId,
+      idempotencyKey: "delete-atomic-fixture-0001",
+      reason: "isolated deletion test",
+    };
+    const learner: AuthenticatedClassroomUser = {
+      userId: learnerIds[0], displayName: "Learner", platformRole: "learner",
+    };
+    await expectClassroomError(previewTestClassroomDeletion(db, learner, roomId), "ADMIN_DM_REQUIRED", 403);
+    await expectClassroomError(deleteTestClassroom(db, learner, roomId, staleInput), "ADMIN_DM_REQUIRED", 403);
+
+    // A same-row update keeps the submission count unchanged.  The mutation
+    // witness must still invalidate the confirmation preview.
+    await submitClassroomBlockWork(db, admin, roomId, {
+      expectedRunId: classroomRunId(roomId, 0),
+      expectedResetGeneration: 0,
+      blockId: "B01",
+      expectedVersion: 1,
+      idempotencyKey: "delete-private-payload-fixture-update",
+      kind: "learner-work",
+      text: "THIS_PRIVATE_CLASSROOM_PAYLOAD_CHANGED_AFTER_PREVIEW",
+      viewAsProfileId: learnerIds[0],
+    });
+    await expectClassroomError(deleteTestClassroom(db, admin, roomId, staleInput), "CLASSROOM_DELETE_CONFLICT", 409);
+    const submissionPreview = await previewTestClassroomDeletion(db, admin, roomId);
+    assert.notEqual(submissionPreview.stateToken, preview.stateToken);
+    // A newly appended room-owned row must also invalidate the exact impact
+    // preview, even when the room/script/submission version witnesses stay put.
+    db.raw.prepare(
+      `INSERT INTO audit_events
+       (id, room_id, actor_profile_id, action, target_type, target_id, detail_json, created_at)
+       VALUES (?, ?, ?, 'test.concurrent-evidence', 'room', ?, '{}', ?)`,
+    ).run("audit-delete-preview-race", roomId, admin.userId, roomId, new Date().toISOString());
+    await expectClassroomError(deleteTestClassroom(db, admin, roomId, {
+      ...staleInput,
+      expectedStateToken: submissionPreview.stateToken,
+    }), "CLASSROOM_DELETE_CONFLICT", 409);
+    const refreshedPreview = await previewTestClassroomDeletion(db, admin, roomId);
+    assert.notEqual(refreshedPreview.stateToken, submissionPreview.stateToken);
+    const input = {
+      ...staleInput,
+      expectedScriptVersion: refreshedPreview.classroom.scriptVersion,
+      expectedStateToken: refreshedPreview.stateToken,
+    };
+    const globalBefore = {
+      users: Number(db.raw.prepare("SELECT COUNT(*) AS count FROM auth_users").get()?.count),
+      profiles: Number(db.raw.prepare("SELECT COUNT(*) AS count FROM profiles").get()?.count),
+      courses: Number(db.raw.prepare("SELECT COUNT(*) AS count FROM course_versions").get()?.count),
+      courseware: Number(db.raw.prepare("SELECT COUNT(*) AS count FROM courseware_versions").get()?.count),
+    };
+    const state = () => ({
+      target: Number(db.raw.prepare("SELECT COUNT(*) AS count FROM rooms WHERE id = ?").get(roomId)?.count),
+      sibling: Number(db.raw.prepare("SELECT COUNT(*) AS count FROM rooms WHERE id = ?").get(unaffected.classroomId)?.count),
+      tombstone: Number(db.raw.prepare("SELECT COUNT(*) AS count FROM classroom_deletions WHERE room_id = ?").get(roomId)?.count),
+      submissions: Number(db.raw.prepare("SELECT COUNT(*) AS count FROM classroom_block_submissions WHERE room_id = ?").get(roomId)?.count),
+    });
+    const before = state();
+    for (let index = 0; index < 5; index += 1) {
+      db.failNextBatchAt = index;
+      await assert.rejects(deleteTestClassroom(db, admin, roomId, input), new RegExp(`INJECTED_BATCH_FAILURE:${index}/5`));
+      assert.deepEqual(state(), before, `delete statement ${index} must roll back the complete transaction`);
+    }
+
+    const deleted = await deleteTestClassroom(db, admin, roomId, input);
+    assert.equal(deleted.deleted, true);
+    assert.equal(deleted.idempotent, false);
+    assert.match(deleted.tombstoneDigest, /^[0-9a-f]{64}$/);
+    assert.deepEqual(await deleteTestClassroom(db, admin, roomId, input), { ...deleted, idempotent: true });
+    await expectClassroomError(deleteTestClassroom(db, admin, roomId, {
+      ...input,
+      idempotencyKey: "delete-atomic-fixture-0002",
+    }), "CLASSROOM_ALREADY_DELETED", 410);
+    await expectClassroomError(getClassroomInstance(db, admin, roomId), "CLASSROOM_DELETED", 410);
+    assert.deepEqual(state(), { target: 0, sibling: 1, tombstone: 1, submissions: 0 });
+    assert.ok((await listClassroomInstances(db, admin)).some((room) => room.id === unaffected.classroomId));
+    assert.ok(!(await listClassroomInstances(db, admin)).some((room) => room.id === roomId));
+    const tombstone = db.raw.prepare("SELECT snapshot_json, reason FROM classroom_deletions WHERE room_id = ?").get(roomId) as { snapshot_json: string; reason: string };
+    assert.equal(tombstone.reason, input.reason);
+    assert.doesNotMatch(tombstone.snapshot_json, /THIS_PRIVATE_CLASSROOM_PAYLOAD/);
+    assert.deepEqual({
+      users: Number(db.raw.prepare("SELECT COUNT(*) AS count FROM auth_users").get()?.count),
+      profiles: Number(db.raw.prepare("SELECT COUNT(*) AS count FROM profiles").get()?.count),
+      courses: Number(db.raw.prepare("SELECT COUNT(*) AS count FROM course_versions").get()?.count),
+      courseware: Number(db.raw.prepare("SELECT COUNT(*) AS count FROM courseware_versions").get()?.count),
+    }, globalBefore, "delete must preserve shared accounts, courses and courseware");
+  } finally { db.raw.close(); }
+});
+
+test("an unreferenced archived Test Classroom can be deleted without weakening the archive guard", async () => {
+  const { db, roomId } = await fixture();
+  try {
+    const archived = await archiveTestClassroom(db, admin, roomId, {
+      expectedRunId: classroomRunId(roomId, 0),
+      expectedResetGeneration: 0,
+      expectedScriptVersion: 1,
+      idempotencyKey: "archive-before-delete-fixture",
+      reason: "history cleanup candidate",
+    });
+    assert.ok(archived.archivedAt);
+    assert.throws(() => db.raw.prepare("DELETE FROM classroom_archives WHERE room_id = ?").run(roomId), /CLASSROOM_ARCHIVE_IMMUTABLE:delete/);
+    const preview = await previewTestClassroomDeletion(db, admin, roomId);
+    assert.equal(preview.canDelete, true);
+    assert.equal(preview.classroom.archivedAt, archived.archivedAt);
+    await deleteTestClassroom(db, admin, roomId, {
+      expectedRunId: classroomRunId(roomId, 0),
+      expectedResetGeneration: 0,
+      expectedScriptVersion: 1,
+      expectedStateToken: preview.stateToken,
+      confirmClassroomId: roomId,
+      idempotencyKey: "delete-archived-fixture-0001",
+    });
+    assert.equal(db.raw.prepare("SELECT COUNT(*) AS count FROM rooms WHERE id = ?").get(roomId)?.count, 0);
+    assert.equal(db.raw.prepare("SELECT was_archived FROM classroom_deletions WHERE room_id = ?").get(roomId)?.was_archived, 1);
+    assert.throws(() => db.raw.prepare("DELETE FROM classroom_deletions WHERE room_id = ?").run(roomId), /CLASSROOM_DELETION_IMMUTABLE:delete/);
+  } finally { db.raw.close(); }
+});
+
 test("Test Classroom archive is atomic, idempotent, immutable, isolated and read-only", async () => {
   const { db, roomId, request } = await fixture();
   try {
@@ -629,7 +775,17 @@ test("Production Classroom cannot enter the Test archive lifecycle", async () =>
       expectedScriptVersion: 1,
       idempotencyKey: "archive-production-forbidden-0001",
     }), "PRODUCTION_ARCHIVE_FORBIDDEN", 403);
+    await expectClassroomError(previewTestClassroomDeletion(db, admin, roomId), "PRODUCTION_DELETE_FORBIDDEN", 403);
+    await expectClassroomError(deleteTestClassroom(db, admin, roomId, {
+      expectedRunId: classroomRunId(roomId, 0),
+      expectedResetGeneration: 0,
+      expectedScriptVersion: 1,
+      expectedStateToken: "a".repeat(64),
+      confirmClassroomId: roomId,
+      idempotencyKey: "delete-production-forbidden-0001",
+    }), "PRODUCTION_DELETE_FORBIDDEN", 403);
     assert.equal(db.raw.prepare("SELECT COUNT(*) AS count FROM classroom_archives WHERE room_id = ?").get(roomId)?.count, 0);
+    assert.equal(db.raw.prepare("SELECT COUNT(*) AS count FROM classroom_deletions WHERE room_id = ?").get(roomId)?.count, 0);
   } finally { db.raw.close(); }
 });
 
@@ -655,6 +811,27 @@ test("archiving retains a UI receipt as historical evidence but invalidates futu
     ]);
     const persistedReceipt = (await listUiAcceptanceReceipts(db, acceptanceAdmin)).find((receipt) => receipt.receiptId === issued.receiptId);
     assert.ok(persistedReceipt?.valid);
+    const deletePreview = await previewTestClassroomDeletion(db, admin, roomId);
+    assert.equal(deletePreview.canDelete, false);
+    assert.ok(deletePreview.blockers.some((blocker) => blocker.code === "UI_ACCEPTANCE_RECEIPT" && blocker.referenceIds.some((id) => id.includes(issued.receiptId))));
+    await expectClassroomError(deleteTestClassroom(db, admin, roomId, {
+      expectedRunId: classroomRunId(roomId, 0),
+      expectedResetGeneration: 0,
+      expectedScriptVersion: scriptVersion,
+      expectedStateToken: deletePreview.stateToken,
+      confirmClassroomId: roomId,
+      idempotencyKey: "delete-receipt-blocked-0001",
+    }), "CLASSROOM_DELETE_BLOCKED", 409);
+    assert.equal(db.raw.prepare("SELECT COUNT(*) AS count FROM rooms WHERE id = ?").get(roomId)?.count, 1);
+    assert.throws(() => db.raw.prepare(
+      `INSERT INTO classroom_deletions
+       (room_id,classroom_title,environment,course_id,course_revision,course_digest,previous_lifecycle,
+        reset_generation,script_version,was_archived,deleted_by_profile_id,idempotency_key,reason,snapshot_json,snapshot_digest,deleted_at)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+    ).run(
+      roomId, "forbidden", "test", request.courseRef.courseId, request.courseRef.revision, request.courseRef.digest,
+      "completed", 0, scriptVersion, 0, admin.userId, "direct-evidence-delete", "", "{}", "a".repeat(64), new Date().toISOString(),
+    ), /CLASSROOM_DELETE_EVIDENCE_BLOCKED/);
     const outsiderId = "atomic-ui-outsider";
     seedAccount(db, outsiderId, "mentor");
     assert.ok((await listUiAcceptanceReceipts(db, { userId: mentorIds.P, platformRole: "mentor" })).some((receipt) => receipt.receiptId === issued.receiptId));

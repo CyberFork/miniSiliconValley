@@ -114,6 +114,8 @@ export type ClassroomInstanceDetail = ClassroomInstanceSummary & {
     gameModes: string[];
   };
   scriptNavigation: {
+    /** Complete immutable script index. Locked rows expose only their title, never private page content. */
+    blocks: Array<{ id: string; title: string; index: number; macroStepOrder: number }>;
     unlockedBlocks: Array<{ id: string; title: string; index: number; macroStepOrder: number }>;
     viewedIndex: number;
     latestUnlocked: { id: string; title: string; index: number };
@@ -196,6 +198,66 @@ export type ArchiveTestClassroomResult = {
   classroomId: string;
   idempotent: boolean;
   restorePolicy: "create-new-test";
+};
+
+export type TestClassroomDeletionBlocker = {
+  code: "UI_ACCEPTANCE_RECEIPT" | "LEGACY_TEST_RECEIPT" | "COURSE_RELEASE" | "PRODUCTION_CLASSROOM";
+  label: string;
+  detail: string;
+  referenceIds: string[];
+};
+
+export type TestClassroomDeletionPreview = {
+  classroom: {
+    id: string;
+    title: string;
+    environment: "test";
+    lifecycle: string;
+    courseRef: CoursePackageRef;
+    resetGeneration: number;
+    scriptVersion: number;
+    updatedAt: string;
+    archivedAt: string | null;
+  };
+  impact: {
+    memberships: number;
+    submissions: number;
+    privateCards: number;
+    economyRecords: number;
+    runAndAuditRecords: number;
+  };
+  /**
+   * Non-content CAS witnesses. They let the DELETE transaction reject a
+   * classroom that changed after the impact preview without serialising any
+   * learner answer into the confirmation request or tombstone.
+   */
+  mutationGuard: {
+    roomVersion: number;
+    factoryEventCount: number;
+    latestFactoryEventAt: string;
+    submissionVersionSum: number;
+    latestSubmissionMutationAt: string;
+  };
+  preserved: string[];
+  blockers: TestClassroomDeletionBlocker[];
+  canDelete: boolean;
+  stateToken: string;
+};
+
+export type DeleteTestClassroomInput = ClassroomRunExpectation & {
+  expectedScriptVersion: number;
+  expectedStateToken: string;
+  confirmClassroomId: string;
+  idempotencyKey: string;
+  reason?: string;
+};
+
+export type DeleteTestClassroomResult = {
+  deleted: true;
+  deletedAt: string;
+  classroomId: string;
+  idempotent: boolean;
+  tombstoneDigest: string;
 };
 
 export type ClassroomHandoffDetail = {
@@ -557,6 +619,14 @@ export async function getClassroomInstance(
   roomId: string,
   request: ClassroomViewRequest = {},
 ): Promise<ClassroomInstanceDetail> {
+  const deleted = await db.prepare(
+    `SELECT deleted_at FROM classroom_deletions WHERE room_id = ?`,
+  ).bind(roomId).first<{ deleted_at: string }>();
+  if (deleted) {
+    throw new ClassroomError("CLASSROOM_DELETED", "这场 Test Classroom 已删除，旧链接不能继续运行。", 410, [
+      `deletedAt ${deleted.deleted_at}`,
+    ]);
+  }
   const summaries = await listClassroomInstances(db, user);
   const summary = summaries.find((item) => item.id === roomId);
   if (!summary) throw new ClassroomError("CLASSROOM_ACCESS_FORBIDDEN", "你不是这个课堂的成员或 Admin DM。", 403);
@@ -835,6 +905,12 @@ export async function getClassroomInstance(
       gameModes: [...page.gameModes],
     },
     scriptNavigation: {
+      blocks: course.blocks.map((block, index) => ({
+        id: block.id,
+        title: block.title,
+        index,
+        macroStepOrder: block.macroStepOrder,
+      })),
       unlockedBlocks: course.blocks.slice(0, summary.script.unlockedThroughIndex + 1).map((block, index) => ({
         id: block.id,
         title: block.title,
@@ -1467,7 +1543,7 @@ export async function archiveTestClassroom(
         uiAcceptanceReceiptId: row.ui_receipt_id,
         receiptPolicy: "historical-only-after-archive",
         restorePolicy: "create-new-test",
-        hardDeletePolicy: "forbidden",
+        hardDeletePolicy: "dependency-gated",
       }), now),
     ]);
     if (Number(result[0]?.meta?.changes ?? 0) !== 1
@@ -1490,6 +1566,344 @@ export async function archiveTestClassroom(
     idempotent: false,
     restorePolicy: "create-new-test",
   };
+}
+
+/**
+ * Read-only impact and dependency check for one exact Test Classroom. This is
+ * the sole source for the destructive confirmation UI and is repeated by the
+ * DELETE path immediately before its atomic mutation.
+ */
+export async function previewTestClassroomDeletion(
+  db: ClassroomD1,
+  user: AuthenticatedClassroomUser,
+  roomId: string,
+): Promise<TestClassroomDeletionPreview> {
+  if (user.impersonationId) {
+    throw new ClassroomError("IMPERSONATION_DELETE_FORBIDDEN", "测试身份不能删除课堂；请先返回真实账号。", 403);
+  }
+  await requireAdminDm(db, user, roomId);
+  const row = await db.prepare(
+    `SELECT r.id, r.title, r.version AS room_version,
+            ci.environment, ci.lifecycle, ci.course_id, ci.course_revision,
+            ci.course_digest, ci.reset_generation, ci.updated_at, cv.schema_version,
+            CASE WHEN rp.course_id IS NULL THEN 0 ELSE 1 END AS course_released,
+            sp.version AS script_version, ca.archived_at
+     FROM rooms r
+     JOIN classroom_instances ci ON ci.room_id = r.id
+     JOIN classroom_script_progress sp ON sp.room_id = r.id
+     JOIN course_versions cv
+       ON cv.course_id = ci.course_id AND cv.revision = ci.course_revision AND cv.digest = ci.course_digest
+     LEFT JOIN course_release_pointers rp
+       ON rp.course_id = ci.course_id AND rp.revision = ci.course_revision AND rp.digest = ci.course_digest
+     LEFT JOIN classroom_archives ca ON ca.room_id = r.id
+     WHERE r.id = ?`,
+  ).bind(roomId).first<{
+    id: string;
+    title: string;
+    room_version: number;
+    environment: ClassroomEnvironment;
+    lifecycle: string;
+    course_id: string;
+    course_revision: number;
+    course_digest: string;
+    reset_generation: number;
+    updated_at: string;
+    schema_version: number;
+    course_released: number;
+    script_version: number;
+    archived_at: string | null;
+  }>();
+  if (!row) throw new ClassroomError("CLASSROOM_NOT_FOUND", "课堂不存在。", 404);
+  if (row.environment !== "test") {
+    throw new ClassroomError("PRODUCTION_DELETE_FORBIDDEN", "正式课堂不能删除；该入口只处理隔离的 TEST 实例。", 403);
+  }
+
+  const [uiReceipts, legacyReceipts, releases, productionRooms, impactRow, mutationRow] = await Promise.all([
+    db.prepare(
+      `SELECT id, status, accepted_at FROM course_ui_acceptance_receipts WHERE room_id = ? ORDER BY accepted_at, id`,
+    ).bind(roomId).all<{ id: string; status: string; accepted_at: string }>(),
+    db.prepare(
+      `SELECT id, status, COALESCE(accepted_at, created_at) AS evidence_at
+       FROM course_test_receipts WHERE room_id = ? ORDER BY evidence_at, id`,
+    ).bind(roomId).all<{ id: string; status: string; evidence_at: string }>(),
+    db.prepare(
+      `SELECT course_id, revision, digest
+       FROM course_release_pointers
+       WHERE json_extract(approval_json, '$.runId') = ?
+          OR json_extract(approval_json, '$.uiReceiptId') IN (
+            SELECT id FROM course_ui_acceptance_receipts WHERE room_id = ?
+          )
+       ORDER BY course_id`,
+    ).bind(roomId, roomId).all<{ course_id: string; revision: number; digest: string }>(),
+    db.prepare(
+      `SELECT pci.room_id, pci.course_id, pci.course_revision
+       FROM classroom_instances pci
+       JOIN classroom_acceptance_bindings pab ON pab.room_id = pci.room_id
+       JOIN course_ui_acceptance_receipts receipt ON receipt.id = pab.ui_receipt_id
+       WHERE pci.environment = 'production' AND receipt.room_id = ?
+       ORDER BY pci.created_at, pci.room_id`,
+    ).bind(roomId).all<{ room_id: string; course_id: string; course_revision: number }>(),
+    db.prepare(
+      `SELECT
+         (SELECT COUNT(*) FROM memberships WHERE room_id = ?) AS memberships,
+         (SELECT COUNT(*) FROM classroom_block_submissions WHERE room_id = ?) AS submissions,
+         (SELECT COUNT(*) FROM card_grants WHERE room_id = ?) AS private_cards,
+         ((SELECT COUNT(*) FROM reputation_entries WHERE room_id = ?)
+           + (SELECT COUNT(*) FROM ledger_transactions WHERE room_id = ?)
+           + (SELECT COUNT(*) FROM ledger_accounts WHERE room_id = ?)
+           + (SELECT COUNT(*) FROM classroom_wallet_balances WHERE room_id = ?)
+           + (SELECT COUNT(*) FROM team_assets WHERE room_id = ?)
+           + (SELECT COUNT(*) FROM purchase_proposals WHERE room_id = ?)
+           + (SELECT COUNT(*) FROM gratitude_votes WHERE room_id = ?)) AS economy_records,
+         ((SELECT COUNT(*) FROM classroom_factory_events WHERE room_id = ?)
+           + (SELECT COUNT(*) FROM audit_events WHERE room_id = ?)
+           + (SELECT COUNT(*) FROM classroom_submission_mutations WHERE room_id = ?)
+           + (SELECT COUNT(*) FROM classroom_script_mutations WHERE room_id = ?)
+           + (SELECT COUNT(*) FROM classroom_reset_mutations WHERE room_id = ?)
+           + (SELECT COUNT(*) FROM classroom_finish_mutations WHERE room_id = ?)) AS run_audit_records`,
+    ).bind(roomId, roomId, roomId, roomId, roomId, roomId, roomId, roomId, roomId, roomId, roomId, roomId, roomId, roomId, roomId, roomId).first<{
+      memberships: number;
+      submissions: number;
+      private_cards: number;
+      economy_records: number;
+      run_audit_records: number;
+    }>(),
+    db.prepare(
+      `SELECT
+         (SELECT COUNT(*) FROM classroom_factory_events WHERE room_id = ?) AS factory_event_count,
+         COALESCE((SELECT MAX(created_at) FROM classroom_factory_events WHERE room_id = ?), '') AS latest_factory_event_at,
+         COALESCE((SELECT SUM(version) FROM classroom_submission_revisions WHERE room_id = ?), 0) AS submission_version_sum,
+         COALESCE((SELECT MAX(updated_at) FROM classroom_submission_revisions WHERE room_id = ?), '') AS latest_submission_mutation_at`,
+    ).bind(roomId, roomId, roomId, roomId).first<{
+      factory_event_count: number;
+      latest_factory_event_at: string;
+      submission_version_sum: number;
+      latest_submission_mutation_at: string;
+    }>(),
+  ]);
+
+  const blockers: TestClassroomDeletionBlocker[] = [];
+  if ((uiReceipts.results ?? []).length) blockers.push({
+    code: "UI_ACCEPTANCE_RECEIPT",
+    label: "已签发真实 UI 验收回执",
+    detail: "回执是发布链的不可变证据。请保留并归档这场课堂，不能物理删除。",
+    referenceIds: (uiReceipts.results ?? []).map((item) => `${item.id} · ${item.status} · ${item.accepted_at}`),
+  });
+  if ((legacyReceipts.results ?? []).length) blockers.push({
+    code: "LEGACY_TEST_RECEIPT",
+    label: "存在历史测试验收记录",
+    detail: "旧版验收记录仍引用这个实例；为避免证据悬空，物理删除已阻止。",
+    referenceIds: (legacyReceipts.results ?? []).map((item) => `${item.id} · ${item.status} · ${item.evidence_at}`),
+  });
+  if ((releases.results ?? []).length) blockers.push({
+    code: "COURSE_RELEASE",
+    label: "正式发布记录引用本课堂",
+    detail: "Released 课程的批准记录仍以本课堂为来源，必须保留审计链。",
+    referenceIds: (releases.results ?? []).map((item) => `${item.course_id}@r${item.revision}:${item.digest.slice(0, 12)}`),
+  });
+  if ((productionRooms.results ?? []).length) blockers.push({
+    code: "PRODUCTION_CLASSROOM",
+    label: "正式课堂依赖本课堂的验收证据",
+    detail: "至少一场 Production Classroom 通过本课堂的 UI 回执建立，不能删除来源实例。",
+    referenceIds: (productionRooms.results ?? []).map((item) => `${item.room_id} · ${item.course_id}@r${item.course_revision}`),
+  });
+
+  const impact = {
+    memberships: Number(impactRow?.memberships ?? 0),
+    submissions: Number(impactRow?.submissions ?? 0),
+    privateCards: Number(impactRow?.private_cards ?? 0),
+    economyRecords: Number(impactRow?.economy_records ?? 0),
+    runAndAuditRecords: Number(impactRow?.run_audit_records ?? 0),
+  };
+  const mutationGuard = {
+    roomVersion: Number(row.room_version),
+    factoryEventCount: Number(mutationRow?.factory_event_count ?? 0),
+    latestFactoryEventAt: mutationRow?.latest_factory_event_at ?? "",
+    submissionVersionSum: Number(mutationRow?.submission_version_sum ?? 0),
+    latestSubmissionMutationAt: mutationRow?.latest_submission_mutation_at ?? "",
+  };
+  const preserved = [
+    "共享登录账号与个人资料",
+    "不可变课程 JSON 与 exact 版本",
+    "导师课件、课件版本与发布记录",
+    "其他 TEST／PRODUCTION 课堂及其 Membership",
+    "课程视图验收与平台级安全审计",
+  ];
+  const classroom: TestClassroomDeletionPreview["classroom"] = {
+    id: row.id,
+    title: row.title,
+    environment: "test",
+    lifecycle: row.lifecycle,
+    courseRef: {
+      courseId: row.course_id,
+      schemaVersion: row.schema_version,
+      revision: row.course_revision,
+      digest: row.course_digest,
+      status: row.course_released ? "released" : "candidate",
+    },
+    resetGeneration: row.reset_generation,
+    scriptVersion: row.script_version,
+    updatedAt: row.updated_at,
+    archivedAt: row.archived_at,
+  };
+  const stateToken = await mutationDigest({ classroom, impact, mutationGuard, blockers });
+  return { classroom, impact, mutationGuard, preserved, blockers, canDelete: blockers.length === 0, stateToken };
+}
+
+/**
+ * Physically delete one dependency-free Test instance and all classroom-owned
+ * rows in a single D1 batch. Global users, courses, courseware and acceptance
+ * evidence are never deletion targets. A minimal immutable tombstone survives.
+ */
+export async function deleteTestClassroom(
+  db: ClassroomD1,
+  user: AuthenticatedClassroomUser,
+  roomId: string,
+  input: DeleteTestClassroomInput,
+): Promise<DeleteTestClassroomResult> {
+  assertDeleteMutationInput(roomId, input);
+  const actorProfileId = auditActor(user);
+  const replay = await deletionMutationReplay(db, roomId, actorProfileId, input);
+  if (replay) return replay;
+  if (user.impersonationId) {
+    throw new ClassroomError("IMPERSONATION_DELETE_FORBIDDEN", "测试身份不能删除课堂；请先返回真实账号。", 403);
+  }
+  const preview = await previewTestClassroomDeletion(db, user, roomId);
+  if (!preview.canDelete) {
+    throw new ClassroomError(
+      "CLASSROOM_DELETE_BLOCKED",
+      "这场 Test Classroom 仍被验收或正式发布证据引用，不能删除；请改用只读归档。",
+      409,
+      preview.blockers.flatMap((blocker) => [`${blocker.label}：${blocker.detail}`, ...blocker.referenceIds]),
+    );
+  }
+  if (input.expectedStateToken !== preview.stateToken
+    || input.expectedResetGeneration !== preview.classroom.resetGeneration
+    || input.expectedScriptVersion !== preview.classroom.scriptVersion
+    || input.expectedRunId !== classroomRunId(roomId, preview.classroom.resetGeneration)) {
+    throw mutationConflict("CLASSROOM_DELETE_CONFLICT", "课堂在确认期间发生变化；没有删除任何数据，请重新检查影响范围。");
+  }
+
+  const reason = input.reason?.trim() ?? "";
+  const now = new Date().toISOString();
+  const snapshot = {
+    schemaVersion: 1,
+    operation: "test-classroom-delete",
+    classroom: preview.classroom,
+    impact: preview.impact,
+    mutationGuard: preview.mutationGuard,
+    preserved: preview.preserved,
+    stateToken: preview.stateToken,
+    deletedByProfileId: actorProfileId,
+    reason,
+    deletedAt: now,
+  };
+  const snapshotJson = JSON.stringify(snapshot);
+  const snapshotDigest = await mutationDigest(snapshot);
+  const securityEventId = `classroom-test-delete.${snapshotDigest}`;
+  try {
+    const result = await db.batch([
+      db.prepare(
+        `INSERT INTO classroom_deletions
+         (room_id, classroom_title, environment, course_id, course_revision, course_digest,
+          previous_lifecycle, reset_generation, script_version, was_archived,
+          deleted_by_profile_id, idempotency_key, reason, snapshot_json, snapshot_digest, deleted_at)
+         SELECT r.id, r.title, ci.environment, ci.course_id, ci.course_revision, ci.course_digest,
+                ci.lifecycle, ci.reset_generation, sp.version,
+                CASE WHEN ca.room_id IS NULL THEN 0 ELSE 1 END,
+                ?, ?, ?, ?, ?, ?
+         FROM rooms r
+         JOIN classroom_instances ci ON ci.room_id = r.id
+         JOIN classroom_script_progress sp ON sp.room_id = r.id
+         LEFT JOIN classroom_archives ca ON ca.room_id = r.id
+         WHERE r.id = ? AND ci.environment = 'test'
+           AND r.version = ? AND ci.reset_generation = ? AND sp.version = ? AND ci.updated_at = ?
+           AND ((? IS NULL AND ca.archived_at IS NULL) OR ca.archived_at = ?)
+           AND (SELECT COUNT(*) FROM classroom_factory_events WHERE room_id = r.id) = ?
+           AND COALESCE((SELECT MAX(created_at) FROM classroom_factory_events WHERE room_id = r.id), '') = ?
+           AND COALESCE((SELECT SUM(version) FROM classroom_submission_revisions WHERE room_id = r.id), 0) = ?
+           AND COALESCE((SELECT MAX(updated_at) FROM classroom_submission_revisions WHERE room_id = r.id), '') = ?
+           AND (SELECT COUNT(*) FROM memberships WHERE room_id = r.id) = ?
+           AND (SELECT COUNT(*) FROM classroom_block_submissions WHERE room_id = r.id) = ?
+           AND (SELECT COUNT(*) FROM card_grants WHERE room_id = r.id) = ?
+           AND ((SELECT COUNT(*) FROM reputation_entries WHERE room_id = r.id)
+             + (SELECT COUNT(*) FROM ledger_transactions WHERE room_id = r.id)
+             + (SELECT COUNT(*) FROM ledger_accounts WHERE room_id = r.id)
+             + (SELECT COUNT(*) FROM classroom_wallet_balances WHERE room_id = r.id)
+             + (SELECT COUNT(*) FROM team_assets WHERE room_id = r.id)
+             + (SELECT COUNT(*) FROM purchase_proposals WHERE room_id = r.id)
+             + (SELECT COUNT(*) FROM gratitude_votes WHERE room_id = r.id)) = ?
+           AND ((SELECT COUNT(*) FROM classroom_factory_events WHERE room_id = r.id)
+             + (SELECT COUNT(*) FROM audit_events WHERE room_id = r.id)
+             + (SELECT COUNT(*) FROM classroom_submission_mutations WHERE room_id = r.id)
+             + (SELECT COUNT(*) FROM classroom_script_mutations WHERE room_id = r.id)
+             + (SELECT COUNT(*) FROM classroom_reset_mutations WHERE room_id = r.id)
+             + (SELECT COUNT(*) FROM classroom_finish_mutations WHERE room_id = r.id)) = ?
+           AND NOT EXISTS (SELECT 1 FROM course_ui_acceptance_receipts receipt WHERE receipt.room_id = r.id)
+           AND NOT EXISTS (SELECT 1 FROM course_test_receipts receipt WHERE receipt.room_id = r.id)
+           AND NOT EXISTS (
+             SELECT 1 FROM course_release_pointers release
+             WHERE json_extract(release.approval_json, '$.runId') = r.id
+                OR json_extract(release.approval_json, '$.uiReceiptId') IN (
+                  SELECT id FROM course_ui_acceptance_receipts WHERE room_id = r.id
+                )
+           )
+           AND NOT EXISTS (SELECT 1 FROM classroom_deletions deletion WHERE deletion.room_id = r.id)`,
+      ).bind(
+        actorProfileId, input.idempotencyKey, reason, snapshotJson, snapshotDigest, now,
+        roomId, preview.mutationGuard.roomVersion,
+        input.expectedResetGeneration, input.expectedScriptVersion, preview.classroom.updatedAt,
+        preview.classroom.archivedAt, preview.classroom.archivedAt,
+        preview.mutationGuard.factoryEventCount, preview.mutationGuard.latestFactoryEventAt,
+        preview.mutationGuard.submissionVersionSum, preview.mutationGuard.latestSubmissionMutationAt,
+        preview.impact.memberships, preview.impact.submissions, preview.impact.privateCards,
+        preview.impact.economyRecords, preview.impact.runAndAuditRecords,
+      ),
+      db.prepare(
+        `INSERT INTO classroom_atomic_assertions (id, verified_at)
+         SELECT CASE WHEN EXISTS (
+           SELECT 1 FROM classroom_deletions
+           WHERE room_id = ? AND deleted_by_profile_id = ? AND idempotency_key = ?
+         ) THEN 1 ELSE 0 END, ?
+         ON CONFLICT(id) DO NOTHING`,
+      ).bind(roomId, actorProfileId, input.idempotencyKey, now),
+      db.prepare(
+        `DELETE FROM classroom_archives
+         WHERE room_id = ? AND EXISTS (SELECT 1 FROM classroom_deletions deletion WHERE deletion.room_id = ?)`,
+      ).bind(roomId, roomId),
+      db.prepare(
+        `DELETE FROM rooms
+         WHERE id = ? AND EXISTS (SELECT 1 FROM classroom_deletions deletion WHERE deletion.room_id = ?)`,
+      ).bind(roomId, roomId),
+      db.prepare(
+        `INSERT OR IGNORE INTO auth_security_events
+         (id, user_id, actor_user_id, action, detail_json, created_at)
+         SELECT ?, ?, ?, 'classroom.test-deleted', ?, ?
+         WHERE EXISTS (
+           SELECT 1 FROM classroom_deletions
+           WHERE room_id = ? AND deleted_by_profile_id = ? AND idempotency_key = ? AND deleted_at = ?
+         )`,
+      ).bind(securityEventId, user.userId, actorProfileId, JSON.stringify({
+        classroomId: roomId,
+        snapshotDigest,
+        courseRef: preview.classroom.courseRef,
+        resetGeneration: preview.classroom.resetGeneration,
+        scriptVersion: preview.classroom.scriptVersion,
+        wasArchived: Boolean(preview.classroom.archivedAt),
+      }), now, roomId, actorProfileId, input.idempotencyKey, now),
+    ]);
+    if (Number(result[0]?.meta?.changes ?? 0) !== 1 || Number(result[3]?.meta?.changes ?? 0) !== 1) {
+      throw mutationConflict("CLASSROOM_DELETE_CONFLICT", "课堂在删除期间发生变化；事务已回滚，没有删除任何数据。");
+    }
+  } catch (error) {
+    const won = await deletionMutationReplay(db, roomId, actorProfileId, input);
+    if (won) return won;
+    if (isAtomicAssertionError(error)) {
+      throw mutationConflict("CLASSROOM_DELETE_CONFLICT", "课堂在删除期间发生变化或出现新的证据依赖；事务已回滚，请重新检查。");
+    }
+    throw error;
+  }
+  return { deleted: true, deletedAt: now, classroomId: roomId, idempotent: false, tombstoneDigest: snapshotDigest };
 }
 
 /**
@@ -2362,6 +2776,22 @@ function assertArchiveMutationInput(input: ArchiveTestClassroomInput): void {
   }
 }
 
+function assertDeleteMutationInput(roomId: string, input: DeleteTestClassroomInput): void {
+  assertFinishMutationInput(input.expectedScriptVersion, input.idempotencyKey);
+  if (input.expectedRunId !== classroomRunId(roomId, input.expectedResetGeneration)) {
+    throw new ClassroomError("CLASSROOM_RUN_CONFLICT", "删除请求不是这个课堂的当前运行，请重新打开删除预览。", 409);
+  }
+  if (input.confirmClassroomId !== roomId) {
+    throw new ClassroomError("CLASSROOM_DELETE_CONFIRMATION_INVALID", "二次确认的 classroomId 与目标实例不一致。", 400);
+  }
+  if (!/^[0-9a-f]{64}$/.test(input.expectedStateToken)) {
+    throw new ClassroomError("CLASSROOM_DELETE_STATE_INVALID", "删除预览状态标识无效，请重新检查影响范围。", 400);
+  }
+  if ((input.reason?.trim().length ?? 0) > 500) {
+    throw new ClassroomError("CLASSROOM_DELETE_REASON_INVALID", "删除备注不能超过 500 个字符。", 400);
+  }
+}
+
 function mutationAssertion(
   db: ClassroomD1,
   table: "classroom_submission_mutations" | "classroom_script_mutations" | "classroom_reset_mutations" | "classroom_finish_mutations" | "classroom_archives",
@@ -2413,6 +2843,57 @@ async function archiveMutationReplay(
     classroomId: roomId,
     idempotent: true,
     restorePolicy: "create-new-test",
+  };
+}
+
+async function deletionMutationReplay(
+  db: ClassroomD1,
+  roomId: string,
+  actorProfileId: string,
+  input: DeleteTestClassroomInput,
+): Promise<DeleteTestClassroomResult | null> {
+  const row = await db.prepare(
+    `SELECT reset_generation, script_version, deleted_by_profile_id, idempotency_key,
+            reason, snapshot_json, snapshot_digest, deleted_at
+     FROM classroom_deletions WHERE room_id = ?`,
+  ).bind(roomId).first<{
+    reset_generation: number;
+    script_version: number;
+    deleted_by_profile_id: string;
+    idempotency_key: string;
+    reason: string;
+    snapshot_json: string;
+    snapshot_digest: string;
+    deleted_at: string;
+  }>();
+  if (!row) return null;
+  let stateToken = "";
+  try {
+    const snapshot = JSON.parse(row.snapshot_json) as { stateToken?: unknown };
+    if (typeof snapshot.stateToken === "string") stateToken = snapshot.stateToken;
+  } catch { /* immutable row validation remains fail-closed below */ }
+  const same = row.deleted_by_profile_id === actorProfileId
+    && row.idempotency_key === input.idempotencyKey
+    && row.reset_generation === input.expectedResetGeneration
+    && row.script_version === input.expectedScriptVersion
+    && row.reason === (input.reason?.trim() ?? "")
+    && stateToken === input.expectedStateToken
+    && input.confirmClassroomId === roomId
+    && input.expectedRunId === classroomRunId(roomId, row.reset_generation);
+  if (!same) {
+    throw new ClassroomError(
+      "CLASSROOM_ALREADY_DELETED",
+      "这场 Test Classroom 已经删除；重复请求没有删除其他课堂。",
+      410,
+      [`deletedAt ${row.deleted_at}`],
+    );
+  }
+  return {
+    deleted: true,
+    deletedAt: row.deleted_at,
+    classroomId: roomId,
+    idempotent: true,
+    tombstoneDigest: row.snapshot_digest,
   };
 }
 

@@ -18,8 +18,32 @@ test("runtime treats unlock frontier and each browser cursor as separate systems
   ]) assert.match(runtime + store, new RegExp(marker));
   assert.match(runtime, /回到最新解锁 · \{data\.scriptNavigation\.latestUnlocked\.id\}/);
   assert.match(runtime, /event\.key === "End"[\s\S]*latestUnlocked\.id/);
+  assert.match(runtime, /window\.history\[history === "replace" \? "replaceState" : "pushState"\]/);
+  assert.match(runtime, /window\.addEventListener\("popstate"/);
+  assert.match(store, /blocks: course\.blocks\.map/);
   assert.doesNotMatch(runtime, /submit-for-acceptance|controllerTransition|STATE_LABEL/);
   assert.doesNotMatch(store, /function applyControllerAction|controllerTransition\(/);
+});
+
+test("T-093 Classroom progress segments invoke only existing personal navigation", () => {
+  const runtime = source("app/classroom/ClassroomRuntime.tsx");
+  const css = source("app/classroom/platform.module.css");
+  assert.match(runtime, /function Progress\(\{ data, onNavigate, onLocked \}/);
+  assert.match(runtime, /data\.scriptNavigation\.blocks\.map/);
+  assert.match(runtime, /className=\{styles\.progressSegment\}/);
+  assert.match(runtime, /data-state=\{state\}/);
+  assert.match(runtime, /aria-current=\{current \? "step"/);
+  assert.match(runtime, /aria-disabled=\{!unlocked/);
+  assert.match(runtime, /if \(unlocked\) onNavigate\(block\.id\); else onLocked\(block\.id\)/);
+  assert.match(runtime, /event\.stopPropagation\(\)/);
+  assert.match(runtime, /你正在查看 \$\{blockId\}；课堂解锁边界没有变化/);
+  assert.match(runtime, /\$\{blockId\} 尚未解锁/);
+  assert.match(css, /\.progressSegment\{[^}]*height:44px/);
+  assert.match(css, /\.progressSegment\[data-state=unlocked\]/);
+  assert.match(css, /\.progressSegment\[data-state=current\]/);
+  assert.match(css, /\.progressSegment\[aria-disabled=true\]:focus-visible/);
+  const progressBody = runtime.slice(runtime.indexOf("function Progress"), runtime.indexOf("function ControlView"));
+  assert.doesNotMatch(progressBody, /mutate\(|fetch\(|submit|reset|unlock-next/);
 });
 
 test("keyboard navigation never steals arrows from editable controls", () => {

@@ -21,6 +21,7 @@ const required = [
   "app/classroom/[classroomId]/screen/page.tsx",
   "app/classroom/[classroomId]/members/page.tsx",
   "app/api/platform/classrooms/[classroomId]/screen/route.ts",
+  "app/api/platform/classrooms/[classroomId]/route.ts",
   "app/api/platform/classrooms/[classroomId]/finish/route.ts",
   "app/api/platform/classrooms/[classroomId]/archive/route.ts",
   "app/api/studio/view-acceptance/route.ts",
@@ -112,10 +113,12 @@ test("T-086 release and factory APIs enforce two exact acceptance receipts", () 
   assert.match(store, /coursewareRefs: trustedCourseware/);
 });
 
-test("T-111 exposes exact Test Classroom creation and one-way archive management", () => {
+test("T-111 exposes exact Test Classroom creation, archive, and dependency-gated deletion", () => {
   const hub = readFileSync(new URL("app/classroom/ClassroomHub.tsx", root), "utf8");
   const runtime = readFileSync(new URL("app/classroom/ClassroomRuntime.tsx", root), "utf8");
   const route = readFileSync(new URL("app/api/platform/classrooms/[classroomId]/archive/route.ts", root), "utf8");
+  const instanceRoute = readFileSync(new URL("app/api/platform/classrooms/[classroomId]/route.ts", root), "utf8");
+  const validation = readFileSync(new URL("app/lib/platform-validation.ts", root), "utf8");
   const store = readFileSync(new URL("app/lib/classroom-platform-store.ts", root), "utf8");
   for (const marker of ["classroomId", "digest", "updatedAt", "新建测试课堂", "已归档测试课堂", "确认归档为只读"]) {
     assert.match(hub, new RegExp(marker), `missing lifecycle UI marker ${marker}`);
@@ -125,9 +128,19 @@ test("T-111 exposes exact Test Classroom creation and one-way archive management
   assert.match(hub, /expectedScriptVersion/);
   assert.match(route, /parseArchiveClassroomRequest/);
   assert.match(route, /archiveTestClassroom/);
+  assert.match(instanceRoute, /export async function DELETE/);
+  assert.match(instanceRoute, /previewTestClassroomDeletion/);
+  assert.match(instanceRoute, /deleteTestClassroom/);
+  assert.match(validation, /parseDeleteClassroomRequest/);
   assert.match(store, /classroom\.test-archived/);
+  assert.match(store, /classroom\.test-deleted/);
+  assert.match(store, /CLASSROOM_DELETE_BLOCKED/);
+  assert.match(store, /classroom_deletions/);
   assert.match(store, /restorePolicy:\s*"create-new-test"/);
   assert.match(runtime, /永久只读/);
+  for (const marker of ["删除测试课堂", "删除这一个测试课堂", "将永久删除", "明确保留", "确认永久删除 TEST"]) {
+    assert.match(hub, new RegExp(marker), `missing deletion UI marker ${marker}`);
+  }
   assert.doesNotMatch(hub, /\b(?:prompt|confirm)\s*\(/);
 });
 

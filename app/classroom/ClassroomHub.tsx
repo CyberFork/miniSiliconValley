@@ -4,7 +4,7 @@ import Link from "../components/NavigationLink";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { IssuedManagedCredential } from "../lib/auth-model";
-import type { ClassroomInstanceSummary } from "../lib/classroom-platform-store";
+import type { ClassroomInstanceSummary, TestClassroomDeletionPreview } from "../lib/classroom-platform-store";
 import type { StudioUiAcceptanceSummary, StudioViewAcceptanceSummary } from "../lib/course-acceptance";
 import type { CoursePackage, CoursePackageRef } from "../lib/course-package";
 import { isCoursewareLibraryVisible, type CoursewareSummary } from "../lib/courseware-store";
@@ -60,6 +60,14 @@ export default function ClassroomHub({ user, initialCourse, initialNotice = "" }
   const [archiveTarget, setArchiveTarget] = useState<ClassroomInstanceSummary | null>(null);
   const [archiveReason, setArchiveReason] = useState("");
   const [archiveBusy, setArchiveBusy] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<ClassroomInstanceSummary | null>(null);
+  const [deletePreview, setDeletePreview] = useState<TestClassroomDeletionPreview | null>(null);
+  const [deletePreviewError, setDeletePreviewError] = useState("");
+  const [deletePreviewLoading, setDeletePreviewLoading] = useState(false);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [deleteConfirmed, setDeleteConfirmed] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const deleteMutationKey = useRef("");
   const canUseStudio = !user.impersonation && (user.role === "admin" || user.role === "mentor");
 
   const loadRooms = useCallback(async () => {
@@ -151,6 +159,63 @@ export default function ClassroomHub({ user, initialCourse, initialNotice = "" }
       setArchiveBusy(false);
     }
   };
+  const loadDeletionPreview = useCallback(async (room: ClassroomInstanceSummary) => {
+    setDeletePreviewLoading(true);
+    setDeletePreviewError("");
+    try {
+      setDeletePreview(await api<TestClassroomDeletionPreview>(`/api/platform/classrooms/${encodeURIComponent(room.id)}?deletePreview=1`));
+    } catch (cause) {
+      setDeletePreview(null);
+      setDeletePreviewError(messageOf(cause));
+    } finally {
+      setDeletePreviewLoading(false);
+    }
+  }, []);
+  const requestDelete = (room: ClassroomInstanceSummary) => {
+    setActionError("");
+    setDeleteTarget(room);
+    setDeletePreview(null);
+    setDeletePreviewError("");
+    setDeleteReason("");
+    setDeleteConfirmed(false);
+    deleteMutationKey.current = `delete.${crypto.randomUUID()}`;
+    void loadDeletionPreview(room);
+  };
+  const deleteClassroom = async () => {
+    if (!deleteTarget || !deletePreview?.canDelete || !deleteConfirmed || deleteBusy) return;
+    setDeleteBusy(true);
+    setDeletePreviewError("");
+    try {
+      const result = await api<{ deleted: true; deletedAt: string; classroomId: string; tombstoneDigest: string }>(
+        `/api/platform/classrooms/${encodeURIComponent(deleteTarget.id)}`,
+        {
+          method: "DELETE",
+          body: JSON.stringify({
+            expectedRunId: `${deleteTarget.id}:run:${deletePreview.classroom.resetGeneration}`,
+            expectedResetGeneration: deletePreview.classroom.resetGeneration,
+            expectedScriptVersion: deletePreview.classroom.scriptVersion,
+            expectedStateToken: deletePreview.stateToken,
+            confirmClassroomId: deleteTarget.id,
+            idempotencyKey: deleteMutationKey.current,
+            ...(deleteReason.trim() ? { reason: deleteReason.trim() } : {}),
+          }),
+        },
+      );
+      setNotice(`${deleteTarget.title} 已删除；旧链接已失效。仅保留不含学员正文的审计墓碑 ${result.tombstoneDigest.slice(0, 12)}…。`);
+      setDeleteTarget(null);
+      setDeletePreview(null);
+      setDeleteReason("");
+      setDeleteConfirmed(false);
+      await loadRooms();
+    } catch (cause) {
+      const failure = messageOf(cause);
+      setDeleteConfirmed(false);
+      await Promise.all([loadRooms(), loadDeletionPreview(deleteTarget)]);
+      setDeletePreviewError(`删除没有执行：${failure}。已重新读取目标状态，请核对后再确认。`);
+    } finally {
+      setDeleteBusy(false);
+    }
+  };
   return <main className={styles.page}>
     <header className={styles.top}>
       <BrandHomeLink title="MSV CLASSROOM" subtitle="课堂中心 · 单一真实运行时" />
@@ -176,6 +241,7 @@ export default function ClassroomHub({ user, initialCourse, initialNotice = "" }
           description={canUseStudio ? "TEST · 绑定已通过视图验收的 Candidate／Released；可重置，不进入正式学习档案。" : "导师安排的练习或界面测试课堂；内容与正式学习档案隔离。"}
           createHref={canUseStudio ? "#factory" : undefined}
           onArchive={requestArchive}
+          onDelete={requestDelete}
         />
         <RoomGroup
           title={canUseStudio ? "正式课堂" : "我的正式课堂"}
@@ -187,8 +253,9 @@ export default function ClassroomHub({ user, initialCourse, initialNotice = "" }
           title="已归档测试课堂"
           environment="test"
           rooms={archivedTestRooms}
-          description="READ ONLY · 保留 exact 版本、运行、作品与审计证据；不能原地恢复，也不提供永久删除。"
+          description="READ ONLY · 可继续审计回看；无验收／发布依赖时可单独删除，存在证据依赖时保持归档。"
           archived
+          onDelete={requestDelete}
         />}
       </>}
       {canUseStudio && <FactoryPanel
@@ -220,6 +287,26 @@ export default function ClassroomHub({ user, initialCourse, initialNotice = "" }
         onCancel={() => { if (!archiveBusy) setArchiveTarget(null); }}
         onConfirm={() => { void archiveClassroom(); }}
       />}
+      {deleteTarget && <DeleteDialog
+        room={deleteTarget}
+        preview={deletePreview}
+        previewError={deletePreviewError}
+        loading={deletePreviewLoading}
+        busy={deleteBusy}
+        reason={deleteReason}
+        confirmed={deleteConfirmed}
+        onReason={setDeleteReason}
+        onConfirmed={setDeleteConfirmed}
+        onRetry={() => { void loadDeletionPreview(deleteTarget); }}
+        onCancel={() => {
+          if (deleteBusy) return;
+          setDeleteTarget(null);
+          setDeletePreview(null);
+          setDeletePreviewError("");
+          setDeleteConfirmed(false);
+        }}
+        onConfirm={() => { void deleteClassroom(); }}
+      />}
     </div>
   </main>;
 }
@@ -231,7 +318,7 @@ function DependencyNotice({ label, message, retained, onRetry }: { label: string
   </div>;
 }
 
-function RoomGroup({ title, environment, rooms, description, createHref, archived = false, onArchive }: {
+function RoomGroup({ title, environment, rooms, description, createHref, archived = false, onArchive, onDelete }: {
   title: string;
   environment: "test" | "production";
   rooms: ClassroomInstanceSummary[];
@@ -239,20 +326,21 @@ function RoomGroup({ title, environment, rooms, description, createHref, archive
   createHref?: string;
   archived?: boolean;
   onArchive?: (room: ClassroomInstanceSummary) => void;
+  onDelete?: (room: ClassroomInstanceSummary) => void;
 }) {
   const sectionId = archived ? "archived-test-classrooms" : environment === "production" ? "production-classrooms" : "test-classrooms";
   return <section className={styles.section} id={sectionId} data-room-group={environment}>
     <header className={styles.sectionHeader}><div><span className={styles.environmentBadge} data-env={environment}>{archived ? "ARCHIVE" : environment.toUpperCase()}</span><h2>{title}</h2><p>{description}</p></div><div className={styles.sectionHeaderActions}><b>{rooms.length} 场</b>{createHref && <a className={styles.sectionAction} href={createHref}>＋ 新建测试课堂</a>}</div></header>
-    {rooms.length ? <div className={styles.grid}>{rooms.map((room) => <RoomCard key={room.id} room={room} archived={archived} onArchive={onArchive} />)}</div> : <div className={styles.empty}>{environment === "test" ? <>还没有分配给你的 UI 验收课堂。课程通过多角色视图验收后，使用上方<strong>新建测试课堂</strong>进入创建区。</> : "还没有分配给你的正式课堂。Candidate 必须拿到两张有效回执并发布后才能创建。"}</div>}
+    {rooms.length ? <div className={styles.grid}>{rooms.map((room) => <RoomCard key={room.id} room={room} archived={archived} onArchive={onArchive} onDelete={onDelete} />)}</div> : <div className={styles.empty}>{environment === "test" ? <>还没有分配给你的 UI 验收课堂。课程通过多角色视图验收后，使用上方<strong>新建测试课堂</strong>进入创建区。</> : "还没有分配给你的正式课堂。Candidate 必须拿到两张有效回执并发布后才能创建。"}</div>}
   </section>;
 }
 
-function RoomCard({ room, archived = false, onArchive }: { room: ClassroomInstanceSummary; archived?: boolean; onArchive?: (room: ClassroomInstanceSummary) => void }) {
+function RoomCard({ room, archived = false, onArchive, onDelete }: { room: ClassroomInstanceSummary; archived?: boolean; onArchive?: (room: ClassroomInstanceSummary) => void; onDelete?: (room: ClassroomInstanceSummary) => void }) {
   const adminLabel = room.adminDmMode === "primary" ? "Primary Admin DM" : room.adminDmMode === "delegated" ? "Delegated Admin DM" : "Admin DM";
   const role = room.mentorRole ? `${room.mentorRole} 导师` : room.learnerSeat ? `学员 ${room.learnerSeat}` : room.isAdminDm ? adminLabel : "成员";
   return <article className={styles.room} data-env={room.environment}>
     <div><span className={styles.environmentBadge} data-env={room.environment}>{archived ? "ARCHIVED" : room.environment.toUpperCase()}</span><small>{archived ? `READ ONLY · ${room.lifecycle.toUpperCase()}` : room.lifecycle.toUpperCase()}</small><h3>{room.title}</h3><p>{role}{room.isAdminDm && room.mentorRole ? ` · ${adminLabel}` : ""}</p><dl className={styles.roomIdentity}><div><dt>classroomId</dt><dd><code>{room.id}</code></dd></div><div><dt>course</dt><dd><code>{room.courseRef.courseId}@r{room.courseRef.revision}</code></dd></div><div><dt>digest</dt><dd><code>{room.courseRef.digest}</code></dd></div><div><dt>updatedAt</dt><dd><time dateTime={room.updatedAt}>{new Date(room.updatedAt).toLocaleString("zh-CN")}</time></dd></div></dl>{room.archive && <p className={styles.archiveNote}>归档：{new Date(room.archive.archivedAt).toLocaleString("zh-CN")} · {room.archive.reason || "未填写备注"}</p>}</div>
-    <div><div className={styles.roomMeta}><span>{room.script.unlockedThroughBlockId}</span><span>run {room.resetGeneration}</span><span>{room.learnerCount} 学员</span></div><div className={styles.roomActions}><a href={`/classroom/${encodeURIComponent(room.id)}/`}>{archived ? "打开只读档案 →" : "进入我的课堂 →"}</a>{!archived && room.environment === "test" && room.isAdminDm && onArchive && <button type="button" onClick={() => onArchive(room)}>归档测试课堂</button>}{archived && <a className={styles.secondaryRoomAction} href={factoryHrefForRoom(room)}>以此 exact 版本新建 →</a>}</div></div>
+    <div><div className={styles.roomMeta}><span>{room.script.unlockedThroughBlockId}</span><span>run {room.resetGeneration}</span><span>{room.learnerCount} 学员</span></div><div className={styles.roomActions}><a href={`/classroom/${encodeURIComponent(room.id)}/`}>{archived ? "打开只读档案 →" : "进入我的课堂 →"}</a>{!archived && room.environment === "test" && room.isAdminDm && onArchive && <button type="button" onClick={() => onArchive(room)}>归档测试课堂</button>}{room.environment === "test" && room.isAdminDm && onDelete && <button className={styles.deleteRoomAction} type="button" onClick={() => onDelete(room)}>删除测试课堂</button>}{archived && <a className={styles.secondaryRoomAction} href={factoryHrefForRoom(room)}>以此 exact 版本新建 →</a>}</div></div>
   </article>;
 }
 
@@ -273,6 +361,59 @@ function ArchiveDialog({ room, reason, busy, onReason, onCancel, onConfirm }: {
       {room.acceptance.uiReceiptId && <p className={styles.archiveWarning}>这场课堂已签发 UI 回执。归档后回执保留为历史证据，但不能再用于新的发布或 Production 创建。</p>}
       <label className={styles.archiveReason}>归档备注（可选）<textarea value={reason} maxLength={500} onChange={(event) => onReason(event.target.value)} placeholder="例如：r12 已替代本轮测试" /></label>
       <div className={styles.dialogActions}><button className={styles.secondary} type="button" disabled={busy} onClick={onCancel}>取消，继续保留</button><button className={styles.danger} type="button" disabled={busy} onClick={onConfirm}>{busy ? "正在原子归档…" : "确认归档为只读"}</button></div>
+    </section>
+  </div>;
+}
+
+function DeleteDialog({ room, preview, previewError, loading, busy, reason, confirmed, onReason, onConfirmed, onRetry, onCancel, onConfirm }: {
+  room: ClassroomInstanceSummary;
+  preview: TestClassroomDeletionPreview | null;
+  previewError: string;
+  loading: boolean;
+  busy: boolean;
+  reason: string;
+  confirmed: boolean;
+  onReason: (value: string) => void;
+  onConfirmed: (value: boolean) => void;
+  onRetry: () => void;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const impact = preview?.impact;
+  return <div className={styles.dialogBackdrop} role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onCancel(); }}>
+    <section className={`${styles.dialog} ${styles.deleteDialog}`} role="dialog" aria-modal="true" aria-labelledby="delete-dialog-title" data-blocked={preview ? !preview.canDelete : undefined}>
+      <small className={styles.eyebrow}>TEST DELETE · 不可撤销</small>
+      <h2 id="delete-dialog-title">删除这一个测试课堂？</h2>
+      <div className={styles.deleteTarget}>
+        <b>{room.title}</b>
+        <code>{room.id}</code>
+        <span>TEST · {room.archive ? "ARCHIVED · READ ONLY" : room.lifecycle.toUpperCase()} · {room.courseRef.courseId}@r{room.courseRef.revision}</span>
+        <code>{room.courseRef.digest}</code>
+      </div>
+      {loading && <p className={styles.deletePreviewState} role="status">正在检查实例范围、验收回执与正式发布依赖…</p>}
+      {previewError && <div className={styles.archiveWarning} role="alert"><b>{preview ? "删除没有执行" : "依赖检查未完成"}</b><p>{previewError}</p><button type="button" onClick={onRetry} disabled={loading || busy}>重新检查</button></div>}
+      {preview && <>
+        <div className={styles.deleteColumns}>
+          <section><h3>将永久删除</h3><ul>
+            <li>{impact?.memberships ?? 0} 条课堂 Membership</li>
+            <li>{impact?.submissions ?? 0} 份课堂提交／作品</li>
+            <li>{impact?.privateCards ?? 0} 张私有发牌记录</li>
+            <li>{impact?.economyRecords ?? 0} 条本课堂 RP／资金／道具记录</li>
+            <li>{impact?.runAndAuditRecords ?? 0} 条运行与课堂审计记录</li>
+          </ul></section>
+          <section><h3>明确保留</h3><ul>{preview.preserved.map((item) => <li key={item}>{item}</li>)}</ul></section>
+        </div>
+        {preview.blockers.length > 0 && <section className={styles.deleteBlockers} role="alert"><h3>当前不能删除 · {preview.blockers.length} 组证据依赖</h3>{preview.blockers.map((blocker) => <article key={blocker.code}><b>{blocker.label}</b><p>{blocker.detail}</p>{blocker.referenceIds.map((id) => <code key={id}>{id}</code>)}</article>)}<p>建议保留为只读归档；系统不会为了删除而改写或拆断验收证据。</p></section>}
+        {preview.canDelete && <>
+          <p className={styles.deleteTombstone}>删除后，普通列表与历史列表都不再显示，旧链接返回“课堂已删除”。系统只保留一条不含学员正文的不可变审计墓碑。</p>
+          <label className={styles.archiveReason}>删除备注（可选）<textarea value={reason} maxLength={500} onChange={(event) => onReason(event.target.value)} placeholder="例如：隔离测试数据已完成验证" /></label>
+          <label className={styles.deleteConfirmation}><input type="checkbox" checked={confirmed} onChange={(event) => onConfirmed(event.target.checked)} /><span>我已核对 classroomId，并确认永久删除上方这一个 TEST 实例；此操作不能撤销。</span></label>
+        </>}
+      </>}
+      <div className={styles.dialogActions}>
+        <button className={styles.secondary} type="button" disabled={busy} onClick={onCancel}>取消，不做任何修改</button>
+        {preview?.canDelete && <button className={styles.danger} type="button" disabled={busy || loading || !confirmed} onClick={onConfirm}>{busy ? "正在原子删除…" : "确认永久删除 TEST"}</button>}
+      </div>
     </section>
   </div>;
 }

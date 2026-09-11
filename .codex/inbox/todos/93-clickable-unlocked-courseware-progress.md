@@ -2,9 +2,9 @@
 type: todo
 id: T-093
 title: "让课件分段进度条可点击跳转到已解锁状态"
-status: completed
+status: in-progress
 created: 2026-09-09
-updated: 2026-09-10
+updated: 2026-09-11
 captured_by: project-inbox
 priority: P1
 estimated_effort: small
@@ -12,6 +12,11 @@ depends_on:
   - T-089
 related:
   - T-092
+  - T-086
+  - T-088
+  - T-097
+  - T-101
+  - T-110
 tags:
   - todo
   - mini-silicon-valley
@@ -24,7 +29,44 @@ tags:
 
 # 让课件分段进度条可点击跳转到已解锁状态
 
-> 完成回执（2026-09-09）：已在本地编辑源与 public/courseware/development-mentor-ligun/ 同步实现；专项 Chromium 验收通过。固定 r0 digest 为 cafb8878e710a698237631523428dff7e0832180415c1b5605acbe6f3ddcf69d，内容树为 ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234。完整记录见仓库 docs/TODO_093_IMPLEMENTATION.md。
+> **2026-09-11 重开：D 导师 PPT 子范围已有交付，但 Classroom 分段进度条跳转遗漏。Classroom 范围现已完成本地实现与隔离自动化；生产发布和线上只读复验完成前，本单保持 `in-progress`。**
+
+> PPT 子范围历史完成回执（2026-09-09）：已在本地编辑源与 public/courseware/development-mentor-ligun/ 同步实现；专项 Chromium 验收通过。固定 r0 digest 为 cafb8878e710a698237631523428dff7e0832180415c1b5605acbe6f3ddcf69d，内容树为 ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234。完整记录见仓库 docs/TODO_093_IMPLEMENTATION.md。
+
+## 2026-09-11 补齐遗漏：Classroom 已解锁 Block 导航
+
+### 用户复核与缺口
+
+用户指出：“我记得我之前提过……可以点击底部蓝色条直接跳转对应已解锁进度的需求？”截图为 TEST Classroom 的 P 导师，正在浏览 B04，全局已解锁至 B07。
+
+- 本单此前把验收对象收窄到 D 导师 PPT，并据此整单标记完成，漏掉课堂页面。不是用户未提出，也不能要求用户重复建一张同义 TODO。
+- 当前本地 `app/classroom/ClassroomRuntime.tsx` 的 `Progress` 仅渲染 `span`，只有 `data-done` / `data-current`，没有点击处理或导航回调；SeatView 和 ControlView 均使用它。
+- 同文件已有 `navigateTo`、`PageNavigator` 和 `scriptNavigation.unlockedBlocks`，后端 `getClassroomInstance` 已检查 `SCRIPT_PAGE_LOCKED`。应复用现有个人浏览机制，不新建一套解锁状态机。
+- 这是“未实现点击”的问题，与 T-110 的普通链接点击被拦截不同，不能仅替换 Link 就宣称解决。
+- 证据来自用户截图与本地源码；本轮未登录线上复现，未改课堂代码、未部署。
+
+### Classroom 必须交付的行为
+
+- 截图场景下，B01～B07 都能点击直达，包括位于当前 B04 之后但已解锁的 B05～B07；B08 及以后保持锁定。
+- 仅改变操作者的浏览 Block。回看 B02 后，全局仍解锁至 B07，不推进或回退 DM 中控，不改变其他账号的浏览位置。
+- 点击当前段是幂等操作，不重复提交作业、发牌、结算、解锁或重置；已有未保存输入沿用明确的离页保护，不能静默丢失。
+- 使用稳定 Block ID 与既有个人导航回调；保留 classroomId、exact 课程版本及当前合法角色/视图参数。刷新、返回和迟到轮询不能静默跳回错误页面，关联 T-101。
+- TEST 与 Production 共用这项能力；导师、学员及有权限的 DM 视图一致。投屏或只读预览若展示相同进度条，须明确其浏览范围并验证，不能把只读浏览变成课堂写入。
+- 细色条保持视觉，但提供适合手指的点击热区、Block 名称和当前/已解锁/锁定提示；键盘可操作，不能只靠 hover 或颜色。关联 T-088 学员 Pad 场景。
+- 未解锁页不仅前端不可操作，手工修改 URL / 请求同样受服务端边界约束。
+
+### Classroom 独立验收（全部完成才可再次关闭本单）
+
+- [x] 用隔离 TEST 复现“B04 / 已解锁 B07”，鼠标点击 B02、B06、B07 均到达对应 Block。
+- [x] 点击当前 B04 不推进；点击 B08 不跳转，提供锁定说明；直接请求 B08 也无法绕过。
+- [x] 回看之后 B01～B07 仍可访问，全局解锁边界、其他用户位置及课程 exact 身份均不变。
+- [x] 进度条点击不触发控制/提交/重置接口，不重复发牌、记账或验收；未保存内容有保护。
+- [x] 学员和导师真实 UI、DM 相应视图，以及使用相同色条的预览/投屏入口逐一记录覆盖情况。
+- [x] Tab、Enter/Space 与 Pad 触摸可用，点击热区不遮挡相邻控件；当前/锁定状态可被辅助技术识别。
+- [x] 覆盖刷新、浏览器前进后退、角色切换与迟到响应；已有 PageNavigator 和快捷键无回归。
+- [ ] 提交覆盖真实进度条点击的测试，而非仅测试下拉框导航或 PPT；记录发布构建身份和对应线上复验结果。
+
+以下保留原 PPT 需求、验收与部署历史；其中“不改变 Classroom 全局 Block”与本次“改变个人浏览 Block”并不冲突。
 
 ## 原始需求
 
@@ -94,7 +136,7 @@ stateId            可稳定定位的页面／揭示状态标识
 
 完成后由T-092将包含该交互的确定课件revision导入并部署。
 
-## 验收场景
+## PPT 子范围历史验收场景
 
 - [x] 顺序播放到第6个状态后，第1～6段均保持已解锁。
 - [x] 点击第2个已解锁段，可以直接回到准确页面／揭示状态。
@@ -117,7 +159,14 @@ stateId            可稳定定位的页面／揭示状态标识
 - 不在本任务中改变D导师PPT内容、视觉主题或页面数量。
 - 不在多个课件中复制不同版本的进度状态机。
 
-## 2026-09-10 部署复验
+## 2026-09-10 PPT 子范围部署复验
 
 T-093 固定 r0 已随 `20260910T020748CST-t095-t096-course-platform-r3` 再次发布。Chromium 复验覆盖 18 页、鼠标、Tab／Enter／Space、锁定边界、刷新恢复与 `revision/slide/step` 深链，控制台及请求错误均为 0。
 
+
+## 2026-09-11 Classroom 本地实施证据
+
+- `ClassroomRuntime` 的真实 13 段进度条已改为 44px 语义按钮，复用既有个人 `navigateTo` 与服务端 `SCRIPT_PAGE_LOCKED` 校验。
+- 编译后 Chromium + 临时 D1 已复现 B04 / 解锁至 B07：鼠标、触摸、Enter、Space、浏览器前进后退、导师、学员和投屏均通过；B08 UI 与直接 API 均不可越界。
+- 自动化确认全局前沿、另一用户浏览位置、exact 课程引用与未保存草稿不变，进度操作产生 0 个写请求。
+- 证据见 `docs/TODO_093_IMPLEMENTATION.md` 与 `docs/qa/t093-classroom-progress/`。本记录没有代签人工 View/UI 验收。

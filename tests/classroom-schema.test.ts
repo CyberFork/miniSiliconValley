@@ -17,7 +17,7 @@ const tables = [
   "classroom_block_submissions", "classroom_wallet_balances",
   "classroom_atomic_assertions", "classroom_submission_revisions", "classroom_submission_mutations",
   "classroom_script_mutations", "classroom_reset_mutations", "classroom_finish_mutations",
-  "classroom_archives",
+  "classroom_archives", "classroom_deletions",
   "course_view_acceptance_receipts", "course_ui_acceptance_receipts", "course_acceptance_build_identities", "classroom_acceptance_bindings",
   "course_content_review_events",
   "auth_impersonations",
@@ -48,6 +48,7 @@ test("runtime schema bootstrap is idempotent and exactly mirrors the migration",
   assert.ok(CLASSROOM_SCHEMA_STATEMENTS.length >= tables.length);
   for (const table of tables) assert.ok(CLASSROOM_SCHEMA_STATEMENTS.some((statement) => statement.includes(`CREATE TABLE IF NOT EXISTS \`${table}\``)));
   for (const statement of CLASSROOM_SCHEMA_STATEMENTS) {
+    assert.doesNotMatch(statement, /;\s*\n\s*--/, "a trailing comment becomes an empty D1 prepared statement; attach comments to the following statement");
     const executable = statement.replace(/^(?:--[^\n]*(?:\n|$))+/g, "").trimStart();
     if (/^UPDATE\s/i.test(executable)) {
       assert.match(executable, /WHERE [\s\S]*(?:IS NULL|<\s*2)/i, "data updates must be guarded and repeatable");
@@ -57,6 +58,8 @@ test("runtime schema bootstrap is idempotent and exactly mirrors the migration",
       assert.match(executable, /CASE WHEN[\s\S]*ON CONFLICT\(`id`\) DO NOTHING/, "exact preflight must fail closed and remain repeatable");
     } else if (/^DROP INDEX IF EXISTS\s/i.test(executable)) {
       assert.match(executable, /uidx_course_versions_digest/, "only the superseded digest-only identity may be dropped");
+    } else if (/^DROP TRIGGER IF EXISTS\s/i.test(executable)) {
+      assert.match(executable, /trg_classroom_archive_immutable_delete/, "only the archive delete guard may be safely upgraded");
     } else {
       assert.match(executable, /IF NOT EXISTS/, "DDL bootstrap must be repeatable");
     }
@@ -100,6 +103,12 @@ test("unified course factory keeps release, courseware, permissions and script p
     "trg_classroom_archive_test_only",
     "trg_classroom_archive_immutable_update",
     "trg_classroom_archive_immutable_delete",
+    "uidx_classroom_deletion_idempotency",
+    "trg_classroom_deletion_test_only",
+    "trg_classroom_deletion_evidence_guard",
+    "trg_classroom_deletion_immutable_update",
+    "trg_classroom_deletion_immutable_delete",
+    "trg_classroom_room_delete_guard",
     "idx_course_acceptance_identity_contracts",
     "chk_classroom_atomic_assertion",
     "uidx_auth_browser_sets_token_hash",
