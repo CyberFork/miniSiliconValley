@@ -134,10 +134,14 @@ def main() -> None:
                 raise SystemExit(f"FAIL {path}: anonymous auth gate leaked courseware bytes")
             if headers.get("cache-control") != "private, no-store, no-transform":
                 raise SystemExit(f"FAIL {path}: authenticated static courseware cache policy is unsafe")
-        if path in {"/", "/framework/", "/auth/login/", "/auth/register/", "/auth/recover/"}:
+        if path in {"/", "/auth/login/", "/auth/register/", "/auth/recover/"}:
             text = body.decode("utf-8", "replace")
             if 'href="/"' not in text or '/favicon.svg' not in text:
                 raise SystemExit(f"FAIL {path}: shared brand/home contract is missing")
+        if path == "/framework/":
+            text = body.decode("utf-8", "replace")
+            if "COURSE SYSTEM" not in text or "/ui-theme.js" not in text:
+                raise SystemExit("FAIL /framework/: native hydrated shell or public navigation runtime is missing")
         if path == "/api/public/courses":
             envelope = json.loads(body)
             courses = envelope.get("data", {}).get("courses") if envelope.get("ok") is True else None

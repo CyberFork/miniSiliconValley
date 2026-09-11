@@ -69,7 +69,7 @@ class CourseReleaseTests(unittest.TestCase):
                 directory.mkdir(parents=True, exist_ok=True)
 
             (legacy / "demo.html").write_text("<html><head></head><body>retired world</body></html>")
-            (legacy / "123456.html").write_text('<html><head></head><body><div class="_topActions_x_1"><a href="/world/">世界地图</a></div></body></html>')
+            (legacy / "123456.html").write_text('<html><head></head><body><a href="#top" aria-label="返回页面顶部"><b>MSV</b><span>COURSE SYSTEM</span></a><div class="_topActions_x_1"><a href="/world/">世界地图</a></div></body></html>')
             (legacy / "qa.html").write_text('<html><head></head><body><header><div class="_onlineBadge_x_1">在线</div></header></body></html>')
             for name, value in (
                 ("launch.html", """<html><head><meta http-equiv=\"Content-Security-Policy\" content=\"connect-src 'none'; img-src data:\"></head><body><header><div class=\"brand-lockup\" aria-label=\"Mini Silicon Valley 课程设计同步工坊\"><span class=\"brand-mark\" aria-hidden=\"true\">MSV</span><span><strong>Mini Silicon Valley</strong><small>COURSE SYSTEM</small></span></div><div class=\"session-health\"></div></header><nav><button class=\"nav-item\" type=\"button\" data-section=\"decisions\">决策</button></nav><main></main><script src=\"app.js\"></script></body></html>"""),
@@ -164,6 +164,7 @@ class CourseReleaseTests(unittest.TestCase):
             self.assertIn("current parents", (output / "parents" / "index.html").read_text())
             self.assertNotIn('msv-course-nav-link', (output / "framework" / "index.html").read_text())
             self.assertNotIn('msv-course-nav-link', (output / "parents" / "index.html").read_text())
+            self.assertIn('href="#top" aria-label="返回页面顶部"><b>MSV</b><span>COURSE SYSTEM</span>', (output / "framework" / "index.html").read_text())
             self.assertIn("mountPublicNavigator", (output / "ui-theme.js").read_text())
             self.assertIn('"msv-public-nav"', (output / "ui-theme.js").read_text())
             self.assertIn('"/course/"', (output / "ui-theme.js").read_text())

@@ -123,25 +123,10 @@ def transform_tree(root: Path) -> None:
             path.write_text(changed, encoding="utf-8")
 
 
-def normalize_framework_brand(page: Path) -> None:
-    """Upgrade only the owned framework shell; never touch opaque courseware."""
-    if not page.is_file():
-        return
-    text = page.read_text(encoding="utf-8")
-    if "COURSE SYSTEM" not in text:
-        return
-    text = text.replace(
-        'href="#top" aria-label="返回页面顶部"',
-        'href="/" aria-label="返回 Mini Silicon Valley 主页"',
-        1,
-    )
-    text = text.replace(
-        '<b>MSV</b><span>COURSE SYSTEM',
-        '<img src="/favicon.svg" alt="" width="44" height="44" style="width:44px;height:44px;object-fit:contain;flex:0 0 44px"><span>COURSE SYSTEM',
-        1,
-    )
-    page.write_text(text, encoding="utf-8")
 
+# Hydrated framework markup is never rewritten after rendering. Public home
+# navigation is mounted by the shared runtime after hydration; mutating only
+# the server HTML here would diverge from the client component tree.
 
 def canonical_digest(value: object) -> str:
     body = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -446,7 +431,6 @@ def build(
 
     for item in portal.iterdir(): copy_entry(item, output / item.name)
     transform_tree(output)
-    normalize_framework_brand(output / "framework" / "index.html")
 
     # Never pass the colleague-owned build through rewrite_text() or the shared
     # theme injector. It is an independently built, immutable P-mentor
@@ -547,11 +531,6 @@ def build(
                 errors.append(f"opaque P-mentor courseware is missing marker {marker!r}")
         if "/ui-theme.js" in course_text or "data-course-outline-schema" in course_text:
             errors.append("opaque P-mentor courseware was replaced or decorated by the main application")
-    framework_page = output / "framework" / "index.html"
-    if framework_page.is_file() and "COURSE SYSTEM" in framework_page.read_text(encoding="utf-8"):
-        framework_text = framework_page.read_text(encoding="utf-8")
-        if 'href="/" aria-label="返回 Mini Silicon Valley 主页"' not in framework_text or 'src="/favicon.svg"' not in framework_text:
-            errors.append("framework is missing the shared brand/home contract")
     theme_script = output / "ui-theme.js"
     if theme_script.is_file():
         script_text = theme_script.read_text(encoding="utf-8")
