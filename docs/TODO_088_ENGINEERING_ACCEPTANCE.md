@@ -69,9 +69,17 @@ docs/qa/t090-development-mentor/t088-phone-390.png
 
 自动化不能模拟 Safari 的软键盘、系统返回手势、锁屏快照、Home Indicator、Apple Pencil，也不能代表 Android 厂商 WebView。Production 前由团队在真实设备逐项执行：
 
+人工执行时请为 **iPad Safari** 与 **Android Chrome** 各复制并填写一份标准记录，不要在聊天或口头结论中代替证据：
+
+```text
+docs/qa/t088-tablet-mobile/REAL_DEVICE_ACCEPTANCE_TEMPLATE.md
+```
+
+模板要求记录 Candidate/Released 阶段、exact courseId/revision/digest、App Build ID、发布版本、设备/系统/浏览器、网络、逐项 PASS/FAIL/BLOCK 和脱敏证据。Test 可验证 exact Candidate；最终发布回执仍必须绑定 exact Released。模板本身不会签发任何验收回执；任一必测项为 FAIL/BLOCK 时继续失败关闭。
+
 ### iPad Safari（必须）
 
-- 记录设备型号、iPadOS、Safari、横/竖屏、网络、CourseRelease exact ID 和 App Build ID。
+- 记录设备型号、iPadOS、Safari、横/竖屏、网络、exact 课程版本引用和 App Build ID。
 - 不接实体键盘；手指完成登录、首次改密、进入课堂、读任务、看私密卡、提交、退回修改、通过、退出。
 - 逐个字段唤起/收起软键盘；确认焦点、错误和提交按钮可达，页面不跳顶，输入不丢。
 - 横竖屏切换、锁屏再解锁、切到其他 App 再回来；Block、草稿、账号和当前卡保持正确。
@@ -85,3 +93,13 @@ docs/qa/t090-development-mentor/t088-phone-390.png
 ### 失败即停止发布
 
 任一设备出现横向溢出、按钮被软键盘遮住、核心动作依赖 hover/键盘、私密信息串号、断网重复写入或退出后缓存泄露，均不得签发最终 UiAcceptanceReceipt。修复后必须以同一 exact 版本重新演练。
+
+## 4. 当前门禁状态
+
+- Chromium 响应式、粗指针、真实 learner 会话与隔离 Test Classroom 自动化：**PASS**。
+- iPad Safari 真实设备人工记录：**BLOCK（尚无设备证据）**。
+- Android Chrome 真实触摸设备人工记录：**BLOCK（尚无设备证据）**。
+- ViewAcceptanceReceipt／UiAcceptanceReceipt：**未由本工程记录代签**。
+- Production Classroom：**不得因机器测试通过而自动创建**。
+
+只有两份真实设备记录均可追溯、所有适用必测项均为 PASS，才能由授权人员进入后续人工验收与回执流程。

@@ -84,7 +84,7 @@ tags: [todo, audit, architecture, single-source-of-truth]
 - T-098～T-109 与 T-111 已完成并部署至 Hecate；最终统一发布为 `20260911T100357CST-public-ia-t109-r4`，健康检查、双端 public smoke、生产浏览器与历史预览数据路由均通过。
 - T-110 已在 T-109 后通过 Chromium 总回归，仍等待 T-088 的 Safari／真实触摸设备行，因此保持 `in-progress`。
 - T-088 已用真实隔离 Candidate、Test Classroom 和学员账号完成 10 组 Chromium 响应式／粗指针工程验收：无横向溢出、关键控件不小于 44×44、编辑字段不小于 16px、私卡隔离、触摸翻页、结构化提交、导师退回／重交／通过和离线恢复均通过。
-- 真实 iPad Safari 与 Android 触摸设备仍必须由人执行；本总单不会用模拟器结果代签 ViewAcceptanceReceipt 或 UiAcceptanceReceipt。工程发布完成后，唯一剩余关闭条件是该设备验收记录。
+- 真实 iPad Safari 与 Android 触摸设备仍必须由人执行；标准记录模板为 `docs/qa/t088-tablet-mobile/REAL_DEVICE_ACCEPTANCE_TEMPLATE.md`。本总单不会用模拟器结果代签 ViewAcceptanceReceipt 或 UiAcceptanceReceipt。工程发布完成后，唯一剩余关闭条件是两类设备的可追溯人工验收记录。
 
 ## 5. 推荐依赖与执行顺序
 

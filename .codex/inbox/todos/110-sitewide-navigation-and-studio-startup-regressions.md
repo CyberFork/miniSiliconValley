@@ -116,3 +116,4 @@ tags: [todo, navigation, studio, performance, regression, accessibility]
 - 官网首页、World、课程框架、家长问答与登录页均无 `pageerror`、console error 或关键资源失败；首页历史预览 JSON 已由 404 修复为 release-owned 200，课程框架无 React hydration 418。
 - 本地真实 Chromium 回归继续覆盖 Studio 普通点击、Enter、Cmd 新标签、前进／后退、exact 深链、登录回跳、Test 新建／归档和 390px 触摸模拟。
 - 尚未勾选的 iPad 单触、系统上下文菜单、Windows Ctrl／中键和桌面／iPad Safari 项属于 T-088 的实体设备与异浏览器验收；在这些人工行完成前，本单保持 `in-progress`，不以生产部署自动关闭。
+- 人工补测已标准化为 `docs/qa/t110-navigation/REAL_BROWSER_ACCEPTANCE_TEMPLATE.md`：每一种实际设备／浏览器组合单独记录 release、Build ID、最终 URL、PASS/FAIL/BLOCK 和脱敏证据；不会把源码 `href` 或 Chromium 结果冒充 Safari／Windows 硬件回执。

@@ -34,10 +34,12 @@
 
 机器回执：`docs/qa/t110-navigation/browser-receipt.json`、`docs/qa/t109-public-internal-ia/browser-receipt.json`、`docs/qa/t111-test-classrooms/browser-automated-evidence.json`、`docs/qa/t088-tablet-mobile/browser-receipt.json`。
 
+异浏览器与真实输入设备必须逐组合填写 `docs/qa/t110-navigation/REAL_BROWSER_ACCEPTANCE_TEMPLATE.md`。该模板不预填结果，也不能用来替代课程 View/UI 验收回执。
+
 ## 尚未关闭的矩阵行
 
-- Classroom 的成员管理、公共投屏、exact 导师课件和所有返回入口：当前已有源码契约／局部 T-086 证据，T-109 后需要同一轮全链路浏览器回归。
-- 注册、重置密码的完整写流程与无权限/404 页面：认证 API 测试已覆盖数据语义，浏览器导航矩阵仍需补齐。
+- 注册、重置密码的完整写流程：认证 API 测试已覆盖数据语义；真实浏览器不得为了导航验收擅自创建账号或修改密码。若另行批准，应使用专用 TEST 身份并单独记录数据清理。
+- 404、无权限、课堂中控／成员／投屏、exact 导师课件与返回入口：已有源码契约及 Chromium 分项证据；仍需在上述真实浏览器模板中确认部署后的平台行为。
 - Windows Ctrl＋点击、中键、右键新标签与 Safari Cmd＋点击：保留浏览器原生 anchor 契约，但还没有对应硬件回执。
 - 桌面 Safari、iPad Safari 单触、系统返回手势与 bfcache：T-088，保持未验收。
 

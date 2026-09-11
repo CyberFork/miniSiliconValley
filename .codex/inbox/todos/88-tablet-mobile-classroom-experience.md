@@ -361,6 +361,6 @@ T-086 的回执数据模型可以并行开发，但第一轮真实 UI 验收和 
 - 已将 T-090 真实 Candidate/Test Classroom/导师反馈/弱网恢复环境扩展为 T-088 学员端验收；新增 `npm run test:t088:browser`。
 - 使用真实 learner 会话覆盖 10 个目标 viewport：0 横向溢出、0 个关键控件小于 44×44、0 个表单字号小于 16px、0 page error。
 - 登录、账号菜单、私密卡隔离、B05→B08 触摸翻页、十字段提交、退回/重交/通过与断网恢复均进入同一机器证据。
-- 证据与真机步骤见 `docs/TODO_088_ENGINEERING_ACCEPTANCE.md` 和 `docs/qa/t088-tablet-mobile/browser-receipt.json`。
+- 机器证据与真机步骤见 `docs/TODO_088_ENGINEERING_ACCEPTANCE.md` 和 `docs/qa/t088-tablet-mobile/browser-receipt.json`；真实设备执行时必须为 iPad Safari 与 Android Chrome 各填写一份 `docs/qa/t088-tablet-mobile/REAL_DEVICE_ACCEPTANCE_TEMPLATE.md`。
 - **未关闭边界**：真实 iPad Safari、Android 触摸设备的软键盘/旋转/锁屏/系统手势仍须人类执行；当前没有签发人工 UiAcceptanceReceipt，故本 Todo 保持 `in-progress`。
 - 工程版本已随 `20260911T100357CST-public-ia-t109-r4` 发布到 Hecate `minisv.vip`，生产健康、公共入口和浏览器水合检查通过；现在可直接用目标实体设备执行 `docs/TODO_088_ENGINEERING_ACCEPTANCE.md` 中的人工矩阵。发布成功不改变上述真实设备门槛。
