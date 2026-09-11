@@ -52,6 +52,9 @@ class DeployScriptContractTests(unittest.TestCase):
         self.assertNotIn("127.0.0.1:18791", readiness)
         self.assertIn("127.0.0.1:18780/healthz", readiness)
 
+    def test_deploy_health_checks_the_homepage_history_catalog(self) -> None:
+        self.assertIn("probe /world-preview.json 200", self.healthcheck)
+
     def test_one_verified_release_switches_the_app_worker_and_static_gateway(self) -> None:
         self.assertIn('"$INCOMING/MANIFEST.sha256"', self.script)
         self.assertIn('"$INCOMING/app/dist/server/index.js"', self.script)

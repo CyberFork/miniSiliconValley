@@ -31,6 +31,7 @@ probe_app /api/auth/session 401
 probe_app /api/internal/course-registry/release 404
 probe /healthz 200
 probe / 200
+probe /world-preview.json 200
 probe /world/ 200
 probe /course/ 307
 probe /studio/ 307

@@ -100,6 +100,7 @@ class GatewayContractTests(unittest.TestCase):
         self.assertIn("location @minisv_workshop_login", self.gateway)
         self.assertIn("return 307 /auth/login/?returnTo=%2Fworkshop%2F;", self.gateway)
         self.assertIn("location = /api/public/courses", self.gateway)
+        self.assertIn("location = /world-preview.json { try_files $uri =404;", self.gateway)
         self.assertIn('"/" "index, follow";', self.gateway)
         self.assertIn('"/index.html" "index, follow";', self.gateway)
         self.assertIn("Disallow: /workshop/", robots)

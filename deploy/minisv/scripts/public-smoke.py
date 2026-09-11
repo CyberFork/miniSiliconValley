@@ -11,6 +11,7 @@ from urllib.parse import parse_qs, urlsplit
 
 EXPECTED = {
     "/": 200,
+    "/world-preview.json": 200,
     "/world/": 200,
     "/course/": 307,
     "/studio/": 307,
@@ -128,6 +129,17 @@ def main() -> None:
             for feature in ("shared-brand-home", "released-workshop-snapshot", "read-only-workshop-history-archive", "unified-course-factory", "course-studio"):
                 if feature not in release.get("features", []):
                     raise SystemExit(f"FAIL release.json: missing {feature}")
+        if path == "/world-preview.json":
+            preview = json.loads(body)
+            if (
+                preview.get("schemaVersion") != 1
+                or preview.get("source") != "historyCatalog"
+                or not isinstance(preview.get("layers"), list)
+                or not preview["layers"]
+                or not isinstance(preview.get("events"), list)
+                or not preview["events"]
+            ):
+                raise SystemExit("FAIL world-preview.json: homepage history catalog is incomplete")
         if path in COURSEWARE_MARKERS:
             text = body.decode("utf-8", "replace")
             if len(body) > MAX_UNAUTHORIZED_BODY_BYTES or any(marker in text for marker in COURSEWARE_MARKERS[path]):
