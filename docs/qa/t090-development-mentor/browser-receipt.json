@@ -1,6 +1,6 @@
 {
   "ok": true,
-  "base": "http://127.0.0.1:50325",
+  "base": "http://127.0.0.1:53338",
   "browser": {
     "engine": "Chromium",
     "version": "151.0.7922.176"
@@ -11,8 +11,8 @@
     "revision": 1,
     "digest": "aa0a114e7269611965264057648c2820fc67c04a88d67a5c1d814352d4e6a457",
     "status": "candidate",
-    "createdAt": "2026-09-11T00:30:14.150Z",
-    "createdBy": "t090-admin-be255788",
+    "createdAt": "2026-09-11T03:50:28.411Z",
+    "createdBy": "t090-admin-bc2b17d4",
     "createdByDisplayName": "T090 Admin DM",
     "fieldMigration": [
       {
@@ -179,11 +179,11 @@
       }
     ]
   },
-  "viewReceiptId": "9afd56ca-3a71-4208-ad7f-94c165a1bfc3",
+  "viewReceiptId": "95357f8d-47a1-4250-8a05-6ccf43bbaca4",
   "classrooms": {
-    "2": "4f8e613e-1eda-4429-91ee-0c6b21923af0",
-    "4": "ec4c8b45-4ca9-432c-81b5-18aaa27a9fb8",
-    "6": "ba172f36-933a-476e-9b35-317df7c151aa"
+    "2": "6dbb95fd-86ff-49fc-a514-e9c03d3ea670",
+    "4": "5ed9a3a5-dfb6-4fdb-bad6-50223ab86945",
+    "6": "a0c5b508-d12c-4907-8013-003992aba359"
   },
   "projection": {
     "learnerCounts": [
@@ -258,6 +258,17 @@
     "privateCards": {
       "count": 2,
       "isolatedFromLearner2": true
+    },
+    "privacyShield": {
+      "concealed": {
+        "attribute": "true",
+        "display": "grid",
+        "zIndex": 1000,
+        "width": 744,
+        "height": 1133
+      },
+      "restoredAttribute": false,
+      "restoredDisplay": "none"
     },
     "touchOnlyNavigation": true,
     "structuredFormFields": 10,

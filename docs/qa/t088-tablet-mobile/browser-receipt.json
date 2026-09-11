@@ -17,6 +17,17 @@
     "login": true,
     "realLearnerSession": true,
     "privateCardIsolation": true,
+    "backgroundSnapshotPrivacyShield": {
+      "concealed": {
+        "attribute": "true",
+        "display": "grid",
+        "zIndex": 1000,
+        "width": 744,
+        "height": 1133
+      },
+      "restoredAttribute": false,
+      "restoredDisplay": "none"
+    },
     "touchOnlyBlockNavigation": true,
     "structuredSubmissionAndMentorFeedback": {
       "fields": 10,

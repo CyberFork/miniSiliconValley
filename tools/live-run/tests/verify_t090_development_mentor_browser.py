@@ -515,6 +515,41 @@ def main() -> None:
                     assert learner_private_titles == hand_one, (learner_private_titles, hand_one)
                     assert set(learner_private_titles).isdisjoint(hand_two), (learner_private_titles, hand_two)
 
+                    # A pagehide/restore cycle covers private classroom data
+                    # before a browser/OS background snapshot, then restores the
+                    # exact page without navigation or data loss.
+                    privacy_shield = learner_page.evaluate(
+                        """() => {
+                          const shield = document.querySelector('[data-classroom-privacy-shield]');
+                          if (!(shield instanceof HTMLElement)) return null;
+                          window.dispatchEvent(new PageTransitionEvent('pagehide', {persisted: true}));
+                          const concealedStyle = getComputedStyle(shield);
+                          const concealedBox = shield.getBoundingClientRect();
+                          const concealed = {
+                            attribute: document.documentElement.getAttribute('data-msv-classroom-concealed'),
+                            display: concealedStyle.display,
+                            zIndex: Number(concealedStyle.zIndex),
+                            width: Math.round(concealedBox.width),
+                            height: Math.round(concealedBox.height),
+                          };
+                          window.dispatchEvent(new PageTransitionEvent('pageshow', {persisted: true}));
+                          return {
+                            concealed,
+                            restoredAttribute: document.documentElement.hasAttribute('data-msv-classroom-concealed'),
+                            restoredDisplay: getComputedStyle(shield).display,
+                          };
+                        }"""
+                    )
+                    assert privacy_shield, privacy_shield
+                    assert privacy_shield["concealed"]["attribute"] == "true", privacy_shield
+                    assert privacy_shield["concealed"]["display"] == "grid", privacy_shield
+                    assert privacy_shield["concealed"]["zIndex"] >= 1000, privacy_shield
+                    assert privacy_shield["concealed"]["width"] == 744, privacy_shield
+                    assert privacy_shield["concealed"]["height"] == 1133, privacy_shield
+                    assert privacy_shield["restoredAttribute"] is False, privacy_shield
+                    assert privacy_shield["restoredDisplay"] == "none", privacy_shield
+                    expect(learner_page.locator('article[class*="privateCard"]')).to_have_count(2)
+
                     # One path reaches the form exclusively through visible touch
                     # controls; the remaining viewports revisit the same exact page.
                     for expected_block in ("B06", "B07", "B08"):
@@ -587,6 +622,7 @@ def main() -> None:
                             "exactCourse": {key: candidate[key] for key in ("courseId", "schemaVersion", "revision", "digest", "status")},
                             "blockRange": "B05-B08",
                             "privateCards": {"count": 2, "isolatedFromLearner2": True},
+                            "privacyShield": privacy_shield,
                             "touchOnlyNavigation": True,
                             "structuredFormFields": 10,
                             "accountMenuTouchAccessible": account_touch,

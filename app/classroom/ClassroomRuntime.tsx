@@ -15,6 +15,7 @@ type RuntimeProps = { classroomId: string; view: RuntimeView; user: AccountMenuU
 type NavigationState = { blockId: string | null; testSurface: string | null };
 type RuntimeSyncState = "connecting" | "online" | "offline";
 type TestReceiptChecks = UiAcceptanceChecks;
+const CLASSROOM_PRIVACY_ATTRIBUTE = "data-msv-classroom-concealed";
 const BOUNDARY = {
   F: { short: "F 有来源", title: "有来源的事实" },
   R: { short: "R 课堂模拟", title: "课堂平行世界中的模拟" },
@@ -31,6 +32,35 @@ function initialNavigation(): NavigationState {
 export function isClassroomKeyboardTargetEditable(target: EventTarget | null): boolean {
   const element = target instanceof HTMLElement ? target : null;
   return Boolean(element?.closest("input, textarea, select, [contenteditable='true'], [role='textbox']"));
+}
+
+function ClassroomPrivacyShield() {
+  useEffect(() => {
+    const root = document.documentElement;
+    const conceal = () => root.setAttribute(CLASSROOM_PRIVACY_ATTRIBUTE, "true");
+    const reveal = () => {
+      if (document.visibilityState === "visible") root.removeAttribute(CLASSROOM_PRIVACY_ATTRIBUTE);
+    };
+    const syncVisibility = () => {
+      if (document.visibilityState === "hidden") conceal();
+      else reveal();
+    };
+    document.addEventListener("visibilitychange", syncVisibility);
+    window.addEventListener("pagehide", conceal);
+    window.addEventListener("pageshow", reveal);
+    syncVisibility();
+    return () => {
+      document.removeEventListener("visibilitychange", syncVisibility);
+      window.removeEventListener("pagehide", conceal);
+      window.removeEventListener("pageshow", reveal);
+      root.removeAttribute(CLASSROOM_PRIVACY_ATTRIBUTE);
+    };
+  }, []);
+  return <div className={styles.privacyShield} data-classroom-privacy-shield aria-hidden="true">
+    <span>MINI硅谷 · CLASSROOM</span>
+    <b>课堂内容已保护</b>
+    <small>返回 MINI硅谷后继续当前任务</small>
+  </div>;
 }
 
 export default function ClassroomRuntime({ classroomId, view, user }: RuntimeProps) {
@@ -210,13 +240,14 @@ export default function ClassroomRuntime({ classroomId, view, user }: RuntimePro
     }
   };
 
-  if (error && !data) return <RuntimeError error={error} />;
-  if (!data) return <main className={styles.runtime}><div className={styles.runtimeMain}>正在连接这一个 Classroom 实例…</div></main>;
+  if (error && !data) return <><ClassroomPrivacyShield /><RuntimeError error={error} /></>;
+  if (!data) return <main className={styles.runtime}><ClassroomPrivacyShield /><div className={styles.runtimeMain}>正在连接这一个 Classroom 实例…</div></main>;
   const screenMode = data.environment === "test" && selectedSurface === "screen";
   const readOnly = Boolean(data.archive);
   const roleProjectionReady = data.environment !== "test" || selectedSurface === "control" || selectedSurface === "screen"
     || data.viewer.viewProfileId === selectedSurface;
   return <main className={styles.runtime}>
+    <ClassroomPrivacyShield />
     <RuntimeTop data={data} classroomId={classroomId} user={user} selectedSurface={String(selectedSurface)} onSwitch={switchSurface} />
     <div className={screenMode ? styles.screenShell : styles.runtimeMain}>
       <RuntimeSync state={syncState} lastSyncedAt={lastSyncedAt} onRetry={() => void load()} />

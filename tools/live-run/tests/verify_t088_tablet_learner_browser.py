@@ -43,6 +43,9 @@ def main() -> None:
     assert source.get("ok") is True and isinstance(pad, dict), source
     assert pad.get("session") == "real learner account; no Admin DM viewAs", pad
     assert pad.get("privateCards") == {"count": 2, "isolatedFromLearner2": True}, pad
+    shield = pad.get("privacyShield")
+    assert isinstance(shield, dict) and shield.get("concealed", {}).get("display") == "grid", shield
+    assert shield.get("restoredAttribute") is False and shield.get("restoredDisplay") == "none", shield
     assert pad.get("touchOnlyNavigation") is True and pad.get("structuredFormFields") == 10, pad
 
     matrix = pad.get("responsiveViewports")
@@ -72,6 +75,7 @@ def main() -> None:
             "login": True,
             "realLearnerSession": True,
             "privateCardIsolation": True,
+            "backgroundSnapshotPrivacyShield": shield,
             "touchOnlyBlockNavigation": True,
             "structuredSubmissionAndMentorFeedback": source["developmentStick"],
             "offlineRecovery": source["developmentStick"]["offlineRecovery"],

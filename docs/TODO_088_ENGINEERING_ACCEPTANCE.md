@@ -27,6 +27,7 @@
 - 提交、审核、翻页、解锁分别使用服务器 run identity、版本 CAS 和幂等键；重复点击不会重复记账。
 - “上一页／下一页／回到最新解锁”是可见触摸控件；键盘快捷键仅作为额外能力，不再写成学员唯一操作方式。
 - 提交状态带 `role=status` 与中文反馈，等待、退回、通过、断线和重连均可区分。
+- Classroom 在页面隐藏或进入 bfcache 前同步覆盖品牌隐私屏，返回前台后移除；避免系统后台快照直接展示私密卡、钱包或作品。
 
 ## 2. 自动化验收
 
@@ -53,7 +54,7 @@ npm run test:t088:browser
 390×844    430×932
 ```
 
-本轮结果：10/10 无页面级横向溢出；每个页面测得 31—34 个学员关键控件，0 个小于 44×44；10 个表单字段中 0 个小于 16px；0 page error，0 非计划资源失败。
+本轮结果：10/10 无页面级横向溢出；每个页面测得 31—34 个学员关键控件，0 个小于 44×44；10 个表单字段中 0 个小于 16px；后台隐私屏覆盖完整 viewport 且恢复后原页面继续可用；0 page error，0 非计划资源失败。
 
 证据：
 
@@ -97,7 +98,7 @@ docs/qa/t088-tablet-mobile/REAL_DEVICE_ACCEPTANCE_TEMPLATE.md
 ## 4. 当前门禁状态
 
 - Chromium 响应式、粗指针、真实 learner 会话与隔离 Test Classroom 自动化：**PASS**。
-- iPad Safari 真实设备人工记录：**BLOCK（尚无设备证据）**。
+- iPad Safari 真实设备人工记录：**BLOCK（尚无设备证据；仍需确认系统 App 切换器实际取到隐私屏而非前一帧）**。
 - Android Chrome 真实触摸设备人工记录：**BLOCK（尚无设备证据）**。
 - ViewAcceptanceReceipt／UiAcceptanceReceipt：**未由本工程记录代签**。
 - Production Classroom：**不得因机器测试通过而自动创建**。
