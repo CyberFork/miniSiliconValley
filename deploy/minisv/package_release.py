@@ -555,9 +555,16 @@ def build(
     theme_script = output / "ui-theme.js"
     if theme_script.is_file():
         script_text = theme_script.read_text(encoding="utf-8")
+        # The shared runtime now mounts the complete public navigator from a
+        # route tuple list. Validate behavior markers and target literals
+        # instead of coupling release assembly to the retired one-off
+        # ``link.href = "/course/"`` implementation detail.
+        for marker in ("mountPublicNavigator", "msv-public-nav", "/course/"):
+            if marker not in script_text:
+                errors.append(f"missing public navigation runtime marker {marker!r}")
         for route in ("/framework/", "/parents/"):
-            if route not in script_text or 'href = "/course/"' not in script_text:
-                errors.append(f"missing runtime course navigation for {route}")
+            if route not in script_text:
+                errors.append(f"missing runtime public navigation for {route}")
     for path in sorted(output.rglob("*")):
         if not path.is_file() or path.suffix.lower() not in TEXT_SUFFIXES: continue
         try: text = path.read_text(encoding="utf-8")

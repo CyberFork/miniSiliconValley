@@ -133,7 +133,10 @@ class CourseReleaseTests(unittest.TestCase):
             (portal / "sitemap.xml").write_text('<urlset><url><loc>https://minisv.vip/</loc></url></urlset>\n')
             for name in ("portal.css", "portal.js", "ui-theme.css", "ui-theme.js", "robots.txt", "site.webmanifest"):
                 if name == "ui-theme.js":
-                    value = 'var routes = ["/framework/", "/parents/"]; link.href = "/course/";'
+                    value = (
+                        'function mountPublicNavigator(){var id="msv-public-nav";'
+                        'var routes=["/framework/","/parents/","/course/"];return [id,routes];}'
+                    )
                 else:
                     value = "{}" if name.endswith((".json", ".webmanifest")) else "ok"
                 (portal / name).write_text(value)
@@ -161,7 +164,9 @@ class CourseReleaseTests(unittest.TestCase):
             self.assertIn("current parents", (output / "parents" / "index.html").read_text())
             self.assertNotIn('msv-course-nav-link', (output / "framework" / "index.html").read_text())
             self.assertNotIn('msv-course-nav-link', (output / "parents" / "index.html").read_text())
-            self.assertIn('link.href = "/course/"', (output / "ui-theme.js").read_text())
+            self.assertIn("mountPublicNavigator", (output / "ui-theme.js").read_text())
+            self.assertIn('"msv-public-nav"', (output / "ui-theme.js").read_text())
+            self.assertIn('"/course/"', (output / "ui-theme.js").read_text())
             self.assertTrue((output / "courseware" / "product-mentor-foundations" / "index.html").is_file())
             output_snapshot = {
                 path.relative_to(output / "courseware" / "product-mentor-foundations").as_posix(): path.read_bytes()
