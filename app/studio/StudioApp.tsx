@@ -197,7 +197,7 @@ function StudioHome({ data }: { data: Bootstrap }) {
       <div className={styles.flow} aria-label="课程生产流程">
         <span>① 编辑课程</span><i>→</i><span>② 验收多角色视图</span><i>→</i><span>③ 验收真实课堂 UI</span><i>→</i><span>④ 发布正式版本</span><i>→</i><span>⑤ 创建正式课堂</span>
       </div>
-      <p className={styles.panelIntro}>导师课件库是并行资源线：四套 P／D／M／O exact 课件必须在创建 Test Classroom 前汇合。</p>
+      <p className={styles.panelIntro}>导师课件库是独立资源线：课堂只锁定课程剧本；P／D／M／O 导师每次打开时自动使用本角色最新发布课件。</p>
     </section>
     <PipelineList data={data} versions={versions} />
   </>;
@@ -661,7 +661,7 @@ function CoursewareLibrary({ data, onChanged, onError }: { data: Bootstrap; onCh
     finally { setWorking(false); }
   };
   return <>
-    <Heading eyebrow="COURSEWARE LIBRARY · PARALLEL RESOURCE LINE" title="导师课件库">P／D／M／O 课件与 CourseDefinition 并行制作。Test Classroom 绑定 exact 版本；Production 必须复用经过 UI 验收且仍为 Released 的同一组版本。</Heading>
+    <Heading eyebrow="COURSEWARE LIBRARY · INDEPENDENT RESOURCE LINE" title="导师课件库">P／D／M／O 课件与 CourseDefinition 独立制作、独立发布。课堂不选择或锁定课件版本；导师每次从课堂打开时使用本角色最新发布版。</Heading>
     <section className={styles.panel}>
       <div className={styles.sectionTitle}><div><h2>已安装课件</h2><p>点击 exact 预览，打开的就是课堂导师会使用的版本。</p></div><Link href="/course/">进入导师课件播放 →</Link></div>
       <div className={styles.coursewareGrid}>{data.courseware.map((item) => {
@@ -713,7 +713,7 @@ function Releases({ data, onChanged, onError }: { data: Bootstrap; onChanged: (m
   const versions = preferredVersions(data.versions);
   return <>
     <Heading eyebrow="RELEASE GATE · TWO RECEIPTS" title="验收与发布">
-      这里是总闸门，不是另一个预览器。视图回执证明课程投影正确；UI 回执证明同一 Candidate 与四套 exact 课件已在真实 Test Classroom 中完整运行。
+      这里是总闸门，不是另一个预览器。视图回执证明课程剧本投影正确；UI 回执证明同一 Candidate 已在真实 Test Classroom 中完整运行。导师课件独立发布，不与剧本版本互锁。
     </Heading>
     <section className={styles.panel}>
       <div className={styles.releaseGrid}>{versions.map((version) => {
@@ -725,11 +725,11 @@ function Releases({ data, onChanged, onError }: { data: Bootstrap; onChanged: (m
             <GateDetail index="R" label="内容人工审核" passed={!status.reviewBlocking} detail={status.reviewStates.length ? `${status.reviewBlocking ? `${status.reviewStates.filter((item) => item.releaseBlocking).length} 项人工明确阻断` : "没有人工明确阻断"} · ${status.reviewStates.filter((item) => item.state === "pending").length} 项待判断不自动阻断` : "本版本没有声明待核对项"} />
             <GateDetail index="1" label="多角色视图验收" passed={Boolean(status.view)} detail={status.view ? `${status.view.receiptId} · ${status.view.projectorVersion} · ${status.view.sourceCommit} / ${status.view.appBuildId}` : "缺少当前 exact 版本的有效回执"} />
             <GateDetail index="2" label="UI 验收课堂" passed={status.tests.length > 0} detail={status.tests.length ? `${status.tests.length} 场 Test · ${status.tests[0].lifecycle}` : "尚未创建"} />
-            <GateDetail index="3" label="真实 UI 验收回执" passed={Boolean(status.ui)} detail={status.ui ? `${status.ui.receiptId} · ${status.ui.runtimeContractVersion} · ${status.ui.sourceCommit} / ${status.ui.appBuildId} · ${status.ui.learnerCount} 学员 · 4 套课件` : "尚未完成／回执已失效"} />
+            <GateDetail index="3" label="真实 UI 验收回执" passed={Boolean(status.ui)} detail={status.ui ? `${status.ui.receiptId} · ${status.ui.runtimeContractVersion} · ${status.ui.sourceCommit} / ${status.ui.appBuildId} · ${status.ui.learnerCount} 学员` : "尚未完成／回执已失效"} />
             <GateDetail index="4" label="正式发布" passed={version.released} detail={version.released ? `Released r${version.ref.revision}` : "等待两级 exact 回执"} />
             <GateDetail index="5" label="正式课堂" passed={status.production.length > 0} detail={`${status.production.length} 场 Production`} />
           </div>
-          {status.ui && <details className={styles.receiptDetail}><summary>查看 UI 回执锁定的四套课件</summary>{status.ui.coursewareRefs.map((ref) => <code key={ref.mentorRole}>{ref.mentorRole} · {ref.slug} · r{ref.revision}<br />{ref.digest}</code>)}</details>}
+          {status.ui && <details className={styles.receiptDetail}><summary>查看 UI 验收时的课件快照（仅审计）</summary>{status.ui.coursewareRefs.map((ref) => <code key={ref.mentorRole}>{ref.mentorRole} · {ref.slug} · r{ref.revision}<br />{ref.digest}</code>)}</details>}
           <div className={styles.nextAction}><small>下一步主操作</small><b>{status.nextLabel}</b></div>
           <div className={styles.actions}>
             {status.reviewStates.length > 0 && <Link href="/studio/reviews/">查看内容人工审核 →</Link>}

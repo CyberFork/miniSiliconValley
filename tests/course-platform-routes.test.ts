@@ -71,7 +71,7 @@ test("T-096 makes /course/ a registry-backed Released library for real learners 
   assert.doesNotMatch(directory, /href=\{?['"]\/course\/(?:product|development)/);
 });
 
-test("T-100 separates author Candidate preview, historical releases and exact classroom playback", () => {
+test("T-100 separates author Candidate preview, historical releases and latest classroom playback", () => {
   const internalPreview = readFileSync(new URL("app/studio/courseware/[packageId]/page.tsx", root), "utf8");
   const classroomPreview = readFileSync(new URL("app/classroom/[classroomId]/courseware/[mentorRole]/page.tsx", root), "utf8");
   const asset = readFileSync(new URL("app/courseware-assets/[packageId]/[revision]/[digest]/[...path]/route.ts", root), "utf8");
@@ -82,10 +82,14 @@ test("T-100 separates author Candidate preview, historical releases and exact cl
   assert.match(internalPreview, /item\.ownerProfileId === user\.userId/);
   assert.match(internalPreview, /item\.availability === "placeholder"/);
   assert.match(classroomPreview, /getClassroomInstance\(db, actor, classroomId\)/);
+  assert.match(classroomPreview, /defaultCoursewareRefs\(await listCourseware\(db\)\)/);
   assert.match(classroomPreview, /loadCoursewareExact\(db, ref\.packageId, ref\.revision, ref\.digest\)/);
   assert.match(classroomPreview, /尚未提供真实导师课件/);
   assert.match(runtime, /\/classroom\/\$\{encodeURIComponent\(data\.id\)\}\/courseware\/\$\{view\.mentorRole\}/);
   assert.match(factoryStore, /COURSEWARE_PLACEHOLDER_FORBIDDEN/);
+  assert.match(factoryStore, /defaultCoursewareRefs\(await listCourseware\(db\)\)/);
+  assert.doesNotMatch(factoryStore, /COURSE_CONTENT_COURSEWARE_MISMATCH/);
+  assert.doesNotMatch(factoryStore, /declaredCoursewareBindingIssues/);
   assert.match(asset, /canReadCandidateBundle/);
   assert.match(asset, /Content-Security-Policy/);
   assert.match(asset, /X-Content-Type-Options/);

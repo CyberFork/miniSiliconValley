@@ -18,14 +18,14 @@
 CourseDefinition（D1 course_versions）
   → Candidate pointer
   → exact ViewAcceptanceReceipt
-  → exact Test Classroom + exact Courseware bindings
+  → exact Test Classroom + 当前导师课件审计快照
   → exact UiAcceptanceReceipt
   → Released pointer
   → Production ClassroomInstance
 ```
 
 - CourseDefinition 正文以 canonical JSON digest 标识，每次保存只新增或复用完全相同的不可变 revision。
-- ClassroomInstance 不复制可编辑课程正文，只锁定 exact course/courseware references。
+- ClassroomInstance 不复制可编辑课程正文，只锁定 exact course reference；创建时的 courseware refs 仅为审计快照，导师打开课件时重新解析本角色当前发布版。
 - Studio Preview 使用 `buildStudioProjection()`，不创建房间、不写账本、不伪造运行数据。
 - Test 与 Production 调用同一个 `createClassroomInstance()` 和 `controllerTransition()`；差别只在准入、reset 权限和环境标记。
 
@@ -39,7 +39,7 @@ CourseDefinition（D1 course_versions）
 - `ClassroomAdminDmGrant`：课堂级 `primary | delegated` 管理授权；只有 Primary 具有委派能力，不等同平台管理员或第五导师。
 - `AuthImpersonation`：真实平台管理员会话上的短时 Test 身份覆盖；始终锁定一个 Test Classroom，并同时保留 actor/effective identity。
 - `ViewAcceptanceReceipt`：对 exact Candidate 的全部 Block、支持人数与共享投影结果验收。
-- `UiAcceptanceReceipt`：完成真实 Test 后，对 exact course、课堂成员、运行版本与四件 exact courseware 的 UI 验收回执。
+- `UiAcceptanceReceipt`：完成真实 Test 后，对 exact course、课堂成员和运行版本的 UI 验收回执；其中的四件 courseware refs 仅记录验收当时的审计快照。
 - `CourseContentReviewEvent`：对 exact `courseId + revision + digest + itemId` 的追加式人工处置；作者在 `contentPackages.reviewQueue` 中的声明不被原地改写。
 - `ParentQaKnowledgeGapEvent`：独立于课程的脱敏 observation/review/reopen NDJSON 事件；从不自动进入检索或改写 CourseDefinition。
 

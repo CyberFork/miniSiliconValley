@@ -6,6 +6,8 @@
   "candidateWithoutView": true,
   "exactPreviewOrdinaryClick": true,
   "unavailableDeepLinkNotSubstituted": true,
+  "singleScriptVersionSelection": true,
+  "coursewareVersionSelectors": false,
   "responsive": {
     "phone": {
       "width": 390,

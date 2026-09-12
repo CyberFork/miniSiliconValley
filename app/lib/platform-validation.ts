@@ -39,6 +39,8 @@ function roleValue(value: unknown): ClassroomMentorRole {
 export function parseFactoryRequest(value: unknown): ClassroomFactoryRequest {
   const raw = objectValue(value);
   if (raw.environment !== "test" && raw.environment !== "production") throw new ClassroomError("INPUT_INVALID", "environment 必须是 test 或 production。", 400);
+  // Backward-compatible input only. The persistent factory ignores this
+  // value and resolves current released mentor decks server-side.
   const courseware = Array.isArray(raw.coursewareRefs) ? raw.coursewareRefs : [];
   const mentors = Array.isArray(raw.mentorSeats) ? raw.mentorSeats : [];
   const learners = Array.isArray(raw.learnerProfileIds) ? raw.learnerProfileIds : [];

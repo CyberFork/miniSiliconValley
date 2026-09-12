@@ -58,7 +58,7 @@ $HOME/Services/minisv/current/ops/scripts/rollback-hecate.sh <KNOWN_GOOD_UNIFIED
 - 课堂 401：会话缺失或过期；重新登录。
 - 课堂 403：首次密码未改、无 Membership 或无该课堂 Admin DM。
 - Controller 409：并发版本冲突；刷新，不要重复提交旧 version。
-- 课件仍为旧版：已开始课堂 exact 锁定的预期行为；新建 Test/Production 验证新版。
+- 课件仍为旧版：课堂入口应始终解析本角色当前发布指针；检查 Courseware release pointer、应用版本和浏览器缓存，不要通过新建课堂规避。
 - P 课件资源 404：检查 `/courseware/product-mentor-foundations/` 的整树 manifest；不要复制或改写单个文件修补。
 - 18790/18791 有监听：视为旧全局运行时复活，停止并禁用对应 launchd，再查部署脚本来源。
 - 网关异常：先 `nginx -t`、loopback health、日志和 release manifest；不要用无条件反复重启代替根因。

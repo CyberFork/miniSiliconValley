@@ -584,7 +584,6 @@ export async function requireValidUiAcceptanceReceipt(
   ref: ExactCourseRef,
   receiptId: string,
   viewReceiptId: string,
-  coursewareRefs?: ExactCoursewareRef[],
 ): Promise<UiAcceptanceReceipt> {
   const row = await db.prepare(
     `SELECT r.*, ci.reset_generation AS current_reset_generation, ci.lifecycle AS classroom_lifecycle,
@@ -601,23 +600,18 @@ export async function requireValidUiAcceptanceReceipt(
   ).bind(receiptId).first<UiReceiptRow>();
   const viewValid = row ? await isViewReceiptCurrentlyValid(db, row.view_receipt_id, ref) : false;
   const receipt = row ? mapUiReceipt(row, viewValid) : null;
-  const expectedBundle = coursewareRefs ? await coursewareBundleDigest(orderCourseware(coursewareRefs)) : null;
   const mismatchReasons = [
     ...(receipt?.invalidReasons ?? []),
     ...(!receipt ? ["找不到这张 UI 验收回执"] : []),
     ...(receipt && !sameCourseRef(receipt.courseRef, ref) ? ["回执绑定了其他课程 revision／digest"] : []),
     ...(receipt && receipt.viewReceiptId !== viewReceiptId ? ["回执绑定了其他 ViewAcceptanceReceipt"] : []),
-    ...(receipt && expectedBundle !== null && receipt.coursewareBundleDigest !== expectedBundle ? [
-      `课件包 digest 不匹配：验收 ${receipt.coursewareBundleDigest}，请求 ${expectedBundle}`,
-    ] : []),
   ];
   if (
     !receipt || !sameCourseRef(receipt.courseRef, ref) || receipt.viewReceiptId !== viewReceiptId || !receipt.valid
-    || (expectedBundle !== null && receipt.coursewareBundleDigest !== expectedBundle)
   ) {
     throw new ClassroomError(
       "UI_ACCEPTANCE_RECEIPT_INVALID",
-      "真实课堂 UI 验收回执缺失、已失效，或没有绑定相同的课程／课件 exact 版本。",
+      "真实课堂 UI 验收回执缺失、已失效，或没有绑定相同的课程剧本版本。",
       409,
       mismatchReasons,
     );

@@ -90,9 +90,11 @@ def main() -> None:
                     missing_course, missing_revision, missing_digest = "missing/course", 999, "deadbeef"
                     deep = f"/classroom/?course={quote(missing_course, safe='')}&revision={missing_revision}&digest={missing_digest}&environment=test"
                     page.goto(f"{base}{deep}", wait_until="networkidle")
-                    selected = page.get_by_label("课程 exact 版本").locator("option:checked")
+                    selected = page.get_by_label("选择课程剧本版本").locator("option:checked")
                     expect(selected).to_contain_text(f"{missing_course} · r{missing_revision}")
                     expect(selected).to_contain_text("当前不可用（未自动换课）")
+                    expect(page.get_by_text("导师课件 · 自动使用最新发布版")).to_be_visible()
+                    assert page.get_by_label("P 导师课件").count() == 0, "Factory must not expose courseware version selectors"
                     exact_repair = page.get_by_role("link", name="查看视图验收")
                     exact_href = exact_repair.get_attribute("href"); assert exact_href
                     query = parse_qs(urlparse(exact_href).query)
@@ -108,7 +110,7 @@ def main() -> None:
                         assert geometry["scroll"] <= geometry["inner"], (name, geometry)
                         responsive[name] = {"width":width,"height":height,"noHorizontalOverflow":True}
                         if name == "phone": page.screenshot(path=QA / "actionable-gates-phone.png", full_page=True)
-                    result = {"ok":True,"scope":"isolated local D1; no production writes","adminClassroomClick":True,"dependencyRetries":True,"candidateWithoutView":True,"exactPreviewOrdinaryClick":True,"unavailableDeepLinkNotSubstituted":True,"responsive":responsive}
+                    result = {"ok":True,"scope":"isolated local D1; no production writes","adminClassroomClick":True,"dependencyRetries":True,"candidateWithoutView":True,"exactPreviewOrdinaryClick":True,"unavailableDeepLinkNotSubstituted":True,"singleScriptVersionSelection":True,"coursewareVersionSelectors":False,"responsive":responsive}
                     (QA / "browser-receipt.json").write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
                     print(json.dumps(result, ensure_ascii=False))
                     browser.close()

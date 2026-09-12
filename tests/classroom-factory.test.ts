@@ -90,9 +90,14 @@ test("factory requires exact four distinct mentor roles and exact learner count"
   assert.throws(() => assertClassroomFactoryRequest(request({ learnerCount: 2 })), /学员账号数量必须等于 learnerCount/);
 });
 
-test("courseware binding is exact and covers P/D/M/O before creation", () => {
-  assert.throws(() => assertClassroomFactoryRequest(request({ coursewareRefs: courseware.slice(0, 3) })), /四位导师都必须绑定 exact 课件版本/);
-  assert.throws(() => assertClassroomFactoryRequest(request({ coursewareRefs: [{ ...courseware[0], digest: "bad" }, ...courseware.slice(1)] })), /课件 digest/);
+test("external factory validation does not bind or compare mentor courseware versions", () => {
+  assert.doesNotThrow(() => assertClassroomFactoryRequest(request({ coursewareRefs: [] })));
+  assert.doesNotThrow(() => assertClassroomFactoryRequest(request({ coursewareRefs: [{ ...courseware[0], digest: "stale-client-value" }] })));
+  assert.throws(
+    () => buildClassroomFactoryPlan(request({ coursewareRefs: [] }), "factory-seed"),
+    /服务端解析的 P、D、M、O 课件审计快照/,
+    "only the internal persistent plan requires a server-resolved audit snapshot",
+  );
 });
 
 test("courseware bundle digest is canonical across API and DB property order", async () => {

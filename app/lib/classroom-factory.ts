@@ -28,6 +28,7 @@ export interface ClassroomFactoryRequest {
   courseRef: CoursePackageRef;
   viewAcceptanceReceiptId: string;
   uiAcceptanceReceiptId?: string;
+  /** @deprecated Ignored at the HTTP boundary; retained for older callers and internal audit plans. */
   coursewareRefs: ExactCoursewareRef[];
   adminDmProfileIds: string[];
   mentorSeats: Array<{ mentorRole: ClassroomMentorRole; profileId: string }>;
@@ -104,13 +105,11 @@ export function assertClassroomFactoryRequest(input: ClassroomFactoryRequest): v
   if (input.learnerProfileIds.some((profileId) => input.mentorSeats.some((seat) => seat.profileId === profileId))) {
     throw new Error("同一账号不能同时占用导师席和学员席。");
   }
-  if (!exactRoles(input.coursewareRefs.map((ref) => ref.mentorRole))) throw new Error("四位导师都必须绑定 exact 课件版本。");
-  for (const ref of input.coursewareRefs) {
-    identifier(ref.packageId, `${ref.mentorRole} 课件 packageId`);
-    if (!/^[a-z0-9][a-z0-9-]{1,63}$/.test(ref.slug)) throw new Error(`${ref.mentorRole} 课件 slug 无效。`);
-    if (!Number.isInteger(ref.revision) || ref.revision < 0) throw new Error(`${ref.mentorRole} 课件 revision 无效。`);
-    sha256(ref.digest, `${ref.mentorRole} 课件 digest`);
-  }
+  // coursewareRefs is a legacy transport field. Classroom creation never
+  // trusts or compares it: the persistent factory resolves each role's
+  // current released deck on the server. Keeping the field in the TypeScript
+  // shape preserves older callers while an omitted/empty/stale client value
+  // can no longer become a creation gate.
   if (!input.adminDmProfileIds.length) throw new Error("至少需要一个 Admin DM 权限账号。");
   if (new Set(input.adminDmProfileIds).size !== input.adminDmProfileIds.length) throw new Error("Admin DM 权限账号不能重复。");
   for (const profileId of input.adminDmProfileIds) identifier(profileId, "Admin DM 账号");
@@ -129,6 +128,15 @@ function stableKey(seed: string, ...parts: Array<string | number>): string {
 export function buildClassroomFactoryPlan(input: ClassroomFactoryRequest, factorySeed: string): ClassroomFactoryPlan {
   assertClassroomFactoryRequest(input);
   identifier(factorySeed, "factorySeed");
+  if (!exactRoles(input.coursewareRefs.map((ref) => ref.mentorRole))) {
+    throw new Error("ClassroomFactory 内部计划必须包含服务端解析的 P、D、M、O 课件审计快照。");
+  }
+  for (const ref of input.coursewareRefs) {
+    identifier(ref.packageId, `${ref.mentorRole} 课件 packageId`);
+    if (!/^[a-z0-9][a-z0-9-]{1,63}$/.test(ref.slug)) throw new Error(`${ref.mentorRole} 课件 slug 无效。`);
+    if (!Number.isInteger(ref.revision) || ref.revision < 0) throw new Error(`${ref.mentorRole} 课件 revision 无效。`);
+    sha256(ref.digest, `${ref.mentorRole} 课件 digest`);
+  }
   const orderedMentors = CLASSROOM_MENTOR_ROLES.map((role) => input.mentorSeats.find((seat) => seat.mentorRole === role)!);
   const orderedCourseware = CLASSROOM_MENTOR_ROLES.map((role) => input.coursewareRefs.find((ref) => ref.mentorRole === role)!);
   return {

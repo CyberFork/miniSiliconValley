@@ -61,13 +61,13 @@ Admin DM 是课堂范围权限，不是第五位导师。一位导师可以同�
 
 1. “课堂环境”选择 `Test · 可用 Candidate、可重置`。
 2. 填课堂名称。
-3. 在“课程 exact 版本”选择目标 Candidate／Released。
+3. 在“选择课程剧本版本”选择唯一目标 Candidate／Released；下拉中的其他项只是可切换方案，不会同时生效。
 4. 选择真实学员人数 N；下拉范围来自课程自己的 `learnerPolicy`。
 5. 确认 Primary Admin DM。mentor 自建时，创建者必须是 Primary；平台管理员可以指定一位导师／管理员作为 Primary。额外初始 Admin DM 必须是导师，并自动成为 Delegated。
 6. 在“四个导师 Membership”分别选择四个不同账号：P 产品、D 开发、M 市场、O 运营。
-7. 在“四套 exact 导师课件”分别选择 P／D／M／O 课件 revision。
+7. 查看“导师课件”状态：P／D／M／O 均有当前发布版即可；无需选择、核对或绑定课件 revision。
 8. 为学员 1…N 选择 N 个不同 learner 账号。
-9. 点击“创建 Test Classroom →”。系统用一次原子事务生成课堂、团队、`4＋N` 个 Membership、四套课件绑定、中控和初始牌。
+9. 点击“创建 Test Classroom →”。系统用一次原子事务生成课堂、团队、`4＋N` 个 Membership、中控和初始牌，并仅为审计记录创建当时的四套课件快照。
 10. 在“课堂中心”的对应 TEST／PRODUCTION 分组打开新课堂，记住它的独立路径 `/classroom/{id}/`。
 
 若创建失败，不要绕过校验。界面会明确指出重复导师、人数不符、卡组容量不足、课件缺失或版本不可用。
@@ -119,7 +119,7 @@ Admin DM 打开 `/classroom/{id}/control`。LIVE RUN SCRIPT 是唯一推进主�
 
 - 学员在自己的 `/classroom/{id}/` 查看“你看到的世界、先讲给队友、再一起追问、完成的样子”和私人情报卡。
 - 学员先用自己的话讲卡片，再听队友的二次信息；不要把“我们猜的”说成“有来源”。
-- 导师打开自己的 exact 课件，只在学生经历之后命名复杂方法。
+- 导师打开自己的最新发布课件，只在学生经历之后命名复杂方法。
 - 学员页保留个人声望 RP、个人钱包 C 和团队资金 C；这些数据由课堂账本统一计算，不靠口头补记。
 
 ### 8.3 人工验收
@@ -132,15 +132,15 @@ Admin DM 打开 `/classroom/{id}/control`。LIVE RUN SCRIPT 是唯一推进主�
 
 全部 Block 解锁后，先讲完末页／Demo／复盘，再由任一导师在中控弹窗中点击“确认结束本次课堂”。末页解锁本身不代表课堂或作品完成。
 
-课堂明确结束后，中控显示完整 16 项真实 UI 清单，覆盖同源运行时、Membership/RBAC、四导师和 N 学员视图、隐私与投屏、顺序解锁与独立回看、Test 角色切换、显式结束、刷新重登、并发、reset、响应式布局、运行快照不漂移及 exact 课程／课件身份。逐项真实核验后由 Admin DM 点击“签发 UiAcceptanceReceipt”；自动化或模型不得代签。重复提交同一业务指纹返回同一持久回执。Test 可点击“重置 Test 实例”重新演练；Production 没有该按钮。
+课堂明确结束后，中控显示完整 16 项真实 UI 清单，覆盖同源运行时、Membership/RBAC、四导师和 N 学员视图、隐私与投屏、顺序解锁与独立回看、Test 角色切换、显式结束、刷新重登、并发、reset、响应式布局、课程剧本锁定及导师最新课件入口。逐项真实核验后由 Admin DM 点击“签发 UiAcceptanceReceipt”；自动化或模型不得代签。重复提交同一业务指纹返回同一持久回执。Test 可点击“重置 Test 实例”重新演练；Production 没有该按钮。
 
 ## 10. 发布并创建 Production
 
 1. 进入 `/studio/releases/`，找到与回执 exact 匹配的 Candidate。
 2. 点击发布。服务端会再次验证课程声明的最大 N 确实能实例化。
 3. 返回 `/classroom/#factory`，选择 `Production · 仅 Released、不可重置`。
-4. 重新绑定四导师、N 位学员和四套 Released exact 课件，创建 Production Classroom。
-5. 开课后即使 Studio 保存新 Candidate、课件产生新 revision，既有 Production 仍固定读取创建时的 CourseRelease 和 CoursewareRelease。
+4. 绑定四导师和 N 位学员，确认四类导师课件均有当前发布版，创建 Production Classroom。
+5. 开课后 Studio 保存新 Candidate 不会改变既有 Production 的 CourseRelease；导师课件独立更新，下一次打开即使用本角色最新发布版。
 
 ## 11. 现场故障最短处理
 

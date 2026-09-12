@@ -26,7 +26,6 @@ export type FactoryChecklistInput = {
   viewReceipt: { receiptId: string; valid: boolean; invalidReasons: string[] } | null;
   uiReceipt: { receiptId: string; valid: boolean; invalidReasons: string[] } | null;
   coursewareRefs: Array<{ mentorRole: string } | null>;
-  coursewareMatchesReceipt: boolean;
   mentorIds: string[];
   learnerIds: string[];
   learnerCount: number;
@@ -81,11 +80,9 @@ export function buildFactoryChecklist(input: FactoryChecklistInput): FactoryChec
 
   const missingCourseware = FACTORY_MENTOR_ROLES.filter((role) => !input.coursewareRefs.some((ref) => ref?.mentorRole === role));
   if (missingCourseware.length) {
-    items.push({ id: "courseware", label: "四套导师课件", ready: false, message: `还缺 ${missingCourseware.join("／")} 导师的可用 exact 课件。`, actionHref: "/studio/courseware/", actionLabel: "去导师课件库" });
-  } else if (input.environment === "production" && !input.coursewareMatchesReceipt) {
-    items.push({ id: "courseware", label: "四套导师课件", ready: false, message: "当前 Released 课件与 UI 验收时的 exact 版本不一致。", actionHref: "/studio/courseware/", actionLabel: "对齐课件版本" });
+    items.push({ id: "courseware", label: "导师课件", ready: false, message: `还缺 ${missingCourseware.join("／")} 导师的当前已发布课件。`, actionHref: "/studio/courseware/", actionLabel: "去导师课件库" });
   } else {
-    items.push({ id: "courseware", label: "四套导师课件", ready: true, message: "P／D／M／O 四套 exact 课件齐全。" });
+    items.push({ id: "courseware", label: "导师课件", ready: true, message: "P／D／M／O 打开时自动使用各自最新发布版，不与课程剧本版本互相锁定。" });
   }
 
   const missingMentors = FACTORY_MENTOR_ROLES.filter((_, index) => !input.mentorIds[index]);

@@ -100,13 +100,12 @@ try {
   const learnerProfiles = credentials.filter((item) => item.role === "learner");
   const coursewareRefs = (["P", "D", "M", "O"] as const).map((role) => {
     const selected = role === "P" ? pCourseware : role === "D" ? dCourseware : mustCourseware(bootstrap.courseware, role);
-    const declared = rawCourse.contentPackages?.scriptPackages.find((scriptPackage) => scriptPackage.coursewareRef.mentorRole === role)?.coursewareRef;
     return {
       mentorRole: role,
       packageId: selected.packageId,
       slug: selected.slug,
-      revision: declared?.revision ?? selected.latestRevision,
-      digest: declared?.digest ?? selected.latestDigest,
+      revision: selected.releasedRevision!,
+      digest: selected.releasedDigest!,
     };
   });
 
@@ -114,7 +113,7 @@ try {
   for (const learnerCount of [2, 4, 6]) {
     const room = await postData<{ classroomId: string }>("/api/platform/classrooms", {
       environment: "test", title: `T-090 D 导师 ${learnerCount} 人验收课堂`, learnerCount,
-      courseRef: candidate, viewAcceptanceReceiptId: viewReceipt.receiptId, coursewareRefs,
+      courseRef: candidate, viewAcceptanceReceiptId: viewReceipt.receiptId,
       adminDmProfileIds: [bootstrap.user.userId],
       mentorSeats: (["P", "D", "M", "O"] as const).map((mentorRole, index) => ({ mentorRole, profileId: mentorProfiles[index].userId })),
       learnerProfileIds: learnerProfiles.slice(0, learnerCount).map((item) => item.userId),
@@ -257,16 +256,20 @@ try {
   const wrongRefs = coursewareRefs.map((ref) => ref.mentorRole === "D" ? {
     mentorRole: "D" as const, packageId: oldD.packageId, slug: oldD.slug, revision: oldD.latestRevision, digest: oldD.latestDigest,
   } : ref);
-  const mismatch = await post("/api/platform/classrooms", {
-    environment: "test", title: "T-090 wrong D deck must fail", learnerCount: 2, courseRef: candidate,
+  const decoupledRoom = await postData<{ classroomId: string }>("/api/platform/classrooms", {
+    environment: "test", title: "T-090 client deck does not control playback", learnerCount: 2, courseRef: candidate,
     viewAcceptanceReceiptId: viewReceipt.receiptId, coursewareRefs: wrongRefs, adminDmProfileIds: [bootstrap.user.userId],
     mentorSeats: (["P", "D", "M", "O"] as const).map((mentorRole, index) => ({ mentorRole, profileId: mentorProfiles[index].userId })),
     learnerProfileIds: learnerProfiles.slice(0, 2).map((item) => item.userId),
   }, adminCookie);
-  assert.equal(mismatch.status, 409);
-  assert.equal((await mismatch.json() as Envelope<never>).error?.code, "COURSE_CONTENT_COURSEWARE_MISMATCH");
+  const decoupledDetail = await view(decoupledRoom.classroomId, "B01", mentorProfiles[0].userId, adminCookie);
+  assert.deepEqual(
+    decoupledDetail.courseware.find((item) => item.mentorRole === "D"),
+    coursewareRefs.find((item) => item.mentorRole === "D"),
+    "the server must resolve the current released D deck instead of a stale client selection",
+  );
 
-  console.log("T090_DEVELOPMENT_MENTOR_E2E_PASS learners=2/4/6 cards=persistent-private D=B05-B08 DevelopmentStick=reject-resubmit-accept handoff=D-to-M:B09 exact-courseware=fail-closed");
+  console.log("T090_DEVELOPMENT_MENTOR_E2E_PASS learners=2/4/6 cards=persistent-private D=B05-B08 DevelopmentStick=reject-resubmit-accept handoff=D-to-M:B09 courseware=latest-decoupled");
 } finally {
   if (server) {
     server.kill("SIGTERM");

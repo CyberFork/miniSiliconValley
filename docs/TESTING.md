@@ -52,7 +52,7 @@ Candidate exact revision/digest
 
 - 只能由已解锁全部 Block、且由导师另行显式结束的 TEST Classroom 签发。
 - 16 个必检项缺一即拒绝。
-- 锁定 exact Candidate、View 回执、Test Classroom、N、seed、reset generation、state machine、4 + N Membership、Admin DM 和四套课件。
+- 锁定 exact Candidate、View 回执、Test Classroom、N、seed、reset generation、state machine、4 + N Membership 和 Admin DM；四套课件仅保存签发时的审计快照。
 - 保存 browser／platform／viewport client matrix、app build、操作者和审计摘要。
 - TEST reset 后历史回执保留但立即失效，课堂当前 binding 被清空。
 - TEST archive 后历史回执同样保留但立即失效，并显示“仅保留为历史证据”。
@@ -62,9 +62,9 @@ Candidate exact revision/digest
 
 - 缺少任一有效回执时不能 Released。
 - Production 只能选择 Released。
-- Production 只能复用 UiAcceptanceReceipt 中四套 exact 且已发布课件；不能静默替换“最新版”。
+- Production 复用同一课程剧本的 UiAcceptanceReceipt；导师课件不与回执互锁，每次打开当前发布版。
 - 课件 bundle digest 采用 canonical 字段顺序，API 与 D1 的对象插入顺序不得改变结果。
-- Production 创建后，Studio 新 Candidate、课件新版本和 TEST reset 对其 exact 引用及 ControllerState 零副作用。
+- Production 创建后，Studio 新 Candidate 和 TEST reset 对其 exact 课程引用及 ControllerState 零副作用；导师课件新发布版会在下次打开时生效。
 - Production reset 返回 `PRODUCTION_RESET_FORBIDDEN`。
 
 ## 3. 课程工厂、权限与隐私
@@ -104,7 +104,7 @@ Candidate exact revision/digest
 
 1. 保存 Candidate 并签 View 回执。
 2. 证明伪造 View 回执不能创建 Test。
-3. 创建绑定四套 exact 课件的 TEST。
+3. 创建只锁定课程剧本的 TEST，并记录当时四套导师课件审计快照。
 4. 触发真实并发 409，并在完整运行前测试 reset。
 5. 顺序解锁全部 13 Block，并证明末页解锁后 lifecycle 仍为 `running`。
 6. 证明未显式结束时不能签 UI 回执，再显式结束并验证幂等重放。
@@ -112,7 +112,7 @@ Candidate exact revision/digest
 8. 签发并重复签发 Ui 回执，验证持久 id 与 classroom binding。
 9. 证明缺少 UI 回执不能发布。
 10. 使用双回执发布 Released。
-11. 用同一组 exact 课件创建 PRODUCTION。
+11. 用同一课程剧本与 UI 回执创建 PRODUCTION；课件版本独立解析。
 12. reset TEST，验证 UI 回执失效而 PRODUCTION 不漂移。
 13. 新 Candidate 使旧未发布 Candidate 的 View 回执失效。
 14. 构造容量不足课程，证明 View／Test 失败关闭。
@@ -149,7 +149,7 @@ COURSE_PLATFORM_E2E_PASS t086=view-receipt+ui-receipt+release-gates t087=navigat
 - TEST 标题旁固定显示普通链接“＋ 新建测试课堂”；不需要滚到旧课堂之后寻找入口。
 - 课堂卡显示完整 classroomId、courseId@revision、digest、updatedAt、run generation、人数和 lifecycle；同版本多场不得只靠相同标题区分。
 - Factory 展示所有当前 Candidate／Released exact 版本及逐项就绪原因；选择待验收版本不等于绕过门禁。
-- Test 创建仍要求所选 exact 版本具有有效 View 回执；Production 仍要求 Released、同版本有效 View/UI 回执并锁定验收过的四套课件。
+- Test 创建仍要求所选 exact 课程版本具有有效 View 回执；Production 仍要求 Released 及同课程版本有效 View/UI 回执。导师课件始终按角色打开最新发布版。
 - 课程、账号与课堂列表独立读取；任一失败时相应区域保留上次成功数据、显示就地重试，创建区不得整块消失。
 - exact 深链失效时明确显示“未自动换课”；人数在选课前显示“请先选择课程”，创建按钮旁持续显示可操作就绪清单。
 - 导师、N 学员、Admin DM 和 screen 分别只看到权限允许内容。
@@ -242,7 +242,7 @@ npm run test:release
 <!-- ui-acceptance-checklist:start -->
 - `sameRuntimeUi`：Test 与 Production 使用同一套页面、API 与状态机
 - `membershipsAndRbac`：四导师、N 学员、Admin DM 的 Membership 与 RBAC 均正确
-- `mentorTasksAndCourseware`：四位导师各自看到正确任务与 exact 课件入口
+- `mentorTasksAndCourseware`：四位导师各自看到正确任务，并能打开本角色最新发布课件
 - `learnerTasks`：每名学员都能看懂并完成当前私人任务
 - `learnerPrivacy`：学员只看到自己的私密卡、RP 与个人钱包
 - `sharedScreenRedaction`：公共投屏未泄漏手牌、讲稿、账号、钱包或未公开提交
@@ -255,5 +255,5 @@ npm run test:release
 - `testReset`：Test reset 已实测且只重置本课堂，不影响其他实例
 - `responsiveLayouts`：手机、电脑与公共投屏尺寸均已人工检查
 - `immutableRuntime`：Studio 后续保存没有热更新正在运行的课堂
-- `exactVersions`：课程与 P／D／M／O 课件 revision／digest 与锁定值一致
+- `exactVersions`：课堂课程剧本 revision／digest 与锁定值一致；导师课件可独立更新
 <!-- ui-acceptance-checklist:end -->

@@ -18,7 +18,6 @@ import {
 import {
   assertCourseCanInstantiate,
   buildStudioProjection,
-  declaredCoursewareBindingIssues,
   privateDeckForBlock,
   resolveLearnerPolicy,
 } from "./course-platform";
@@ -33,8 +32,10 @@ import {
   type CoursePackageRef,
 } from "./course-package";
 import {
+  defaultCoursewareRefs,
   loadCoursewareExact,
   isCoursewareLibraryVisible,
+  listCourseware,
   type CoursewareContent,
 } from "./courseware-store";
 import {
@@ -343,9 +344,13 @@ export async function createClassroomInstance(
   const course = await loadExactCoursePackage(db, courseRef);
   assertCourseCanInstantiate(course, request.learnerCount);
   await validateAccountAssignments(db, request);
+  // Course scripts and mentor decks are independent. Never ask the creator to
+  // reconcile two unrelated revision counters and never trust a stale client
+  // selection: resolve the current released deck for each role on the server.
+  const currentCourseware = defaultCoursewareRefs(await listCourseware(db));
   const trustedCourseware: ExactCoursewareRef[] = [];
   for (const role of CLASSROOM_MENTOR_ROLES) {
-    const requested = request.coursewareRefs.find((ref) => ref.mentorRole === role)!;
+    const requested = currentCourseware.find((ref) => ref.mentorRole === role)!;
     const content = await loadCoursewareExact(db, requested.packageId, requested.revision, requested.digest);
     if (content.mentorRole !== role) throw new ClassroomError("COURSEWARE_ROLE_MISMATCH", `${role} 导师课件角色不匹配。`, 409);
     if (request.environment === "production" && !content.released) throw new ClassroomError("COURSEWARE_RELEASE_REQUIRED", `正式课堂的 ${role} 课件必须已发布。`, 409);
@@ -354,22 +359,12 @@ export async function createClassroomInstance(
     }
     trustedCourseware.push(toExactCoursewareRef(content));
   }
-  const declaredBindingIssues = declaredCoursewareBindingIssues(course, trustedCourseware);
-  if (declaredBindingIssues.length) {
-    throw new ClassroomError(
-      "COURSE_CONTENT_COURSEWARE_MISMATCH",
-      "课程声明的案例剧本与导师课件版本不一致，不能创建会悄悄错页的课堂。",
-      409,
-      declaredBindingIssues,
-    );
-  }
   const uiReceipt = request.environment === "production"
     ? await requireValidUiAcceptanceReceipt(
         db,
         courseRef,
         request.uiAcceptanceReceiptId ?? "",
         viewReceipt.receiptId,
-        trustedCourseware,
       )
     : null;
 
@@ -707,7 +702,7 @@ export async function getClassroomInstance(
   const learners = learnerRows.results ?? [];
   const admins = adminRows.results ?? [];
   if (mentors.length !== 4 || courseware.length !== 4) {
-    throw new ClassroomError("CLASSROOM_MENTOR_BINDING_CORRUPT", "课堂必须保持 P／D／M／O 四个导师席与四套 exact 课件绑定。", 500);
+    throw new ClassroomError("CLASSROOM_MENTOR_BINDING_CORRUPT", "课堂必须保持 P／D／M／O 四个导师席与创建时的四套课件审计快照。", 500);
   }
   if (learners.length !== summary.learnerCount) {
     throw new ClassroomError("CLASSROOM_LEARNER_BINDING_CORRUPT", "课堂学员 Membership 与工厂锁定人数不一致。", 500);

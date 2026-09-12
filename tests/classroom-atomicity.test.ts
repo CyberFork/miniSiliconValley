@@ -857,7 +857,6 @@ test("archiving retains a UI receipt as historical evidence but invalidates futu
       request.courseRef,
       issued.receiptId,
       request.viewAcceptanceReceiptId,
-      request.coursewareRefs,
     ), "UI_ACCEPTANCE_RECEIPT_INVALID");
   } finally { db.raw.close(); }
 });

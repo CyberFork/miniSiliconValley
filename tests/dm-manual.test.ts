@@ -99,7 +99,7 @@ test("production admin and DM manual matches the actual classroom controls", asy
     "下载 CSV",
     "创建 Test Classroom →",
     "四个导师 Membership",
-    "四套 exact 导师课件",
+    "无需选择、核对或绑定课件 revision",
     "替换学员席",
     "替换导师席",
     "授予 Delegated Admin DM",

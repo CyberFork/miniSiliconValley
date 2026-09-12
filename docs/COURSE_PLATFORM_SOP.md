@@ -13,7 +13,7 @@ CourseDefinition Working Copy
   → 创建 PRODUCTION Classroom
 ```
 
-导师课件是并行资源线。P／D／M／O 四套课件必须在创建 TEST 前选定；PRODUCTION 必须复用验收过且已发布的同一组 exact 版本。
+导师课件是独立资源线。课堂只选择并锁定一份课程剧本；P／D／M／O 每次从课堂入口打开时自动使用本角色最新发布课件，不需要在 Factory 选择或核对版本。
 
 ## 角色与入口
 
@@ -24,13 +24,13 @@ CourseDefinition Working Copy
 
 Admin DM 是单个课堂的可分配权限，不是第五位导师。平台管理员没有某课堂 Membership 或 Admin DM 时，也不能读取该课堂。
 
-## 0. 准备四套导师课件
+## 0. 准备导师课件
 
 1. 进入 `/studio/courseware/`（导师课件库）。
-2. 为 P／D／M／O 上传或选择课件，并保存不可变 revision。
+2. 为 P／D／M／O 上传课件并保存不可变 revision。
 3. 通过 `/course/{slug}/?revision={revision}` 打开 exact 版本。
-4. 确认准备在 UI 验收中使用的四套课件。
-5. 如果要进入正式课堂，将这四个 exact 版本分别发布。
+4. 确认每个角色至少有一套当前发布课件。
+5. 后续发布同一角色的新版本会推进当前指针；历史版本保留审计，但不要求重建课堂。
 
 `/course/` 仅是“导师课件播放”，不编辑 CourseDefinition，也不推进课堂。
 
@@ -63,7 +63,7 @@ Admin DM 是单个课堂的可分配权限，不是第五位导师。平台管�
 1. 在验收成功提示中点击“创建 UI 验收课堂”，或从 `/studio/releases/` 进入。
 2. `/classroom/#factory` 自动选择 `TEST` 和对应 exact Candidate。
 3. 选择真实学员数 N、四个不同导师账号、N 个不同学员账号。
-4. 为 P／D／M／O 绑定计划投产的四套 exact 课件。
+4. 确认页面提示 P／D／M／O 均有当前发布课件；无需选择版本。
 5. 指定 Admin DM。导师创建课堂时本人必须是初始 Admin DM。
 6. 点击“创建真实 UI 验收课堂”。
 
@@ -86,7 +86,7 @@ TEST Factory 会列出所有当前 Candidate／Released 并逐项显示“待视
 
 课堂明确结束后，Admin DM 在中控逐项确认下方 16 项检查：
 
-点击“签发 UiAcceptanceReceipt”。回执锁定课堂 ID、N、seed、reset generation、状态机版本、4 + N Membership、Admin DM、四套课件、浏览器／视口、构建 ID、操作者、时间与审计摘要。
+点击“签发 UiAcceptanceReceipt”。回执锁定课堂 ID、课程剧本、N、seed、reset generation、状态机版本、4 + N Membership、Admin DM、浏览器／视口、构建 ID、操作者、时间与审计摘要；四套课件仅记录签发当时的审计快照。
 
 TEST reset 会立即使既有 UI 回执失效，并从课堂绑定中解除。要再次发布，必须重新完整运行并签发。
 
@@ -95,17 +95,17 @@ TEST reset 会立即使既有 UI 回执失效，并从课堂绑定中解除。�
 1. 返回 `/studio/releases/`。
 2. 在目标 Candidate 查看五级门禁与“下一步主操作”。
 3. 确认 ViewAcceptanceReceipt 与 UiAcceptanceReceipt 都显示有效。
-4. 展开 UI 回执，确认 P／D／M／O 课件 revision／digest。
+4. 可展开 UI 回执查看验收时的 P／D／M／O 课件快照；它仅用于审计，不是发布门槛。
 5. 点击“发布为 Released”。
 
-服务端会重新验证当前 exact Candidate、两张回执、最大人数和卡组容量。任一引用不一致即拒绝，不产生半发布状态。
+服务端会重新验证当前 exact Candidate、两张回执、最大人数和卡组容量。课程或回执引用不一致即拒绝，不产生半发布状态；导师课件版本不参与课程发布匹配。
 
 ## 6. 创建 PRODUCTION 正式课堂
 
 1. 在发布成功后的主操作中点击“创建 Production Classroom”。
 2. Factory 自动切换为 `PRODUCTION` 并选择 exact Released。
-3. 选择 UiAcceptanceReceipt。系统按回执自动回填四套 exact 课件。
-4. 如果某套验收课件尚未发布为同一 revision／digest，先回导师课件库发布；系统不会静默替换为“最新版”。
+3. 选择同一课程剧本版本的有效 UiAcceptanceReceipt。
+4. 系统自动检查四个导师角色是否已有当前发布课件，并在课堂中始终打开最新发布版。
 5. 设置正式成员和学员人数。
 6. 点击“创建 Production 正式课堂”。
 
@@ -139,7 +139,7 @@ PRODUCTION 不提供 reset。Studio 保存、重新发布、Preview 或 TEST res
 - `UI_ACCEPTANCE_CHECKS_INCOMPLETE`：16 项真实 UI 检查没有全部确认。
 - `TEST_CLASSROOM_FINISH_REQUIRED`：剧本页已全部解锁，但导师尚未显式确认结束本次 Run。
 - `CLASSROOM_FINISH_EVIDENCE_REQUIRED`：本课程显式声明的必需作品尚未通过；作品仍可继续补充并再次审核。
-- `UI_ACCEPTANCE_RECEIPT_INVALID`：UI 回执已因 reset／版本变化失效，或课程、View 回执、课件包不匹配。
+- `UI_ACCEPTANCE_RECEIPT_INVALID`：UI 回执已因 reset／课程版本变化失效，或课程、View 回执不匹配。导师课件更新不会触发此错误。
 - `CONTROLLER_VERSION_CONFLICT`：另一位 Admin DM 已推进；刷新后按新版本操作。
 - `PRODUCTION_RELEASE_REQUIRED`：正式课堂尝试使用 Candidate。
 - `COURSEWARE_RELEASE_REQUIRED`：正式课堂课件尚未发布。
@@ -160,7 +160,7 @@ PRODUCTION 不提供 reset。Studio 保存、重新发布、Preview 或 TEST res
 - [ ] 末页解锁后已由导师单独确认结束本次 Run。
 - [ ] 16 项 UI 检查已完成。
 - [ ] UiAcceptanceReceipt 有效。
-- [ ] 四套课件 exact 版本与回执一致且已发布。
+- [ ] 四个导师角色都能打开各自最新发布课件。
 - [ ] Released 已生成。
 - [ ] PRODUCTION 页面显示永久环境标识且没有 reset。
 
@@ -168,7 +168,7 @@ PRODUCTION 不提供 reset。Studio 保存、重新发布、Preview 或 TEST res
 <!-- ui-acceptance-checklist:start -->
 - `sameRuntimeUi`：Test 与 Production 使用同一套页面、API 与状态机
 - `membershipsAndRbac`：四导师、N 学员、Admin DM 的 Membership 与 RBAC 均正确
-- `mentorTasksAndCourseware`：四位导师各自看到正确任务与 exact 课件入口
+- `mentorTasksAndCourseware`：四位导师各自看到正确任务，并能打开本角色最新发布课件
 - `learnerTasks`：每名学员都能看懂并完成当前私人任务
 - `learnerPrivacy`：学员只看到自己的私密卡、RP 与个人钱包
 - `sharedScreenRedaction`：公共投屏未泄漏手牌、讲稿、账号、钱包或未公开提交
@@ -181,5 +181,5 @@ PRODUCTION 不提供 reset。Studio 保存、重新发布、Preview 或 TEST res
 - `testReset`：Test reset 已实测且只重置本课堂，不影响其他实例
 - `responsiveLayouts`：手机、电脑与公共投屏尺寸均已人工检查
 - `immutableRuntime`：Studio 后续保存没有热更新正在运行的课堂
-- `exactVersions`：课程与 P／D／M／O 课件 revision／digest 与锁定值一致
+- `exactVersions`：课堂课程剧本 revision／digest 与锁定值一致；导师课件可独立更新
 <!-- ui-acceptance-checklist:end -->

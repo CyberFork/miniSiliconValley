@@ -11,7 +11,6 @@ function input(overrides: Partial<FactoryChecklistInput> = {}): FactoryChecklist
   return {
     environment: "test", title: "课堂", course, viewReceipt: view, uiReceipt: null,
     coursewareRefs: [{ mentorRole: "P" }, { mentorRole: "D" }, { mentorRole: "M" }, { mentorRole: "O" }],
-    coursewareMatchesReceipt: true,
     mentorIds: ["p", "d", "m", "o"], learnerIds: ["l1", "l2"], learnerCount: 2,
     adminId: "admin", adminLockedToCreator: true, ...overrides,
   };
@@ -39,9 +38,11 @@ test("production requires Released course and UI receipt", () => {
   assert.equal(item(missingUi, "ui").ready, false);
 });
 
-test("courseware must cover four roles and match production receipt", () => {
+test("current mentor courseware availability is independent from the selected script version and UI receipt", () => {
   assert.match(item(buildFactoryChecklist(input({ coursewareRefs: [{ mentorRole: "P" }] })), "courseware").message, /D／M／O/);
-  assert.match(item(buildFactoryChecklist(input({ environment: "production", course: { ...course, released: true }, uiReceipt: ui, coursewareMatchesReceipt: false })), "courseware").message, /不一致/);
+  const ready = item(buildFactoryChecklist(input({ environment: "production", course: { ...course, released: true }, uiReceipt: ui })), "courseware");
+  assert.equal(ready.ready, true);
+  assert.match(ready.message, /最新发布版/);
 });
 
 test("mentor and learner omissions or duplicates are blocked", () => {

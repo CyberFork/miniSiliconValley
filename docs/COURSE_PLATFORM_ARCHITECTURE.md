@@ -34,7 +34,7 @@ CourseDefinition Working Copy
 这条链解决两个不同问题：
 
 - **ViewAcceptanceReceipt** 证明已保存 Candidate 在共享投影器中能覆盖全部 Block、全部支持人数、四导师、N 学员、卡牌与中控。
-- **UiAcceptanceReceipt** 证明该 exact Candidate 与四套 exact 导师课件已经在真实 TEST Classroom 的 UI、API、权限和状态机中走完。
+- **UiAcceptanceReceipt** 证明该 exact Candidate 已经在真实 TEST Classroom 的 UI、API、权限和状态机中走完；导师课件版本独立发布，不与课程剧本互锁。
 
 两张回执均为不可变证据，而不是可手改的布尔状态。服务端在创建课堂、签发回执和发布时都会重新核验 exact 引用。
 
@@ -103,7 +103,7 @@ CourseDefinition Working Copy
 - `learnerPolicy`：支持人数、默认人数、每人手牌数与发牌规则。
 - 可选 `contentPackages`：案例、剧本所有权、少量课件检查点、结构化交付物、跨导师交接和待审核项。
 
-`contentPackages` 把“谁拥有案例内容”与“课堂绑定了哪些导师工具包”分开：四套 P／D／M／O 专业课件仍可同时绑定；某个 P 所有的历史 ScriptPackage 不会因此复制给 D／M／O。ScriptPackage 必须固定它编写时使用的 exact Courseware ref，ClassroomFactory 发现 revision／digest 不一致时失败关闭。
+`contentPackages` 把“谁拥有案例内容”与“导师当前使用什么课件”分开：某个 P 所有的历史 ScriptPackage 不会因此复制给 D／M／O。ScriptPackage 中的 Courseware ref 只记录编写时的来源版本，供作者审计；ClassroomFactory 不比较它，导师入口始终解析本角色最新发布课件。
 
 `CasePackage.caseType` 明确隔离史实与课堂模拟：`historical` 必须绑定课程 case、来源和 F 卡；`simulation` 可以使用独立 case ID，但来源与 F 卡必须为空，其私密证据只能作为无来源的 R 模拟卡。一个 CourseDefinition 可以像 T-090 一样先运行 P 历史 ScriptPackage，再运行 D 模拟 ScriptPackage，两者不能共享“事实”身份。
 
@@ -148,11 +148,11 @@ T-095 起，新 Candidate 还包含 `fieldModel`：它只为正文中已有值�
 - 绑定 exact CourseRelease、有效 ViewAcceptanceReceipt 和一间 TEST Classroom。
 - TEST 已解锁同一版本状态机的全部 Block，并由导师另行显式结束该 Run。
 - 锁定学员人数、seed、reset generation、四导师 Membership、N 学员 Membership、Admin DM。
-- 锁定 P／D／M／O 四套 CoursewarePackage 的 exact revision／digest。
+- 记录验收当时 P／D／M／O 四套 CoursewarePackage 的 revision／digest 审计快照；该快照不控制以后播放。
 - 16 项真实 UI 检查全部确认。
 - 保存浏览器／平台／视口矩阵、projector/runtime compatibility contracts、实际 `sourceCommit`／`appBuildId`、操作者、时间和审计摘要。
 
-TEST reset 不删除历史回执，但会增加 reset generation、解除当前课堂绑定并使旧回执失效。回执不能移植到另一间课堂或另一组课件。
+TEST reset 不删除历史回执，但会增加 reset generation、解除当前课堂绑定并使旧回执失效。回执不能移植到另一间课堂；导师课件后续独立更新不会使回执失效。
 
 TEST archive 也不删除历史回执。它保留原回执供审计查询，但立即使其失去后续发布与 Production 准入资格，并明确标记“来源 Test Classroom 已归档”。
 
@@ -160,16 +160,16 @@ TEST archive 也不删除历史回执。它保留原回执供审计查询，但�
 
 - 每个课件版本不可变，并拥有 canonical bundle digest。
 - digest 在哈希前按固定字段顺序规范化，不受 JavaScript 对象插入顺序影响。
-- TEST 可以绑定 Candidate 或 Released 课件版本。
-- PRODUCTION 只能绑定已发布、且与 UI 回执完全一致的四套 exact 版本。
+- TEST 与 PRODUCTION 创建时都自动记录各角色当前发布课件，界面不要求选课件版本。
+- 导师课件的不可变历史版本继续保留；课堂播放每次按角色打开最新发布版，不要求与 UI 回执快照一致。
 
 ### ClassroomInstance
 
-- 只保存 exact 课程与课件引用，不复制可编辑正文。
+- 锁定 exact 课程引用，不复制可编辑正文；课件引用只保存创建时的审计快照，不是播放锁。
 - 拥有独立 ControllerState、Membership、手牌、提交、RP、钱包、团队资金和审计。
 - `classroom_acceptance_bindings` 保存创建时使用的 View 回执与当前 UI 回执。
 - TEST 与 PRODUCTION 的数据和 ControllerState 以 classroomId 隔离。
-- 同一 exact 版本可以创建多场独立 TEST；不同 revision 也可并存。保存新 Candidate 或 reset 旧课堂都不会替换既有 exact 引用。
+- 同一 exact 课程版本可以创建多场独立 TEST；不同 revision 也可并存。保存新 Candidate 或 reset 旧课堂都不会替换既有课程引用；课件发布指针可独立前进。
 
 ### Test Classroom Archive
 
@@ -238,9 +238,9 @@ T-094 起，所有 exact 课程快照统一显示 `courseDataId = {courseId}@r{r
 
 公开站点若展示动态课程，只能调用 Released-only 的公共 allow-list 投影：课程摘要、五步、桌游机制、人数范围和六分钟终局。Candidate、Block 导师讲稿、私密卡、rubric、review queue、字段所有权、来源内部信息和课堂运行状态都不进入公开 DTO；Original Timeline 仍是独立只读史实底座，课程编辑和课堂状态无写回路径。
 
-共同准入仍由 `ClassroomFactory.create()` 负责：exact CourseRelease、人数、成员与有效 ViewAcceptanceReceipt 必须一致。Production 额外要求 Released、有效 UiAcceptanceReceipt 及四套 exact 课件。创建使用单次 D1 事务／batch 写入，失败不留下半个课堂。
+共同准入仍由 `ClassroomFactory.create()` 负责：唯一 exact CourseRelease、人数、成员与有效 ViewAcceptanceReceipt 必须一致。Production 额外要求 Released 与同课程版本的有效 UiAcceptanceReceipt；导师课件由服务端按角色解析当前发布版，不与课程或回执作版本匹配。创建使用单次 D1 事务／batch 写入，失败不留下半个课堂。
 
-`/classroom/#factory` 的选择界面不是准入规则本身。它展示所有当前 Candidate／Released，并把课程、View、UI、P／D／M／O 课件、4 + N 成员和 Admin DM 转换成持久可见的就绪清单；未通过的版本仍可选择和进入 exact 修复路径，但创建按钮保持失败关闭。课堂列表、课程/回执和账号分别读取、分别重试，刷新失败保留上一次成功数据与合法表单值。显式 exact 深链失效时绝不回退到另一版本。
+`/classroom/#factory` 的选择界面不是准入规则本身。它展示可选的当前 Candidate／Released，但一次只使用用户明确选择的一份课程剧本；View、UI、4 + N 成员和 Admin DM 转换成持久可见的就绪清单。导师课件不提供版本选择，只提示各角色是否已有当前发布版。未通过的课程版本仍可选择和进入 exact 修复路径，但创建按钮保持失败关闭。课堂列表、课程/回执和账号分别读取、分别重试，刷新失败保留上一次成功数据与合法表单值。显式 exact 深链失效时绝不回退到另一课程版本。
 
 TEST 区标题旁永久提供普通链接“新建测试课堂”。课堂卡公开完整 `classroomId / courseId@revision / digest / learnerCount / lifecycle / updatedAt`，避免多个版本或同版本多次测试相互混淆。已归档 Test 从活跃区移入独立历史区；Studio 的当前验收计数不把它当成活跃 Test。
 
@@ -250,7 +250,7 @@ Admin DM 只有在 TEST 解锁全部剧本页并显式结束该 Run 后，才能
 
 1. Test 与 Production 使用同一套页面、API 与状态机。
 2. 四导师、N 学员、Admin DM 的 Membership 与 RBAC 均正确。
-3. 四位导师各自看到正确任务与 exact 课件入口。
+3. 四位导师各自看到正确任务，并能打开本角色最新发布课件。
 4. 每名学员都能看懂并完成当前私人任务。
 5. 学员只看到自己的私密卡、RP 与个人钱包。
 6. 公共投屏未泄漏手牌、讲稿、账号、钱包或未公开提交。
@@ -263,9 +263,9 @@ Admin DM 只有在 TEST 解锁全部剧本页并显式结束该 Run 后，才能
 13. Test reset 已实测且只重置本课堂，不影响其他实例。
 14. 手机、电脑与公共投屏尺寸均已人工检查。
 15. Studio 后续保存没有热更新正在运行的课堂。
-16. 课程与 P／D／M／O 课件 revision／digest 与锁定值一致。
+16. 课堂课程剧本 revision／digest 与锁定值一致；导师课件可独立更新。
 
-浏览器复选框只表达人工结果；签发 API 仍会校验课堂环境、显式结束后的 lifecycle、状态机、成员、课件、View 回执、reset generation 和兼容契约。自动化只能验证门禁，不能替人签发这张人工回执。
+浏览器复选框只表达人工结果；签发 API 仍会校验课堂环境、显式结束后的 lifecycle、状态机、成员、View 回执、reset generation 和兼容契约，并把当时的课件集合作为审计快照。自动化只能验证门禁，不能替人签发这张人工回执。
 
 ## 7. 失败关闭与失效规则
 
@@ -274,10 +274,10 @@ Admin DM 只有在 TEST 解锁全部剧本页并显式结束该 Run 后，才能
 - Candidate／receipt 的 revision 或 digest 不一致。
 - View 回执缺失、过期、投影器不兼容或容量校验失败。
 - TEST 未完成或 16 项检查不全。
-- UI 回执来自另一课堂、另一 reset generation 或另一套课件。
+- UI 回执来自另一课堂、另一 reset generation 或另一课程剧本版本。
 - UI 回执来源 TEST 已归档；历史内容仍可查，但不能继续作为当前发布证据。
-- PRODUCTION 绑定 Candidate、未发布课件或未经验收的课件。
-- 课堂开始后试图替换课程或课件版本。
+- PRODUCTION 绑定 Candidate、缺少同课程版本的有效两级验收回执，或某导师角色完全没有当前发布课件。
+- 课堂开始后试图替换锁定的课程剧本版本。导师课件不属于该锁，发布新版本后下次打开即生效。
 - 并发 ControllerState 写入使用旧 version。
 - 归档请求使用旧 run/script version，或归档后继续尝试提交、审核、改成员、重置或签收。
 - 投屏载荷包含私密卡、导师讲稿、账号、钱包或未公开提交。
@@ -360,7 +360,7 @@ Workshop 保留 `/workshop/` 作为历史 URL，但只可由 Studio → 资料�
 - Preview 只验收已保存 Candidate，不能把 Working Copy 当成已验收版本。
 - Test 与 Production 共用工厂、UI、API 和状态机，但不共用运行数据。
 - 没有两张 exact 有效回执就不能 Released。
-- Production 必须复用 UI 验收过的四套 exact 课件。
+- Production 锁定 UI 验收过的 exact 课程剧本；导师课件按角色独立打开最新发布版。
 - Studio 保存、Preview、发布新版本或 TEST reset 对运行中 Production 零副作用。
 - 学员人数不写死为 4；必须由课程策略和实例人数动态投影。
 - 回执提供证据链，不能替代真实人工课堂验收。

@@ -5,7 +5,7 @@ import { chatGPTSignInPath, getChatGPTUser, requireCompletedPasswordSetup } from
 import CoursewareFrame from "../../../../course/[slug]/CoursewareFrame";
 import { getClassroomInstance } from "../../../../lib/classroom-platform-store";
 import { CLASSROOM_MENTOR_ROLES, type ClassroomMentorRole } from "../../../../lib/classroom-factory";
-import { loadCoursewareExact } from "../../../../lib/courseware-store";
+import { defaultCoursewareRefs, listCourseware, loadCoursewareExact } from "../../../../lib/courseware-store";
 import styles from "../../../../course/course.module.css";
 
 export const dynamic = "force-dynamic";
@@ -32,13 +32,16 @@ export default async function ClassroomCoursewarePage({ params }: { params: Prom
     impersonationClassroomId: user.impersonation?.classroomId ?? null,
     impersonationExpiresAt: user.impersonation?.expiresAt ?? null,
   };
-  const classroom = await getClassroomInstance(db, actor, classroomId);
-  const ref = classroom.courseware.find((item) => item.mentorRole === role);
+  // getClassroomInstance is still the membership/permission gate. The deck is
+  // intentionally not read from the classroom's creation-time audit snapshot:
+  // every open resolves the role's current released courseware independently.
+  await getClassroomInstance(db, actor, classroomId);
+  const ref = defaultCoursewareRefs(await listCourseware(db)).find((item) => item.mentorRole === role);
   if (!ref) notFound();
   const item = await loadCoursewareExact(db, ref.packageId, ref.revision, ref.digest);
   if (item.availability === "placeholder") {
     return <main className={styles.viewer}>
-      <header className={styles.viewerHeader}><a href={`/classroom/${encodeURIComponent(classroomId)}/`}>← 返回课堂</a><b>Mini Silicon Valley · {role} 导师</b></header>
+      <header className={styles.viewerHeader}><a href={`/classroom/${encodeURIComponent(classroomId)}/`}>← 返回课堂</a><b>Mini Silicon Valley · {role} 导师最新课件</b></header>
       <div className={styles.viewerMeta}><small>COURSEWARE PLACEHOLDER · {role}</small><h1>尚未提供真实导师课件</h1><code>{item.packageId} · r{item.revision} · {item.digest}</code></div>
       <div className={styles.staticLaunch}><section><span className={styles.warning}>内部占位 · 不是正式课件</span><h2>{item.title}</h2><p>这条绑定只用于 Test Classroom 验证四导师结构。课程组尚未上传并发布 {role} 导师真实课件，因此系统不会展示一个看似可用、实际失效的播放链接。</p></section></div>
     </main>;

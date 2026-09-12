@@ -214,7 +214,7 @@ try {
   assert.equal(coursewarePage.status, 200);
   const coursewareHtml = await coursewarePage.text();
   assert.ok(coursewareHtml.includes("账户中心") && coursewareHtml.includes("添加账号") && coursewareHtml.includes("退出当前账号"), "protected Courseware must keep the unified account menu");
-  const testedCoursewareRefs = coursewareRefs(initial.courseware, "test", candidateBody).map((ref) => ref.mentorRole === "O" ? {
+  const testedCoursewareRefs = coursewareRefs(initial.courseware).map((ref) => ref.mentorRole === "O" ? {
     mentorRole: customOperationsCourseware.mentorRole,
     packageId: customOperationsCourseware.packageId,
     slug: customOperationsCourseware.slug,
@@ -498,6 +498,32 @@ try {
     html: `<!doctype html><html><body><h1>运营导师 later r1</h1><p>既有 Production 不得静默升级。</p></body></html>`,
   }, adminCookie);
   assert.equal(laterCourseware.revision, 1);
+  await postData("/api/studio/courseware/release", {
+    packageId: laterCourseware.packageId,
+    revision: laterCourseware.revision,
+    digest: laterCourseware.digest,
+  }, adminCookie);
+  const existingProductionLatestDeck = await get(`/classroom/${production.classroomId}/courseware/O/`, productionMentorCookie);
+  assert.equal(existingProductionLatestDeck.status, 200);
+  assert.ok((await existingProductionLatestDeck.text()).includes(laterCourseware.digest), "an existing classroom mentor link must resolve the newest released O deck");
+  const productionAfterDeckRelease = await createClassroom({
+    environment: "production",
+    title: "T-086 courseware-decoupled Production E2E",
+    learnerCount: 2,
+    courseRef: released,
+    viewAcceptanceReceiptId: viewReceipt.receiptId,
+    uiAcceptanceReceiptId: receipt.receiptId,
+    coursewareRefs: productionCoursewareRefs,
+    adminDmProfileIds: [initial.user.userId],
+    mentorSeats: mentorSeats(generatedMentors.map((item) => item.userId)),
+    learnerProfileIds: generatedLearners.map((item) => item.userId),
+  }, adminCookie);
+  const productionAfterDeckReleaseDetail = await getData<Detail>(`/api/platform/classrooms/${productionAfterDeckRelease.classroomId}`, adminCookie);
+  assert.equal(
+    productionAfterDeckReleaseDetail.courseware.find((item) => item.mentorRole === "O")?.digest,
+    laterCourseware.digest,
+    "a new classroom must snapshot the current deck without requiring a matching historical UI receipt deck",
+  );
   await resetClassroom(testRoom.classroomId, adminCookie);
   const resetTestDetail = await getData<Detail>(`/api/platform/classrooms/${testRoom.classroomId}`, adminCookie);
   assert.equal(resetTestDetail.acceptance.uiReceiptId, null, "reset must detach the now-invalid UI receipt from the Test instance");
@@ -645,7 +671,7 @@ try {
   assert.equal(stillMentor.isAdminDm, false);
   assert.equal(stillMentor.myView?.kind, "mentor");
 
-  console.log("COURSE_PLATFORM_E2E_PASS t086=view-receipt+ui-receipt+release-gates t087=navigation+account-menu+test-impersonation+nonrecursive-admin-dm candidate=exact production=isolated reset=receipt-invalidated learners=2,6 privateCards=18-unique screen=redacted");
+  console.log("COURSE_PLATFORM_E2E_PASS t086=view-receipt+ui-receipt+release-gates t087=navigation+account-menu+test-impersonation+nonrecursive-admin-dm candidate=exact production=isolated courseware=latest-decoupled reset=receipt-invalidated learners=2,6 privateCards=18-unique screen=redacted");
 } finally {
   if (server) {
     server.kill("SIGTERM");
@@ -676,7 +702,7 @@ function mentorSeats(ids: string[]) {
   return (["P", "D", "M", "O"] as const).map((mentorRole, index) => ({ mentorRole, profileId: ids[index] }));
 }
 
-function coursewareRefs(items: Courseware[], environment: "test" | "production", course?: CourseDefinition) {
+function coursewareRefs(items: Courseware[]) {
   const preferredSlugs = {
     P: "product-mentor-foundations",
     D: "development-mentor-ligun",
@@ -684,13 +710,8 @@ function coursewareRefs(items: Courseware[], environment: "test" | "production",
     O: "operations-mentor-field-kit",
   } as const;
   return items.filter((item) => preferredSlugs[item.mentorRole] === item.slug).map((item) => ({
-    ...(() => {
-      const declared = course?.contentPackages?.scriptPackages.find((scriptPackage) => scriptPackage.coursewareRef.mentorRole === item.mentorRole)?.coursewareRef;
-      return {
-        revision: declared?.revision ?? (environment === "production" ? item.releasedRevision! : item.latestRevision),
-        digest: declared?.digest ?? (environment === "production" ? item.releasedDigest! : item.latestDigest),
-      };
-    })(),
+    revision: item.releasedRevision!,
+    digest: item.releasedDigest!,
     mentorRole: item.mentorRole,
     packageId: item.packageId,
     slug: item.slug,

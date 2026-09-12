@@ -10,7 +10,7 @@ export const CLASSROOM_RUNTIME_CONTRACT_VERSION = "classroom-runtime-v3";
 export const UI_ACCEPTANCE_CHECKLIST = [
   { id: "sameRuntimeUi", label: "Test 与 Production 使用同一套页面、API 与状态机" },
   { id: "membershipsAndRbac", label: "四导师、N 学员、Admin DM 的 Membership 与 RBAC 均正确" },
-  { id: "mentorTasksAndCourseware", label: "四位导师各自看到正确任务与 exact 课件入口" },
+  { id: "mentorTasksAndCourseware", label: "四位导师各自看到正确任务，并能打开本角色最新发布课件" },
   { id: "learnerTasks", label: "每名学员都能看懂并完成当前私人任务" },
   { id: "learnerPrivacy", label: "学员只看到自己的私密卡、RP 与个人钱包" },
   { id: "sharedScreenRedaction", label: "公共投屏未泄漏手牌、讲稿、账号、钱包或未公开提交" },
@@ -23,7 +23,7 @@ export const UI_ACCEPTANCE_CHECKLIST = [
   { id: "testReset", label: "Test reset 已实测且只重置本课堂，不影响其他实例" },
   { id: "responsiveLayouts", label: "手机、电脑与公共投屏尺寸均已人工检查" },
   { id: "immutableRuntime", label: "Studio 后续保存没有热更新正在运行的课堂" },
-  { id: "exactVersions", label: "课程与 P／D／M／O 课件 revision／digest 与锁定值一致" },
+  { id: "exactVersions", label: "课堂课程剧本 revision／digest 与锁定值一致；导师课件可独立更新" },
 ] as const;
 
 export type UiAcceptanceCheckId = (typeof UI_ACCEPTANCE_CHECKLIST)[number]["id"];

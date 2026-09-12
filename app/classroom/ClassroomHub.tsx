@@ -11,7 +11,6 @@ import { isCoursewareLibraryVisible, type CoursewareSummary } from "../lib/cours
 import { buildFactoryChecklist } from "../lib/classroom-factory-readiness";
 import { BrandHomeLink } from "../components/BrandHomeLink";
 import { AccountMenu, type AccountMenuUser } from "../components/AccountMenu";
-import factoryStyles from "./classroom-factory.module.css";
 import styles from "./platform.module.css";
 
 type Account = { userId: string; username: string; displayName: string; role: "admin" | "mentor" | "learner"; status: string };
@@ -27,16 +26,6 @@ type Bootstrap = {
   courseware: CoursewareSummary[];
   viewReceipts: StudioViewAcceptanceSummary[];
   uiReceipts: StudioUiAcceptanceSummary[];
-};
-type CoursewareChoice = {
-  packageId: string;
-  slug: string;
-  title: string;
-  mentorRole: (typeof MENTOR_ROLES)[number];
-  revision: number;
-  digest: string;
-  releaseStatus: "current" | "historical" | null;
-  availability: CoursewareSummary["availability"];
 };
 type InitialCourse = {
   courseId: string;
@@ -257,7 +246,7 @@ export default function ClassroomHub({ user, initialCourse, initialNotice = "" }
           title={canUseStudio ? "正式课堂" : "我的正式课堂"}
           environment="production"
           rooms={productionRooms}
-          description="PRODUCTION · 只绑定 Released 与 UI 验收过的同一组 exact 课件；不可重置。"
+          description="PRODUCTION · 只绑定已通过 View／UI 验收的 Released 课程剧本；导师课件始终打开各自最新发布版；不可重置。"
         />
         {archivedTestRooms.length > 0 && <RoomGroup
           title="已归档测试课堂"
@@ -523,7 +512,6 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
   const initialUiReceipts = course && initialViewReceipt ? exactUiReceipts(bootstrap, course.ref, initialViewReceipt.receiptId) : [];
   const initialUiReceipt = initialUiReceipts.find((receipt) => receipt.receiptId === initialCourse?.uiReceiptId) ?? initialUiReceipts.find((receipt) => receipt.valid) ?? initialUiReceipts[0];
   const [uiReceiptId, setUiReceiptId] = useState(initialUiReceipt?.receiptId ?? "");
-  const [coursewareKeys, setCoursewareKeys] = useState<Record<string, string>>(() => initialCoursewareKeys(bootstrap.courseware, initialEnvironment, initialUiReceipt, course?.course));
   const [busy, setBusy] = useState(false);
   const [credentials, setCredentials] = useState<IssuedManagedCredential[]>([]);
   const [submitError, setSubmitError] = useState("");
@@ -542,16 +530,12 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
   const uiReceipt = uiReceiptOptions.find((receipt) => receipt.receiptId === uiReceiptId)
     ?? (uiReceiptId ? null : uiReceiptOptions.find((receipt) => receipt.valid) ?? uiReceiptOptions[0] ?? null);
   const uiReceiptUnavailable = Boolean(uiReceiptId && !uiReceipt);
-  const coursewareOptions = useMemo(() => Object.fromEntries(MENTOR_ROLES.map((role) => [
-    role,
-    coursewareChoices(bootstrap.courseware, environment).filter((entry) => entry.mentorRole === role),
-  ])), [bootstrap.courseware, environment]);
-  const coursewareRefs = MENTOR_ROLES.map((role) => {
-    const item = (coursewareOptions[role] ?? []).find((entry) => coursewareChoiceKey(entry) === coursewareKeys[role]);
-    if (!item) return null;
-    return { mentorRole: role, packageId: item.packageId, slug: item.slug, revision: item.revision, digest: item.digest };
-  });
-  const coursewareMatchesReceipt = environment === "test" || Boolean(uiReceipt?.valid && coursewareRefs.every((ref) => ref && uiReceipt.coursewareRefs.some((accepted) => sameCoursewareRef(ref, accepted))));
+  // CourseDefinition and mentor decks are deliberately decoupled. Creating a
+  // classroom selects exactly one script version; the server resolves the
+  // current released deck for every mentor role and playback re-resolves it
+  // on every open. These client refs are only a compatibility snapshot for
+  // the existing factory request shape, never a user-selectable binding.
+  const coursewareRefs = currentReleasedCoursewareRefs(bootstrap.courseware);
   const checklist = buildFactoryChecklist({
     environment,
     title,
@@ -560,7 +544,6 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
     viewReceipt,
     uiReceipt,
     coursewareRefs,
-    coursewareMatchesReceipt,
     mentorIds: resolvedMentorIds,
     learnerIds: resolvedLearnerIds,
     learnerCount: effectiveLearnerCount,
@@ -639,9 +622,9 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
       showSubmitError("正式课堂必须选择一张当前有效的真实 UI 验收回执。");
       return;
     }
-    const exactCoursewareRefs = coursewareRefs.filter((item): item is NonNullable<typeof item> => Boolean(item));
-    if (exactCoursewareRefs.length !== MENTOR_ROLES.length) {
-      showSubmitError("四位导师都必须有可用的 exact 课件版本。");
+    const currentCoursewareRefs = coursewareRefs.filter((item): item is NonNullable<typeof item> => Boolean(item));
+    if (currentCoursewareRefs.length !== MENTOR_ROLES.length) {
+      showSubmitError("P／D／M／O 导师还没有完整的当前已发布课件，请先补齐课件库。");
       return;
     }
     operationLockRef.current = true;
@@ -661,10 +644,9 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
           mentorSeats: MENTOR_ROLES.map((mentorRole, index) => ({ mentorRole, profileId: resolvedMentorIds[index] })),
           learnerProfileIds: resolvedLearnerIds,
           adminDmProfileIds: [currentUserRole === "mentor" ? currentUserId : adminId],
-          coursewareRefs: exactCoursewareRefs,
         }),
       });
-      await onCreated(`${environment === "test" ? "UI 验收" : "正式"}课堂已创建。队伍 ID：${result.teamPublicId}；课程、回执与四套课件 exact 版本已锁定。`);
+      await onCreated(`${environment === "test" ? "UI 验收" : "正式"}课堂已创建。队伍 ID：${result.teamPublicId}；课程剧本版本已锁定，导师打开课件时始终使用各自最新发布版。`);
       window.location.assign(`/classroom/${encodeURIComponent(result.classroomId)}/control`);
     } catch (cause) {
       showSubmitError(messageOf(cause));
@@ -682,7 +664,6 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
     if (!titleCustomized) setTitle(defaultClassroomTitle(nextEnvironment, course));
     setSubmitError("");
     setUiReceiptId(nextEnvironment === "production" ? nextUi?.receiptId ?? "" : "");
-    setCoursewareKeys((current) => preserveCoursewareKeys(current, bootstrap.courseware, nextEnvironment, nextUi, course?.course));
   };
 
   const chooseCourse = (nextKey: string) => {
@@ -699,16 +680,13 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
     const nextUiOptions = nextView ? exactUiReceipts(bootstrap, nextCourse.ref, nextView.receiptId) : [];
     const nextUi = nextUiOptions.find((receipt) => receipt.valid) ?? nextUiOptions[0];
     setUiReceiptId(nextUi?.receiptId ?? "");
-    setCoursewareKeys(initialCoursewareKeys(bootstrap.courseware, environment, nextUi, nextCourse.course));
     const nextCount = clampCount(learnerCount || nextCourse.learnerPolicy.defaultCount, nextCourse.learnerPolicy);
     setLearnerCount(nextCount);
     setLearnerIds((current) => fillEmptyUnique(resizeIdsOnly(current, nextCount), learners));
   };
 
   const chooseUiReceipt = (receiptId: string) => {
-    const next = uiReceiptOptions.find((receipt) => receipt.receiptId === receiptId);
     setUiReceiptId(receiptId);
-    setCoursewareKeys((current) => preserveCoursewareKeys(current, bootstrap.courseware, "production", next, course?.course));
     setSubmitError("");
   };
 
@@ -720,7 +698,7 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
 
   return <section className={styles.section} id="factory" tabIndex={-1}>
     <header className={`${styles.sectionHeader} ${styles.factoryHeader}`}>
-      <div><span className={styles.environmentBadge} data-env={environment}>{environment.toUpperCase()}</span><h2>Classroom Factory</h2><p>所有当前课程版本都可查看；只有创建动作受 exact 课程、回执、成员和课件门禁约束。</p></div>
+      <div><span className={styles.environmentBadge} data-env={environment}>{environment.toUpperCase()}</span><h2>Classroom Factory</h2><p>只选择一个课程剧本版本；导师课件与剧本解耦，打开时自动使用最新发布版。</p></div>
       <button className={styles.refreshButton} type="button" onClick={() => { void onRefresh(); }} disabled={bootstrapLoading || accountsLoading}>{bootstrapLoading || accountsLoading ? "正在刷新…" : "刷新创建条件"}</button>
     </header>
     {(bootstrapError || accountsError) && <div className={styles.dependencyStack}>
@@ -731,7 +709,7 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
       <aside className={styles.factoryAside}>
         <small>ONE FACTORY · EXACT GATES</small>
         <h3>{environment === "test" ? "创建真实 UI 验收课堂" : "创建正式课堂"}</h3>
-        <ol>{environment === "test" ? <><li>选择 Candidate 或 Released exact 版本</li><li>完成该版本的多角色视图检查</li><li>配置真实 N 与 4 + N 个成员</li><li>绑定计划投产的四套 exact 课件</li></> : <><li>选择已经 Released 的 exact 版本</li><li>绑定同版本有效 View + UI 检查记录</li><li>四套课件必须已发布且与验收一致</li><li>Production 不提供测试重置</li></>}</ol>
+        <ol>{environment === "test" ? <><li>选择唯一的 Candidate 或 Released 剧本版本</li><li>完成该剧本的多角色视图检查</li><li>配置真实 N 与 4 + N 个成员</li><li>导师课件打开时自动取最新发布版</li></> : <><li>选择唯一的 Released 剧本版本</li><li>绑定同版本有效 View + UI 检查记录</li><li>导师课件独立更新，不阻塞建课</li><li>Production 不提供测试重置</li></>}</ol>
         <button type="button" onClick={createAccounts} disabled={busy || !course || effectiveLearnerCount < 1}>{busy ? "正在处理…" : course ? `一键生成 4＋${effectiveLearnerCount} 个测试账号` : "先选择课程再生成账号"}</button>
         <form className={styles.accountLookup} onSubmit={(event) => { event.preventDefault(); void lookupAccount(); }}>
           <label htmlFor="factory-account-lookup">查找自行注册的账号</label>
@@ -745,13 +723,13 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
       <div className={styles.factoryForm}>
         <label>课堂环境<select value={environment} onChange={(event) => chooseEnvironment(event.target.value as "test" | "production")}><option value="test">TEST · UI 验收课堂 · 可重置</option><option value="production">PRODUCTION · 正式课堂 · 不可重置</option></select></label>
         <label id="classroom-title">课堂名称<input value={title} onChange={(event) => { setTitle(event.target.value); setTitleCustomized(true); setSubmitError(""); }} maxLength={128} /></label>
-        <label className={styles.wide} id="course-version">课程 exact 版本
+        <label className={styles.wide} id="course-version">选择课程剧本版本
           <select value={selectedCourseKey} onChange={(event) => chooseCourse(event.target.value)} disabled={!preferred.length && !selectedCourseKey}>
             {!selectedCourseKey && <option value="">当前没有 Candidate 或 Released 课程</option>}
             {!course && selectedCourseKey && <option value={selectedCourseKey}>{requestedRef ? `${requestedRef.courseId} · r${requestedRef.revision}` : "刚才选择的版本"} · 当前不可用（未自动换课）</option>}
             {preferred.map((item) => <option key={versionKey(item)} value={versionKey(item)}>{courseOptionLabel(bootstrap, item, environment)}</option>)}
           </select>
-          <small>{preferred.length ? `共 ${preferred.length} 个当前版本；待验收版本不会再从列表中消失。` : "尚无课程。先在编辑器保存 Candidate，再回来刷新状态。"}</small>
+          <small>{preferred.length ? `当前只会使用上面选中的一个剧本版本。列表中的其他项仅供切换，不会同时生效。` : "尚无课程。先在编辑器保存 Candidate，再回来刷新状态。"}</small>
         </label>
         {course && viewReceipt && <div className={`${styles.acceptanceLock} ${styles.wide}`} data-valid={viewReceipt.valid}><b>课程视图检查 · {viewReceipt.valid ? "有效" : "已失效"}</b><code>{viewReceipt.receiptId}</code><span>r{course.ref.revision} · {course.ref.digest}{viewReceipt.valid ? "" : ` · ${viewReceipt.invalidReasons.join("；") || "兼容条件已变化"}`}</span></div>}
         {environment === "production" && <label className={styles.wide}>真实 UI 验收回执
@@ -760,7 +738,7 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
             {uiReceiptUnavailable && <option value={uiReceiptId}>刚才选择的 UI 回执已不可用（未自动替换）</option>}
             {uiReceiptOptions.map((receipt) => <option value={receipt.receiptId} key={receipt.receiptId}>{receipt.receiptId.slice(0, 12)}… · {receipt.learnerCount} 人 · {receipt.valid ? "有效" : "已失效"} · {new Date(receipt.acceptedAt).toLocaleString("zh-CN")}</option>)}
           </select>
-          <small>选择回执后，下面四套课件会精确回填为当时测试的 revision／digest。</small>
+          <small>回执只验收这一个课程剧本与课堂 UI；导师课件保持独立更新。</small>
         </label>}
         <label>学员人数
           <select value={course ? effectiveLearnerCount : 0} onChange={(event) => chooseLearnerCount(Number(event.target.value))} disabled={!course}>
@@ -771,7 +749,7 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
         </label>
         <label id="admin-dm">Admin DM（权限，不占导师席）<select value={currentUserRole === "mentor" ? currentUserId : adminId} disabled={currentUserRole === "mentor" || accountsLoading} onChange={(event) => { setAdminId(event.target.value); setSubmitError(""); }}><option value="">请选择账号</option>{mentors.map((item) => <option key={item.userId} value={item.userId}>{item.displayName} · @{item.username}</option>)}</select><small>{currentUserRole === "mentor" ? "创建者将成为本课堂初始 Admin DM；开课后可在成员管理中授权协作者。" : "平台管理员可把初始 Admin DM 授予任一导师或管理员。"}</small></label>
         <div className={`${styles.mentorRows} ${styles.wide}`} id="mentor-members"><b>四个导师 Membership</b>{MENTOR_ROLES.map((role, index) => <div className={styles.mentorRow} key={role}><b>{role}</b><span>{ROLE_NAME[role]}导师</span><select aria-label={`${role} 导师账号`} value={resolvedMentorIds[index] ?? ""} onChange={(event) => { setMentorIds(resolvedMentorIds.map((id, at) => at === index ? event.target.value : id)); setSubmitError(""); }} disabled={accountsLoading}><option value="">请选择账号</option>{mentors.map((item) => <option key={item.userId} value={item.userId}>{item.displayName} · @{item.username}</option>)}</select></div>)}</div>
-        <div className={`${factoryStyles.coursewareRows} ${styles.wide}`}><b>四套 exact 导师课件</b>{MENTOR_ROLES.map((role) => <label key={role}><span>{role} · {ROLE_NAME[role]}</span><select aria-label={`${role} 导师课件`} value={coursewareKeys[role] ?? ""} onChange={(event) => { setCoursewareKeys((value) => ({ ...value, [role]: event.target.value })); setSubmitError(""); }} disabled={environment === "production"}><option value="">请选择课件</option>{(coursewareOptions[role] ?? []).map((item) => <option key={coursewareChoiceKey(item)} value={coursewareChoiceKey(item)}>{item.title} · r{item.revision}{item.releaseStatus === "historical" ? " · 历史版本" : item.releaseStatus === null ? " · 未发布" : " · 当前发布"}{item.availability === "placeholder" ? " · 内部占位（无真实课件）" : ""}</option>)}</select></label>)}</div>
+        <div className={`${styles.acceptanceLock} ${styles.wide}`} data-valid={coursewareRefs.every(Boolean)}><b>导师课件 · 自动使用最新发布版</b><span>无需选择或核对课件版本；更新产品、开发、市场或运营课件，不会改变本课堂选择的课程剧本。</span></div>
         <div className={`${styles.learnerRows} ${styles.wide}`} id="learner-members">{resolvedLearnerIds.map((id, index) => <label key={index}>学员 {index + 1}<select aria-label={`学员 ${index + 1} 账号`} value={id} onChange={(event) => { setLearnerIds(resolvedLearnerIds.map((item, at) => at === index ? event.target.value : item)); setSubmitError(""); }} disabled={accountsLoading}><option value="">请选择账号</option>{learners.map((item) => <option key={item.userId} value={item.userId}>{item.displayName} · @{item.username}</option>)}</select></label>)}</div>
         <section className={`${styles.readiness} ${styles.wide}`} aria-labelledby="factory-readiness-title">
           <header><div><small>CREATE READINESS</small><h3 id="factory-readiness-title">创建前还差 {checklist.items.filter((item) => !item.ready).length} 项</h3></div><span data-ready={checklist.ready}>{checklist.ready ? "可以创建" : "尚未就绪"}</span></header>
@@ -832,10 +810,6 @@ function sameCourseRef(left: Pick<CoursePackageRef, "courseId" | "revision" | "d
   return left.courseId === right.courseId && left.revision === right.revision && left.digest === right.digest;
 }
 
-function sameCoursewareRef(left: { mentorRole: string; packageId: string; revision: number; digest: string }, right: { mentorRole: string; packageId: string; revision: number; digest: string }) {
-  return left.mentorRole === right.mentorRole && left.packageId === right.packageId && left.revision === right.revision && left.digest === right.digest;
-}
-
 function versionKey(version: StudioVersion): string { return `${version.ref.courseId}:${version.ref.revision}:${version.ref.digest}`; }
 function courseRefKey(ref: Pick<CoursePackageRef, "courseId" | "revision"> & { digest?: string }): string { return `${ref.courseId}:${ref.revision}:${ref.digest ?? ""}`; }
 
@@ -876,63 +850,18 @@ function clampCount(count: number, policy: StudioVersion["learnerPolicy"]): numb
   return Math.min(policy.maxCount, Math.max(policy.minCount, count));
 }
 
-function coursewareChoiceKey(item: Pick<CoursewareChoice, "packageId" | "revision" | "digest">): string {
-  return `${item.packageId}:${item.revision}:${item.digest}`;
-}
-
-function coursewareChoices(items: CoursewareSummary[], environment: "test" | "production"): CoursewareChoice[] {
-  return items.flatMap((item) => item.versions
-    .filter((version) => environment === "test" || (isCoursewareLibraryVisible(item) && version.releaseStatus !== null))
-    .map((version) => ({
+function currentReleasedCoursewareRefs(items: CoursewareSummary[]) {
+  return MENTOR_ROLES.map((role) => {
+    const released = items.filter((item) => item.mentorRole === role && item.releasedRevision !== null && item.releasedDigest);
+    const item = released.find(isCoursewareLibraryVisible) ?? released[0];
+    return item ? {
+      mentorRole: role,
       packageId: item.packageId,
       slug: item.slug,
-      title: item.title,
-      mentorRole: item.mentorRole,
-      revision: version.revision,
-      digest: version.digest,
-      releaseStatus: version.releaseStatus,
-      availability: item.availability,
-    })));
-}
-
-function declaredCoursewareRefs(course?: CoursePackage): Map<string, { packageId: string; revision: number; digest: string }> {
-  return new Map((course?.contentPackages?.scriptPackages ?? []).map((scriptPackage) => {
-    const ref = scriptPackage.coursewareRef;
-    return [ref.mentorRole, { packageId: ref.packageId, revision: ref.revision, digest: ref.digest }];
-  }));
-}
-
-function initialCoursewareKeys(items: CoursewareSummary[], environment: "test" | "production", receipt?: StudioUiAcceptanceSummary, course?: CoursePackage): Record<string, string> {
-  if (environment === "production" && receipt) {
-    return Object.fromEntries(MENTOR_ROLES.map((role) => {
-      const accepted = receipt.coursewareRefs.find((ref) => ref.mentorRole === role);
-      const available = accepted ? coursewareChoices(items, "production").find((entry) => entry.packageId === accepted.packageId && entry.revision === accepted.revision && entry.digest === accepted.digest) : undefined;
-      return [role, available ? coursewareChoiceKey(available) : `missing:${accepted?.packageId ?? role}:${accepted?.revision ?? "?"}:${accepted?.digest ?? "?"}`];
-    }));
-  }
-  return defaultCoursewareKeys(items, environment, course);
-}
-
-function defaultCoursewareKeys(items: CoursewareSummary[], environment: "test" | "production", course?: CoursePackage): Record<string, string> {
-  const choices = coursewareChoices(items, environment);
-  const declared = declaredCoursewareRefs(course);
-  return Object.fromEntries(MENTOR_ROLES.map((role) => {
-    const expected = declared.get(role);
-    const exact = expected ? choices.find((entry) => entry.mentorRole === role
-      && entry.packageId === expected.packageId && entry.revision === expected.revision && entry.digest === expected.digest) : undefined;
-    const item = exact ?? choices.find((entry) => entry.mentorRole === role && entry.releaseStatus === "current")
-      ?? choices.find((entry) => entry.mentorRole === role);
-    return [role, item ? coursewareChoiceKey(item) : ""];
-  }));
-}
-
-function preserveCoursewareKeys(current: Record<string, string>, items: CoursewareSummary[], environment: "test" | "production", receipt?: StudioUiAcceptanceSummary, course?: CoursePackage): Record<string, string> {
-  const fallback = initialCoursewareKeys(items, environment, receipt, course);
-  const choices = coursewareChoices(items, environment);
-  return Object.fromEntries(MENTOR_ROLES.map((role) => {
-    const available = choices.some((item) => item.mentorRole === role && coursewareChoiceKey(item) === current[role]);
-    return [role, available ? current[role] : fallback[role] ?? ""];
-  }));
+      revision: item.releasedRevision!,
+      digest: item.releasedDigest!,
+    } : null;
+  });
 }
 
 function resizeIdsOnly(current: string[], count: number): string[] {

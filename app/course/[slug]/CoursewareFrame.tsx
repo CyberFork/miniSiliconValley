@@ -52,12 +52,12 @@ export default function CoursewareFrame({
     <h1>{item.title}</h1>
     <code>{item.packageId} · {item.digest}</code>
     {preview && !item.released && <span className={styles.previewWarning}>内部 Candidate · 未正式发布 · 不对学员目录开放</span>}
-    {!preview && item.releaseStatus === "historical" && <span className={styles.previewWarning}>历史已发布版本 · 旧课堂 exact 引用仍可读取</span>}
+    {!preview && item.releaseStatus === "historical" && <span className={styles.previewWarning}>历史已发布版本 · 仅用于审计与明确版本预览</span>}
   </div>;
   if (item.contentKind === "static-bundle" && item.entryPath) return <main className={styles.viewer}>
     {header}
     {identity}
-    <div className={styles.staticLaunch}><section><span className={styles.warning}>固定版本 · 原样播放</span><h2>在独立页面打开完整课件</h2><p>系统保持这一版本的 HTML、图片与交互资源不变，并把当前课堂锁定到 exact revision／digest。</p><a className={styles.launch} href={playerHref(item, initialSlide, initialStep)}>进入全屏课件 →</a></section></div>
+    <div className={styles.staticLaunch}><section><span className={styles.warning}>固定版本 · 原样播放</span><h2>在独立页面打开完整课件</h2><p>本次打开只播放明确的这一版；课堂内导师入口会自动打开本角色最新发布版。</p><a className={styles.launch} href={playerHref(item, initialSlide, initialStep)}>进入全屏课件 →</a></section></div>
   </main>;
   return <main className={styles.viewer}>
     {header}

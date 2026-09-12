@@ -87,9 +87,10 @@ export type CoursewareBindingLike = {
 };
 
 /**
- * New content-owned ScriptPackages pin the exact teaching deck they were
- * authored against. Four mentor toolkits may still be bound to the Classroom,
- * but a silently different P deck must never drive the declared checkpoints.
+ * Authoring/audit helper only. A CourseDefinition may preserve the deck refs
+ * used while its script was written, but ClassroomFactory and playback never
+ * use this comparison as a gate: mentor decks are an independent resource
+ * line and classroom links resolve the current released deck for each role.
  */
 export function declaredCoursewareBindingIssues(
   course: CoursePackage,

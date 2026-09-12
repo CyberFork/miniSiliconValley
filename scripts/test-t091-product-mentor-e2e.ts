@@ -80,6 +80,7 @@ type Detail = {
     mentorRubric: null | string[];
   };
   submissions: Submission[];
+  courseware: Array<{ mentorRole: string; packageId: string; slug: string; revision: number; digest: string }>;
   handoffs: Array<{
     fromMentorRole: string;
     toMentorRole: string;
@@ -173,13 +174,12 @@ try {
   const exactCourseware = (["P", "D", "M", "O"] as const).map((mentorRole) => {
     const item = bootstrap.courseware.find((candidate) => candidate.mentorRole === mentorRole && candidate.slug === preferredCourseware[mentorRole]);
     assert.ok(item, `missing ${mentorRole} exact courseware`);
-    const declared = course.contentPackages?.scriptPackages.find((scriptPackage) => scriptPackage.coursewareRef.mentorRole === mentorRole)?.coursewareRef;
     return {
       mentorRole,
       packageId: item.packageId,
       slug: item.slug,
-      revision: declared?.revision ?? item.latestRevision,
-      digest: declared?.digest ?? item.latestDigest,
+      revision: item.releasedRevision!,
+      digest: item.releasedDigest!,
     };
   });
   const factoryBody = {
@@ -188,7 +188,6 @@ try {
     learnerCount: 2,
     courseRef: candidate,
     viewAcceptanceReceiptId: viewReceipt.receiptId,
-    coursewareRefs: exactCourseware,
     adminDmProfileIds: [bootstrap.user.userId],
     mentorSeats: (["P", "D", "M", "O"] as const).map((mentorRole, index) => ({ mentorRole, profileId: mentorProfiles[index].userId })),
     learnerProfileIds: learnerProfiles.map((item) => item.userId),
@@ -329,12 +328,18 @@ try {
   const mismatchedRefs = exactCourseware.map((ref) => ref.mentorRole === "P"
     ? { mentorRole: "P" as const, packageId: mismatchedP.packageId, slug: mismatchedP.slug, revision: mismatchedP.revision, digest: mismatchedP.digest }
     : ref);
-  const mismatch = await post("/api/platform/classrooms", { ...factoryBody, title: "T-091 mismatch must fail", coursewareRefs: mismatchedRefs }, adminCookie);
-  assert.equal(mismatch.status, 409);
-  const mismatchEnvelope = await mismatch.json() as Envelope<never>;
-  assert.equal(mismatchEnvelope.error?.code, "COURSE_CONTENT_COURSEWARE_MISMATCH");
+  const decoupled = await postData<{ classroomId: string }>("/api/platform/classrooms", { ...factoryBody, title: "T-091 deck selection is server-owned", coursewareRefs: mismatchedRefs }, adminCookie);
+  const decoupledDetail = await view(decoupled.classroomId, "B01", mentorProfiles[0].userId, adminCookie);
+  assert.deepEqual(
+    decoupledDetail.courseware.find((item) => item.mentorRole === "P"),
+    exactCourseware.find((item) => item.mentorRole === "P"),
+    "a stale or unrelated client deck must not override the server's current released P courseware",
+  );
+  const latestPDeck = await get(`/classroom/${decoupled.classroomId}/courseware/P/`, adminCookie);
+  assert.equal(latestPDeck.status, 200);
+  assert.ok((await latestPDeck.text()).includes(exactCourseware.find((item) => item.mentorRole === "P")!.digest), "classroom P link must render the newest released P deck");
 
-  console.log("T091_PRODUCT_MENTOR_E2E_PASS candidate=t095-unified checkpoints=P:B01-B04 productBrief=return-resubmit-accept handoff=P-to-D:B05 DMO=no-history-copy exact-courseware=fail-closed");
+  console.log("T091_PRODUCT_MENTOR_E2E_PASS candidate=t095-unified checkpoints=P:B01-B04 productBrief=return-resubmit-accept handoff=P-to-D:B05 DMO=no-history-copy courseware=latest-decoupled");
 } finally {
   if (server) {
     server.kill("SIGTERM");
