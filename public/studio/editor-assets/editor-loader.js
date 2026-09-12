@@ -8,7 +8,7 @@
   // latency must not be paid four times, but a failed dependency must still
   // prevent the editor from starting. This remains the only script entry.
   const ASSETS = [
-    "/studio/editor-assets/ui-theme.js?v=studio-startup-r2",
+    "/studio/editor-assets/ui-theme.js?v=official-wordmark-r5",
     "/studio/editor-assets/card-view.js?v=studio-startup-r2",
     "/studio/editor-assets/course-projection-core.js?v=course-projector-v7",
     "/studio/editor-assets/course-preview.js?v=course-projector-v7",

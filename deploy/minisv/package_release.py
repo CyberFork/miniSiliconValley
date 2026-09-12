@@ -29,7 +29,7 @@ REQUIRED_PAGES = (
 )
 PUBLIC_COURSE_NAV_PAGES = ("index.html", "world/index.html")
 FORBIDDEN = ("work.cyberforker.com", "192.168.", "127.0.0.1:18765", "/msv/", r"\/msv\/")
-THEME_VERSION = "20260908-10"
+THEME_VERSION = "20260912-official-wordmark-r5"
 THEME_ASSETS = f'<link rel="stylesheet" href="/ui-theme.css?v={THEME_VERSION}"><script src="/ui-theme.js?v={THEME_VERSION}"></script>'
 CHJ_COURSE_R0_SHA = "679213a61b835335016eac7649213983a0e48489"
 CHJ_COURSE_R0_TREE = "3a041c4714190cc026f6de8e06e15cec0e5f765d"

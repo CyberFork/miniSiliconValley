@@ -9,6 +9,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const source = (path: string) => readFile(resolve(root, path), "utf8");
 const binary = (path: string) => readFile(resolve(root, path));
 const wordmark = "/assets/mini-silicon-valley-logo-transparent.png";
+const brandCacheVersion = "official-wordmark-r5";
 
 test("React surfaces share one accessible root-home logo primitive", async () => {
   const brand = await source("app/components/BrandHomeLink.tsx");
@@ -63,6 +64,40 @@ test("static operational surfaces use the same mark and absolute root link", asy
     assert.match(html, /<img[^>]+src="\/assets\/mini-silicon-valley-logo-transparent\.png"[^>]+width="330"[^>]+height="84"/, `${path} must reuse the official wordmark`);
     assert.doesNotMatch(html, /<img[^>]+src="\/favicon\.svg"/, `${path} must not render the browser favicon as its visible logo`);
   }
+});
+
+test("changed wordmark styles and runtimes are cache-busted on every static shell", async () => {
+  const themeVersion = `20260912-${brandCacheVersion}`;
+  const sharedThemePages = [
+    "deploy/minisv/site/index.html",
+    "deploy/minisv/site/404.html",
+    "tools/live-run/static/index.html",
+    "tools/live-run/static/editor.html",
+    "tools/live-run/static/seat.html",
+    "tools/live-run/remote-console/static/index.html",
+    "tools/live-run/remote-console/static/seat-loading.html",
+    "deploy/minisv/workshop/archive.html",
+  ];
+  for (const path of sharedThemePages) {
+    const html = await source(path);
+    assert.match(html, new RegExp(`/ui-theme\\.css\\?v=${themeVersion}`), `${path} must evict the pre-wordmark CSS`);
+    assert.match(html, new RegExp(`/ui-theme\\.js\\?v=${themeVersion}`), `${path} must evict the pre-wordmark runtime`);
+  }
+
+  const portal = await source("deploy/minisv/site/index.html");
+  assert.match(portal, new RegExp(`/portal\\.css\\?v=${themeVersion}`), "home must evict the old square-logo layout");
+
+  const workbench = await source("app/studio/editor/workbench.html");
+  assert.match(workbench, new RegExp(`/studio/editor-assets/ui-theme\\.css\\?v=${brandCacheVersion}`));
+  assert.match(workbench, new RegExp(`/studio/editor-assets/editor-loader\\.js\\?v=${brandCacheVersion}`));
+  const loader = await source("public/studio/editor-assets/editor-loader.js");
+  assert.match(loader, new RegExp(`/studio/editor-assets/ui-theme\\.js\\?v=${brandCacheVersion}`));
+
+  const packager = await source("deploy/minisv/package_release.py");
+  const proxy = await source("deploy/minisv/gateway/app-proxy.conf");
+  assert.match(packager, new RegExp(`THEME_VERSION = "${themeVersion}"`));
+  assert.match(proxy, new RegExp(`/ui-theme\\.css\\?v=${themeVersion}`));
+  assert.match(proxy, new RegExp(`/ui-theme\\.js\\?v=${themeVersion}`));
 });
 
 test("Classroom top navigation has no injected UI control or reserved overlap slot", async () => {
