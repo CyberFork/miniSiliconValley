@@ -26,16 +26,25 @@ def snapshot(page) -> dict:
         return {href:link.getAttribute('href'),aria:link.getAttribute('aria-label'),tag:link.tagName,
           innerWidth,rootWidth:document.documentElement.scrollWidth,bodyWidth:document.body.scrollWidth,
           link:{left:a.left,right:a.right,top:a.top,bottom:a.bottom,width:a.width,height:a.height},
-          image:{src:img.getAttribute('src'),width:b.width,height:b.height,naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight}} }"""
+          image:{src:img.getAttribute('src'),width:b.width,height:b.height,naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight},
+          theme:[...document.querySelectorAll('link[href*="ui-theme.css"]')].map(node=>node.getAttribute('href'))} }"""
     )
 
 
 def main() -> None:
     base = os.environ.get("MSV_APP_URL", "http://127.0.0.1:4178/")
+    expected_release = os.environ.get("MSV_EXPECTED_RELEASE")
+    expected_theme_version = os.environ.get("MSV_EXPECTED_THEME_VERSION")
     artifact = Path(os.environ["MSV_QA_ARTIFACT_DIR"]) if os.environ.get("MSV_QA_ARTIFACT_DIR") else None
     if artifact:
         artifact.mkdir(parents=True, exist_ok=True)
-    result: dict[str, object] = {"ok": False, "base": base, "routes": {}}
+    result: dict[str, object] = {
+        "ok": False,
+        "base": base,
+        "release": expected_release,
+        "themeVersion": expected_theme_version,
+        "routes": {},
+    }
     with sync_playwright() as playwright:
         launch: dict[str, object] = {"headless": True}
         if CHROME.exists():
@@ -61,11 +70,13 @@ def main() -> None:
                 assert value["href"] == "/" and value["aria"] == "返回 Mini Silicon Valley 主页"
                 assert "mini-silicon-valley-logo-transparent.png" in value["image"]["src"]
                 assert value["image"]["naturalWidth"] == 1650 and value["image"]["naturalHeight"] == 420
+                if expected_theme_version:
+                    assert any(expected_theme_version in href for href in value["theme"]), (route, value["theme"])
                 rendered_ratio = value["image"]["width"] / value["image"]["height"]
                 assert 3.1 <= rendered_ratio <= 4.7, (route, width, value)
                 assert value["link"]["left"] >= -1 and value["link"]["right"] <= width + 1, (route, width, value)
                 assert value["rootWidth"] <= width + 1 and value["bodyWidth"] <= width + 1, (route, width, value)
-                route_result[str(width)] = {"noOverflow": True, "mark": value["image"]}
+                route_result[str(width)] = {"noOverflow": True, "mark": value["image"], "theme": value["theme"]}
                 if artifact and route in {"/", "/framework/", "/auth/register/", "/brand-contract-missing/"} and width in {390, 1440}:
                     slug = "home" if route == "/" else "framework" if route == "/framework/" else "register" if "register" in route else "404"
                     page.screenshot(path=artifact / f"brand-{slug}-{width}.png", full_page=False)

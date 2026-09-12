@@ -146,3 +146,14 @@ tags:
 - 机器回执：[`docs/TODO_082_PRODUCTION_DEPLOYMENT_RECEIPT.json`](../../../docs/TODO_082_PRODUCTION_DEPLOYMENT_RECEIPT.json)；浏览器截图和 JSON：`docs/qa/t082-shared-brand-home/`。
 
 正式字标的实现、测试、部署与生产复验现已齐全，T-082 重新关闭。本回执不代替课程内容的人工 View/UI 验收。
+
+## 2026-09-12 r5 缓存穿透复验
+
+r4 的新字标代码与生产页面已经正确，但进一步审计发现旧 `/portal.css`、`/ui-theme.css?v=20260908-10` 和编辑器主题资源存在最长 4 小时的浏览器／Cloudflare 缓存窗口；已访问过 r3 的浏览器仍可能暂时沿用 44×44 方形 Logo 规则。该问题不能靠要求用户强刷解决。
+
+- 所有公开静态壳、动态应用代理、Workshop、LIVE RUN 和 Studio Editor 已统一切换到新的不可变缓存键；主页 `portal.css` 也加入版本键。
+- 最终 Hecate release：`20260912T194735CST-official-wordmark-r5`；运行源码：`ead63d032f341a02046babb9f36f10f2046c4622`；前一版本 r4 可原子回滚。
+- 公网实际 HTML 已确认只引用 `20260912-official-wordmark-r5`；8 类公开路由 × 4 视窗和 10 个登录后路由均实际加载该缓存键，正式字标尺寸、比例、无溢出及根主页导航通过。
+- `npm test` 54/54、平台 163/163、部署 53/53；Hecate health 与 public smoke 通过。导师课件不可变 bundle、课程真值和课堂状态均未改动。
+
+因此本单不是“源码看起来已换 Logo”，而是已消除旧访问者继续命中方形样式的缓存路径。机器回执和浏览器 JSON 已更新为 r5；不代签课程内容 View/UI 人工验收。

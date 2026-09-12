@@ -38,8 +38,14 @@ node deploy/minisv/tests/test_ui_theme_runtime.mjs
 npm run test:t109:browser
 npm run test:t106-t107:browser
 MSV_APP_URL=https://minisv.vip/ \
+  MSV_EXPECTED_RELEASE=20260912T194735CST-official-wordmark-r5 \
+  MSV_EXPECTED_THEME_VERSION=20260912-official-wordmark-r5 \
   MSV_QA_ARTIFACT_DIR=docs/qa/t082-shared-brand-home \
   python3 tools/live-run/tests/verify_brand_browser.py
 ```
 
 最后一条必须在生产发布后执行，逐路由覆盖 `320 / 390 / 768 / 1440` 视窗，并以普通点击或 Enter 验证当前标签返回根主页。以上命令不代替课程内容的人工 View/UI 验收。
+
+## 缓存更新规则
+
+正式字标本身使用固定摘要；任何改变字标尺寸、容器或水合修复逻辑的 CSS／JS 发布，都必须同步推进静态页、应用代理和 Studio Editor 的资源查询版本。当前生产键为 `20260912-official-wordmark-r5`（编辑器短键 `official-wordmark-r5`）。禁止仅覆盖同一路径后要求用户强制刷新，因为旧浏览器和 CDN 仍可能在缓存期内套用方形 Logo 规则。

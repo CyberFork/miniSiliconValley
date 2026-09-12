@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "receiptId": "t082-official-wordmark-production-20260912-r4",
-  "generatedAt": "2026-09-12T19:34:15+08:00",
+  "receiptId": "t082-official-wordmark-production-20260912-r5",
+  "generatedAt": "2026-09-12T20:05:00+08:00",
   "scope": [
     "official MINI硅谷 wordmark across public and protected shells",
     "framework hydration-safe brand repair",
@@ -10,14 +10,14 @@
     "LIVE RUN and Workshop operational surfaces"
   ],
   "release": {
-    "id": "20260912T190236CST-official-wordmark-r4",
+    "id": "20260912T194735CST-official-wordmark-r5",
     "origin": "hecate",
     "canonicalOrigin": "https://minisv.vip",
-    "sourceCommit": "62dc995a955c1aabcb392eec5295806ccefaa951",
-    "appBuildId": "58f60e39-3562-424a-bf02-9bd53e0e127a",
-    "appSha256": "1572b99f29459fde87c1c755e5febaecaab4e5af25ab26907c479411e3f8e435",
-    "remoteArchiveSha256": "6e519f7f66a9be6b9e200922c3feda83de1b67413aba9a5c119aa39cebe0deb5",
-    "previousRelease": "20260912T173416CST-brand-home-t082-r3"
+    "sourceCommit": "ead63d032f341a02046babb9f36f10f2046c4622",
+    "appBuildId": "09a58cf6-e097-4a5d-872c-e4abab4ddbd9",
+    "appSha256": "07695e110f6b9567356d95877f5bfd40de520f8cb6705597917c9f31c6ae032f",
+    "remoteArchiveSha256": "a183d3c7e8af31e20e133c63b2c5cc9a04def17afad5bec71899ad91b23792d6",
+    "previousRelease": "20260912T190236CST-official-wordmark-r4"
   },
   "implementation": {
     "asset": "/assets/mini-silicon-valley-logo-transparent.png",
@@ -42,21 +42,26 @@
     "immutableCoursewareBundlesModified": false,
     "courseOrClassroomTruthModified": false,
     "releaseDigestGate": true,
-    "productionSmokeDigestGate": true
+    "productionSmokeDigestGate": true,
+    "sharedThemeCacheVersion": "20260912-official-wordmark-r5",
+    "editorThemeCacheVersion": "official-wordmark-r5",
+    "portalCssCacheVersion": "20260912-official-wordmark-r5",
+    "staleSquareLogoCacheEvicted": true
   },
   "validation": {
-    "npmTest": "53/53 passed",
+    "npmTest": "54/54 passed",
     "coursePlatform": "163/163 passed",
     "deploymentUnitTests": "53/53 passed",
-    "brandContract": "5/5 passed",
+    "brandContract": "6/6 passed",
     "studioEditorBrowser": "passed at 430/768/1180/1440; no horizontal overflow",
     "isolatedClassroomBrowser": "13-block runtime passed; classroom, screen and courseware shell brand links passed; 390px no overflow",
     "isolatedProtectedShellBrowser": "Studio, Classroom, Course and Account official wordmark passed with synthetic D1 accounts",
     "publicIaBrowser": "homepage and Workshop archive passed at desktop/mobile",
-    "productionPublicBrowser": "8 routes × 4 viewports passed; 1650x420 bytes and mouse/keyboard current-tab navigation passed",
-    "productionAuthenticatedBrowser": "10 protected/application routes passed; 0 page errors; 0 request failures; 390px classroom/account no overflow",
+    "productionPublicBrowser": "8 routes × 4 viewports passed; official wordmark, r5 theme cache key, 1650x420 bytes and keyboard current-tab navigation passed",
+    "productionAuthenticatedBrowser": "10 protected/application routes passed with r5 theme cache key; 0 page errors; 0 non-navigation request failures; 390px classroom/account no overflow",
     "hecateHealth": "MINISV_HECATE_HEALTHY",
-    "publicSmoke": "MINISV_PUBLIC_SMOKE_OK"
+    "publicSmoke": "MINISV_PUBLIC_SMOKE_OK",
+    "productionCacheBust": "homepage portal.css plus shared UI CSS/JS and Studio editor theme CSS/JS all use new immutable r5 query keys; no current shell references 20260908-10"
   },
   "evidence": [
     "docs/qa/t082-shared-brand-home/production-public-browser.json",
