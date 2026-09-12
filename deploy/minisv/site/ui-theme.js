@@ -83,9 +83,30 @@
     oldMark.replaceWith(mark);
   }
 
+  function watchFrameworkBrandHome() {
+    var pathname = window.location.pathname.replace(/\/+$/, "/");
+    if (pathname !== "/framework/") return;
+    mountFrameworkBrandHome();
+    if (document.documentElement.dataset.msvFrameworkBrandWatch === "true") return;
+    document.documentElement.dataset.msvFrameworkBrandWatch = "true";
+    // The framework is an independently hydrated React document. Its late
+    // client render can restore the legacy #top marker after window.load, so
+    // keep the stable navigation contract rather than racing hydration once.
+    var observer = new MutationObserver(function () {
+      mountFrameworkBrandHome();
+    });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["href", "aria-label"]
+    });
+    window.addEventListener("pageshow", mountFrameworkBrandHome);
+  }
+
   function mountSharedNavigation() {
     applyCanonicalTheme();
-    mountFrameworkBrandHome();
+    watchFrameworkBrandHome();
     mountPublicNavigator();
   }
 

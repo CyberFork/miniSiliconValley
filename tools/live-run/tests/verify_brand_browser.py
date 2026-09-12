@@ -11,7 +11,7 @@ from playwright.sync_api import sync_playwright
 
 
 CHROME = Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
-ROUTES = ("/", "/auth/register/", "/auth/recover/", "/parents/", "/brand-contract-missing/")
+ROUTES = ("/", "/framework/", "/auth/register/", "/auth/recover/", "/parents/", "/brand-contract-missing/")
 VIEWPORTS = ((320, 760), (390, 844), (768, 1024), (1440, 900))
 BRAND_SELECTOR = 'a[href="/"]:has(img[src*="favicon.svg"])'
 
@@ -43,7 +43,10 @@ def main() -> None:
             route_result: dict[str, object] = {}
             for width, height in VIEWPORTS:
                 page.set_viewport_size({"width": width, "height": height})
-                response = page.goto(urljoin(base, route.lstrip("/")), wait_until="networkidle")
+                # The public World keeps background activity alive in production;
+                # brand readiness is the stable gate, not Playwright's global
+                # network-idle heuristic.
+                response = page.goto(urljoin(base, route.lstrip("/")), wait_until="domcontentloaded")
                 assert response and response.status in ({404} if "missing" in route else {200}), (route, response.status if response else None)
                 page.wait_for_selector(BRAND_SELECTOR)
                 value = snapshot(page)
@@ -55,15 +58,15 @@ def main() -> None:
                 assert value["link"]["left"] >= -1 and value["link"]["right"] <= width + 1, (route, width, value)
                 assert value["rootWidth"] <= width + 1 and value["bodyWidth"] <= width + 1, (route, width, value)
                 route_result[str(width)] = {"noOverflow": True, "mark": value["image"]}
-                if artifact and route in {"/", "/auth/register/", "/brand-contract-missing/"} and width in {390, 1440}:
-                    slug = "home" if route == "/" else "register" if "register" in route else "404"
+                if artifact and route in {"/", "/framework/", "/auth/register/", "/brand-contract-missing/"} and width in {390, 1440}:
+                    slug = "home" if route == "/" else "framework" if route == "/framework/" else "register" if "register" in route else "404"
                     page.screenshot(path=artifact / f"brand-{slug}-{width}.png", full_page=False)
             result["routes"][route] = route_result
 
         # A keyboard-activated shared mark performs ordinary root navigation in
         # the current tab; this is not a decorative div or JS-only action.
         page.set_viewport_size({"width": 390, "height": 844})
-        page.goto(urljoin(base, "auth/register/"), wait_until="networkidle")
+        page.goto(urljoin(base, "auth/register/"), wait_until="domcontentloaded")
         page.locator(BRAND_SELECTOR).focus()
         page.keyboard.press("Enter")
         page.wait_for_url(urljoin(base, ""))

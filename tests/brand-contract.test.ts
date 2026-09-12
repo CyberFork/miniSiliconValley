@@ -78,6 +78,8 @@ test("independently hydrated framework repairs its legacy top marker after load"
   assert.match(runtime, /setAttribute\("href", "\/"\)/);
   assert.match(runtime, /setAttribute\("aria-label", "返回 Mini Silicon Valley 主页"\)/);
   assert.match(runtime, /mark\.src = "\/favicon\.svg"/);
+  assert.match(runtime, /new MutationObserver/);
+  assert.match(runtime, /attributeFilter: \["href", "aria-label"\]/);
   assert.match(runtime, /window\.addEventListener\("load", mountSharedNavigation/);
 });
 
