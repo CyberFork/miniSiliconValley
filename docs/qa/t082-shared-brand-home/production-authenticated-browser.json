@@ -5,147 +5,208 @@
   "secretsRecorded": false,
   "routes": {
     "/account/": {
+      "viewport": [
+        390,
+        844
+      ],
+      "mark": {
+        "src": "/assets/mini-silicon-valley-logo-transparent.png",
+        "naturalWidth": 1650,
+        "naturalHeight": 420,
+        "width": 126,
+        "height": 34,
+        "left": 18,
+        "right": 144,
+        "rootWidth": 390,
+        "bodyWidth": 390,
+        "viewportWidth": 390
+      },
       "href": "/",
-      "target": null,
-      "left": 18,
-      "right": 232.421875,
-      "width": 390,
-      "rootWidth": 390,
-      "bodyWidth": 390,
-      "image": {
-        "src": "/favicon.svg",
-        "complete": true,
-        "naturalWidth": 150
-      }
+      "aria": "返回 Mini Silicon Valley 主页"
     },
     "/course/": {
+      "viewport": [
+        1440,
+        1000
+      ],
+      "mark": {
+        "src": "/assets/mini-silicon-valley-logo-transparent.png",
+        "naturalWidth": 1650,
+        "naturalHeight": 420,
+        "width": 154,
+        "height": 40,
+        "left": 57.59375,
+        "right": 211.59375,
+        "rootWidth": 1440,
+        "bodyWidth": 1440,
+        "viewportWidth": 1440
+      },
       "href": "/",
-      "target": null,
-      "left": 57.59375,
-      "right": 169.765625,
-      "width": 1440,
-      "rootWidth": 1440,
-      "bodyWidth": 1440,
-      "image": {
-        "src": "/favicon.svg",
-        "complete": true,
-        "naturalWidth": 150
-      }
+      "aria": "返回 Mini Silicon Valley 主页"
     },
     "/studio/": {
+      "viewport": [
+        1440,
+        1000
+      ],
+      "mark": {
+        "src": "/assets/mini-silicon-valley-logo-transparent.png",
+        "naturalWidth": 1650,
+        "naturalHeight": 420,
+        "width": 154,
+        "height": 40,
+        "left": 42,
+        "right": 196,
+        "rootWidth": 1440,
+        "bodyWidth": 1440,
+        "viewportWidth": 1440
+      },
       "href": "/",
-      "target": null,
-      "left": 42,
-      "right": 252.125,
-      "width": 1440,
-      "rootWidth": 1440,
-      "bodyWidth": 1440,
-      "image": {
-        "src": "/favicon.svg",
-        "complete": true,
-        "naturalWidth": 150
-      }
+      "aria": "返回 Mini Silicon Valley 主页"
     },
     "/studio/editor/": {
+      "viewport": [
+        1440,
+        1000
+      ],
+      "mark": {
+        "src": "/assets/mini-silicon-valley-logo-transparent.png",
+        "naturalWidth": 1650,
+        "naturalHeight": 420,
+        "width": 126,
+        "height": 34,
+        "left": 43.1875,
+        "right": 169.1875,
+        "rootWidth": 1440,
+        "bodyWidth": 1440,
+        "viewportWidth": 1440
+      },
       "href": "/",
-      "target": null,
-      "left": 43.1875,
-      "right": 87.1875,
-      "width": 1440,
-      "rootWidth": 1440,
-      "bodyWidth": 1440,
-      "image": {
-        "src": "/favicon.svg",
-        "complete": true,
-        "naturalWidth": 150
-      }
+      "aria": "返回 Mini Silicon Valley 主页"
     },
     "/classroom/": {
+      "viewport": [
+        1440,
+        1000
+      ],
+      "mark": {
+        "src": "/assets/mini-silicon-valley-logo-transparent.png",
+        "naturalWidth": 1650,
+        "naturalHeight": 420,
+        "width": 154,
+        "height": 40,
+        "left": 54,
+        "right": 208,
+        "rootWidth": 1440,
+        "bodyWidth": 1440,
+        "viewportWidth": 1440
+      },
       "href": "/",
-      "target": null,
-      "left": 54,
-      "right": 240.546875,
-      "width": 1440,
-      "rootWidth": 1440,
-      "bodyWidth": 1440,
-      "image": {
-        "src": "/favicon.svg",
-        "complete": true,
-        "naturalWidth": 150
-      }
+      "aria": "返回 Mini Silicon Valley 主页"
     },
     "/classroom/521a12fb-ec3f-4f72-bb2a-4cdaa7063219/": {
+      "viewport": [
+        390,
+        844
+      ],
+      "mark": {
+        "src": "/assets/mini-silicon-valley-logo-transparent.png",
+        "naturalWidth": 1650,
+        "naturalHeight": 420,
+        "width": 126,
+        "height": 34,
+        "left": 18,
+        "right": 144,
+        "rootWidth": 390,
+        "bodyWidth": 390,
+        "viewportWidth": 390
+      },
       "href": "/",
-      "target": null,
-      "left": 18,
-      "right": 199.125,
-      "width": 1440,
-      "rootWidth": 1440,
-      "bodyWidth": 1440,
-      "image": {
-        "src": "/favicon.svg",
-        "complete": true,
-        "naturalWidth": 150
-      }
+      "aria": "返回 Mini Silicon Valley 主页"
     },
     "/classroom/521a12fb-ec3f-4f72-bb2a-4cdaa7063219/control": {
+      "viewport": [
+        1440,
+        1000
+      ],
+      "mark": {
+        "src": "/assets/mini-silicon-valley-logo-transparent.png",
+        "naturalWidth": 1650,
+        "naturalHeight": 420,
+        "width": 154,
+        "height": 40,
+        "left": 18,
+        "right": 172,
+        "rootWidth": 1440,
+        "bodyWidth": 1440,
+        "viewportWidth": 1440
+      },
       "href": "/",
-      "target": null,
-      "left": 18,
-      "right": 199.125,
-      "width": 1440,
-      "rootWidth": 1440,
-      "bodyWidth": 1440,
-      "image": {
-        "src": "/favicon.svg",
-        "complete": true,
-        "naturalWidth": 150
-      }
+      "aria": "返回 Mini Silicon Valley 主页"
     },
     "/classroom/521a12fb-ec3f-4f72-bb2a-4cdaa7063219/members": {
+      "viewport": [
+        1440,
+        1000
+      ],
+      "mark": {
+        "src": "/assets/mini-silicon-valley-logo-transparent.png",
+        "naturalWidth": 1650,
+        "naturalHeight": 420,
+        "width": 154,
+        "height": 40,
+        "left": 18,
+        "right": 172,
+        "rootWidth": 1440,
+        "bodyWidth": 1440,
+        "viewportWidth": 1440
+      },
       "href": "/",
-      "target": null,
-      "left": 18,
-      "right": 199.125,
-      "width": 1440,
-      "rootWidth": 1440,
-      "bodyWidth": 1440,
-      "image": {
-        "src": "/favicon.svg",
-        "complete": true,
-        "naturalWidth": 150
-      }
+      "aria": "返回 Mini Silicon Valley 主页"
     },
     "/classroom/521a12fb-ec3f-4f72-bb2a-4cdaa7063219/screen?block=B01": {
+      "viewport": [
+        1440,
+        1000
+      ],
+      "mark": {
+        "src": "/assets/mini-silicon-valley-logo-transparent.png",
+        "naturalWidth": 1650,
+        "naturalHeight": 420,
+        "width": 154,
+        "height": 40,
+        "left": 18,
+        "right": 172,
+        "rootWidth": 1440,
+        "bodyWidth": 1440,
+        "viewportWidth": 1440
+      },
       "href": "/",
-      "target": null,
-      "left": 18,
-      "right": 199.125,
-      "width": 1440,
-      "rootWidth": 1440,
-      "bodyWidth": 1440,
-      "image": {
-        "src": "/favicon.svg",
-        "complete": true,
-        "naturalWidth": 150
-      }
+      "aria": "返回 Mini Silicon Valley 主页"
     },
     "/course/product-mentor-foundations/": {
+      "viewport": [
+        1440,
+        1000
+      ],
+      "mark": {
+        "src": "/assets/mini-silicon-valley-logo-transparent.png",
+        "naturalWidth": 1650,
+        "naturalHeight": 420,
+        "width": 126,
+        "height": 34,
+        "left": 18,
+        "right": 144,
+        "rootWidth": 1440,
+        "bodyWidth": 1440,
+        "viewportWidth": 1440
+      },
       "href": "/",
-      "target": null,
-      "left": 18,
-      "right": 62,
-      "width": 1440,
-      "rootWidth": 1440,
-      "bodyWidth": 1440,
-      "image": {
-        "src": "/favicon.svg",
-        "complete": true,
-        "naturalWidth": 150
-      }
+      "aria": "返回 Mini Silicon Valley 主页"
     }
   },
-  "currentTabClick": true,
+  "currentTabKeyboard": true,
   "pageErrors": [],
-  "requestFailures": []
+  "requestFailures": [],
+  "productionWrites": false
 }

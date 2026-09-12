@@ -49,6 +49,10 @@ def main() -> None:
                 response = page.goto(urljoin(base, route.lstrip("/")), wait_until="domcontentloaded")
                 assert response and response.status in ({404} if "missing" in route else {200}), (route, response.status if response else None)
                 page.wait_for_selector(BRAND_SELECTOR)
+                page.wait_for_function(
+                    "selector => { const image=document.querySelector(selector + ' img'); return image?.complete && image.naturalWidth > 0; }",
+                    arg=BRAND_SELECTOR,
+                )
                 value = snapshot(page)
                 assert value and value["tag"] == "A"
                 assert value["href"] == "/" and value["aria"] == "返回 Mini Silicon Valley 主页"
@@ -72,6 +76,7 @@ def main() -> None:
         page.keyboard.press("Enter")
         page.wait_for_url(urljoin(base, ""))
         assert page.url.rstrip("/") == base.rstrip("/")
+        page.close()
         browser.close()
         result["ok"] = True
     print(json.dumps(result, ensure_ascii=False, indent=2))

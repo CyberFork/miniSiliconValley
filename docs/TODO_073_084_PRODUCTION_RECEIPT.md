@@ -60,7 +60,7 @@ T-075
 
 ### T-082｜统一品牌入口
 
-- 资产盘点确认当前仓库唯一受控品牌图形是 `public/favicon.svg`；没有把课件装饰或未确认第三方图形猜作正式 Logo。
+- **2026-09-12 纠正：**原结论错误地把浏览器 favicon 当成页面 Logo，现已由 `public/assets/mini-silicon-valley-logo-transparent.png` 正式字标替代；`public/favicon.svg` 仅保留为浏览器元数据。
 - Next 页面、认证、账户、Classroom、Alpha、Control、Editor、Workshop、家长页和 404 使用一致的品牌／主页入口契约。
 - 左上角品牌使用真实链接返回 `/`，支持键盘 focus；编辑器存在未保存内容时保留离开确认。
 - `/course/` 是同事交付的独立课件产物，不注入品牌、不改写内容，以字节不变方式发布。
