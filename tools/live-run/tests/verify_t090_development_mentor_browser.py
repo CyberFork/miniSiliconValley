@@ -379,8 +379,8 @@ def main() -> None:
                     expect(desktop.get_by_text("第 1—5 页", exact=False)).to_be_visible()
                     expect(desktop.get_by_text("B04 由 P 导师通过", exact=True)).to_be_visible()
                     expect(desktop.get_by_text("ProductBrief／产品定义卡", exact=False)).to_be_visible()
-                    exact_link = desktop.get_by_role("link", name="打开 D 导师 exact 课件 →")
-                    expect(exact_link).to_have_attribute("href", f"/classroom/{room_id}/courseware/D/")
+                    latest_link = desktop.get_by_role("link", name="打开 D 导师最新课件 →")
+                    expect(latest_link).to_have_attribute("href", f"/classroom/{room_id}/courseware/D/")
                     desktop_geometry = assert_no_page_overflow(desktop)
                     desktop.screenshot(path=str(QA / "b05-d-owner-and-handoff.png"), full_page=True)
 

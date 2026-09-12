@@ -17,6 +17,8 @@ DEVELOPMENT_COURSEWARE = Path("courseware/development-mentor-ligun")
 MARKET_COURSEWARE = Path("courseware/market-mentor-user-system")
 PRODUCT_COURSEWARE = Path("courseware/product-mentor-foundations")
 PRODUCT_COURSEWARE_R1 = PRODUCT_COURSEWARE / "r1"
+BRAND_WORDMARK = Path("assets/mini-silicon-valley-logo-transparent.png")
+BRAND_WORDMARK_SHA256 = "4dbbe4dea625fd372c6d760f2344fbf62b7b15f0d2d14e490cddd56e05ffbe87"
 REQUIRED_PAGES = (
     "index.html", "404.html", "world/index.html", "framework/index.html",
     "parents/index.html", "world-preview.json", "workshop/index.html",
@@ -337,8 +339,8 @@ def apply_workshop_overlay(workshop: Path, snapshot_source: Path | None = None) 
     verified = page.read_text(encoding="utf-8")
     script = (workshop / "archive.js").read_text(encoding="utf-8")
     for marker in (
-        "msv-workshop-archive", 'href="/" aria-label="返回 MINI硅谷首页"',
-        'src="/favicon.svg"', 'data-workshop-mode="archive-readonly"',
+        "msv-workshop-archive", 'href="/" aria-label="返回 Mini Silicon Valley 主页"',
+        f'src="/{BRAND_WORDMARK.as_posix()}"', 'data-workshop-mode="archive-readonly"',
         'src="archive.js"', 'href="archive.css"',
     ):
         if marker not in verified:
@@ -497,6 +499,7 @@ def build(
             "parent-qa-review-bridge",
             "per-classroom-controller",
             "shared-brand-home",
+            "official-brand-wordmark",
             "released-workshop-snapshot",
             "read-only-workshop-history-archive",
             "canonical-workspace-provenance",
@@ -572,6 +575,11 @@ def build(
     errors = []
     for relative in REQUIRED_PAGES:
         if not (output / relative).is_file(): errors.append(f"missing {relative}")
+    brand_wordmark = output / BRAND_WORDMARK
+    if not brand_wordmark.is_file():
+        errors.append(f"missing {BRAND_WORDMARK.as_posix()}")
+    elif hashlib.sha256(brand_wordmark.read_bytes()).hexdigest() != BRAND_WORDMARK_SHA256:
+        errors.append(f"unapproved brand wordmark bytes in {BRAND_WORDMARK.as_posix()}")
     for relative in PUBLIC_COURSE_NAV_PAGES:
         page = output / relative
         if page.is_file() and not re.search(r'href=["\']/course/', page.read_text(encoding="utf-8")):

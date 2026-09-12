@@ -3,6 +3,7 @@
 
   var root = document.documentElement;
   var LEGACY_STORAGE_KEY = "minisv.ui.theme";
+  var BRAND_WORDMARK_SRC = "/assets/mini-silicon-valley-logo-transparent.png";
 
   function surfaceKind() {
     var pathname = window.location.pathname.replace(/\/+$/, "/");
@@ -72,14 +73,14 @@
     link.setAttribute("href", "/");
     link.setAttribute("aria-label", "返回 Mini Silicon Valley 主页");
     link.classList.add("msv-static-brand", "msv-framework-brand-home");
-    var oldMark = link.querySelector("b");
-    if (!oldMark || link.querySelector('img[src="/favicon.svg"]')) return;
+    var oldMark = link.querySelector("b, img");
+    if (!oldMark || link.querySelector('img[src="' + BRAND_WORDMARK_SRC + '"]')) return;
     var mark = document.createElement("img");
-    mark.src = "/favicon.svg";
+    mark.src = BRAND_WORDMARK_SRC;
     mark.alt = "";
     mark.setAttribute("aria-hidden", "true");
-    mark.width = 44;
-    mark.height = 44;
+    mark.width = 330;
+    mark.height = 84;
     oldMark.replaceWith(mark);
   }
 
@@ -99,7 +100,7 @@
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ["href", "aria-label"]
+      attributeFilter: ["href", "aria-label", "src"]
     });
     window.addEventListener("pageshow", mountFrameworkBrandHome);
   }

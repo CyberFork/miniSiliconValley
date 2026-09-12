@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import http.client
 import json
 import ssl
@@ -37,6 +38,7 @@ EXPECTED = {
     "/robots.txt": 200,
     "/sitemap.xml": 200,
     "/favicon.svg": 200,
+    "/assets/mini-silicon-valley-logo-transparent.png": 200,
     "/og.png": 200,
     "/workshop/confirmed-baseline.json": 307,
     "/this-worldline-does-not-exist": 404,
@@ -147,7 +149,7 @@ def main() -> None:
                 raise SystemExit("FAIL release.json: M-mentor courseware artifact was transformed or misclassified")
             if market.get("sha256") != "48b01a256bd3d408a5d539f798470e6aad0058a19dcdeb8b5d212b0e64add862":
                 raise SystemExit("FAIL release.json: M-mentor courseware digest is not the accepted user-system tree")
-            for feature in ("shared-brand-home", "released-workshop-snapshot", "read-only-workshop-history-archive", "unified-course-factory", "course-studio", "versioned-product-manager-courseware"):
+            for feature in ("shared-brand-home", "official-brand-wordmark", "released-workshop-snapshot", "read-only-workshop-history-archive", "unified-course-factory", "course-studio", "versioned-product-manager-courseware"):
                 if feature not in release.get("features", []):
                     raise SystemExit(f"FAIL release.json: missing {feature}")
         if path == "/world-preview.json":
@@ -167,9 +169,12 @@ def main() -> None:
                 raise SystemExit(f"FAIL {path}: anonymous auth gate leaked courseware bytes")
             if headers.get("cache-control") != "private, no-store, no-transform":
                 raise SystemExit(f"FAIL {path}: authenticated static courseware cache policy is unsafe")
+        if path == "/assets/mini-silicon-valley-logo-transparent.png":
+            if hashlib.sha256(body).hexdigest() != "4dbbe4dea625fd372c6d760f2344fbf62b7b15f0d2d14e490cddd56e05ffbe87":
+                raise SystemExit("FAIL official brand wordmark: unapproved bytes")
         if path in {"/", "/auth/login/", "/auth/register/", "/auth/recover/"}:
             text = body.decode("utf-8", "replace")
-            if 'href="/"' not in text or '/favicon.svg' not in text:
+            if 'href="/"' not in text or '/favicon.svg' not in text or '/assets/mini-silicon-valley-logo-transparent.png' not in text:
                 raise SystemExit(f"FAIL {path}: shared brand/home contract is missing")
         if path == "/framework/":
             text = body.decode("utf-8", "replace")
@@ -191,7 +196,7 @@ def main() -> None:
             raise SystemExit(f"FAIL {path}: protected or operational route is indexable")
         if path == "/this-worldline-does-not-exist":
             text = body.decode("utf-8", "replace")
-            if "WORLDLINE NOT FOUND" not in text or 'href="/"' not in text or "/favicon.svg" not in text:
+            if "WORLDLINE NOT FOUND" not in text or 'href="/"' not in text or "/favicon.svg" not in text or "/assets/mini-silicon-valley-logo-transparent.png" not in text:
                 raise SystemExit("FAIL custom 404: branded recovery path is missing")
         print(f"OK {path} {status}")
     print("MINISV_PUBLIC_SMOKE_OK")

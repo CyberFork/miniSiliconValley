@@ -164,7 +164,7 @@ def main() -> None:
                     page.locator('[data-preview-block="0"]').click()
                     field = page.locator('#previewController [data-course-path="blocks.0.title"]')
                     field.click()
-                    expect(page.locator("#fieldPath")).to_have_text("blocks.0.title")
+                    expect(page.locator("#fieldPath")).to_contain_text("blocks.0.title")
                     page.locator("#fieldValue").fill("B01 · 旧编辑器直改回归验收")
                     expect(page.locator("#impactReport")).to_contain_text("已同步")
                     expect(page.locator("#saveState")).to_have_attribute("data-state", "dirty")

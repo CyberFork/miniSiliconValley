@@ -42,6 +42,7 @@ function boot({ search = "", stored = null, pathname = "/", legacySwitcher = fal
     body,
     readyState: "loading",
     createElement: (tag) => new Element(tag),
+    querySelector: () => null,
     querySelectorAll: () => [],
     getElementById: (id) => body.walk().find((item) => item.id === id) ?? null,
   };
@@ -67,6 +68,11 @@ function boot({ search = "", stored = null, pathname = "/", legacySwitcher = fal
   vm.runInNewContext(source, {
     document,
     window,
+    MutationObserver: class {
+      constructor(handler) { this.handler = handler; }
+      observe() {}
+      disconnect() {}
+    },
     CustomEvent: class {
       constructor(name, options) {
         this.type = name;

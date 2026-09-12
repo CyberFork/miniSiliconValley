@@ -25,7 +25,7 @@ Registry 是课程发布链的索引，不是内容复制器。唯一真值链�
 - `/control/`、Alpha、Classroom、Workshop：读取 Registry/Released 快照，不提供隐式回写。
 - `/course/`：同事原样交付，字节不变，不注入品牌或 Registry 字段。
 - `/framework/`：本项目自有页面，可统一品牌，但不改变课程内容真值。
-- 品牌统一使用受控 `public/favicon.svg`；不得输出密钥、令牌、cookie 或内部诊断数据。
+- 页面内品牌统一使用受控 `public/assets/mini-silicon-valley-logo-transparent.png`；`public/favicon.svg` 只用于浏览器图标。不得输出密钥、令牌、cookie 或内部诊断数据。
 
 ## 验收命令
 

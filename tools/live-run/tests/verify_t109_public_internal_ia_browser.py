@@ -72,6 +72,7 @@ class Handler(BaseHTTPRequestHandler):
             "/ui-theme.css": SITE / "ui-theme.css",
             "/ui-theme.js": SITE / "ui-theme.js",
             "/favicon.svg": CLIENT / "favicon.svg",
+            "/assets/mini-silicon-valley-logo-transparent.png": CLIENT / "assets" / "mini-silicon-valley-logo-transparent.png",
             "/world-preview.json": STATIC / "world-preview.json",
             "/assets/map-1998.webp": CLIENT / "assets" / "map-1998.webp",
             "/assets/map-1891.webp": CLIENT / "assets" / "map-1891.webp",

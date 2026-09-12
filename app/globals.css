@@ -151,7 +151,7 @@ li {
   background-image: none;
 }
 
-/* T-082: one controlled mark and one home-navigation contract across React UI. */
+/* T-082: one official wordmark and one home-navigation contract across React UI. */
 .msv-brand-home {
   display: inline-flex;
   min-width: 0;
@@ -164,9 +164,12 @@ li {
 
 .msv-brand-home__mark {
   display: block;
-  width: 44px;
-  height: 44px;
-  flex: 0 0 44px;
+  width: 154px;
+  height: 40px;
+  flex: 0 0 154px;
+  padding: 5px 8px;
+  background: #fff;
+  border: 1px solid rgba(16, 43, 70, .2);
   object-fit: contain;
 }
 
@@ -198,13 +201,34 @@ li {
 }
 
 .msv-brand-home--mark {
-  width: 44px;
-  min-width: 44px;
+  width: 126px;
+  min-width: 126px;
+}
+
+.msv-brand-home--mark .msv-brand-home__mark {
+  width: 126px;
+  height: 34px;
+  flex-basis: 126px;
 }
 
 .msv-brand-home:focus-visible {
   outline: 3px solid var(--mustard, #e0b83f);
   outline-offset: 4px;
+}
+
+@media (max-width: 520px) {
+  .msv-brand-home__mark {
+    width: 126px;
+    height: 34px;
+    flex-basis: 126px;
+  }
+
+  .msv-brand-home--mark,
+  .msv-brand-home--mark .msv-brand-home__mark {
+    width: 112px;
+    min-width: 112px;
+    flex-basis: 112px;
+  }
 }
 
 .msv-not-found {

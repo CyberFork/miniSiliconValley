@@ -269,7 +269,7 @@ textarea { resize: vertical; }
 }
 .backButton { align-self: stretch; color: white; background: #0b1214; border-right: 1px solid #3c494c; font-size: 22px; }
 .roomBrand { display: flex; min-width: 0; align-items: center; gap: 11px; padding: 8px 14px; }
-.roomBrand :global(.msv-brand-home__mark) { width: 40px; height: 40px; flex-basis: 40px; }
+.roomBrand :global(.msv-brand-home__mark) { width: 142px; height: 38px; flex-basis: 142px; }
 .roomBrand strong,
 .roomBrand small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .roomBrand strong { font-family: var(--font-display); font-size: 16px; letter-spacing: .02em; }
@@ -796,7 +796,7 @@ textarea { resize: vertical; }
 .liveRegion { position: fixed; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .loadingScreen { position: relative; display: grid; min-height: 100svh; place-items: center; align-content: center; color: white; background: var(--c-ink); text-align: center; }
 .loadingMark { position: absolute; top: max(18px, env(safe-area-inset-top)); left: max(18px, env(safe-area-inset-left)); }
-.loadingMark :global(.msv-brand-home__mark) { width: 56px; height: 56px; flex-basis: 56px; }
+.loadingMark :global(.msv-brand-home__mark) { width: 154px; height: 40px; flex-basis: 154px; }
 .loadingScreen h1 { margin: 25px 0 7px; font-family: var(--font-display); font-size: 36px; }
 .loadingScreen p { color: #9baba8; }
 .loadingScreen > span { width: 180px; height: 5px; overflow: hidden; background: #405055; }
@@ -843,7 +843,8 @@ textarea { resize: vertical; }
   .recentSection { padding: 20px 18px 60px; }
   .roomCards { grid-template-columns: 1fr; }
   .roomTopbar { grid-template-columns: 44px minmax(0, 1fr) auto; }
-  .roomBrand :global(.msv-brand-home__mark) { display: none; }
+  .roomBrand :global(.msv-brand-home__mark) { width: 112px; height: 30px; flex-basis: 112px; }
+  .roomBrand :global(.msv-brand-home__copy) { display: none; }
   .roomTopActions .syncBadge,
   .roomTopActions .iconLink { display: none; }
   .codeChip { padding: 0 10px; }

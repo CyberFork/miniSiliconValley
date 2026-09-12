@@ -870,9 +870,13 @@ class LiveRunServer(ThreadingHTTPServer):
                     mime = mimetypes.guess_type(target.name)[0] or "application/octet-stream"
                     self.static_assets[f"/{name}"] = (target.read_bytes(), mime)
             break
-        favicon = ROOT.parents[1] / "public" / "favicon.svg"
+        public_root = ROOT.parents[1] / "public"
+        favicon = public_root / "favicon.svg"
         if favicon.is_file():
             self.static_assets["/favicon.svg"] = (favicon.read_bytes(), "image/svg+xml")
+        wordmark = public_root / "assets" / "mini-silicon-valley-logo-transparent.png"
+        if wordmark.is_file():
+            self.static_assets["/assets/mini-silicon-valley-logo-transparent.png"] = (wordmark.read_bytes(), "image/png")
 
 
 class LiveRunHandler(BaseHTTPRequestHandler):

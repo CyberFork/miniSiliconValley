@@ -11,14 +11,15 @@ interface BrandHomeLinkProps {
 /**
  * The single React brand/home primitive.
  *
- * The mark always comes from public/favicon.svg and the navigation target is
- * deliberately the site root—not the current sub-application.  Keeping this
- * an ordinary anchor preserves keyboard navigation and still works without
- * client-side JavaScript.
+ * The visible mark always comes from the official blue/green MINI硅谷
+ * wordmark.  favicon.svg remains browser metadata only and must never be used
+ * as an in-page brand substitute.  The navigation target is deliberately the
+ * site root—not the current sub-application. Keeping this an ordinary anchor
+ * preserves keyboard navigation and still works without client-side JavaScript.
  */
 export function BrandHomeLink({
   className,
-  title = "MINI SILICON VALLEY",
+  title,
   subtitle,
   markOnly = false,
 }: BrandHomeLinkProps) {
@@ -33,17 +34,17 @@ export function BrandHomeLink({
     >
       <Image
         className="msv-brand-home__mark"
-        src={publicPath("/favicon.svg")}
-        width={64}
-        height={64}
+        src={publicPath("/assets/mini-silicon-valley-logo-transparent.png")}
+        width={330}
+        height={84}
         alt=""
         aria-hidden="true"
         unoptimized
         priority
       />
-      {!markOnly && (
+      {!markOnly && (title || subtitle) && (
         <span className="msv-brand-home__copy">
-          <strong>{title}</strong>
+          {title ? <strong>{title}</strong> : null}
           {subtitle ? <small>{subtitle}</small> : null}
         </span>
       )}

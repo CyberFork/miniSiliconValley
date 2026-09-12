@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -6,13 +7,16 @@ import { dirname, resolve } from "node:path";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const source = (path: string) => readFile(resolve(root, path), "utf8");
+const binary = (path: string) => readFile(resolve(root, path));
+const wordmark = "/assets/mini-silicon-valley-logo-transparent.png";
 
 test("React surfaces share one accessible root-home logo primitive", async () => {
   const brand = await source("app/components/BrandHomeLink.tsx");
   assert.match(brand, /href=\{publicPath\("\/"\)\}/);
   assert.match(brand, /aria-label="返回 Mini Silicon Valley 主页"/);
-  assert.match(brand, /publicPath\("\/favicon\.svg"\)/);
-  assert.match(brand, /width=\{64\}[\s\S]*height=\{64\}/);
+  assert.match(brand, /publicPath\("\/assets\/mini-silicon-valley-logo-transparent\.png"\)/);
+  assert.match(brand, /width=\{330\}[\s\S]*height=\{84\}/);
+  assert.doesNotMatch(brand, /publicPath\("\/favicon\.svg"\)/, "browser favicon must not be rendered as the in-page brand");
 
   const consumers = [
     "app/components/WorldApp.tsx",
@@ -24,6 +28,8 @@ test("React surfaces share one accessible root-home logo primitive", async () =>
     "app/course/[slug]/CoursewareFrame.tsx",
     "app/classroom/[classroomId]/courseware/[mentorRole]/page.tsx",
     "app/qa/QaClient.tsx",
+    "app/course/page.tsx",
+    "app/studio/StudioApp.tsx",
     "app/not-found.tsx",
   ];
   for (const path of consumers) {
@@ -48,11 +54,14 @@ test("static operational surfaces use the same mark and absolute root link", asy
     "tools/live-run/static/seat.html",
     "tools/live-run/remote-console/static/index.html",
     "tools/live-run/remote-console/static/seat-loading.html",
+    "deploy/minisv/workshop/archive.html",
+    "app/studio/editor/workbench.html",
   ];
   for (const path of pages) {
     const html = await source(path);
     assert.match(html, /href="\/"[^>]*aria-label="返回 Mini Silicon Valley 主页"/, `${path} must expose a real root anchor`);
-    assert.match(html, /<img[^>]+src="\/favicon\.svg"[^>]+width="(?:44|64)"[^>]+height="(?:44|64)"/, `${path} must reuse the controlled SVG`);
+    assert.match(html, /<img[^>]+src="\/assets\/mini-silicon-valley-logo-transparent\.png"[^>]+width="330"[^>]+height="84"/, `${path} must reuse the official wordmark`);
+    assert.doesNotMatch(html, /<img[^>]+src="\/favicon\.svg"/, `${path} must not render the browser favicon as its visible logo`);
   }
 });
 
@@ -77,9 +86,10 @@ test("independently hydrated framework repairs its legacy top marker after load"
   assert.match(runtime, /pathname !== "\/framework\/"/);
   assert.match(runtime, /setAttribute\("href", "\/"\)/);
   assert.match(runtime, /setAttribute\("aria-label", "返回 Mini Silicon Valley 主页"\)/);
-  assert.match(runtime, /mark\.src = "\/favicon\.svg"/);
+  assert.match(runtime, /BRAND_WORDMARK_SRC = "\/assets\/mini-silicon-valley-logo-transparent\.png"/);
+  assert.match(runtime, /mark\.src = BRAND_WORDMARK_SRC/);
   assert.match(runtime, /new MutationObserver/);
-  assert.match(runtime, /attributeFilter: \["href", "aria-label"\]/);
+  assert.match(runtime, /attributeFilter: \["href", "aria-label", "src"\]/);
   assert.match(runtime, /window\.addEventListener\("load", mountSharedNavigation/);
 });
 
@@ -88,13 +98,16 @@ test("brand metadata, manifest, error routing and editor leave guard stay cohere
   const manifest = JSON.parse(await source("deploy/minisv/site/site.webmanifest"));
   const gateway = await source("deploy/minisv/gateway/default.conf");
   const editor = await source("tools/live-run/static/editor.js");
-  const asset = await source("public/favicon.svg");
+  const favicon = await source("public/favicon.svg");
+  const officialWordmark = await binary("public/assets/mini-silicon-valley-logo-transparent.png");
 
-  assert.match(asset, /viewBox="0 0 64 64"/);
+  assert.match(favicon, /viewBox="0 0 64 64"/);
+  assert.equal(createHash("sha256").update(officialWordmark).digest("hex"), "4dbbe4dea625fd372c6d760f2344fbf62b7b15f0d2d14e490cddd56e05ffbe87");
   assert.match(layout, /data-msv-theme="adventure"/, "the latest Adventure UI must be the server-rendered canonical skin");
   assert.match(layout, /publicPath\("\/og\.png"\)/);
   assert.equal(manifest.start_url, "/");
   assert.equal(manifest.icons[0].src, "/favicon.svg");
+  assert.equal(wordmark, "/assets/mini-silicon-valley-logo-transparent.png");
   assert.match(gateway, /error_page 404 \/404\.html/);
   assert.match(editor, /beforeunload[\s\S]*if \(dirty\)/, "logo navigation must retain the native unsaved-work guard");
 });

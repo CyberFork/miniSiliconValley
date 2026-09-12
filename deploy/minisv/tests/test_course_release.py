@@ -91,6 +91,8 @@ class CourseReleaseTests(unittest.TestCase):
                 )
             }
             (client / "favicon.svg").write_text("<svg xmlns='http://www.w3.org/2000/svg'/>")
+            brand_source = Path(__file__).parents[3] / "public" / MODULE.BRAND_WORDMARK
+            (client / MODULE.BRAND_WORDMARK).write_bytes(brand_source.read_bytes())
             development = client / "courseware" / "development-mentor-ligun"
             (development / "index.html").write_text("<html><body><h1>先立棍，再让 AI 跑</h1></body></html>")
             (development / "assets" / "diagram.png").write_bytes(b"\x89PNG\r\n\x1a\nD mentor")
@@ -211,8 +213,8 @@ class CourseReleaseTests(unittest.TestCase):
             for forbidden in ("setItem", "removeItem", "clear("):
                 self.assertNotIn(forbidden, archive_js)
             self.assertTrue((output / "workshop").is_dir())
-            self.assertIn('href="/" aria-label="返回 MINI硅谷首页"', workshop_html)
-            self.assertIn('src="/favicon.svg"', workshop_html)
+            self.assertIn('href="/" aria-label="返回 Mini Silicon Valley 主页"', workshop_html)
+            self.assertIn(f'src="/{MODULE.BRAND_WORDMARK.as_posix()}"', workshop_html)
             self.assertIn('data-msv-theme="adventure"', workshop_html)
             self.assertNotIn("data-msv-theme-slot", workshop_html)
             for name in ("archive.css", "archive.js", "confirmed-baseline.json", "workshop-snapshot.schema.json"):

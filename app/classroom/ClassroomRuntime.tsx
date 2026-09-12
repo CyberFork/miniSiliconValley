@@ -417,7 +417,7 @@ function RuntimeTop({ data, classroomId, user, selectedSurface, onSwitch }: { da
         ? `${data.adminDmMode === "primary" ? "Primary" : "Delegated"} Admin DM`
         : "课堂成员";
   return <><header className={styles.runtimeTop}>
-    <BrandHomeLink className={styles.runtimeBrand} title="MINI硅谷" subtitle={data.title} />
+    <BrandHomeLink className={styles.runtimeBrand} title={data.title} subtitle="CLASSROOM · 课堂运行时" />
     <nav aria-label="课堂内导航"><Link href="/classroom/">课堂中心</Link><Link href={`/classroom/${classroomId}/`}>我的席位</Link>{data.controlView && <Link href={`/classroom/${classroomId}/control`}>主持提示</Link>}<a href={`/classroom/${classroomId}/screen?block=${encodeURIComponent(data.page.id)}`} target="_blank" rel="noreferrer">投屏</a>{data.isAdminDm && <Link href={`/classroom/${classroomId}/members`}>成员</Link>}<AccountMenu user={user} returnTo={`/classroom/${classroomId}/`} context={{
       classroomId,
       classroomTitle: data.title,
@@ -954,7 +954,7 @@ function factoryHrefForArchived(data: ClassroomInstanceDetail): string {
 }
 
 function RuntimeStandaloneBrand() {
-  return <div className={styles.runtimeStandaloneBrand}><BrandHomeLink title="MINI硅谷" subtitle="CLASSROOM · 课堂运行时" /></div>;
+  return <div className={styles.runtimeStandaloneBrand}><BrandHomeLink title="课堂运行时" subtitle="CLASSROOM" /></div>;
 }
 
 function RuntimeError({ error }: { error: string }) { return <main className={styles.runtime}><RuntimeStandaloneBrand /><div className={styles.runtimeMain}><div className={styles.error} role="alert"><b>无法进入课堂</b><p>{error}</p></div><Link className={styles.coursewareLink} href="/classroom/">返回我的课堂</Link></div></main>; }

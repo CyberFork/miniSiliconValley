@@ -89,6 +89,15 @@ def switch_from_menu(page: Page, target_name: str) -> None:
     row.get_by_role("button", name="切换", exact=True).click()
 
 
+def assert_official_brand(page: Page) -> None:
+    """Every portal shell must render the audited wordmark, never the favicon."""
+    image = page.locator('a[href="/"] img[src*="mini-silicon-valley-logo-transparent.png"]').first
+    expect(image).to_be_visible()
+    dimensions = image.evaluate("node => ({naturalWidth:node.naturalWidth,naturalHeight:node.naturalHeight})")
+    assert dimensions == {"naturalWidth": 1650, "naturalHeight": 420}, dimensions
+    assert page.locator('a img[src*="favicon.svg"]').count() == 0
+
+
 def static_shell_routes(context, base: str) -> None:
     assets = {
         f"{base}/": (REPO / "deploy/minisv/site/index.html", "text/html; charset=utf-8"),
@@ -212,7 +221,7 @@ def main() -> None:
                     page.locator('input[name="password"]').fill(learner_password)
                     page.get_by_role("button", name="进入 Mini Silicon Valley").click()
                     page.wait_for_url("**/classroom/?accountNotice=studio-role")
-                    expect(page.get_by_role("heading", name="课堂中心")).to_be_visible()
+                    expect(page.get_by_role("heading", name="我的课堂")).to_be_visible()
                     expect(page.get_by_role("status")).to_contain_text("没有 Course Studio 权限")
                     assert session_user(page)["username"] == learner_username
                     open_account_menu(page, LEARNER_NAME)
@@ -235,11 +244,12 @@ def main() -> None:
                     for path, heading in (
                         ("/studio/", "课程生产工作台"),
                         ("/classroom/", "课堂中心"),
-                        ("/course/", "课程目录"),
+                        ("/course/", "课件查看"),
                         ("/account/", "Young Builder 账户"),
                     ):
                         page.goto(f"{base}{path}", wait_until="networkidle")
                         expect(page.get_by_role("heading", name=heading)).to_be_visible()
+                        assert_official_brand(page)
                         expect(page.locator(f'summary[aria-label="账户菜单：{ADMIN_NAME}"]')).to_be_visible()
                         assert session_user(page)["username"] == admin_username
                         result["protectedSurfaces"].append(path)
@@ -312,6 +322,7 @@ def main() -> None:
                     expect(page.get_by_role("heading", name="课堂中心")).to_be_visible()
                     static_shell_routes(context, base)
                     page.goto(f"{base}/", wait_until="load")
+                    assert_official_brand(page)
                     trigger = page.get_by_role("button", name=re.compile(ADMIN_NAME))
                     expect(trigger).to_be_visible()
                     trigger.click()
@@ -352,6 +363,7 @@ def main() -> None:
                     assert admin_password not in body and learner_password not in body
                     result["homepage"] = {
                         "realStaticAssets": True,
+                        "officialBrandWordmark": True,
                         "desktop": visual_states,
                         "mobileGeometry": geometry,
                         "credentialStorage": False,

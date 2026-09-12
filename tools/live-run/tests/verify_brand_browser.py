@@ -13,12 +13,12 @@ from playwright.sync_api import sync_playwright
 CHROME = Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
 ROUTES = ("/", "/framework/", "/auth/register/", "/auth/recover/", "/parents/", "/brand-contract-missing/")
 VIEWPORTS = ((320, 760), (390, 844), (768, 1024), (1440, 900))
-BRAND_SELECTOR = 'a[href="/"]:has(img[src*="favicon.svg"])'
+BRAND_SELECTOR = 'a[href="/"]:has(img[src*="mini-silicon-valley-logo-transparent.png"])'
 
 
 def snapshot(page) -> dict:
     return page.evaluate(
-        """() => { const link=document.querySelector('a[href="/"]:has(img[src*="favicon.svg"])'), img=link?.querySelector('img');
+        """() => { const link=document.querySelector('a[href="/"]:has(img[src*="mini-silicon-valley-logo-transparent.png"])'), img=link?.querySelector('img');
         if(!link||!img)return null; const a=link.getBoundingClientRect(), b=img.getBoundingClientRect();
         return {href:link.getAttribute('href'),aria:link.getAttribute('aria-label'),tag:link.tagName,
           innerWidth,rootWidth:document.documentElement.scrollWidth,bodyWidth:document.body.scrollWidth,
@@ -52,9 +52,10 @@ def main() -> None:
                 value = snapshot(page)
                 assert value and value["tag"] == "A"
                 assert value["href"] == "/" and value["aria"] == "返回 Mini Silicon Valley 主页"
-                assert "favicon.svg" in value["image"]["src"]
-                assert value["image"]["naturalWidth"] > 0 and value["image"]["naturalHeight"] > 0
-                assert abs(value["image"]["width"] - value["image"]["height"]) <= 1
+                assert "mini-silicon-valley-logo-transparent.png" in value["image"]["src"]
+                assert value["image"]["naturalWidth"] == 1650 and value["image"]["naturalHeight"] == 420
+                rendered_ratio = value["image"]["width"] / value["image"]["height"]
+                assert 3.1 <= rendered_ratio <= 4.7, (route, width, value)
                 assert value["link"]["left"] >= -1 and value["link"]["right"] <= width + 1, (route, width, value)
                 assert value["rootWidth"] <= width + 1 and value["bodyWidth"] <= width + 1, (route, width, value)
                 route_result[str(width)] = {"noOverflow": True, "mark": value["image"]}

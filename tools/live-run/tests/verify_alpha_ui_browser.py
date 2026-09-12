@@ -94,6 +94,7 @@ def handler_for(base_state: dict):
         "/course-preview.js": static / "course-preview.js", "/ui-theme.css": site / "ui-theme.css",
         "/ui-theme.js": site / "ui-theme.js", "/alpha/": remote / "index.html",
         "/favicon.svg": REPO / "public" / "favicon.svg",
+        "/assets/mini-silicon-valley-logo-transparent.png": REPO / "public" / "assets" / "mini-silicon-valley-logo-transparent.png",
         "/alpha/index.html": remote / "index.html", "/alpha/console.css": remote / "console.css",
         "/alpha/console.js": remote / "console.js", "/alpha/seat-loading.html": remote / "seat-loading.html",
     }

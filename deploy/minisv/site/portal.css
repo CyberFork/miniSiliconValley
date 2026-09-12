@@ -51,7 +51,7 @@ p { text-wrap: pretty; }
 .site-header { position: sticky; z-index: 80; top: 0; color: var(--paper-light); background: rgba(13, 32, 42, .97); border-bottom: 5px solid var(--gold); backdrop-filter: blur(14px); }
 .header-inner { display: flex; min-height: 82px; align-items: center; gap: clamp(12px, 2.5vw, 34px); }
 .brand { display: inline-flex; min-width: 0; align-items: center; gap: 12px; }
-.brand img { width: 48px; height: 48px; flex: 0 0 48px; object-fit: contain; }
+.brand img { width: 154px; height: 40px; flex: 0 0 154px; object-fit: contain; }
 .brand strong, .brand small { display: block; white-space: nowrap; }
 .brand strong { font-family: var(--font-display); font-size: 18px; font-weight: 950; letter-spacing: .08em; }
 .brand small { margin-top: 1px; color: #a8c0bd; font: 800 10px var(--font-mono); letter-spacing: .13em; }
@@ -198,7 +198,7 @@ p { text-wrap: pretty; }
 
 .site-footer { padding: 38px 0; color: #c5d2cf; background: var(--navy-deep); border-top: 6px solid var(--teal); }
 .site-footer .wrap { display: grid; grid-template-columns: auto 1fr; gap: 24px 50px; align-items: center; }
-.footer-brand img { width: 42px; height: 42px; flex-basis: 42px; }
+.footer-brand img { width: 154px; height: 40px; flex-basis: 154px; }
 .site-footer nav { display: flex; flex-wrap: wrap; justify-content: end; gap: 18px; font-size: 12px; font-weight: 850; }
 .site-footer nav a:hover { color: var(--gold); }
 .site-footer p { grid-column: 1 / -1; margin: 0; padding-top: 20px; color: #839a97; border-top: 1px solid #385057; font: 800 10px var(--font-mono); letter-spacing: .08em; }
@@ -274,7 +274,7 @@ p { text-wrap: pretty; }
   .wrap { width: min(100% - 26px, 620px); }
   .brand strong { font-size: 15px; }
   .brand small { font-size: 8px; }
-  .brand img { width: 42px; height: 42px; flex-basis: 42px; }
+  .brand img { width: 126px; height: 34px; flex-basis: 126px; }
   .classroom-shortcut { min-height: 42px; padding-inline: 10px; }
   .portal-account-trigger, .portal-account-fallback { min-height: 42px; }
   .portal-account-label, .portal-account-chevron { display: none; }

@@ -2,7 +2,7 @@
 type: todo
 id: T-082
 title: "统一全站 Logo 资产并将左上角 Logo 设为主页入口"
-status: completed
+status: in-progress
 created: 2026-09-06
 updated: 2026-09-12
 captured_by: project-inbox
@@ -128,3 +128,10 @@ tags:
 - 机器回执：[`docs/TODO_082_PRODUCTION_DEPLOYMENT_RECEIPT.json`](../../../docs/TODO_082_PRODUCTION_DEPLOYMENT_RECEIPT.json)；浏览器证据：`docs/qa/t082-shared-brand-home/`。
 
 实现、测试、部署和生产复验现已齐全，T-082 重新关闭。本回执不代替用户签署课程 View/UI 人工验收。
+
+
+## 2026-09-12 正式字标纠正
+
+后续人工检查确认：上一次虽完成了全站返回主页契约，却错误地把浏览器 favicon 的方形 W 当作页面内 Logo。该回执只能证明导航行为，不能证明视觉品牌正确。
+
+本轮改以产品经理课件中的蓝绿横向 `MINI硅谷` 正式字标为唯一页面资产，并覆盖公开站、账号页、课堂、Course Studio、编辑器、课件外壳、Workshop 与 LIVE RUN 工具。favicon 继续只承担浏览器元数据职责。发布前本单保持 `in-progress`；只有新资产摘要、响应式真实浏览器、Hecate 发布和生产逐路由复验齐全后才重新关闭。

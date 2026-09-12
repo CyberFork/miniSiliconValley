@@ -19,7 +19,7 @@
   --msv-pixel-shadow: 5px 5px 0 var(--msv-adventure-navy);
 }
 
-/* T-082 shared static brand primitive. The image source is always /favicon.svg. */
+/* T-082 shared static brand primitive. favicon.svg is browser metadata only. */
 .msv-static-brand {
   display: inline-flex;
   min-width: 0;
@@ -34,9 +34,12 @@
 
 .msv-static-brand img {
   display: block;
-  width: 44px;
-  height: 44px;
-  flex: 0 0 44px;
+  width: 154px;
+  height: 40px;
+  flex: 0 0 154px;
+  padding: 5px 8px;
+  background: #fff;
+  border: 1px solid rgba(16, 43, 70, .2);
   object-fit: contain;
 }
 
@@ -45,12 +48,14 @@
 .msv-static-brand small { display: block; min-width: 0; }
 .msv-static-brand strong { letter-spacing: .07em; }
 .msv-static-brand small { margin-top: 3px; opacity: .72; font-size: 10px; font-weight: 700; letter-spacing: .08em; }
-.msv-static-brand--mark { width: 44px; min-width: 44px; gap: 0; }
+.msv-static-brand--mark { width: 126px; min-width: 126px; gap: 0; }
+.msv-static-brand--mark img { width: 126px; height: 34px; flex-basis: 126px; }
 .msv-static-brand:focus-visible { outline: 3px solid var(--msv-status-warning, #e0b83f); outline-offset: 4px; }
 
 @media (max-width: 390px) {
-  .msv-static-brand img { width: 40px; height: 40px; flex-basis: 40px; }
-  .msv-static-brand--mark { width: 40px; min-width: 40px; }
+  .msv-static-brand img { width: 126px; height: 34px; flex-basis: 126px; }
+  .msv-static-brand--mark,
+  .msv-static-brand--mark img { width: 112px; min-width: 112px; flex-basis: 112px; }
 }
 
 html,
