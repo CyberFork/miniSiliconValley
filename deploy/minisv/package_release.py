@@ -451,8 +451,8 @@ def build(
         raise ValueError("opaque chj product-manager r0 copy changed during release assembly")
 
     # r1 is a new immutable version at a new URL. Never overwrite the r0 root:
-    # historical classrooms keep resolving their exact r0 entry while the
-    # release pointer can safely advance to r1.
+    # historical bytes remain available for audit and explicit version preview,
+    # while every classroom role route resolves the current release pointer.
     courseware_r1_output = output / PRODUCT_COURSEWARE_R1
     if courseware_r1_output.exists():
         raise ValueError("product-manager r0 source unexpectedly contains an r1 directory")
@@ -488,6 +488,7 @@ def build(
             "dynamic-courseware-library",
             "verbatim-product-mentor-courseware",
             "versioned-product-manager-courseware",
+            "latest-role-courseware-resolution",
             "exact-development-mentor-courseware",
             "exact-market-mentor-courseware",
             "opaque-courseware-bundle",
