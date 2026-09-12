@@ -11,7 +11,10 @@ from playwright.sync_api import sync_playwright
 
 
 CHROME = Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
-ROUTES = ("/", "/framework/", "/auth/register/", "/auth/recover/", "/parents/", "/brand-contract-missing/")
+ROUTES = (
+    "/", "/world/", "/framework/", "/auth/login/", "/auth/register/",
+    "/auth/recover/", "/parents/", "/brand-contract-missing/",
+)
 VIEWPORTS = ((320, 760), (390, 844), (768, 1024), (1440, 900))
 BRAND_SELECTOR = 'a[href="/"]:has(img[src*="mini-silicon-valley-logo-transparent.png"])'
 

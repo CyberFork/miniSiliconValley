@@ -141,7 +141,7 @@ tags:
 
 - Hecate release：`20260912T190236CST-official-wordmark-r4`；受控源码：`62dc995a955c1aabcb392eec5295806ccefaa951`。
 - 页面内统一使用 `1650 × 420` 蓝绿横向 `MINI硅谷` 字标；SHA-256 为 `4dbbe4dea625fd372c6d760f2344fbf62b7b15f0d2d14e490cddd56e05ffbe87`。方形 W 只保留为 favicon／manifest 浏览器元数据。
-- 生产公开验证覆盖 6 类路由 × 320/390/768/1440；生产登录后验证 Account、Course、Studio、Editor、Classroom、席位、主控、成员、投屏和课件外壳 10 个路由。全部为正式字标、无横向溢出、普通键盘导航返回根主页，`pageErrors=0`、`requestFailures=0`。
+- 生产公开验证覆盖 8 类路由（含 World 与登录）× 320/390/768/1440；生产登录后验证 Account、Course、Studio、Editor、Classroom、席位、主控、成员、投屏和课件外壳 10 个路由。全部为正式字标、无横向溢出、普通键盘导航返回根主页，`pageErrors=0`、`requestFailures=0`。
 - 打包器和线上 public smoke 均增加官方资产固定摘要门禁；Hecate health 与 `MINISV_PUBLIC_SMOKE_OK` 通过。已发布导师课件 bundle 字节未改，课程与课堂真值未改。
 - 机器回执：[`docs/TODO_082_PRODUCTION_DEPLOYMENT_RECEIPT.json`](../../../docs/TODO_082_PRODUCTION_DEPLOYMENT_RECEIPT.json)；浏览器截图和 JSON：`docs/qa/t082-shared-brand-home/`。
 

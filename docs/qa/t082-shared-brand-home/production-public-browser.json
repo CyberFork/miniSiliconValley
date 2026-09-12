@@ -44,7 +44,91 @@
         }
       }
     },
+    "/world/": {
+      "320": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 126,
+          "height": 34,
+          "naturalWidth": 1650,
+          "naturalHeight": 420
+        }
+      },
+      "390": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 126,
+          "height": 34,
+          "naturalWidth": 1650,
+          "naturalHeight": 420
+        }
+      },
+      "768": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 154,
+          "height": 40,
+          "naturalWidth": 1650,
+          "naturalHeight": 420
+        }
+      },
+      "1440": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 154,
+          "height": 40,
+          "naturalWidth": 1650,
+          "naturalHeight": 420
+        }
+      }
+    },
     "/framework/": {
+      "320": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 126,
+          "height": 34,
+          "naturalWidth": 1650,
+          "naturalHeight": 420
+        }
+      },
+      "390": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 126,
+          "height": 34,
+          "naturalWidth": 1650,
+          "naturalHeight": 420
+        }
+      },
+      "768": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 154,
+          "height": 40,
+          "naturalWidth": 1650,
+          "naturalHeight": 420
+        }
+      },
+      "1440": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 154,
+          "height": 40,
+          "naturalWidth": 1650,
+          "naturalHeight": 420
+        }
+      }
+    },
+    "/auth/login/": {
       "320": {
         "noOverflow": true,
         "mark": {

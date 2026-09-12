@@ -53,7 +53,7 @@
     "isolatedClassroomBrowser": "13-block runtime passed; classroom, screen and courseware shell brand links passed; 390px no overflow",
     "isolatedProtectedShellBrowser": "Studio, Classroom, Course and Account official wordmark passed with synthetic D1 accounts",
     "publicIaBrowser": "homepage and Workshop archive passed at desktop/mobile",
-    "productionPublicBrowser": "6 routes × 4 viewports passed; 1650x420 bytes and mouse/keyboard current-tab navigation passed",
+    "productionPublicBrowser": "8 routes × 4 viewports passed; 1650x420 bytes and mouse/keyboard current-tab navigation passed",
     "productionAuthenticatedBrowser": "10 protected/application routes passed; 0 page errors; 0 request failures; 390px classroom/account no overflow",
     "hecateHealth": "MINISV_HECATE_HEALTHY",
     "publicSmoke": "MINISV_PUBLIC_SMOKE_OK"
