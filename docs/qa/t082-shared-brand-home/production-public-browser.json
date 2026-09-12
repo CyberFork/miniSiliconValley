@@ -1,0 +1,258 @@
+{
+  "ok": true,
+  "base": "https://minisv.vip/",
+  "routes": {
+    "/": {
+      "320": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 40,
+          "height": 40,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      },
+      "390": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 40,
+          "height": 40,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      },
+      "768": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 44,
+          "height": 44,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      },
+      "1440": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 44,
+          "height": 44,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      }
+    },
+    "/framework/": {
+      "320": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 40,
+          "height": 40,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      },
+      "390": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 40,
+          "height": 40,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      },
+      "768": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 44,
+          "height": 44,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      },
+      "1440": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 44,
+          "height": 44,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      }
+    },
+    "/auth/register/": {
+      "320": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 44,
+          "height": 44,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      },
+      "390": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 44,
+          "height": 44,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      },
+      "768": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 44,
+          "height": 44,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      },
+      "1440": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 44,
+          "height": 44,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      }
+    },
+    "/auth/recover/": {
+      "320": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 44,
+          "height": 44,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      },
+      "390": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 44,
+          "height": 44,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      },
+      "768": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 44,
+          "height": 44,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      },
+      "1440": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 44,
+          "height": 44,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      }
+    },
+    "/parents/": {
+      "320": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 44,
+          "height": 44,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      },
+      "390": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 44,
+          "height": 44,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      },
+      "768": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 44,
+          "height": 44,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      },
+      "1440": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 44,
+          "height": 44,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      }
+    },
+    "/brand-contract-missing/": {
+      "320": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 40,
+          "height": 40,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      },
+      "390": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 40,
+          "height": 40,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      },
+      "768": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 44,
+          "height": 44,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      },
+      "1440": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/favicon.svg",
+          "width": 44,
+          "height": 44,
+          "naturalWidth": 150,
+          "naturalHeight": 150
+        }
+      }
+    }
+  }
+}

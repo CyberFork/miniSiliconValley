@@ -2,7 +2,7 @@
 type: todo
 id: T-082
 title: "统一全站 Logo 资产并将左上角 Logo 设为主页入口"
-status: in-progress
+status: completed
 created: 2026-09-06
 updated: 2026-09-12
 captured_by: project-inbox
@@ -93,7 +93,7 @@ tags:
 - [x] favicon、manifest 和链接分享预览图与页面品牌一致。
 - [x] 替换资产后通过静态资源 200、无混合内容、无 404、无布局溢出和视觉回归验收。
 - [x] 不因 Logo/UI 整理改变 Alpha、Classroom 或课程编辑器的课程真值和运行状态。
-- [ ] 当前修复已从受控 Git commit 部署至 Hecate，并在 `https://minisv.vip` 完成公开页、登录后课堂与课件外壳的普通点击复验。
+- [x] 当前修复已从受控 Git commit 部署至 Hecate，并在 `https://minisv.vip` 完成公开页、登录后课堂与课件外壳的普通点击复验。
 
 ## 风险与前置
 
@@ -117,3 +117,14 @@ tags:
 - 旧品牌测试只枚举了部分组件，因而在上述入口缺失时仍会通过。
 
 本单状态已恢复为 `in-progress`。源码已补齐上述入口并扩展契约测试；只有完成浏览器实际点击、响应式视觉检查、生产部署与线上复验后，才可重新关闭。历史 `20260907T180022Z-truth-chain-final2` 回执仅保留为当时发布记录，不再证明当前验收标准全部满足。
+
+## 2026-09-12 最终生产复验
+
+- 最终 Hecate release：`20260912T173416CST-brand-home-t082-r3`；受控源码：`c54998c679fc0f7822a79b78d43c5d8d43f70696`。
+- 首次 r2 上线后，真实 Chromium 发现 `/framework/` 的迟到 React 水合会把 Logo 再次还原为 `#top`；未把该次部署误报为完成。r3 改为监听独立页 DOM 替换并恢复稳定契约，水合后 3 秒仍为 `/` 主页 Logo。
+- 生产公开浏览器验证 6 类路由 × 320/390/768/1440 四类视窗；登录后验证 Account、Course、Studio、Editor、Classroom、主控／成员／投屏错误外壳及课件播放外壳共 10 个路由。普通点击在当前标签到达主页，`pageerror=0`、`requestFailures=0`。
+- 隔离 Test Classroom 的 13 Block 脚本浏览器回归同时覆盖真实运行态、共享投屏、课件外壳和 390px 无溢出；生产复验未推进或改写现有课堂。
+- 自动验证：`npm test` 53/53、平台 163/163、部署 53/53、品牌契约 5/5；Hecate health 与 public smoke 通过。
+- 机器回执：[`docs/TODO_082_PRODUCTION_DEPLOYMENT_RECEIPT.json`](../../../docs/TODO_082_PRODUCTION_DEPLOYMENT_RECEIPT.json)；浏览器证据：`docs/qa/t082-shared-brand-home/`。
+
+实现、测试、部署和生产复验现已齐全，T-082 重新关闭。本回执不代替用户签署课程 View/UI 人工验收。

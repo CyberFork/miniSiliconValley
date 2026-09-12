@@ -1,0 +1,151 @@
+{
+  "ok": true,
+  "base": "https://minisv.vip",
+  "accountRole": "mentor",
+  "secretsRecorded": false,
+  "routes": {
+    "/account/": {
+      "href": "/",
+      "target": null,
+      "left": 18,
+      "right": 232.421875,
+      "width": 390,
+      "rootWidth": 390,
+      "bodyWidth": 390,
+      "image": {
+        "src": "/favicon.svg",
+        "complete": true,
+        "naturalWidth": 150
+      }
+    },
+    "/course/": {
+      "href": "/",
+      "target": null,
+      "left": 57.59375,
+      "right": 169.765625,
+      "width": 1440,
+      "rootWidth": 1440,
+      "bodyWidth": 1440,
+      "image": {
+        "src": "/favicon.svg",
+        "complete": true,
+        "naturalWidth": 150
+      }
+    },
+    "/studio/": {
+      "href": "/",
+      "target": null,
+      "left": 42,
+      "right": 252.125,
+      "width": 1440,
+      "rootWidth": 1440,
+      "bodyWidth": 1440,
+      "image": {
+        "src": "/favicon.svg",
+        "complete": true,
+        "naturalWidth": 150
+      }
+    },
+    "/studio/editor/": {
+      "href": "/",
+      "target": null,
+      "left": 43.1875,
+      "right": 87.1875,
+      "width": 1440,
+      "rootWidth": 1440,
+      "bodyWidth": 1440,
+      "image": {
+        "src": "/favicon.svg",
+        "complete": true,
+        "naturalWidth": 150
+      }
+    },
+    "/classroom/": {
+      "href": "/",
+      "target": null,
+      "left": 54,
+      "right": 240.546875,
+      "width": 1440,
+      "rootWidth": 1440,
+      "bodyWidth": 1440,
+      "image": {
+        "src": "/favicon.svg",
+        "complete": true,
+        "naturalWidth": 150
+      }
+    },
+    "/classroom/521a12fb-ec3f-4f72-bb2a-4cdaa7063219/": {
+      "href": "/",
+      "target": null,
+      "left": 18,
+      "right": 199.125,
+      "width": 1440,
+      "rootWidth": 1440,
+      "bodyWidth": 1440,
+      "image": {
+        "src": "/favicon.svg",
+        "complete": true,
+        "naturalWidth": 150
+      }
+    },
+    "/classroom/521a12fb-ec3f-4f72-bb2a-4cdaa7063219/control": {
+      "href": "/",
+      "target": null,
+      "left": 18,
+      "right": 199.125,
+      "width": 1440,
+      "rootWidth": 1440,
+      "bodyWidth": 1440,
+      "image": {
+        "src": "/favicon.svg",
+        "complete": true,
+        "naturalWidth": 150
+      }
+    },
+    "/classroom/521a12fb-ec3f-4f72-bb2a-4cdaa7063219/members": {
+      "href": "/",
+      "target": null,
+      "left": 18,
+      "right": 199.125,
+      "width": 1440,
+      "rootWidth": 1440,
+      "bodyWidth": 1440,
+      "image": {
+        "src": "/favicon.svg",
+        "complete": true,
+        "naturalWidth": 150
+      }
+    },
+    "/classroom/521a12fb-ec3f-4f72-bb2a-4cdaa7063219/screen?block=B01": {
+      "href": "/",
+      "target": null,
+      "left": 18,
+      "right": 199.125,
+      "width": 1440,
+      "rootWidth": 1440,
+      "bodyWidth": 1440,
+      "image": {
+        "src": "/favicon.svg",
+        "complete": true,
+        "naturalWidth": 150
+      }
+    },
+    "/course/product-mentor-foundations/": {
+      "href": "/",
+      "target": null,
+      "left": 18,
+      "right": 62,
+      "width": 1440,
+      "rootWidth": 1440,
+      "bodyWidth": 1440,
+      "image": {
+        "src": "/favicon.svg",
+        "complete": true,
+        "naturalWidth": 150
+      }
+    }
+  },
+  "currentTabClick": true,
+  "pageErrors": [],
+  "requestFailures": []
+}

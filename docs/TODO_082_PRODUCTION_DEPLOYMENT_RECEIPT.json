@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "t082-shared-brand-home-production-20260912",
+  "generatedAt": "2026-09-12T17:58:38+08:00",
+  "scope": [
+    "shared root-home logo",
+    "framework hydration-safe brand repair",
+    "classroom runtime and projection shells",
+    "courseware viewer shells",
+    "truthful Todo status audit"
+  ],
+  "release": {
+    "id": "20260912T173416CST-brand-home-t082-r3",
+    "origin": "hecate",
+    "canonicalOrigin": "https://minisv.vip",
+    "sourceCommit": "c54998c679fc0f7822a79b78d43c5d8d43f70696",
+    "appBuildId": "22612ce7-790b-477b-b13e-9fe494494beb",
+    "appSha256": "f7519e3cdc1c877e1862c0aa2aaca97459834e7364481ab8e2a0a49f9353485d",
+    "remoteArchiveSha256": "3022e20b14b7737118f2152e3c8f9b36092aa3ae1870d377e0fe8151f31a3255",
+    "previousRelease": "20260912T171618CST-brand-home-t082-r2"
+  },
+  "implementation": {
+    "asset": "/favicon.svg",
+    "rootHref": "/",
+    "accessibleName": "返回 Mini Silicon Valley 主页",
+    "currentTab": true,
+    "frameworkLateHydrationObserver": true,
+    "classroomRuntimeHeader": true,
+    "classroomLoadingAndErrorStates": true,
+    "sharedProjection": true,
+    "coursewareViewerShell": true,
+    "immutableCoursewareBundlesModified": false,
+    "courseOrClassroomTruthModified": false,
+    "mobileProgressOverflowRegressionFixed": true
+  },
+  "validation": {
+    "npmTest": "53/53 passed",
+    "coursePlatform": "163/163 passed",
+    "deploymentUnitTests": "53/53 passed",
+    "brandContract": "5/5 passed",
+    "isolatedClassroomBrowser": "13 blocks passed; runtime, projection and courseware shell root-home navigation passed; 390px no overflow",
+    "productionPublicBrowser": "6 routes × 4 viewports passed; mouse/keyboard current-tab navigation passed",
+    "productionAuthenticatedBrowser": "10 protected/application routes passed; current-tab navigation passed; 0 page errors; 0 request failures",
+    "hecateHealth": "MINISV_HECATE_HEALTHY",
+    "publicSmoke": "MINISV_PUBLIC_SMOKE_OK"
+  },
+  "evidence": [
+    "docs/qa/t082-shared-brand-home/production-public-browser.json",
+    "docs/qa/t082-shared-brand-home/production-authenticated-browser.json",
+    "docs/qa/t082-shared-brand-home/brand-framework-390.png",
+    "docs/qa/t082-shared-brand-home/brand-framework-1440.png",
+    "docs/qa/t086-script-runtime/browser-receipt.json"
+  ],
+  "deploymentHistory": {
+    "intermediateRelease": "20260912T171618CST-brand-home-t082-r2",
+    "intermediateFinding": "Production browser testing caught React late hydration restoring the legacy #top marker.",
+    "resolution": "r3 observes the independently hydrated framework and restores the stable root-home contract after every relevant DOM replacement.",
+    "finalProductionReverified": true
+  },
+  "safety": {
+    "productionWrites": false,
+    "productionClassroomAdvanced": false,
+    "productionCourseOrCoursewareModified": false,
+    "credentialsRecorded": false,
+    "humanViewAcceptanceSignedByAutomation": false,
+    "humanUiAcceptanceSignedByAutomation": false
+  }
+}
