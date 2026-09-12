@@ -20,6 +20,9 @@ test("React surfaces share one accessible root-home logo primitive", async () =>
     "app/account/AccountClient.tsx",
     "app/classroom/ClassroomHub.tsx",
     "app/classroom/ClassroomApp.tsx",
+    "app/classroom/ClassroomRuntime.tsx",
+    "app/course/[slug]/CoursewareFrame.tsx",
+    "app/classroom/[classroomId]/courseware/[mentorRole]/page.tsx",
     "app/qa/QaClient.tsx",
     "app/not-found.tsx",
   ];
@@ -59,11 +62,23 @@ test("Classroom top navigation has no injected UI control or reserved overlap sl
   const themeRuntime = await source("deploy/minisv/site/ui-theme.js");
 
   assert.match(runtime, /className=\{styles\.runtimeTop\}[\s\S]*aria-label="课堂内导航"/);
+  assert.match(runtime, /<BrandHomeLink className=\{styles\.runtimeBrand\}/, "live classroom header must use the shared root-home mark");
+  assert.match(runtime, /<BrandHomeLink markOnly className=\{styles\.screenBrand\}/, "shared projection must retain a compact root-home mark");
   for (const label of ["我的席位", "主控", "投屏", "成员", "退出"]) assert.match(runtime, new RegExp(label));
   assert.doesNotMatch(runtime, /data-msv-theme-slot|msv-ui-switch/);
   assert.match(styles, /\.runtimeTop\{[^}]*display:flex[^}]*justify-content:space-between/);
   assert.doesNotMatch(themeRuntime, /function mountSwitcher|createElement\("button"\)/);
   assert.match(themeRuntime, /root\.dataset\.msvTheme = "adventure"/);
+});
+
+test("independently hydrated framework repairs its legacy top marker after load", async () => {
+  const runtime = await source("deploy/minisv/site/ui-theme.js");
+  assert.match(runtime, /function mountFrameworkBrandHome\(\)/);
+  assert.match(runtime, /pathname !== "\/framework\/"/);
+  assert.match(runtime, /setAttribute\("href", "\/"\)/);
+  assert.match(runtime, /setAttribute\("aria-label", "返回 Mini Silicon Valley 主页"\)/);
+  assert.match(runtime, /mark\.src = "\/favicon\.svg"/);
+  assert.match(runtime, /window\.addEventListener\("load", mountSharedNavigation/);
 });
 
 test("brand metadata, manifest, error routing and editor leave guard stay coherent", async () => {

@@ -2,7 +2,7 @@
 type: todo
 id: T-109
 title: "重组官网、教学与内部入口，整合 World 并深层归档 Workshop"
-status: completed
+status: in-progress
 created: 2026-09-10
 updated: 2026-09-11
 captured_by: project-inbox
@@ -113,3 +113,7 @@ UI 补充确认：**“记得整体都使用新的 UI 哦，也就是那个 skil
 - 部署后 Hecate health、远端 public smoke 与外部 public smoke 全通过；`/world-preview.json` 为 200，三套课件匿名访问仍为 401，Workshop 保持登录回跳，退役入口保持 410。
 - 真实 Chromium 逐页打开官网、World、课程框架、家长问答和登录页，所有文档 200，`pageerror`、console error 与关键资源失败均为 0；课程框架保留原生 hydrated brand、公共首页入口可见且无 React 418。机器证据：`docs/qa/t109-public-internal-ia/production-r4-machine-evidence.json`。
 - 本轮没有创建或改写人工 `ViewAcceptanceReceipt`／`UiAcceptanceReceipt`，没有创建 Production Classroom，也没有把 Chromium 模拟记作真实平板验收。
+
+## 2026-09-12 状态纠正
+
+本单仍有“由真实资料所有者完成 Workshop 历史资料覆盖备份”这一项未完成，原文件也明确保留了 `[ ]`。因此不能继续标记为 `completed`，现恢复为 `in-progress`。官网与入口重组的工程发布记录仍然有效，但不代表历史资料收集已经由自动化代替完成。

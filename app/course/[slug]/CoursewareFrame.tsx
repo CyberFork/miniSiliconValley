@@ -3,6 +3,7 @@
 import Link from "../../components/NavigationLink";
 
 import { AccountMenu, type AccountMenuUser } from "../../components/AccountMenu";
+import { BrandHomeLink } from "../../components/BrandHomeLink";
 import type { CoursewareContent } from "../../lib/courseware-store";
 import styles from "../course.module.css";
 
@@ -43,7 +44,7 @@ export default function CoursewareFrame({
     ? `/studio/courseware/${encodeURIComponent(item.packageId)}/?revision=${item.revision}&digest=${item.digest}`
     : exactHref(item, initialSlide, initialStep));
   const header = <header className={styles.viewerHeader}>
-    <Link href={backHref}>← {backLabel}</Link>
+    <div className={styles.viewerHeaderStart}><BrandHomeLink markOnly /><Link href={backHref}>← {backLabel}</Link></div>
     <b>Mini Silicon Valley · {item.mentorRole} 导师</b>
     <AccountMenu user={user} returnTo={returnTo} />
   </header>;

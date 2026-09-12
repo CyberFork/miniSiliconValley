@@ -1,21 +1,21 @@
 {
   "ok": true,
-  "base": "http://127.0.0.1:54218",
+  "base": "http://127.0.0.1:50030",
   "independentClients": true,
   "roleTabs": 10,
   "browser": {
     "engine": "Chromium",
     "version": "151.0.7922.176"
   },
-  "classroomId": "90fe4aab-a453-4f27-adf5-992f50f96148",
+  "classroomId": "b0c44a63-5f1b-43a2-b1c8-72d25decb2ae",
   "candidate": {
     "courseId": "google-1995-2004",
     "schemaVersion": 1,
     "revision": 1,
-    "digest": "cc177d45eb48ecdd958f792f7c613898857e07e427825c1ccae3587795af5cee",
+    "digest": "6570ce6d96272fc03cd357d22fc3c1c62d08f36485c10a1c7cf1de1b8bc42c88",
     "status": "candidate",
-    "createdAt": "2026-09-10T18:02:24.625Z",
-    "createdBy": "t086-admin-2f505986",
+    "createdAt": "2026-09-12T09:03:59.040Z",
+    "createdBy": "t086-admin-e2d6add2",
     "createdByDisplayName": "T086 剧本验收管理员",
     "fieldMigration": [
       {
@@ -26,10 +26,16 @@
       }
     ]
   },
-  "viewReceiptId": "f508d156-ddfc-48ac-8385-f8a44d10ad91",
+  "viewReceiptId": "f3f81f46-d58d-4eda-9b8a-72b15d0a92eb",
   "stage1Keyboard": true,
   "stage1FullFields": true,
   "nativeClassroomLink": true,
+  "sharedBrandHome": {
+    "classroomRuntime": true,
+    "sharedScreen": true,
+    "coursewareShell": true,
+    "nativeCurrentTabNavigation": true
+  },
   "unlockNotification": true,
   "returnToLatest": true,
   "keyboardNavigation": [

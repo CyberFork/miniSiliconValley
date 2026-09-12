@@ -6,6 +6,7 @@ import CoursewareFrame from "../../../../course/[slug]/CoursewareFrame";
 import { getClassroomInstance } from "../../../../lib/classroom-platform-store";
 import { CLASSROOM_MENTOR_ROLES, type ClassroomMentorRole } from "../../../../lib/classroom-factory";
 import { defaultCoursewareRefs, listCourseware, loadCoursewareExact } from "../../../../lib/courseware-store";
+import { BrandHomeLink } from "../../../../components/BrandHomeLink";
 import styles from "../../../../course/course.module.css";
 
 export const dynamic = "force-dynamic";
@@ -41,7 +42,7 @@ export default async function ClassroomCoursewarePage({ params }: { params: Prom
   const item = await loadCoursewareExact(db, ref.packageId, ref.revision, ref.digest);
   if (item.availability === "placeholder") {
     return <main className={styles.viewer}>
-      <header className={styles.viewerHeader}><a href={`/classroom/${encodeURIComponent(classroomId)}/`}>← 返回课堂</a><b>Mini Silicon Valley · {role} 导师最新课件</b></header>
+      <header className={styles.viewerHeader}><div className={styles.viewerHeaderStart}><BrandHomeLink markOnly /><a href={`/classroom/${encodeURIComponent(classroomId)}/`}>← 返回课堂</a></div><b>Mini Silicon Valley · {role} 导师最新课件</b></header>
       <div className={styles.viewerMeta}><small>COURSEWARE PLACEHOLDER · {role}</small><h1>尚未提供真实导师课件</h1><code>{item.packageId} · r{item.revision} · {item.digest}</code></div>
       <div className={styles.staticLaunch}><section><span className={styles.warning}>内部占位 · 不是正式课件</span><h2>{item.title}</h2><p>这条绑定只用于 Test Classroom 验证四导师结构。课程组尚未上传并发布 {role} 导师真实课件，因此系统不会展示一个看似可用、实际失效的播放链接。</p></section></div>
     </main>;

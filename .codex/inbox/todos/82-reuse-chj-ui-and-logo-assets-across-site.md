@@ -2,9 +2,9 @@
 type: todo
 id: T-082
 title: "统一全站 Logo 资产并将左上角 Logo 设为主页入口"
-status: completed
+status: in-progress
 created: 2026-09-06
-updated: 2026-09-07
+updated: 2026-09-12
 captured_by: project-inbox
 tags:
   - todo
@@ -93,6 +93,7 @@ tags:
 - [x] favicon、manifest 和链接分享预览图与页面品牌一致。
 - [x] 替换资产后通过静态资源 200、无混合内容、无 404、无布局溢出和视觉回归验收。
 - [x] 不因 Logo/UI 整理改变 Alpha、Classroom 或课程编辑器的课程真值和运行状态。
+- [ ] 当前修复已从受控 Git commit 部署至 Hecate，并在 `https://minisv.vip` 完成公开页、登录后课堂与课件外壳的普通点击复验。
 
 ## 风险与前置
 
@@ -105,3 +106,14 @@ tags:
 - 最终 Hecate release：`20260907T180022Z-truth-chain-final2`。
 - 部署源码 SHA：`40c652b562a7634135ff645a9c3cddf32a9da784`。
 - 相关证据：<https://minisv.vip/>。
+
+## 2026-09-12 完成状态纠正
+
+此前的 `completed` 与逐项 `[x]` 不能作为全站实际完成证据。重新对照线上页面后确认：
+
+- `/framework/` 左上角品牌仍链接 `#top`，辅助名称仍是“返回页面顶部”，没有使用共享 `/favicon.svg`。
+- 真实 Classroom 席位、主控、成员和共享投屏路由没有统一的根主页 Logo；加载／错误态同样遗漏。
+- 课件播放外壳与课堂课件占位态只有返回列表文字，没有统一左上角主页 Logo。
+- 旧品牌测试只枚举了部分组件，因而在上述入口缺失时仍会通过。
+
+本单状态已恢复为 `in-progress`。源码已补齐上述入口并扩展契约测试；只有完成浏览器实际点击、响应式视觉检查、生产部署与线上复验后，才可重新关闭。历史 `20260907T180022Z-truth-chain-final2` 回执仅保留为当时发布记录，不再证明当前验收标准全部满足。

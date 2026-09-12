@@ -64,19 +64,38 @@
     document.body.appendChild(nav);
   }
 
+  function mountFrameworkBrandHome() {
+    var pathname = window.location.pathname.replace(/\/+$/, "/");
+    if (pathname !== "/framework/") return;
+    var link = document.querySelector('nav[aria-label="课程方案章节导航"] a[aria-label="返回页面顶部"]');
+    if (!link) return;
+    link.setAttribute("href", "/");
+    link.setAttribute("aria-label", "返回 Mini Silicon Valley 主页");
+    link.classList.add("msv-static-brand", "msv-framework-brand-home");
+    var oldMark = link.querySelector("b");
+    if (!oldMark || link.querySelector('img[src="/favicon.svg"]')) return;
+    var mark = document.createElement("img");
+    mark.src = "/favicon.svg";
+    mark.alt = "";
+    mark.setAttribute("aria-hidden", "true");
+    mark.width = 44;
+    mark.height = 44;
+    oldMark.replaceWith(mark);
+  }
+
+  function mountSharedNavigation() {
+    applyCanonicalTheme();
+    mountFrameworkBrandHome();
+    mountPublicNavigator();
+  }
+
   // The latest Adventure skin is the single product UI. Apply the root
   // contract immediately so there is no classic-theme flash; mount only the
   // optional navigation enhancement after independently built pages hydrate.
   applyCanonicalTheme();
   if (document.readyState === "complete") {
-    window.setTimeout(function () {
-      applyCanonicalTheme();
-      mountPublicNavigator();
-    }, 0);
+    window.setTimeout(mountSharedNavigation, 0);
   } else {
-    window.addEventListener("load", function () {
-      applyCanonicalTheme();
-      mountPublicNavigator();
-    }, { once: true });
+    window.addEventListener("load", mountSharedNavigation, { once: true });
   }
 })();

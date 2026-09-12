@@ -188,6 +188,36 @@ def main() -> None:
                     control.get_by_role("link", name="进入我的课堂").click()
                     control.wait_for_url(f"**/classroom/{room_id}/")
                     expect(control.locator("h1").filter(has_text="B01 ·")).to_be_visible()
+                    classroom_brand = control.get_by_role("link", name="返回 Mini Silicon Valley 主页")
+                    expect(classroom_brand).to_be_visible()
+                    assert classroom_brand.get_attribute("href") == "/"
+
+                    # The brand contract is a real current-tab navigation on
+                    # every runtime shell, not a text-only title or onclick.
+                    brand_probe = context.new_page()
+                    brand_probe.goto(f"{base}/classroom/{room_id}/", wait_until="networkidle")
+                    brand_probe.get_by_role("link", name="返回 Mini Silicon Valley 主页").click()
+                    brand_probe.wait_for_url(f"{base}/")
+                    brand_probe.close()
+
+                    screen_probe = context.new_page()
+                    screen_probe.goto(f"{base}/classroom/{room_id}/screen?block=B01", wait_until="networkidle")
+                    screen_brand = screen_probe.get_by_role("link", name="返回 Mini Silicon Valley 主页")
+                    expect(screen_brand).to_be_visible()
+                    assert screen_brand.get_attribute("href") == "/"
+                    screen_brand.click()
+                    screen_probe.wait_for_url(f"{base}/")
+                    screen_probe.close()
+
+                    courseware_probe = context.new_page()
+                    courseware_probe.goto(f"{base}/classroom/{room_id}/courseware/P/", wait_until="networkidle")
+                    courseware_brand = courseware_probe.get_by_role("link", name="返回 Mini Silicon Valley 主页")
+                    expect(courseware_brand).to_be_visible()
+                    assert courseware_brand.get_attribute("href") == "/"
+                    courseware_brand.click()
+                    courseware_probe.wait_for_url(f"{base}/")
+                    courseware_probe.close()
+
                     control.goto(f"{base}/classroom/{room_id}/control?block=B01", wait_until="networkidle")
                     expect(control.locator("h1").filter(has_text="B01 ·")).to_be_visible()
 
@@ -268,6 +298,12 @@ def main() -> None:
                         "stage1Keyboard": True,
                         "stage1FullFields": True,
                         "nativeClassroomLink": True,
+                        "sharedBrandHome": {
+                            "classroomRuntime": True,
+                            "sharedScreen": True,
+                            "coursewareShell": True,
+                            "nativeCurrentTabNavigation": True,
+                        },
                         "independentClients": True,
                         "unlockNotification": True,
                         "returnToLatest": True,
