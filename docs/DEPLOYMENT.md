@@ -33,9 +33,9 @@ git diff --check
 
 需要全量历史兼容回归时再执行 `npm run test:release`。
 
-## 构建同事 P 导师课件
+## 构建同事 P／产品经理导师课件
 
-准备干净 checkout，必须精确匹配：
+历史 `r0` 必须精确匹配并永久保留：
 
 ```text
 commit 679213a61b835335016eac7649213983a0e48489
@@ -48,7 +48,22 @@ tree   3a041c4714190cc026f6de8e06e15cec0e5f765d
 deploy/minisv/scripts/build-chj-course.sh <chj-checkout> <courseware-output>
 ```
 
-脚本只使用同事工程已支持的 base/canonical 环境变量，源工作树前后必须干净。产物位于 `/courseware/product-mentor-foundations/`，组装前后按整树 digest、文件数和字节数验证；禁止主题注入或 HTML/CSS/JS 重写。
+当前 `r1` 来自同事仓库 `chj9-11`，必须精确匹配：
+
+```text
+commit d9d45f1396b54a7ac6b41715b31122d8ffc597ff
+tree   d26045a3eb1c249629092dcddeb82e7812ff0ff5
+```
+
+执行：
+
+```bash
+deploy/minisv/scripts/build-chj-product-course-r1.sh <chj9-11-checkout> <courseware-r1-output>
+```
+
+两个脚本只使用同事工程已支持的 base/canonical 环境变量，源工作树前后必须干净。`r0` 位于 `/courseware/product-mentor-foundations/`，`r1` 位于 `/courseware/product-mentor-foundations/r1/`；组装前后分别按整树 digest、文件数和字节数验证。禁止主题注入或 HTML/CSS/JS 重写，也禁止用 `r1` 字节覆盖历史 `r0`。
+
+`chj9-11` 当前上游快照存在一处已记录的 TypeScript variant 字面量不一致，以及被 Git 跟踪的 `.cache-backups` 导致的仓库级 lint 噪音。部署不得私改同事源码掩盖问题；必须以真实生产构建、可执行数据／状态／渲染测试和多视窗浏览器测试作为额外门禁，并在部署回执中如实记录上游例外。
 
 ## 组装静态 site
 
@@ -56,10 +71,10 @@ deploy/minisv/scripts/build-chj-course.sh <chj-checkout> <courseware-output>
 npm run build:minisv-app
 npm run render:minisv-static
 
-python3 deploy/minisv/package_release.py   --legacy-root <已验收的静态基线>   --app-client-root dist/client   --app-static-root dist/minisv-static   --course-static-root <courseware-output>   --portal-root deploy/minisv/site   --output <site-output>   --release-id <RELEASE_ID>   --main-sha "$(git rev-parse HEAD)"
+python3 deploy/minisv/package_release.py   --legacy-root <已验收的静态基线>   --app-client-root dist/client   --app-static-root dist/minisv-static   --course-static-root <courseware-r0-output>   --product-courseware-r1-root <courseware-r1-output>   --portal-root deploy/minisv/site   --output <site-output>   --release-id <RELEASE_ID>   --main-sha "$(git rev-parse HEAD)"
 ```
 
-`package_release.py` 生成 `release.json`、`sitemap.json` 和 `site/MANIFEST.sha256`。动态 `/course/` 由应用拥有；P 课件整树复制到 `/courseware/product-mentor-foundations/`，仓库中带 exact manifest 的 D／M 课件复制到各自 `/courseware/{slug}/`，三者都在全局主题转换之后写入，禁止静默改写已发布字节。
+`package_release.py` 生成 `release.json`、`sitemap.json` 和 `site/MANIFEST.sha256`。动态 `/course/` 由应用拥有；产品经理课件 `r0`／`r1` 分别原样复制并在 `productCoursewareArtifacts` 中逐版留证，仓库中带 exact manifest 的 D／M 课件复制到各自 `/courseware/{slug}/`。所有课件都在全局主题转换之后写入，禁止静默改写已发布字节。
 
 打包器会再次校验 Git 根目录、`origin`、HEAD、`origin/main`、退役标记及工作树，并把结果写入 `release.json.workspaceProvenance`。默认拒绝旧工程、未推送提交和脏工作树。确有应急需求时可用 `--allow-dirty-reason "<12—500字单行原因>"`，但例外会进入发布清单，不能隐藏。
 

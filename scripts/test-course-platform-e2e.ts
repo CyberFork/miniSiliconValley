@@ -33,6 +33,7 @@ type CourseDefinition = {
   learnerPolicy?: { defaultCount: number; minCount: number; maxCount: number; cardsPerLearner: number; dealPolicy: "unique-within-step" | "repeat-when-needed" };
   decks: Array<{ id: string; cards: Array<Record<string, unknown>> }>;
   blocks: Array<{ id: string; studentPrompt: string; learnerTaskTemplate?: { badge: string; task: string } }>;
+  contentPackages?: { scriptPackages: Array<{ coursewareRef: { mentorRole: "P" | "D" | "M" | "O"; packageId: string; slug: string; revision: number; digest: string } }> };
   [key: string]: unknown;
 };
 type Courseware = {
@@ -213,7 +214,7 @@ try {
   assert.equal(coursewarePage.status, 200);
   const coursewareHtml = await coursewarePage.text();
   assert.ok(coursewareHtml.includes("账户中心") && coursewareHtml.includes("添加账号") && coursewareHtml.includes("退出当前账号"), "protected Courseware must keep the unified account menu");
-  const testedCoursewareRefs = coursewareRefs(initial.courseware, "test").map((ref) => ref.mentorRole === "O" ? {
+  const testedCoursewareRefs = coursewareRefs(initial.courseware, "test", candidateBody).map((ref) => ref.mentorRole === "O" ? {
     mentorRole: customOperationsCourseware.mentorRole,
     packageId: customOperationsCourseware.packageId,
     slug: customOperationsCourseware.slug,
@@ -675,7 +676,7 @@ function mentorSeats(ids: string[]) {
   return (["P", "D", "M", "O"] as const).map((mentorRole, index) => ({ mentorRole, profileId: ids[index] }));
 }
 
-function coursewareRefs(items: Courseware[], environment: "test" | "production") {
+function coursewareRefs(items: Courseware[], environment: "test" | "production", course?: CourseDefinition) {
   const preferredSlugs = {
     P: "product-mentor-foundations",
     D: "development-mentor-ligun",
@@ -683,11 +684,16 @@ function coursewareRefs(items: Courseware[], environment: "test" | "production")
     O: "operations-mentor-field-kit",
   } as const;
   return items.filter((item) => preferredSlugs[item.mentorRole] === item.slug).map((item) => ({
+    ...(() => {
+      const declared = course?.contentPackages?.scriptPackages.find((scriptPackage) => scriptPackage.coursewareRef.mentorRole === item.mentorRole)?.coursewareRef;
+      return {
+        revision: declared?.revision ?? (environment === "production" ? item.releasedRevision! : item.latestRevision),
+        digest: declared?.digest ?? (environment === "production" ? item.releasedDigest! : item.latestDigest),
+      };
+    })(),
     mentorRole: item.mentorRole,
     packageId: item.packageId,
     slug: item.slug,
-    revision: environment === "production" ? item.releasedRevision! : item.latestRevision,
-    digest: environment === "production" ? item.releasedDigest! : item.latestDigest,
   }));
 }
 

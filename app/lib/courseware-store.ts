@@ -52,19 +52,37 @@ const SYSTEM_PROFILE = SYSTEM_COURSEWARE_PROFILE;
 // P-courseware digest changes when (and only when) the pinned colleague source
 // is deliberately upgraded; hashing the URL alone would not provide that
 // invariant.
-const PRODUCT_COURSEWARE_SOURCE_COMMIT = "679213a61b835335016eac7649213983a0e48489";
-const PRODUCT_COURSEWARE_SOURCE_TREE = "3a041c4714190cc026f6de8e06e15cec0e5f765d";
+const PRODUCT_COURSEWARE_R0_SOURCE_COMMIT = "679213a61b835335016eac7649213983a0e48489";
+const PRODUCT_COURSEWARE_R0_SOURCE_TREE = "3a041c4714190cc026f6de8e06e15cec0e5f765d";
+const PRODUCT_COURSEWARE_R1_SOURCE_COMMIT = "d9d45f1396b54a7ac6b41715b31122d8ffc597ff";
+const PRODUCT_COURSEWARE_R1_SOURCE_TREE = "d26045a3eb1c249629092dcddeb82e7812ff0ff5";
 const DEVELOPMENT_LIGUN_CONTENT_TREE = "ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234";
 const MARKET_USER_SYSTEM_CONTENT_TREE = "48b01a256bd3d408a5d539f798470e6aad0058a19dcdeb8b5d212b0e64add862";
-const BUNDLED = [
+const BUNDLED_VERSIONS = [
   {
     id: "cw-product-mentor-foundations",
     slug: "product-mentor-foundations",
     title: "产品导师｜青少年 AI 创业营",
     role: "P" as const,
+    revision: 0,
+    releasedAt: "2026-09-08T00:00:00Z",
+    isCurrent: false,
     kind: "static-bundle" as const,
     entryPath: "/courseware/product-mentor-foundations/",
-    sourceIdentity: `${PRODUCT_COURSEWARE_SOURCE_COMMIT}:${PRODUCT_COURSEWARE_SOURCE_TREE}`,
+    sourceIdentity: `${PRODUCT_COURSEWARE_R0_SOURCE_COMMIT}:${PRODUCT_COURSEWARE_R0_SOURCE_TREE}`,
+    html: null,
+  },
+  {
+    id: "cw-product-mentor-foundations",
+    slug: "product-mentor-foundations",
+    title: "产品导师｜青少年 AI 创业营",
+    role: "P" as const,
+    revision: 1,
+    releasedAt: "2026-09-12T00:00:00Z",
+    isCurrent: true,
+    kind: "static-bundle" as const,
+    entryPath: "/courseware/product-mentor-foundations/r1/",
+    sourceIdentity: `${PRODUCT_COURSEWARE_R1_SOURCE_COMMIT}:${PRODUCT_COURSEWARE_R1_SOURCE_TREE}`,
     html: null,
   },
   {
@@ -72,6 +90,9 @@ const BUNDLED = [
     slug: "development-mentor-ligun",
     title: "开发导师｜先立棍，再让 AI 跑",
     role: "D" as const,
+    revision: 0,
+    releasedAt: "2026-09-08T00:00:00Z",
+    isCurrent: true,
     kind: "static-bundle" as const,
     entryPath: "/courseware/development-mentor-ligun/",
     sourceIdentity: `t093:sha256:${DEVELOPMENT_LIGUN_CONTENT_TREE}`,
@@ -82,6 +103,9 @@ const BUNDLED = [
     slug: "development-mentor-field-kit",
     title: "开发导师｜MVP 实践工具包",
     role: "D" as const,
+    revision: 0,
+    releasedAt: "2026-09-08T00:00:00Z",
+    isCurrent: true,
     kind: "inline-html" as const,
     entryPath: null,
     sourceIdentity: null,
@@ -92,6 +116,9 @@ const BUNDLED = [
     slug: "market-mentor-user-system",
     title: "市场导师｜产品的用户体系",
     role: "M" as const,
+    revision: 0,
+    releasedAt: "2026-09-08T00:00:00Z",
+    isCurrent: true,
     kind: "static-bundle" as const,
     entryPath: "/courseware/market-mentor-user-system/",
     sourceIdentity: `sha256:${MARKET_USER_SYSTEM_CONTENT_TREE}`,
@@ -102,6 +129,9 @@ const BUNDLED = [
     slug: "market-mentor-field-kit",
     title: "市场导师｜用户验证工具包",
     role: "M" as const,
+    revision: 0,
+    releasedAt: "2026-09-08T00:00:00Z",
+    isCurrent: true,
     kind: "inline-html" as const,
     entryPath: null,
     sourceIdentity: null,
@@ -112,6 +142,9 @@ const BUNDLED = [
     slug: "operations-mentor-field-kit",
     title: "运营导师｜交付与增长工具包",
     role: "O" as const,
+    revision: 0,
+    releasedAt: "2026-09-08T00:00:00Z",
+    isCurrent: true,
     kind: "inline-html" as const,
     entryPath: null,
     sourceIdentity: null,
@@ -141,36 +174,45 @@ async function sha256(value: string): Promise<string> {
 export async function ensureBundledCourseware(db: ClassroomD1): Promise<void> {
   const now = "2026-09-08T00:00:00Z";
   await db.prepare(`INSERT OR IGNORE INTO profiles (id, nickname, created_at, updated_at) VALUES (?, ?, ?, ?)`).bind(SYSTEM_PROFILE, "MiniSV 课程组", now, now).run();
-  for (const item of BUNDLED) {
+  for (const item of BUNDLED_VERSIONS) {
     const canonical = item.kind === "inline-html"
       ? item.html!
       : `static-bundle:${item.entryPath}:${item.sourceIdentity}`;
     const digest = await sha256(canonical);
     const byteLength = new TextEncoder().encode(canonical).byteLength;
-    const existing = await db.prepare(`SELECT digest FROM courseware_versions WHERE package_id = ? AND revision = 0`).bind(item.id).first<{ digest: string }>();
+    const existing = await db.prepare(`SELECT digest FROM courseware_versions WHERE package_id = ? AND revision = ?`).bind(item.id, item.revision).first<{ digest: string }>();
     if (existing && existing.digest !== digest) {
-      throw new ClassroomError("COURSEWARE_REGISTRY_CORRUPT", `${item.slug} 内置 r0 与固定来源不一致；静态课件升级必须创建新 package 与新 URL，不能改写旧课堂引用。`, 500);
+      throw new ClassroomError("COURSEWARE_REGISTRY_CORRUPT", `${item.slug} 内置 r${item.revision} 与固定来源不一致；静态课件版本不可改写，必须创建新 revision 与新 URL。`, 500);
     }
-    await db.batch([
+    const statements = [
       db.prepare(
         `INSERT OR IGNORE INTO courseware_packages
          (id, slug, title, mentor_role, owner_profile_id, status, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, 'active', ?, ?)`,
-      ).bind(item.id, item.slug, item.title, item.role, SYSTEM_PROFILE, now, now),
+      ).bind(item.id, item.slug, item.title, item.role, SYSTEM_PROFILE, now, item.releasedAt),
+      db.prepare(
+        `UPDATE courseware_packages SET updated_at = ? WHERE id = ? AND updated_at < ?`,
+      ).bind(item.releasedAt, item.id, item.releasedAt),
       db.prepare(
         `INSERT OR IGNORE INTO courseware_versions
          (package_id, revision, digest, content_kind, html_content, entry_path, byte_length, created_at, created_by_profile_id)
-         VALUES (?, 0, ?, ?, ?, ?, ?, ?, ?)`,
-      ).bind(item.id, digest, item.kind, item.html, item.entryPath, byteLength, now, SYSTEM_PROFILE),
-      db.prepare(
-        `INSERT OR IGNORE INTO courseware_release_pointers
-         (package_id, revision, digest, released_at, released_by_profile_id) VALUES (?, 0, ?, ?, ?)`,
-      ).bind(item.id, digest, now, SYSTEM_PROFILE),
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ).bind(item.id, item.revision, digest, item.kind, item.html, item.entryPath, byteLength, item.releasedAt, SYSTEM_PROFILE),
       db.prepare(
         `INSERT OR IGNORE INTO courseware_releases
-         (package_id, revision, digest, released_at, released_by_profile_id) VALUES (?, 0, ?, ?, ?)`,
-      ).bind(item.id, digest, now, SYSTEM_PROFILE),
-    ]);
+         (package_id, revision, digest, released_at, released_by_profile_id) VALUES (?, ?, ?, ?, ?)`,
+      ).bind(item.id, item.revision, digest, item.releasedAt, SYSTEM_PROFILE),
+    ];
+    if (item.isCurrent) {
+      statements.push(db.prepare(
+        `INSERT INTO courseware_release_pointers
+         (package_id, revision, digest, released_at, released_by_profile_id) VALUES (?, ?, ?, ?, ?)
+         ON CONFLICT(package_id) DO UPDATE SET revision = excluded.revision, digest = excluded.digest,
+           released_at = excluded.released_at, released_by_profile_id = excluded.released_by_profile_id
+         WHERE courseware_release_pointers.revision < excluded.revision`,
+      ).bind(item.id, item.revision, digest, item.releasedAt, SYSTEM_PROFILE));
+    }
+    await db.batch(statements);
   }
 }
 

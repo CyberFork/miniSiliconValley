@@ -78,7 +78,10 @@ try {
   assert.equal((await get("/courseware/development-mentor-ligun/index.html", adminCookie)).status, 200);
   assert.equal((await get("/courseware/market-mentor-user-system/index.html", adminCookie)).status, 200);
 
-  const rawCourse = JSON.parse(await readFile(candidatePath, "utf8")) as { blocks: Array<{ id: string }> };
+  const rawCourse = JSON.parse(await readFile(candidatePath, "utf8")) as {
+    blocks: Array<{ id: string }>;
+    contentPackages?: { scriptPackages: Array<{ coursewareRef: { mentorRole: "P" | "D" | "M" | "O"; packageId: string; slug: string; revision: number; digest: string } }> };
+  };
   const candidate = await postData<ExactRef>("/api/studio/candidates", { course: rawCourse, expectedCandidateRef: null }, adminCookie);
   const viewReceipt = await postData<{ receiptId: string; valid: boolean }>("/api/studio/view-acceptance", {
     courseRef: candidate,
@@ -97,7 +100,14 @@ try {
   const learnerProfiles = credentials.filter((item) => item.role === "learner");
   const coursewareRefs = (["P", "D", "M", "O"] as const).map((role) => {
     const selected = role === "P" ? pCourseware : role === "D" ? dCourseware : mustCourseware(bootstrap.courseware, role);
-    return { mentorRole: role, packageId: selected.packageId, slug: selected.slug, revision: selected.latestRevision, digest: selected.latestDigest };
+    const declared = rawCourse.contentPackages?.scriptPackages.find((scriptPackage) => scriptPackage.coursewareRef.mentorRole === role)?.coursewareRef;
+    return {
+      mentorRole: role,
+      packageId: selected.packageId,
+      slug: selected.slug,
+      revision: declared?.revision ?? selected.latestRevision,
+      digest: declared?.digest ?? selected.latestDigest,
+    };
   });
 
   const rooms = new Map<number, string>();

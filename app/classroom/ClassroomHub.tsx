@@ -28,6 +28,16 @@ type Bootstrap = {
   viewReceipts: StudioViewAcceptanceSummary[];
   uiReceipts: StudioUiAcceptanceSummary[];
 };
+type CoursewareChoice = {
+  packageId: string;
+  slug: string;
+  title: string;
+  mentorRole: (typeof MENTOR_ROLES)[number];
+  revision: number;
+  digest: string;
+  releaseStatus: "current" | "historical" | null;
+  availability: CoursewareSummary["availability"];
+};
 type InitialCourse = {
   courseId: string;
   revision: number;
@@ -513,7 +523,7 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
   const initialUiReceipts = course && initialViewReceipt ? exactUiReceipts(bootstrap, course.ref, initialViewReceipt.receiptId) : [];
   const initialUiReceipt = initialUiReceipts.find((receipt) => receipt.receiptId === initialCourse?.uiReceiptId) ?? initialUiReceipts.find((receipt) => receipt.valid) ?? initialUiReceipts[0];
   const [uiReceiptId, setUiReceiptId] = useState(initialUiReceipt?.receiptId ?? "");
-  const [coursewareKeys, setCoursewareKeys] = useState<Record<string, string>>(() => initialCoursewareKeys(bootstrap.courseware, initialEnvironment, initialUiReceipt));
+  const [coursewareKeys, setCoursewareKeys] = useState<Record<string, string>>(() => initialCoursewareKeys(bootstrap.courseware, initialEnvironment, initialUiReceipt, course?.course));
   const [busy, setBusy] = useState(false);
   const [credentials, setCredentials] = useState<IssuedManagedCredential[]>([]);
   const [submitError, setSubmitError] = useState("");
@@ -532,14 +542,14 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
   const uiReceipt = uiReceiptOptions.find((receipt) => receipt.receiptId === uiReceiptId)
     ?? (uiReceiptId ? null : uiReceiptOptions.find((receipt) => receipt.valid) ?? uiReceiptOptions[0] ?? null);
   const uiReceiptUnavailable = Boolean(uiReceiptId && !uiReceipt);
-  const coursewareOptions = useMemo(() => Object.fromEntries(MENTOR_ROLES.map((role) => [role, bootstrap.courseware.filter((entry) => entry.mentorRole === role && (environment === "test" ? entry.latestRevision >= 0 : isCoursewareLibraryVisible(entry)))])), [bootstrap.courseware, environment]);
+  const coursewareOptions = useMemo(() => Object.fromEntries(MENTOR_ROLES.map((role) => [
+    role,
+    coursewareChoices(bootstrap.courseware, environment).filter((entry) => entry.mentorRole === role),
+  ])), [bootstrap.courseware, environment]);
   const coursewareRefs = MENTOR_ROLES.map((role) => {
-    const item = (coursewareOptions[role] ?? []).find((entry) => coursewareKey(entry, environment) === coursewareKeys[role]);
+    const item = (coursewareOptions[role] ?? []).find((entry) => coursewareChoiceKey(entry) === coursewareKeys[role]);
     if (!item) return null;
-    const useReleased = environment === "production";
-    const revision = useReleased ? item.releasedRevision : item.latestRevision;
-    const digest = useReleased ? item.releasedDigest : item.latestDigest;
-    return revision === null || !digest ? null : { mentorRole: role, packageId: item.packageId, slug: item.slug, revision, digest };
+    return { mentorRole: role, packageId: item.packageId, slug: item.slug, revision: item.revision, digest: item.digest };
   });
   const coursewareMatchesReceipt = environment === "test" || Boolean(uiReceipt?.valid && coursewareRefs.every((ref) => ref && uiReceipt.coursewareRefs.some((accepted) => sameCoursewareRef(ref, accepted))));
   const checklist = buildFactoryChecklist({
@@ -672,7 +682,7 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
     if (!titleCustomized) setTitle(defaultClassroomTitle(nextEnvironment, course));
     setSubmitError("");
     setUiReceiptId(nextEnvironment === "production" ? nextUi?.receiptId ?? "" : "");
-    setCoursewareKeys((current) => preserveCoursewareKeys(current, bootstrap.courseware, nextEnvironment, nextUi));
+    setCoursewareKeys((current) => preserveCoursewareKeys(current, bootstrap.courseware, nextEnvironment, nextUi, course?.course));
   };
 
   const chooseCourse = (nextKey: string) => {
@@ -689,7 +699,7 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
     const nextUiOptions = nextView ? exactUiReceipts(bootstrap, nextCourse.ref, nextView.receiptId) : [];
     const nextUi = nextUiOptions.find((receipt) => receipt.valid) ?? nextUiOptions[0];
     setUiReceiptId(nextUi?.receiptId ?? "");
-    setCoursewareKeys((current) => preserveCoursewareKeys(current, bootstrap.courseware, environment, nextUi));
+    setCoursewareKeys(initialCoursewareKeys(bootstrap.courseware, environment, nextUi, nextCourse.course));
     const nextCount = clampCount(learnerCount || nextCourse.learnerPolicy.defaultCount, nextCourse.learnerPolicy);
     setLearnerCount(nextCount);
     setLearnerIds((current) => fillEmptyUnique(resizeIdsOnly(current, nextCount), learners));
@@ -698,7 +708,7 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
   const chooseUiReceipt = (receiptId: string) => {
     const next = uiReceiptOptions.find((receipt) => receipt.receiptId === receiptId);
     setUiReceiptId(receiptId);
-    setCoursewareKeys((current) => preserveCoursewareKeys(current, bootstrap.courseware, "production", next));
+    setCoursewareKeys((current) => preserveCoursewareKeys(current, bootstrap.courseware, "production", next, course?.course));
     setSubmitError("");
   };
 
@@ -761,7 +771,7 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
         </label>
         <label id="admin-dm">Admin DM（权限，不占导师席）<select value={currentUserRole === "mentor" ? currentUserId : adminId} disabled={currentUserRole === "mentor" || accountsLoading} onChange={(event) => { setAdminId(event.target.value); setSubmitError(""); }}><option value="">请选择账号</option>{mentors.map((item) => <option key={item.userId} value={item.userId}>{item.displayName} · @{item.username}</option>)}</select><small>{currentUserRole === "mentor" ? "创建者将成为本课堂初始 Admin DM；开课后可在成员管理中授权协作者。" : "平台管理员可把初始 Admin DM 授予任一导师或管理员。"}</small></label>
         <div className={`${styles.mentorRows} ${styles.wide}`} id="mentor-members"><b>四个导师 Membership</b>{MENTOR_ROLES.map((role, index) => <div className={styles.mentorRow} key={role}><b>{role}</b><span>{ROLE_NAME[role]}导师</span><select aria-label={`${role} 导师账号`} value={resolvedMentorIds[index] ?? ""} onChange={(event) => { setMentorIds(resolvedMentorIds.map((id, at) => at === index ? event.target.value : id)); setSubmitError(""); }} disabled={accountsLoading}><option value="">请选择账号</option>{mentors.map((item) => <option key={item.userId} value={item.userId}>{item.displayName} · @{item.username}</option>)}</select></div>)}</div>
-        <div className={`${factoryStyles.coursewareRows} ${styles.wide}`}><b>四套 exact 导师课件</b>{MENTOR_ROLES.map((role) => <label key={role}><span>{role} · {ROLE_NAME[role]}</span><select aria-label={`${role} 导师课件`} value={coursewareKeys[role] ?? ""} onChange={(event) => { setCoursewareKeys((value) => ({ ...value, [role]: event.target.value })); setSubmitError(""); }} disabled={environment === "production"}><option value="">请选择课件</option>{(coursewareOptions[role] ?? []).map((item) => <option key={coursewareKey(item, environment)} value={coursewareKey(item, environment)}>{item.title} · r{environment === "production" ? item.releasedRevision : item.latestRevision}{item.availability === "placeholder" ? " · 内部占位（无真实课件）" : ""}</option>)}</select></label>)}</div>
+        <div className={`${factoryStyles.coursewareRows} ${styles.wide}`}><b>四套 exact 导师课件</b>{MENTOR_ROLES.map((role) => <label key={role}><span>{role} · {ROLE_NAME[role]}</span><select aria-label={`${role} 导师课件`} value={coursewareKeys[role] ?? ""} onChange={(event) => { setCoursewareKeys((value) => ({ ...value, [role]: event.target.value })); setSubmitError(""); }} disabled={environment === "production"}><option value="">请选择课件</option>{(coursewareOptions[role] ?? []).map((item) => <option key={coursewareChoiceKey(item)} value={coursewareChoiceKey(item)}>{item.title} · r{item.revision}{item.releaseStatus === "historical" ? " · 历史版本" : item.releaseStatus === null ? " · 未发布" : " · 当前发布"}{item.availability === "placeholder" ? " · 内部占位（无真实课件）" : ""}</option>)}</select></label>)}</div>
         <div className={`${styles.learnerRows} ${styles.wide}`} id="learner-members">{resolvedLearnerIds.map((id, index) => <label key={index}>学员 {index + 1}<select aria-label={`学员 ${index + 1} 账号`} value={id} onChange={(event) => { setLearnerIds(resolvedLearnerIds.map((item, at) => at === index ? event.target.value : item)); setSubmitError(""); }} disabled={accountsLoading}><option value="">请选择账号</option>{learners.map((item) => <option key={item.userId} value={item.userId}>{item.displayName} · @{item.username}</option>)}</select></label>)}</div>
         <section className={`${styles.readiness} ${styles.wide}`} aria-labelledby="factory-readiness-title">
           <header><div><small>CREATE READINESS</small><h3 id="factory-readiness-title">创建前还差 {checklist.items.filter((item) => !item.ready).length} 项</h3></div><span data-ready={checklist.ready}>{checklist.ready ? "可以创建" : "尚未就绪"}</span></header>
@@ -866,34 +876,61 @@ function clampCount(count: number, policy: StudioVersion["learnerPolicy"]): numb
   return Math.min(policy.maxCount, Math.max(policy.minCount, count));
 }
 
-function coursewareKey(item: CoursewareSummary, environment: "test" | "production"): string {
-  return `${item.packageId}:${environment === "production" ? item.releasedRevision : item.latestRevision}:${environment === "production" ? item.releasedDigest : item.latestDigest}`;
+function coursewareChoiceKey(item: Pick<CoursewareChoice, "packageId" | "revision" | "digest">): string {
+  return `${item.packageId}:${item.revision}:${item.digest}`;
 }
 
-function initialCoursewareKeys(items: CoursewareSummary[], environment: "test" | "production", receipt?: StudioUiAcceptanceSummary): Record<string, string> {
-  if (environment === "production" && receipt) {
-    return Object.fromEntries(MENTOR_ROLES.map((role) => {
-      const accepted = receipt.coursewareRefs.find((ref) => ref.mentorRole === role);
-      const item = accepted ? items.find((entry) => entry.packageId === accepted.packageId && entry.releasedRevision === accepted.revision && entry.releasedDigest === accepted.digest) : undefined;
-      return [role, item ? coursewareKey(item, "production") : `missing:${accepted?.packageId ?? role}:${accepted?.revision ?? "?"}:${accepted?.digest ?? "?"}`];
-    }));
-  }
-  return defaultCoursewareKeys(items, environment);
+function coursewareChoices(items: CoursewareSummary[], environment: "test" | "production"): CoursewareChoice[] {
+  return items.flatMap((item) => item.versions
+    .filter((version) => environment === "test" || (isCoursewareLibraryVisible(item) && version.releaseStatus !== null))
+    .map((version) => ({
+      packageId: item.packageId,
+      slug: item.slug,
+      title: item.title,
+      mentorRole: item.mentorRole,
+      revision: version.revision,
+      digest: version.digest,
+      releaseStatus: version.releaseStatus,
+      availability: item.availability,
+    })));
 }
 
-function defaultCoursewareKeys(items: CoursewareSummary[], environment: "test" | "production"): Record<string, string> {
-  return Object.fromEntries(MENTOR_ROLES.map((role) => {
-    const item = items.find((entry) => entry.mentorRole === role && (environment === "test" || isCoursewareLibraryVisible(entry)));
-    return [role, item ? coursewareKey(item, environment) : ""];
+function declaredCoursewareRefs(course?: CoursePackage): Map<string, { packageId: string; revision: number; digest: string }> {
+  return new Map((course?.contentPackages?.scriptPackages ?? []).map((scriptPackage) => {
+    const ref = scriptPackage.coursewareRef;
+    return [ref.mentorRole, { packageId: ref.packageId, revision: ref.revision, digest: ref.digest }];
   }));
 }
 
-function preserveCoursewareKeys(current: Record<string, string>, items: CoursewareSummary[], environment: "test" | "production", receipt?: StudioUiAcceptanceSummary): Record<string, string> {
-  const fallback = initialCoursewareKeys(items, environment, receipt);
+function initialCoursewareKeys(items: CoursewareSummary[], environment: "test" | "production", receipt?: StudioUiAcceptanceSummary, course?: CoursePackage): Record<string, string> {
+  if (environment === "production" && receipt) {
+    return Object.fromEntries(MENTOR_ROLES.map((role) => {
+      const accepted = receipt.coursewareRefs.find((ref) => ref.mentorRole === role);
+      const available = accepted ? coursewareChoices(items, "production").find((entry) => entry.packageId === accepted.packageId && entry.revision === accepted.revision && entry.digest === accepted.digest) : undefined;
+      return [role, available ? coursewareChoiceKey(available) : `missing:${accepted?.packageId ?? role}:${accepted?.revision ?? "?"}:${accepted?.digest ?? "?"}`];
+    }));
+  }
+  return defaultCoursewareKeys(items, environment, course);
+}
+
+function defaultCoursewareKeys(items: CoursewareSummary[], environment: "test" | "production", course?: CoursePackage): Record<string, string> {
+  const choices = coursewareChoices(items, environment);
+  const declared = declaredCoursewareRefs(course);
   return Object.fromEntries(MENTOR_ROLES.map((role) => {
-    const available = items.some((item) => item.mentorRole === role
-      && (environment === "test" ? item.latestRevision >= 0 : isCoursewareLibraryVisible(item))
-      && coursewareKey(item, environment) === current[role]);
+    const expected = declared.get(role);
+    const exact = expected ? choices.find((entry) => entry.mentorRole === role
+      && entry.packageId === expected.packageId && entry.revision === expected.revision && entry.digest === expected.digest) : undefined;
+    const item = exact ?? choices.find((entry) => entry.mentorRole === role && entry.releaseStatus === "current")
+      ?? choices.find((entry) => entry.mentorRole === role);
+    return [role, item ? coursewareChoiceKey(item) : ""];
+  }));
+}
+
+function preserveCoursewareKeys(current: Record<string, string>, items: CoursewareSummary[], environment: "test" | "production", receipt?: StudioUiAcceptanceSummary, course?: CoursePackage): Record<string, string> {
+  const fallback = initialCoursewareKeys(items, environment, receipt, course);
+  const choices = coursewareChoices(items, environment);
+  return Object.fromEntries(MENTOR_ROLES.map((role) => {
+    const available = choices.some((item) => item.mentorRole === role && coursewareChoiceKey(item) === current[role]);
     return [role, available ? current[role] : fallback[role] ?? ""];
   }));
 }

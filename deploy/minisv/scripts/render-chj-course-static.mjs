@@ -25,9 +25,13 @@ function requireCondition(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-const coursewareBase = "/courseware/product-mentor-foundations/";
+const productCoursewareRoot = "/courseware/product-mentor-foundations/";
+const coursewareBase = process.env.MSV_PUBLIC_BASE;
+requireCondition(
+  coursewareBase === productCoursewareRoot || new RegExp(`^${productCoursewareRoot}r[1-9][0-9]*/$`).test(coursewareBase ?? ""),
+  "MSV_PUBLIC_BASE must be the product-manager courseware root or a versioned rN path",
+);
 const coursewareUrl = `https://minisv.vip${coursewareBase}`;
-requireCondition(process.env.MSV_PUBLIC_BASE === coursewareBase, `MSV_PUBLIC_BASE must be ${coursewareBase}`);
 requireCondition(process.env.MSV_SITE_ORIGIN === "https://minisv.vip", "MSV_SITE_ORIGIN must be https://minisv.vip");
 requireCondition(process.env.MSV_CANONICAL_URL === coursewareUrl, `MSV_CANONICAL_URL must be ${coursewareUrl}`);
 

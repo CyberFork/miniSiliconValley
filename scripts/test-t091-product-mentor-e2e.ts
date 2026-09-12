@@ -42,6 +42,7 @@ type Courseware = {
   latestDigest: string;
   releasedRevision: number | null;
   releasedDigest: string | null;
+  versions: Array<{ revision: number; digest: string; releaseStatus: "current" | "historical" | null }>;
 };
 type Bootstrap = { user: { userId: string }; courseware: Courseware[] };
 type Credential = { userId: string; username: string; role: "mentor" | "learner" };
@@ -124,15 +125,21 @@ try {
     {
       packageId: "cw-product-mentor-foundations",
       slug: "product-mentor-foundations",
-      revision: 0,
-      digest: "b2852b39462bc05464582b3c36f773e68fa84775b9e7c7673a128fac97d7cda5",
+      revision: 1,
+      digest: "8ade4830d08f901aba7ed4abc3ae73fd39a0a5f4e16a96935ca38603ba395346",
     },
-    "T-091 Candidate must pin the immutable runtime P courseware r0",
+    "the product-manager package default must advance to immutable r1",
+  );
+  assert.deepEqual(
+    pCourseware.versions.map((version) => [version.revision, version.releaseStatus]),
+    [[1, "current"], [0, "historical"]],
+    "the exact T-091 r0 must remain available for the historical Candidate",
   );
 
   const course = JSON.parse(await readFile(candidatePath, "utf8")) as {
     blocks: Array<{ id: string }>;
     learnerPolicy?: { minCount: number; maxCount: number };
+    contentPackages?: { scriptPackages: Array<{ coursewareRef: { mentorRole: "P" | "D" | "M" | "O"; packageId: string; slug: string; revision: number; digest: string } }> };
   };
   const candidate = await postData<ExactRef>("/api/studio/candidates", { course, expectedCandidateRef: null }, adminCookie);
   assert.equal(candidate.status, "candidate");
@@ -166,12 +173,13 @@ try {
   const exactCourseware = (["P", "D", "M", "O"] as const).map((mentorRole) => {
     const item = bootstrap.courseware.find((candidate) => candidate.mentorRole === mentorRole && candidate.slug === preferredCourseware[mentorRole]);
     assert.ok(item, `missing ${mentorRole} exact courseware`);
+    const declared = course.contentPackages?.scriptPackages.find((scriptPackage) => scriptPackage.coursewareRef.mentorRole === mentorRole)?.coursewareRef;
     return {
       mentorRole,
       packageId: item.packageId,
       slug: item.slug,
-      revision: item.latestRevision,
-      digest: item.latestDigest,
+      revision: declared?.revision ?? item.latestRevision,
+      digest: declared?.digest ?? item.latestDigest,
     };
   });
   const factoryBody = {

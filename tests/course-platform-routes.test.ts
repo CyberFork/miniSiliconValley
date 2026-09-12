@@ -168,23 +168,27 @@ test("gateway owns Studio, Course and per-classroom app routes and retires globa
   assert.match(gateway, /location = \/control \{ return 410;/);
 });
 
-test("the opaque P-mentor courseware identity is pinned consistently across build, runtime and package metadata", () => {
-  const build = readFileSync(new URL("deploy/minisv/scripts/build-chj-course.sh", root), "utf8");
+test("the opaque P-mentor r0/r1 identities are pinned consistently across build, runtime and package metadata", () => {
+  const builds = [
+    readFileSync(new URL("deploy/minisv/scripts/build-chj-course.sh", root), "utf8"),
+    readFileSync(new URL("deploy/minisv/scripts/build-chj-product-course-r1.sh", root), "utf8"),
+  ];
   const renderer = readFileSync(new URL("deploy/minisv/scripts/render-chj-course-static.mjs", root), "utf8");
   const runtime = readFileSync(new URL("app/lib/courseware-store.ts", root), "utf8");
   const packager = readFileSync(new URL("deploy/minisv/package_release.py", root), "utf8");
-  const commit = build.match(/EXPECTED_HEAD="([0-9a-f]{40})"/)?.[1];
-  const tree = build.match(/EXPECTED_TREE="([0-9a-f]{40})"/)?.[1];
-  assert.ok(commit && tree);
-  assert.match(runtime, new RegExp(commit));
-  assert.match(runtime, new RegExp(tree));
-  assert.match(packager, new RegExp(commit));
-  assert.match(packager, new RegExp(tree));
-  assert.match(runtime, /static-bundle:\$\{item\.entryPath\}:\$\{item\.sourceIdentity\}/);
-  for (const source of [build, renderer]) {
-    assert.match(source, /courseware\/product-mentor-foundations/);
-    assert.doesNotMatch(source, /MSV_PUBLIC_BASE must be \/course\//);
+  for (const build of builds) {
+    const commit = build.match(/EXPECTED_HEAD="([0-9a-f]{40})"/)?.[1];
+    const tree = build.match(/EXPECTED_TREE="([0-9a-f]{40})"/)?.[1];
+    assert.ok(commit && tree);
+    assert.match(runtime, new RegExp(commit));
+    assert.match(runtime, new RegExp(tree));
+    assert.match(packager, new RegExp(commit));
+    assert.match(packager, new RegExp(tree));
+    assert.match(build, /courseware\/product-mentor-foundations/);
   }
+  assert.match(runtime, /static-bundle:\$\{item\.entryPath\}:\$\{item\.sourceIdentity\}/);
+  assert.match(renderer, /courseware\/product-mentor-foundations/);
+  assert.doesNotMatch(renderer, /MSV_PUBLIC_BASE must be \/course\//);
 });
 
 test("one-time managed credentials are blocked from platform data until password replacement", () => {

@@ -149,12 +149,13 @@ async function fixture(mutateCourse?: (course: Record<string, unknown>) => void)
   const coursewareRefs = (["P", "D", "M", "O"] as const).map((mentorRole) => {
     const item = courseware.find((candidate) => candidate.mentorRole === mentorRole && candidate.slug === preferredSlugs[mentorRole] && candidate.releasedRevision !== null && candidate.releasedDigest);
     assert.ok(item, `${mentorRole} released courseware must exist`);
+    const declared = course.contentPackages?.scriptPackages.find((scriptPackage) => scriptPackage.coursewareRef.mentorRole === mentorRole)?.coursewareRef;
     return {
       mentorRole,
       packageId: item.packageId,
       slug: item.slug,
-      revision: item.releasedRevision!,
-      digest: item.releasedDigest!,
+      revision: declared?.revision ?? item.releasedRevision!,
+      digest: declared?.digest ?? item.releasedDigest!,
     };
   });
   const request: ClassroomFactoryRequest = {

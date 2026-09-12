@@ -16,6 +16,7 @@ EXPECTED = {
     "/course/": 307,
     "/studio/": 307,
     "/courseware/product-mentor-foundations/": 401,
+    "/courseware/product-mentor-foundations/r1/": 401,
     "/courseware/development-mentor-ligun/": 401,
     "/courseware/market-mentor-user-system/": 401,
     "/course/development-mentor-ligun/?revision=0&slide=6&step=2": 307,
@@ -48,6 +49,7 @@ EXPECTED = {
 # leaked courseware document without coupling the smoke test to Nginx wording.
 COURSEWARE_MARKERS = {
     "/courseware/product-mentor-foundations/": ("青少年AI创业营", "MINI硅谷"),
+    "/courseware/product-mentor-foundations/r1/": ("青少年AI创业营", "MINI硅谷"),
     "/courseware/development-mentor-ligun/": ("先立棍，再让 AI 跑", "DEVELOPMENT MENTOR"),
     "/courseware/market-mentor-user-system/": ("产品的用户体系", "USER SYSTEM"),
 }
@@ -111,11 +113,30 @@ def main() -> None:
             release = json.loads(body)
             if release.get("origin") != "hecate" or release.get("canonicalOrigin") != args.base:
                 raise SystemExit("FAIL release.json: invalid production identity")
-            if release.get("sources", {}).get("chjCourseUi") != "679213a61b835335016eac7649213983a0e48489":
-                raise SystemExit("FAIL release.json: P-mentor courseware is not pinned to the approved chj commit")
+            if release.get("sources", {}).get("chjCourseUi") != "d9d45f1396b54a7ac6b41715b31122d8ffc597ff":
+                raise SystemExit("FAIL release.json: current product-manager courseware is not pinned to approved chj9-11")
+            if release.get("sources", {}).get("chjCourseUiR0") != "679213a61b835335016eac7649213983a0e48489":
+                raise SystemExit("FAIL release.json: historical product-manager r0 source identity was lost")
             artifact = release.get("coursewareArtifact", {})
-            if artifact.get("transformed") is not False or artifact.get("mentorRole") != "P":
+            if (
+                artifact.get("transformed") is not False
+                or artifact.get("mentorRole") != "P"
+                or artifact.get("revision") != 1
+                or artifact.get("route") != "/courseware/product-mentor-foundations/r1/"
+            ):
                 raise SystemExit("FAIL release.json: P-mentor courseware artifact was transformed or misclassified")
+            product_versions = release.get("productCoursewareArtifacts", [])
+            if [item.get("revision") for item in product_versions] != [0, 1]:
+                raise SystemExit("FAIL release.json: product-manager r0/r1 history is incomplete")
+            if (
+                product_versions[0].get("route") != "/courseware/product-mentor-foundations/"
+                or product_versions[0].get("releaseStatus") != "historical"
+                or product_versions[0].get("sourceCommit") != "679213a61b835335016eac7649213983a0e48489"
+                or product_versions[1].get("route") != "/courseware/product-mentor-foundations/r1/"
+                or product_versions[1].get("releaseStatus") != "current"
+                or product_versions[1].get("sourceCommit") != "d9d45f1396b54a7ac6b41715b31122d8ffc597ff"
+            ):
+                raise SystemExit("FAIL release.json: product-manager exact version metadata is invalid")
             development = release.get("developmentCoursewareArtifact", {})
             if development.get("transformed") is not False or development.get("mentorRole") != "D":
                 raise SystemExit("FAIL release.json: D-mentor courseware artifact was transformed or misclassified")
@@ -126,7 +147,7 @@ def main() -> None:
                 raise SystemExit("FAIL release.json: M-mentor courseware artifact was transformed or misclassified")
             if market.get("sha256") != "48b01a256bd3d408a5d539f798470e6aad0058a19dcdeb8b5d212b0e64add862":
                 raise SystemExit("FAIL release.json: M-mentor courseware digest is not the accepted user-system tree")
-            for feature in ("shared-brand-home", "released-workshop-snapshot", "read-only-workshop-history-archive", "unified-course-factory", "course-studio"):
+            for feature in ("shared-brand-home", "released-workshop-snapshot", "read-only-workshop-history-archive", "unified-course-factory", "course-studio", "versioned-product-manager-courseware"):
                 if feature not in release.get("features", []):
                     raise SystemExit(f"FAIL release.json: missing {feature}")
         if path == "/world-preview.json":

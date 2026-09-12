@@ -92,6 +92,70 @@ async function expectCode(promise: Promise<unknown>, code: string): Promise<void
   });
 }
 
+const bundledProductR0 = {
+  revision: 0,
+  digest: "b2852b39462bc05464582b3c36f773e68fa84775b9e7c7673a128fac97d7cda5",
+  entryPath: "/courseware/product-mentor-foundations/",
+} as const;
+const bundledProductR1 = {
+  revision: 1,
+  digest: "8ade4830d08f901aba7ed4abc3ae73fd39a0a5f4e16a96935ca38603ba395346",
+  entryPath: "/courseware/product-mentor-foundations/r1/",
+} as const;
+
+test("bundled product-manager r1 is current while the exact r0 remains playable", async () => {
+  const db = database();
+  try {
+    const first = (await listCourseware(db)).find((item) => item.packageId === "cw-product-mentor-foundations");
+    assert.equal(first?.latestRevision, bundledProductR1.revision);
+    assert.equal(first?.latestDigest, bundledProductR1.digest);
+    assert.equal(first?.releasedRevision, bundledProductR1.revision);
+    assert.equal(first?.releasedDigest, bundledProductR1.digest);
+    assert.deepEqual(first?.versions.map((version) => [version.revision, version.digest, version.releaseStatus]), [
+      [bundledProductR1.revision, bundledProductR1.digest, "current"],
+      [bundledProductR0.revision, bundledProductR0.digest, "historical"],
+    ]);
+
+    const current = await loadCoursewareBySlug(db, "product-mentor-foundations");
+    const historical = await loadCoursewareExact(db, current.packageId, bundledProductR0.revision, bundledProductR0.digest);
+    assert.equal(current.entryPath, bundledProductR1.entryPath);
+    assert.equal(current.releaseStatus, "current");
+    assert.equal(historical.entryPath, bundledProductR0.entryPath);
+    assert.equal(historical.releaseStatus, "historical");
+    assert.equal(historical.released, true);
+
+    // Re-running the bootstrap is deliberately idempotent: no duplicate
+    // versions or release-history rows are created.
+    await listCourseware(db);
+    assert.equal((db.raw.prepare("SELECT COUNT(*) AS n FROM courseware_versions WHERE package_id = ?").get(current.packageId) as { n: number }).n, 2);
+    assert.equal((db.raw.prepare("SELECT COUNT(*) AS n FROM courseware_releases WHERE package_id = ?").get(current.packageId) as { n: number }).n, 2);
+  } finally { db.raw.close(); }
+});
+
+test("a production-style r0 registry upgrades to bundled r1 without rewriting r0", async () => {
+  const db = database();
+  try {
+    const now = "2026-09-08T00:00:00Z";
+    db.raw.prepare("INSERT INTO profiles (id,nickname,created_at,updated_at) VALUES (?,?,?,?)").run("system-courseware", "MiniSV 课程组", now, now);
+    db.raw.prepare("INSERT INTO courseware_packages (id,slug,title,mentor_role,owner_profile_id,status,created_at,updated_at) VALUES (?,?,?,?,?,'active',?,?)")
+      .run("cw-product-mentor-foundations", "product-mentor-foundations", "产品导师｜青少年 AI 创业营", "P", "system-courseware", now, now);
+    db.raw.prepare("INSERT INTO courseware_versions (package_id,revision,digest,content_kind,html_content,entry_path,byte_length,created_at,created_by_profile_id) VALUES (?,0,?,'static-bundle',NULL,?,?,?,?)")
+      .run("cw-product-mentor-foundations", bundledProductR0.digest, bundledProductR0.entryPath, 135, now, "system-courseware");
+    db.raw.prepare("INSERT INTO courseware_releases (package_id,revision,digest,released_at,released_by_profile_id) VALUES (?,0,?,?,?)")
+      .run("cw-product-mentor-foundations", bundledProductR0.digest, now, "system-courseware");
+    db.raw.prepare("INSERT INTO courseware_release_pointers (package_id,revision,digest,released_at,released_by_profile_id) VALUES (?,0,?,?,?)")
+      .run("cw-product-mentor-foundations", bundledProductR0.digest, now, "system-courseware");
+
+    const upgraded = await loadCoursewareBySlug(db, "product-mentor-foundations");
+    assert.equal(upgraded.revision, bundledProductR1.revision);
+    assert.equal(upgraded.digest, bundledProductR1.digest);
+    assert.equal(upgraded.entryPath, bundledProductR1.entryPath);
+    const untouched = await loadCoursewareExact(db, upgraded.packageId, bundledProductR0.revision, bundledProductR0.digest);
+    assert.equal(untouched.entryPath, bundledProductR0.entryPath);
+    assert.equal(untouched.releaseStatus, "historical");
+  } finally { db.raw.close(); }
+});
+
 test("publishing r1 retains historical r0 while the default pointer becomes r1", async () => {
   const db = database();
   try {
