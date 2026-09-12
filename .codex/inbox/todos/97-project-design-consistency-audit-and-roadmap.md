@@ -86,6 +86,14 @@ tags: [todo, audit, architecture, single-source-of-truth]
 - T-088 已用真实隔离 Candidate、Test Classroom 和学员账号完成 10 组 Chromium 响应式／粗指针工程验收：无横向溢出、关键控件不小于 44×44、编辑字段不小于 16px、私卡隔离、触摸翻页、结构化提交、导师退回／重交／通过、离线恢复和完整 viewport 隐私遮挡均通过。
 - 真实 iPad Safari 与 Android 触摸设备仍必须由人执行；标准记录模板为 `docs/qa/t088-tablet-mobile/REAL_DEVICE_ACCEPTANCE_TEMPLATE.md`。本总单不会用模拟器结果代签 ViewAcceptanceReceipt 或 UiAcceptanceReceipt。工程发布完成后，唯一剩余关闭条件是两类设备的可追溯人工验收记录。
 
+## 2026-09-12 课程剧本与导师课件解耦更新
+
+- 用户重新确认：Classroom Factory 只选择一份 exact `CourseDefinition` 剧本版本；下拉框中的 r12、r9 和 Google r0 是互斥备选项，不是同时绑定的多个版本。
+- 导师课件不再参与课程剧本版本核对或建课门禁。P／D／M／O 每次打开课堂课件入口时，服务端独立解析该角色当前最新 Released 课件；建课时保存的课件引用以及 UI 回执中的课件引用只作为审计快照。
+- 产品导师最新课件已从同事仓库 `chj9-11` 的 commit `d9d45f1396b54a7ac6b41715b31122d8ffc597ff` 原样构建为 r1，同事源码未被修改；历史 r0 继续保留，仅用于审计或显式历史预览。
+- 已发布 Hecate release `20260912T131901CST-courseware-decoupled-r1`（runtime source `cb128d17aa04a52f5161e91de47b2813ba81a713`）。生产登录后已选择饿了么 r12 创建一场隔离 TEST，HTTP 请求未提交课件版本，服务端解析 P r1；随后通过 T-111 链路物理删除，旧链接返回 410。未创建 Production，也未删除用户现有课堂。
+- 机器发布回执：`docs/PRODUCT_COURSEWARE_DECOUPLING_PRODUCTION_RECEIPT.json`。人工 View／UI 与真实 iPad／Android 设备验收仍未代签，因此 T-088、T-097、T-110 状态保持 `in-progress`。
+
 ## 5. 推荐依赖与执行顺序
 
 ```text
