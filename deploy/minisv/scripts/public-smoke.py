@@ -105,8 +105,8 @@ def main() -> None:
             raise SystemExit(f"FAIL {path}: response did not originate at Hecate")
         if path == "/auth/login" and headers.get("location") != "/auth/login/":
             raise SystemExit("FAIL /auth/login: canonical trailing-slash redirect is invalid")
-        if path == "/studio/" and headers.get("location") != "/console/":
-            raise SystemExit("FAIL /studio/: legacy Studio must migrate to /console/")
+        if path == "/studio/" and headers.get("location") != "/console/studio/":
+            raise SystemExit("FAIL /studio/: legacy Studio must migrate to /console/studio/")
         if path in {"/workshop/", "/workshop/confirmed-baseline.json"}:
             location = headers.get("location", "")
             target = urlsplit(location)

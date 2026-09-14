@@ -14,6 +14,7 @@ class DeployScriptContractTests(unittest.TestCase):
         cls.script = (ROOT / "scripts" / "deploy-hecate.sh").read_text()
         cls.rollback_script = (ROOT / "scripts" / "rollback-hecate.sh").read_text()
         cls.healthcheck = (ROOT / "scripts" / "healthcheck-hecate.sh").read_text()
+        cls.public_smoke = (ROOT / "scripts" / "public-smoke.py").read_text()
 
     def test_legacy_global_runtime_is_stopped_not_bootstrapped(self) -> None:
         self.assertNotIn("bootstrap_agent()", self.script)
@@ -61,6 +62,7 @@ class DeployScriptContractTests(unittest.TestCase):
         self.assertIn("probe /terminal/ 307", self.healthcheck)
         self.assertIn("probe /courseware/development-mentor-module-thinking/audience/ 401", self.healthcheck)
         self.assertIn("probe /courseware/development-mentor-module-thinking/teacher/presenter.html 401", self.healthcheck)
+        self.assertIn('headers.get("location") != "/console/studio/"', self.public_smoke)
 
     def test_one_verified_release_switches_the_app_worker_and_static_gateway(self) -> None:
         self.assertIn('"$INCOMING/MANIFEST.sha256"', self.script)
