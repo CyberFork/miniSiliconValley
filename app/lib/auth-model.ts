@@ -69,6 +69,35 @@ export type ManagedAuthUser = {
   lastSeenAt: string | null;
 };
 
+export type ManagedLearnerClassroom = {
+  id: string;
+  title: string;
+  status: string;
+};
+
+export type ManagedLearnerAccount = {
+  id: string;
+  username: string;
+  displayName: string;
+  status: "active" | "disabled";
+  mustChangePassword: boolean;
+  activeSessions: number;
+  createdAt: string;
+  updatedAt: string;
+  lastSeenAt: string | null;
+  adminNotes: string;
+  avatarSeed: string;
+  avatarVersion: number;
+  classrooms: ManagedLearnerClassroom[];
+};
+
+export type ManagedLearnerPage = {
+  items: ManagedLearnerAccount[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
 export type IssuedPasswordResetLink = {
   username: string;
   displayName: string;

@@ -22,5 +22,6 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   };
   const requested = typeof params.returnTo === "string" ? params.returnTo : "/classroom/";
   const returnTo = requested.startsWith("/") && !requested.startsWith("//") && !requested.startsWith("/auth") && !requested.startsWith("/account") ? requested : "/classroom/";
-  return <AccountClient initialUser={user} firstLogin={params.first === "1"} returnTo={returnTo} />;
+  const initialView = current.role === "admin" && params.view !== "profile" ? "learners" : "profile";
+  return <AccountClient initialUser={user} firstLogin={params.first === "1"} returnTo={returnTo} initialView={initialView} />;
 }

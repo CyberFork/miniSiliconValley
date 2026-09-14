@@ -60,6 +60,19 @@ for (const { account, role } of entries) {
      (id, kind, room_id, team_id, owner_profile_id, balance_tenths, created_at)
      VALUES (${q(`wallet:${account.username}`)}, 'personal-wallet', NULL, NULL, ${q(account.username)}, 0, ${q(now)});`,
   );
+  if (role === "learner") {
+    statements.push(
+      `INSERT OR IGNORE INTO auth_learner_admin_profiles
+       (user_id, admin_notes, avatar_seed, avatar_version, created_at, updated_at)
+       VALUES (${q(account.username)}, '', ${q(`seed:${crypto.randomUUID()}`)}, 1, ${q(now)}, ${q(now)});`,
+    );
+    if (/^msv-student-\d+$/.test(account.username)) {
+      statements.push(
+        `INSERT OR IGNORE INTO auth_learner_username_allocations (username, user_id, allocated_at)
+         VALUES (${q(account.username)}, ${q(account.username)}, ${q(now)});`,
+      );
+    }
+  }
 }
 statements.push(
   `INSERT INTO auth_security_events (id, user_id, actor_user_id, action, detail_json, created_at)

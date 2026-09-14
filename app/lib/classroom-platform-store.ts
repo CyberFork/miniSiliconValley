@@ -2362,18 +2362,45 @@ export async function listAssignableClassroomAccounts(
   db: ClassroomD1,
   user: AuthenticatedClassroomUser,
   roomId: string,
+  rawQuery?: string | null,
 ): Promise<AssignableClassroomAccount[]> {
   await requireAdminDm(db, user, roomId);
+  const query = (rawQuery ?? "").trim().replace(/^@+/, "").toLowerCase();
+  if (query.length > 64) throw new ClassroomError("ACCOUNT_LOOKUP_QUERY_INVALID", "账号查询不能超过 64 个字符。", 400);
+  if (query && query.length < 2) throw new ClassroomError("ACCOUNT_LOOKUP_QUERY_INVALID", "请至少输入 2 个字符查找账号或昵称。", 400);
+  const pattern = query ? `%${escapeAccountLike(query)}%` : null;
+  const scoped = user.platformRole !== "admin";
   const result = await db.prepare(
-    `SELECT u.id, u.username, u.display_name, u.role,
+    `${scoped ? `WITH actor_rooms(room_id) AS (
+       SELECT room_id FROM memberships WHERE profile_id = ? AND status = 'active'
+       UNION
+       SELECT room_id FROM classroom_admin_dm_grants WHERE profile_id = ? AND revoked_at IS NULL
+     ), scoped_user_ids(user_id) AS (
+       SELECT ?
+       UNION
+       SELECT user_id FROM auth_security_events
+       WHERE actor_user_id = ? AND action = 'auth.managed-account.created' AND user_id IS NOT NULL
+       UNION
+       SELECT m.profile_id FROM memberships m JOIN actor_rooms ar ON ar.room_id = m.room_id WHERE m.status = 'active'
+       UNION
+       SELECT g.profile_id FROM classroom_admin_dm_grants g JOIN actor_rooms ar ON ar.room_id = g.room_id WHERE g.revoked_at IS NULL
+     )` : ""}
+     SELECT u.id, u.username, u.display_name, u.role,
             CASE WHEN m.id IS NOT NULL THEN 1 ELSE 0 END AS has_membership,
             CASE WHEN g.id IS NOT NULL THEN 1 ELSE 0 END AS has_admin_dm
      FROM auth_users u
      LEFT JOIN memberships m ON m.room_id = ? AND m.profile_id = u.id AND m.status = 'active'
      LEFT JOIN classroom_admin_dm_grants g ON g.room_id = ? AND g.profile_id = u.id AND g.revoked_at IS NULL
      WHERE u.status = 'active' AND u.role IN ('admin', 'mentor', 'learner')
-     ORDER BY CASE u.role WHEN 'admin' THEN 1 WHEN 'mentor' THEN 2 ELSE 3 END, u.username LIMIT 300`,
-  ).bind(roomId, roomId).all<{
+       ${scoped ? "AND u.id IN (SELECT user_id FROM scoped_user_ids)" : ""}
+       ${pattern ? "AND (LOWER(u.username) LIKE ? ESCAPE '\\' OR LOWER(u.display_name) LIKE ? ESCAPE '\\')" : ""}
+     ORDER BY CASE u.role WHEN 'admin' THEN 1 WHEN 'mentor' THEN 2 ELSE 3 END, u.username
+     LIMIT ${pattern ? 50 : 300}`,
+  ).bind(
+    ...(scoped ? [user.userId, user.userId, user.userId, user.userId] : []),
+    roomId, roomId,
+    ...(pattern ? [pattern, pattern] : []),
+  ).all<{
     id: string;
     username: string;
     display_name: string;
@@ -2390,6 +2417,10 @@ export async function listAssignableClassroomAccounts(
     hasAdminDm: Boolean(row.has_admin_dm),
     inClassroom: Boolean(row.has_membership || row.has_admin_dm),
   }));
+}
+
+function escapeAccountLike(value: string): string {
+  return value.replace(/[\\%_]/g, (character) => `\\${character}`);
 }
 
 export type ClassroomMembershipAction =

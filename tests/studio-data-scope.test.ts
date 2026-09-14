@@ -77,7 +77,7 @@ function seedMembership(db: LocalDatabase, roomId: string, profileId: string, ro
   ).run(`membership:${roomId}:${profileId}`, roomId, profileId, role, status, now, now, now);
 }
 
-test("T-105 mentor account directory is scoped, while exact lookup supports explicit classroom admission", async () => {
+test("T-113 mentor account search stays scoped while Admin search is global", async () => {
   const db = database();
   try {
     seedUser(db, "admin-one", "admin", "Platform Admin");
@@ -105,13 +105,14 @@ test("T-105 mentor account directory is scoped, while exact lookup supports expl
     assert.equal(scoped.some((account) => account.userId === "learner-removed"), false);
 
     assert.deepEqual(
-      (await listStudioAssignableAccounts(db, { userId: "mentor-a", role: "mentor" }, "learner-private")).map((account) => account.userId),
-      ["learner-private"],
+      (await listStudioAssignableAccounts(db, { userId: "mentor-a", role: "mentor" }, "learner-created")).map((account) => account.userId),
+      ["learner-created"],
     );
     assert.deepEqual(
-      (await listStudioAssignableAccounts(db, { userId: "mentor-a", role: "mentor" }, "Private Learner")).map((account) => account.userId),
-      ["learner-private"],
+      (await listStudioAssignableAccounts(db, { userId: "mentor-a", role: "mentor" }, "Shared Learner")).map((account) => account.userId),
+      ["learner-shared"],
     );
+    assert.deepEqual(await listStudioAssignableAccounts(db, { userId: "mentor-a", role: "mentor" }, "learner-private"), []);
     assert.deepEqual(await listStudioAssignableAccounts(db, { userId: "mentor-a", role: "mentor" }, "private"), []);
     await assert.rejects(
       listStudioAssignableAccounts(db, { userId: "mentor-a", role: "mentor" }, "x"),
@@ -120,6 +121,14 @@ test("T-105 mentor account directory is scoped, while exact lookup supports expl
 
     const global = await listStudioAssignableAccounts(db, { userId: "admin-one", role: "admin" });
     assert.equal(global.length, 7);
+    assert.deepEqual(
+      (await listStudioAssignableAccounts(db, { userId: "admin-one", role: "admin" }, "@learner-private")).map((account) => account.userId),
+      ["learner-private"],
+    );
+    assert.deepEqual(
+      (await listStudioAssignableAccounts(db, { userId: "admin-one", role: "admin" }, "Private Learner")).map((account) => account.userId),
+      ["learner-private"],
+    );
     await assert.rejects(
       listStudioAssignableAccounts(db, { userId: "learner-private", role: "learner" }),
       (error: unknown) => error instanceof AuthError && error.code === "MENTOR_REQUIRED",

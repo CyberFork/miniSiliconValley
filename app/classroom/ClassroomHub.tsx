@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "../components/NavigationLink";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { IssuedManagedCredential } from "../lib/auth-model";
 import type { ClassroomInstanceSummary, TestClassroomDeletionPreview } from "../lib/classroom-platform-store";
@@ -516,9 +516,8 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
   const [credentials, setCredentials] = useState<IssuedManagedCredential[]>([]);
   const [submitError, setSubmitError] = useState("");
   const [accountActionError, setAccountActionError] = useState("");
-  const [accountQuery, setAccountQuery] = useState("");
-  const [accountLookupBusy, setAccountLookupBusy] = useState(false);
-  const [accountLookupNotice, setAccountLookupNotice] = useState("");
+  const [createLearnerSeat, setCreateLearnerSeat] = useState<number | null>(null);
+  const [activeLearnerPicker, setActiveLearnerPicker] = useState<number | null>(null);
   const submitErrorRef = useRef<HTMLDivElement>(null);
   const operationLockRef = useRef(false);
   const effectiveLearnerCount = course ? clampCount(learnerCount || course.learnerPolicy.defaultCount, course.learnerPolicy) : 0;
@@ -587,27 +586,6 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
     } finally {
       operationLockRef.current = false;
       setBusy(false);
-    }
-  };
-
-  const lookupAccount = async () => {
-    const query = accountQuery.trim();
-    setAccountLookupNotice("");
-    setAccountActionError("");
-    if (query.length < 2) {
-      setAccountActionError("请输入完整用户名或昵称，至少 2 个字符；系统不会显示可浏览的全站账号目录。");
-      return;
-    }
-    setAccountLookupBusy(true);
-    try {
-      const matches = await onLookupAccounts(query);
-      setAccountLookupNotice(matches.length
-        ? `已把 ${matches.map((item) => `${item.displayName} · @${item.username}`).join("、")} 加入下方账号选择列表。`
-        : "没有找到完全匹配的有效账号。请让对方确认用户名或显示名称后重试。");
-    } catch (cause) {
-      setAccountActionError(messageOf(cause));
-    } finally {
-      setAccountLookupBusy(false);
     }
   };
 
@@ -711,13 +689,7 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
         <h3>{environment === "test" ? "创建真实 UI 验收课堂" : "创建正式课堂"}</h3>
         <ol>{environment === "test" ? <><li>选择唯一的 Candidate 或 Released 剧本版本</li><li>完成该剧本的多角色视图检查</li><li>配置真实 N 与 4 + N 个成员</li><li>导师课件打开时自动取最新发布版</li></> : <><li>选择唯一的 Released 剧本版本</li><li>绑定同版本有效 View + UI 检查记录</li><li>导师课件独立更新，不阻塞建课</li><li>Production 不提供测试重置</li></>}</ol>
         <button type="button" onClick={createAccounts} disabled={busy || !course || effectiveLearnerCount < 1}>{busy ? "正在处理…" : course ? `一键生成 4＋${effectiveLearnerCount} 个测试账号` : "先选择课程再生成账号"}</button>
-        <form className={styles.accountLookup} onSubmit={(event) => { event.preventDefault(); void lookupAccount(); }}>
-          <label htmlFor="factory-account-lookup">查找自行注册的账号</label>
-          <input id="factory-account-lookup" value={accountQuery} onChange={(event) => setAccountQuery(event.target.value.slice(0, 64))} placeholder="完整用户名或昵称" autoComplete="off" />
-          <button type="submit" disabled={accountLookupBusy || accountQuery.trim().length < 2}>{accountLookupBusy ? "正在查找…" : "精确查找并加入列表"}</button>
-          <small>只做完全匹配，不开放全站模糊搜索。找到后仍需在下方明确分配 Membership。</small>
-        </form>
-        {accountLookupNotice && <p className={styles.asideNotice} role="status">{accountLookupNotice}</p>}
+        <p className={styles.asideNotice}>每个学员席都能按账号或昵称搜索。搜索只返回你有权分配的账号，不会公开全站目录。</p>
         {accountActionError && <p className={styles.asideError} role="alert">{accountActionError}</p>}
       </aside>
       <div className={styles.factoryForm}>
@@ -750,7 +722,21 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
         <label id="admin-dm">Admin DM（权限，不占导师席）<select value={currentUserRole === "mentor" ? currentUserId : adminId} disabled={currentUserRole === "mentor" || accountsLoading} onChange={(event) => { setAdminId(event.target.value); setSubmitError(""); }}><option value="">请选择账号</option>{mentors.map((item) => <option key={item.userId} value={item.userId}>{item.displayName} · @{item.username}</option>)}</select><small>{currentUserRole === "mentor" ? "创建者将成为本课堂初始 Admin DM；开课后可在成员管理中授权协作者。" : "平台管理员可把初始 Admin DM 授予任一导师或管理员。"}</small></label>
         <div className={`${styles.mentorRows} ${styles.wide}`} id="mentor-members"><b>四个导师 Membership</b>{MENTOR_ROLES.map((role, index) => <div className={styles.mentorRow} key={role}><b>{role}</b><span>{ROLE_NAME[role]}导师</span><select aria-label={`${role} 导师账号`} value={resolvedMentorIds[index] ?? ""} onChange={(event) => { setMentorIds(resolvedMentorIds.map((id, at) => at === index ? event.target.value : id)); setSubmitError(""); }} disabled={accountsLoading}><option value="">请选择账号</option>{mentors.map((item) => <option key={item.userId} value={item.userId}>{item.displayName} · @{item.username}</option>)}</select></div>)}</div>
         <div className={`${styles.acceptanceLock} ${styles.wide}`} data-valid={coursewareRefs.every(Boolean)}><b>导师课件 · 自动使用最新发布版</b><span>无需选择或核对课件版本；更新产品、开发、市场或运营课件，不会改变本课堂选择的课程剧本。</span></div>
-        <div className={`${styles.learnerRows} ${styles.wide}`} id="learner-members">{resolvedLearnerIds.map((id, index) => <label key={index}>学员 {index + 1}<select aria-label={`学员 ${index + 1} 账号`} value={id} onChange={(event) => { setLearnerIds(resolvedLearnerIds.map((item, at) => at === index ? event.target.value : item)); setSubmitError(""); }} disabled={accountsLoading}><option value="">请选择账号</option>{learners.map((item) => <option key={item.userId} value={item.userId}>{item.displayName} · @{item.username}</option>)}</select></label>)}</div>
+        <div className={`${styles.learnerRows} ${styles.wide}`} id="learner-members">{resolvedLearnerIds.map((id, index) => <LearnerAccountPicker
+          key={index}
+          seat={index + 1}
+          value={id}
+          accounts={learners}
+          selectedIds={resolvedLearnerIds}
+          disabled={accountsLoading}
+          canCreate={currentUserRole === "admin"}
+          open={activeLearnerPicker === index}
+          onSearch={onLookupAccounts}
+          onOpen={() => setActiveLearnerPicker(index)}
+          onClose={() => setActiveLearnerPicker((current) => current === index ? null : current)}
+          onCreate={() => { setActiveLearnerPicker(null); setCreateLearnerSeat(index); }}
+          onChange={(nextId) => { setLearnerIds(resolvedLearnerIds.map((item, at) => at === index ? nextId : item)); setSubmitError(""); }}
+        />)}</div>
         <section className={`${styles.readiness} ${styles.wide}`} aria-labelledby="factory-readiness-title">
           <header><div><small>CREATE READINESS</small><h3 id="factory-readiness-title">创建前还差 {checklist.items.filter((item) => !item.ready).length} 项</h3></div><span data-ready={checklist.ready}>{checklist.ready ? "可以创建" : "尚未就绪"}</span></header>
           <ul>{checklist.items.map((item) => <li key={item.id} data-ready={item.ready}><span aria-hidden="true">{item.ready ? "✓" : "!"}</span><div><b>{item.label}</b><p>{item.message}</p></div>{!item.ready && item.actionHref ? item.actionHref.startsWith("#") ? <a href={item.actionHref}>{item.actionLabel}</a> : <Link href={item.actionHref}>{item.actionLabel}</Link> : null}</li>)}</ul>
@@ -762,7 +748,137 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
       </div>
     </div>
     {credentials.length > 0 && <CredentialReceipt credentials={credentials} />}
+    {createLearnerSeat !== null && <FactoryCreateLearnerDialog
+      seat={createLearnerSeat + 1}
+      onClose={() => setCreateLearnerSeat(null)}
+      onCreated={async (learner) => {
+        await onLookupAccounts(learner.username);
+        setLearnerIds((current) => resizeIdsOnly(current, effectiveLearnerCount).map((item, index) => index === createLearnerSeat ? learner.userId : item));
+        setCreateLearnerSeat(null);
+        setSubmitError("");
+        setAccountActionError("");
+      }}
+    />}
   </section>;
+}
+
+function LearnerAccountPicker({ seat, value, accounts, selectedIds, disabled, canCreate, open, onSearch, onOpen, onClose, onCreate, onChange }: {
+  seat: number;
+  value: string;
+  accounts: Account[];
+  selectedIds: string[];
+  disabled: boolean;
+  canCreate: boolean;
+  open: boolean;
+  onSearch: (query: string) => Promise<Account[]>;
+  onOpen: () => void;
+  onClose: () => void;
+  onCreate: () => void;
+  onChange: (userId: string) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<Account[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const sequence = useRef(0);
+  const listRef = useRef<HTMLUListElement>(null);
+  const selected = accounts.find((account) => account.userId === value) ?? null;
+  const normalized = query.trim().replace(/^@+/, "");
+
+  const search = useCallback(async (term: string) => {
+    const requestId = ++sequence.current;
+    setLoading(true); setError("");
+    try {
+      const matches = await onSearch(term);
+      if (requestId !== sequence.current) return;
+      setResults(matches.filter((item) => item.role === "learner"));
+    } catch (cause) {
+      if (requestId === sequence.current) setError(messageOf(cause));
+    } finally {
+      if (requestId === sequence.current) setLoading(false);
+    }
+  }, [onSearch]);
+
+  useEffect(() => {
+    if (!open || normalized.length < 2) return;
+    const timer = window.setTimeout(() => { void search(normalized); }, 220);
+    return () => window.clearTimeout(timer);
+  }, [normalized, open, search]);
+
+  const visible = normalized.length >= 2 ? results : accounts.slice(0, 8);
+  const closeMenu = () => { sequence.current += 1; onClose(); setLoading(false); };
+  const changeQuery = (value: string) => {
+    sequence.current += 1;
+    setQuery(value.slice(0, 64));
+    onOpen();
+    setLoading(false);
+    setError("");
+    setResults([]);
+  };
+  return <div className={styles.learnerPicker} data-selected={Boolean(selected)} data-seat={seat} data-selected-user-id={selected?.userId ?? ""}>
+    <div className={styles.learnerPickerHeading}><b>学员 {seat}</b>{selected ? <span>已选中</span> : <span data-empty>待选择</span>}</div>
+    {selected && <div className={styles.learnerPickerSelected}><div><b>{selected.displayName}</b><code>@{selected.username}</code></div><button type="button" onClick={() => onChange("")} disabled={disabled}>清空</button></div>}
+    <label><span className={styles.srOnly}>搜索学员 {seat} 账号</span><input
+      value={query}
+      disabled={disabled}
+      placeholder="搜索账号或昵称…"
+      autoComplete="off"
+      onFocus={onOpen}
+      onChange={(event) => changeQuery(event.target.value)}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") closeMenu();
+        if (event.key === "ArrowDown") { event.preventDefault(); listRef.current?.querySelector<HTMLButtonElement>("button:not(:disabled)")?.focus(); }
+      }}
+    /></label>
+    {open && <div className={styles.learnerPickerMenu}>
+      {loading && <p role="status">正在搜索授权账号…</p>}
+      {error && <div className={styles.pickerError} role="alert"><span>{error}</span><button type="button" onClick={() => void search(normalized)} disabled={loading}>重试</button></div>}
+      {!loading && !error && normalized.length === 1 && <p>再输入 1 个字符开始搜索。</p>}
+      {!loading && !error && normalized.length >= 2 && !visible.length && <p>没有匹配账号。{canCreate ? "可以新建学员后回填本席位。" : "请让 Admin 先创建账号。"}</p>}
+      {!loading && !error && visible.length > 0 && <ul ref={listRef}>{visible.map((account) => {
+        const duplicateSeat = selectedIds.findIndex((id, index) => id === account.userId && index !== seat - 1);
+        return <li key={account.userId}><button type="button" disabled={duplicateSeat >= 0} onClick={() => { onChange(account.userId); setQuery(""); closeMenu(); }}><b>{account.displayName}</b><span>@{account.username}</span>{duplicateSeat >= 0 && <em>已分配给学员 {duplicateSeat + 1}</em>}</button></li>;
+      })}</ul>}
+      <footer>{canCreate && <button type="button" onClick={onCreate}>＋ 新增学员并回填此席</button>}<button type="button" onClick={closeMenu}>收起</button></footer>
+    </div>}
+  </div>;
+}
+
+function FactoryCreateLearnerDialog({ seat, onClose, onCreated }: { seat: number; onClose: () => void; onCreated: (learner: Account) => Promise<void> }) {
+  const [displayName, setDisplayName] = useState("");
+  const [initialPassword, setInitialPassword] = useState("");
+  const [adminNotes, setAdminNotes] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const mutationKey = useRef(crypto.randomUUID());
+  const firstField = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const timer = window.setTimeout(() => firstField.current?.focus(), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+  const submit = async (event: FormEvent) => {
+    event.preventDefault(); setBusy(true); setError("");
+    try {
+      const result = await api<{ learner: { id: string; username: string; displayName: string; status: string }; created: boolean }>("/api/auth/admin/learners", {
+        method: "POST",
+        body: JSON.stringify({ displayName, initialPassword, adminNotes, idempotencyKey: mutationKey.current }),
+      });
+      await onCreated({ userId: result.learner.id, username: result.learner.username, displayName: result.learner.displayName, role: "learner", status: result.learner.status });
+    } catch (cause) {
+      setInitialPassword("");
+      setError(messageOf(cause));
+    } finally { setBusy(false); }
+  };
+  return <div className={styles.dialogBackdrop} role="presentation"><section className={`${styles.dialog} ${styles.factoryLearnerDialog}`} role="dialog" aria-modal="true" aria-labelledby="factory-new-learner-title">
+    <small>ADMIN · NEW LEARNER</small><h2 id="factory-new-learner-title">为学员 {seat} 新增账号</h2><p>账号创建成功后只回填当前席位，其他席位、人数和课程配置保持不变。</p>
+    <form className={styles.newLearnerForm} onSubmit={submit}>
+      <label>学员昵称<input ref={firstField} value={displayName} onChange={(event) => setDisplayName(event.target.value.slice(0, 40))} minLength={2} maxLength={40} required /></label>
+      <label>一次性初始密码<input type="password" value={initialPassword} onChange={(event) => setInitialPassword(event.target.value)} minLength={12} maxLength={128} autoComplete="new-password" required /><small>至少 12 个字符；创建后不会再次显示。</small></label>
+      <label>Admin 备注（可选）<textarea value={adminNotes} onChange={(event) => setAdminNotes(event.target.value.slice(0, 500))} maxLength={500} placeholder="仅平台 Admin 可见；不要填写密码" /></label>
+      {error && <div className={styles.localError} role="alert">{error}</div>}
+      <div className={styles.dialogActions}><button className={styles.secondary} type="button" onClick={onClose} disabled={busy}>取消，保留课堂配置</button><button className={styles.button} disabled={busy}>{busy ? "正在创建…" : "创建并回填当前席位"}</button></div>
+    </form>
+  </section></div>;
 }
 
 

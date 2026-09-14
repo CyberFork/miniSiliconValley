@@ -15,11 +15,13 @@ import { BrandHomeLink } from "../components/BrandHomeLink";
 import { AccountMenu } from "../components/AccountMenu";
 import Link from "../components/NavigationLink";
 import { announceAccountChange, approveAccountNavigation, mutateBrowserAccount } from "../components/browser-account-client";
+import { LearnerAdminPanel } from "./LearnerAdminPanel";
 
 type Envelope<T> = { ok: boolean; data?: T; error?: { code: string; message: string } };
 
-export default function AccountClient({ initialUser, firstLogin = false, returnTo = "/classroom/" }: { initialUser: AuthUser; firstLogin?: boolean; returnTo?: string }) {
+export default function AccountClient({ initialUser, firstLogin = false, returnTo = "/classroom/", initialView = "profile" }: { initialUser: AuthUser; firstLogin?: boolean; returnTo?: string; initialView?: "learners" | "profile" }) {
   const [user, setUser] = useState(initialUser);
+  const [view, setView] = useState<"learners" | "profile">(initialUser.role === "admin" && !firstLogin ? initialView : "profile");
   const [sessions, setSessions] = useState<AuthSessionSummary[]>([]);
   const [accountSet, setAccountSet] = useState<AuthBrowserAccountSetSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -72,18 +74,19 @@ export default function AccountClient({ initialUser, firstLogin = false, returnT
         <div className={styles.navLinks}><a href={publicPath("/")}>首页</a><a href="/world/">历史世界</a><Link href="/course/">课件查看</Link><a href={publicPath("/classroom")}>进入课堂</a><AccountMenu user={user} returnTo="/account/" /></div>
       </nav>
       <div className={styles.accountMain} id="account-main">
-        <header className={styles.accountHero}>
-          <div><span className={styles.kicker}>IDENTITY & SECURITY</span><h1>Young Builder 账户</h1><p>管理昵称、密码和登录设备。课堂与队伍成员请在课堂里的DM控制台管理。</p></div>
+        <header className={`${styles.accountHero} ${user.role === "admin" ? styles.adminAccountHero : ""}`}>
+          <div><span className={styles.kicker}>{user.role === "admin" ? "ADMIN · ACCOUNT CENTER" : "IDENTITY & SECURITY"}</span><h1>{user.role === "admin" ? "账号中心" : "Young Builder 账户"}</h1><p>{user.role === "admin" ? "管理全平台学员身份，或切换到自己的账号与设备设置。课堂席位仍在 Classroom 中分配。" : "管理昵称、密码和登录设备。课堂与队伍成员请在课堂里的 DM 控制台管理。"}</p></div>
           <div className={styles.identityBadge}><b>{initials(user.displayName)}</b><div><span>{user.displayName}</span><small>@{user.username} · {roleLabel(user.role)}</small></div></div>
         </header>
         {(error || notice) && <div className={error ? styles.formError : styles.formSuccess} role={error ? "alert" : "status"} style={{ marginTop: 24 }}>{error ?? notice}</div>}
         {(firstLogin || user.mustChangePassword) && <div className={styles.formSuccess} role="status" style={{ marginTop: 24 }}><strong>先完成账号启用：</strong>请使用下方“更新密码”把一次性初始密码换成只有你知道的密码。完成后系统会进入你的课堂。</div>}
-        <div className={styles.accountGrid}>
+        {user.role === "admin" && !firstLogin && <div className={styles.accountViewTabs} role="tablist" aria-label="账号中心视图"><button type="button" role="tab" aria-selected={view === "learners"} onClick={() => setView("learners")}>学员管理</button><button type="button" role="tab" aria-selected={view === "profile"} onClick={() => setView("profile")}>我的账户</button></div>}
+        {user.role === "admin" && view === "learners" && !firstLogin ? <LearnerAdminPanel /> : <div className={styles.accountGrid}>
           <ProfileCard key={user.displayName} user={user} busy={busy} onRun={run} />
           <PasswordCard busy={busy} onRun={run} returnTo={firstLogin || user.mustChangePassword ? returnTo : null} />
           <SessionCard sessions={sessions} accountSet={accountSet} loading={loading} busy={busy} onRun={run} />
           {manager && <PasswordAssistanceCard busy={busy} />}
-        </div>
+        </div>}
       </div>
     </main>
   );

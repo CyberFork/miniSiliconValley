@@ -796,6 +796,9 @@ type Assignable = {
 };
 function MemberActions({ data }: { data: ClassroomInstanceDetail }) {
   const [accounts, setAccounts] = useState<Assignable[]>([]);
+  const [accountQuery, setAccountQuery] = useState("");
+  const [accountLoading, setAccountLoading] = useState(false);
+  const accountRequest = useRef(0);
   const [actionType, setActionType] = useState<"replace-learner" | "replace-mentor" | "grant-admin-dm" | "revoke-admin-dm">("replace-learner");
   const [seat, setSeat] = useState(1);
   const [mentorRole, setMentorRole] = useState<"P" | "D" | "M" | "O">("P");
@@ -806,22 +809,47 @@ function MemberActions({ data }: { data: ClassroomInstanceDetail }) {
   const [issued, setIssued] = useState<Array<{ username: string; displayName: string; role: string; initialPassword: string }>>([]);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
-  const refresh = useCallback(async () => {
-    try { setAccounts(await api<Assignable[]>(`/api/platform/classrooms/${data.id}/members`)); }
-    catch (cause) { setMessage(messageOf(cause)); }
+  const refresh = useCallback(async (query = "") => {
+    const requestId = ++accountRequest.current;
+    setAccountLoading(true);
+    try {
+      const suffix = query ? `?q=${encodeURIComponent(query)}` : "";
+      const next = await api<Assignable[]>(`/api/platform/classrooms/${data.id}/members${suffix}`);
+      if (requestId === accountRequest.current) {
+        setAccounts(next);
+        setMessage("");
+      }
+    }
+    catch (cause) { if (requestId === accountRequest.current) setMessage(messageOf(cause)); }
+    finally { if (requestId === accountRequest.current) setAccountLoading(false); }
   }, [data.id]);
-  useEffect(() => { const timer = window.setTimeout(() => { void refresh(); }, 0); return () => window.clearTimeout(timer); }, [refresh]);
+  useEffect(() => { const timer = window.setTimeout(() => { void refresh(""); }, 0); return () => window.clearTimeout(timer); }, [refresh]);
+  useEffect(() => {
+    if (actionType === "revoke-admin-dm") return;
+    const normalized = accountQuery.trim().replace(/^@+/, "");
+    if (normalized.length === 1) return;
+    const timer = window.setTimeout(() => { void refresh(normalized); }, normalized ? 220 : 0);
+    return () => window.clearTimeout(timer);
+  }, [accountQuery, actionType, refresh]);
   const choices = useMemo(() => actionType === "replace-learner" ? accounts.filter((item) => item.role === "learner" && !item.hasMembership)
     : actionType === "replace-mentor" ? accounts.filter((item) => (item.role === "mentor" || item.role === "admin") && !item.hasMembership)
       : actionType === "revoke-admin-dm" ? data.admins.filter((item) => item.mode === "delegated").map((item) => ({ userId: item.profileId, username: item.profileId, displayName: item.displayName, role: "mentor" as const, hasMembership: false, hasAdminDm: true, inClassroom: true }))
         : accounts.filter((item) => item.role === "mentor" && !item.hasAdminDm), [accounts, actionType, data.admins]);
   const profileId = choices.some((item) => item.userId === selectedProfileId) ? selectedProfileId : choices[0]?.userId ?? "";
+  const changeAccountQuery = (next: string) => {
+    // Invalidate an in-flight response immediately, rather than waiting for
+    // the next debounced request. This matters when a user deletes a two-
+    // character query back to one character, where no new request is sent.
+    accountRequest.current += 1;
+    setAccountLoading(false);
+    setAccountQuery(next.slice(0, 64));
+  };
   const change = async () => {
     if (!profileId) return setMessage("请先选择目标账号。");
     setBusy(true); setMessage("");
     try {
       await api(`/api/platform/classrooms/${data.id}/members`, { method: "POST", body: JSON.stringify({ type: actionType, profileId, seat, mentorRole }) });
-      setMessage("成员与权限已经更新；课堂列表会自动同步。"); await refresh();
+      setMessage("成员与权限已经更新；课堂列表会自动同步。"); await refresh(accountQuery.trim().replace(/^@+/, ""));
     } catch (cause) { setMessage(messageOf(cause)); }
     finally { setBusy(false); }
   };
@@ -833,7 +861,7 @@ function MemberActions({ data }: { data: ClassroomInstanceDetail }) {
         method: "POST",
         body: JSON.stringify({ accounts: Array.from({ length: newCount }, (_, index) => ({ username: `${prefix}-${stamp}-${index + 1}`.toLowerCase().replace(/[^a-z0-9-]/g, "-"), displayName: `${newRole === "mentor" ? "新导师" : "Young Builder"} ${index + 1}`, role: newRole })) }),
       });
-      setIssued(result); setMessage(`已创建 ${result.length} 个账号；初始密码只显示这一次。`); await refresh();
+      setIssued(result); setMessage(`已创建 ${result.length} 个账号；初始密码只显示这一次。`); await refresh(accountQuery.trim().replace(/^@+/, ""));
     } catch (cause) { setMessage(messageOf(cause)); }
     finally { setBusy(false); }
   };
@@ -846,10 +874,11 @@ function MemberActions({ data }: { data: ClassroomInstanceDetail }) {
   };
   return <section className={manageStyles.manage}>
     <div><small className={styles.eyebrow}>ADMIN DM · MEMBERSHIP</small><h2>成员与权限操作</h2><p>导师／学员席只可在开课前替换；{data.canDelegateAdminDm ? "你是 Primary Admin DM，可以委派导师。" : "你是 Delegated Admin DM，不能授予或撤销他人权限。"} 所有操作均写审计事件。</p>
-      <label>操作<select value={actionType} onChange={(event) => { setActionType(event.target.value as typeof actionType); setSelectedProfileId(""); }}><option value="replace-learner">替换学员席</option><option value="replace-mentor">替换导师席</option>{data.canDelegateAdminDm && <option value="grant-admin-dm">授予 Delegated Admin DM</option>}{data.canDelegateAdminDm && <option value="revoke-admin-dm">撤销 Delegated Admin DM</option>}</select></label>
+      <label>操作<select value={actionType} onChange={(event) => { accountRequest.current += 1; setAccountLoading(false); setActionType(event.target.value as typeof actionType); setSelectedProfileId(""); setAccountQuery(""); }}><option value="replace-learner">替换学员席</option><option value="replace-mentor">替换导师席</option>{data.canDelegateAdminDm && <option value="grant-admin-dm">授予 Delegated Admin DM</option>}{data.canDelegateAdminDm && <option value="revoke-admin-dm">撤销 Delegated Admin DM</option>}</select></label>
       {actionType === "replace-learner" && <label>学员席<select value={seat} onChange={(event) => setSeat(Number(event.target.value))}>{data.learners.map((item) => <option key={item.seat} value={item.seat}>{item.seat} · {item.displayName}</option>)}</select></label>}
       {actionType === "replace-mentor" && <label>导师席<select value={mentorRole} onChange={(event) => setMentorRole(event.target.value as typeof mentorRole)}>{(["P", "D", "M", "O"] as const).map((role) => <option value={role} key={role}>{role} 导师</option>)}</select></label>}
-      <label>目标账号<select value={profileId} onChange={(event) => setSelectedProfileId(event.target.value)}><option value="">请选择</option>{choices.map((item) => <option value={item.userId} key={item.userId}>{item.displayName} · @{item.username}</option>)}</select></label>
+      {actionType !== "revoke-admin-dm" && <label>搜索目标账号<input value={accountQuery} onChange={(event) => changeAccountQuery(event.target.value)} placeholder="账号、@账号或昵称（至少 2 字符）" autoComplete="off" /></label>}
+      <label>目标账号<select value={profileId} onChange={(event) => setSelectedProfileId(event.target.value)} disabled={accountLoading}><option value="">{accountLoading ? "正在搜索…" : choices.length ? "请选择" : accountQuery.trim().replace(/^@+/, "").length === 1 ? "再输入 1 个字符" : "没有可用账号"}</option>{choices.map((item) => <option value={item.userId} key={item.userId}>{item.displayName} · @{item.username}</option>)}</select></label>
       <button className={styles.button} disabled={busy || !profileId} onClick={change}>确认操作</button>
       {data.adminDmMode === "delegated" && !data.viewer.impersonationId && <button className={styles.danger} disabled={busy} onClick={() => void relinquish()}>退出本课堂 Admin DM</button>}
     </div>

@@ -51,7 +51,7 @@ const COURSEWARE_UPLOAD_CHUNK_BYTES = 180 * 1024;
 
 const NAV_GROUPS: Array<{
   label: string;
-  items: Array<{ id?: StudioSection; href: string; code: string; label: string }>;
+  items: Array<{ id?: StudioSection; href: string; code: string; label: string; adminOnly?: boolean }>;
 }> = [
   {
     label: "课程生产",
@@ -68,6 +68,7 @@ const NAV_GROUPS: Array<{
     items: [
       { id: "courseware", href: "/studio/courseware/", code: "05", label: "导师课件库" },
       { href: "/course/", code: "06", label: "课件查看" },
+      { href: "/account/?view=learners", code: "10", label: "学员账号管理", adminOnly: true },
     ],
   },
   {
@@ -146,7 +147,7 @@ export default function StudioApp({
         <p className={styles.navLabel}>COURSE FACTORY</p>
         {NAV_GROUPS.map((group) => <div className={styles.navGroup} key={group.label}>
           <b>{group.label}</b>
-          {group.items.map((item) => <Link
+          {group.items.filter((item) => !item.adminOnly || user.role === "admin").map((item) => <Link
             key={item.href}
             href={item.href}
             data-active={item.id === section}

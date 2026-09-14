@@ -43,6 +43,52 @@
 /* T-111 · exact Test Classroom identity and immutable archive management. */
 .sectionHeaderActions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}.sectionAction{display:inline-flex;min-height:44px;align-items:center;justify-content:center;padding:0 15px;color:#12252d;background:#e5b847;border:2px solid #19313b;text-decoration:none;font-weight:900}.sectionAction:focus-visible,.roomActions a:focus-visible,.roomActions button:focus-visible{outline:4px solid #62b5aa;outline-offset:3px}.roomIdentity{display:grid;gap:6px;margin:14px 0 0}.roomIdentity>div{display:grid;grid-template-columns:88px minmax(0,1fr);gap:8px;padding:7px 9px;background:#0d222a}.roomIdentity dt{color:#8fb0ac;font:800 10px var(--font-mono);letter-spacing:.06em}.roomIdentity dd{min-width:0;margin:0}.roomIdentity code,.roomIdentity time{display:block;color:#eef2e8;font:10px/1.45 var(--font-mono);overflow-wrap:anywhere}.archiveNote{margin:10px 0 0;padding:9px;color:#13262d!important;background:#d9eade;border-left:5px solid #5aa99f;font-size:12px}.roomActions{display:grid;gap:7px}.roomActions button,.secondaryRoomAction{display:inline-flex;min-height:43px;align-items:center;justify-content:center;padding:0 13px;font-weight:900}.roomActions button{color:#ffd9cb;background:transparent;border:2px solid #bf5947}.roomActions .secondaryRoomAction{color:#e6f3ee;background:#28535d;border:1px solid #638087}.archiveWarning{padding:11px;color:#fff1df;background:#793128;border-left:6px solid #e5b847;line-height:1.5}.archiveReason{display:grid;gap:7px;margin-top:14px;font-weight:900}.archiveReason textarea{min-height:86px;padding:11px;color:#14252c;background:#fffaf0;border:2px solid #506e73;resize:vertical;font:inherit}.dialog code{overflow-wrap:anywhere}.dialog ul{padding-left:22px}.dialog li b{color:#1e6e68}
 @media(max-width:700px){.sectionHeaderActions{width:100%;align-items:stretch;flex-direction:column}.sectionHeaderActions b{align-self:flex-end}.sectionAction{width:100%;box-sizing:border-box}.roomIdentity>div{grid-template-columns:1fr}.dialogActions{display:grid}.dialogActions button{width:100%}}
+
+/* T-113 · searchable learner account picker. */
+.srOnly{position:absolute;width:1px;height:1px;overflow:hidden;margin:-1px;padding:0;clip:rect(0 0 0 0);clip-path:inset(50%);border:0;white-space:nowrap}
+.learnerPicker{position:relative;min-width:0;padding:12px;background:#fffaf0;border:2px solid #587078;box-shadow:3px 3px 0 #c9bb9d}
+.learnerPicker[data-selected=true]{border-color:#2d8179;box-shadow:3px 3px 0 #2d8179}
+.learnerPickerHeading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}
+.learnerPickerHeading>b{color:#19313b;font:900 13px var(--font-mono);letter-spacing:.08em}
+.learnerPickerHeading>span{padding:4px 7px;color:#fff;background:#2d8179;font:900 9px var(--font-mono)}
+.learnerPickerHeading>span[data-empty]{color:#19313b;background:#e5b847}
+.learnerPickerSelected{display:flex;min-height:52px;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px;padding:9px 10px;color:#f8efd8;background:#19313b;border-left:5px solid #e5b847}
+.learnerPickerSelected>div{display:grid;min-width:0;gap:3px}
+.learnerPickerSelected b,.learnerPickerSelected code{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.learnerPickerSelected code{color:#82c6bd;font:900 10px var(--font-mono)}
+.learnerPickerSelected button{min-width:54px;min-height:40px;padding:0 9px;color:#ffb09e;background:transparent;border:1px solid #d36b55;font-weight:900}
+.learnerPicker>label{display:block}
+.learnerPicker>label input{width:100%;min-height:48px;box-sizing:border-box;padding:10px 12px;color:#14252c;background:#fff;border:2px solid #587078;border-radius:0;font-size:16px;outline:none}
+.learnerPicker>label input:focus{border-color:#2d8179;box-shadow:0 0 0 3px rgb(45 129 121 / 22%)}
+.learnerPickerMenu{position:absolute;z-index:80;top:calc(100% - 3px);right:-2px;left:-2px;max-height:min(380px,58vh);overflow:auto;padding:10px;color:#14252c;background:#f7ecd4;border:3px solid #19313b;box-shadow:7px 7px 0 #c84f39}
+.learnerPickerMenu>p{margin:0;padding:14px;color:#536265;background:#fffaf0;border-left:5px solid #e5b847;line-height:1.5}
+.learnerPickerMenu ul{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.learnerPickerMenu li button{display:grid;width:100%;min-height:54px;align-items:center;gap:2px;padding:9px 11px;color:#14252c;background:#fffaf0;border:2px solid #b9aa8b;text-align:left;grid-template-columns:minmax(0,1fr) auto}
+.learnerPickerMenu li button:hover:not(:disabled),.learnerPickerMenu li button:focus-visible{background:#d9eade;border-color:#2d8179;outline:3px solid #e5b847;outline-offset:0}
+.learnerPickerMenu li button:disabled{cursor:not-allowed;opacity:.62;background:#e4dcc9}
+.learnerPickerMenu li b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.learnerPickerMenu li span{color:#397c77;font:900 10px var(--font-mono)}
+.learnerPickerMenu li em{grid-column:1/-1;color:#96382e;font-size:10px;font-style:normal;font-weight:900}
+.learnerPickerMenu footer{position:sticky;bottom:-10px;display:flex;justify-content:space-between;gap:8px;margin:10px -10px -10px;padding:10px;background:#19313b}
+.learnerPickerMenu footer button{min-height:44px;padding:8px 11px;color:#f8efd8;background:transparent;border:1px solid #7fa39f;font-weight:900}
+.learnerPickerMenu footer button:first-child{color:#14252c;background:#e5b847;border-color:#e5b847}
+.pickerError{display:grid;gap:10px;padding:12px;color:#fff;background:#96382e;border-left:5px solid #e5b847}
+.pickerError button{width:max-content;min-height:40px;padding:0 12px;color:#14252c;background:#e5b847;font-weight:900}
+.factoryLearnerDialog>p{line-height:1.55}
+.newLearnerForm{display:grid;gap:14px}
+.newLearnerForm>label{display:grid;gap:7px;font-weight:900}
+.newLearnerForm input,.newLearnerForm textarea{width:100%;box-sizing:border-box;padding:11px 12px;color:#14252c;background:#fffaf0;border:2px solid #587078;border-radius:0;font:inherit;outline:none}
+.newLearnerForm input{min-height:48px}
+.newLearnerForm textarea{min-height:96px;resize:vertical}
+.newLearnerForm input:focus,.newLearnerForm textarea:focus{border-color:#2d8179;box-shadow:0 0 0 3px rgb(45 129 121 / 22%)}
+.newLearnerForm label>small{color:#5d6b6d;font-size:11px;font-weight:500}
+
+@media(max-width:700px){
+  .learnerPickerMenu{right:-8px;left:-8px;max-height:min(420px,62vh)}
+  .learnerPickerMenu footer{align-items:stretch;flex-direction:column}
+  .learnerPickerMenu footer button{width:100%}
+  .factoryLearnerDialog{max-height:calc(100svh - 28px);overflow:auto}
+}
 .archiveRuntimeBanner{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:0 0 18px;padding:14px 16px;color:#f8efd8;background:#6f302a;border:2px solid #e5b847;border-left-width:8px}.archiveRuntimeBanner>div{display:grid;gap:4px}.archiveRuntimeBanner b{color:#ffd36d}.archiveRuntimeBanner span{color:#f1d8cf;line-height:1.45}.archiveRuntimeBanner a{display:inline-flex;min-height:42px;flex:0 0 auto;align-items:center;padding:0 12px;color:#12252d;background:#e5b847;text-decoration:none;font-weight:900}
 @media(max-width:700px){.archiveRuntimeBanner{align-items:stretch;flex-direction:column}.archiveRuntimeBanner a{justify-content:center}}
 

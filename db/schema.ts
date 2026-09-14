@@ -32,6 +32,49 @@ export const authUsers = sqliteTable(
   ],
 );
 
+/** Administrator-only learner metadata. It is deliberately not part of the
+ * public auth/profile projection, so notes cannot leak into classroom views. */
+export const authLearnerAdminProfiles = sqliteTable(
+  "auth_learner_admin_profiles",
+  {
+    userId: text("user_id").primaryKey().references(() => authUsers.id, { onDelete: "cascade" }),
+    adminNotes: text("admin_notes").notNull().default(""),
+    avatarSeed: text("avatar_seed").notNull(),
+    avatarVersion: integer("avatar_version").notNull().default(1),
+    ...timestamps,
+  },
+  (table) => [
+    check("chk_auth_learner_admin_notes", sql`length(${table.adminNotes}) <= 500`),
+    check("chk_auth_learner_avatar_seed", sql`length(${table.avatarSeed}) between 8 and 128`),
+    check("chk_auth_learner_avatar_version", sql`${table.avatarVersion} >= 1`),
+  ],
+);
+
+export const authAdminLearnerRequests = sqliteTable(
+  "auth_admin_learner_requests",
+  {
+    actorUserId: text("actor_user_id").notNull().references(() => authUsers.id, { onDelete: "cascade" }),
+    idempotencyKey: text("idempotency_key").notNull(),
+    targetUserId: text("target_user_id").notNull().references(() => authUsers.id, { onDelete: "cascade" }),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.actorUserId, table.idempotencyKey] }),
+    index("idx_auth_admin_learner_request_target").on(table.targetUserId, table.createdAt),
+  ],
+);
+
+export const authLearnerUsernameAllocations = sqliteTable(
+  "auth_learner_username_allocations",
+  {
+    username: text("username").primaryKey(),
+    // Deliberately not a foreign key: this row is the non-secret tombstone
+    // that prevents a deleted learner login name from being reused.
+    userId: text("user_id").notNull().unique(),
+    allocatedAt: text("allocated_at").notNull(),
+  },
+);
+
 export const authSessions = sqliteTable(
   "auth_sessions",
   {

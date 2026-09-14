@@ -4,7 +4,7 @@ import test from "node:test";
 import { CLASSROOM_SCHEMA_STATEMENTS } from "../db/schema-statements";
 
 const tables = [
-  "auth_users", "auth_sessions", "auth_browser_sets", "auth_browser_accounts", "auth_browser_session_links", "auth_browser_mutations", "auth_browser_atomic_assertions", "auth_codes", "auth_invitations", "auth_recovery_codes", "auth_reset_tokens", "auth_rate_limits", "auth_security_events",
+  "auth_users", "auth_sessions", "auth_browser_sets", "auth_browser_accounts", "auth_browser_session_links", "auth_browser_mutations", "auth_browser_atomic_assertions", "auth_codes", "auth_invitations", "auth_recovery_codes", "auth_reset_tokens", "auth_rate_limits", "auth_security_events", "auth_learner_admin_profiles", "auth_admin_learner_requests", "auth_learner_username_allocations",
   "profiles", "rooms", "teams", "memberships", "card_grants", "intelligence_nodes", "intelligence_edges",
   "challenge_runs", "challenge_actions", "reputation_entries", "ledger_accounts", "ledger_transactions",
   "team_assets", "purchase_proposals", "purchase_votes", "gratitude_votes", "worldline_entries", "audit_events",
@@ -53,7 +53,7 @@ test("runtime schema bootstrap is idempotent and exactly mirrors the migration",
     if (/^UPDATE\s/i.test(executable)) {
       assert.match(executable, /WHERE [\s\S]*(?:IS NULL|<\s*2)/i, "data updates must be guarded and repeatable");
     } else if (/^INSERT OR IGNORE\s/i.test(executable)) {
-      assert.match(executable, /(?:classroom_admin_dm_grants|classroom_script_progress|classroom_submission_revisions|courseware_releases)/, "backfills must be conflict-safe and repeatable");
+      assert.match(executable, /(?:classroom_admin_dm_grants|classroom_script_progress|classroom_submission_revisions|courseware_releases|auth_learner_admin_profiles|auth_learner_username_allocations)/, "backfills must be conflict-safe and repeatable");
     } else if (/^INSERT INTO `(?:course|courseware)_exact_integrity_guard`/i.test(executable)) {
       assert.match(executable, /CASE WHEN[\s\S]*ON CONFLICT\(`id`\) DO NOTHING/, "exact preflight must fail closed and remain repeatable");
     } else if (/^DROP INDEX IF EXISTS\s/i.test(executable)) {

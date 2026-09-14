@@ -16,8 +16,10 @@ import type {
   AuthSessionSummary,
   AuthSessionUser,
   ManagedAuthUser,
+  ManagedLearnerAccount,
+  ManagedLearnerPage,
 } from "./auth-model";
-import { parseDisplayName, parseRole, parseUsername } from "./auth-validation";
+import { parseDisplayName, parsePassword, parseRole, parseUsername } from "./auth-validation";
 
 const SESSION_COOKIE = "__Secure-msv_session";
 const BROWSER_ACCOUNT_COOKIE = "__Secure-msv_accounts";
@@ -516,6 +518,7 @@ export async function registerUser(
          (id, kind, room_id, team_id, owner_profile_id, balance_tenths, created_at)
          VALUES (?, 'personal-wallet', NULL, NULL, ?, 0, ?)`,
       ).bind(`wallet:${userId}`, userId, now),
+      ...newLearnerMetadataStatements(db, userId, input.username, now),
       sessionInsert(db, session),
       securityEventStatement(db, userId, userId, "auth.registration.succeeded", { role: "learner" }, now),
     ]);
@@ -564,7 +567,12 @@ export async function createManagedUsers(
   });
   assertAuth(new Set(parsed.map((item) => item.username)).size === parsed.length, "USERNAME_DUPLICATE", "批量账号中有重复用户名。", 400);
   const placeholders = parsed.map(() => "?").join(",");
-  const existing = await db.prepare(`SELECT username FROM auth_users WHERE username IN (${placeholders})`).bind(...parsed.map((item) => item.username)).all<{ username: string }>();
+  const usernames = parsed.map((item) => item.username);
+  const existing = await db.prepare(
+    `SELECT username FROM auth_users WHERE username IN (${placeholders})
+     UNION
+     SELECT username FROM auth_learner_username_allocations WHERE username IN (${placeholders})`,
+  ).bind(...usernames, ...usernames).all<{ username: string }>();
   assertAuth(!(existing.results ?? []).length, "USERNAME_TAKEN", `用户名已存在：${(existing.results ?? []).map((item) => item.username).join("、")}`, 409);
 
   const now = nowIso();
@@ -600,6 +608,9 @@ export async function createManagedUsers(
       ).bind(`wallet:${credential.userId}`, credential.userId, now),
       securityEventStatement(db, credential.userId, actor.userId, "auth.managed-account.created", { role: credential.role, roomId: roomId ?? null }, now),
     );
+    if (credential.role === "learner") {
+      statements.push(...newLearnerMetadataStatements(db, credential.userId, credential.username, now));
+    }
   }
   await db.batch(statements);
   return credentials.map((credential) => ({
@@ -624,10 +635,9 @@ export type StudioAssignableAccount = {
  * Return the smallest account directory needed by ClassroomFactory.
  *
  * Platform administrators have the explicit global directory capability.
- * Mentors see themselves, accounts they created, and people in a classroom
- * they already share. A mentor may also resolve one exact username or display
- * name supplied by that person; this deliberately does not implement a fuzzy
- * or browseable global directory.
+ * Mentors can search only themselves, accounts they created, and people in a
+ * classroom they already share. Partial matching never widens that scope into
+ * a global directory.
  */
 export async function listStudioAssignableAccounts(
   db: ClassroomD1,
@@ -635,35 +645,19 @@ export async function listStudioAssignableAccounts(
   rawQuery?: string | null,
 ): Promise<StudioAssignableAccount[]> {
   assertAuth(actor.role === "admin" || actor.role === "mentor", "MENTOR_REQUIRED", "只有导师或平台管理员可以选择课堂账号。", 403);
-  const query = rawQuery?.trim() ?? "";
+  const query = (rawQuery?.trim() ?? "").replace(/^@+/, "");
   assertAuth(query.length <= 64, "ACCOUNT_LOOKUP_QUERY_INVALID", "账号查询不能超过 64 个字符。", 400);
-  if (query) {
-    assertAuth(query.length >= 2, "ACCOUNT_LOOKUP_QUERY_INVALID", "请输入至少 2 个字符的完整用户名或昵称。", 400);
-    const result = await db.prepare(
-      `SELECT id, username, display_name, role, status
-       FROM auth_users
-       WHERE status = 'active' AND role IN ('admin', 'mentor', 'learner')
-         AND (username = ? COLLATE NOCASE OR display_name = ? COLLATE NOCASE)
-       ORDER BY CASE role WHEN 'admin' THEN 1 WHEN 'mentor' THEN 2 ELSE 3 END, username
-       LIMIT 12`,
-    ).bind(query, query).all<{
-      id: string;
-      username: string;
-      display_name: string;
-      role: "admin" | "mentor" | "learner";
-      status: "active";
-    }>();
-    return (result.results ?? []).map(studioAssignableAccount);
-  }
+  if (query) assertAuth(query.length >= 2, "ACCOUNT_LOOKUP_QUERY_INVALID", "请至少输入 2 个字符查找账号或昵称。", 400);
 
   if (actor.role === "admin") {
     const result = await db.prepare(
       `SELECT id, username, display_name, role, status
        FROM auth_users
        WHERE status = 'active' AND role IN ('admin', 'mentor', 'learner')
+         ${query ? "AND (LOWER(username) LIKE ? ESCAPE '\\' OR LOWER(display_name) LIKE ? ESCAPE '\\')" : ""}
        ORDER BY CASE role WHEN 'admin' THEN 1 WHEN 'mentor' THEN 2 ELSE 3 END, username
-       LIMIT 200`,
-    ).all<{
+       LIMIT ${query ? 50 : 200}`,
+    ).bind(...(query ? [`%${escapeLike(query.toLowerCase())}%`, `%${escapeLike(query.toLowerCase())}%`] : [])).all<{
       id: string;
       username: string;
       display_name: string;
@@ -698,9 +692,13 @@ export async function listStudioAssignableAccounts(
      FROM auth_users u
      JOIN scoped_user_ids scoped ON scoped.user_id = u.id
      WHERE u.status = 'active' AND u.role IN ('admin', 'mentor', 'learner')
+       ${query ? "AND (LOWER(u.username) LIKE ? ESCAPE '\\' OR LOWER(u.display_name) LIKE ? ESCAPE '\\')" : ""}
      ORDER BY CASE u.role WHEN 'admin' THEN 1 WHEN 'mentor' THEN 2 ELSE 3 END, u.username
      LIMIT 200`,
-  ).bind(actor.userId, actor.userId, actor.userId, actor.userId).all<{
+  ).bind(
+    actor.userId, actor.userId, actor.userId, actor.userId,
+    ...(query ? [`%${escapeLike(query.toLowerCase())}%`, `%${escapeLike(query.toLowerCase())}%`] : []),
+  ).all<{
     id: string;
     username: string;
     display_name: string;
@@ -1429,6 +1427,366 @@ export async function setManagedUserStatus(
       : []),
     securityEventStatement(db, targetId, actor.userId, `auth.user.${status}`, {}, now),
   ]);
+}
+
+export type ManagedLearnerQuery = {
+  query?: string;
+  status?: "all" | "active" | "disabled";
+  page?: number;
+  pageSize?: number;
+};
+
+/** Full learner directory for a directly authenticated platform Admin. */
+export async function listAdminManagedLearners(
+  db: ClassroomD1,
+  actor: AuthSessionUser,
+  input: ManagedLearnerQuery = {},
+): Promise<ManagedLearnerPage> {
+  requirePlatformAdmin(actor);
+  const query = (input.query ?? "").trim().replace(/^@+/, "").toLowerCase();
+  assertAuth(query.length <= 80, "ACCOUNT_LOOKUP_QUERY_INVALID", "搜索内容不能超过 80 个字符。", 400);
+  const status = input.status ?? "all";
+  assertAuth(status === "all" || status === "active" || status === "disabled", "STATUS_INVALID", "账号状态筛选无效。", 400);
+  const page = Math.max(1, Math.min(10_000, Math.trunc(input.page ?? 1)));
+  const pageSize = Math.max(1, Math.min(50, Math.trunc(input.pageSize ?? 20)));
+  const clauses = ["u.role = 'learner'"];
+  const values: unknown[] = [];
+  if (status !== "all") { clauses.push("u.status = ?"); values.push(status); }
+  if (query) {
+    const pattern = `%${escapeLike(query)}%`;
+    clauses.push("(LOWER(u.id) LIKE ? ESCAPE '\\' OR LOWER(u.username) LIKE ? ESCAPE '\\' OR LOWER(u.display_name) LIKE ? ESCAPE '\\')");
+    values.push(pattern, pattern, pattern);
+  }
+  const where = clauses.join(" AND ");
+  const totalRow = await db.prepare(`SELECT COUNT(*) AS count FROM auth_users u WHERE ${where}`)
+    .bind(...values).first<{ count: number }>();
+  const total = Number(totalRow?.count ?? 0);
+  const result = await db.prepare(
+    `SELECT u.id, u.username, u.display_name, u.status, u.must_change_password,
+            u.created_at, u.updated_at,
+            COALESCE(meta.admin_notes, '') AS admin_notes,
+            COALESCE(meta.avatar_seed, 'legacy:' || u.id) AS avatar_seed,
+            COALESCE(meta.avatar_version, 1) AS avatar_version,
+            COUNT(CASE WHEN s.revoked_at IS NULL AND s.expires_at > ? THEN 1 END) AS active_sessions,
+            MAX(CASE WHEN s.revoked_at IS NULL THEN s.last_seen_at END) AS last_seen_at
+     FROM auth_users u
+     LEFT JOIN auth_learner_admin_profiles meta ON meta.user_id = u.id
+     LEFT JOIN auth_sessions s ON s.user_id = u.id
+     WHERE ${where}
+     GROUP BY u.id
+     ORDER BY CASE u.status WHEN 'active' THEN 0 ELSE 1 END, u.created_at DESC, u.username
+     LIMIT ? OFFSET ?`,
+  ).bind(nowIso(), ...values, pageSize, (page - 1) * pageSize).all<ManagedLearnerRow>();
+  const rows = result.results ?? [];
+  const classroomMap = await managedLearnerClassrooms(db, rows.map((row) => row.id));
+  return {
+    items: rows.map((row) => managedLearnerFromRow(row, classroomMap.get(row.id) ?? [])),
+    total,
+    page,
+    pageSize,
+  };
+}
+
+export async function createAdminManagedLearner(
+  db: ClassroomD1,
+  actor: AuthSessionUser,
+  input: { displayName: unknown; initialPassword: unknown; adminNotes?: unknown; idempotencyKey: unknown },
+): Promise<{ learner: ManagedLearnerAccount; created: boolean }> {
+  requirePlatformAdmin(actor);
+  const displayName = parseDisplayName(input.displayName);
+  const initialPassword = parsePassword(input.initialPassword);
+  const adminNotes = parseAdminNotes(input.adminNotes);
+  const idempotencyKey = parseAdminMutationKey(input.idempotencyKey);
+  const replay = await replayedAdminLearner(db, actor.userId, idempotencyKey);
+  if (replay) return { learner: replay, created: false };
+
+  const password = await createPasswordDigest(initialPassword);
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const username = await nextLearnerUsername(db);
+    const userId = `usr_${crypto.randomUUID()}`;
+    const avatarSeed = `px_${randomSecret(18)}`;
+    const now = nowIso();
+    try {
+      await db.batch([
+        db.prepare(
+          `INSERT INTO auth_users
+           (id, username, display_name, role, status, password_hash, password_salt, password_iterations,
+            password_changed_at, must_change_password, created_at, updated_at)
+           VALUES (?, ?, ?, 'learner', 'active', ?, ?, ?, ?, 1, ?, ?)`,
+        ).bind(userId, username, displayName, password.hash, password.salt, password.iterations, now, now, now),
+        db.prepare(`INSERT INTO profiles (id, nickname, created_at, updated_at) VALUES (?, ?, ?, ?)`).bind(userId, displayName, now, now),
+        db.prepare(
+          `INSERT INTO ledger_accounts (id, kind, room_id, team_id, owner_profile_id, balance_tenths, created_at)
+           VALUES (?, 'personal-wallet', NULL, NULL, ?, 0, ?)`,
+        ).bind(`wallet:${userId}`, userId, now),
+        db.prepare(
+          `INSERT INTO auth_learner_admin_profiles
+           (user_id, admin_notes, avatar_seed, avatar_version, created_at, updated_at)
+           VALUES (?, ?, ?, 1, ?, ?)`,
+        ).bind(userId, adminNotes, avatarSeed, now, now),
+        db.prepare(
+          `INSERT INTO auth_admin_learner_requests (actor_user_id, idempotency_key, target_user_id, created_at)
+           VALUES (?, ?, ?, ?)`,
+        ).bind(actor.userId, idempotencyKey, userId, now),
+        db.prepare(
+          `INSERT INTO auth_learner_username_allocations (username, user_id, allocated_at)
+           VALUES (?, ?, ?)`,
+        ).bind(username, userId, now),
+        securityEventStatement(db, userId, actor.userId, "auth.admin-learner.created", { username }, now),
+      ]);
+      const learner = await adminManagedLearnerById(db, userId);
+      if (!learner) throw new AuthError("USER_NOT_FOUND", "新账号已经创建，但无法读取结果，请刷新列表。", 500);
+      return { learner, created: true };
+    } catch (error) {
+      const idempotent = await replayedAdminLearner(db, actor.userId, idempotencyKey);
+      if (idempotent) return { learner: idempotent, created: false };
+      if (!String(error).toLowerCase().includes("unique")) throw error;
+    }
+  }
+  throw new AuthError("USERNAME_ALLOCATION_CONFLICT", "多人同时创建账号，请重试一次。", 409);
+}
+
+export async function updateAdminManagedLearner(
+  db: ClassroomD1,
+  actor: AuthSessionUser,
+  targetId: string,
+  input: { displayName?: unknown; adminNotes?: unknown; status?: unknown; regenerateAvatar?: unknown },
+): Promise<ManagedLearnerAccount> {
+  requirePlatformAdmin(actor);
+  const target = await requireLearnerTarget(db, targetId);
+  const displayName = input.displayName === undefined ? target.display_name : parseDisplayName(input.displayName);
+  const adminNotes = input.adminNotes === undefined ? null : parseAdminNotes(input.adminNotes);
+  const status = input.status === undefined ? target.status : input.status;
+  assertAuth(status === "active" || status === "disabled", "STATUS_INVALID", "账号状态无效。", 400);
+  const regenerateAvatar = input.regenerateAvatar === true;
+  const avatarSeed = regenerateAvatar ? `px_${randomSecret(18)}` : null;
+  const now = nowIso();
+  const statements: D1PreparedStatement[] = [
+    db.prepare(`UPDATE auth_users SET display_name = ?, status = ?, updated_at = ? WHERE id = ? AND role = 'learner'`)
+      .bind(displayName, status, now, target.id),
+    db.prepare(`UPDATE profiles SET nickname = ?, updated_at = ? WHERE id = ?`).bind(displayName, now, target.id),
+  ];
+  if (adminNotes !== null || avatarSeed) {
+    statements.push(db.prepare(
+      `INSERT INTO auth_learner_admin_profiles
+       (user_id, admin_notes, avatar_seed, avatar_version, created_at, updated_at)
+       VALUES (?, ?, ?, 1, ?, ?)
+       ON CONFLICT(user_id) DO UPDATE SET
+         admin_notes = COALESCE(?, auth_learner_admin_profiles.admin_notes),
+         avatar_seed = COALESCE(?, auth_learner_admin_profiles.avatar_seed),
+         avatar_version = CASE WHEN ? IS NULL THEN auth_learner_admin_profiles.avatar_version ELSE auth_learner_admin_profiles.avatar_version + 1 END,
+         updated_at = excluded.updated_at`,
+    ).bind(
+      target.id, adminNotes ?? "", avatarSeed ?? `legacy:${target.id}`, now, now,
+      adminNotes, avatarSeed, avatarSeed,
+    ));
+  }
+  if (status === "disabled" && target.status !== "disabled") statements.push(...revokeLearnerAccessStatements(db, target.id, now));
+  statements.push(securityEventStatement(db, target.id, actor.userId, "auth.admin-learner.updated", {
+    displayNameChanged: displayName !== target.display_name,
+    notesChanged: adminNotes !== null,
+    statusChanged: status !== target.status,
+    avatarRegenerated: regenerateAvatar,
+  }, now));
+  await db.batch(statements);
+  return (await adminManagedLearnerById(db, target.id))!;
+}
+
+export async function resetAdminManagedLearnerPassword(
+  db: ClassroomD1,
+  actor: AuthSessionUser,
+  targetId: string,
+  newPasswordValue: unknown,
+): Promise<void> {
+  requirePlatformAdmin(actor);
+  const target = await requireLearnerTarget(db, targetId);
+  const password = await createPasswordDigest(parsePassword(newPasswordValue));
+  const now = nowIso();
+  await db.batch([
+    db.prepare(
+      `UPDATE auth_users SET password_hash = ?, password_salt = ?, password_iterations = ?,
+         password_changed_at = ?, must_change_password = 1, updated_at = ?
+       WHERE id = ? AND role = 'learner'`,
+    ).bind(password.hash, password.salt, password.iterations, now, now, target.id),
+    ...revokeLearnerAccessStatements(db, target.id, now),
+    db.prepare(`UPDATE auth_reset_tokens SET consumed_at = ? WHERE user_id = ? AND consumed_at IS NULL`).bind(now, target.id),
+    securityEventStatement(db, target.id, actor.userId, "auth.admin-learner.password-reset", {}, now),
+  ]);
+}
+
+export type ManagedLearnerDeletionPreview = {
+  userId: string;
+  username: string;
+  displayName: string;
+  deletable: boolean;
+  blockers: Array<{ code: string; label: string; count: number }>;
+};
+
+export async function previewAdminManagedLearnerDeletion(
+  db: ClassroomD1,
+  actor: AuthSessionUser,
+  targetId: string,
+): Promise<ManagedLearnerDeletionPreview> {
+  requirePlatformAdmin(actor);
+  const target = await requireLearnerTarget(db, targetId);
+  const checks = [
+    ["classrooms", "课堂成员或加入申请", `SELECT (SELECT COUNT(*) FROM memberships WHERE profile_id = ?) + (SELECT COUNT(*) FROM team_join_requests WHERE profile_id = ?) AS count`, [target.id, target.id]],
+    ["learning", "作品、学习或声望记录", `SELECT (SELECT COUNT(*) FROM classroom_block_submissions WHERE profile_id = ?) + (SELECT COUNT(*) FROM reputation_entries WHERE profile_id = ?) + (SELECT COUNT(*) FROM classroom_submission_mutations WHERE profile_id = ?) + (SELECT COUNT(*) FROM classroom_wallet_balances WHERE profile_id = ?) AS count`, [target.id, target.id, target.id, target.id]],
+    ["facilitation", "导师、验收或发布记录", `SELECT (SELECT COUNT(*) FROM rooms WHERE dm_profile_id = ?) + (SELECT COUNT(*) FROM audit_events WHERE actor_profile_id = ?) + (SELECT COUNT(*) FROM course_view_acceptance_receipts WHERE reviewer_profile_id = ?) + (SELECT COUNT(*) FROM course_ui_acceptance_receipts WHERE accepted_by_profile_id = ?) + (SELECT COUNT(*) FROM course_content_review_events WHERE reviewer_profile_id = ?) AS count`, [target.id, target.id, target.id, target.id, target.id]],
+    ["funds", "资金余额或流水", `SELECT (SELECT COUNT(*) FROM ledger_accounts WHERE owner_profile_id = ? AND balance_tenths <> 0) + (SELECT COUNT(*) FROM ledger_transactions WHERE from_account_id = ? OR to_account_id = ?) AS count`, [target.id, `wallet:${target.id}`, `wallet:${target.id}`]],
+  ] as const;
+  const blockers: ManagedLearnerDeletionPreview["blockers"] = [];
+  for (const [code, label, sql, values] of checks) {
+    const row = await db.prepare(sql).bind(...values).first<{ count: number }>();
+    const count = Number(row?.count ?? 0);
+    if (count > 0) blockers.push({ code, label, count });
+  }
+  return { userId: target.id, username: target.username, displayName: target.display_name, deletable: blockers.length === 0, blockers };
+}
+
+export async function deleteAdminManagedLearner(
+  db: ClassroomD1,
+  actor: AuthSessionUser,
+  targetId: string,
+): Promise<void> {
+  const preview = await previewAdminManagedLearnerDeletion(db, actor, targetId);
+  assertAuth(preview.deletable, "LEARNER_DELETE_BLOCKED", "该学员已有历史记录，不能删除；可以停用账号以保留证据。", 409, { blockers: preview.blockers });
+  const now = nowIso();
+  await db.batch([
+    ...revokeLearnerAccessStatements(db, targetId, now),
+    securityEventStatement(db, targetId, actor.userId, "auth.admin-learner.deleted", { username: preview.username }, now),
+    db.prepare(`DELETE FROM ledger_accounts WHERE owner_profile_id = ?`).bind(targetId),
+    db.prepare(`DELETE FROM auth_users WHERE id = ? AND role = 'learner'`).bind(targetId),
+    db.prepare(`DELETE FROM profiles WHERE id = ?`).bind(targetId),
+  ]);
+}
+
+type ManagedLearnerRow = {
+  id: string; username: string; display_name: string; status: "active" | "disabled";
+  must_change_password: number; active_sessions: number; created_at: string; updated_at: string;
+  last_seen_at: string | null; admin_notes: string; avatar_seed: string; avatar_version: number;
+};
+
+function managedLearnerFromRow(row: ManagedLearnerRow, classrooms: ManagedLearnerAccount["classrooms"]): ManagedLearnerAccount {
+  return {
+    id: row.id, username: row.username, displayName: row.display_name, status: row.status,
+    mustChangePassword: Boolean(row.must_change_password), activeSessions: Number(row.active_sessions),
+    createdAt: row.created_at, updatedAt: row.updated_at, lastSeenAt: row.last_seen_at,
+    adminNotes: row.admin_notes, avatarSeed: row.avatar_seed, avatarVersion: Number(row.avatar_version), classrooms,
+  };
+}
+
+async function adminManagedLearnerById(db: ClassroomD1, userId: string): Promise<ManagedLearnerAccount | null> {
+  const result = await db.prepare(
+    `SELECT u.id, u.username, u.display_name, u.status, u.must_change_password,
+            u.created_at, u.updated_at, COALESCE(meta.admin_notes, '') AS admin_notes,
+            COALESCE(meta.avatar_seed, 'legacy:' || u.id) AS avatar_seed,
+            COALESCE(meta.avatar_version, 1) AS avatar_version,
+            COUNT(CASE WHEN s.revoked_at IS NULL AND s.expires_at > ? THEN 1 END) AS active_sessions,
+            MAX(CASE WHEN s.revoked_at IS NULL THEN s.last_seen_at END) AS last_seen_at
+     FROM auth_users u
+     LEFT JOIN auth_learner_admin_profiles meta ON meta.user_id = u.id
+     LEFT JOIN auth_sessions s ON s.user_id = u.id
+     WHERE u.id = ? AND u.role = 'learner' GROUP BY u.id`,
+  ).bind(nowIso(), userId).first<ManagedLearnerRow>();
+  if (!result) return null;
+  const classrooms = await managedLearnerClassrooms(db, [userId]);
+  return managedLearnerFromRow(result, classrooms.get(userId) ?? []);
+}
+
+async function managedLearnerClassrooms(db: ClassroomD1, ids: string[]): Promise<Map<string, ManagedLearnerAccount["classrooms"]>> {
+  const map = new Map<string, ManagedLearnerAccount["classrooms"]>();
+  if (!ids.length) return map;
+  const placeholders = ids.map(() => "?").join(",");
+  const result = await db.prepare(
+    `SELECT m.profile_id, r.id, r.title, r.status
+     FROM memberships m JOIN rooms r ON r.id = m.room_id
+     WHERE m.profile_id IN (${placeholders}) AND m.status = 'active'
+     ORDER BY r.updated_at DESC`,
+  ).bind(...ids).all<{ profile_id: string; id: string; title: string; status: string }>();
+  for (const row of result.results ?? []) {
+    const list = map.get(row.profile_id) ?? [];
+    list.push({ id: row.id, title: row.title, status: row.status });
+    map.set(row.profile_id, list);
+  }
+  return map;
+}
+
+async function replayedAdminLearner(db: ClassroomD1, actorId: string, key: string): Promise<ManagedLearnerAccount | null> {
+  const row = await db.prepare(
+    `SELECT target_user_id FROM auth_admin_learner_requests WHERE actor_user_id = ? AND idempotency_key = ?`,
+  ).bind(actorId, key).first<{ target_user_id: string }>();
+  return row ? adminManagedLearnerById(db, row.target_user_id) : null;
+}
+
+async function nextLearnerUsername(db: ClassroomD1): Promise<string> {
+  const rows = await db.prepare(
+    `SELECT username FROM auth_learner_username_allocations
+     WHERE username LIKE 'msv-student-%' ORDER BY username`,
+  ).all<{ username: string }>();
+  let maximum = 0;
+  for (const row of rows.results ?? []) {
+    const match = /^msv-student-(\d+)$/.exec(row.username);
+    if (match) maximum = Math.max(maximum, Number(match[1]));
+  }
+  const number = maximum + 1;
+  assertAuth(number <= 999_999, "LEARNER_NUMBER_EXHAUSTED", "学员账号编号已用尽，请联系技术管理员。", 409);
+  return `msv-student-${String(number).padStart(2, "0")}`;
+}
+
+async function requireLearnerTarget(db: ClassroomD1, targetId: string): Promise<UserRow> {
+  const target = await getUserById(db, targetId);
+  assertAuth(target, "USER_NOT_FOUND", "没有找到目标账号。", 404);
+  assertAuth(target.role === "learner", "LEARNER_REQUIRED", "学员账号中心不能修改导师或管理员。", 403);
+  return target;
+}
+
+function requirePlatformAdmin(actor: AuthSessionUser): void {
+  requireDirectSession(actor);
+  assertAuth(actor.role === "admin", "ADMIN_REQUIRED", "只有平台管理员可以管理学员账号。", 403);
+}
+
+function parseAdminNotes(value: unknown): string {
+  if (value === undefined || value === null) return "";
+  assertAuth(typeof value === "string", "ADMIN_NOTES_INVALID", "管理备注格式无效。", 400);
+  const notes = value.trim();
+  assertAuth(Array.from(notes).length <= 500, "ADMIN_NOTES_TOO_LONG", "管理备注最多 500 个字符。", 400);
+  assertAuth(!Array.from(notes).some((character) => character.charCodeAt(0) < 9), "ADMIN_NOTES_INVALID", "管理备注包含不可用字符。", 400);
+  return notes;
+}
+
+function parseAdminMutationKey(value: unknown): string {
+  assertAuth(typeof value === "string" && /^[A-Za-z0-9._:-]{8,128}$/.test(value), "IDEMPOTENCY_KEY_INVALID", "创建请求标识无效，请刷新后重试。", 400);
+  return value;
+}
+
+function revokeLearnerAccessStatements(db: ClassroomD1, userId: string, now: string): D1PreparedStatement[] {
+  return [
+    db.prepare(`UPDATE auth_sessions SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL`).bind(now, userId),
+    db.prepare(`UPDATE auth_browser_accounts SET reauth_required_at = COALESCE(reauth_required_at, ?) WHERE user_id = ? AND removed_at IS NULL`).bind(now, userId),
+    db.prepare(`UPDATE auth_browser_sets SET active_user_id = NULL, active_session_id = NULL, version = version + 1, updated_at = ?, last_seen_at = ? WHERE active_user_id = ?`).bind(now, now, userId),
+    db.prepare(`UPDATE auth_impersonations SET revoked_at = ?, end_reason = 'account-admin-change' WHERE effective_user_id = ? AND revoked_at IS NULL`).bind(now, userId),
+  ];
+}
+
+function newLearnerMetadataStatements(db: ClassroomD1, userId: string, username: string, now: string): D1PreparedStatement[] {
+  return [
+    db.prepare(
+      `INSERT INTO auth_learner_admin_profiles
+       (user_id, admin_notes, avatar_seed, avatar_version, created_at, updated_at)
+       VALUES (?, '', ?, 1, ?, ?)`,
+    ).bind(userId, `px_${randomSecret(18)}`, now, now),
+    ...(isNumberedLearnerUsername(username)
+      ? [db.prepare(
+        `INSERT INTO auth_learner_username_allocations (username, user_id, allocated_at)
+         VALUES (?, ?, ?)`,
+      ).bind(username, userId, now)]
+      : []),
+  ];
+}
+
+function isNumberedLearnerUsername(username: string): boolean {
+  return /^msv-student-\d+$/.test(username);
 }
 
 export function sessionCookie(token: string, remember: boolean, expiresAt?: string): string {

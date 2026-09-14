@@ -92,6 +92,25 @@ test("the Classroom Center uses native browser link semantics", () => {
   assert.doesNotMatch(hub, /onClick=.*进入我的课堂/);
 });
 
+test("T-113 runtime member replacement searches server-side without widening account scope", () => {
+  const runtime = source("app/classroom/ClassroomRuntime.tsx");
+  const route = source("app/api/platform/classrooms/[classroomId]/members/route.ts");
+  const store = source("app/lib/classroom-platform-store.ts");
+  assert.match(runtime, /\?q=\$\{encodeURIComponent\(query\)\}/);
+  assert.match(runtime, /accountRequest\.current \+= 1/);
+  assert.match(runtime, /normalized\.length === 1/);
+  assert.match(runtime, /正在搜索…/);
+  assert.match(runtime, /没有可用账号/);
+  assert.match(route, /searchParams\.get\("q"\)/);
+  assert.match(route, /listAssignableClassroomAccounts\(db, user, classroomId, query\)/);
+  assert.match(store, /await requireAdminDm\(db, user, roomId\)/);
+  assert.match(store, /WITH actor_rooms\(room_id\)/);
+  assert.match(store, /scoped_user_ids\(user_id\)/);
+  assert.match(store, /LOWER\(u\.username\) LIKE \?/);
+  assert.match(store, /LOWER\(u\.display_name\) LIKE \?/);
+  assert.match(store, /query\.length < 2/);
+});
+
 test("Stage 1 exposes complete private fields by hover or an explicit pinned expansion", () => {
   const studio = source("app/studio/StudioApp.tsx");
   const css = source("app/studio/studio.module.css");

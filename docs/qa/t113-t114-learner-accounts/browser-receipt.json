@@ -1,0 +1,34 @@
+{
+  "ok": true,
+  "scope": "isolated local D1; no production writes",
+  "adminCrud": {
+    "create": true,
+    "rename": true,
+    "notes": true,
+    "avatar": true,
+    "passwordReset": true,
+    "delete": true
+  },
+  "factoryPicker": {
+    "partialAndAtSearch": true,
+    "displayNameSearch": true,
+    "stableUserId": true,
+    "duplicateBlocked": true,
+    "inlineCreateReturnFill": true,
+    "counts": [
+      2,
+      4,
+      6
+    ],
+    "keyboard": true,
+    "touch": true
+  },
+  "authorization": {
+    "admin": true,
+    "mentorApiStatus": 403
+  },
+  "responsive": {
+    "padWidth": 768,
+    "noHorizontalOverflow": true
+  }
+}

@@ -12,7 +12,8 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request, context: { params: Promise<{ classroomId: string }> }): Promise<Response> {
   return withPlatformApi(request, async ({ db, user }) => {
     const { classroomId } = await context.params;
-    return listAssignableClassroomAccounts(db, user, classroomId);
+    const query = new URL(request.url).searchParams.get("q");
+    return listAssignableClassroomAccounts(db, user, classroomId, query);
   });
 }
 
