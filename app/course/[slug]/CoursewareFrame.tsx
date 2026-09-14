@@ -34,7 +34,7 @@ export default function CoursewareFrame({
   returnToHref?: string;
 }) {
   const returnTo = returnToHref ?? (preview
-    ? `/studio/courseware/${encodeURIComponent(item.packageId)}/?revision=${item.revision}&digest=${item.digest}`
+    ? `/console/courseware/${encodeURIComponent(item.packageId)}/?revision=${item.revision}&digest=${item.digest}`
     : exactHref(item, initialSlide, initialStep));
   const header = <header className={styles.viewerHeader}>
     <div className={styles.viewerHeaderStart}><BrandHomeLink markOnly /><Link href={backHref}>← {backLabel}</Link></div>

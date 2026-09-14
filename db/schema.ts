@@ -1281,3 +1281,100 @@ export const classroomWalletBalances = sqliteTable(
     index("idx_classroom_wallet_profile").on(table.profileId, table.updatedAt),
   ],
 );
+
+/** Account-level Silicon Valley Coins.  This wallet is deliberately separate
+ * from Classroom team/personal ledgers: production assets survive across
+ * classrooms, while Test grants live in an isolated balance. */
+export const learnerTerminalWallets = sqliteTable(
+  "learner_terminal_wallets",
+  {
+    profileId: text("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    environment: text("environment").notNull(),
+    balanceCoins: integer("balance_coins").notNull().default(0),
+    initializedAt: text("initialized_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.profileId, table.environment] }),
+    check("chk_learner_terminal_wallet_environment", sql`${table.environment} in ('test', 'production')`),
+    check("chk_learner_terminal_wallet_non_negative", sql`${table.balanceCoins} >= 0`),
+  ],
+);
+
+export const learnerTerminalTransactions = sqliteTable(
+  "learner_terminal_transactions",
+  {
+    id: text("id").primaryKey(),
+    profileId: text("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    environment: text("environment").notNull(),
+    kind: text("kind").notNull(),
+    amountCoins: integer("amount_coins").notNull(),
+    actorProfileId: text("actor_profile_id").notNull().references(() => profiles.id, { onDelete: "restrict" }),
+    roomId: text("room_id").references(() => rooms.id, { onDelete: "restrict" }),
+    itemId: text("item_id"),
+    reason: text("reason").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    reversalOf: text("reversal_of"),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("uidx_learner_terminal_transaction_request").on(table.actorProfileId, table.idempotencyKey),
+    uniqueIndex("uidx_learner_terminal_transaction_reversal").on(table.reversalOf),
+    index("idx_learner_terminal_transaction_wallet").on(table.profileId, table.environment, table.createdAt),
+    index("idx_learner_terminal_transaction_room").on(table.roomId, table.createdAt),
+    check("chk_learner_terminal_transaction_environment", sql`${table.environment} in ('test', 'production')`),
+    check("chk_learner_terminal_transaction_kind", sql`${table.kind} in ('grant', 'purchase', 'reversal')`),
+    check("chk_learner_terminal_transaction_amount", sql`${table.amountCoins} != 0`),
+    check("chk_learner_terminal_transaction_reason", sql`length(${table.reason}) between 2 and 200`),
+  ],
+);
+
+export const learnerTerminalInventory = sqliteTable(
+  "learner_terminal_inventory",
+  {
+    profileId: text("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    itemId: text("item_id").notNull(),
+    acquiredTransactionId: text("acquired_transaction_id").notNull().references(() => learnerTerminalTransactions.id, { onDelete: "restrict" }),
+    acquiredAt: text("acquired_at").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.profileId, table.itemId] })],
+);
+
+export const learnerTerminalEquipment = sqliteTable(
+  "learner_terminal_equipment",
+  {
+    profileId: text("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    slot: text("slot").notNull(),
+    itemId: text("item_id").notNull(),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.profileId, table.slot] }),
+    check("chk_learner_terminal_equipment_slot", sql`${table.slot} in ('identity', 'terminal', 'space')`),
+  ],
+);
+
+/** Explicitly public copy only.  No homework, wallet, card, credential or
+ * administrator field is stored in this row. */
+export const learnerPublicSpaces = sqliteTable(
+  "learner_public_spaces",
+  {
+    profileId: text("profile_id").primaryKey().references(() => profiles.id, { onDelete: "cascade" }),
+    intro: text("intro").notNull().default(""),
+    projectTitle: text("project_title").notNull().default(""),
+    projectSummary: text("project_summary").notNull().default(""),
+    projectUrl: text("project_url").notNull().default(""),
+    teamName: text("team_name").notNull().default(""),
+    contribution: text("contribution").notNull().default(""),
+    publishedAt: text("published_at"),
+    ...timestamps,
+  },
+  (table) => [
+    check("chk_learner_public_space_intro", sql`length(${table.intro}) <= 160`),
+    check("chk_learner_public_space_project_title", sql`length(${table.projectTitle}) <= 80`),
+    check("chk_learner_public_space_project_summary", sql`length(${table.projectSummary}) <= 500`),
+    check("chk_learner_public_space_project_url", sql`length(${table.projectUrl}) <= 512`),
+    check("chk_learner_public_space_team_name", sql`length(${table.teamName}) <= 80`),
+    check("chk_learner_public_space_contribution", sql`length(${table.contribution}) <= 240`),
+  ],
+);

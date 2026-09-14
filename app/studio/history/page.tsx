@@ -1,13 +1,3 @@
-import type { Metadata } from "next";
-
-import StudioRoute from "../StudioRoute";
-
+import { redirectLegacyStudio, type LegacySearchParams } from "../legacy-redirect";
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = {
-  title: "资料与历史｜Course Studio",
-  robots: { index: false, follow: false, noarchive: true },
-};
-
-export default function StudioHistoryPage() {
-  return <StudioRoute section="history" />;
-}
+export default function Page({ searchParams }: { searchParams: LegacySearchParams }){ return redirectLegacyStudio("/console/archive/", searchParams); }

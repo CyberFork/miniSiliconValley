@@ -39,12 +39,13 @@ type HubProps = {
   user: AccountMenuUser;
   initialCourse: InitialCourse;
   initialNotice?: string;
+  mode?: "participant" | "manage";
 };
 
 const MENTOR_ROLES = ["P", "D", "M", "O"] as const;
 const ROLE_NAME = { P: "产品", D: "开发", M: "市场", O: "运营" } as const;
 
-export default function ClassroomHub({ user, initialCourse, initialNotice = "" }: HubProps) {
+export default function ClassroomHub({ user, initialCourse, initialNotice = "", mode = "participant" }: HubProps) {
   const [rooms, setRooms] = useState<ClassroomInstanceSummary[]>([]);
   const [bootstrap, setBootstrap] = useState<Bootstrap | null>(null);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -67,7 +68,8 @@ export default function ClassroomHub({ user, initialCourse, initialNotice = "" }
   const [deleteConfirmed, setDeleteConfirmed] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const deleteMutationKey = useRef("");
-  const canUseStudio = !user.impersonation && (user.role === "admin" || user.role === "mentor");
+  const internalRole = !user.impersonation && (user.role === "admin" || user.role === "mentor");
+  const canUseStudio = mode === "manage" && internalRole;
 
   const loadRooms = useCallback(async () => {
     setRoomsLoading(true);
@@ -216,17 +218,18 @@ export default function ClassroomHub({ user, initialCourse, initialNotice = "" }
     }
   };
   return <main className={styles.page}>
-    <header className={styles.top}>
+    {mode === "participant" && <header className={styles.top}>
       <BrandHomeLink title="MSV CLASSROOM" subtitle="课堂中心 · 单一真实运行时" />
       <nav aria-label="课堂导航">
-        {canUseStudio && <Link href="/studio/">课程生产工作台</Link>}
+        {internalRole && <Link href="/console/">内部工作台</Link>}
+        <Link href="/terminal/">时空终端</Link>
         <Link href="/course/">课件查看</Link>
         <AccountMenu user={user} returnTo="/classroom/" />
       </nav>
-    </header>
+    </header>}
     <div className={styles.main}>
       <section className={styles.hero}>
-        <div><small>{canUseStudio ? "CLASSROOM CENTER · TEST + PRODUCTION" : "MY CLASSROOMS · YOUNG BUILDER"}</small><h1>{canUseStudio ? "课堂中心" : "我的课堂"}</h1><p>{canUseStudio ? "UI 验收课堂和正式课堂使用同一套页面、API、权限与状态机；永久环境标识防止把测试数据误当成正式学习记录。" : "这里列出导师已经分配给你的课堂。进入后只会看到自己的席位、已解锁剧本和可访问课件；创建与验收工具不会向学员开放。"}</p></div>
+        <div><small>{mode === "manage" ? "CLASSROOM MANAGEMENT · TEST + PRODUCTION" : "MY CLASSROOMS · PARTICIPANT"}</small><h1>{mode === "manage" ? "课堂管理" : "我的课堂"}</h1><p>{mode === "manage" ? "在内部工作台创建、归档和删除 TEST／Production 课堂；参与者仍通过独立的“我的课堂”进入真实角色 UI。" : "这里只列出与你的 Membership 匹配的课堂。进入后看到自己的席位、已解锁剧本和可访问课件；创建、删除与验收工具不在这里出现。"}</p></div>
         <div className={styles.identity}><b>{user.displayName}</b><span>{user.role === "admin" ? "平台管理员" : user.role === "mentor" ? "导师账号" : "Young Builder"}</span></div>
       </section>
       {actionError && <div className={styles.error} role="alert">{actionError}</div>}
@@ -234,27 +237,30 @@ export default function ClassroomHub({ user, initialCourse, initialNotice = "" }
       {roomsError && <DependencyNotice label="课堂列表" message={roomsError} retained={rooms.length > 0} onRetry={loadRooms} />}
       {roomsLoading && !rooms.length ? <div className={styles.empty}>正在读取彼此隔离的课堂实例…</div> : <>
         <RoomGroup
-          title={canUseStudio ? "UI 验收课堂" : "我的练习课堂"}
+          title={mode === "manage" ? "UI 验收课堂" : "我的练习课堂"}
           environment="test"
           rooms={testRooms}
-          description={canUseStudio ? "TEST · 绑定已通过视图验收的 Candidate／Released；可重置，不进入正式学习档案。" : "导师安排的练习或界面测试课堂；内容与正式学习档案隔离。"}
+          description={mode === "manage" ? "TEST · 绑定已通过视图验收的 Candidate／Released；可重置，不进入正式学习档案。" : "导师安排的练习或界面测试课堂；内容与正式学习档案隔离。"}
           createHref={canUseStudio ? "#factory" : undefined}
-          onArchive={requestArchive}
-          onDelete={requestDelete}
+          onArchive={canUseStudio ? requestArchive : undefined}
+          onDelete={canUseStudio ? requestDelete : undefined}
+          management={mode === "manage"}
         />
         <RoomGroup
           title={canUseStudio ? "正式课堂" : "我的正式课堂"}
           environment="production"
           rooms={productionRooms}
           description="PRODUCTION · 只绑定已通过 View／UI 验收的 Released 课程剧本；导师课件始终打开各自最新发布版；不可重置。"
+          management={mode === "manage"}
         />
-        {archivedTestRooms.length > 0 && <RoomGroup
+        {mode === "manage" && archivedTestRooms.length > 0 && <RoomGroup
           title="已归档测试课堂"
           environment="test"
           rooms={archivedTestRooms}
           description="READ ONLY · 可继续审计回看；无验收／发布依赖时可单独删除，存在证据依赖时保持归档。"
           archived
           onDelete={requestDelete}
+          management
         />}
       </>}
       {canUseStudio && <FactoryPanel
@@ -278,7 +284,7 @@ export default function ClassroomHub({ user, initialCourse, initialNotice = "" }
         }}
         onError={setActionError}
       />}
-      {archiveTarget && <ArchiveDialog
+      {mode === "manage" && archiveTarget && <ArchiveDialog
         room={archiveTarget}
         reason={archiveReason}
         busy={archiveBusy}
@@ -286,7 +292,7 @@ export default function ClassroomHub({ user, initialCourse, initialNotice = "" }
         onCancel={() => { if (!archiveBusy) setArchiveTarget(null); }}
         onConfirm={() => { void archiveClassroom(); }}
       />}
-      {deleteTarget && <DeleteDialog
+      {mode === "manage" && deleteTarget && <DeleteDialog
         room={deleteTarget}
         preview={deletePreview}
         previewError={deletePreviewError}
@@ -317,29 +323,30 @@ function DependencyNotice({ label, message, retained, onRetry }: { label: string
   </div>;
 }
 
-function RoomGroup({ title, environment, rooms, description, createHref, archived = false, onArchive, onDelete }: {
+function RoomGroup({ title, environment, rooms, description, createHref, archived = false, management = false, onArchive, onDelete }: {
   title: string;
   environment: "test" | "production";
   rooms: ClassroomInstanceSummary[];
   description: string;
   createHref?: string;
   archived?: boolean;
+  management?: boolean;
   onArchive?: (room: ClassroomInstanceSummary) => void;
   onDelete?: (room: ClassroomInstanceSummary) => void;
 }) {
   const sectionId = archived ? "archived-test-classrooms" : environment === "production" ? "production-classrooms" : "test-classrooms";
   return <section className={styles.section} id={sectionId} data-room-group={environment}>
     <header className={styles.sectionHeader}><div><span className={styles.environmentBadge} data-env={environment}>{archived ? "ARCHIVE" : environment.toUpperCase()}</span><h2>{title}</h2><p>{description}</p></div><div className={styles.sectionHeaderActions}><b>{rooms.length} 场</b>{createHref && <a className={styles.sectionAction} href={createHref}>＋ 新建测试课堂</a>}</div></header>
-    {rooms.length ? <div className={styles.grid}>{rooms.map((room) => <RoomCard key={room.id} room={room} archived={archived} onArchive={onArchive} onDelete={onDelete} />)}</div> : <div className={styles.empty}>{environment === "test" ? <>还没有分配给你的 UI 验收课堂。课程通过多角色视图验收后，使用上方<strong>新建测试课堂</strong>进入创建区。</> : "还没有分配给你的正式课堂。Candidate 必须拿到两张有效回执并发布后才能创建。"}</div>}
+    {rooms.length ? <div className={styles.grid}>{rooms.map((room) => <RoomCard key={room.id} room={room} archived={archived} management={management} onArchive={onArchive} onDelete={onDelete} />)}</div> : <div className={styles.empty}>{environment === "test" ? <>还没有分配给你的 UI 验收课堂。课程通过多角色视图验收后，使用上方<strong>新建测试课堂</strong>进入创建区。</> : "还没有分配给你的正式课堂。Candidate 必须拿到两张有效回执并发布后才能创建。"}</div>}
   </section>;
 }
 
-function RoomCard({ room, archived = false, onArchive, onDelete }: { room: ClassroomInstanceSummary; archived?: boolean; onArchive?: (room: ClassroomInstanceSummary) => void; onDelete?: (room: ClassroomInstanceSummary) => void }) {
+function RoomCard({ room, archived = false, management = false, onArchive, onDelete }: { room: ClassroomInstanceSummary; archived?: boolean; management?: boolean; onArchive?: (room: ClassroomInstanceSummary) => void; onDelete?: (room: ClassroomInstanceSummary) => void }) {
   const adminLabel = room.adminDmMode === "primary" ? "Primary Admin DM" : room.adminDmMode === "delegated" ? "Delegated Admin DM" : "Admin DM";
   const role = room.mentorRole ? `${room.mentorRole} 导师` : room.learnerSeat ? `学员 ${room.learnerSeat}` : room.isAdminDm ? adminLabel : "成员";
   return <article className={styles.room} data-env={room.environment}>
     <div><span className={styles.environmentBadge} data-env={room.environment}>{archived ? "ARCHIVED" : room.environment.toUpperCase()}</span><small>{archived ? `READ ONLY · ${room.lifecycle.toUpperCase()}` : room.lifecycle.toUpperCase()}</small><h3>{room.title}</h3><p>{role}{room.isAdminDm && room.mentorRole ? ` · ${adminLabel}` : ""}</p><dl className={styles.roomIdentity}><div><dt>classroomId</dt><dd><code>{room.id}</code></dd></div><div><dt>course</dt><dd><code>{room.courseRef.courseId}@r{room.courseRef.revision}</code></dd></div><div><dt>digest</dt><dd><code>{room.courseRef.digest}</code></dd></div><div><dt>updatedAt</dt><dd><time dateTime={room.updatedAt}>{new Date(room.updatedAt).toLocaleString("zh-CN")}</time></dd></div></dl>{room.archive && <p className={styles.archiveNote}>归档：{new Date(room.archive.archivedAt).toLocaleString("zh-CN")} · {room.archive.reason || "未填写备注"}</p>}</div>
-    <div><div className={styles.roomMeta}><span>{room.script.unlockedThroughBlockId}</span><span>run {room.resetGeneration}</span><span>{room.learnerCount} 学员</span></div><div className={styles.roomActions}><a href={`/classroom/${encodeURIComponent(room.id)}/`}>{archived ? "打开只读档案 →" : "进入我的课堂 →"}</a>{!archived && room.environment === "test" && room.isAdminDm && onArchive && <button type="button" onClick={() => onArchive(room)}>归档测试课堂</button>}{room.environment === "test" && room.isAdminDm && onDelete && <button className={styles.deleteRoomAction} type="button" onClick={() => onDelete(room)}>删除测试课堂</button>}{archived && <a className={styles.secondaryRoomAction} href={factoryHrefForRoom(room)}>以此 exact 版本新建 →</a>}</div></div>
+    <div><div className={styles.roomMeta}><span>{room.script.unlockedThroughBlockId}</span><span>run {room.resetGeneration}</span><span>{room.learnerCount} 学员</span></div><div className={styles.roomActions}><a href={`/classroom/${encodeURIComponent(room.id)}/`}>{archived ? "打开只读档案 →" : "进入角色课堂 →"}</a>{management && !archived && (room.isAdminDm || room.mentorRole) && <a className={styles.secondaryRoomAction} href={`/console/classrooms/${encodeURIComponent(room.id)}/control/`}>打开课堂中控 →</a>}{!archived && room.environment === "test" && room.isAdminDm && onArchive && <button type="button" onClick={() => onArchive(room)}>归档测试课堂</button>}{room.environment === "test" && room.isAdminDm && onDelete && <button className={styles.deleteRoomAction} type="button" onClick={() => onDelete(room)}>删除测试课堂</button>}{archived && <a className={styles.secondaryRoomAction} href={factoryHrefForRoom(room)}>以此 exact 版本新建 →</a>}</div></div>
   </article>;
 }
 
@@ -446,7 +453,7 @@ function FactoryPanel({ bootstrap, accounts, bootstrapError, accountsError, boot
         <p>{bootstrapError || "还没有收到课程数据。课堂列表与账号服务仍可独立使用。"}</p>
         <div className={styles.recoveryActions}>
           <button type="button" onClick={() => { void onRetryBootstrap(); }} disabled={bootstrapLoading}>{bootstrapLoading ? "读取中…" : "重试课程数据"}</button>
-          <Link href="/studio/editor/">去课程编辑器</Link>
+          <Link href="/console/studio/editor/">去课程编辑器</Link>
         </div>
       </div>
     </section>;
@@ -625,7 +632,7 @@ function FactoryForm({ bootstrap, accounts, bootstrapError, accountsError, boots
         }),
       });
       await onCreated(`${environment === "test" ? "UI 验收" : "正式"}课堂已创建。队伍 ID：${result.teamPublicId}；课程剧本版本已锁定，导师打开课件时始终使用各自最新发布版。`);
-      window.location.assign(`/classroom/${encodeURIComponent(result.classroomId)}/control`);
+      window.location.assign(`/console/classrooms/${encodeURIComponent(result.classroomId)}/control/`);
     } catch (cause) {
       showSubmitError(messageOf(cause));
     } finally {
@@ -953,7 +960,7 @@ function factoryHrefForRoom(room: ClassroomInstanceSummary): string {
     environment: "test",
     ...(room.acceptance.viewReceiptId ? { viewReceipt: room.acceptance.viewReceiptId } : {}),
   });
-  return `/classroom/?${query.toString()}#factory`;
+  return `/console/classrooms/?${query.toString()}#factory`;
 }
 
 function learnerCountOptions(course: StudioVersion): number[] {

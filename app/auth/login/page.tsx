@@ -17,7 +17,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return (
     <AuthShell title="不是访客。" accent="你是这段历史里的行动者。" description="登录后，你的身份、私密情报、课堂协作、声望和作品会沿同一条 Young Builder 世界线持续积累。">
       <LoginForm
-        returnTo={single(params.returnTo) ?? "/classroom"}
+        returnTo={single(params.returnTo) ?? "/terminal/"}
         initialUser={initialUser}
         signedOut={signedOutParam === "all" ? "all" : signedOutParam === "current" || signedOutParam === "1" ? "current" : null}
         addAccount={single(params.add) === "1"}

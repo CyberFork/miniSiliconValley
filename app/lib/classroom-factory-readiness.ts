@@ -40,7 +40,7 @@ export type FactoryChecklist = {
 };
 
 export function buildFactoryChecklist(input: FactoryChecklistInput): FactoryChecklist {
-  const previewHref = input.course ? exactPreviewHref(input.course.ref) : input.requestedRef ? exactPreviewHref(input.requestedRef) : "/studio/preview/";
+  const previewHref = input.course ? exactPreviewHref(input.course.ref) : input.requestedRef ? exactPreviewHref(input.requestedRef) : "/console/studio/preview/";
   const items: FactoryChecklistItem[] = [];
 
   items.push(input.title.trim()
@@ -51,9 +51,9 @@ export function buildFactoryChecklist(input: FactoryChecklistInput): FactoryChec
     const requested = input.requestedRef
       ? `指定版本 ${input.requestedRef.courseId} · r${input.requestedRef.revision} 当前不可用；系统没有替你换成另一门课。`
       : "当前还没有可供创建课堂的 Candidate 或 Released 课程。";
-    items.push({ id: "course", label: "课程版本", ready: false, message: requested, actionHref: "/studio/editor/", actionLabel: "去课程编辑器" });
+    items.push({ id: "course", label: "课程版本", ready: false, message: requested, actionHref: "/console/studio/editor/", actionLabel: "去课程编辑器" });
   } else if (input.environment === "production" && !input.course.released) {
-    items.push({ id: "course", label: "课程版本", ready: false, message: `${courseLabel(input.course)} 仍是 Candidate；正式课堂只能使用 Released。`, actionHref: "/studio/releases/", actionLabel: "去验收与发布" });
+    items.push({ id: "course", label: "课程版本", ready: false, message: `${courseLabel(input.course)} 仍是 Candidate；正式课堂只能使用 Released。`, actionHref: "/console/studio/releases/", actionLabel: "去验收与发布" });
   } else {
     items.push({ id: "course", label: "课程版本", ready: true, message: `${courseLabel(input.course)} 已锁定；创建时服务端会再次核对 digest。` });
   }
@@ -70,9 +70,9 @@ export function buildFactoryChecklist(input: FactoryChecklistInput): FactoryChec
 
   if (input.environment === "production") {
     if (!input.uiReceipt) {
-      items.push({ id: "ui", label: "真实课堂 UI 检查", ready: false, message: "还没有与这个课程版本和视图检查对应的有效 Test Classroom UI 记录。", actionHref: "/studio/releases/", actionLabel: "去完成 UI 验收" });
+      items.push({ id: "ui", label: "真实课堂 UI 检查", ready: false, message: "还没有与这个课程版本和视图检查对应的有效 Test Classroom UI 记录。", actionHref: "/console/studio/releases/", actionLabel: "去完成 UI 验收" });
     } else if (!input.uiReceipt.valid) {
-      items.push({ id: "ui", label: "真实课堂 UI 检查", ready: false, message: `原 UI 检查已失效：${reasonText(input.uiReceipt.invalidReasons)}`, actionHref: "/studio/releases/", actionLabel: "查看失效原因" });
+      items.push({ id: "ui", label: "真实课堂 UI 检查", ready: false, message: `原 UI 检查已失效：${reasonText(input.uiReceipt.invalidReasons)}`, actionHref: "/console/studio/releases/", actionLabel: "查看失效原因" });
     } else {
       items.push({ id: "ui", label: "真实课堂 UI 检查", ready: true, message: `有效记录 ${input.uiReceipt.receiptId}。` });
     }
@@ -80,7 +80,7 @@ export function buildFactoryChecklist(input: FactoryChecklistInput): FactoryChec
 
   const missingCourseware = FACTORY_MENTOR_ROLES.filter((role) => !input.coursewareRefs.some((ref) => ref?.mentorRole === role));
   if (missingCourseware.length) {
-    items.push({ id: "courseware", label: "导师课件", ready: false, message: `还缺 ${missingCourseware.join("／")} 导师的当前已发布课件。`, actionHref: "/studio/courseware/", actionLabel: "去导师课件库" });
+    items.push({ id: "courseware", label: "导师课件", ready: false, message: `还缺 ${missingCourseware.join("／")} 导师的当前已发布课件。`, actionHref: "/console/courseware/", actionLabel: "去导师课件库" });
   } else {
     items.push({ id: "courseware", label: "导师课件", ready: true, message: "P／D／M／O 打开时自动使用各自最新发布版，不与课程剧本版本互相锁定。" });
   }
@@ -120,7 +120,7 @@ export function buildFactoryChecklist(input: FactoryChecklistInput): FactoryChec
 export function exactPreviewHref(ref: { courseId: string; revision: number; digest?: string }): string {
   const query = new URLSearchParams({ course: ref.courseId, revision: String(ref.revision) });
   if (ref.digest) query.set("digest", ref.digest);
-  return `/studio/preview/?${query.toString()}`;
+  return `/console/studio/preview/?${query.toString()}`;
 }
 
 function courseLabel(course: NonNullable<FactoryChecklistInput["course"]>): string {

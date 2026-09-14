@@ -79,7 +79,7 @@
   async function request(path, options = {}) {
     const response = await fetch(endpoint(path), {cache: "no-store", credentials: "same-origin", ...options});
     if (response.status === 401) {
-      window.location.assign(`/auth/login/?returnTo=${encodeURIComponent("/studio/editor/")}`);
+      window.location.assign(`/auth/login/?returnTo=${encodeURIComponent("/console/studio/editor/")}`);
       throw new Error("登录已失效，正在返回登录页。");
     }
     const envelope = await response.json();
@@ -167,14 +167,14 @@
     return studioData.uiReceipts.find((item) => item.valid && item.viewReceiptId === viewReceiptId && item.courseRef?.courseId === ref.courseId && Number(item.courseRef?.revision) === Number(ref.revision) && item.courseRef?.digest === ref.digest) || null;
   }
   function acceptancePreviewUrl(ref) {
-    if (!ref) return "/studio/preview/";
+    if (!ref) return "/console/studio/preview/";
     const query = new URLSearchParams({course: ref.courseId, revision: String(ref.revision), digest: ref.digest});
-    return `/studio/preview/?${query.toString()}`;
+    return `/console/studio/preview/?${query.toString()}`;
   }
   function testFactoryUrl(ref, viewReceiptId) {
-    if (!ref || !viewReceiptId) return "/classroom/#factory";
+    if (!ref || !viewReceiptId) return "/console/classrooms/#factory";
     const query = new URLSearchParams({environment: "test", course: ref.courseId, revision: String(ref.revision), digest: ref.digest, viewReceipt: viewReceiptId});
-    return `/classroom/?${query.toString()}#factory`;
+    return `/console/classrooms/?${query.toString()}#factory`;
   }
   function metadataFor(version) {
     if (!version) return null;
@@ -721,7 +721,7 @@
     const receiptText = uiReceipt ? ` · UI ${esc(String(uiReceipt.receiptId).slice(0, 12))}` : viewReceipt ? ` · VIEW ${esc(String(viewReceipt.receiptId).slice(0, 12))}` : "";
     const primaryHref = viewReceipt ? testFactoryUrl(candidate.ref, viewReceipt.receiptId) : acceptancePreviewUrl(candidate?.ref);
     const primaryLabel = viewReceipt ? "创建 UI 验收课堂" : "前往多角色视图验收";
-    node.innerHTML = `<div><b>${title}</b><span>${candidate ? `Candidate r${candidate.ref.revision} · ${esc(shortDigest(candidate.ref.digest))}` : "保存后生成不可变 Candidate"}${receiptText}</span><small>${detail}</small></div><div class="sync-actions"><a class="button ghost" href="${esc(primaryHref)}">${primaryLabel}</a><a class="button secondary" href="/studio/releases/">验收与发布</a></div>`;
+    node.innerHTML = `<div><b>${title}</b><span>${candidate ? `Candidate r${candidate.ref.revision} · ${esc(shortDigest(candidate.ref.digest))}` : "保存后生成不可变 Candidate"}${receiptText}</span><small>${detail}</small></div><div class="sync-actions"><a class="button ghost" href="${esc(primaryHref)}">${primaryLabel}</a><a class="button secondary" href="/console/studio/releases/">验收与发布</a></div>`;
   }
 
   function shortDigest(value) { return String(value || "—").slice(0, 16); }
@@ -1270,7 +1270,7 @@
   $("#validate").onclick = validate;
   $("#historyButton").onclick = openHistory;
   $("#historyClose").onclick = () => $("#historyDialog").close();
-  $("#publish").onclick = () => window.location.assign("/studio/releases/");
+  $("#publish").onclick = () => window.location.assign("/console/studio/releases/");
   $("#undoEdit").onclick = undoEdit;
   $("#redoEdit").onclick = redoEdit;
   $("#openLibrary").onclick = (event) => libraryCollapsed ? openLibrary(event.currentTarget) : closeLibrary();

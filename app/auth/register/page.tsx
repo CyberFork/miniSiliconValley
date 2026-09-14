@@ -9,7 +9,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
   const params = await searchParams;
   return (
     <AuthShell title="领取身份。" accent="建立你自己的成长世界线。" description="任何人都可以自行创建 Young Builder 学员账号，无需手机号、邮箱或外部社交身份。注册后可探索 World 和已发布课件；具体 Classroom 由 Admin DM 明确配置 Membership。">
-      <RegisterForm returnTo={typeof params.returnTo === "string" ? params.returnTo : "/course/"} />
+      <RegisterForm returnTo={typeof params.returnTo === "string" ? params.returnTo : "/terminal/"} />
     </AuthShell>
   );
 }

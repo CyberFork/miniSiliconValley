@@ -14,6 +14,7 @@ from pathlib import Path
 
 TEXT_SUFFIXES = {".html", ".css", ".js", ".mjs", ".json", ".svg", ".md", ".txt", ".webmanifest"}
 DEVELOPMENT_COURSEWARE = Path("courseware/development-mentor-ligun")
+MODULE_THINKING_COURSEWARE = Path("courseware/development-mentor-module-thinking")
 MARKET_COURSEWARE = Path("courseware/market-mentor-user-system")
 PRODUCT_COURSEWARE = Path("courseware/product-mentor-foundations")
 PRODUCT_COURSEWARE_R1 = PRODUCT_COURSEWARE / "r1"
@@ -27,6 +28,8 @@ REQUIRED_PAGES = (
     "courseware/product-mentor-foundations/r1/index.html",
     "courseware/product-mentor-foundations/r2/index.html",
     "courseware/development-mentor-ligun/index.html",
+    "courseware/development-mentor-module-thinking/audience/index.html",
+    "courseware/development-mentor-module-thinking/teacher/presenter.html",
     "courseware/market-mentor-user-system/index.html",
 )
 PUBLIC_COURSE_NAV_PAGES = ("index.html", "world/index.html")
@@ -254,6 +257,90 @@ def validate_market_courseware(root: Path) -> dict:
     return validate_manifested_courseware(root, label="M-mentor", slide_count=49)
 
 
+def validate_module_thinking_courseware(root: Path) -> dict:
+    """Verify the separately built T-122 audience/teacher artifact boundary."""
+    manifest_path = root / "BUILD-MANIFEST.json"
+    if not manifest_path.is_file():
+        raise ValueError("T-122 module-thinking build manifest is missing")
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("T-122 module-thinking build manifest is invalid") from exc
+    if (
+        manifest.get("schemaVersion") != 1
+        or manifest.get("todoId") != "T-122"
+        or manifest.get("coursewareId") != "module-thinking-p1"
+        or not isinstance(manifest.get("version"), str)
+        or not re.fullmatch(r"[0-9a-f]{64}", str(manifest.get("sourceXmindSha256", "")))
+    ):
+        raise ValueError("T-122 module-thinking identity contract is invalid")
+
+    canonical: list[str] = []
+    seen: set[str] = set()
+    total_bytes = 0
+    split_counts: dict[str, int] = {}
+    split_trees: dict[str, str] = {}
+    for split in ("audience", "teacher"):
+        records = manifest.get(split)
+        if not isinstance(records, list) or not records:
+            raise ValueError(f"T-122 {split} manifest is empty")
+        split_canonical: list[str] = []
+        declared: set[str] = set()
+        for item in records:
+            if not isinstance(item, dict):
+                raise ValueError(f"T-122 {split} manifest record is invalid")
+            relative = Path(str(item.get("path", "")))
+            path_value = relative.as_posix()
+            if relative.is_absolute() or ".." in relative.parts or not path_value.startswith(f"{split}/") or path_value in seen:
+                raise ValueError(f"T-122 contains an unsafe or duplicate path: {path_value}")
+            path = root / relative
+            if not path.is_file():
+                raise ValueError(f"T-122 courseware file is missing: {path_value}")
+            content = path.read_bytes()
+            digest = hashlib.sha256(content).hexdigest()
+            if item.get("bytes") != len(content) or item.get("sha256") != digest:
+                raise ValueError(f"T-122 courseware digest mismatch: {path_value}")
+            seen.add(path_value)
+            declared.add(relative.relative_to(split).as_posix())
+            line = f"{path_value}\0{digest}\n"
+            canonical.append(line)
+            split_canonical.append(line)
+            total_bytes += len(content)
+        actual = {
+            path.relative_to(root / split).as_posix()
+            for path in (root / split).rglob("*") if path.is_file()
+        }
+        if actual != declared:
+            raise ValueError(f"T-122 {split} contains undeclared or missing files")
+        split_counts[split] = len(records)
+        split_trees[split] = hashlib.sha256("".join(split_canonical).encode("utf-8")).hexdigest()
+
+    required = {"audience/index.html", "teacher/presenter.html", "teacher/presenter-notes.js"}
+    if not required.issubset(seen):
+        raise ValueError("T-122 audience/teacher entry contract is incomplete")
+    audience_text = "\n".join(
+        (root / path).read_text(encoding="utf-8", errors="ignore")
+        for path in sorted(seen) if path.startswith("audience/") and Path(path).suffix in TEXT_SUFFIXES
+    )
+    for marker in ("presenter-notes.js", "现场顺序", "可接受回答", "硅谷币提示"):
+        if marker in audience_text:
+            raise ValueError(f"T-122 audience bundle leaks teacher marker: {marker}")
+    presenter = (root / "teacher" / "presenter.html").read_text(encoding="utf-8")
+    if 'data-audience-url="../audience/index.html"' not in presenter:
+        raise ValueError("T-122 teacher-to-audience route is invalid")
+    return {
+        "sha256": hashlib.sha256("".join(canonical).encode("utf-8")).hexdigest(),
+        "files": len(seen),
+        "bytes": total_bytes,
+        "version": manifest["version"],
+        "sourceXmindSha256": manifest["sourceXmindSha256"],
+        "audienceSha256": split_trees["audience"],
+        "audienceFiles": split_counts["audience"],
+        "teacherSha256": split_trees["teacher"],
+        "teacherFiles": split_counts["teacher"],
+    }
+
+
 def validate_workshop_snapshot(path: Path) -> dict:
     if not path.is_file() or path.stat().st_size > MAX_WORKSHOP_SNAPSHOT_BYTES:
         raise ValueError("Workshop snapshot is missing or exceeds 1 MiB")
@@ -378,6 +465,7 @@ def build(
     course_static: Path,
     product_courseware_r1: Path,
     product_courseware_r2: Path,
+    module_thinking_courseware: Path,
     portal: Path,
     output: Path,
     release_id: str,
@@ -388,7 +476,7 @@ def build(
     workshop_snapshot: Path | None = None,
     workspace_provenance: dict | None = None,
 ) -> None:
-    for source in (legacy, app_client, app_static, course_static, product_courseware_r1, product_courseware_r2, portal):
+    for source in (legacy, app_client, app_static, course_static, product_courseware_r1, product_courseware_r2, module_thinking_courseware, portal):
         if not source.is_dir():
             raise ValueError(f"required directory is missing: {source}")
     for label, value in (("main SHA", main_sha), ("chj SHA", chj_sha), ("chj tree", chj_tree)):
@@ -398,6 +486,9 @@ def build(
     development_courseware = validate_development_courseware(development_courseware_source)
     market_courseware_source = app_client / MARKET_COURSEWARE
     market_courseware = validate_market_courseware(market_courseware_source)
+    module_thinking = validate_module_thinking_courseware(module_thinking_courseware)
+    module_audience_digest = tree_digest(module_thinking_courseware / "audience")
+    module_teacher_digest = tree_digest(module_thinking_courseware / "teacher")
     course_r0_source_digest, course_r0_source_files, course_r0_source_bytes = tree_digest(course_static)
     course_r1_source_digest, course_r1_source_files, course_r1_source_bytes = tree_digest(product_courseware_r1)
     course_r2_source_digest, course_r2_source_files, course_r2_source_bytes = tree_digest(product_courseware_r2)
@@ -497,6 +588,18 @@ def build(
     if validate_market_courseware(market_courseware_output) != market_courseware:
         raise ValueError("M-mentor courseware changed during release assembly")
 
+    # T-122 is deliberately split: audience is normal authenticated learning
+    # content; teacher contains scripts and answers and is protected by a
+    # mentor-only gateway location. Copy only declared build outputs, never the
+    # source tree or BUILD-MANIFEST.json, and prove both copies byte-identical.
+    module_output = output / MODULE_THINKING_COURSEWARE
+    copy_entry(module_thinking_courseware / "audience", module_output / "audience")
+    copy_entry(module_thinking_courseware / "teacher", module_output / "teacher")
+    if tree_digest(module_output / "audience") != module_audience_digest:
+        raise ValueError("T-122 audience bundle changed during release assembly")
+    if tree_digest(module_output / "teacher") != module_teacher_digest:
+        raise ValueError("T-122 teacher bundle changed during release assembly")
+
     (output / "release.json").write_text(json.dumps({
         "service": "minisv", "release": release_id,
         "builtAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
@@ -508,6 +611,8 @@ def build(
             "versioned-product-manager-courseware",
             "latest-role-courseware-resolution",
             "exact-development-mentor-courseware",
+            "split-module-thinking-courseware",
+            "mentor-protected-teacher-courseware",
             "exact-market-mentor-courseware",
             "opaque-courseware-bundle",
             "course-studio",
@@ -587,6 +692,15 @@ def build(
             **development_courseware,
             "transformed": False,
         },
+        "moduleThinkingCoursewareArtifact": {
+            "route": "/courseware/development-mentor-module-thinking/audience/",
+            "teacherRoute": "/courseware/development-mentor-module-thinking/teacher/presenter.html",
+            "mentorRole": "D",
+            "revision": 0,
+            **module_thinking,
+            "transformed": False,
+            "teacherAuthorization": "server-side-admin-or-mentor",
+        },
         "marketCoursewareArtifact": {
             "route": "/courseware/market-mentor-user-system/",
             "mentorRole": "M",
@@ -658,6 +772,7 @@ def main() -> None:
     parser.add_argument("--course-static-root", required=True, type=Path, help="immutable product-manager r0 artifact")
     parser.add_argument("--product-courseware-r1-root", required=True, type=Path, help="immutable chj9-11 product-manager r1 artifact")
     parser.add_argument("--product-courseware-r2-root", required=True, type=Path, help="immutable chj9-11 product-mentor r2 artifact")
+    parser.add_argument("--module-thinking-root", required=True, type=Path, help="verified T-122 dist root containing audience and teacher bundles")
     parser.add_argument("--portal-root", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--release-id", required=True)
@@ -673,7 +788,7 @@ def main() -> None:
     repo_root = Path(__file__).resolve().parents[2]
     workspace_provenance = verify_release_workspace(repo_root, args.main_sha, dirty_reason=args.allow_dirty_reason)
     build(
-        *(getattr(args, name) for name in ("legacy_root", "app_client_root", "app_static_root", "course_static_root", "product_courseware_r1_root", "product_courseware_r2_root", "portal_root", "output", "release_id")),
+        *(getattr(args, name) for name in ("legacy_root", "app_client_root", "app_static_root", "course_static_root", "product_courseware_r1_root", "product_courseware_r2_root", "module_thinking_root", "portal_root", "output", "release_id")),
         main_sha=args.main_sha,
         chj_sha=args.chj_sha,
         chj_tree=args.chj_tree,

@@ -24,6 +24,7 @@ export default async function ClassroomPage({ searchParams }: { searchParams: Pr
     ? "账号已经切换。当前账号是学员身份，没有 Course Studio 权限，已安全返回课堂中心。"
     : "";
   return <ClassroomHub
+    mode="participant"
     user={{ userId: user.userId, username: user.username, displayName: user.displayName, role: user.role ?? "learner", impersonation: user.impersonation }}
     initialCourse={courseId && revision !== null ? {
       courseId,

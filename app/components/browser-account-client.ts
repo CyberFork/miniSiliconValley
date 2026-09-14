@@ -61,13 +61,13 @@ export function accountLoginPath(returnTo: string, username?: string): string {
 }
 
 export function safeAccountReturnTo(value: string): string {
-  if (!value.startsWith("/") || value.startsWith("//")) return "/classroom/";
+  if (!value.startsWith("/") || value.startsWith("//")) return "/terminal/";
   try {
     const url = new URL(value, "https://minisv.local");
-    if (url.origin !== "https://minisv.local" || url.pathname.startsWith("/auth/")) return "/classroom/";
+    if (url.origin !== "https://minisv.local" || url.pathname.startsWith("/auth/")) return "/terminal/";
     return `${url.pathname}${url.search}${url.hash}`;
   } catch {
-    return "/classroom/";
+    return "/terminal/";
   }
 }
 
@@ -78,8 +78,8 @@ export function safeAccountReturnTo(value: string): string {
 export function accountDestination(returnTo: string, user: Pick<AuthUser, "role">): string {
   const safe = safeAccountReturnTo(returnTo);
   const pathname = new URL(safe, "https://minisv.local").pathname;
-  if ((user.role === "learner" || user.role === "observer") && pathname.startsWith("/studio")) {
-    return "/classroom/?accountNotice=studio-role";
+  if ((user.role === "learner" || user.role === "observer") && (pathname.startsWith("/studio") || pathname.startsWith("/console"))) {
+    return "/terminal/?accountNotice=internal-role";
   }
   return safe;
 }

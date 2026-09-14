@@ -1,0 +1,44 @@
+import assert from "node:assert/strict";
+import { existsSync, readFileSync } from "node:fs";
+import test from "node:test";
+
+const root = new URL("../", import.meta.url);
+const source = (path: string) => readFileSync(new URL(path, root), "utf8");
+
+test("T-124 exposes a refreshable terminal shell and every agreed app route", () => {
+  const page = source("app/terminal/[[...app]]/page.tsx");
+  const client = source("app/terminal/TerminalClient.tsx");
+  for (const app of ["home", "identity", "courses", "space", "wallet", "shop", "homework", "games", "grants"]) {
+    assert.match(page, new RegExp(`"${app}"`));
+  }
+  for (const label of ["硅谷空间", "我的身份", "我的课程", "课后作业", "游戏中心", "我的钱包", "在线商店", "导师发币"]) {
+    assert.match(client, new RegExp(label));
+  }
+  assert.match(client, /<time aria-label="时间处于混乱状态">--:--<\/time>/);
+  assert.match(client, /window\.history\.pushState/);
+  assert.match(client, /window\.addEventListener\("popstate"/);
+});
+
+test("T-124 implements real APIs, public-space privacy, wallet isolation and designed confirmations", () => {
+  for (const path of [
+    "app/api/terminal/bootstrap/route.ts",
+    "app/api/terminal/wallet/route.ts",
+    "app/api/terminal/space/route.ts",
+    "app/api/terminal/purchase/route.ts",
+    "app/api/terminal/equip/route.ts",
+    "app/api/terminal/grants/route.ts",
+    "app/api/terminal/grants/[transactionId]/reverse/route.ts",
+    "app/api/public/spaces/[studentId]/route.ts",
+    "app/u/[studentId]/page.tsx",
+  ]) assert.equal(existsSync(new URL(path, root)), true, `missing ${path}`);
+  const store = source("app/lib/terminal-store.ts");
+  const client = source("app/terminal/TerminalClient.tsx");
+  const publicPage = source("app/u/[studentId]/page.tsx");
+  assert.match(store, /TerminalEnvironment = "test" \| "production"/);
+  assert.match(store, /TERMINAL_IDEMPOTENCY_CONFLICT/);
+  assert.match(store, /导师只能纠正自己发放的硅谷币/);
+  assert.match(client, /role="alertdialog" aria-label="确认兑换装饰"/);
+  assert.doesNotMatch(client, /window\.confirm/);
+  assert.match(publicPage, /不展示作业草稿、私密卡、钱包、密码、登录信息或管理备注/);
+  assert.match(publicPage, /robots: \{ index: false/);
+});

@@ -5,10 +5,10 @@ import test from "node:test";
 const root = new URL("../", import.meta.url);
 const source = (path: string) => readFileSync(new URL(path, root), "utf8");
 
-test("Studio navigation is a real-link, route-derived and recoverable surface", () => {
+test("Console-hosted Studio navigation is a real-link, route-derived and recoverable surface", () => {
   const studio = source("app/studio/StudioApp.tsx");
   const navigation = source("app/components/NavigationLink.tsx");
-  for (const href of ["/studio/", "/studio/editor/", "/studio/preview/", "/studio/reviews/", "/studio/releases/", "/studio/courseware/"]) {
+  for (const href of ["/console/studio/", "/console/studio/editor/", "/console/studio/preview/", "/console/studio/reviews/", "/console/studio/releases/", "/console/courseware/"]) {
     assert.match(studio, new RegExp(href.replaceAll("/", "\\/")));
   }
   assert.match(studio, /<Link[\s\S]*href=\{item\.href\}/);
@@ -35,8 +35,9 @@ test("unified account menu uses the server-side browser set and never stores cre
   assert.match(client, /BroadcastChannel/);
   assert.match(client, /safeAccountReturnTo/);
   assert.match(client, /accountDestination/);
-  assert.match(client, /studio-role/);
-  assert.match(source("app/classroom/page.tsx"), /没有 Course Studio 权限/);
+  assert.match(client, /internal-role/);
+  assert.match(client, /pathname\.startsWith\("\/console"\)/);
+  assert.match(menu, /MINI硅谷工作台/);
   assert.doesNotMatch(`${menu}\n${client}`, /localStorage|sessionStorage/i);
   assert.match(accounts, /expectedVersion/);
   assert.match(accounts, /idempotencyKey/);

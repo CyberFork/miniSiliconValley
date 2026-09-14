@@ -59,6 +59,6 @@ test("Admin lock, and fully ready Test/Production checklists", () => {
 });
 
 test("exactPreviewHref preserves exact encoded query", () => {
-  assert.equal(exactPreviewHref({ courseId: "a/b? c", revision: 4, digest: "x+y" }), "/studio/preview/?course=a%2Fb%3F+c&revision=4&digest=x%2By");
-  assert.equal(exactPreviewHref({ courseId: "a", revision: 1 }), "/studio/preview/?course=a&revision=1");
+  assert.equal(exactPreviewHref({ courseId: "a/b? c", revision: 4, digest: "x+y" }), "/console/studio/preview/?course=a%2Fb%3F+c&revision=4&digest=x%2By");
+  assert.equal(exactPreviewHref({ courseId: "a", revision: 1 }), "/console/studio/preview/?course=a&revision=1");
 });

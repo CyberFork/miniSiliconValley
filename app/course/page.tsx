@@ -28,7 +28,7 @@ export default async function CourseLibrary() {
       <BrandHomeLink title="课件查看" />
       <nav>
         <Link href="/classroom/">课堂中心</Link>
-        {canManage && <Link href="/studio/courseware/">管理课件</Link>}
+        {canManage && <Link href="/console/courseware/">管理课件</Link>}
         <AccountMenu
           user={{ userId: user.userId, username: user.username, displayName: user.displayName, role: user.role, impersonation: null }}
           returnTo="/course/"

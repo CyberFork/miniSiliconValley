@@ -364,6 +364,7 @@ export function WorldApp() {
           <button type="button" aria-current={view === "world" ? "page" : undefined} className={view === "world" ? "is-active" : ""} onClick={() => setView("world")}>
             历史世界
           </button>
+          <a href={publicPath("/terminal/")}>时空终端</a>
           <a href={publicPath("/classroom/")}>去上课</a>
           <a href={publicPath("/course/")}>课件查看</a>
           {([

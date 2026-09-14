@@ -37,6 +37,7 @@ yarn-error.log*
 .vercel
 
 /dist/
+/courseware/module-thinking-deck/dist/
 /.wrangler/
 /outputs/
 /work/

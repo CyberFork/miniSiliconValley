@@ -1,5 +1,7 @@
 # MINI硅谷官网、教学空间与内部工作台组织提案
 
+> **2026-09-14 / T-123 现行实现补充：** 本文原 T-109 方案中的 `/studio/*` 路径现已被 `/console/*` 内部工作台取代。当前职责真值为：公开官网与 World 使用 `/`、`/world/`；学员服务使用 `/terminal/`、`/classroom/`、`/course/`、`/account/`；公开个人空间使用 `/u/{studentId}/`；内部课程、课件、课堂、账号、QA 与归档管理统一进入 `/console/`。`/studio/*` 只提供 `308` 迁移跳转，不并行维护旧 UI。`/classroom/` 只服务参与者，`/account/` 只管理当前账号；管理他人或管理课堂分别进入 `/console/accounts/` 与 `/console/classrooms/`。下文保留为 T-109 的历史决策背景，若路径描述与本补充冲突，以本补充及 `ARCHITECTURE.md`、`MSV_SITE_MAP.md` 为准。
+
 > 日期：2026-09-11
 > 状态：已采纳并完成本地实现，等待统一生产发布与线上验收；关联 T-109。
 > 本文补充入口与信息架构，不替代 `COURSE_PLATFORM_ARCHITECTURE.md` 中已经确认的课程数据、验收与运行契约。

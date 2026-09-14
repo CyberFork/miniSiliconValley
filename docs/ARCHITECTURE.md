@@ -6,9 +6,9 @@
 
 ## 1. 三个产品面
 
-- **历史世界 `/world/`**：地图、时间轴、史实节点、战役和个人档案；事实底座与玩家平行世界分离。
-- **Course Studio `/studio/`**：唯一课程写入口、页内 `4 + N + 1` 预览、导师课件管理和发布门。
-- **Classroom `/classroom/`**：真实账号与 Membership、按实例中控、角色私密视图、共同投屏和课堂数据。
+- **公开官网与 World `/`、`/world/`**：品牌介绍、地图、时间轴和史实节点；不暴露内部工具或私密学习数据。
+- **学员服务 `/terminal/`、`/classroom/`、`/course/`、`/account/`**：个人时空终端、参加课堂、查看课件与管理自己的账号。`/u/{studentId}/` 只输出学员主动公开的空间投影。
+- **内部工作台 `/console/`**：课程生产、课件管理、课堂工厂与中控、账号管理、QA 和历史归档。Course Studio 是 `/console/studio/` 下的课程生产模块，不再承担整个后台导航。
 
 导师课件库位于 `/course/`。P／D／M 已发布课件是其中三件不可变静态产物，分别位于 `/courseware/product-mentor-foundations/`、`/courseware/development-mentor-ligun/`、`/courseware/market-mentor-user-system/`；它们是角色可见的电子课件，不替代 CourseDefinition 课程真值。
 
@@ -42,18 +42,21 @@ CourseDefinition（D1 course_versions）
 - `UiAcceptanceReceipt`：完成真实 Test 后，对 exact course、课堂成员和运行版本的 UI 验收回执；其中的四件 courseware refs 仅记录验收当时的审计快照。
 - `CourseContentReviewEvent`：对 exact `courseId + revision + digest + itemId` 的追加式人工处置；作者在 `contentPackages.reviewQueue` 中的声明不被原地改写。
 - `ParentQaKnowledgeGapEvent`：独立于课程的脱敏 observation/review/reopen NDJSON 事件；从不自动进入检索或改写 CourseDefinition。
+- `LearnerWallet/LearnerWalletTransaction`：稳定账号维度的个人硅谷币余额与追加式账本；TEST 和 PRODUCTION 资产严格隔离，发放、消费与冲正均保留操作者、原因和幂等键。
+- `LearnerInventory/LearnerEquipment`：永久持有物与当前装备；购买不能改变课程权限、成绩或 Classroom 状态。
+- `LearnerPublicSpace`：学员主动维护的公开空间投影；匿名读取使用独立 allow-list，不包含钱包流水、私密卡、作业草稿、管理备注或凭据。
 
 ## 4. 可见性与权限
 
-- 平台 `admin`／`mentor` 可进入 Studio、预创建账号和创建课堂。
+- 平台 `admin`／`mentor` 可按各自 RBAC 与资源范围进入 Console；Course Studio 位于 `/console/studio/`。
 - 导师创建课堂时必须把自己列为初始 Admin DM；平台 admin 可指定任一导师／管理员。
 - Classroom 访问必须来自导师 Membership、学员 Membership 或该课堂 Admin DM 权限；平台 admin 不自动穿透所有课堂。
-- Studio 的跨课堂索引按上述关系过滤并只返回脱敏摘要；平台 admin 的全局摘要能力不等于课堂详情权限。
+- Console 的跨课堂索引按上述关系过滤并只返回脱敏摘要；平台 admin 的全局摘要能力不等于课堂详情权限。
 - 学员仅收到自己的任务、自己持久化手牌、自己的提交和账户值；不会收到中控验收门或导师私密脚本。
 - `/screen` 使用专门的 allow-list API，不从浏览器端隐藏私密字段。
 - `/course/` 与 `/course/{slug}/` 对真实管理员、导师和学员开放；inline HTML 在无 `allow-same-origin` 的 sandbox iframe 中播放，静态 bundle 统一经 cookie-only 网关保护。
 - 所有写 API 使用第一方 HttpOnly Session、首次改密门禁、同源 Origin 校验和服务端 RBAC。
-- Studio、Classroom、导师 Courseware、Account 与静态官网共用同一账号契约；脱敏共同投屏是唯一例外。本浏览器账号集合可保存多个已验证身份的最小元数据，但任一时刻只有一个当前身份；切换会原子轮换服务端 Session。Test 模拟只替换当前请求的 effective identity，不进入真实账号列表，也不改 Cookie 中的真实 actor。
+- Console、Classroom、Terminal、导师 Courseware、Account 与静态官网共用同一账号契约；脱敏共同投屏和学员主动公开空间使用各自独立的公开投影。本浏览器账号集合可保存多个已验证身份的最小元数据，但任一时刻只有一个当前身份；切换会原子轮换服务端 Session。Test 模拟只替换当前请求的 effective identity，不进入真实账号列表，也不改 Cookie 中的真实 actor。
 - Admin DM 委派是非递归授权：Primary 可授予／撤销导师的 Delegated；Delegated 可运行课堂但无委派能力。旧的平面 `classroom_permissions` 仅作为迁移期回滚镜像，不参与授权判定。
 - Studio「人工审核工作台」并列展示课程审核项和家长 QA 缺口，但保持两个真值、两个生命周期。课程显式 `revision-required`／`reopen` 阻断对应 exact 版本发布；未处置的作者声明仅作醒目提示，不自动等同失败。家长 QA 的详细健康状态与重试只经带 server-only token 的 loopback 内部接口访问。
 
@@ -85,4 +88,4 @@ Cloudflare Tunnel
 - `/api/classroom/*`：410
 - `/api/internal/*`：公网 404
 
-现行入口只有 `/studio/*`、`/course/*` 和 `/classroom/{classroomId}/*`。
+现行入口为：公开 `/`、`/world/*`、`/u/*`；学员服务 `/terminal/*`、`/classroom/*`、`/course/*`、`/account/*`；内部 `/console/*`。旧 `/studio/*` 仅保留同源 `308` 迁移跳转，不再承载第二套 UI 或业务逻辑。

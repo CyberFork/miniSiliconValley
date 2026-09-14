@@ -37,7 +37,7 @@ class CourseReleaseTests(unittest.TestCase):
     def test_release_rejects_untraceable_source_sha_before_writing_output(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            inputs = [root / name for name in ("legacy", "client", "static", "course-r0", "course-r1", "course-r2", "portal")]
+            inputs = [root / name for name in ("legacy", "client", "static", "course-r0", "course-r1", "course-r2", "module-thinking", "portal")]
             for directory in inputs:
                 directory.mkdir()
             output = root / "release"
@@ -54,6 +54,7 @@ class CourseReleaseTests(unittest.TestCase):
             course = root / "course"
             course_r1 = root / "course-r1"
             course_r2 = root / "course-r2"
+            module_thinking = root / "module-thinking"
             portal = root / "portal"
             output = root / "release"
             for directory in (
@@ -70,6 +71,8 @@ class CourseReleaseTests(unittest.TestCase):
                 course_r1 / "assets",
                 course_r2 / "_next",
                 course_r2 / "assets",
+                module_thinking / "audience" / "assets",
+                module_thinking / "teacher" / "assets",
                 portal,
             ):
                 directory.mkdir(parents=True, exist_ok=True)
@@ -124,6 +127,31 @@ class CourseReleaseTests(unittest.TestCase):
             (market / "SOURCE-MANIFEST.json").write_text(json.dumps({
                 "schemaVersion": 1, "slideCount": 49, "files": market_files,
                 "contentTreeSha256": market_tree,
+            }))
+            module_files = {
+                "audience/index.html": '<html><body><h1>模块思维</h1><script src="deck-runtime.js"></script></body></html>',
+                "audience/deck-runtime.js": "window.deck = true;",
+                "teacher/presenter.html": '<html data-audience-url="../audience/index.html"><body><script src="presenter-notes.js"></script></body></html>',
+                "teacher/presenter-notes.js": "window.notes = { answer: '导师回答参考' };",
+            }
+            for relative, content in module_files.items():
+                path = module_thinking / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(content)
+            audience_records = []
+            teacher_records = []
+            for relative in module_files:
+                path = module_thinking / relative
+                record = {"path": relative, "sha256": hashlib.sha256(path.read_bytes()).hexdigest(), "bytes": path.stat().st_size}
+                (audience_records if relative.startswith("audience/") else teacher_records).append(record)
+            (module_thinking / "BUILD-MANIFEST.json").write_text(json.dumps({
+                "schemaVersion": 1,
+                "todoId": "T-122",
+                "coursewareId": "module-thinking-p1",
+                "version": "2026.09.14-test",
+                "sourceXmindSha256": "b" * 64,
+                "audience": audience_records,
+                "teacher": teacher_records,
             }))
             (static / "world" / "index.html").write_text('<html><head></head><body><a href="/course/">课程大纲</a>current world</body></html>')
             (static / "world-preview.json").write_text('{"schemaVersion":1,"markers":["world"]}\n')
@@ -188,7 +216,7 @@ class CourseReleaseTests(unittest.TestCase):
                 "exceptionReason": None,
             }
             MODULE.build(
-                legacy, client, static, course, course_r1, course_r2, portal, output, "t077-test",
+                legacy, client, static, course, course_r1, course_r2, module_thinking, portal, output, "t077-test",
                 main_sha=main_sha, workspace_provenance=provenance,
             )
 
@@ -226,6 +254,16 @@ class CourseReleaseTests(unittest.TestCase):
                 MODULE.validate_market_courseware(output / "courseware" / "market-mentor-user-system")["sha256"],
                 market_tree,
             )
+            module_release = output / "courseware" / "development-mentor-module-thinking"
+            self.assertEqual(
+                MODULE.tree_digest(module_release / "audience"),
+                MODULE.tree_digest(module_thinking / "audience"),
+            )
+            self.assertEqual(
+                MODULE.tree_digest(module_release / "teacher"),
+                MODULE.tree_digest(module_thinking / "teacher"),
+            )
+            self.assertFalse((module_release / "BUILD-MANIFEST.json").exists())
             workshop_html = (output / "workshop" / "index.html").read_text()
             self.assertIn("msv-workshop-archive", workshop_html)
             self.assertIn('data-workshop-mode="archive-readonly"', workshop_html)
@@ -256,6 +294,7 @@ class CourseReleaseTests(unittest.TestCase):
             self.assertEqual(release["sources"]["main"], main_sha)
             self.assertEqual(release["workspaceProvenance"], provenance)
             self.assertIn("canonical-workspace-provenance", release["features"])
+            self.assertEqual(release["moduleThinkingCoursewareArtifact"]["teacherAuthorization"], "server-side-admin-or-mentor")
             self.assertEqual(release["sources"]["chjCourseUi"], MODULE.CHJ_COURSE_UI_SHA)
             self.assertEqual(release["sources"]["chjCourseTree"], MODULE.CHJ_COURSE_UI_TREE)
             self.assertIn("verbatim-product-mentor-courseware", release["features"])

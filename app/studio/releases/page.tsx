@@ -1,3 +1,3 @@
-import StudioRoute from "../StudioRoute";
-export const dynamic="force-dynamic";
-export default function Page(){return <StudioRoute section="releases"/>;}
+import { redirectLegacyStudio, type LegacySearchParams } from "../legacy-redirect";
+export const dynamic = "force-dynamic";
+export default function Page({ searchParams }: { searchParams: LegacySearchParams }){ return redirectLegacyStudio("/console/studio/releases/", searchParams); }

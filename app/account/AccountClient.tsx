@@ -1,13 +1,11 @@
 "use client";
 
-import { type FormEvent, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type {
   AuthBrowserAccountSetSummary,
   AuthRole,
   AuthSessionSummary,
   AuthUser,
-  IssuedPasswordResetLink,
-  ManagedAuthUser,
 } from "../lib/auth-model";
 import { publicPath } from "../lib/public-path";
 import styles from "../auth/auth.module.css";
@@ -15,20 +13,17 @@ import { BrandHomeLink } from "../components/BrandHomeLink";
 import { AccountMenu } from "../components/AccountMenu";
 import Link from "../components/NavigationLink";
 import { announceAccountChange, approveAccountNavigation, mutateBrowserAccount } from "../components/browser-account-client";
-import { LearnerAdminPanel } from "./LearnerAdminPanel";
 
 type Envelope<T> = { ok: boolean; data?: T; error?: { code: string; message: string } };
 
-export default function AccountClient({ initialUser, firstLogin = false, returnTo = "/classroom/", initialView = "profile" }: { initialUser: AuthUser; firstLogin?: boolean; returnTo?: string; initialView?: "learners" | "profile" }) {
+export default function AccountClient({ initialUser, firstLogin = false, returnTo = "/terminal/" }: { initialUser: AuthUser; firstLogin?: boolean; returnTo?: string }) {
   const [user, setUser] = useState(initialUser);
-  const [view, setView] = useState<"learners" | "profile">(initialUser.role === "admin" && !firstLogin ? initialView : "profile");
   const [sessions, setSessions] = useState<AuthSessionSummary[]>([]);
   const [accountSet, setAccountSet] = useState<AuthBrowserAccountSetSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const manager = user.role === "admin" || user.role === "mentor";
 
   const refresh = useCallback(async () => {
     try {
@@ -71,22 +66,20 @@ export default function AccountClient({ initialUser, firstLogin = false, returnT
       <a className={styles.skipLink} href="#account-main">跳到账户内容</a>
       <nav className={styles.accountNav} aria-label="Mini Silicon Valley">
         <BrandHomeLink />
-        <div className={styles.navLinks}><a href={publicPath("/")}>首页</a><a href="/world/">历史世界</a><Link href="/course/">课件查看</Link><a href={publicPath("/classroom")}>进入课堂</a><AccountMenu user={user} returnTo="/account/" /></div>
+        <div className={styles.navLinks}><a href={publicPath("/")}>首页</a><Link href="/terminal/">时空终端</Link><Link href="/course/">课件查看</Link><a href={publicPath("/classroom")}>进入课堂</a>{(user.role === "admin" || user.role === "mentor") && <Link href="/console/">工作台</Link>}<AccountMenu user={user} returnTo="/account/" /></div>
       </nav>
       <div className={styles.accountMain} id="account-main">
-        <header className={`${styles.accountHero} ${user.role === "admin" ? styles.adminAccountHero : ""}`}>
-          <div><span className={styles.kicker}>{user.role === "admin" ? "ADMIN · ACCOUNT CENTER" : "IDENTITY & SECURITY"}</span><h1>{user.role === "admin" ? "账号中心" : "Young Builder 账户"}</h1><p>{user.role === "admin" ? "管理全平台学员身份，或切换到自己的账号与设备设置。课堂席位仍在 Classroom 中分配。" : "管理昵称、密码和登录设备。课堂与队伍成员请在课堂里的 DM 控制台管理。"}</p></div>
+        <header className={styles.accountHero}>
+          <div><span className={styles.kicker}>IDENTITY & SECURITY · PERSONAL ONLY</span><h1>我的账户</h1><p>这里只管理当前账号的昵称、密码和登录设备。学员目录、他人密码与 RBAC 已迁入 MINI硅谷工作台。</p></div>
           <div className={styles.identityBadge}><b>{initials(user.displayName)}</b><div><span>{user.displayName}</span><small>@{user.username} · {roleLabel(user.role)}</small></div></div>
         </header>
         {(error || notice) && <div className={error ? styles.formError : styles.formSuccess} role={error ? "alert" : "status"} style={{ marginTop: 24 }}>{error ?? notice}</div>}
-        {(firstLogin || user.mustChangePassword) && <div className={styles.formSuccess} role="status" style={{ marginTop: 24 }}><strong>先完成账号启用：</strong>请使用下方“更新密码”把一次性初始密码换成只有你知道的密码。完成后系统会进入你的课堂。</div>}
-        {user.role === "admin" && !firstLogin && <div className={styles.accountViewTabs} role="tablist" aria-label="账号中心视图"><button type="button" role="tab" aria-selected={view === "learners"} onClick={() => setView("learners")}>学员管理</button><button type="button" role="tab" aria-selected={view === "profile"} onClick={() => setView("profile")}>我的账户</button></div>}
-        {user.role === "admin" && view === "learners" && !firstLogin ? <LearnerAdminPanel /> : <div className={styles.accountGrid}>
+        {(firstLogin || user.mustChangePassword) && <div className={styles.formSuccess} role="status" style={{ marginTop: 24 }}><strong>先完成账号启用：</strong>请使用下方“更新密码”把一次性初始密码换成只有你知道的密码。完成后系统会进入你的时空终端。</div>}
+        <div className={styles.accountGrid}>
           <ProfileCard key={user.displayName} user={user} busy={busy} onRun={run} />
           <PasswordCard busy={busy} onRun={run} returnTo={firstLogin || user.mustChangePassword ? returnTo : null} />
           <SessionCard sessions={sessions} accountSet={accountSet} loading={loading} busy={busy} onRun={run} />
-          {manager && <PasswordAssistanceCard busy={busy} />}
-        </div>}
+        </div>
       </div>
     </main>
   );
@@ -145,55 +138,6 @@ function SessionCard({ sessions, accountSet, loading, busy, onRun }: {
         <li key={session.id}><div><strong>{session.userAgent}{session.current && <span className={styles.statusPill}>当前</span>}</strong><span>最近活动 {formatTime(session.lastSeenAt)} · 到期 {formatTime(session.expiresAt)}</span></div>{!session.current && <button className={styles.tinyButton} disabled={busy} onClick={() => void onRun(() => request(`/api/auth/sessions/${encodeURIComponent(session.id)}`, { method: "DELETE" }).then(() => undefined), "该设备已经退出。")}>退出设备</button>}</li>
       ))}</ul>}
       <button className={styles.dangerButton} style={{ marginTop: 18 }} disabled={busy} onClick={() => void onRun(() => signOutCurrent(accountSet), "正在打开本设备账号列表…")}>退出当前账号</button>
-    </section>
-  );
-}
-
-function PasswordAssistanceCard({ busy }: { busy: boolean }) {
-  const [query, setQuery] = useState("");
-  const [users, setUsers] = useState<ManagedAuthUser[]>([]);
-  const [issued, setIssued] = useState<IssuedPasswordResetLink | null>(null);
-  const [working, setWorking] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-
-  async function search(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setWorking(true); setMessage(null); setIssued(null);
-    try {
-      const data = await request<ManagedAuthUser[]>(`/api/auth/admin/users?q=${encodeURIComponent(query.trim())}`);
-      setUsers(data);
-      if (!data.length) setMessage("没有找到你有权协助的学员。");
-    } catch (cause) {
-      setMessage(messageOf(cause));
-    } finally {
-      setWorking(false);
-    }
-  }
-
-  async function issue(username: string) {
-    setWorking(true); setMessage(null); setIssued(null);
-    try {
-      const data = await request<IssuedPasswordResetLink>("/api/auth/admin/reset-links", { method: "POST", body: { username } });
-      setIssued(data);
-    } catch (cause) {
-      setMessage(messageOf(cause));
-    } finally {
-      setWorking(false);
-    }
-  }
-
-  return (
-    <section className={`${styles.accountCard} ${styles.wideCard}`}>
-      <header><div><span>DM · PASSWORD ASSISTANCE</span><h2>帮助学员重置密码</h2><p>搜索自己课堂里的学员或待审批学员，生成30分钟有效、只能使用一次的重置链接。导师看不到新密码。</p></div></header>
-      {issued && <div className={styles.issuedSecret} role="status"><small>一次性重置链接 · 仅展示一次</small><strong>{issued.resetUrl}</strong><span>{issued.displayName} · @{issued.username} · {formatTime(issued.expiresAt)}失效</span><div className={styles.buttonRow} style={{ marginTop: 14 }}><button className={styles.tinyButton} onClick={() => void navigator.clipboard.writeText(issued.resetUrl)}>复制链接</button><button className={styles.tinyButton} onClick={() => setIssued(null)}>我已发送</button></div></div>}
-      <form className={styles.authForm} onSubmit={search}>
-        <label className={styles.field}><span className={styles.fieldLabel}>学员ID、用户名或昵称</span><input value={query} onChange={(event) => setQuery(event.target.value.slice(0, 80))} minLength={2} maxLength={80} placeholder="至少输入2个字符" required /></label>
-        <button className={styles.secondaryButton} disabled={busy || working || query.trim().length < 2}>{working ? "正在查找…" : "查找学员"}</button>
-      </form>
-      {message && <div className={styles.formError} role="status">{message}</div>}
-      {users.length > 0 && <ul className={styles.adminList}>{users.map((target) => (
-        <li key={target.id}><div><strong>{target.displayName}<span className={styles.statusPill}>{roleLabel(target.role)}</span></strong><span>@{target.username}{target.lastSeenAt ? ` · 最近${formatTime(target.lastSeenAt)}` : ""}</span></div><div className={styles.adminActions}><button className={styles.tinyButton} disabled={busy || working || target.status !== "active"} onClick={() => void issue(target.username)}>生成重置链接</button></div></li>
-      ))}</ul>}
     </section>
   );
 }

@@ -319,6 +319,37 @@ test("T-121 Admin batch deletion removes only safe selected learners and reports
   }
 });
 
+test("T-121 deletion refuses to erase T-124 terminal assets, public space or ledger history", async () => {
+  const db = await fixture();
+  const admin = actor("admin-root", "admin");
+  try {
+    const terminalUser = await createAdminManagedLearner(db, admin, {
+      displayName: "终端证据学员",
+      initialPassword: "T124 terminal evidence learner 2026!",
+      idempotencyKey: "t124-terminal-evidence-account",
+    });
+    const now = "2026-09-14T03:00:00.000Z";
+    db.raw.prepare(
+      `INSERT INTO learner_public_spaces
+       (profile_id, intro, project_title, project_summary, project_url, team_name, contribution,
+        published_at, created_at, updated_at)
+       VALUES (?, '我的终端', '作品', '这是不能被账号删除抹去的学习证据', '', '小队', '贡献', ?, ?, ?)`,
+    ).run(terminalUser.learner.id, now, now, now);
+
+    const preview = await previewAdminManagedLearnerDeletion(db, admin, terminalUser.learner.id);
+    assert.equal(preview.deletable, false);
+    assert.ok(preview.blockers.some((item) => item.code === "terminal" && item.count > 0));
+    await assert.rejects(
+      deleteAdminManagedLearner(db, admin, terminalUser.learner.id),
+      (error: unknown) => error instanceof AuthError && error.code === "LEARNER_DELETE_BLOCKED",
+    );
+    assert.ok(db.raw.prepare("SELECT id FROM auth_users WHERE id = ?").get(terminalUser.learner.id));
+    assert.ok(db.raw.prepare("SELECT profile_id FROM learner_public_spaces WHERE profile_id = ?").get(terminalUser.learner.id));
+  } finally {
+    db.raw.close();
+  }
+});
+
 test("T-114 learner CRUD is platform-Admin only, never inherited from mentor or classroom DM identity", async () => {
   const db = await fixture();
   const mentor = actor("mentor-one", "mentor");

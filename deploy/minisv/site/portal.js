@@ -215,6 +215,9 @@
   const render = () => {
     root.replaceChildren();
     const current = accountSet?.accounts?.find((account) => account.current) || null;
+    if (current && (current.role === "admin" || current.role === "mentor")) {
+      root.append(actionLink("工作台", "/console/", "portal-workbench-shortcut"));
+    }
     const trigger = element("button", "portal-account-trigger");
     trigger.type = "button";
     trigger.setAttribute("aria-haspopup", "menu");
@@ -282,10 +285,11 @@
         panel.append(row);
       }
       const actions = element("div", "portal-account-actions");
+      actions.append(actionLink("个人时空终端", "/terminal/", "portal-account-action portal-account-wide"));
       actions.append(actionLink("我的课堂", "/classroom/", "portal-account-action"));
       actions.append(actionLink("课件查看", "/course/", "portal-account-action"));
       if (current && (current.role === "admin" || current.role === "mentor")) {
-        actions.append(actionLink("Course Studio · 内部工作台", "/studio/", "portal-account-action portal-account-wide"));
+        actions.append(actionLink("MINI硅谷工作台", "/console/", "portal-account-action portal-account-wide"));
       }
       actions.append(actionLink("账户中心", "/account/", "portal-account-action"));
       actions.append(actionLink("＋ 添加账号", `${loginPath()}&add=1`, "portal-account-action"));

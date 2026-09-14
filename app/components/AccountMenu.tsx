@@ -270,8 +270,10 @@ export function AccountMenu({
           {accountsLoaded && !accountSet?.accounts.length && <p className={styles.accountEmpty}>还没有其他已验证账号。</p>}
         </section>}
         <div className={styles.actions}>
-          {!impersonation && user.role === "admin" && <a href={`${publicPath("/account")}?view=learners`}>学员账号管理</a>}
-          {!impersonation && <a href={`${publicPath("/account")}${user.role === "admin" ? "?view=profile" : ""}`}>账户中心 · 我的账户</a>}
+          {!impersonation && <a href={publicPath("/terminal/")}>个人时空终端</a>}
+          {!impersonation && (user.role === "admin" || user.role === "mentor") && <a href={publicPath("/console/")}>MINI硅谷工作台</a>}
+          {!impersonation && user.role === "admin" && <a href={publicPath("/console/accounts/")}>学员账号管理</a>}
+          {!impersonation && <a href={publicPath("/account/")}>账户中心 · 我的账户</a>}
           {!impersonation && context?.testIdentityManagementHref && <a href={publicPath(context.testIdentityManagementHref)}>测试账号管理</a>}
           {!impersonation && <a href={accountLoginPath(safeReturnTo)}>＋ 添加账号</a>}
           {impersonation

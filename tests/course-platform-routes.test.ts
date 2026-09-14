@@ -4,6 +4,16 @@ import test from "node:test";
 
 const root = new URL("../", import.meta.url);
 const required = [
+  "app/console/page.tsx",
+  "app/console/studio/page.tsx",
+  "app/console/studio/editor/page.tsx",
+  "app/console/studio/preview/page.tsx",
+  "app/console/studio/reviews/page.tsx",
+  "app/console/studio/releases/page.tsx",
+  "app/console/courseware/page.tsx",
+  "app/console/archive/page.tsx",
+  "app/console/accounts/page.tsx",
+  "app/console/classrooms/page.tsx",
   "app/studio/page.tsx",
   "app/studio/editor/page.tsx",
   "app/studio/preview/page.tsx",
@@ -28,6 +38,7 @@ const required = [
   "app/api/studio/content-reviews/route.ts",
   "app/api/studio/parent-qa-reviews/route.ts",
   "app/api/auth/studio-archive-access/route.ts",
+  "app/api/auth/mentor-courseware-access/route.ts",
   "app/api/platform/classrooms/[classroomId]/receipt/route.ts",
 ];
 
@@ -35,6 +46,26 @@ test("T-085 route surface exists and has no legacy navigation dependency", () =>
   for (const relative of required) assert.equal(existsSync(new URL(relative, root)), true, `missing ${relative}`);
   const routeSources = required.map((relative) => readFileSync(new URL(relative, root), "utf8")).join("\n");
   assert.doesNotMatch(routeSources, /href=["']\/(?:alpha|control)(?:\/|["'])/);
+});
+
+test("T-122 publishes a second D-mentor deck without replacing the classroom default and protects teacher notes", () => {
+  const runtime = readFileSync(new URL("app/lib/courseware-store.ts", root), "utf8");
+  const studio = readFileSync(new URL("app/studio/StudioApp.tsx", root), "utf8");
+  const access = readFileSync(new URL("app/api/auth/mentor-courseware-access/route.ts", root), "utf8");
+  const gateway = readFileSync(new URL("deploy/minisv/gateway/default.conf", root), "utf8");
+  const packager = readFileSync(new URL("deploy/minisv/package_release.py", root), "utf8");
+  assert.match(runtime, /cw-development-mentor-module-thinking/);
+  assert.match(runtime, /entryPath: "\/courseware\/development-mentor-module-thinking\/audience\/"/);
+  assert.match(runtime, /D: "development-mentor-ligun"/);
+  assert.match(studio, /development-mentor-module-thinking\/teacher\/presenter\.html/);
+  assert.match(access, /\["admin", "mentor"\]/);
+  assert.doesNotMatch(access, /\["admin", "mentor", "learner"\]/);
+  assert.match(access, /user\.impersonation \|\| user\.mustChangePassword/);
+  assert.match(gateway, /location \^~ \/courseware\/development-mentor-module-thinking\/teacher\//);
+  assert.match(gateway, /auth_request \/_minisv_mentor_courseware_auth/);
+  assert.match(gateway, /proxy_pass http:\/\/minisv_app_backend\/api\/auth\/mentor-courseware-access/);
+  assert.match(packager, /validate_module_thinking_courseware/);
+  assert.match(packager, /mentor-protected-teacher-courseware/);
 });
 
 test("T-086 navigation names the two acceptance gates and keeps UI preview on real Test Classroom routes", () => {
@@ -72,7 +103,7 @@ test("T-096 makes /course/ a registry-backed Released library for real learners 
 });
 
 test("T-100 separates author Candidate preview, historical releases and latest classroom playback", () => {
-  const internalPreview = readFileSync(new URL("app/studio/courseware/[packageId]/page.tsx", root), "utf8");
+  const internalPreview = readFileSync(new URL("app/console/courseware/[packageId]/page.tsx", root), "utf8");
   const classroomPreview = readFileSync(new URL("app/classroom/[classroomId]/courseware/[mentorRole]/page.tsx", root), "utf8");
   const asset = readFileSync(new URL("app/courseware-assets/[packageId]/[revision]/[digest]/[...path]/route.ts", root), "utf8");
   const runtime = readFileSync(new URL("app/classroom/ClassroomRuntime.tsx", root), "utf8");
@@ -163,9 +194,9 @@ test("T-099 Candidate API and editor require an exact base and expose a non-dest
   }
 });
 
-test("gateway owns Studio, Course and per-classroom app routes and retires global Alpha/Control", () => {
+test("gateway owns Console, Terminal, Studio compatibility, Course and per-classroom routes", () => {
   const gateway = readFileSync(new URL("deploy/minisv/gateway/default.conf", root), "utf8");
-  assert.match(gateway, /\(studio\|course\|classroom\|account\)/);
+  assert.match(gateway, /\(studio\|console\|terminal\|course\|classroom\|account\|u\)/);
   assert.doesNotMatch(gateway, /location \^~ \/alpha\//);
   assert.doesNotMatch(gateway, /location \^~ \/control\//);
   assert.match(gateway, /location = \/alpha \{ return 410;/);

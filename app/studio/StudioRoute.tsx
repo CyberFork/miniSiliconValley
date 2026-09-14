@@ -12,7 +12,7 @@ export default async function StudioRoute({
   initialCourseRef?: { courseId: string; revision: number; digest?: string } | null;
 }) {
   const user = await getChatGPTUser();
-  const routePath = `/studio/${section === "home" ? "" : `${section}/`}`;
+  const routePath = `/console/studio/${section === "home" ? "" : `${section}/`}`;
   const returnTo = section === "preview" && initialCourseRef
     ? `${routePath}?${new URLSearchParams({
         course: initialCourseRef.courseId,

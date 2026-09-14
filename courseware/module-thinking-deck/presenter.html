@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN" data-audience-url="./index.html">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <title>教师视图｜模块思维</title>
+  <link rel="stylesheet" href="deck.css">
+  <link rel="stylesheet" href="presenter.css">
+</head>
+<body class="presenter-shell">
+  <header class="presenter-topbar">
+    <div class="presenter-brand">
+      <img src="assets/mini-silicon-valley-logo-transparent.png" alt="MINI硅谷">
+      <div><small>TEACHER VIEW · PRIVATE</small><b>模块思维｜教师视图</b></div>
+    </div>
+    <div class="session-panel">
+      <span id="connection" class="connection offline">投屏未连接</span>
+      <span id="session-label" class="session-label"></span>
+      <button type="button" id="open-audience" class="primary">打开投屏窗口</button>
+      <button type="button" id="new-session">新播放会话</button>
+    </div>
+  </header>
+
+  <main class="presenter-grid">
+    <aside class="slide-rail">
+      <div class="rail-heading"><b>课程目录</b><span id="rail-progress">01 / 16</span></div>
+      <nav id="slide-list" aria-label="课件目录"></nav>
+    </aside>
+
+    <section class="presenter-center">
+      <div class="preview-label"><b>当前投屏</b><span id="current-title"></span></div>
+      <div id="current-preview" class="preview-frame large"></div>
+      <div class="transport" aria-label="投屏控制">
+        <button type="button" id="prev-step">← 上一步</button>
+        <button type="button" id="reveal" class="primary">揭示 / 继续</button>
+        <button type="button" id="next-slide">下一页 →</button>
+        <button type="button" id="reset-reveal">收起本页答案</button>
+      </div>
+      <div class="next-row">
+        <div><small>NEXT</small><b id="next-title">课程结束</b></div>
+        <div id="next-preview" class="preview-frame small"></div>
+      </div>
+      <p class="projection-hint">投屏窗口请移到扩展屏后，在投屏窗口点击 ⛶。不要使用镜像屏幕，也不要共享整个教师桌面。</p>
+    </section>
+
+    <aside class="notes-panel">
+      <div class="note-head"><span id="note-source">S01</span><b id="note-time">4 分钟</b></div>
+      <section class="note-important"><small>本页目标</small><h2 id="note-goal"></h2></section>
+      <section><small>现场顺序</small><ol id="note-script"></ol></section>
+      <section><small>可接受回答</small><ul id="note-acceptable"></ul></section>
+      <section class="reward-note"><small>硅谷币提示</small><p id="note-reward"></p></section>
+      <section><small>本页验收</small><p id="note-acceptance"></p></section>
+      <details>
+        <summary>常见误区与备课材料</summary>
+        <div class="details-body"><b>常见误区</b><p id="note-misconception"></p><b>所需材料</b><p id="note-materials"></p></div>
+      </details>
+    </aside>
+  </main>
+
+  <footer class="presenter-footer">
+    <span>← / →：逐步控制　Shift + ← / →：直接切页　O：打开投屏　数字目录：明确跳页</span>
+    <span>课件翻页不会推进 Classroom，也不会自动发币。</span>
+  </footer>
+
+  <script src="deck-data.js"></script>
+  <script src="presenter-notes.js"></script>
+  <script src="presenter-runtime.js"></script>
+</body>
+</html>

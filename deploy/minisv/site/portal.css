@@ -61,6 +61,9 @@ p { text-wrap: pretty; }
 .site-nav a:hover, .site-nav a[aria-current="page"] { color: #fff5db; }
 .brand:visited, .site-nav a:visited { color: inherit; }
 .site-nav a:hover::after, .site-nav a[aria-current="page"]::after { transform: scaleX(1); }
+.terminal-shortcut { display: inline-flex; min-height: 46px; align-items: center; padding: 0 13px; color: var(--paper-light); background: #173047; border: 2px solid var(--teal-light); font-size: 13px; font-weight: 950; white-space: nowrap; }
+.terminal-shortcut:visited { color: var(--paper-light); }
+.terminal-shortcut:hover { color: var(--navy-deep); background: var(--teal-light); }
 .classroom-shortcut { display: inline-flex; min-height: 46px; align-items: center; gap: 10px; padding: 0 14px; color: var(--navy-deep); background: var(--gold); border: 2px solid var(--gold); font-size: 13px; font-weight: 950; box-shadow: 4px 4px 0 var(--coral-dark); }
 .classroom-shortcut:visited { color: var(--navy-deep); }
 .classroom-shortcut:hover { color: var(--paper-light); background: var(--coral); border-color: var(--coral); }
@@ -204,7 +207,8 @@ p { text-wrap: pretty; }
 .site-footer p { grid-column: 1 / -1; margin: 0; padding-top: 20px; color: #839a97; border-top: 1px solid #385057; font: 800 10px var(--font-mono); letter-spacing: .08em; }
 
 /* Shared API-backed account surface. It never stores session data in JS storage. */
-.portal-account { position: relative; z-index: 100; flex: 0 0 auto; }
+.portal-account { position: relative; z-index: 100; display:flex; flex: 0 0 auto; align-items:center; gap:7px; }
+.portal-workbench-shortcut{display:inline-flex;min-height:46px;align-items:center;padding:0 11px;color:var(--paper-light);border:2px solid #68817f;font-size:11px;font-weight:950}.portal-workbench-shortcut:hover{color:var(--navy-deep);background:var(--teal-light);border-color:var(--teal-light)}
 .portal-account-fallback, .portal-account-trigger { display: flex; min-width: 52px; min-height: 46px; align-items: center; justify-content: center; gap: 8px; padding: 5px 9px; color: var(--paper-light); background: transparent; border: 2px solid #68817f; border-radius: 0; font: 900 11px/1.2 var(--font-body); cursor: pointer; }
 .portal-account-fallback:visited { color: var(--paper-light); }
 .portal-account-fallback:hover, .portal-account-trigger:hover:not(:disabled) { color: var(--navy-deep); background: var(--teal-light); border-color: var(--teal-light); }
@@ -245,6 +249,7 @@ p { text-wrap: pretty; }
   .wrap { width: min(100% - 40px, 1120px); }
   .site-nav a { min-width: 0; padding-inline: 9px; }
   .classroom-shortcut span { display: none; }
+  .terminal-shortcut { padding-inline: 9px; }
   .hero { grid-template-columns: minmax(330px, .78fr) minmax(470px, 1.22fr); gap: 30px; }
   .hero-copy h1 { font-size: clamp(55px, 7.2vw, 85px); }
   .mentor-layout, .outcomes-grid { grid-template-columns: 1fr; }
@@ -257,7 +262,8 @@ p { text-wrap: pretty; }
   .site-nav { order: 4; width: 100%; height: 45px; margin: 0; overflow-x: auto; border-top: 1px solid #3e5559; }
   .site-nav a { flex: 1 0 auto; min-width: 92px; }
   .site-nav a::after { bottom: 4px; }
-  .classroom-shortcut { margin-left: auto; }
+  .terminal-shortcut { margin-left: auto; }
+  .classroom-shortcut { margin-left: 0; }
   .hero { display: flex; min-height: auto; flex-direction: column; align-items: stretch; padding-block: 65px 80px; }
   .hero-copy { max-width: 780px; }
   .world-preview { width: 100%; }
@@ -275,9 +281,9 @@ p { text-wrap: pretty; }
   .brand strong { font-size: 15px; }
   .brand small { font-size: 8px; }
   .brand img { width: 126px; height: 34px; flex-basis: 126px; }
-  .classroom-shortcut { min-height: 42px; padding-inline: 10px; }
+  .terminal-shortcut, .classroom-shortcut { min-height: 42px; padding-inline: 10px; }
   .portal-account-trigger, .portal-account-fallback { min-height: 42px; }
-  .portal-account-label, .portal-account-chevron { display: none; }
+  .portal-account-label, .portal-account-chevron, .portal-workbench-shortcut { display: none; }
   .portal-account-panel { position: fixed; top: 66px; right: 7px; max-height: calc(100svh - 74px); }
   .hero { padding-top: 47px; }
   .hero-copy h1 { font-size: clamp(52px, 17vw, 78px); }

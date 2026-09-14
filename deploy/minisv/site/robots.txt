@@ -6,6 +6,9 @@ Allow: /parents/
 Disallow: /auth/
 Disallow: /account/
 Disallow: /classroom/
+Disallow: /terminal/
+Disallow: /console/
+Disallow: /u/
 Disallow: /course/
 Disallow: /courseware/
 Disallow: /studio/

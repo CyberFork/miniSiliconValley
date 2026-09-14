@@ -139,13 +139,13 @@ try {
   assert.equal(marketLogin.pathname, "/auth/login");
   assert.equal(marketLogin.searchParams.get("returnTo"), "/course/market-mentor-user-system/?revision=0&slide=12");
 
-  const anonymousEditor = await fetch(`${internalBase}/studio/editor/`, {
+  const anonymousEditor = await fetch(`${internalBase}/console/studio/editor/`, {
     headers: proxyHeaders(), redirect: "manual", signal: AbortSignal.timeout(20_000),
   });
   assert.ok([302, 303, 307, 308].includes(anonymousEditor.status));
   assert.match(anonymousEditor.headers.get("location") ?? "", /\/auth\/login.*returnTo/);
   const previewRef = initial.versions[0]!.ref;
-  const exactPreviewPath = `/studio/preview/?course=${encodeURIComponent(previewRef.courseId)}&revision=${previewRef.revision}&digest=${encodeURIComponent(previewRef.digest)}`;
+  const exactPreviewPath = `/console/studio/preview/?course=${encodeURIComponent(previewRef.courseId)}&revision=${previewRef.revision}&digest=${encodeURIComponent(previewRef.digest)}`;
   const anonymousExactPreview = await fetch(`${internalBase}${exactPreviewPath}`, {
     headers: proxyHeaders(), redirect: "manual", signal: AbortSignal.timeout(20_000),
   });
@@ -153,7 +153,10 @@ try {
   const exactPreviewLogin = new URL(anonymousExactPreview.headers.get("location") ?? "", publicOrigin);
   assert.equal(exactPreviewLogin.pathname, "/auth/login");
   assert.equal(exactPreviewLogin.searchParams.get("returnTo"), exactPreviewPath);
-  const editorPage = await get("/studio/editor/", adminCookie);
+  const legacyEditor = await getManual("/studio/editor/", adminCookie);
+  assert.equal(legacyEditor.status, 308);
+  assert.equal(new URL(legacyEditor.headers.get("location") ?? "", publicOrigin).pathname, "/console/studio/editor/");
+  const editorPage = await get("/console/studio/editor/", adminCookie);
   assert.equal(editorPage.status, 200);
   const editorHtml = await editorPage.text();
   for (const marker of ["课程编排工作台", "COURSE LIBRARY", "全课程时序轴", "多角色直改", "抽卡内容", "课程中控视窗"]) {
@@ -164,16 +167,16 @@ try {
   assert.ok(editorHtml.includes("账户中心") && editorHtml.includes("添加账号") && editorHtml.includes("退出当前账号"));
   assert.equal((await get("/studio/editor-assets/editor-loader.js", adminCookie)).status, 200);
   for (const [path, title] of [
-    ["/studio/", "课程生产工作台"],
-    ["/studio/preview/", "多角色视图验收"],
-    ["/studio/releases/", "验收与发布"],
-    ["/studio/courseware/", "导师课件库"],
+    ["/console/studio/", "课程生产工作台"],
+    ["/console/studio/preview/", "多角色视图验收"],
+    ["/console/studio/releases/", "验收与发布"],
+    ["/console/courseware/", "导师课件库"],
   ] as const) {
     const response = await get(path, adminCookie);
     assert.equal(response.status, 200, `${path} must be a directly addressable Studio route`);
     const html = await response.text();
     assert.ok(html.includes(title), `${path} missing route title ${title}`);
-    assert.ok(html.includes("href=\"/studio/editor/\"") && html.includes("href=\"/studio/preview/\"") && html.includes("href=\"/studio/releases/\""), `${path} must render real navigation hrefs`);
+    assert.ok(html.includes("href=\"/console/studio/editor/\"") && html.includes("href=\"/console/studio/preview/\"") && html.includes("href=\"/console/studio/releases/\""), `${path} must render real navigation hrefs`);
     assert.ok(html.includes("账户中心") && html.includes("添加账号") && html.includes("退出当前账号"), `${path} missing unified account menu`);
   }
 

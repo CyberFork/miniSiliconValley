@@ -1710,6 +1710,7 @@ type ManagedLearnerDeletionRow = {
   learning_count: number;
   facilitation_count: number;
   funds_count: number;
+  terminal_count: number;
 };
 
 function parseManagedLearnerSelection(value: unknown): string[] {
@@ -1735,7 +1736,12 @@ async function managedLearnerDeletionPreviews(db: ClassroomD1, userIds: string[]
               (SELECT COUNT(*) FROM course_ui_acceptance_receipts WHERE accepted_by_profile_id = u.id) +
               (SELECT COUNT(*) FROM course_content_review_events WHERE reviewer_profile_id = u.id) AS facilitation_count,
             (SELECT COUNT(*) FROM ledger_accounts WHERE owner_profile_id = u.id AND balance_tenths <> 0) +
-              (SELECT COUNT(*) FROM ledger_transactions WHERE from_account_id = 'wallet:' || u.id OR to_account_id = 'wallet:' || u.id) AS funds_count
+              (SELECT COUNT(*) FROM ledger_transactions WHERE from_account_id = 'wallet:' || u.id OR to_account_id = 'wallet:' || u.id) AS funds_count,
+            (SELECT COUNT(*) FROM learner_terminal_transactions WHERE profile_id = u.id OR actor_profile_id = u.id) +
+              (SELECT COUNT(*) FROM learner_terminal_inventory WHERE profile_id = u.id) +
+              (SELECT COUNT(*) FROM learner_terminal_equipment WHERE profile_id = u.id) +
+              (SELECT COUNT(*) FROM learner_public_spaces WHERE profile_id = u.id) +
+              (SELECT COUNT(*) FROM learner_terminal_wallets WHERE profile_id = u.id AND balance_coins <> 0) AS terminal_count
      FROM auth_users u
      WHERE u.id IN (${placeholders}) AND u.role = 'learner'
      ORDER BY u.username`,
@@ -1753,6 +1759,7 @@ async function managedLearnerDeletionPreviews(db: ClassroomD1, userIds: string[]
       ["learning", "作品、学习或声望记录", row.learning_count],
       ["facilitation", "导师、验收或发布记录", row.facilitation_count],
       ["funds", "资金余额或流水", row.funds_count],
+      ["terminal", "时空终端资产、公开空间或流水", row.terminal_count],
     ] as const;
     for (const [code, label, countValue] of checks) {
       const count = Number(countValue ?? 0);

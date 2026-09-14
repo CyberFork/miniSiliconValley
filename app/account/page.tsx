@@ -20,8 +20,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
     mustChangePassword: current.mustChangePassword,
     impersonation: null,
   };
-  const requested = typeof params.returnTo === "string" ? params.returnTo : "/classroom/";
-  const returnTo = requested.startsWith("/") && !requested.startsWith("//") && !requested.startsWith("/auth") && !requested.startsWith("/account") ? requested : "/classroom/";
-  const initialView = current.role === "admin" && params.view !== "profile" ? "learners" : "profile";
-  return <AccountClient initialUser={user} firstLogin={params.first === "1"} returnTo={returnTo} initialView={initialView} />;
+  const requested = typeof params.returnTo === "string" ? params.returnTo : "/terminal/";
+  const returnTo = requested.startsWith("/") && !requested.startsWith("//") && !requested.startsWith("/auth") && !requested.startsWith("/account") ? requested : "/terminal/";
+  return <AccountClient initialUser={user} firstLogin={params.first === "1"} returnTo={returnTo} />;
 }

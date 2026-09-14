@@ -170,6 +170,36 @@ try {
   assert.equal(releasedCourseware.status, 200, "a real learner may browse Released courseware");
   assert.match(await releasedCourseware.text(), /COURSE LIBRARY|课程目录/);
 
+  const terminalPage = await get("/terminal/", registrationCookie);
+  assert.equal(terminalPage.status, 200, "a stable learner account must open its terminal");
+  assert.match(await terminalPage.text(), /时空终端|TIME TERMINAL/);
+  const terminal = await getData<{
+    identity: { username: string };
+    wallets: { production: { initialized: boolean; balanceCoins: number | null }; test: { initialized: boolean; balanceCoins: number | null } };
+  }>("/api/terminal/bootstrap", registrationCookie);
+  assert.equal(terminal.identity.username, "new-builder");
+  assert.deepEqual(terminal.wallets.production, { initialized: false, balanceCoins: null, environment: "production", transactions: [] });
+  assert.equal(terminal.wallets.test.initialized, false);
+  const initializedWallet = await postData<{ initialized: boolean; balanceCoins: number }>("/api/terminal/wallet", { environment: "production" }, registrationCookie);
+  assert.equal(initializedWallet.initialized, true);
+  assert.equal(initializedWallet.balanceCoins, 0);
+  const publicSpaceUpdate = await mutate("/api/terminal/space", "PATCH", {
+    intro: "冒烟测试公开空间", projectTitle: "第一个公开作品", projectSummary: "只包含主动发布的公开副本。",
+    projectUrl: "https://example.com/project", teamName: "冒烟队", contribution: "负责验证终端边界。",
+  }, registrationCookie);
+  assert.equal(publicSpaceUpdate.status, 200, await publicSpaceUpdate.clone().text());
+  const publicSpace = await get("/api/public/spaces/new-builder");
+  assert.equal(publicSpace.status, 200);
+  const publicSpaceText = await publicSpace.text();
+  assert.match(publicSpaceText, /第一个公开作品/);
+  assert.doesNotMatch(publicSpaceText, /password|admin_notes|PRIVATE/i);
+  const learnerConsole = await get("/console/", registrationCookie);
+  assert.equal(learnerConsole.status, 200);
+  assert.match(await learnerConsole.text(), /403 · INTERNAL WORKBENCH|这里是团队内部工作台/);
+  const mentorConsole = await get("/console/", mentorCookie);
+  assert.equal(mentorConsole.status, 200);
+  assert.match(await mentorConsole.text(), /团队工作台/);
+
   const mentorKnownAccounts = await getData<Array<{ username: string }>>("/api/studio/accounts", mentorCookie);
   assert.deepEqual(mentorKnownAccounts.map((account) => account.username), ["smoke-mentor"], "mentor directory must default to its scoped roster");
   const exactAccount = await getData<Array<{ username: string; role: string }>>(
@@ -245,7 +275,7 @@ try {
   assert.equal(limited.status, 429);
   assert.match(limited.headers.get("retry-after") ?? "", /^\d+$/);
 
-  console.log(`${deployment.toUpperCase()}_APP_SMOKE_PASS auth=password registration=open-learner membership=required released-courseware=allowed studio=forbidden legacy-classroom=410 reset=single-use-fragment`);
+  console.log(`${deployment.toUpperCase()}_APP_SMOKE_PASS auth=password registration=open-learner membership=required terminal=wallet+public-space console=role-gated released-courseware=allowed studio=forbidden legacy-classroom=410 reset=single-use-fragment`);
 } catch (error) {
   if (diagnostics.trim()) console.error(`WRANGLER_DIAGNOSTICS\n${diagnostics}`);
   throw error;

@@ -1,0 +1,34 @@
+{
+  "ok": true,
+  "todo": "T-122",
+  "verifiedAt": "2026-09-14T14:58:00+08:00",
+  "artifact": {
+    "id": "module-thinking-p1",
+    "version": "2026.09.14-r1",
+    "sourceXmindSha256": "a31489645adcfaf6b7afd3be734349175740c520120cda65552cfa0f3e833793",
+    "slideCount": 16
+  },
+  "checks": {
+    "sourceMapping": "passed: S01-S16 stable ids",
+    "presenterNotes": "passed: all 16 slides have goal, script, answers, misconception, rewards, acceptance and materials",
+    "bundleSeparation": "passed: audience bundle contains no teacher notes or presenter scripts",
+    "desktopProjection": "passed: 1440x900 fixed-ratio fit",
+    "allSlideOverflow": "passed: 16/16 slides",
+    "revealAndRefresh": "passed",
+    "presenterAudienceSync": "passed with BroadcastChannel session",
+    "sessionIsolation": "passed",
+    "mobileTouch": "passed at 390x844 without page overflow",
+    "printables": "passed: module map and two interface cards"
+  },
+  "commands": [
+    "node scripts/build.mjs",
+    "node tests/verify.mjs",
+    "python3 -m http.server 8122",
+    "python3 tests/verify-browser.py"
+  ],
+  "deployment": {
+    "status": "not-deployed",
+    "reason": "teacher bundle requires server-side mentor authorization; local completion does not publish private notes as public static files"
+  },
+  "manualAcceptance": "not-signed-by-user"
+}

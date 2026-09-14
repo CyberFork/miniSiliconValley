@@ -18,6 +18,7 @@ const tables = [
   "classroom_atomic_assertions", "classroom_submission_revisions", "classroom_submission_mutations",
   "classroom_script_mutations", "classroom_reset_mutations", "classroom_finish_mutations",
   "classroom_archives", "classroom_deletions",
+  "learner_terminal_wallets", "learner_terminal_transactions", "learner_terminal_inventory", "learner_terminal_equipment", "learner_public_spaces",
   "course_view_acceptance_receipts", "course_ui_acceptance_receipts", "course_acceptance_build_identities", "classroom_acceptance_bindings",
   "course_content_review_events",
   "auth_impersonations",
@@ -120,6 +121,12 @@ test("unified course factory keeps release, courseware, permissions and script p
     "trg_course_content_review_item_exact",
     "trg_course_content_review_immutable_update",
     "trg_course_content_review_immutable_delete",
+    "uidx_learner_terminal_transaction_request",
+    "uidx_learner_terminal_transaction_reversal",
+    "trg_learner_terminal_transaction_balance_guard",
+    "trg_learner_terminal_transaction_apply",
+    "trg_learner_terminal_transaction_immutable_update",
+    "trg_learner_terminal_inventory_slot_match_insert",
   ]) assert.match(migration, new RegExp(marker));
   assert.match(migration, /DROP INDEX IF EXISTS `uidx_course_versions_digest`/);
   assert.match(migration, /CHECK \(`environment` in \('test', 'production'\)\)/);

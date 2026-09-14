@@ -84,10 +84,10 @@ deploy/minisv/scripts/build-chj-product-course-r2.sh <chj9-11-checkout> <coursew
 npm run build:minisv-app
 npm run render:minisv-static
 
-python3 deploy/minisv/package_release.py   --legacy-root <已验收的静态基线>   --app-client-root dist/client   --app-static-root dist/minisv-static   --course-static-root <courseware-r0-output>   --product-courseware-r1-root <courseware-r1-output>   --product-courseware-r2-root <courseware-r2-output>   --portal-root deploy/minisv/site   --output <site-output>   --release-id <RELEASE_ID>   --main-sha "$(git rev-parse HEAD)"
+python3 deploy/minisv/package_release.py   --legacy-root <已验收的静态基线>   --app-client-root dist/client   --app-static-root dist/minisv-static   --course-static-root <courseware-r0-output>   --product-courseware-r1-root <courseware-r1-output>   --product-courseware-r2-root <courseware-r2-output>   --module-thinking-root courseware/module-thinking-deck/dist   --portal-root deploy/minisv/site   --output <site-output>   --release-id <RELEASE_ID>   --main-sha "$(git rev-parse HEAD)"
 ```
 
-`package_release.py` 生成 `release.json`、`sitemap.json` 和 `site/MANIFEST.sha256`。动态 `/course/` 由应用拥有；产品导师课件 `r0`／`r1`／`r2` 分别原样复制并在 `productCoursewareArtifacts` 中逐版留证，仓库中带 exact manifest 的 D／M 课件复制到各自 `/courseware/{slug}/`。所有课件都在全局主题转换之后写入，禁止静默改写已发布字节。
+`package_release.py` 生成 `release.json`、`sitemap.json` 和 `site/MANIFEST.sha256`。动态 `/course/` 由应用拥有；产品导师课件 `r0`／`r1`／`r2` 分别原样复制并在 `productCoursewareArtifacts` 中逐版留证，仓库中带 exact manifest 的 D／M 课件复制到各自 `/courseware/{slug}/`。T-122 模块思维课件必须先运行 `npm run test:t122:courseware`，再使用它的 `dist/`组装：`audience/` 使用普通已登录课件门禁，`teacher/` 使用服务端 Admin／Mentor 专用门禁。所有课件都在全局主题转换之后写入，禁止静默改写已发布字节。
 
 打包器会再次校验 Git 根目录、`origin`、HEAD、`origin/main`、退役标记及工作树，并把结果写入 `release.json.workspaceProvenance`。默认拒绝旧工程、未推送提交和脏工作树。确有应急需求时可用 `--allow-dirty-reason "<12—500字单行原因>"`，但例外会进入发布清单，不能隐藏。
 

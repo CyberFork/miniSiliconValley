@@ -21,7 +21,7 @@ test("the full direct-edit Course Studio replaces the regressed summary-card edi
   assert.match(html, /id="fieldDialog"/);
   assert.doesNotMatch(html, /<script[^>]+src="[^"]*\/studio\/editor-assets\/(?:ui-theme|card-view|course-projection-core|course-preview|editor)\.js[^"]*"/);
 
-  const page = source("app/studio/editor/page.tsx");
+  const page = source("app/console/studio/editor/page.tsx");
   assert.match(page, /workbench\.html\?raw/);
   assert.match(page, /editor-assets\/editor-loader\.js/);
   assert.doesNotMatch(page, /\/studio\/editor-assets\/(?:ui-theme|card-view|course-projection-core|course-preview|editor)\.js/);
@@ -50,7 +50,7 @@ test("the restored editor speaks only to the versioned Studio API", () => {
   assert.match(js, /openFieldEditor/);
   assert.match(js, /undoStack/);
   assert.match(js, /restoredFrom/);
-  assert.match(js, /window\.location\.assign\("\/studio\/releases\/"\)/);
+  assert.match(js, /window\.location\.assign\("\/console\/studio\/releases\/"\)/);
   assert.match(js, /exactViewReceipt/);
   assert.match(js, /exactUiReceipt/);
   assert.match(js, /前往多角色视图验收/);

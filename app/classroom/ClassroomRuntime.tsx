@@ -418,7 +418,7 @@ function RuntimeTop({ data, classroomId, user, selectedSurface, onSwitch }: { da
         : "课堂成员";
   return <><header className={styles.runtimeTop}>
     <BrandHomeLink className={styles.runtimeBrand} title={data.title} subtitle="CLASSROOM · 课堂运行时" />
-    <nav aria-label="课堂内导航"><Link href="/classroom/">课堂中心</Link><Link href={`/classroom/${classroomId}/`}>我的席位</Link>{data.controlView && <Link href={`/classroom/${classroomId}/control`}>主持提示</Link>}<a href={`/classroom/${classroomId}/screen?block=${encodeURIComponent(data.page.id)}`} target="_blank" rel="noreferrer">投屏</a>{data.isAdminDm && <Link href={`/classroom/${classroomId}/members`}>成员</Link>}<AccountMenu user={user} returnTo={`/classroom/${classroomId}/`} context={{
+    <nav aria-label="课堂内导航"><Link href="/classroom/">课堂中心</Link><Link href={`/classroom/${classroomId}/`}>我的席位</Link>{data.controlView && <Link href={`/console/classrooms/${classroomId}/control/`}>主持提示</Link>}<a href={`/classroom/${classroomId}/screen?block=${encodeURIComponent(data.page.id)}`} target="_blank" rel="noreferrer">投屏</a>{data.isAdminDm && <Link href={`/classroom/${classroomId}/members`}>成员</Link>}<AccountMenu user={user} returnTo={`/classroom/${classroomId}/`} context={{
       classroomId,
       classroomTitle: data.title,
       seatLabel,
@@ -760,7 +760,7 @@ function ControlView({ data, busy, requestUnlock, requestFinish, reset, receipt 
           {!atFrontier && <p>你正在回看；使用上方“回到最新解锁”后才能继续解锁。</p>}
           {allUnlocked && data.lifecycle !== "completed" && <div className={styles.finishCallout}><b>全部剧本页已经解锁，但课堂还没有结束。</b><p>请先讲完结尾与 Demo／复盘，再单独确认结束。解锁末页不会自动代表作品或课堂完成。</p><button className={styles.button} disabled={busy || !atFrontier} onClick={requestFinish}>{atFrontier ? "确认结束本次课堂" : "先回到最新解锁页"}</button></div>}
           {allUnlocked && data.lifecycle === "completed" && <div className={styles.receiptSuccess}><b>✓ 本次课堂已明确结束</b><code>{data.runtimeIdentity.runId}</code></div>}
-          {allUnlocked && data.lifecycle === "completed" && data.environment === "test" && data.acceptance.uiReceiptId && <div className={styles.receiptSuccess}><b>✓ UiAcceptanceReceipt 已签发</b><code>{data.acceptance.uiReceiptId}</code><br/><Link href="/studio/releases/">返回验收与发布 →</Link></div>}
+          {allUnlocked && data.lifecycle === "completed" && data.environment === "test" && data.acceptance.uiReceiptId && <div className={styles.receiptSuccess}><b>✓ UiAcceptanceReceipt 已签发</b><code>{data.acceptance.uiReceiptId}</code><br/><Link href="/console/studio/releases/">返回验收与发布 →</Link></div>}
           {allUnlocked && data.lifecycle === "completed" && data.environment === "test" && !data.acceptance.uiReceiptId && data.isAdminDm && <fieldset className={styles.receiptChecks}>
             <legend>签发回执前，逐项确认真实 Test Classroom</legend>
             {UI_ACCEPTANCE_CHECKLIST.map((item) => <label key={item.id}><input type="checkbox" checked={receiptChecks[item.id]} onChange={(event) => setReceiptChecks((current) => ({ ...current, [item.id]: event.target.checked }))} />{item.label}</label>)}
@@ -979,7 +979,7 @@ function factoryHrefForArchived(data: ClassroomInstanceDetail): string {
     environment: "test",
     ...(data.acceptance.viewReceiptId ? { viewReceipt: data.acceptance.viewReceiptId } : {}),
   });
-  return `/classroom/?${query.toString()}#factory`;
+  return `/console/classrooms/?${query.toString()}#factory`;
 }
 
 function RuntimeStandaloneBrand() {

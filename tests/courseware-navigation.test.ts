@@ -27,7 +27,7 @@ test("all authenticated static entry routes redirect before rendering the old la
   for (const file of [
     "app/course/[slug]/page.tsx",
     "app/classroom/[classroomId]/courseware/[mentorRole]/page.tsx",
-    "app/studio/courseware/[packageId]/page.tsx",
+    "app/console/courseware/[packageId]/page.tsx",
   ]) {
     const source = readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
     assert.match(source, /coursewarePlayerHref/);

@@ -56,31 +56,31 @@ const NAV_GROUPS: Array<{
   {
     label: "课程生产",
     items: [
-      { id: "home", href: "/studio/", code: "00", label: "课程工作台" },
-      { id: "editor", href: "/studio/editor/", code: "01", label: "课程编辑器" },
-      { id: "preview", href: "/studio/preview/", code: "02", label: "多角色视图验收" },
-      { id: "reviews", href: "/studio/reviews/", code: "03", label: "人工审核工作台" },
-      { id: "releases", href: "/studio/releases/", code: "04", label: "验收与发布" },
+      { id: "home", href: "/console/studio/", code: "00", label: "课程工作台" },
+      { id: "editor", href: "/console/studio/editor/", code: "01", label: "课程编辑器" },
+      { id: "preview", href: "/console/studio/preview/", code: "02", label: "多角色视图验收" },
+      { id: "reviews", href: "/console/studio/reviews/", code: "03", label: "人工审核工作台" },
+      { id: "releases", href: "/console/studio/releases/", code: "04", label: "验收与发布" },
     ],
   },
   {
     label: "资源管理",
     items: [
-      { id: "courseware", href: "/studio/courseware/", code: "05", label: "导师课件库" },
+      { id: "courseware", href: "/console/courseware/", code: "05", label: "导师课件库" },
       { href: "/course/", code: "06", label: "课件查看" },
-      { href: "/account/?view=learners", code: "10", label: "学员账号管理", adminOnly: true },
+      { href: "/console/accounts/", code: "10", label: "学员账号管理", adminOnly: true },
     ],
   },
   {
     label: "课堂交付",
     items: [
-      { href: "/classroom/#factory", code: "07", label: "Test 课堂验收" },
-      { href: "/classroom/#production-classrooms", code: "08", label: "正式课堂" },
+      { href: "/console/classrooms/#factory", code: "07", label: "Test 课堂验收" },
+      { href: "/console/classrooms/#production-classrooms", code: "08", label: "正式课堂" },
     ],
   },
   {
     label: "资料与历史",
-    items: [{ id: "history", href: "/studio/history/", code: "09", label: "早期课程工作坊" }],
+    items: [{ id: "history", href: "/console/archive/", code: "09", label: "早期课程工作坊" }],
   },
 ];
 
@@ -98,10 +98,12 @@ export default function StudioApp({
   section,
   user,
   initialCourseRef = null,
+  embedded = false,
 }: {
   section: StudioSection;
   user: AccountMenuUser;
   initialCourseRef?: InitialCourseRef;
+  embedded?: boolean;
 }) {
   const [data, setData] = useState<Bootstrap | null>(null);
   const [error, setError] = useState("");
@@ -134,16 +136,16 @@ export default function StudioApp({
     await load();
   };
 
-  return <main className={styles.page}>
-    <header className={styles.topbar}>
+  return <main className={`${styles.page} ${embedded ? styles.embedded : ""}`.trim()}>
+    {!embedded && <header className={styles.topbar}>
       <BrandHomeLink className={styles.brand} title="Course Studio" />
       <div className={styles.user}>
         <Link href="/classroom/">课堂中心</Link>
-        <AccountMenu user={user} returnTo={`/studio/${section === "home" ? "" : `${section}/`}`} />
+        <AccountMenu user={user} returnTo={`/console/studio/${section === "home" ? "" : `${section}/`}`} />
       </div>
-    </header>
-    <div className={styles.shell}>
-      <nav className={styles.nav} aria-label="Course Studio">
+    </header>}
+    <div className={embedded ? styles.embeddedShell : styles.shell}>
+      {!embedded && <nav className={styles.nav} aria-label="Course Studio">
         <p className={styles.navLabel}>COURSE FACTORY</p>
         {NAV_GROUPS.map((group) => <div className={styles.navGroup} key={group.label}>
           <b>{group.label}</b>
@@ -154,7 +156,7 @@ export default function StudioApp({
             aria-current={item.id === section ? "page" : undefined}
           ><span>{item.code}</span>{item.label}</Link>)}
         </div>)}
-      </nav>
+      </nav>}
       <section className={styles.content}>
         {section === "history" ? <StudioHistory /> : <>
           {error && <div className={styles.error} role="alert"><span>{error}</span><button type="button" onClick={() => void load()}>重试</button></div>}
@@ -189,9 +191,9 @@ function StudioHome({ data }: { data: Bootstrap }) {
       一份 CourseDefinition 先验收多角色数据视图，再用真实 Test Classroom 验收 UI；两张 exact 回执齐全后才允许发布和创建正式课堂。
     </Heading>
     <div className={styles.overviewGrid}>
-      <article className={styles.overviewCard}><b>01 · EDIT · {candidateCount} CANDIDATES</b><h2>编辑并保存 Candidate</h2><p>课程编辑器是唯一正文写入口。每次保存生成不可变 revision 与 digest，不热更新任何课堂。</p><Link href="/studio/editor/">打开课程编辑器 →</Link></article>
-      <article className={styles.overviewCard}><b>02 · VIEW · {validViewCount} PASSED</b><h2>验收 4 + N + 1</h2><p>逐 Block、逐支持人数检查四导师、N 学员、私密卡与中控投影，并签发 ViewAcceptanceReceipt。</p><Link href="/studio/preview/">开始多角色视图验收 →</Link></article>
-      <article className={styles.overviewCard}><b>03 · UI · {validUiCount} PASSED</b><h2>进入真实 Test Classroom</h2><p>使用正式课堂同一套 UI、API 与状态机跑完整流程，再签发 UiAcceptanceReceipt；测试数据始终与 Production 隔离。</p><Link href="/classroom/#factory">创建或继续 Test 课堂 →</Link></article>
+      <article className={styles.overviewCard}><b>01 · EDIT · {candidateCount} CANDIDATES</b><h2>编辑并保存 Candidate</h2><p>课程编辑器是唯一正文写入口。每次保存生成不可变 revision 与 digest，不热更新任何课堂。</p><Link href="/console/studio/editor/">打开课程编辑器 →</Link></article>
+      <article className={styles.overviewCard}><b>02 · VIEW · {validViewCount} PASSED</b><h2>验收 4 + N + 1</h2><p>逐 Block、逐支持人数检查四导师、N 学员、私密卡与中控投影，并签发 ViewAcceptanceReceipt。</p><Link href="/console/studio/preview/">开始多角色视图验收 →</Link></article>
+      <article className={styles.overviewCard}><b>03 · UI · {validUiCount} PASSED</b><h2>进入真实 Test Classroom</h2><p>使用正式课堂同一套 UI、API 与状态机跑完整流程，再签发 UiAcceptanceReceipt；测试数据始终与 Production 隔离。</p><Link href="/console/classrooms/#factory">创建或继续 Test 课堂 →</Link></article>
     </div>
     <section className={styles.panel}>
       <h2>不可跳过的生产线</h2>
@@ -214,9 +216,9 @@ function StudioHistory() {
       <a className={styles.historyLaunch} href="/workshop/">打开只读历史归档 →</a>
     </section>
     <div className={styles.historyGrid}>
-      <article><b>现在改课程</b><p>课程正文只有 Course Studio 编辑器一个写入口；保存会生成新的不可变 revision 与 digest。</p><Link href="/studio/editor/">去课程编辑器 →</Link></article>
-      <article><b>现在做验收</b><p>先检查 4 + N + 1 多角色视图，再用真实 Test Classroom 验收最终 UI，不能用归档内容代签回执。</p><Link href="/studio/preview/">去多角色视图验收 →</Link></article>
-      <article><b>找当前发布结果</b><p>Released、两级验收回执和正式课堂门禁都以当前 Registry 与 Studio 为准。</p><Link href="/studio/releases/">去验收与发布 →</Link></article>
+      <article><b>现在改课程</b><p>课程正文只有 Course Studio 编辑器一个写入口；保存会生成新的不可变 revision 与 digest。</p><Link href="/console/studio/editor/">去课程编辑器 →</Link></article>
+      <article><b>现在做验收</b><p>先检查 4 + N + 1 多角色视图，再用真实 Test Classroom 验收最终 UI，不能用归档内容代签回执。</p><Link href="/console/studio/preview/">去多角色视图验收 →</Link></article>
+      <article><b>找当前发布结果</b><p>Released、两级验收回执和正式课堂门禁都以当前 Registry 与 Studio 为准。</p><Link href="/console/studio/releases/">去验收与发布 →</Link></article>
     </div>
     <section className={styles.historyBoundary} aria-labelledby="history-browser-title">
       <div><small>ONE BROWSER AT A TIME</small><h2 id="history-browser-title">浏览器记录不会自动集中</h2></div>
@@ -285,7 +287,7 @@ function ViewAcceptance({ data, initialCourseRef, onAccepted, onError }: {
   }, [blockId, chooseBlock, source]);
   if (!source) return <div className={styles.empty} role="alert"><p>{initialCourseRef
     ? `请求的课程 ${initialCourseRef.courseId} r${initialCourseRef.revision} 不存在、digest 不匹配或已不是可验收版本；没有自动切换到其他课程。`
-    : "没有可验收的 Candidate 或 Released 课程版本。"}</p><Link href="/studio/releases/">返回验收与发布，选择当前版本 →</Link></div>;
+    : "没有可验收的 Candidate 或 Released 课程版本。"}</p><Link href="/console/studio/releases/">返回验收与发布，选择当前版本 →</Link></div>;
 
   const course = source.course;
   const requiredCounts = Array.from({ length: source.learnerPolicy.maxCount - source.learnerPolicy.minCount + 1 }, (_, index) => source.learnerPolicy.minCount + index);
@@ -342,7 +344,7 @@ function ViewAcceptance({ data, initialCourseRef, onAccepted, onError }: {
         <label className={styles.field}>验收课程 exact 版本<select value={versionKey(source)} onChange={(event) => chooseVersion(event.target.value)}>{options.map((version) => <option key={versionKey(version)} value={versionKey(version)}>{version.course.course.name} · r{version.ref.revision} · {version.candidate ? "Candidate" : "Released"}</option>)}</select></label>
         <div className={styles.exactRef}><b>{source.candidate ? "CANDIDATE" : "RELEASED"} · r{source.ref.revision}</b><code>{courseDataId}</code><code>{source.ref.digest}</code><small>投影契约 {data.acceptanceRuntime.projectorContractVersion} · 运行契约 {data.acceptanceRuntime.runtimeContractVersion} · {exactTestClassrooms.length} 场活跃 exact Test Classroom{archivedExactTests.length ? ` · ${archivedExactTests.length} 场已归档` : ""}</small><small>源码 {data.acceptanceRuntime.sourceCommit} · 构建 {data.acceptanceRuntime.appBuildId}</small></div>
       </div>
-      {exactTestClassrooms.length > 0 && <div className={styles.acceptedBanner}><b>同一数据快照的 Test Classroom</b><span>这里与课堂中控／席位使用相同 revision + digest；实际发牌 seed 只在课堂创建后产生。</span>{exactTestClassrooms.map((room) => <Link key={room.roomId} href={`/classroom/${room.roomId}/control`}>{room.roomId.slice(0, 8)} · {room.lifecycle} →</Link>)}</div>}
+      {exactTestClassrooms.length > 0 && <div className={styles.acceptedBanner}><b>同一数据快照的 Test Classroom</b><span>这里与课堂中控／席位使用相同 revision + digest；实际发牌 seed 只在课堂创建后产生。</span>{exactTestClassrooms.map((room) => <Link key={room.roomId} href={`/console/classrooms/${room.roomId}/control/`}>{room.roomId.slice(0, 8)} · {room.lifecycle} →</Link>)}</div>}
       {existing ? <div className={styles.acceptedBanner}><b>✓ 视图验收已通过</b><span>{existing.receiptId} · {new Date(existing.acceptedAt).toLocaleString("zh-CN")}</span><Link href={factoryHref("test", source.ref, existing.receiptId)}>创建 UI 验收课堂 →</Link></div> : <div className={styles.reviewProgress}>
         <div><b>{reviewedBlocks.length}/{course.blocks.length}</b><span>Block 已查看</span></div>
         <div><b>{reviewedCounts.filter((count) => requiredCounts.includes(count)).length}/{requiredCounts.length}</b><span>人数场景已查看</span></div>
@@ -358,7 +360,7 @@ function ViewAcceptance({ data, initialCourseRef, onAccepted, onError }: {
         <summary>内容人工审核 · {exactContentReviews.filter((item) => item.releaseBlocking).length} 项明确阻断 · {exactContentReviews.filter((item) => item.state === "pending").length} 项待判断</summary>
         <p>这里仅用于看见风险；审核决定在独立工作台追加，绝不改写本次多角色投影。</p>
         {exactContentReviews.map((state) => <article key={state.item.id}><b>{state.item.title}</b><small>{state.item.category} · {state.item.location}</small><p>{state.item.reason}</p><p><strong>当前：</strong>{state.resolutionLabel}</p></article>)}
-        <div className={styles.actions}><Link href="/studio/reviews/">进入人工审核工作台 →</Link></div>
+        <div className={styles.actions}><Link href="/console/studio/reviews/">进入人工审核工作台 →</Link></div>
       </details>}
       <Projection projection={projection} />
       <div className={styles.acceptanceAction}>
@@ -407,7 +409,7 @@ function HumanReviewWorkbench({ data, onChanged, onError }: {
     <section className={styles.panel}>
       <div className={styles.sectionTitle}>
         <div><h2>课程内容待核对</h2><p>决定绑定 exact revision＋digest；不会改写 CourseDefinition，也不会自动沿用到下一版。</p></div>
-        <Link href="/studio/editor/">需要改正文？打开编辑器 →</Link>
+        <Link href="/console/studio/editor/">需要改正文？打开编辑器 →</Link>
       </div>
       {selected ? <>
         <div className={styles.reviewToolbar}>
@@ -671,11 +673,12 @@ function CoursewareLibrary({ data, onChanged, onError }: { data: Bootstrap; onCh
           <header><div><small>{item.mentorRole} · MENTOR COURSEWARE</small><h3>{item.title}</h3></div><span className={styles.badge}>{item.availability === "placeholder" ? "内部占位" : item.releasedRevision === item.latestRevision ? "已发布" : "有新版本"}</span></header>
           <div className={styles.meta}>packageId · {item.packageId}<br />/{item.slug}/ · r{item.latestRevision}<br />{item.latestDigest} · {item.contentKind}</div>
           <div className={styles.actions}>
-            {item.availability === "playable" ? <Link href={`/studio/courseware/${encodeURIComponent(item.packageId)}/?revision=${item.latestRevision}&digest=${item.latestDigest}`} target="_blank" rel="noopener noreferrer">打开内部 exact 预览 ↗</Link> : <span className={styles.placeholderAction}>尚无真实课件 · 不提供失效链接</span>}
+            {item.availability === "playable" ? <Link href={`/console/courseware/${encodeURIComponent(item.packageId)}/?revision=${item.latestRevision}&digest=${item.latestDigest}`} target="_blank" rel="noopener noreferrer">打开内部 exact 预览 ↗</Link> : <span className={styles.placeholderAction}>尚无真实课件 · 不提供失效链接</span>}
+            {item.packageId === "cw-development-mentor-module-thinking" && <Link href="/courseware/development-mentor-module-thinking/teacher/presenter.html" target="_blank" rel="noopener noreferrer">打开导师控制台 ↗</Link>}
             {canManage && item.contentKind === "inline-html" && <button className={styles.buttonSecondary} type="button" onClick={() => choosePackage(item.packageId)}>创建下一版本</button>}
             {canManage && item.releasedRevision !== item.latestRevision && <button className={styles.button} type="button" onClick={async () => { try { await api("/api/studio/courseware/release", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ packageId: item.packageId, revision: item.latestRevision, digest: item.latestDigest }) }); await onChanged(`${item.title} r${item.latestRevision} 已发布。`); } catch (cause) { onError(messageOf(cause)); } }}>发布此版本</button>}
           </div>
-          <details className={styles.versionHistory}><summary>不可变版本历史 · {item.versions.length}</summary>{item.versions.map((version) => <div key={`${version.revision}:${version.digest}`}><span>r{version.revision} · {version.releaseStatus === "current" ? "当前发布" : version.releaseStatus === "historical" ? "历史已发布" : "Candidate"}</span><code>{version.digest}</code>{version.treeDigest && <code>tree · {version.treeDigest}</code>}{item.availability === "playable" && (version.releaseStatus || canManage) && <Link href={version.releaseStatus ? `/course/${item.slug}/?revision=${version.revision}&digest=${version.digest}` : `/studio/courseware/${encodeURIComponent(item.packageId)}/?revision=${version.revision}&digest=${version.digest}`} target="_blank" rel="noopener noreferrer">打开 r{version.revision} ↗</Link>}</div>)}</details>
+          <details className={styles.versionHistory}><summary>不可变版本历史 · {item.versions.length}</summary>{item.versions.map((version) => <div key={`${version.revision}:${version.digest}`}><span>r{version.revision} · {version.releaseStatus === "current" ? "当前发布" : version.releaseStatus === "historical" ? "历史已发布" : "Candidate"}</span><code>{version.digest}</code>{version.treeDigest && <code>tree · {version.treeDigest}</code>}{item.availability === "playable" && (version.releaseStatus || canManage) && <Link href={version.releaseStatus ? `/course/${item.slug}/?revision=${version.revision}&digest=${version.digest}` : `/console/courseware/${encodeURIComponent(item.packageId)}/?revision=${version.revision}&digest=${version.digest}`} target="_blank" rel="noopener noreferrer">打开 r{version.revision} ↗</Link>}</div>)}</details>
         </article>;
       })}</div>
     </section>
@@ -733,10 +736,10 @@ function Releases({ data, onChanged, onError }: { data: Bootstrap; onChanged: (m
           {status.ui && <details className={styles.receiptDetail}><summary>查看 UI 验收时的课件快照（仅审计）</summary>{status.ui.coursewareRefs.map((ref) => <code key={ref.mentorRole}>{ref.mentorRole} · {ref.slug} · r{ref.revision}<br />{ref.digest}</code>)}</details>}
           <div className={styles.nextAction}><small>下一步主操作</small><b>{status.nextLabel}</b></div>
           <div className={styles.actions}>
-            {status.reviewStates.length > 0 && <Link href="/studio/reviews/">查看内容人工审核 →</Link>}
+            {status.reviewStates.length > 0 && <Link href="/console/studio/reviews/">查看内容人工审核 →</Link>}
             {!status.view && <Link href={previewHref(version.ref)}>前往多角色视图验收 →</Link>}
             {status.view && status.tests.length === 0 && <Link href={factoryHref("test", version.ref, status.view.receiptId)}>创建 UI 验收课堂 →</Link>}
-            {status.view && status.tests.length > 0 && !status.ui && <Link href={`/classroom/${status.tests[0].roomId}/control`}>继续真实 UI 验收 →</Link>}
+            {status.view && status.tests.length > 0 && !status.ui && <Link href={`/console/classrooms/${status.tests[0].roomId}/control/`}>继续真实 UI 验收 →</Link>}
             {status.view && status.ui && !version.released && !status.reviewBlocking && <button className={styles.button} type="button" onClick={async () => { try { await api("/api/studio/releases", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ courseRef: version.ref, viewReceiptId: status.view!.receiptId, uiReceiptId: status.ui!.receiptId }) }); await onChanged(`${version.course.course.name} r${version.ref.revision} 已通过两级门禁并发布。`); } catch (cause) { onError(messageOf(cause)); } }}>发布为 Released</button>}
             {status.view && status.ui && version.released && <Link href={factoryHref("production", version.ref, status.view.receiptId, status.ui.receiptId)}>创建 Production Classroom →</Link>}
           </div>
@@ -788,11 +791,11 @@ function matchesInitial(version: Version, initial: InitialCourseRef) {
 
 function versionKey(version: Version): string { return `${version.ref.courseId}:${version.ref.revision}:${version.ref.digest}`; }
 function refLabel(ref: CoursePackageRef): string { return `r${ref.revision} · ${ref.digest.slice(0, 16)}…`; }
-function previewHref(ref: CoursePackageRef): string { return `/studio/preview/?course=${encodeURIComponent(ref.courseId)}&revision=${ref.revision}&digest=${encodeURIComponent(ref.digest)}`; }
+function previewHref(ref: CoursePackageRef): string { return `/console/studio/preview/?course=${encodeURIComponent(ref.courseId)}&revision=${ref.revision}&digest=${encodeURIComponent(ref.digest)}`; }
 function factoryHref(environment: "test" | "production", ref: CoursePackageRef, viewReceiptId: string, uiReceiptId?: string): string {
   const query = new URLSearchParams({ environment, course: ref.courseId, revision: String(ref.revision), digest: ref.digest, viewReceipt: viewReceiptId });
   if (uiReceiptId) query.set("uiReceipt", uiReceiptId);
-  return `/classroom/?${query.toString()}#factory`;
+  return `/console/classrooms/?${query.toString()}#factory`;
 }
 
 async function api<T = unknown>(url: string, init?: RequestInit): Promise<T> {
