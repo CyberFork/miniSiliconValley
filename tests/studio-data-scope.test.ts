@@ -77,7 +77,7 @@ function seedMembership(db: LocalDatabase, roomId: string, profileId: string, ro
   ).run(`membership:${roomId}:${profileId}`, roomId, profileId, role, status, now, now, now);
 }
 
-test("T-113 mentor account search stays scoped while Admin search is global", async () => {
+test("T-113 mentor partial search stays scoped while exact admission and Admin search remain available", async () => {
   const db = database();
   try {
     seedUser(db, "admin-one", "admin", "Platform Admin");
@@ -112,7 +112,14 @@ test("T-113 mentor account search stays scoped while Admin search is global", as
       (await listStudioAssignableAccounts(db, { userId: "mentor-a", role: "mentor" }, "Shared Learner")).map((account) => account.userId),
       ["learner-shared"],
     );
-    assert.deepEqual(await listStudioAssignableAccounts(db, { userId: "mentor-a", role: "mentor" }, "learner-private"), []);
+    assert.deepEqual(
+      (await listStudioAssignableAccounts(db, { userId: "mentor-a", role: "mentor" }, "@learner-private")).map((account) => account.userId),
+      ["learner-private"],
+    );
+    assert.deepEqual(
+      (await listStudioAssignableAccounts(db, { userId: "mentor-a", role: "mentor" }, "Private Learner")).map((account) => account.userId),
+      ["learner-private"],
+    );
     assert.deepEqual(await listStudioAssignableAccounts(db, { userId: "mentor-a", role: "mentor" }, "private"), []);
     await assert.rejects(
       listStudioAssignableAccounts(db, { userId: "mentor-a", role: "mentor" }, "x"),

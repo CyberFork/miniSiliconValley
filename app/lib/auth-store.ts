@@ -635,9 +635,10 @@ export type StudioAssignableAccount = {
  * Return the smallest account directory needed by ClassroomFactory.
  *
  * Platform administrators have the explicit global directory capability.
- * Mentors can search only themselves, accounts they created, and people in a
- * classroom they already share. Partial matching never widens that scope into
- * a global directory.
+ * Mentors can partially search only themselves, accounts they created, and
+ * people in a classroom they already share. The pre-existing exact username
+ * or exact display-name admission lookup remains available, but partial
+ * matching never widens that scope into a global directory.
  */
 export async function listStudioAssignableAccounts(
   db: ClassroomD1,
@@ -690,14 +691,20 @@ export async function listStudioAssignableAccounts(
      )
      SELECT u.id, u.username, u.display_name, u.role, u.status
      FROM auth_users u
-     JOIN scoped_user_ids scoped ON scoped.user_id = u.id
      WHERE u.status = 'active' AND u.role IN ('admin', 'mentor', 'learner')
-       ${query ? "AND (LOWER(u.username) LIKE ? ESCAPE '\\' OR LOWER(u.display_name) LIKE ? ESCAPE '\\')" : ""}
+       ${query
+        ? `AND (
+             (u.id IN (SELECT user_id FROM scoped_user_ids)
+              AND (LOWER(u.username) LIKE ? ESCAPE '\\' OR LOWER(u.display_name) LIKE ? ESCAPE '\\'))
+             OR u.username = ? COLLATE NOCASE
+             OR u.display_name = ? COLLATE NOCASE
+           )`
+        : "AND u.id IN (SELECT user_id FROM scoped_user_ids)"}
      ORDER BY CASE u.role WHEN 'admin' THEN 1 WHEN 'mentor' THEN 2 ELSE 3 END, u.username
      LIMIT 200`,
   ).bind(
     actor.userId, actor.userId, actor.userId, actor.userId,
-    ...(query ? [`%${escapeLike(query.toLowerCase())}%`, `%${escapeLike(query.toLowerCase())}%`] : []),
+    ...(query ? [`%${escapeLike(query.toLowerCase())}%`, `%${escapeLike(query.toLowerCase())}%`, query, query] : []),
   ).all<{
     id: string;
     username: string;

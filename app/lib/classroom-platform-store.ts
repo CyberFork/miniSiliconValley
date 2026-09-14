@@ -2392,14 +2392,25 @@ export async function listAssignableClassroomAccounts(
      LEFT JOIN memberships m ON m.room_id = ? AND m.profile_id = u.id AND m.status = 'active'
      LEFT JOIN classroom_admin_dm_grants g ON g.room_id = ? AND g.profile_id = u.id AND g.revoked_at IS NULL
      WHERE u.status = 'active' AND u.role IN ('admin', 'mentor', 'learner')
-       ${scoped ? "AND u.id IN (SELECT user_id FROM scoped_user_ids)" : ""}
-       ${pattern ? "AND (LOWER(u.username) LIKE ? ESCAPE '\\' OR LOWER(u.display_name) LIKE ? ESCAPE '\\')" : ""}
+       ${scoped && pattern
+        ? `AND (
+             (u.id IN (SELECT user_id FROM scoped_user_ids)
+              AND (LOWER(u.username) LIKE ? ESCAPE '\\' OR LOWER(u.display_name) LIKE ? ESCAPE '\\'))
+             OR u.username = ? COLLATE NOCASE
+             OR u.display_name = ? COLLATE NOCASE
+           )`
+        : scoped
+          ? "AND u.id IN (SELECT user_id FROM scoped_user_ids)"
+          : pattern
+            ? "AND (LOWER(u.username) LIKE ? ESCAPE '\\' OR LOWER(u.display_name) LIKE ? ESCAPE '\\')"
+            : ""}
      ORDER BY CASE u.role WHEN 'admin' THEN 1 WHEN 'mentor' THEN 2 ELSE 3 END, u.username
      LIMIT ${pattern ? 50 : 300}`,
   ).bind(
     ...(scoped ? [user.userId, user.userId, user.userId, user.userId] : []),
     roomId, roomId,
     ...(pattern ? [pattern, pattern] : []),
+    ...(scoped && pattern ? [query, query] : []),
   ).all<{
     id: string;
     username: string;
