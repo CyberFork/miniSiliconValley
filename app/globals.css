@@ -167,9 +167,6 @@ li {
   width: 154px;
   height: 40px;
   flex: 0 0 154px;
-  padding: 5px 8px;
-  background: #fff;
-  border: 1px solid rgba(16, 43, 70, .2);
   object-fit: contain;
 }
 

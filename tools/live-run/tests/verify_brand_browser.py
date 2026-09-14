@@ -22,11 +22,15 @@ BRAND_SELECTOR = 'a[href="/"]:has(img[src*="mini-silicon-valley-logo-transparent
 def snapshot(page) -> dict:
     return page.evaluate(
         """() => { const link=document.querySelector('a[href="/"]:has(img[src*="mini-silicon-valley-logo-transparent.png"])'), img=link?.querySelector('img');
-        if(!link||!img)return null; const a=link.getBoundingClientRect(), b=img.getBoundingClientRect();
+        if(!link||!img)return null; const a=link.getBoundingClientRect(), b=img.getBoundingClientRect(), imageStyle=getComputedStyle(img), linkStyle=getComputedStyle(link);
         return {href:link.getAttribute('href'),aria:link.getAttribute('aria-label'),tag:link.tagName,
           innerWidth,rootWidth:document.documentElement.scrollWidth,bodyWidth:document.body.scrollWidth,
           link:{left:a.left,right:a.right,top:a.top,bottom:a.bottom,width:a.width,height:a.height},
-          image:{src:img.getAttribute('src'),width:b.width,height:b.height,naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight},
+          image:{src:img.getAttribute('src'),width:b.width,height:b.height,naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight,
+            backgroundColor:imageStyle.backgroundColor,borderTopWidth:imageStyle.borderTopWidth,borderRightWidth:imageStyle.borderRightWidth,
+            borderBottomWidth:imageStyle.borderBottomWidth,borderLeftWidth:imageStyle.borderLeftWidth,
+            paddingTop:imageStyle.paddingTop,paddingRight:imageStyle.paddingRight,paddingBottom:imageStyle.paddingBottom,paddingLeft:imageStyle.paddingLeft},
+          linkBackgroundColor:linkStyle.backgroundColor,
           theme:[...document.querySelectorAll('link[href*="ui-theme.css"]')].map(node=>node.getAttribute('href'))} }"""
     )
 
@@ -70,6 +74,12 @@ def main() -> None:
                 assert value["href"] == "/" and value["aria"] == "返回 Mini Silicon Valley 主页"
                 assert "mini-silicon-valley-logo-transparent.png" in value["image"]["src"]
                 assert value["image"]["naturalWidth"] == 1650 and value["image"]["naturalHeight"] == 420
+                assert value["image"]["backgroundColor"] == "rgba(0, 0, 0, 0)", (route, width, value)
+                assert all(value["image"][key] == "0px" for key in (
+                    "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth",
+                    "paddingTop", "paddingRight", "paddingBottom", "paddingLeft",
+                )), (route, width, value)
+                assert value["linkBackgroundColor"] == "rgba(0, 0, 0, 0)", (route, width, value)
                 if expected_theme_version:
                     assert any(expected_theme_version in href for href in value["theme"]), (route, value["theme"])
                 rendered_ratio = value["image"]["width"] / value["image"]["height"]

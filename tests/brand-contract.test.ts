@@ -9,7 +9,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const source = (path: string) => readFile(resolve(root, path), "utf8");
 const binary = (path: string) => readFile(resolve(root, path));
 const wordmark = "/assets/mini-silicon-valley-logo-transparent.png";
-const brandCacheVersion = "official-wordmark-r5";
+const brandCacheVersion = "transparent-wordmark-r6";
 
 test("React surfaces share one accessible root-home logo primitive", async () => {
   const brand = await source("app/components/BrandHomeLink.tsx");
@@ -66,8 +66,31 @@ test("static operational surfaces use the same mark and absolute root link", asy
   }
 });
 
+test("shared wordmark keeps its native transparency without a synthetic white card", async () => {
+  const reactCss = await source("app/globals.css");
+  const staticCss = await source("deploy/minisv/site/ui-theme.css");
+  const rule = (css: string, selector: string) => {
+    const start = css.indexOf(selector);
+    assert.notEqual(start, -1, `${selector} rule must exist`);
+    const open = css.indexOf("{", start);
+    const close = css.indexOf("}", open);
+    assert.ok(open > start && close > open, `${selector} rule must be complete`);
+    return css.slice(open + 1, close);
+  };
+  for (const [css, selector] of [
+    [reactCss, ".msv-brand-home__mark"],
+    [staticCss, ".msv-static-brand img"],
+  ] as const) {
+    const body = rule(css, selector);
+    assert.doesNotMatch(body, /(?:^|;)\s*background(?:-color)?\s*:/, `${selector} must expose the PNG alpha channel`);
+    assert.doesNotMatch(body, /(?:^|;)\s*border(?:-[^:]*)?\s*:/, `${selector} must not draw a logo card`);
+    assert.doesNotMatch(body, /(?:^|;)\s*padding(?:-[^:]*)?\s*:/, `${selector} must not pad a synthetic backing`);
+    assert.match(body, /object-fit:\s*contain/);
+  }
+});
+
 test("changed wordmark styles and runtimes are cache-busted on every static shell", async () => {
-  const themeVersion = `20260912-${brandCacheVersion}`;
+  const themeVersion = `20260914-${brandCacheVersion}`;
   const sharedThemePages = [
     "deploy/minisv/site/index.html",
     "deploy/minisv/site/404.html",
