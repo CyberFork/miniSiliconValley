@@ -9,7 +9,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const source = (path: string) => readFile(resolve(root, path), "utf8");
 const binary = (path: string) => readFile(resolve(root, path));
 const wordmark = "/assets/mini-silicon-valley-logo-transparent.png";
-const brandCacheVersion = "transparent-wordmark-r6";
+const brandCacheVersion = "transparent-wordmark-r7";
 
 test("React surfaces share one accessible root-home logo primitive", async () => {
   const brand = await source("app/components/BrandHomeLink.tsx");
@@ -69,6 +69,7 @@ test("static operational surfaces use the same mark and absolute root link", asy
 test("shared wordmark keeps its native transparency without a synthetic white card", async () => {
   const reactCss = await source("app/globals.css");
   const staticCss = await source("deploy/minisv/site/ui-theme.css");
+  const editorCss = await source("public/studio/editor-assets/ui-theme.css");
   const rule = (css: string, selector: string) => {
     const start = css.indexOf(selector);
     assert.notEqual(start, -1, `${selector} rule must exist`);
@@ -80,6 +81,7 @@ test("shared wordmark keeps its native transparency without a synthetic white ca
   for (const [css, selector] of [
     [reactCss, ".msv-brand-home__mark"],
     [staticCss, ".msv-static-brand img"],
+    [editorCss, ".msv-static-brand img"],
   ] as const) {
     const body = rule(css, selector);
     assert.doesNotMatch(body, /(?:^|;)\s*background(?:-color)?\s*:/, `${selector} must expose the PNG alpha channel`);
