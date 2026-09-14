@@ -94,6 +94,16 @@ class GatewayContractTests(unittest.TestCase):
         self.assertIn("app-proxy.conf", route.group(1))
         self.assertNotIn("auth_request", route.group(1))
 
+    def test_managed_homework_is_proxied_to_the_authenticated_app(self) -> None:
+        route = re.search(r"location \^~ /api/homework/ \{(.*?)\n    \}", self.gateway, re.DOTALL)
+        self.assertIsNotNone(route)
+        self.assertIn("limit_req zone=minisv_platform_write", route.group(1))
+        self.assertIn("client_max_body_size 96k;", route.group(1))
+        self.assertIn("set $app_path $uri;", route.group(1))
+        self.assertIn("app-proxy.conf", route.group(1))
+        self.assertNotIn("auth_request", route.group(1))
+        self.assertIn("(studio|platform|terminal|homework)", self.gateway)
+
     def test_public_site_semantics_and_private_workshop_boundary(self) -> None:
         site = ROOT / "site"
         portal = (site / "index.html").read_text()
