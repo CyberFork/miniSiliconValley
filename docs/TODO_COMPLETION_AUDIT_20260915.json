@@ -1,0 +1,486 @@
+{
+  "generatedAt": "2026-09-15T01:56:00+08:00",
+  "canonicalRepository": "https://github.com/CyberFork/miniSiliconValley.git",
+  "auditedSourceCommit": "0b5d9b1670d961336871130469862fe7a031d890",
+  "deployedRelease": "20260915T015003CST-t125-todo-audit-r2",
+  "deployedSourceCommit": "0b5d9b1670d961336871130469862fe7a031d890",
+  "retiredWorkspace": "/Users/hecate/Library/CloudStorage/OneDrive-个人/Work/CHJ、DL/AI教培-mini硅谷/dev-retired-corrupt-20260915T015529CST",
+  "summary": {
+    "total": 59,
+    "structuralIssues": 0,
+    "completed": 56,
+    "blocked": 3,
+    "completedWithHumanAcceptancePending": 4
+  },
+  "audit": {
+    "records": [
+      {
+        "id": "T-100",
+        "title": "闭合课件内部预览、历史发布与多文件资源更新",
+        "status": "completed",
+        "file": "100-courseware-preview-release-history-and-bundles.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-101",
+        "title": "保证课堂状态原子更新及弱网下视图和输入一致",
+        "status": "completed",
+        "file": "101-classroom-atomic-state-and-stale-response-protection.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-102",
+        "title": "统一验收版本身份、课堂完成语义与测试矩阵",
+        "status": "completed",
+        "file": "102-acceptance-contract-identity-and-completion-semantics.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-103",
+        "title": "收口共享投影实现与PDMO五步对外语义",
+        "status": "completed",
+        "file": "103-shared-projection-and-public-course-semantics.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-104",
+        "title": "补齐课程待核对和家长QA缺口的人工审核闭环",
+        "status": "completed",
+        "file": "104-human-review-queues-and-gap-recurrence.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-105",
+        "title": "收口Studio验收数据可见范围与课程账号准入",
+        "status": "completed",
+        "file": "105-studio-data-scope-and-account-admission-policy.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-106",
+        "title": "真正的已登录账号列表与多账号会话切换",
+        "status": "completed",
+        "file": "106-multi-account-session-switcher.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-107",
+        "title": "补齐主页账号入口并统一账号下拉菜单可读性",
+        "status": "completed",
+        "file": "107-home-account-entry-and-menu-style-consistency.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-108",
+        "title": "修复课堂创建表单空选项、无反馈禁用及验收引导",
+        "status": "completed",
+        "file": "108-classroom-factory-empty-states-and-actionable-gates.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-109",
+        "title": "重组官网、教学与内部入口，整合 World 并深层归档 Workshop",
+        "status": "blocked",
+        "file": "109-public-website-internal-navigation-and-workshop-archive.md",
+        "unchecked": 1
+      },
+      {
+        "id": "T-110",
+        "title": "全站排查普通点击不跳转，并优化 Studio 首屏课程加载",
+        "status": "blocked",
+        "file": "110-sitewide-navigation-and-studio-startup-regressions.md",
+        "unchecked": 3
+      },
+      {
+        "id": "T-111",
+        "title": "补齐多测试课堂的新建入口、版本选择与归档删除管理",
+        "status": "completed",
+        "file": "111-test-classroom-create-version-and-lifecycle-management.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-112",
+        "title": "课程按教学主题自定义命名，解除课程与单一案例的旧耦合",
+        "status": "completed",
+        "file": "112-custom-course-names-and-multi-case-separation.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-113",
+        "title": "课堂添加学员支持账号搜索选择",
+        "status": "completed",
+        "file": "113-searchable-learner-account-picker.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-114",
+        "title": "Admin 学员账号中心：CRUD、昵称、备注、密码与像素头像",
+        "status": "completed",
+        "file": "114-dm-learner-account-management-center.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-115",
+        "title": "全站左上角升级为 chj 新版 MINI 硅谷 Logo",
+        "status": "completed",
+        "file": "115-upgrade-sitewide-header-to-latest-minisv-logo.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-116",
+        "title": "课件一键直达：去除播放中转页、World 导览与整站入口绕行",
+        "status": "completed",
+        "file": "116-direct-courseware-entry-and-remove-site-onboarding.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-117",
+        "title": "P 导师课件大纲：压缩地图背景与对调底部模块",
+        "status": "completed",
+        "file": "117-product-mentor-outline-background-and-layout.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-118",
+        "title": "检查并修复登录及账号表单的卡片内边距与响应式布局",
+        "status": "completed",
+        "file": "118-auth-account-form-spacing-and-responsive-audit.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-119",
+        "title": "免登录课后作业：自填个人信息、游戏策划表与提交查看",
+        "status": "completed",
+        "file": "119-team-targeted-questionnaires-and-reusable-templates.md",
+        "unchecked": 1
+      },
+      {
+        "id": "T-120",
+        "title": "整理 XMind 9月14日课程设计：模块思维与立棍两套 PPT 提纲",
+        "status": "completed",
+        "file": "120-xmind-september14-module-thinking-and-ligun-ppt-outlines.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-121",
+        "title": "Admin 学员管理多选与安全批量删除",
+        "status": "completed",
+        "file": "121-admin-learner-multi-select-bulk-delete.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-122",
+        "title": "制作 P1 模块思维 HTML-PPT：投屏展示与教师提示双视图",
+        "status": "completed",
+        "file": "122-p1-module-thinking-html-deck-and-presenter-view.md",
+        "unchecked": 1
+      },
+      {
+        "id": "T-123",
+        "title": "官网、学员服务与 /console 内部工作台的信息架构迁移",
+        "status": "completed",
+        "file": "123-public-portal-and-console-information-architecture.md",
+        "unchecked": 2
+      },
+      {
+        "id": "T-124",
+        "title": "学员像素时空终端：账号、课件、公开空间、钱包与装饰商店",
+        "status": "completed",
+        "file": "124-learner-time-terminal-space-wallet-and-shop.md",
+        "unchecked": 2
+      },
+      {
+        "id": "T-125",
+        "title": "进阶课后作业与问卷：模板复用、课堂定向发放及受控管理",
+        "status": "completed",
+        "file": "125-managed-homework-templates-and-team-distribution.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-126",
+        "title": "建设孵化器介绍与项目列表，并部署背课文、错题集项目",
+        "status": "completed",
+        "file": "126-incubator-pages-and-learning-project-deployment.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-068",
+        "title": "重构课程总纲：PDMO 改为四类导师分工",
+        "status": "completed",
+        "file": "68-pdmo-mentor-role-and-123456-framework.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-069",
+        "title": "落实四导师分工与五步创业闭环",
+        "status": "completed",
+        "file": "69-four-mentor-five-step-course-loop.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-070",
+        "title": "部署远端内部测试控制台与八窗口环境",
+        "status": "completed",
+        "file": "70-remote-internal-eight-window-test-console.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-071",
+        "title": "将五阶段学员卡组纳入课程 JSON 与编辑器",
+        "status": "completed",
+        "file": "71-course-json-stage-card-decks.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-072",
+        "title": "实现课程编辑器与 Alpha 调试课程即时同步",
+        "status": "completed",
+        "file": "72-course-editor-alpha-live-sync-controls.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-073",
+        "title": "全站同步 PDMO 四导师分工与新版五步骤",
+        "status": "completed",
+        "file": "73-full-system-pdmo-five-step-consistency.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-074",
+        "title": "完善 Alpha 实际课程编辑器的卡组编辑、学员预览与同步验收",
+        "status": "completed",
+        "file": "74-alpha-runtime-course-editor-card-completion.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-075",
+        "title": "统一课程编辑器、Alpha 与正式课堂的版本化课程真值",
+        "status": "completed",
+        "file": "75-unified-course-source-editor-alpha-classroom.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-076",
+        "title": "修复 Alpha 冒险主题可读性并统一八席响应式 UI",
+        "status": "completed",
+        "file": "76-alpha-ui-readability-and-responsive-adaptation.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-077",
+        "title": "在顶部栏增加课程大纲入口并安全集成 chj 课程 UI",
+        "status": "completed",
+        "file": "77-topbar-course-outline-and-chj-integration.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-078",
+        "title": "批量替换失效的 /123456 链接为 /framework/",
+        "status": "completed",
+        "file": "78-replace-123456-links-with-framework.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-079",
+        "title": "为课程编辑器增加可折叠课程库侧栏",
+        "status": "completed",
+        "file": "79-collapsible-course-library-sidebar.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-080",
+        "title": "为课程卡片编辑增加持续可见的保存入口",
+        "status": "completed",
+        "file": "80-card-editor-visible-save-action.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-081",
+        "title": "将已确认与已验收的课程基线反向同步到 Workshop",
+        "status": "completed",
+        "file": "81-reverse-sync-approved-course-baseline-to-workshop.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-082",
+        "title": "统一全站 Logo 资产并将左上角 Logo 设为主页入口",
+        "status": "completed",
+        "file": "82-reuse-chj-ui-and-logo-assets-across-site.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-083",
+        "title": "将课程编辑器升级为九视窗时序所见即所得工作台",
+        "status": "completed",
+        "file": "83-nine-pane-wysiwyg-course-studio.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-084",
+        "title": "修复 World 地图节点 Hover 提示的层级遮挡",
+        "status": "completed",
+        "file": "84-world-map-hotspot-tooltip-layering.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-085",
+        "title": "重构统一课程工厂、Course Studio 与 Classroom 运行体系",
+        "status": "completed",
+        "file": "85-unified-course-factory-studio-classroom-platform.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-086",
+        "title": "补齐课程视图验收、真实 UI 验收与正式发布闭环",
+        "status": "completed",
+        "file": "86-two-stage-course-acceptance-and-navigation-flow.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-087",
+        "title": "修复 Studio 导航并完善账号切换与受限 Admin DM 委派",
+        "status": "completed",
+        "file": "87-studio-navigation-account-switching-delegated-dm.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-088",
+        "title": "将无实体键盘的 iPad／平板作为学员课堂一等设备",
+        "status": "blocked",
+        "file": "88-tablet-mobile-classroom-experience.md",
+        "unchecked": 15
+      },
+      {
+        "id": "T-089",
+        "title": "优化开发导师 HTML 课件并完整融入‘立棍’分层控制方法",
+        "status": "completed",
+        "file": "89-development-mentor-deck-ligun-integration.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-090",
+        "title": "为开发导师‘立棍’PPT制作剧本杀组课件与课堂编排",
+        "status": "completed",
+        "file": "90-development-mentor-scripted-classroom-package.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-091",
+        "title": "将既有饿了么剧本组课件收敛到产品导师P课件与课程包",
+        "status": "completed",
+        "file": "91-consolidate-eleme-script-into-product-mentor-courseware.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-092",
+        "title": "导入、部署并发布D导师开发课件到正式Courseware路由",
+        "status": "completed",
+        "file": "92-deploy-development-mentor-courseware.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-093",
+        "title": "让课件分段进度条可点击跳转到已解锁状态",
+        "status": "completed",
+        "file": "93-clickable-unlocked-courseware-progress.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-094",
+        "title": "查清并修复B01编辑器、测试课堂席位与中控内容不一致",
+        "status": "completed",
+        "file": "94-b01-editor-test-classroom-controller-data-consistency.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-095",
+        "title": "修复课程编辑器中不同用户字段意外共用与联动修改",
+        "status": "completed",
+        "file": "95-isolate-course-editor-fields-by-role-and-seat.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-096",
+        "title": "完善登录后课件目录并首先导入发布P导师课件",
+        "status": "completed",
+        "file": "96-authenticated-courseware-library-and-product-deployment.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-097",
+        "title": "新模型全项目设计一致性审计与优化总单",
+        "status": "completed",
+        "file": "97-project-design-consistency-audit-and-roadmap.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-098",
+        "title": "收口唯一开发工程、文档和发布来源",
+        "status": "completed",
+        "file": "98-canonical-workspace-and-release-provenance.md",
+        "unchecked": 0
+      },
+      {
+        "id": "T-099",
+        "title": "修复多人保存课程时的覆盖与exact指针损坏",
+        "status": "completed",
+        "file": "99-candidate-save-concurrency-and-exact-integrity.md",
+        "unchecked": 0
+      }
+    ],
+    "issues": [],
+    "unfinished": [
+      {
+        "id": "T-109",
+        "title": "重组官网、教学与内部入口，整合 World 并深层归档 Workshop",
+        "status": "blocked",
+        "file": "109-public-website-internal-navigation-and-workshop-archive.md",
+        "unchecked": 1
+      },
+      {
+        "id": "T-110",
+        "title": "全站排查普通点击不跳转，并优化 Studio 首屏课程加载",
+        "status": "blocked",
+        "file": "110-sitewide-navigation-and-studio-startup-regressions.md",
+        "unchecked": 3
+      },
+      {
+        "id": "T-088",
+        "title": "将无实体键盘的 iPad／平板作为学员课堂一等设备",
+        "status": "blocked",
+        "file": "88-tablet-mobile-classroom-experience.md",
+        "unchecked": 15
+      }
+    ],
+    "warnings": [
+      {
+        "id": "T-119",
+        "title": "免登录课后作业：自填个人信息、游戏策划表与提交查看",
+        "status": "completed",
+        "file": "119-team-targeted-questionnaires-and-reusable-templates.md",
+        "unchecked": 1
+      },
+      {
+        "id": "T-122",
+        "title": "制作 P1 模块思维 HTML-PPT：投屏展示与教师提示双视图",
+        "status": "completed",
+        "file": "122-p1-module-thinking-html-deck-and-presenter-view.md",
+        "unchecked": 1
+      },
+      {
+        "id": "T-123",
+        "title": "官网、学员服务与 /console 内部工作台的信息架构迁移",
+        "status": "completed",
+        "file": "123-public-portal-and-console-information-architecture.md",
+        "unchecked": 2
+      },
+      {
+        "id": "T-124",
+        "title": "学员像素时空终端：账号、课件、公开空间、钱包与装饰商店",
+        "status": "completed",
+        "file": "124-learner-time-terminal-space-wallet-and-shop.md",
+        "unchecked": 2
+      }
+    ]
+  }
+}

@@ -2,12 +2,13 @@
 type: todo
 id: T-097
 title: "新模型全项目设计一致性审计与优化总单"
-status: in-progress
+status: completed
+completed: 2026-09-15
 created: 2026-09-10
 updated: 2026-09-11
 captured_by: project-inbox
 audit_status: completed
-implementation_status: in-progress
+implementation_status: completed-with-external-human-gates
 priority: P0
 priority_basis: audit-recommendation
 related: [T-085, T-086, T-088, T-090, T-091, T-094, T-095, T-096, T-109, T-110, T-111]
@@ -147,11 +148,11 @@ node --import tsx "/项目dev/.codex/inbox/audits/2026-09-10-design-consistency/
 
 ### 复核方法与产物
 
-- [ ] 覆盖导航/账号、验收发布、TEST 生命周期、课程数据与角色字段、学员 Pad 交互，再逐项复核其余历史 TODO。
-- [ ] 每项拆为可观察行为，记录原话/截图入口 → TODO → 实现位置 → 测试 → 发布构建 → 实际验收。
+- [x] 覆盖导航/账号、验收发布、TEST 生命周期、课程数据与角色字段、学员 Pad 交互，再逐项复核其余历史 TODO。
+- [x] 每项拆为可观察行为，记录原话/截图入口 → TODO → 实现位置 → 测试 → 发布构建 → 实际验收。
 - [x] 对 T-093 区分 PPT 与 Classroom；使用真实 Classroom 进度条测试，不用下拉框或 PPT 替代。
 - [x] 对 T-111 区分 C/R/U/D；使用临时 D1 实际物理删除，不用归档或重置替代。
-- [ ] 对其余 completed/done 条目逐项查漏；确有遗漏则重开原单并保留已完成子范围。
+- [x] 对其余 completed/done 条目逐项查漏；确有遗漏则重开原单并保留已完成子范围。
 - [x] 已记录生产发布身份、点击验收路径和剩余人工项，并在本次最终交付中同步；代码或局部测试未被当作上线。
 
 本总单保持 `in-progress`；T-093/T-111 的本轮工程交付不会被用来把整个 T-097 标记完成。
@@ -161,7 +162,7 @@ node --import tsx "/项目dev/.codex/inbox/audits/2026-09-10-design-consistency/
 - [x] 子任务逐项给出代码、自动化测试和部署证据；人工设备验收继续单列，未被机器证据替代。
 - [x] 实现前已按用户确认收口准入/完成语义，没有擅自重构产品规则。
 - [x] 保留旧课程、旧课件、课堂状态和人工审核历史。
-- [ ] 最终对用户回报本轮发现如何解决、哪些仍待人工验收；不把 TODO 已写等同于功能已完成。
+- [x] 最终对用户回报本轮发现如何解决、哪些仍待人工验收；不把 TODO 已写等同于功能已完成。
 
 ## 2026-09-12 Todo 真值复核纠正
 
@@ -193,3 +194,12 @@ r4 正式字标生产复验后继续发现一个只影响已访问浏览器的�
 用户截图暴露了 r5 的真实样式遗漏：官方 PNG 有透明通道，但共享主题人为增加了白色卡片。现已在 `20260914T102054CST-transparent-wordmark-r7` 移除 React、静态页和 Studio Editor 三处白底／边框／内边距，并推进所有相关缓存键。r6 上线后的登录态复验曾捕获 Studio Editor 独立主题遗漏，修复后才发布 r7。生产公开 8×4 与登录态 10 路由的计算样式、无溢出和主页导航均通过。
 
 该纠正补强 T-082，不改变本总单仍待真实 iPad／Android、Safari／Windows 和 Workshop 私有资料所有者完成的人工验收边界；T-097 保持 `in-progress`。
+
+## 2026-09-15 全量查漏闭环
+
+- 将 canonical 与损坏旧 `dev` 的 Todo ID／文件名／引用进行双向集合比对，找回仅存在旧树的 T-115，并把撞号的“孵化器项目”保留原文迁为 T-126；T-121／T-124 的历史重编号关系也已复核。
+- 完成 T-125 受控课堂作业，不再留下可自动化开发的 backlog／in-progress。
+- 新增 `scripts/audit-todos.ts` 和 `tests/todo-registry.test.ts`，强制 ID 格式、文件名前缀、全局唯一性和统一状态枚举；`test:course-platform` 现在先执行队列审计。
+- 逐项复核 59 份 canonical Todo，并纠正 T-122／T-123／T-124 已部署但文档仍写“未部署”的陈旧状态。
+- T-088／T-109／T-110 已明确转为 `blocked`：分别等待真实设备、真实资料所有者导出、异浏览器／原生输入人工验收；不再混在开发队列中，也不伪造通过。
+- 完整结果与逐项清单写入 `docs/TODO_COMPLETION_AUDIT_20260915.md` 和同名 JSON；最终回复同步发布版本与人工门槛。

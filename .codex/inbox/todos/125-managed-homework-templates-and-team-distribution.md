@@ -2,12 +2,13 @@
 type: todo
 id: T-125
 title: "进阶课后作业与问卷：模板复用、课堂定向发放及受控管理"
-status: in-progress
+status: completed
+completed: 2026-09-15
 priority: P1
 created: 2026-09-14
 captured_by: project-inbox
 related: [T-085, T-114, T-119, T-121, T-123]
-tags: [todo, after-class, questionnaire, template, team, assignment, needs-discussion]
+tags: [todo, after-class, questionnaire, template, team, assignment]
 ---
 
 # 进阶课后作业与问卷：模板复用、课堂定向发放及受控管理
@@ -64,3 +65,13 @@ tags: [todo, after-class, questionnaire, template, team, assignment, needs-discu
 ## 下一步
 
 先完成轻量 T-119 并收集实际使用反馈，再决定是否启动本单及首批进阶功能。当前只拆分记录，未开发、部署、发送问卷或修改真实账号/课堂/提交数据。
+
+## 2026-09-15 完成交付
+
+- 数据：新增版本化模板、不可变题目 revision、课堂定向发放、收件人快照、草稿／提交、反馈和关闭状态；TEST／Production 随 Classroom 隔离。
+- 权限：Admin 管理全部课堂；导师仅管理自己担任 DM／Admin DM 的课堂；学员只能读取和提交发给自己的作业。
+- 页面：导师从 `/console/homework/` 完成“模板工坊 → 定向发放 → 回收反馈”；学员从 `/terminal/homework/` 填写。T-119 公开练习仍独立。
+- 安全：所有写入复用 `withPlatformApi`、Origin/CSRF、限流、输入上限和幂等键；发放锁定模板版本和 active learner 收件人快照。
+- 自动验证：Course Platform 206/206、T-125 平台/接口 7/7、部署契约 57/57、真实 Chromium 隔离 D1 完整链路及 390×844 触摸视口通过。
+- 生产复验：DM 真实登录只读打开工作台，三个模块可见且无页面错误；受保护 API 未登录返回 401，真实会话返回 200；未创建模板、未发放真实作业。
+- 发布：`20260915T015003CST-t125-todo-audit-r2`，源码 `0b5d9b1670d961336871130469862fe7a031d890`，Hecate health 与外部 public smoke 通过。

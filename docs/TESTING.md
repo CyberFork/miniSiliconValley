@@ -210,7 +210,7 @@ npm run audit:todos
 npm run audit:todos -- --json
 ```
 
-审计强制 Todo ID 唯一、文件编号一致、状态枚举统一，并始终列出未完成项；completed 文件若仍有未勾选验收项会产生 warning。任何新增 Todo 都必须先进入 canonical `.codex/inbox/todos/`，再由此命令参与发布前检查。
+审计强制 Todo ID 唯一、文件编号一致、编号序列无缺口、引用目标存在、状态枚举统一，并始终列出未完成项；`blocked` 必须写明 `blocked_reason`，completed 文件若仍有未勾选验收项会产生 warning。任何新增 Todo 都必须先进入 canonical `.codex/inbox/todos/`，再由此命令参与发布前检查。
 
 T-088 学员 Pad 无键盘工程回归：
 

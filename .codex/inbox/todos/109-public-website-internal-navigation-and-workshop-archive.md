@@ -2,7 +2,8 @@
 type: todo
 id: T-109
 title: "重组官网、教学与内部入口，整合 World 并深层归档 Workshop"
-status: in-progress
+status: blocked
+blocked_reason: "Workshop 历史 localStorage 分散在真实资料所有者的浏览器；须由各所有者逐浏览器无损导出并确认覆盖，自动化无法读取未连接设备的数据。"
 created: 2026-09-10
 updated: 2026-09-11
 captured_by: project-inbox
@@ -117,3 +118,9 @@ UI 补充确认：**“记得整体都使用新的 UI 哦，也就是那个 skil
 ## 2026-09-12 状态纠正
 
 本单仍有“由真实资料所有者完成 Workshop 历史资料覆盖备份”这一项未完成，原文件也明确保留了 `[ ]`。因此不能继续标记为 `completed`，现恢复为 `in-progress`。官网与入口重组的工程发布记录仍然有效，但不代表历史资料收集已经由自动化代替完成。
+
+## 2026-09-15 队列审计结论
+
+本单可自动化实施范围已经完成，当前仅剩外部人工门槛：Workshop 历史 localStorage 分散在真实资料所有者的浏览器；须由各所有者逐浏览器无损导出并确认覆盖，自动化无法读取未连接设备的数据。
+
+因此状态由容易被误读为“仍在开发”的 `in-progress` 改为 `blocked`。解除门槛后按原验收清单补写真实设备／资料回执；不得用桌面模拟或代码存在替代人工证据。

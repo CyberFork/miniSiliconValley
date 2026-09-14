@@ -2,7 +2,8 @@
 type: todo
 id: T-110
 title: "全站排查普通点击不跳转，并优化 Studio 首屏课程加载"
-status: in-progress
+status: blocked
+blocked_reason: "仍需真实 iPad Safari、桌面 Safari 和 Windows/Linux 原生 Ctrl／中键／右键行为人工验收；Chromium 与代码回归已完成。"
 created: 2026-09-10
 captured_by: project-inbox
 priority: P1
@@ -118,3 +119,9 @@ tags: [todo, navigation, studio, performance, regression, accessibility]
 - 尚未勾选的 iPad 单触、系统上下文菜单、Windows Ctrl／中键和桌面／iPad Safari 项属于 T-088 的实体设备与异浏览器验收；在这些人工行完成前，本单保持 `in-progress`，不以生产部署自动关闭。
 - 人工补测已标准化为 `docs/qa/t110-navigation/REAL_BROWSER_ACCEPTANCE_TEMPLATE.md`：每一种实际设备／浏览器组合单独记录 release、Build ID、最终 URL、PASS/FAIL/BLOCK 和脱敏证据；不会把源码 `href` 或 Chromium 结果冒充 Safari／Windows 硬件回执。
 - 当前平台发布已前进到 `20260911T120044CST-t088-privacy-r1`（App Build ID `ff9a3525-ed80-4d65-b7a3-c2395ef4b6e4`）。该版本继续通过 Hecate health、双端 public smoke 与匿名生产 Chromium；上述 Safari／Windows 原生输入组合仍未执行，故状态不变。
+
+## 2026-09-15 队列审计结论
+
+本单可自动化实施范围已经完成，当前仅剩外部人工门槛：仍需真实 iPad Safari、桌面 Safari 和 Windows/Linux 原生 Ctrl／中键／右键行为人工验收；Chromium 与代码回归已完成。
+
+因此状态由容易被误读为“仍在开发”的 `in-progress` 改为 `blocked`。解除门槛后按原验收清单补写真实设备／资料回执；不得用桌面模拟或代码存在替代人工证据。
