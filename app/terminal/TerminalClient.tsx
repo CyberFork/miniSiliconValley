@@ -87,10 +87,10 @@ export default function TerminalClient({ initialApp, initialUser }: { initialApp
       </header>
       <div className={styles.screen}>
         <aside className={styles.rail} aria-label="终端快捷入口">
-          <button type="button" data-active={app === "home"} onClick={() => open("home")}><span>⌂</span><b>桌面</b></button>
+          <button type="button" data-active={app === "home"} onClick={() => open("home")}><span>▣</span><b>开始</b></button>
           {APPS.filter((item) => (item.learner ? isLearner : item.staff ? isStaff : true)).slice(0, 5).map((item) => <button type="button" key={item.id} data-active={app === item.id} onClick={() => open(item.id)}><span>{item.glyph}</span><b>{item.label}</b></button>)}
         </aside>
-        <section className={styles.workspace} id="terminal-content" tabIndex={-1} style={{ "--terminal-wallpaper": `url("${publicPath("/assets/silicon-valley-base-map.webp")}")` } as React.CSSProperties}>
+        <section className={styles.workspace} id="terminal-content" tabIndex={-1}>
           <header className={styles.appbar}>
             <div><small>TIME TERMINAL · {app.toUpperCase()}</small><h1>{app === "home" ? `欢迎回来，${initialUser.displayName}` : APPS.find((item) => item.id === app)?.label}</h1></div>
             {app !== "home" && <button type="button" onClick={() => open("home")}>← 返回桌面</button>}

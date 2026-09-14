@@ -20,9 +20,12 @@ test("T-124 exposes a refreshable terminal shell and every agreed app route", ()
   assert.match(client, /window\.addEventListener\("popstate"/);
   assert.match(client, /mini-silicon-valley-logo-transparent\.png[\s\S]*unoptimized/);
   assert.match(client, /data-active-app=\{app\}/);
-  assert.match(styles, /\.device\[data-active-app=home\] \.workspace/);
-  assert.match(styles, /var\(--terminal-wallpaper\)/);
-  assert.match(styles, /\.device\[data-active-app=home\] \.rail/);
+  assert.match(client, /<span>▣<\/span><b>开始<\/b>/);
+  assert.match(styles, /Windows 95-inspired pocket computer/);
+  assert.match(styles, /background-color:#008080/);
+  assert.match(styles, /background:linear-gradient\(90deg,#000080,#1084d0\)/);
+  assert.match(styles, /width:min\(480px,100%\)/);
+  assert.match(styles, /@media\(max-width:520px\)/);
 });
 
 test("T-124 implements real APIs, public-space privacy, wallet isolation and designed confirmations", () => {
