@@ -132,7 +132,7 @@ export function buildCourseFieldModel(course: CoursePackage): CourseFieldModel {
     // Root `title` is derived display metadata ("Mini Silicon Valley｜…") and
     // is intentionally not a same-value alias of the editable course name.
     field("global", null, null, "course-name", "text", "course.name"),
-    field("global", null, null, "course-period", "text", "course.period", ["case.period"]),
+    field("global", null, null, "course-period", "text", "course.period"),
     field("global", null, null, "course-description", "text", "course.description"),
     field("global", null, null, "learner-name", "text", "case.learnerName"),
     field("global", null, null, "case-name", "text", "case.name"),
@@ -231,6 +231,17 @@ function getPath(value: unknown, path: string): unknown {
 }
 
 function bindingSignature(binding: CourseFieldBinding): string {
+  // T-112 stops treating a course-wide teaching period as the period of one
+  // default case. Old immutable field-model v1 snapshots did declare that
+  // alias; accept that one exact legacy shape while every newly normalized
+  // Candidate is written without the coupling.
+  if (binding.path === "course.period"
+    && binding.fieldType === "course-period"
+    && JSON.stringify(binding.aliases) === JSON.stringify(["case.period"])) {
+    const compatible = { ...binding };
+    delete compatible.aliases;
+    return JSON.stringify(compatible);
+  }
   return JSON.stringify(binding);
 }
 

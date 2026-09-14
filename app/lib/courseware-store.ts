@@ -56,6 +56,8 @@ const PRODUCT_COURSEWARE_R0_SOURCE_COMMIT = "679213a61b835335016eac7649213983a0e
 const PRODUCT_COURSEWARE_R0_SOURCE_TREE = "3a041c4714190cc026f6de8e06e15cec0e5f765d";
 const PRODUCT_COURSEWARE_R1_SOURCE_COMMIT = "d9d45f1396b54a7ac6b41715b31122d8ffc597ff";
 const PRODUCT_COURSEWARE_R1_SOURCE_TREE = "d26045a3eb1c249629092dcddeb82e7812ff0ff5";
+const PRODUCT_COURSEWARE_R2_SOURCE_COMMIT = "806d804932e4cd4ae2796d84578d39197d7ea4ce";
+const PRODUCT_COURSEWARE_R2_SOURCE_TREE = "bde3426ee770272dc3263064a16d60659fffff9b";
 const DEVELOPMENT_LIGUN_CONTENT_TREE = "ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234";
 const MARKET_USER_SYSTEM_CONTENT_TREE = "48b01a256bd3d408a5d539f798470e6aad0058a19dcdeb8b5d212b0e64add862";
 const BUNDLED_VERSIONS = [
@@ -79,10 +81,23 @@ const BUNDLED_VERSIONS = [
     role: "P" as const,
     revision: 1,
     releasedAt: "2026-09-12T00:00:00Z",
-    isCurrent: true,
+    isCurrent: false,
     kind: "static-bundle" as const,
     entryPath: "/courseware/product-mentor-foundations/r1/",
     sourceIdentity: `${PRODUCT_COURSEWARE_R1_SOURCE_COMMIT}:${PRODUCT_COURSEWARE_R1_SOURCE_TREE}`,
+    html: null,
+  },
+  {
+    id: "cw-product-mentor-foundations",
+    slug: "product-mentor-foundations",
+    title: "产品导师｜青少年 AI 创业营",
+    role: "P" as const,
+    revision: 2,
+    releasedAt: "2026-09-14T00:00:00Z",
+    isCurrent: true,
+    kind: "static-bundle" as const,
+    entryPath: "/courseware/product-mentor-foundations/r2/?view=overview&slide=0",
+    sourceIdentity: `${PRODUCT_COURSEWARE_R2_SOURCE_COMMIT}:${PRODUCT_COURSEWARE_R2_SOURCE_TREE}`,
     html: null,
   },
   {

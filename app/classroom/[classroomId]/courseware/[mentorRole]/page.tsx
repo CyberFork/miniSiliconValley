@@ -7,6 +7,7 @@ import { getClassroomInstance } from "../../../../lib/classroom-platform-store";
 import { CLASSROOM_MENTOR_ROLES, type ClassroomMentorRole } from "../../../../lib/classroom-factory";
 import { defaultCoursewareRefs, listCourseware, loadCoursewareExact } from "../../../../lib/courseware-store";
 import { BrandHomeLink } from "../../../../components/BrandHomeLink";
+import { coursewarePlayerHref } from "../../../../lib/courseware-navigation";
 import styles from "../../../../course/course.module.css";
 
 export const dynamic = "force-dynamic";
@@ -46,6 +47,11 @@ export default async function ClassroomCoursewarePage({ params }: { params: Prom
       <div className={styles.viewerMeta}><small>COURSEWARE PLACEHOLDER · {role}</small><h1>尚未提供真实导师课件</h1><code>{item.packageId} · r{item.revision} · {item.digest}</code></div>
       <div className={styles.staticLaunch}><section><span className={styles.warning}>内部占位 · 不是正式课件</span><h2>{item.title}</h2><p>这条绑定只用于 Test Classroom 验证四导师结构。课程组尚未上传并发布 {role} 导师真实课件，因此系统不会展示一个看似可用、实际失效的播放链接。</p></section></div>
     </main>;
+  }
+  if (item.contentKind === "static-bundle") {
+    const player = coursewarePlayerHref(item);
+    if (!player) notFound();
+    redirect(player);
   }
   return <CoursewareFrame
     item={item}

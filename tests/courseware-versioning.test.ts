@@ -102,37 +102,46 @@ const bundledProductR1 = {
   digest: "8ade4830d08f901aba7ed4abc3ae73fd39a0a5f4e16a96935ca38603ba395346",
   entryPath: "/courseware/product-mentor-foundations/r1/",
 } as const;
+const bundledProductR2 = {
+  revision: 2,
+  digest: "d753bc84d40959639b45fd32c688135c425a5e1711a2a18b23bc75072c3b2e58",
+  entryPath: "/courseware/product-mentor-foundations/r2/?view=overview&slide=0",
+} as const;
 
-test("bundled product-manager r1 is current while the exact r0 remains playable", async () => {
+test("bundled product-mentor r2 is current while exact r0/r1 remain playable", async () => {
   const db = database();
   try {
     const first = (await listCourseware(db)).find((item) => item.packageId === "cw-product-mentor-foundations");
-    assert.equal(first?.latestRevision, bundledProductR1.revision);
-    assert.equal(first?.latestDigest, bundledProductR1.digest);
-    assert.equal(first?.releasedRevision, bundledProductR1.revision);
-    assert.equal(first?.releasedDigest, bundledProductR1.digest);
+    assert.equal(first?.latestRevision, bundledProductR2.revision);
+    assert.equal(first?.latestDigest, bundledProductR2.digest);
+    assert.equal(first?.releasedRevision, bundledProductR2.revision);
+    assert.equal(first?.releasedDigest, bundledProductR2.digest);
     assert.deepEqual(first?.versions.map((version) => [version.revision, version.digest, version.releaseStatus]), [
-      [bundledProductR1.revision, bundledProductR1.digest, "current"],
+      [bundledProductR2.revision, bundledProductR2.digest, "current"],
+      [bundledProductR1.revision, bundledProductR1.digest, "historical"],
       [bundledProductR0.revision, bundledProductR0.digest, "historical"],
     ]);
 
     const current = await loadCoursewareBySlug(db, "product-mentor-foundations");
     const historical = await loadCoursewareExact(db, current.packageId, bundledProductR0.revision, bundledProductR0.digest);
-    assert.equal(current.entryPath, bundledProductR1.entryPath);
+    const historicalR1 = await loadCoursewareExact(db, current.packageId, bundledProductR1.revision, bundledProductR1.digest);
+    assert.equal(current.entryPath, bundledProductR2.entryPath);
     assert.equal(current.releaseStatus, "current");
     assert.equal(historical.entryPath, bundledProductR0.entryPath);
+    assert.equal(historicalR1.entryPath, bundledProductR1.entryPath);
+    assert.equal(historicalR1.releaseStatus, "historical");
     assert.equal(historical.releaseStatus, "historical");
     assert.equal(historical.released, true);
 
     // Re-running the bootstrap is deliberately idempotent: no duplicate
     // versions or release-history rows are created.
     await listCourseware(db);
-    assert.equal((db.raw.prepare("SELECT COUNT(*) AS n FROM courseware_versions WHERE package_id = ?").get(current.packageId) as { n: number }).n, 2);
-    assert.equal((db.raw.prepare("SELECT COUNT(*) AS n FROM courseware_releases WHERE package_id = ?").get(current.packageId) as { n: number }).n, 2);
+    assert.equal((db.raw.prepare("SELECT COUNT(*) AS n FROM courseware_versions WHERE package_id = ?").get(current.packageId) as { n: number }).n, 3);
+    assert.equal((db.raw.prepare("SELECT COUNT(*) AS n FROM courseware_releases WHERE package_id = ?").get(current.packageId) as { n: number }).n, 3);
   } finally { db.raw.close(); }
 });
 
-test("a production-style r0 registry upgrades to bundled r1 without rewriting r0", async () => {
+test("a production-style r0 registry upgrades to bundled r2 without rewriting r0", async () => {
   const db = database();
   try {
     const now = "2026-09-08T00:00:00Z";
@@ -147,9 +156,9 @@ test("a production-style r0 registry upgrades to bundled r1 without rewriting r0
       .run("cw-product-mentor-foundations", bundledProductR0.digest, now, "system-courseware");
 
     const upgraded = await loadCoursewareBySlug(db, "product-mentor-foundations");
-    assert.equal(upgraded.revision, bundledProductR1.revision);
-    assert.equal(upgraded.digest, bundledProductR1.digest);
-    assert.equal(upgraded.entryPath, bundledProductR1.entryPath);
+    assert.equal(upgraded.revision, bundledProductR2.revision);
+    assert.equal(upgraded.digest, bundledProductR2.digest);
+    assert.equal(upgraded.entryPath, bundledProductR2.entryPath);
     const untouched = await loadCoursewareExact(db, upgraded.packageId, bundledProductR0.revision, bundledProductR0.digest);
     assert.equal(untouched.entryPath, bundledProductR0.entryPath);
     assert.equal(untouched.releaseStatus, "historical");

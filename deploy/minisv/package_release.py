@@ -17,6 +17,7 @@ DEVELOPMENT_COURSEWARE = Path("courseware/development-mentor-ligun")
 MARKET_COURSEWARE = Path("courseware/market-mentor-user-system")
 PRODUCT_COURSEWARE = Path("courseware/product-mentor-foundations")
 PRODUCT_COURSEWARE_R1 = PRODUCT_COURSEWARE / "r1"
+PRODUCT_COURSEWARE_R2 = PRODUCT_COURSEWARE / "r2"
 BRAND_WORDMARK = Path("assets/mini-silicon-valley-logo-transparent.png")
 BRAND_WORDMARK_SHA256 = "4dbbe4dea625fd372c6d760f2344fbf62b7b15f0d2d14e490cddd56e05ffbe87"
 REQUIRED_PAGES = (
@@ -24,6 +25,7 @@ REQUIRED_PAGES = (
     "parents/index.html", "world-preview.json", "workshop/index.html",
     "courseware/product-mentor-foundations/index.html",
     "courseware/product-mentor-foundations/r1/index.html",
+    "courseware/product-mentor-foundations/r2/index.html",
     "courseware/development-mentor-ligun/index.html",
     "courseware/market-mentor-user-system/index.html",
 )
@@ -33,8 +35,10 @@ THEME_VERSION = "20260914-transparent-wordmark-r7"
 THEME_ASSETS = f'<link rel="stylesheet" href="/ui-theme.css?v={THEME_VERSION}"><script src="/ui-theme.js?v={THEME_VERSION}"></script>'
 CHJ_COURSE_R0_SHA = "679213a61b835335016eac7649213983a0e48489"
 CHJ_COURSE_R0_TREE = "3a041c4714190cc026f6de8e06e15cec0e5f765d"
-CHJ_COURSE_UI_SHA = "d9d45f1396b54a7ac6b41715b31122d8ffc597ff"
-CHJ_COURSE_UI_TREE = "d26045a3eb1c249629092dcddeb82e7812ff0ff5"
+CHJ_COURSE_R1_SHA = "d9d45f1396b54a7ac6b41715b31122d8ffc597ff"
+CHJ_COURSE_R1_TREE = "d26045a3eb1c249629092dcddeb82e7812ff0ff5"
+CHJ_COURSE_UI_SHA = "806d804932e4cd4ae2796d84578d39197d7ea4ce"
+CHJ_COURSE_UI_TREE = "bde3426ee770272dc3263064a16d60659fffff9b"
 WORKSHOP_OVERLAY = Path(__file__).resolve().parent / "workshop"
 MAX_WORKSHOP_SNAPSHOT_BYTES = 1024 * 1024
 CANONICAL_REPOSITORY = "https://github.com/CyberFork/miniSiliconValley.git"
@@ -373,6 +377,7 @@ def build(
     app_static: Path,
     course_static: Path,
     product_courseware_r1: Path,
+    product_courseware_r2: Path,
     portal: Path,
     output: Path,
     release_id: str,
@@ -383,7 +388,7 @@ def build(
     workshop_snapshot: Path | None = None,
     workspace_provenance: dict | None = None,
 ) -> None:
-    for source in (legacy, app_client, app_static, course_static, product_courseware_r1, portal):
+    for source in (legacy, app_client, app_static, course_static, product_courseware_r1, product_courseware_r2, portal):
         if not source.is_dir():
             raise ValueError(f"required directory is missing: {source}")
     for label, value in (("main SHA", main_sha), ("chj SHA", chj_sha), ("chj tree", chj_tree)):
@@ -395,6 +400,7 @@ def build(
     market_courseware = validate_market_courseware(market_courseware_source)
     course_r0_source_digest, course_r0_source_files, course_r0_source_bytes = tree_digest(course_static)
     course_r1_source_digest, course_r1_source_files, course_r1_source_bytes = tree_digest(product_courseware_r1)
+    course_r2_source_digest, course_r2_source_files, course_r2_source_bytes = tree_digest(product_courseware_r2)
     if output.exists():
         raise ValueError(f"refusing to overwrite release output: {output}")
     output.mkdir(parents=True)
@@ -465,6 +471,16 @@ def build(
     ):
         raise ValueError("opaque chj product-manager r1 copy changed during release assembly")
 
+    courseware_r2_output = output / PRODUCT_COURSEWARE_R2
+    if courseware_r2_output.exists():
+        raise ValueError("historical product-manager source unexpectedly contains an r2 directory")
+    copy_entry(product_courseware_r2, courseware_r2_output)
+    course_r2_output_digest, course_r2_output_files, course_r2_output_bytes = tree_digest(courseware_r2_output)
+    if (course_r2_output_digest, course_r2_output_files, course_r2_output_bytes) != (
+        course_r2_source_digest, course_r2_source_files, course_r2_source_bytes
+    ):
+        raise ValueError("opaque chj product-manager r2 copy changed during release assembly")
+
     # D is repo-owned rather than colleague-owned, but its r0 still uses an
     # exact byte manifest. Copy it after transform_tree() so the release
     # assembler cannot silently inject global theme/runtime code into the deck.
@@ -517,14 +533,14 @@ def build(
             "sourceCommit": main_sha,
         },
         "coursewareArtifact": {
-            "route": "/courseware/product-mentor-foundations/r1/",
+            "route": "/courseware/product-mentor-foundations/r2/",
             "mentorRole": "P",
-            "revision": 1,
+            "revision": 2,
             "sourceCommit": chj_sha,
             "sourceTree": chj_tree,
-            "sha256": course_r1_source_digest,
-            "files": course_r1_source_files,
-            "bytes": course_r1_source_bytes,
+            "sha256": course_r2_source_digest,
+            "files": course_r2_source_files,
+            "bytes": course_r2_source_bytes,
             "transformed": False,
         },
         "productCoursewareArtifacts": [
@@ -544,12 +560,24 @@ def build(
                 "route": "/courseware/product-mentor-foundations/r1/",
                 "mentorRole": "P",
                 "revision": 1,
-                "releaseStatus": "current",
-                "sourceCommit": chj_sha,
-                "sourceTree": chj_tree,
+                "releaseStatus": "historical",
+                "sourceCommit": CHJ_COURSE_R1_SHA,
+                "sourceTree": CHJ_COURSE_R1_TREE,
                 "sha256": course_r1_source_digest,
                 "files": course_r1_source_files,
                 "bytes": course_r1_source_bytes,
+                "transformed": False,
+            },
+            {
+                "route": "/courseware/product-mentor-foundations/r2/",
+                "mentorRole": "P",
+                "revision": 2,
+                "releaseStatus": "current",
+                "sourceCommit": chj_sha,
+                "sourceTree": chj_tree,
+                "sha256": course_r2_source_digest,
+                "files": course_r2_source_files,
+                "bytes": course_r2_source_bytes,
                 "transformed": False,
             },
         ],
@@ -584,7 +612,7 @@ def build(
         page = output / relative
         if page.is_file() and not re.search(r'href=["\']/course/', page.read_text(encoding="utf-8")):
             errors.append(f"missing stable course navigation in {relative}")
-    for revision, relative in ((0, PRODUCT_COURSEWARE), (1, PRODUCT_COURSEWARE_R1)):
+    for revision, relative in ((0, PRODUCT_COURSEWARE), (1, PRODUCT_COURSEWARE_R1), (2, PRODUCT_COURSEWARE_R2)):
         course_page = output / relative / "index.html"
         if course_page.is_file():
             course_text = course_page.read_text(encoding="utf-8")
@@ -629,6 +657,7 @@ def main() -> None:
     parser.add_argument("--app-static-root", required=True, type=Path)
     parser.add_argument("--course-static-root", required=True, type=Path, help="immutable product-manager r0 artifact")
     parser.add_argument("--product-courseware-r1-root", required=True, type=Path, help="immutable chj9-11 product-manager r1 artifact")
+    parser.add_argument("--product-courseware-r2-root", required=True, type=Path, help="immutable chj9-11 product-mentor r2 artifact")
     parser.add_argument("--portal-root", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--release-id", required=True)
@@ -644,7 +673,7 @@ def main() -> None:
     repo_root = Path(__file__).resolve().parents[2]
     workspace_provenance = verify_release_workspace(repo_root, args.main_sha, dirty_reason=args.allow_dirty_reason)
     build(
-        *(getattr(args, name) for name in ("legacy_root", "app_client_root", "app_static_root", "course_static_root", "product_courseware_r1_root", "portal_root", "output", "release_id")),
+        *(getattr(args, name) for name in ("legacy_root", "app_client_root", "app_static_root", "course_static_root", "product_courseware_r1_root", "product_courseware_r2_root", "portal_root", "output", "release_id")),
         main_sha=args.main_sha,
         chj_sha=args.chj_sha,
         chj_tree=args.chj_tree,

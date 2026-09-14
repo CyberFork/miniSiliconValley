@@ -130,10 +130,13 @@ export interface CourseLearnerPolicy {
  */
 export interface CourseCasePackage {
   id: string;
+  /** Stable case identity. It is deliberately independent from course.id. */
   caseId: string;
   /** Historical packages cite sources; simulations must remain source-free. */
   caseType: CourseCaseType;
   title: string;
+  /** Optional for schema-v1 compatibility; new multi-case Candidates should provide it. */
+  period?: string;
   ownerMentorRole: CourseMentorRole;
   scope: string;
   evidenceRevision: string;
@@ -330,7 +333,9 @@ export function validateCoursePackage(value: unknown): CoursePackage {
   for (const key of ["campaignId", "name", "learnerName", "period", "why"]) text(caseValue[key], `$.case.${key}`);
   const campaignId = String(caseValue.campaignId);
   if (!/^[a-z0-9][a-z0-9-]{2,63}$/.test(campaignId)) throw new Error("$.case.campaignId 格式无效。");
-  if (campaignId !== courseId) throw new Error("$.case.campaignId 必须与 $.course.id 一致，避免课程与案例真值错配。");
+  // `case` is the legacy/default-case projection retained for old releases.
+  // Its pointer is independent from the stable course identity: a course can
+  // teach several historical or simulated cases without cloning the course.
 
   const learnerPolicy = root.learnerPolicy === undefined
     ? { defaultCount: 4, minCount: 2, maxCount: 4, cardsPerLearner: 3, dealPolicy: "unique-within-step" as const }
@@ -508,7 +513,7 @@ export function validateCoursePackage(value: unknown): CoursePackage {
   }
   if (root.contentPackages !== undefined) {
     validateContentPackages(root.contentPackages, {
-      courseId,
+      primaryCaseId: campaignId,
       sourceIds,
       blockIds,
       deckIds: new Set(decks.map((raw, index) => text(record(raw, `$.decks[${index}]`).id, `$.decks[${index}].id`))),
@@ -566,7 +571,7 @@ export function resolveCourseCompletionPolicy(course: CoursePackage): CourseComp
 function validateContentPackages(
   value: unknown,
   refs: {
-    courseId: string;
+    primaryCaseId: string;
     sourceIds: Set<string>;
     blockIds: Set<string>;
     deckIds: Set<string>;
@@ -595,6 +600,7 @@ function validateContentPackages(
   const rawCases = array(root.casePackages, "$.contentPackages.casePackages");
   if (!rawCases.length) throw new Error("$.contentPackages.casePackages 不能为空。");
   const caseIds = new Set<string>();
+  const contentCaseIds = new Set<string>();
   const caseOwners = new Map<string, CourseMentorRole>();
   const caseTypes = new Map<string, CourseCaseType>();
   const declaredFactCards = new Set<string>();
@@ -605,15 +611,15 @@ function validateContentPackages(
     if (caseIds.has(id)) throw new Error(`${path}.id 重复。`);
     caseIds.add(id);
     const caseId = identifier(item.caseId, `${path}.caseId`);
+    if (contentCaseIds.has(caseId)) throw new Error(`${path}.caseId 重复；每个案例必须拥有独立 caseId。`);
+    contentCaseIds.add(caseId);
     if (!new Set(["historical", "simulation"]).has(String(item.caseType))) {
       throw new Error(`${path}.caseType 必须是 historical 或 simulation。`);
     }
     const caseType = item.caseType as CourseCaseType;
     caseTypes.set(id, caseType);
-    if (caseType === "historical" && caseId !== refs.courseId) {
-      throw new Error(`${path}.caseId 必须与课程 ID 一致，避免史实案例真值错配。`);
-    }
     text(item.title, `${path}.title`);
+    if (item.period !== undefined) text(item.period, `${path}.period`);
     const caseOwner = role(item.ownerMentorRole, `${path}.ownerMentorRole`);
     caseOwners.set(id, caseOwner);
     text(item.scope, `${path}.scope`);
@@ -639,6 +645,9 @@ function validateContentPackages(
         if (!caseSources.has(sourceId)) throw new Error(`${path}.factCardIds 的 ${cardId} 使用了 CasePackage 未声明的来源 ${sourceId}。`);
       }
     }
+  }
+  if (!contentCaseIds.has(refs.primaryCaseId)) {
+    throw new Error(`$.case.campaignId 必须指向 $.contentPackages.casePackages 中已声明的 caseId：${refs.primaryCaseId}。`);
   }
   const undeclaredFacts = [...refs.cardsById.entries()]
     .filter(([, card]) => card.boundary === "F")

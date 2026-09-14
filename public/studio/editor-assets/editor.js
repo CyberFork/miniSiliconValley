@@ -337,6 +337,9 @@
   }
   function renderMetadata() {
     const policy = Preview.learnerPolicy(course);
+    const declaredCases = Array.isArray(course.contentPackages?.casePackages) ? course.contentPackages.casePackages : [];
+    const caseSummary = declaredCases.length ? `
+      <section class="legacy-policy wide"><div><b>${declaredCases.length} 个独立案例</b><small>${declaredCases.map((item) => `${item.caseType === "historical" ? "史实" : "模拟"} · ${item.title} (${item.caseId})`).map(esc).join("<br>")}</small></div><span class="field-ownership">高级结构中编辑 CasePackage</span></section>` : "";
     const policyFields = course.learnerPolicy ? `
       ${field("默认学员数", "learnerPolicy.defaultCount", {type: "number"})}
       ${field("最少学员数", "learnerPolicy.minCount", {type: "number"})}
@@ -348,12 +351,13 @@
       ${field("课程 ID", "course.id", {locked: true, help: "稳定文件名与加载键；克隆时确定。"})}
       ${field("课程名称", "course.name")}
       ${field("时代 / 时间范围", "course.period")}
-      ${field("案例运行 ID", "case.campaignId", {locked: true, help: "必须与课程 ID 一致；新案例通过克隆创建，不绑定硬编码公司列表。"})}
+      ${field("默认案例 ID（兼容字段）", "case.campaignId", {help: "与课程 ID 独立；含多个案例时，指向默认 CasePackage.caseId。"})}
       ${field("课程简介", "course.description", {textarea: true, wide: true})}
       ${field("学员安全队名", "case.learnerName", {help: "揭晓前学员看到的名称。"})}
       ${field("案例时间", "case.period")}
       ${field("导师案例名", "case.name", {wide: true})}
       ${field("为什么值得学", "case.why", {textarea: true, wide: true})}
+      ${caseSummary}
       ${policyFields}
       <section class="legacy-policy wide"><div><b>${course.fieldModel ? `${course.fieldModel.studentSeats.length} 个稳定学员席 · ${course.fieldModel.fields.length} 个字段身份` : "当前版本尚未建立字段身份"}</b><small>${course.fieldModel ? "fieldId / scope / ownerId / JSON path 已写入 CourseDefinition；停用席位不会被删除。" : "点击后只更新浏览器 Working Copy；保存 Candidate 才会形成新的不可变 revision。"}</small></div><button type="button" class="button secondary" id="normalizeFieldModel">${course.fieldModel ? "刷新字段身份" : "建立席位隔离"}</button></section>`;
     bindInputs($("#metadataForm"));
@@ -905,7 +909,6 @@
   function updateCoupledField(path, value) {
     const match = path.match(/^macroSteps\.(\d+)\.name$/);
     if (match && course.formula?.fiveSteps?.[Number(match[1])]) course.formula.fiveSteps[Number(match[1])].name = value;
-    if (path === "course.period") course.case.period = value;
     if (path === "course.name") course.title = `Mini Silicon Valley｜${value}｜CourseDefinition`;
     const leadMatch = path.match(/^blocks\.(\d+)\.leadMentorId$/);
     const activeMatch = path.match(/^blocks\.(\d+)\.seatTasks\.(mentor0[1-4])\.state$/);
@@ -1363,11 +1366,9 @@
       cloned.id = `${newId}-course-package`;
       cloned.title = `Mini Silicon Valley｜${newName}｜CourseDefinition`;
       cloned.course.id = newId; cloned.course.name = newName; cloned.course.scriptId = `${newId}-course-script`;
-      cloned.case.campaignId = newId; cloned.case.name = newName;
-      cloned.decks.forEach((deck) => {
-        if (String(deck.id).includes(oldId)) deck.id = String(deck.id).replaceAll(oldId, newId);
-        deck.cards.forEach((card) => { if (String(card.id).includes(oldId)) card.id = String(card.id).replaceAll(oldId, newId); });
-      });
+      // A clone creates a new course identity, not a new historical case.
+      // Preserve case/deck/card identities and evidence ownership; authors can
+      // add or replace CasePackages independently in Advanced JSON.
       cloned.authoring = {...(cloned.authoring || {}), clonedFrom: {courseId: oldId, revision: source.ref.revision, digest: source.ref.digest}, clonedAt: new Date().toISOString()};
       await post("/api/studio/validate", {course: cloned});
       const ref = await post("/api/studio/candidates", {course: cloned, expectedCandidateRef: null});

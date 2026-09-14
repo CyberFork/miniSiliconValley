@@ -37,7 +37,7 @@ class CourseReleaseTests(unittest.TestCase):
     def test_release_rejects_untraceable_source_sha_before_writing_output(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            inputs = [root / name for name in ("legacy", "client", "static", "course-r0", "course-r1", "portal")]
+            inputs = [root / name for name in ("legacy", "client", "static", "course-r0", "course-r1", "course-r2", "portal")]
             for directory in inputs:
                 directory.mkdir()
             output = root / "release"
@@ -53,6 +53,7 @@ class CourseReleaseTests(unittest.TestCase):
             static = root / "static"
             course = root / "course"
             course_r1 = root / "course-r1"
+            course_r2 = root / "course-r2"
             portal = root / "portal"
             output = root / "release"
             for directory in (
@@ -67,6 +68,8 @@ class CourseReleaseTests(unittest.TestCase):
                 course / "assets",
                 course_r1 / "_next",
                 course_r1 / "assets",
+                course_r2 / "_next",
+                course_r2 / "assets",
                 portal,
             ):
                 directory.mkdir(parents=True, exist_ok=True)
@@ -141,6 +144,14 @@ class CourseReleaseTests(unittest.TestCase):
             (course_r1 / "index.html").write_text(course_r1_html)
             (course_r1 / "_next" / "chj.css").write_bytes(b"/* colleague r1 bytes */")
             (course_r1 / "assets" / "home-workbench.png").write_bytes(b"\x89PNG\r\n\x1a\ncolleague r1")
+            course_r2_html = (
+                '<html><head><link rel="stylesheet" href="/courseware/product-mentor-foundations/r2/_next/chj.css"></head>'
+                '<body><h1>青少年AI创业营</h1><b>MINI硅谷</b>'
+                '<img src="/courseware/product-mentor-foundations/r2/assets/course-outline-world-map-v2.webp"></body></html>'
+            )
+            (course_r2 / "index.html").write_text(course_r2_html)
+            (course_r2 / "_next" / "chj.css").write_bytes(b"/* colleague r2 bytes */")
+            (course_r2 / "assets" / "course-outline-world-map-v2.webp").write_bytes(b"RIFF-product-r2")
             (portal / "index.html").write_text('<html><head></head><body><a href="/course/">课程大纲</a></body></html>')
             (portal / "404.html").write_text('<html><head></head><body><a href="/">返回 MINI硅谷首页</a></body></html>')
             (portal / "sitemap.xml").write_text('<urlset><url><loc>https://minisv.vip/</loc></url></urlset>\n')
@@ -163,6 +174,10 @@ class CourseReleaseTests(unittest.TestCase):
                 path.relative_to(course_r1).as_posix(): path.read_bytes()
                 for path in course_r1.rglob("*") if path.is_file()
             }
+            source_r2_snapshot = {
+                path.relative_to(course_r2).as_posix(): path.read_bytes()
+                for path in course_r2.rglob("*") if path.is_file()
+            }
             provenance = {
                 "verified": True,
                 "canonicalRepository": MODULE.CANONICAL_REPOSITORY,
@@ -173,7 +188,7 @@ class CourseReleaseTests(unittest.TestCase):
                 "exceptionReason": None,
             }
             MODULE.build(
-                legacy, client, static, course, course_r1, portal, output, "t077-test",
+                legacy, client, static, course, course_r1, course_r2, portal, output, "t077-test",
                 main_sha=main_sha, workspace_provenance=provenance,
             )
 
@@ -189,7 +204,7 @@ class CourseReleaseTests(unittest.TestCase):
             output_snapshot = {
                 path.relative_to(output / "courseware" / "product-mentor-foundations").as_posix(): path.read_bytes()
                 for path in (output / "courseware" / "product-mentor-foundations").rglob("*") if path.is_file()
-                and "r1" not in path.relative_to(output / "courseware" / "product-mentor-foundations").parts
+                and not ({"r1", "r2"} & set(path.relative_to(output / "courseware" / "product-mentor-foundations").parts))
             }
             self.assertEqual(output_snapshot, source_snapshot)
             output_r1_snapshot = {
@@ -197,6 +212,11 @@ class CourseReleaseTests(unittest.TestCase):
                 for path in (output / "courseware" / "product-mentor-foundations" / "r1").rglob("*") if path.is_file()
             }
             self.assertEqual(output_r1_snapshot, source_r1_snapshot)
+            output_r2_snapshot = {
+                path.relative_to(output / "courseware" / "product-mentor-foundations" / "r2").as_posix(): path.read_bytes()
+                for path in (output / "courseware" / "product-mentor-foundations" / "r2").rglob("*") if path.is_file()
+            }
+            self.assertEqual(output_r2_snapshot, source_r2_snapshot)
             self.assertNotIn("/ui-theme.js", (output / "courseware" / "product-mentor-foundations" / "index.html").read_text())
             self.assertEqual(
                 MODULE.validate_development_courseware(output / "courseware" / "development-mentor-ligun")["sha256"],
@@ -245,18 +265,20 @@ class CourseReleaseTests(unittest.TestCase):
             self.assertIn("read-only-workshop-history-archive", release["features"])
             self.assertFalse(release["coursewareArtifact"]["transformed"])
             self.assertEqual(release["coursewareArtifact"]["mentorRole"], "P")
-            self.assertEqual(release["coursewareArtifact"]["revision"], 1)
-            self.assertEqual(release["coursewareArtifact"]["route"], "/courseware/product-mentor-foundations/r1/")
-            self.assertEqual(release["coursewareArtifact"]["files"], len(source_r1_snapshot))
+            self.assertEqual(release["coursewareArtifact"]["revision"], 2)
+            self.assertEqual(release["coursewareArtifact"]["route"], "/courseware/product-mentor-foundations/r2/")
+            self.assertEqual(release["coursewareArtifact"]["files"], len(source_r2_snapshot))
             self.assertEqual(
                 [(item["revision"], item["route"], item["releaseStatus"]) for item in release["productCoursewareArtifacts"]],
                 [
                     (0, "/courseware/product-mentor-foundations/", "historical"),
-                    (1, "/courseware/product-mentor-foundations/r1/", "current"),
+                    (1, "/courseware/product-mentor-foundations/r1/", "historical"),
+                    (2, "/courseware/product-mentor-foundations/r2/", "current"),
                 ],
             )
             self.assertEqual(release["productCoursewareArtifacts"][0]["files"], len(source_snapshot))
             self.assertEqual(release["productCoursewareArtifacts"][1]["files"], len(source_r1_snapshot))
+            self.assertEqual(release["productCoursewareArtifacts"][2]["files"], len(source_r2_snapshot))
             self.assertEqual(release["developmentCoursewareArtifact"]["mentorRole"], "D")
             self.assertEqual(release["developmentCoursewareArtifact"]["sha256"], development_tree)
             self.assertFalse(release["developmentCoursewareArtifact"]["transformed"])

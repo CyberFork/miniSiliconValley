@@ -3,6 +3,7 @@ import { ensureClassroomSchema, getClassroomDb } from "../../../db";
 import { chatGPTSignInPath, getChatGPTUser, requireCompletedPasswordSetup } from "../../chatgpt-auth";
 import { isCoursewareLibraryVisible, loadCoursewareBySlug } from "../../lib/courseware-store";
 import { ClassroomError } from "../../lib/classroom-errors";
+import { coursewarePlayerHref } from "../../lib/courseware-navigation";
 import CoursewareFrame from "./CoursewareFrame";
 
 export const dynamic = "force-dynamic";
@@ -57,6 +58,11 @@ export default async function CoursewarePage({
   // learner and mentor. Candidate/Draft and system fallback field kits remain
   // Studio/factory-only even when somebody guesses their slug.
   if (!isCoursewareLibraryVisible(item)) notFound();
+  if (item.contentKind === "static-bundle") {
+    const player = coursewarePlayerHref(item, slide, step);
+    if (!player) notFound();
+    redirect(player);
+  }
   return <CoursewareFrame
     item={item}
     initialSlide={slide}

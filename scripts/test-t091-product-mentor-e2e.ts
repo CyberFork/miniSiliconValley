@@ -126,15 +126,15 @@ try {
     {
       packageId: "cw-product-mentor-foundations",
       slug: "product-mentor-foundations",
-      revision: 1,
-      digest: "8ade4830d08f901aba7ed4abc3ae73fd39a0a5f4e16a96935ca38603ba395346",
+      revision: 2,
+      digest: "d753bc84d40959639b45fd32c688135c425a5e1711a2a18b23bc75072c3b2e58",
     },
-    "the product-manager package default must advance to immutable r1",
+    "the product-mentor package default must advance to immutable r2",
   );
   assert.deepEqual(
     pCourseware.versions.map((version) => [version.revision, version.releaseStatus]),
-    [[1, "current"], [0, "historical"]],
-    "the exact T-091 r0 must remain available for the historical Candidate",
+    [[2, "current"], [1, "historical"], [0, "historical"]],
+    "the exact T-091 r0/r1 must remain available for historical Candidates",
   );
 
   const course = JSON.parse(await readFile(candidatePath, "utf8")) as {
@@ -335,9 +335,11 @@ try {
     exactCourseware.find((item) => item.mentorRole === "P"),
     "a stale or unrelated client deck must not override the server's current released P courseware",
   );
-  const latestPDeck = await get(`/classroom/${decoupled.classroomId}/courseware/P/`, adminCookie);
-  assert.equal(latestPDeck.status, 200);
-  assert.ok((await latestPDeck.text()).includes(exactCourseware.find((item) => item.mentorRole === "P")!.digest), "classroom P link must render the newest released P deck");
+  const latestPDeck = await getManual(`/classroom/${decoupled.classroomId}/courseware/P/`, adminCookie);
+  assert.equal(latestPDeck.status, 307);
+  const latestLocation = latestPDeck.headers.get("location") ?? "";
+  assert.match(latestLocation, /^\/courseware\/product-mentor-foundations\/r2\//);
+  assert.ok(latestLocation.includes(exactCourseware.find((item) => item.mentorRole === "P")!.digest), "classroom P link must hand off to the newest released P deck");
 
   console.log("T091_PRODUCT_MENTOR_E2E_PASS candidate=t095-unified checkpoints=P:B01-B04 productBrief=return-resubmit-accept handoff=P-to-D:B05 DMO=no-history-copy courseware=latest-decoupled");
 } finally {
@@ -398,6 +400,10 @@ function proxyHeaders(cookie?: string): Record<string, string> {
 
 async function get(path: string, cookie?: string): Promise<Response> {
   return fetch(`${internalBase}${path}`, { headers: proxyHeaders(cookie), signal: AbortSignal.timeout(20_000) });
+}
+
+async function getManual(path: string, cookie?: string): Promise<Response> {
+  return fetch(`${internalBase}${path}`, { headers: proxyHeaders(cookie), redirect: "manual", signal: AbortSignal.timeout(20_000) });
 }
 
 async function post(path: string, body: unknown, cookie?: string): Promise<Response> {

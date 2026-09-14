@@ -84,7 +84,14 @@
 .privacyNote i { display: grid; width: 26px; height: 26px; flex: 0 0 26px; place-items: center; color: var(--a-ink); background: var(--a-teal); border-radius: 50%; font-style: normal; font-weight: 900; }
 
 .formPanel { display: grid; min-width: 0; place-items: center; padding: clamp(28px, 5vw, 78px); background: var(--a-paper); }
-.authCard { width: min(100%, 520px); }
+.authCard {
+  width: min(100%, 520px);
+  min-width: 0;
+  padding: clamp(24px, 3vw, 36px);
+  background: var(--a-cream);
+  border: 2px solid var(--a-ink);
+  box-shadow: 6px 6px 0 var(--a-ink);
+}
 .cardHeading { margin-bottom: 28px; }
 .cardHeading > span { color: var(--a-coral-dark); font-family: var(--font-mono); font-size: 10px; font-weight: 900; letter-spacing: .14em; }
 .cardHeading h2 { margin: 8px 0 10px; font-family: var(--font-display); font-size: clamp(38px, 4vw, 58px); letter-spacing: -.045em; }
@@ -159,6 +166,7 @@
   border-radius: 0;
   outline: none;
 }
+.inputWrap input { padding-right: 76px; }
 .field input:focus,
 .field select:focus { border-color: var(--a-teal); box-shadow: 0 0 0 3px rgba(43,142,132,.18); }
 .field input[aria-invalid="true"] { border-color: var(--a-coral-dark); }
@@ -272,6 +280,7 @@
   .storySteps li { min-height: 0; border-right: 0; border-bottom: 1px solid #4a5d61; }
   .storySteps li:last-child { border-bottom: 0; }
   .formPanel { padding: 38px 20px 64px; }
+  .authCard { padding: 24px 20px; box-shadow: 5px 5px 0 var(--a-ink); }
   .accountGrid { grid-template-columns: 1fr; }
   .wideCard { grid-column: auto; }
   .accountCard { padding: 21px; }
@@ -282,6 +291,14 @@
   .pickerAvatar { width: 38px; height: 38px; }
   .pickerActions { grid-column: 2; justify-content: flex-start; }
   .pickerFooter { display: grid; }
+}
+
+@media (max-width: 360px) {
+  .formPanel { padding-right: 14px; padding-left: 14px; }
+  .authCard { padding: 20px 16px; }
+  .cardHeading { margin-bottom: 22px; }
+  .cardHeading h2 { font-size: 34px; }
+  .checkRow { align-items: flex-start; flex-direction: column; gap: 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

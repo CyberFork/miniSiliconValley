@@ -14,13 +14,6 @@ function exactHref(item: CoursewareContent, initialSlide?: number, initialStep?:
   return `/course/${encodeURIComponent(item.slug)}/?${query.toString()}`;
 }
 
-function playerHref(item: CoursewareContent, initialSlide?: number, initialStep?: number): string {
-  const query = new URLSearchParams({ revision: String(item.revision), digest: item.digest });
-  if (initialSlide !== undefined && initialSlide >= 1) query.set("slide", String(initialSlide));
-  if (initialStep !== undefined) query.set("step", String(initialStep));
-  return `${item.entryPath}?${query.toString()}`;
-}
-
 export default function CoursewareFrame({
   item,
   user,
@@ -55,11 +48,9 @@ export default function CoursewareFrame({
     {preview && !item.released && <span className={styles.previewWarning}>内部 Candidate · 未正式发布 · 不对学员目录开放</span>}
     {!preview && item.releaseStatus === "historical" && <span className={styles.previewWarning}>历史已发布版本 · 仅用于审计与明确版本预览</span>}
   </div>;
-  if (item.contentKind === "static-bundle" && item.entryPath) return <main className={styles.viewer}>
-    {header}
-    {identity}
-    <div className={styles.staticLaunch}><section><span className={styles.warning}>固定版本 · 原样播放</span><h2>在独立页面打开完整课件</h2><p>本次打开只播放明确的这一版；课堂内导师入口会自动打开本角色最新发布版。</p><a className={styles.launch} href={playerHref(item, initialSlide, initialStep)}>进入全屏课件 →</a></section></div>
-  </main>;
+  // Static bundles are redirected server-side by every authenticated entry
+  // route. This frame is deliberately only the inline-HTML renderer: there is
+  // no second "enter courseware" gate or duplicate website shell.
   return <main className={styles.viewer}>
     {header}
     {identity}

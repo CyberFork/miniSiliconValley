@@ -105,13 +105,12 @@ test("learner tasks beyond learner04 come from the generic template, never fake 
   assert.equal(projection.learnerViews[5].task, course.blocks[0].learnerTaskTemplate.task);
 });
 
-test("a new course can use its own safe case id without adding a hard-coded runtime campaign", () => {
+test("course identity and default case identity are independent", () => {
   const course = structuredClone(bundledCoursePackages()[0]);
   course.course.id = "new-robotics-case-2030";
-  course.case.campaignId = course.course.id;
   assert.equal(validateCoursePackage(course).course.id, "new-robotics-case-2030");
   course.case.campaignId = "different-case";
-  assert.throws(() => validateCoursePackage(course), /必须与 \$\.course\.id 一致/);
+  assert.equal(validateCoursePackage(course).case.campaignId, "different-case");
 });
 
 test("repeat-when-needed deals intentionally repeat a non-empty small deck", () => {

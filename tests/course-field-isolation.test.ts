@@ -36,7 +36,16 @@ test("seat, mentor, card and explicit global aliases update in isolation", () =>
   assert.equal(cardChanged.decks.flatMap((d) => d.cards).find((c) => c.id === card.ownerId)!.body, "卡片独立正文");
   const global = migrated.fieldModel!.fields.find((x) => x.path === "course.period")!;
   const globalChanged = updateCourseFieldById(migrated, global.fieldId, "新时间范围");
-  assert.equal(globalChanged.course.period, "新时间范围"); assert.equal(globalChanged.case.period, "新时间范围");
+  assert.equal(globalChanged.course.period, "新时间范围");
+  assert.equal(globalChanged.case.period, migrated.case.period, "课程总体跨度不得覆盖默认案例时间");
+});
+
+test("legacy course-period alias remains readable but normalization removes the old single-case coupling", () => {
+  const legacy = structuredClone(migrated);
+  legacy.fieldModel!.fields.find((x) => x.path === "course.period")!.aliases = ["case.period"];
+  validateCourseFieldModel(legacy, legacy.fieldModel!);
+  const normalized = migrateCourseFieldIsolation(legacy).course;
+  assert.equal(normalized.fieldModel!.fields.find((x) => x.path === "course.period")!.aliases, undefined);
 });
 
 test("six-to-four migration retains inactive seats and rejects malformed models", () => {

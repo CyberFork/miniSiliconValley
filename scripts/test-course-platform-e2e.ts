@@ -278,9 +278,12 @@ try {
     "/course/development-mentor-ligun/?revision=0&slide=7&step=2",
     "/course/market-mentor-user-system/?revision=0&slide=12",
   ]) {
-    const response = await get(path, learnerCookie);
-    assert.equal(response.status, 200, `learner cannot open exact Released courseware ${path}`);
-    assert.match(response.headers.get("content-type") ?? "", /text\/html/, `${path} must render the authenticated courseware page`);
+    const response = await getManual(path, learnerCookie);
+    assert.equal(response.status, 307, `learner cannot hand off to exact Released courseware ${path}`);
+    const location = response.headers.get("location") ?? "";
+    assert.match(location, /^\/courseware\//, `${path} must redirect directly to the static teaching surface`);
+    assert.match(location, /revision=0/, `${path} lost its exact revision during the hand-off`);
+    assert.match(location, /digest=[0-9a-f]{64}/, `${path} lost its exact digest during the hand-off`);
   }
   assert.equal(
     (await get("/course/market-mentor-field-kit/?revision=0", learnerCookie)).status,
@@ -807,6 +810,10 @@ function proxyHeaders(cookie?: string): Record<string, string> {
 
 async function get(path: string, cookie?: string): Promise<Response> {
   return fetch(`${internalBase}${path}`, { headers: proxyHeaders(cookie), signal: AbortSignal.timeout(20_000) });
+}
+
+async function getManual(path: string, cookie?: string): Promise<Response> {
+  return fetch(`${internalBase}${path}`, { headers: proxyHeaders(cookie), redirect: "manual", signal: AbortSignal.timeout(20_000) });
 }
 
 async function post(path: string, body: unknown, cookie?: string): Promise<Response> {

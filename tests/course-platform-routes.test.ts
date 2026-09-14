@@ -172,10 +172,11 @@ test("gateway owns Studio, Course and per-classroom app routes and retires globa
   assert.match(gateway, /location = \/control \{ return 410;/);
 });
 
-test("the opaque P-mentor r0/r1 identities are pinned consistently across build, runtime and package metadata", () => {
+test("the opaque P-mentor r0/r1/r2 identities are pinned consistently across build, runtime and package metadata", () => {
   const builds = [
     readFileSync(new URL("deploy/minisv/scripts/build-chj-course.sh", root), "utf8"),
     readFileSync(new URL("deploy/minisv/scripts/build-chj-product-course-r1.sh", root), "utf8"),
+    readFileSync(new URL("deploy/minisv/scripts/build-chj-product-course-r2.sh", root), "utf8"),
   ];
   const renderer = readFileSync(new URL("deploy/minisv/scripts/render-chj-course-static.mjs", root), "utf8");
   const runtime = readFileSync(new URL("app/lib/courseware-store.ts", root), "utf8");

@@ -5,6 +5,7 @@ import { chatGPTSignInPath, getChatGPTUser, requireCompletedPasswordSetup } from
 import CoursewareFrame from "../../../course/[slug]/CoursewareFrame";
 import { ClassroomError } from "../../../lib/classroom-errors";
 import { loadCoursewareExact, SYSTEM_COURSEWARE_PROFILE } from "../../../lib/courseware-store";
+import { coursewarePlayerHref } from "../../../lib/courseware-navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,11 @@ export default async function InternalCoursewarePreview({
     || item.ownerProfileId === user.userId
     || (item.ownerProfileId === SYSTEM_COURSEWARE_PROFILE && item.released);
   if (!mayPreview || item.availability === "placeholder") notFound();
+  if (item.contentKind === "static-bundle") {
+    const player = coursewarePlayerHref(item);
+    if (!player) notFound();
+    redirect(player);
+  }
   return <CoursewareFrame
     item={item}
     preview

@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "scope": "isolated local D1; no production writes",
+  "courseId": "google-1995-2004",
+  "checks": [
+    "UI 修改课程名称并保存 Candidate",
+    "刷新后课程名称仍保留",
+    "courseId、默认案例、案例名、牌组、卡片和来源 ID 均未改写",
+    "旧 Released 快照名称未被原地改写"
+  ],
+  "browser": {
+    "engine": "Chromium",
+    "version": "151.0.7922.176"
+  },
+  "candidateRevision": 1,
+  "namePersistedAfterRefresh": true,
+  "courseIdentityStable": true,
+  "caseIdentityStable": true,
+  "contentIdentityStable": true,
+  "releasedSnapshotUnchanged": true,
+  "screenshot": "docs/qa/t112-course-naming/custom-course-name.png"
+}

@@ -115,7 +115,7 @@ def main() -> None:
             release = json.loads(body)
             if release.get("origin") != "hecate" or release.get("canonicalOrigin") != args.base:
                 raise SystemExit("FAIL release.json: invalid production identity")
-            if release.get("sources", {}).get("chjCourseUi") != "d9d45f1396b54a7ac6b41715b31122d8ffc597ff":
+            if release.get("sources", {}).get("chjCourseUi") != "806d804932e4cd4ae2796d84578d39197d7ea4ce":
                 raise SystemExit("FAIL release.json: current product-manager courseware is not pinned to approved chj9-11")
             if release.get("sources", {}).get("chjCourseUiR0") != "679213a61b835335016eac7649213983a0e48489":
                 raise SystemExit("FAIL release.json: historical product-manager r0 source identity was lost")
@@ -123,20 +123,23 @@ def main() -> None:
             if (
                 artifact.get("transformed") is not False
                 or artifact.get("mentorRole") != "P"
-                or artifact.get("revision") != 1
-                or artifact.get("route") != "/courseware/product-mentor-foundations/r1/"
+                or artifact.get("revision") != 2
+                or artifact.get("route") != "/courseware/product-mentor-foundations/r2/"
             ):
                 raise SystemExit("FAIL release.json: P-mentor courseware artifact was transformed or misclassified")
             product_versions = release.get("productCoursewareArtifacts", [])
-            if [item.get("revision") for item in product_versions] != [0, 1]:
-                raise SystemExit("FAIL release.json: product-manager r0/r1 history is incomplete")
+            if [item.get("revision") for item in product_versions] != [0, 1, 2]:
+                raise SystemExit("FAIL release.json: product-manager r0/r1/r2 history is incomplete")
             if (
                 product_versions[0].get("route") != "/courseware/product-mentor-foundations/"
                 or product_versions[0].get("releaseStatus") != "historical"
                 or product_versions[0].get("sourceCommit") != "679213a61b835335016eac7649213983a0e48489"
                 or product_versions[1].get("route") != "/courseware/product-mentor-foundations/r1/"
-                or product_versions[1].get("releaseStatus") != "current"
+                or product_versions[1].get("releaseStatus") != "historical"
                 or product_versions[1].get("sourceCommit") != "d9d45f1396b54a7ac6b41715b31122d8ffc597ff"
+                or product_versions[2].get("route") != "/courseware/product-mentor-foundations/r2/"
+                or product_versions[2].get("releaseStatus") != "current"
+                or product_versions[2].get("sourceCommit") != "806d804932e4cd4ae2796d84578d39197d7ea4ce"
             ):
                 raise SystemExit("FAIL release.json: product-manager exact version metadata is invalid")
             development = release.get("developmentCoursewareArtifact", {})
