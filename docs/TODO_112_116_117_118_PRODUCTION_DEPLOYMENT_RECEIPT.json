@@ -1,0 +1,53 @@
+{
+  "ok": true,
+  "todos": ["T-112", "T-116", "T-117", "T-118"],
+  "deployedAt": "2026-09-14T14:26:00+08:00",
+  "release": {
+    "id": "20260914T142257CST-t112-t116-t117-t118-r1",
+    "sourceCommit": "029fee539114240b72f3063f0802909d6a55b004",
+    "previousRelease": "20260914T130841CST-t121-bulk-delete-r1",
+    "archiveSha256": "a1cf4e51701dd145fcc5d4b98c90633f0b784e484d6af5a61b51ec9dfa469315",
+    "canonicalOrigin": "https://minisv.vip"
+  },
+  "productCourseware": {
+    "revision": 2,
+    "sourceCommit": "806d804932e4cd4ae2796d84578d39197d7ea4ce",
+    "sourceTree": "bde3426ee770272dc3263064a16d60659fffff9b",
+    "artifactSha256": "283c8669006b36b7bd6f0649431b7b6c671e14bd4311544c3cf579b289a2a955",
+    "originalMap": {"format": "PNG", "bytes": 3181933, "width": 1671, "height": 941},
+    "optimizedMap": {"format": "WebP", "bytes": 433544, "width": 1671, "height": 941},
+    "reductionPercent": 86.37,
+    "historicalRevisionsRetained": [0, 1]
+  },
+  "validation": {
+    "typecheck": "passed",
+    "lint": "passed",
+    "targetedNodeTests": "61/61 passed",
+    "coursePlatformTests": "177/177 passed",
+    "deploymentUnitTests": "53/53 passed",
+    "applicationBuild": "passed",
+    "applicationE2E": "passed",
+    "t112Browser": "isolated D1 real rename/save/refresh/identity regression passed",
+    "t117Browser": "desktop, Pad landscape and Pad portrait passed",
+    "t118Browser": "full isolated auth/account flow and viewport matrix passed",
+    "productionHealth": "passed",
+    "publicSmoke": "passed"
+  },
+  "productionBrowserVerification": {
+    "scope": "read-only; no production mutation",
+    "studioCourseNamingFields": "passed",
+    "directProductCourseware": "r2 overview slide 0 with exact revision/digest; no interstitial",
+    "productOutline": "WebP requested; legacy PNG not requested; four modules visible",
+    "auth320": "login/register/recover/invalid-reset: no horizontal overflow; 16px card padding",
+    "pageErrors": [],
+    "evidence": "docs/qa/t112-118-production/production-browser-receipt.json"
+  },
+  "safety": {
+    "productionCourseMutationPerformed": false,
+    "productionAccountMutationPerformed": false,
+    "historicalCoursewareOverwritten": false,
+    "credentialsRecordedInReceipt": false,
+    "humanViewAcceptanceSigned": false,
+    "humanUiAcceptanceSigned": false
+  }
+}

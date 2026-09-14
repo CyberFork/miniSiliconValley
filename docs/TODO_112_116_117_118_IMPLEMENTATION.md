@@ -86,4 +86,15 @@ WebP   433,544 bytes  1671 × 941
 - T-118 真实浏览器：12 个 viewport/page 组合无溢出；完整认证和账户流程通过。
 - 截图与机器回执：`docs/qa/t112-course-naming/`、`docs/qa/t117-product-outline/`、`docs/qa/t118-auth-account-form-layout/`。
 
-生产发布身份与线上复验另见本轮生产部署回执。人工 View/UI 验收仍由团队签署，自动化不会代签。
+## 生产发布
+
+```text
+release          20260914T142257CST-t112-t116-t117-t118-r1
+main source      029fee539114240b72f3063f0802909d6a55b004
+product source   806d804932e4cd4ae2796d84578d39197d7ea4ce
+canonical        https://minisv.vip
+```
+
+线上健康检查、公开 smoke 与登录后只读 Chromium 复验均通过。生产复验确认：Studio 命名字段可见；课程库直接进入产品导师 r2；大纲只请求 WebP；320px 的登录、注册、找回和无效重置页无横向溢出且卡片内边距为 16px。
+
+完整机器证据见 `docs/TODO_112_116_117_118_PRODUCTION_DEPLOYMENT_RECEIPT.json` 与 `docs/qa/t112-118-production/`。人工 View/UI 验收仍由团队签署，自动化不会代签。
