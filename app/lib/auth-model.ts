@@ -98,6 +98,32 @@ export type ManagedLearnerPage = {
   pageSize: number;
 };
 
+export type ManagedLearnerDeletionBlocker = {
+  code: string;
+  label: string;
+  count: number;
+};
+
+export type ManagedLearnerDeletionPreview = {
+  userId: string;
+  username: string;
+  displayName: string;
+  deletable: boolean;
+  blockers: ManagedLearnerDeletionBlocker[];
+};
+
+export type ManagedLearnerBulkDeletionPreview = {
+  requestedCount: number;
+  deletable: ManagedLearnerDeletionPreview[];
+  blocked: ManagedLearnerDeletionPreview[];
+  confirmationText: string;
+};
+
+export type ManagedLearnerBulkDeletionResult = {
+  deleted: ManagedLearnerDeletionPreview[];
+  blocked: ManagedLearnerDeletionPreview[];
+};
+
 export type IssuedPasswordResetLink = {
   username: string;
   displayName: string;

@@ -192,6 +192,33 @@ def main() -> None:
                     submit_dialog(page, delete, delete.get_by_role("button", name="永久删除账号"))
                     expect(page.get_by_role("status")).to_contain_text("已永久删除")
                     expect(page.locator("article").filter(has_text=f"@{username_06}")).to_have_count(0)
+
+                    # T-121: select a filtered page, preview the exact impact,
+                    # confirm once, and delete both safe accounts through the
+                    # real batch API. This is not a loop over single-row buttons.
+                    username_07 = create_from_account_center(page, "待批量删除甲", "T121 disposable browser password one 2026!")
+                    username_08 = create_from_account_center(page, "待批量删除乙", "T121 disposable browser password two 2026!")
+                    page.get_by_label("搜索 ID／账号／昵称").fill("待批量删除")
+                    page.get_by_role("button", name="搜索", exact=True).click()
+                    expect(page.locator("article")).to_have_count(2)
+                    page.get_by_label("选择本页学员").check()
+                    expect(page.get_by_label(f"选择 待批量删除甲 @{username_07}")).to_be_checked()
+                    expect(page.get_by_label(f"选择 待批量删除乙 @{username_08}")).to_be_checked()
+                    page.get_by_role("button", name="批量删除（2）").click()
+                    bulk_delete = page.get_by_role("dialog", name="批量删除 2 个学员")
+                    expect(bulk_delete.get_by_text("2", exact=True).first).to_be_visible()
+                    expect(bulk_delete.get_by_text("可永久删除", exact=True)).to_be_visible()
+                    expect(bulk_delete.get_by_text("待批量删除甲", exact=True)).to_be_visible()
+                    expect(bulk_delete.get_by_text("待批量删除乙", exact=True)).to_be_visible()
+                    page.screenshot(path=QA / "bulk-delete-confirmation.png", full_page=False)
+                    confirmation = bulk_delete.get_by_label(re.compile("输入确认文字"))
+                    fill_exact(confirmation, "永久删除 2 个学员")
+                    submit_dialog(page, bulk_delete, bulk_delete.get_by_role("button", name="永久删除 2 个账号"))
+                    expect(page.get_by_role("status")).to_contain_text("已永久删除 2 个学员账号")
+                    expect(page.locator("article")).to_have_count(0)
+                    page.get_by_label("搜索 ID／账号／昵称").fill("")
+                    page.get_by_role("button", name="搜索", exact=True).click()
+                    expect(page.locator("article").filter(has_text=f"@{username_05}")).to_have_count(1)
                     page.screenshot(path=QA / "admin-learner-directory.png", full_page=True)
 
                     # The Account menu exposes separate management and self links.
@@ -291,7 +318,7 @@ def main() -> None:
                     receipt = {
                         "ok": True,
                         "scope": "isolated local D1; no production writes",
-                        "adminCrud": {"create": True, "rename": True, "notes": True, "avatar": True, "passwordReset": True, "delete": True},
+                        "adminCrud": {"create": True, "rename": True, "notes": True, "avatar": True, "passwordReset": True, "delete": True, "multiSelectAndBatchDelete": True},
                         "factoryPicker": {"partialAndAtSearch": True, "displayNameSearch": True, "stableUserId": True, "duplicateBlocked": True, "inlineCreateReturnFill": True, "counts": [2, 4, 6], "keyboard": True, "touch": True},
                         "authorization": {"admin": True, "mentorApiStatus": 403},
                         "responsive": {"padWidth": 768, "noHorizontalOverflow": True},

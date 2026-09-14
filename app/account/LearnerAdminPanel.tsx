@@ -1,13 +1,18 @@
 "use client";
 
-import { type FormEvent, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { type FormEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import type { ManagedLearnerAccount, ManagedLearnerPage } from "../lib/auth-model";
+import type {
+  ManagedLearnerAccount,
+  ManagedLearnerBulkDeletionPreview,
+  ManagedLearnerBulkDeletionResult,
+  ManagedLearnerPage,
+} from "../lib/auth-model";
 import { PixelAvatar } from "../components/PixelAvatar";
 import { publicPath } from "../lib/public-path";
 import styles from "../auth/auth.module.css";
 
-type Mode = "create" | "edit" | "password" | "delete" | null;
+type Mode = "create" | "edit" | "password" | "delete" | "bulk-delete" | null;
 type DeletionPreview = {
   userId: string;
   username: string;
@@ -27,6 +32,7 @@ export function LearnerAdminPanel({ onChanged }: { onChanged?: () => Promise<voi
   const [notice, setNotice] = useState("");
   const [mode, setMode] = useState<Mode>(null);
   const [target, setTarget] = useState<ManagedLearnerAccount | null>(null);
+  const [selected, setSelected] = useState<Map<string, ManagedLearnerAccount>>(() => new Map());
   const loadSequence = useRef(0);
 
   const load = useCallback(async (nextPage = page, nextQuery = submittedQuery, nextStatus = status) => {
@@ -70,6 +76,37 @@ export function LearnerAdminPanel({ onChanged }: { onChanged?: () => Promise<voi
   const changed = async (message: string) => {
     close(); setNotice(message); await load(page, submittedQuery, status); await onChanged?.();
   };
+  const visibleIds = useMemo(() => data?.items.map((item) => item.id) ?? [], [data?.items]);
+  const selectedOnPage = visibleIds.filter((id) => selected.has(id)).length;
+  const allVisibleSelected = visibleIds.length > 0 && selectedOnPage === visibleIds.length;
+  const toggleLearner = (learner: ManagedLearnerAccount, checked: boolean) => {
+    setSelected((current) => {
+      const next = new Map(current);
+      if (checked) next.set(learner.id, learner); else next.delete(learner.id);
+      return next;
+    });
+  };
+  const toggleVisible = (checked: boolean) => {
+    setSelected((current) => {
+      const next = new Map(current);
+      for (const learner of data?.items ?? []) {
+        if (checked) next.set(learner.id, learner); else next.delete(learner.id);
+      }
+      return next;
+    });
+  };
+  const bulkChanged = async (result: ManagedLearnerBulkDeletionResult) => {
+    close();
+    setSelected((current) => {
+      const next = new Map(current);
+      for (const item of result.deleted) next.delete(item.userId);
+      return next;
+    });
+    const retained = result.blocked.length ? `；${result.blocked.length} 个有历史记录的账号已安全保留` : "";
+    setNotice(`已永久删除 ${result.deleted.length} 个学员账号${retained}。`);
+    await load(page, submittedQuery, status);
+    await onChanged?.();
+  };
 
   return <section className={styles.learnerAdmin} aria-labelledby="learner-admin-title">
     <header className={styles.adminToolbar}>
@@ -84,9 +121,23 @@ export function LearnerAdminPanel({ onChanged }: { onChanged?: () => Promise<voi
     {error && <div className={styles.formError} role="alert">{error} <button className={styles.inlineRetry} type="button" onClick={() => void load()}>重试</button></div>}
     {notice && <div className={styles.formSuccess} role="status">{notice}</div>}
     <div className={styles.adminListMeta}><b>{data ? `${data.total} 个学员账号` : "正在读取账号…"}</b><span>备注仅平台 Admin 可见；密码从不在列表中显示。</span></div>
+    {data?.items.length ? <div className={styles.bulkSelectionBar} data-active={selected.size > 0}>
+      <SelectionCheckbox
+        label="选择本页学员"
+        checked={allVisibleSelected}
+        mixed={selectedOnPage > 0 && !allVisibleSelected}
+        onChange={toggleVisible}
+      />
+      <span>{selected.size > 0 ? `已选 ${selected.size} 个学员${selectedOnPage < selected.size ? `（本页 ${selectedOnPage} 个）` : ""}` : "可跨搜索与分页继续选择"}</span>
+      <div>
+        {selected.size > 0 && <button className={styles.tinyButton} type="button" onClick={() => setSelected(new Map())}>取消选择</button>}
+        <button className={styles.dangerButton} type="button" disabled={selected.size === 0} onClick={() => open("bulk-delete")}>批量删除{selected.size ? `（${selected.size}）` : ""}</button>
+      </div>
+    </div> : null}
     {!loading && data?.items.length === 0 && <div className={styles.adminEmpty}><b>{submittedQuery ? "没有匹配账号" : "还没有学员账号"}</b><p>{submittedQuery ? "可以清空关键词重试，或创建一个新的学员身份。" : "点击“新增学员”创建第一个编号式账号。"}</p></div>}
     <div className={styles.learnerTable} aria-busy={loading}>
-      {data?.items.map((learner) => <article key={learner.id} className={styles.learnerRow} data-status={learner.status}>
+      {data?.items.map((learner) => <article key={learner.id} className={styles.learnerRow} data-status={learner.status} data-selected={selected.has(learner.id)}>
+        <SelectionCheckbox label={`选择 ${learner.displayName} @${learner.username}`} checked={selected.has(learner.id)} onChange={(checked) => toggleLearner(learner, checked)} />
         <PixelAvatar seed={learner.avatarSeed} label={learner.displayName} />
         <div className={styles.learnerIdentity}><b>{learner.displayName}</b><span>@{learner.username}</span><code title={learner.id}>{learner.id}</code></div>
         <div className={styles.learnerFacts}><span data-status={learner.status}>{learner.status === "active" ? "启用" : "已停用"}</span><small>{learner.mustChangePassword ? "待首次改密" : "密码已启用"} · {learner.activeSessions} 个活动会话</small><small>{learner.classrooms.length ? `课堂：${learner.classrooms.map((room) => room.title).join("、")}` : "尚未加入课堂"}</small></div>
@@ -99,7 +150,17 @@ export function LearnerAdminPanel({ onChanged }: { onChanged?: () => Promise<voi
     {mode === "edit" && target && <EditLearnerDialog learner={target} onClose={close} onChanged={changed} />}
     {mode === "password" && target && <PasswordDialog learner={target} onClose={close} onChanged={changed} />}
     {mode === "delete" && target && <DeleteDialog learner={target} onClose={close} onChanged={changed} />}
+    {mode === "bulk-delete" && selected.size > 0 && <BulkDeleteDialog learners={[...selected.values()]} onClose={close} onChanged={bulkChanged} />}
   </section>;
+}
+
+function SelectionCheckbox({ label, checked, mixed = false, onChange }: { label: string; checked: boolean; mixed?: boolean; onChange: (checked: boolean) => void }) {
+  const input = useRef<HTMLInputElement>(null);
+  useEffect(() => { if (input.current) input.current.indeterminate = mixed; }, [mixed]);
+  return <label className={styles.selectionCheckbox} title={label}>
+    <input ref={input} type="checkbox" checked={checked} aria-label={label} onChange={(event) => onChange(event.target.checked)} />
+    <span aria-hidden="true">{checked ? "✓" : mixed ? "−" : ""}</span>
+  </label>;
 }
 
 function CreateLearnerDialog({ onClose, onChanged }: DialogProps) {
@@ -210,6 +271,54 @@ function DeleteDialog({ learner, onClose, onChanged }: DialogProps & { learner: 
     {preview?.deletable && <><div className={styles.deleteWarning}>该账号没有历史依赖，可以永久删除。删除后旧 ID 不会交给新学员。</div><label className={styles.field}><span className={styles.fieldLabel}>输入登录账号确认</span><input ref={firstField} value={confirm} onChange={(event) => setConfirm(event.target.value)} placeholder={learner.username} autoComplete="off" /></label></>}
     {error && <div className={styles.formError} role="alert">{error}</div>}
     <div className={styles.dialogActions}><button className={styles.secondaryButton} type="button" onClick={onClose} disabled={busy}>取消</button><button className={styles.dangerButton} type="submit" disabled={busy || !preview?.deletable || confirm !== learner.username}>永久删除账号</button></div>
+  </form></Dialog>;
+}
+
+function BulkDeleteDialog({ learners, onClose, onChanged }: {
+  learners: ManagedLearnerAccount[];
+  onClose: () => void;
+  onChanged: (result: ManagedLearnerBulkDeletionResult) => Promise<void>;
+}) {
+  const [preview, setPreview] = useState<ManagedLearnerBulkDeletionPreview | null>(null);
+  const [confirm, setConfirm] = useState("");
+  const [busy, setBusy] = useState(true);
+  const [error, setError] = useState("");
+  const userIds = useMemo(() => learners.map((learner) => learner.id), [learners]);
+  const firstField = useInitialDialogFocus(Boolean(preview?.deletable.length));
+  useEffect(() => {
+    let active = true;
+    void request<ManagedLearnerBulkDeletionPreview>("/api/auth/admin/learners/bulk-delete", { method: "POST", body: { userIds } })
+      .then((value) => { if (active) setPreview(value); })
+      .catch((cause) => { if (active) setError(messageOf(cause)); })
+      .finally(() => { if (active) setBusy(false); });
+    return () => { active = false; };
+  }, [userIds]);
+  const remove = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!preview?.deletable.length || confirm !== preview.confirmationText) return;
+    setBusy(true); setError("");
+    try {
+      const result = await request<ManagedLearnerBulkDeletionResult>("/api/auth/admin/learners/bulk-delete", {
+        method: "DELETE",
+        body: { userIds, confirmation: confirm },
+      });
+      await onChanged(result);
+    } catch (cause) { setError(messageOf(cause)); setConfirm(""); }
+    finally { setBusy(false); }
+  };
+  return <Dialog title={`批量删除 ${learners.length} 个学员`} eyebrow="ADMIN · BULK PERMANENT DELETE" onClose={onClose} busy={busy}><form className={styles.authForm} onSubmit={remove}>
+    <p className={styles.dialogLead}>这会检查所选账号的课堂、作品、声望和资金记录。<b>有历史证据的账号绝不会删除</b>，仍可稍后单独停用。</p>
+    {busy && !preview && <div className={styles.formSuccess}>正在检查 {learners.length} 个账号的删除条件…</div>}
+    {preview && <div className={styles.bulkPreviewSummary}>
+      <div data-kind="delete"><b>{preview.deletable.length}</b><span>可永久删除</span></div>
+      <div data-kind="keep"><b>{preview.blocked.length}</b><span>因历史记录保留</span></div>
+    </div>}
+    {preview?.deletable.length ? <section className={styles.bulkPreviewList} aria-label="将永久删除的账号"><h3>将永久删除</h3>{preview.deletable.map((item) => <p key={item.userId}><b>{item.displayName}</b><span>@{item.username}</span></p>)}</section> : null}
+    {preview?.blocked.length ? <section className={styles.bulkPreviewList} data-kind="blocked" aria-label="因历史记录保留的账号"><h3>不会删除</h3>{preview.blocked.map((item) => <p key={item.userId}><b>{item.displayName}</b><span>@{item.username} · {item.blockers.map((blocker) => `${blocker.label} ${blocker.count} 项`).join("；")}</span></p>)}</section> : null}
+    {preview?.deletable.length ? <><div className={styles.deleteWarning}>永久删除后无法恢复。请再次确认目标和数量。</div><label className={styles.field}><span className={styles.fieldLabel}>输入确认文字：<code>{preview.confirmationText}</code></span><input ref={firstField} value={confirm} onChange={(event) => setConfirm(event.target.value)} autoComplete="off" /></label></> : null}
+    {preview && preview.deletable.length === 0 && <div className={styles.formError}>所选账号都有历史依赖，本次没有可永久删除的账号。</div>}
+    {error && <div className={styles.formError} role="alert">{error}</div>}
+    <div className={styles.dialogActions}><button className={styles.secondaryButton} type="button" onClick={onClose} disabled={busy}>取消</button><button className={styles.dangerButton} type="submit" disabled={busy || !preview?.deletable.length || confirm !== preview.confirmationText}>{busy ? "正在处理…" : `永久删除 ${preview?.deletable.length ?? 0} 个账号`}</button></div>
   </form></Dialog>;
 }
 

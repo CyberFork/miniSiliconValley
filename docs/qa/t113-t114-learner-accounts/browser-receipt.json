@@ -7,7 +7,8 @@
     "notes": true,
     "avatar": true,
     "passwordReset": true,
-    "delete": true
+    "delete": true,
+    "multiSelectAndBatchDelete": true
   },
   "factoryPicker": {
     "partialAndAtSearch": true,

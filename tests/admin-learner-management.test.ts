@@ -10,10 +10,12 @@ import type { AuthRole, AuthSessionUser } from "../app/lib/auth-model";
 import {
   createAdminManagedLearner,
   deleteAdminManagedLearner,
+  deleteAdminManagedLearners,
   listAdminManagedLearners,
   listStudioAssignableAccounts,
   loginWithPassword,
   previewAdminManagedLearnerDeletion,
+  previewAdminManagedLearnerBulkDeletion,
   resetAdminManagedLearnerPassword,
   updateAdminManagedLearner,
 } from "../app/lib/auth-store";
@@ -260,6 +262,63 @@ test("T-114 deletion is real only without history and numbered usernames are nev
   }
 });
 
+test("T-121 Admin batch deletion removes only safe selected learners and reports retained history", async () => {
+  const db = await fixture();
+  const admin = actor("admin-root", "admin");
+  try {
+    const removableOne = await createAdminManagedLearner(db, admin, {
+      displayName: "批量删除甲",
+      initialPassword: "T121 removable learner one 2026!",
+      idempotencyKey: "t121-removable-one",
+    });
+    const removableTwo = await createAdminManagedLearner(db, admin, {
+      displayName: "批量删除乙",
+      initialPassword: "T121 removable learner two 2026!",
+      idempotencyKey: "t121-removable-two",
+    });
+    const retained = await createAdminManagedLearner(db, admin, {
+      displayName: "保留历史学员",
+      initialPassword: "T121 retained learner history 2026!",
+      idempotencyKey: "t121-retained",
+    });
+    const now = "2026-09-14T02:00:00.000Z";
+    db.raw.prepare(
+      `INSERT INTO rooms
+       (id, code, title, campaign_id, chapter_id, phase, status, dm_profile_id, version,
+        paused, player_timeline_frozen, history_revealed, created_at, updated_at)
+       VALUES ('t121-room', 'TEAM-T121', 'T121 隔离课堂', 'fixture', 'B01', 'lobby', 'active',
+               'admin-root', 1, 0, 0, 0, ?, ?)`,
+    ).run(now, now);
+    db.raw.prepare(
+      `INSERT INTO memberships
+       (id, room_id, profile_id, team_id, role, seat, status, last_seen_at, created_at, updated_at)
+       VALUES ('t121-member', 't121-room', ?, NULL, 'learner', 1, 'active', ?, ?, ?)`,
+    ).run(retained.learner.id, now, now, now);
+    const selection = [removableOne.learner.id, retained.learner.id, removableTwo.learner.id];
+    const preview = await previewAdminManagedLearnerBulkDeletion(db, admin, selection);
+    assert.equal(preview.requestedCount, 3);
+    assert.equal(preview.deletable.length, 2);
+    assert.equal(preview.blocked.length, 1);
+    assert.equal(preview.blocked[0].userId, retained.learner.id);
+    assert.equal(preview.confirmationText, "永久删除 2 个学员");
+
+    await assert.rejects(
+      deleteAdminManagedLearners(db, admin, selection, "永久删除 3 个学员"),
+      (error: unknown) => error instanceof AuthError && error.code === "LEARNER_BULK_DELETE_CONFIRMATION_INVALID",
+    );
+    assert.ok(db.raw.prepare("SELECT id FROM auth_users WHERE id = ?").get(removableOne.learner.id), "invalid confirmation must not partially delete");
+
+    const result = await deleteAdminManagedLearners(db, admin, selection, preview.confirmationText);
+    assert.deepEqual(new Set(result.deleted.map((item) => item.userId)), new Set([removableOne.learner.id, removableTwo.learner.id]));
+    assert.deepEqual(result.blocked.map((item) => item.userId), [retained.learner.id]);
+    assert.equal(db.raw.prepare("SELECT id FROM auth_users WHERE id = ?").get(removableOne.learner.id), undefined);
+    assert.equal(db.raw.prepare("SELECT id FROM auth_users WHERE id = ?").get(removableTwo.learner.id), undefined);
+    assert.ok(db.raw.prepare("SELECT id FROM auth_users WHERE id = ?").get(retained.learner.id), "history-bearing account must be retained");
+  } finally {
+    db.raw.close();
+  }
+});
+
 test("T-114 learner CRUD is platform-Admin only, never inherited from mentor or classroom DM identity", async () => {
   const db = await fixture();
   const mentor = actor("mentor-one", "mentor");
@@ -283,6 +342,14 @@ test("T-114 learner CRUD is platform-Admin only, never inherited from mentor or 
     );
     await assert.rejects(
       previewAdminManagedLearnerDeletion(db, mentor, "learner-1"),
+      (error: unknown) => error instanceof AuthError && error.code === "ADMIN_REQUIRED",
+    );
+    await assert.rejects(
+      previewAdminManagedLearnerBulkDeletion(db, mentor, ["learner-1"]),
+      (error: unknown) => error instanceof AuthError && error.code === "ADMIN_REQUIRED",
+    );
+    await assert.rejects(
+      deleteAdminManagedLearners(db, mentor, ["learner-1"], "永久删除 1 个学员"),
       (error: unknown) => error instanceof AuthError && error.code === "ADMIN_REQUIRED",
     );
   } finally {

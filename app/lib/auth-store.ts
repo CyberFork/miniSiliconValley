@@ -16,7 +16,10 @@ import type {
   AuthSessionSummary,
   AuthSessionUser,
   ManagedAuthUser,
+  ManagedLearnerBulkDeletionPreview,
+  ManagedLearnerBulkDeletionResult,
   ManagedLearnerAccount,
+  ManagedLearnerDeletionPreview,
   ManagedLearnerPage,
 } from "./auth-model";
 import { parseDisplayName, parsePassword, parseRole, parseUsername } from "./auth-validation";
@@ -1621,34 +1624,65 @@ export async function resetAdminManagedLearnerPassword(
   ]);
 }
 
-export type ManagedLearnerDeletionPreview = {
-  userId: string;
-  username: string;
-  displayName: string;
-  deletable: boolean;
-  blockers: Array<{ code: string; label: string; count: number }>;
-};
-
 export async function previewAdminManagedLearnerDeletion(
   db: ClassroomD1,
   actor: AuthSessionUser,
   targetId: string,
 ): Promise<ManagedLearnerDeletionPreview> {
   requirePlatformAdmin(actor);
-  const target = await requireLearnerTarget(db, targetId);
-  const checks = [
-    ["classrooms", "课堂成员或加入申请", `SELECT (SELECT COUNT(*) FROM memberships WHERE profile_id = ?) + (SELECT COUNT(*) FROM team_join_requests WHERE profile_id = ?) AS count`, [target.id, target.id]],
-    ["learning", "作品、学习或声望记录", `SELECT (SELECT COUNT(*) FROM classroom_block_submissions WHERE profile_id = ?) + (SELECT COUNT(*) FROM reputation_entries WHERE profile_id = ?) + (SELECT COUNT(*) FROM classroom_submission_mutations WHERE profile_id = ?) + (SELECT COUNT(*) FROM classroom_wallet_balances WHERE profile_id = ?) AS count`, [target.id, target.id, target.id, target.id]],
-    ["facilitation", "导师、验收或发布记录", `SELECT (SELECT COUNT(*) FROM rooms WHERE dm_profile_id = ?) + (SELECT COUNT(*) FROM audit_events WHERE actor_profile_id = ?) + (SELECT COUNT(*) FROM course_view_acceptance_receipts WHERE reviewer_profile_id = ?) + (SELECT COUNT(*) FROM course_ui_acceptance_receipts WHERE accepted_by_profile_id = ?) + (SELECT COUNT(*) FROM course_content_review_events WHERE reviewer_profile_id = ?) AS count`, [target.id, target.id, target.id, target.id, target.id]],
-    ["funds", "资金余额或流水", `SELECT (SELECT COUNT(*) FROM ledger_accounts WHERE owner_profile_id = ? AND balance_tenths <> 0) + (SELECT COUNT(*) FROM ledger_transactions WHERE from_account_id = ? OR to_account_id = ?) AS count`, [target.id, `wallet:${target.id}`, `wallet:${target.id}`]],
-  ] as const;
-  const blockers: ManagedLearnerDeletionPreview["blockers"] = [];
-  for (const [code, label, sql, values] of checks) {
-    const row = await db.prepare(sql).bind(...values).first<{ count: number }>();
-    const count = Number(row?.count ?? 0);
-    if (count > 0) blockers.push({ code, label, count });
+  return (await managedLearnerDeletionPreviews(db, [targetId]))[0];
+}
+
+/** Preview a bounded Admin selection in one snapshot-oriented query. */
+export async function previewAdminManagedLearnerBulkDeletion(
+  db: ClassroomD1,
+  actor: AuthSessionUser,
+  userIdsValue: unknown,
+): Promise<ManagedLearnerBulkDeletionPreview> {
+  requirePlatformAdmin(actor);
+  const userIds = parseManagedLearnerSelection(userIdsValue);
+  const items = await managedLearnerDeletionPreviews(db, userIds);
+  const deletable = items.filter((item) => item.deletable);
+  return {
+    requestedCount: items.length,
+    deletable,
+    blocked: items.filter((item) => !item.deletable),
+    confirmationText: deletable.length ? `永久删除 ${deletable.length} 个学员` : "",
+  };
+}
+
+/**
+ * Permanently delete every currently safe account in an explicit Admin batch.
+ * Blocked accounts are retained and reported; every candidate is checked again
+ * immediately before deletion so a newly-created learning record wins the race.
+ */
+export async function deleteAdminManagedLearners(
+  db: ClassroomD1,
+  actor: AuthSessionUser,
+  userIdsValue: unknown,
+  confirmationValue: unknown,
+): Promise<ManagedLearnerBulkDeletionResult> {
+  const preview = await previewAdminManagedLearnerBulkDeletion(db, actor, userIdsValue);
+  assertAuth(preview.deletable.length > 0, "LEARNER_BULK_DELETE_BLOCKED", "所选账号都有历史依赖，不能永久删除；可以改为停用。", 409, { blocked: preview.blocked });
+  assertAuth(
+    typeof confirmationValue === "string" && confirmationValue === preview.confirmationText,
+    "LEARNER_BULK_DELETE_CONFIRMATION_INVALID",
+    "批量删除确认文字与当前可删除数量不一致，请重新检查后确认。",
+    409,
+    { expected: preview.confirmationText },
+  );
+  const deleted: ManagedLearnerDeletionPreview[] = [];
+  const blocked = [...preview.blocked];
+  for (const item of preview.deletable) {
+    try {
+      await deleteAdminManagedLearner(db, actor, item.userId);
+      deleted.push(item);
+    } catch (error) {
+      if (!(error instanceof AuthError) || error.code !== "LEARNER_DELETE_BLOCKED") throw error;
+      blocked.push(await previewAdminManagedLearnerDeletion(db, actor, item.userId));
+    }
   }
-  return { userId: target.id, username: target.username, displayName: target.display_name, deletable: blockers.length === 0, blockers };
+  return { deleted, blocked };
 }
 
 export async function deleteAdminManagedLearner(
@@ -1666,6 +1700,66 @@ export async function deleteAdminManagedLearner(
     db.prepare(`DELETE FROM auth_users WHERE id = ? AND role = 'learner'`).bind(targetId),
     db.prepare(`DELETE FROM profiles WHERE id = ?`).bind(targetId),
   ]);
+}
+
+type ManagedLearnerDeletionRow = {
+  id: string;
+  username: string;
+  display_name: string;
+  classrooms_count: number;
+  learning_count: number;
+  facilitation_count: number;
+  funds_count: number;
+};
+
+function parseManagedLearnerSelection(value: unknown): string[] {
+  assertAuth(Array.isArray(value), "LEARNER_SELECTION_INVALID", "请选择要删除的学员账号。", 400);
+  const userIds = Array.from(new Set(value.map((item) => typeof item === "string" ? item.trim() : "")));
+  assertAuth(userIds.length > 0 && userIds.length <= 50 && userIds.every((id) => id.length > 0 && id.length <= 128), "LEARNER_SELECTION_INVALID", "每次请选择 1 至 50 个有效学员账号。", 400);
+  return userIds;
+}
+
+async function managedLearnerDeletionPreviews(db: ClassroomD1, userIds: string[]): Promise<ManagedLearnerDeletionPreview[]> {
+  const placeholders = userIds.map(() => "?").join(",");
+  const result = await db.prepare(
+    `SELECT u.id, u.username, u.display_name,
+            (SELECT COUNT(*) FROM memberships WHERE profile_id = u.id) +
+              (SELECT COUNT(*) FROM team_join_requests WHERE profile_id = u.id) AS classrooms_count,
+            (SELECT COUNT(*) FROM classroom_block_submissions WHERE profile_id = u.id) +
+              (SELECT COUNT(*) FROM reputation_entries WHERE profile_id = u.id) +
+              (SELECT COUNT(*) FROM classroom_submission_mutations WHERE profile_id = u.id) +
+              (SELECT COUNT(*) FROM classroom_wallet_balances WHERE profile_id = u.id) AS learning_count,
+            (SELECT COUNT(*) FROM rooms WHERE dm_profile_id = u.id) +
+              (SELECT COUNT(*) FROM audit_events WHERE actor_profile_id = u.id) +
+              (SELECT COUNT(*) FROM course_view_acceptance_receipts WHERE reviewer_profile_id = u.id) +
+              (SELECT COUNT(*) FROM course_ui_acceptance_receipts WHERE accepted_by_profile_id = u.id) +
+              (SELECT COUNT(*) FROM course_content_review_events WHERE reviewer_profile_id = u.id) AS facilitation_count,
+            (SELECT COUNT(*) FROM ledger_accounts WHERE owner_profile_id = u.id AND balance_tenths <> 0) +
+              (SELECT COUNT(*) FROM ledger_transactions WHERE from_account_id = 'wallet:' || u.id OR to_account_id = 'wallet:' || u.id) AS funds_count
+     FROM auth_users u
+     WHERE u.id IN (${placeholders}) AND u.role = 'learner'
+     ORDER BY u.username`,
+  ).bind(...userIds).all<ManagedLearnerDeletionRow>();
+  const rows = result.results ?? [];
+  if (rows.length !== userIds.length) {
+    const found = new Set(rows.map((row) => row.id));
+    const missing = userIds.filter((id) => !found.has(id));
+    throw new AuthError("LEARNER_SELECTION_STALE", "部分账号已不存在或不再是学员，请刷新列表后重新选择。", 409, { missingUserIds: missing });
+  }
+  return rows.map((row) => {
+    const blockers: ManagedLearnerDeletionPreview["blockers"] = [];
+    const checks = [
+      ["classrooms", "课堂成员或加入申请", row.classrooms_count],
+      ["learning", "作品、学习或声望记录", row.learning_count],
+      ["facilitation", "导师、验收或发布记录", row.facilitation_count],
+      ["funds", "资金余额或流水", row.funds_count],
+    ] as const;
+    for (const [code, label, countValue] of checks) {
+      const count = Number(countValue ?? 0);
+      if (count > 0) blockers.push({ code, label, count });
+    }
+    return { userId: row.id, username: row.username, displayName: row.display_name, deletable: blockers.length === 0, blockers };
+  });
 }
 
 type ManagedLearnerRow = {
