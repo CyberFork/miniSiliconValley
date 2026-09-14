@@ -2,7 +2,7 @@
 
 日期：2026-09-14
 
-状态：初步设计，尚未实施或部署。供产品对齐与执行 Agent 实施使用。
+状态：已实现、自动化验收并部署。生产版本 `20260914T120648CST-t113-t114-r1`；人工 UI 验收仍由产品负责人执行。
 
 对应任务：[T-114](../.codex/inbox/todos/114-dm-learner-account-management-center.md)。原任务文件名保留以避免链接失效，管理角色以本文及任务最新修订的 **Admin** 为准。
 
@@ -116,6 +116,6 @@ MINI硅谷 → 首页                         当前账号菜单
 
 ## 6. 调研依据与限制
 
-2026-09-14 检查过 canonical 仓库 `CyberFork/miniSiliconValley` 的源码快照 `d4bc1605757336e04c6bc8d6f682ab8d16f5e221`，其中 `app/account/AccountClient.tsx` 包含个人资料、密码、设备及密码找回协助卡片；这不等于完整的学员 CRUD 后台。这里只据此要求复用已有能力，**未验证当前线上部署与该快照完全一致**。
+2026-09-14 初始设计检查过 canonical 仓库 `CyberFork/miniSiliconValley` 的源码快照 `d4bc1605757336e04c6bc8d6f682ab8d16f5e221`，其中 `app/account/AccountClient.tsx` 包含个人资料、密码、设备及密码找回协助卡片；完整实现最终基于源码 `582db459a1bb47bdfbd873fddd2c6cf88f4b3b2b` 构建，并已通过线上 release identity、schema 和 Admin 只读入口复验。
 
-实施前以届时最新源码为准，复用 `app/account/AccountClient.tsx`、现有 `/api/auth/profile`、账号查询及管理 API 的权限契约；不要依照落后的本地工作目录覆盖其他执行 Agent 已完成的变更。
+实现已复用 `app/account/AccountClient.tsx`、现有 `/api/auth/profile`、账号查询及管理 API 的权限契约，并在 canonical `main` 上完成，没有从落后的工作目录覆盖既有成果。
