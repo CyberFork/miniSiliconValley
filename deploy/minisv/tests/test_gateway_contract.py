@@ -18,9 +18,10 @@ class GatewayContractTests(unittest.TestCase):
     def test_every_public_route_has_an_explicit_owner(self) -> None:
         for route in ("world", "alpha", "control", "framework", "parents", "workshop"):
             self.assertRegex(self.gateway, rf"location[^\n]* /{route}(?:[ /{{])")
-        self.assertIn("^/(studio|course|classroom|account)", self.gateway)
+        self.assertIn("^/(studio|console|terminal|course|classroom|account|u)", self.gateway)
         self.assertIn("/courseware/product-mentor-foundations/", self.gateway)
         self.assertIn("/courseware/development-mentor-ligun/", self.gateway)
+        self.assertIn("/courseware/development-mentor-module-thinking/", self.gateway)
         self.assertIn("/courseware/market-mentor-user-system/", self.gateway)
 
     def test_all_origins_are_loopback_and_windows_is_not_a_dependency(self) -> None:
@@ -75,7 +76,7 @@ class GatewayContractTests(unittest.TestCase):
         self.assertNotIn("/msv/demo/app", self.proxy)
         self.assertIn("proxy_set_header Host minisv.vip", self.proxy)
         self.assertIn("proxy_set_header X-Forwarded-Host minisv.vip", self.proxy)
-        route = re.search(r"location ~ \^/\(studio\|course\|classroom\|account\)\(/\.\*\)\?\$ \{(.*?)\n    \}", self.gateway, re.DOTALL)
+        route = re.search(r"location ~ \^/\(studio\|console\|terminal\|course\|classroom\|account\|u\)\(/\.\*\)\?\$ \{(.*?)\n    \}", self.gateway, re.DOTALL)
         self.assertIsNotNone(route)
         self.assertIn("set $app_path $uri;", route.group(1))
         self.assertNotIn("set $app_path /$1;", route.group(1))
@@ -118,7 +119,12 @@ class GatewayContractTests(unittest.TestCase):
             self.assertIn(f"try_files $uri $uri/ /courseware/{slug}/index.html", route.group(1))
             self.assertNotIn("add_header", route.group(1))
             self.assertNotIn("expires", route.group(1), "courseware must emit only the shared private/no-store policy")
-        self.assertIn('~^/courseware/(product-mentor-foundations|development-mentor-ligun|market-mentor-user-system)/ "private, no-store, no-transform";', self.gateway)
+        self.assertIn('~^/courseware/(product-mentor-foundations|development-mentor-ligun|development-mentor-module-thinking|market-mentor-user-system)/ "private, no-store, no-transform";', self.gateway)
+        self.assertIn("location = /_minisv_mentor_courseware_auth", self.gateway)
+        self.assertIn("/api/auth/mentor-courseware-access", self.gateway)
+        teacher = re.search(r"location \^~ /courseware/development-mentor-module-thinking/teacher/ \{(.*?)\n    \}", self.gateway, re.DOTALL)
+        self.assertIsNotNone(teacher)
+        self.assertIn("auth_request /_minisv_mentor_courseware_auth;", teacher.group(1))
         self.assertIn('add_header Cache-Control "$minisv_cache_control" always;', self.gateway)
         smoke = (ROOT / "scripts" / "public-smoke.py").read_text()
         self.assertIn("COURSEWARE_MARKERS", smoke)
