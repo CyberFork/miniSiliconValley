@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">Environment themed illustration</title><desc id="desc">A clean city park with trees, bicycle and recycling symbols.</desc>
+  <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#bde8f4"/><stop offset="1" stop-color="#f4f5d5"/></linearGradient><linearGradient id="hill" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#5f9d86"/><stop offset="1" stop-color="#2d665c"/></linearGradient></defs>
+  <rect width="1200" height="700" fill="url(#sky)"/><circle cx="930" cy="130" r="72" fill="#fff4b8" opacity=".85"/>
+  <path d="M0 435 Q180 330 350 425 T690 405 T1000 380 T1200 415 V700 H0Z" fill="url(#hill)" opacity=".9"/>
+  <path d="M0 535 Q230 480 440 540 T850 520 T1200 500 V700 H0Z" fill="#cbe5b1"/>
+  <path d="M0 610 Q270 540 520 610 T1200 585 V700 H0Z" fill="#f4e6bd"/>
+  <g fill="#255c4f"><path d="M168 500 C155 410 190 330 255 305 C270 395 241 457 168 500Z"/><path d="M180 425 C95 395 82 320 107 277 C188 306 211 363 180 425Z"/><path d="M255 455 C300 370 365 350 408 370 C373 452 319 481 255 455Z"/><path d="M178 528h16l38-203h-18Z"/></g>
+  <g fill="#39775d"><path d="M1010 510 C995 420 1030 350 1098 325 C1112 410 1083 475 1010 510Z"/><path d="M1035 435 C955 414 931 349 955 307 C1031 330 1060 379 1035 435Z"/><path d="M1090 465 C1127 392 1178 380 1200 394 V503 C1161 503 1124 492 1090 465Z"/><path d="M1018 535h16l35-195h-18Z"/></g>
+  <g fill="none" stroke="#234d4c" stroke-width="10"><circle cx="500" cy="566" r="48"/><circle cx="680" cy="566" r="48"/><path d="M500 566l57-82 51 82h-108l-28-74h72l48 74m0 0 41-82h39l42 82m-122-82h55"/></g>
+  <g transform="translate(800 475)"><path d="M0 68 38 0l38 68Z" fill="#e5f33d"/><path d="M38 0v68M13 24h50" stroke="#295d55" stroke-width="8" fill="none"/><path d="M20 86c52 26 106 8 128-38" fill="none" stroke="#3c8b70" stroke-width="12" stroke-linecap="round"/><path d="M148 48c-25 5-35 20-32 39 20-2 34-15 32-39Z" fill="#7abf78"/></g>
+  <g fill="#fff" opacity=".7"><circle cx="160" cy="145" r="8"/><circle cx="205" cy="115" r="5"/><circle cx="250" cy="155" r="7"/></g>
+</svg>

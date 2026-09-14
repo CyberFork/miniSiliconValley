@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 1,
+  "todoId": "T-124",
+  "sourceBundle": "背课文、错题集 demo",
+  "projects": [
+    {
+      "id": "recitation",
+      "title": "背课文",
+      "route": "/incubator/projects/recitation/",
+      "sourceFile": "背课文.html",
+      "sourceSha256": "282d87442d09e34265e2d3ee07e15f9580f48cf6606d72fd12d90b92bcd88d4f",
+      "runtime": "browser-only-demo",
+      "persistence": "none"
+    },
+    {
+      "id": "mistake-notebook",
+      "title": "错题集",
+      "route": "/incubator/projects/mistake-notebook/",
+      "sourceFile": "index.html",
+      "sourceSha256": "10a830f60560ad36f5c6b16063c38bb12516ecb016911cf96de664bdf6d05e54",
+      "runtime": "browser-only-demo",
+      "persistence": "none"
+    }
+  ],
+  "transforms": [
+    "vendor-phosphor-icons-2.1.1",
+    "remove-blocked-google-fonts",
+    "add-official-brand-home-and-project-list-navigation",
+    "declare-browser-only-demo-boundary"
+  ],
+  "files": [
+    {
+      "path": "_shared/phosphor/LICENSE.txt",
+      "sha256": "81bb1bfd8e3730c19a3895ff4a82839980933504725960c52b1c207b29398f07",
+      "bytes": 1097
+    },
+    {
+      "path": "_shared/phosphor/duotone/Phosphor-Duotone.woff2",
+      "sha256": "93d163cd4b1f07736d34bfef80803646ab0322efa947a98e3973a1450e3d20cc",
+      "bytes": 164420
+    },
+    {
+      "path": "_shared/phosphor/duotone/style.css",
+      "sha256": "f74f167f5077e3064309aa72305326272a7d375352667315dc4dd9857a841dda",
+      "bytes": 231309
+    },
+    {
+      "path": "_shared/phosphor/fill/Phosphor-Fill.woff2",
+      "sha256": "660bd6045c0e0d9756cddb8ba2ece3aad855df7d4a170ef23f7b1c0bf511c430",
+      "bytes": 131744
+    },
+    {
+      "path": "_shared/phosphor/fill/style.css",
+      "sha256": "f6429ccc3ae40d7d7c6018f7ade208525dcd4aa67d795790db39ece4a92fa692",
+      "bytes": 85658
+    },
+    {
+      "path": "_shared/phosphor/light/Phosphor-Light.woff2",
+      "sha256": "9c45e81688520e967e2dd93d702eed59d25a3a97d8cc82932b1d17267a279887",
+      "bytes": 155232
+    },
+    {
+      "path": "_shared/phosphor/light/style.css",
+      "sha256": "0a06a9264aa7b033f00a0ba9fedf9e2a015621218b7e3b9a40c56ffc81bad108",
+      "bytes": 87192
+    },
+    {
+      "path": "_shared/phosphor/regular/Phosphor.woff2",
+      "sha256": "c2ea45ea05ff5c7df1936770c104725f2a68f43fd343f35f3da23a30b27de32a",
+      "bytes": 147380
+    },
+    {
+      "path": "_shared/phosphor/regular/style.css",
+      "sha256": "983e1c569506da3936a924de7002f733e992c9cfbdb3ec40ff60573a63fc1eb4",
+      "bytes": 77988
+    },
+    {
+      "path": "_shared/project-shell.css",
+      "sha256": "5d99dec31d81ecb30eca995acb497426346db576b307dfb951bbca6d69bc5f4e",
+      "bytes": 1445
+    },
+    {
+      "path": "mistake-notebook/index.html",
+      "sha256": "e7e41290725b0d033bca71e7b2ba70aadae3982c5c4e857dbc084685fc32631c",
+      "bytes": 182159
+    },
+    {
+      "path": "recitation/assets/beiying-station.jpg",
+      "sha256": "21d06f12c766e237d28f1044cf074c94055e71ed310fdeeb6cd9c8e040e525bd",
+      "bytes": 636214
+    },
+    {
+      "path": "recitation/assets/eng-advice.jpg",
+      "sha256": "a6bf72bdd473c1afd27a8f2a5dcfb9a1e13a8de2eabf019acba0420daf3078fb",
+      "bytes": 613764
+    },
+    {
+      "path": "recitation/assets/eng-environment.jpg",
+      "sha256": "6dfd934967a0e5c613f7f4e194f841bb52a9e85cdce724cc36e3d1c4e8196254",
+      "bytes": 718965
+    },
+    {
+      "path": "recitation/assets/eng-travel.jpg",
+      "sha256": "556173c2c993a4c60235525af6bf2f83627aaf5b2b142da8e37cfe3d9e49201d",
+      "bytes": 638562
+    },
+    {
+      "path": "recitation/assets/environment-cover.svg",
+      "sha256": "b67b628985c5c2ac17d503b5b2cf0c021b46e7e006ea25a9e75f48c479c051ef",
+      "bytes": 2166
+    },
+    {
+      "path": "recitation/assets/hero-study-desk.png",
+      "sha256": "3dc0f18dc3573c0deacee62bf6748d081097201839689a44ed56c8ff22c10919",
+      "bytes": 556928
+    },
+    {
+      "path": "recitation/assets/hist-industry.jpg",
+      "sha256": "3cc2377d6b46a2d76c5a2d1888945e9696a3dd6e2fe14a779f7e063f5b736a21",
+      "bytes": 624669
+    },
+    {
+      "path": "recitation/assets/hist-tang.jpg",
+      "sha256": "0b5147a2c828247f06227fbe24819d984eaa59c38fc649fbdbe7c3dbb71ecf45",
+      "bytes": 707741
+    },
+    {
+      "path": "recitation/assets/hist-xinhai.jpg",
+      "sha256": "57defb3247a55b173afceb5d8868b27269aa18196aeccf984b6596f448f73c07",
+      "bytes": 553560
+    },
+    {
+      "path": "recitation/assets/history-cover.svg",
+      "sha256": "853aba50f71cdeede861c9d7e55487a70b142256001fabb0524f15f4ae045f1a",
+      "bytes": 1805
+    },
+    {
+      "path": "recitation/assets/study-path-banner.png",
+      "sha256": "c8a089febb8eed1f71e87f2920baa0073a8c4430b6060b92dea093c886f91b1b",
+      "bytes": 404787
+    },
+    {
+      "path": "recitation/assets/travel-cover.svg",
+      "sha256": "4473ddcab6b2695d0097b0c76f1c0dc75caa554a3391eba82da6a305f6259204",
+      "bytes": 1840
+    },
+    {
+      "path": "recitation/assets/yinjiu-landscape.jpg",
+      "sha256": "d4cc8d52f36d4028af57288560eacefcfe51e16151498fe18c5e022be468e7cd",
+      "bytes": 486300
+    },
+    {
+      "path": "recitation/assets/yueyanglou-pavilion.png",
+      "sha256": "0ca4dfedfcd55cb557033022a2ad01bd032c17300f74f73db45501b958d7aced",
+      "bytes": 741725
+    },
+    {
+      "path": "recitation/index.html",
+      "sha256": "737af1926b0e9d5b48175a4ee4bffe7ea7acd5e62fdbaac39f4824b4d6eb98b0",
+      "bytes": 255476
+    }
+  ],
+  "contentTreeSha256": "0fa1c8c42374fa425bd92d1b75fa9c1b9505005d98fc2f71532a4bf5acd10dfb"
+}

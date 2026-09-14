@@ -29,6 +29,15 @@ EXPECTED = {
     "/course/development-mentor-ligun/?revision=0&slide=6&step=2": 307,
     "/framework/": 200,
     "/parents/": 200,
+    "/incubator": 308,
+    "/incubator/": 200,
+    "/incubator/projects/": 200,
+    "/incubator/projects/recitation/": 200,
+    "/incubator/projects/mistake-notebook/": 200,
+    "/incubator/projects/_shared/project-shell.css": 200,
+    "/incubator/projects/_shared/phosphor/regular/Phosphor.woff2": 200,
+    "/incubator/projects/recitation/assets/yueyanglou-pavilion.png": 200,
+    "/incubator/projects/not-a-project/": 404,
     "/workshop/": 307,
     "/workshop/_source/index.html": 404,
     "/classroom/": 307,
@@ -178,6 +187,14 @@ def main() -> None:
             for feature in ("shared-brand-home", "official-brand-wordmark", "released-workshop-snapshot", "read-only-workshop-history-archive", "unified-course-factory", "course-studio", "versioned-product-manager-courseware", "split-module-thinking-courseware", "mentor-protected-teacher-courseware"):
                 if feature not in release.get("features", []):
                     raise SystemExit(f"FAIL release.json: missing {feature}")
+            incubator = release.get("incubatorProjectsArtifact", {})
+            if (
+                incubator.get("root") != "/incubator/projects/"
+                or incubator.get("transformed") is not False
+                or incubator.get("files", 0) < 20
+                or {item.get("id") for item in incubator.get("projects", [])} != {"recitation", "mistake-notebook"}
+            ):
+                raise SystemExit("FAIL release.json: T-124 incubator project identity is invalid")
         if path == "/world-preview.json":
             preview = json.loads(body)
             if (
@@ -206,6 +223,27 @@ def main() -> None:
             text = body.decode("utf-8", "replace")
             if "COURSE SYSTEM" not in text or "/ui-theme.js" not in text:
                 raise SystemExit("FAIL /framework/: native hydrated shell or public navigation runtime is missing")
+        if path in {"/incubator/", "/incubator/projects/"}:
+            text = body.decode("utf-8", "replace")
+            for marker in ("MINI硅谷", "/incubator/projects/recitation/", "/incubator/projects/mistake-notebook/"):
+                if marker not in text:
+                    raise SystemExit(f"FAIL {path}: missing incubator marker {marker!r}")
+        if path == "/incubator/projects/recitation/":
+            text = body.decode("utf-8", "replace")
+            for marker in ("背课文", "开始背诵", "../_shared/phosphor/regular/style.css", "/incubator/projects/"):
+                if marker not in text:
+                    raise SystemExit(f"FAIL recitation project: missing {marker!r}")
+            if "unpkg.com" in text or "fonts.googleapis.com" in text:
+                raise SystemExit("FAIL recitation project: external runtime dependency leaked")
+            if "microphone=(self)" not in headers.get("permissions-policy", ""):
+                raise SystemExit("FAIL recitation project: voice practice permission is not route-scoped")
+        if path == "/incubator/projects/mistake-notebook/":
+            text = body.decode("utf-8", "replace")
+            for marker in ("错题本", "错题集", "../_shared/phosphor/regular/style.css", "/incubator/projects/"):
+                if marker not in text:
+                    raise SystemExit(f"FAIL mistake notebook project: missing {marker!r}")
+            if "unpkg.com" in text or "fonts.googleapis.com" in text:
+                raise SystemExit("FAIL mistake notebook project: external runtime dependency leaked")
         if path == "/api/public/courses":
             envelope = json.loads(body)
             courses = envelope.get("data", {}).get("courses") if envelope.get("ok") is True else None
@@ -220,7 +258,7 @@ def main() -> None:
             data = envelope.get("data") if envelope.get("ok") is True else None
             if not isinstance(data, dict) or not isinstance(data.get("submissions"), list):
                 raise SystemExit("FAIL public homework list: invalid response envelope")
-        if path in {"/", "/world/", "/framework/", "/parents/"}:
+        if path in {"/", "/world/", "/framework/", "/parents/", "/incubator", "/incubator/", "/incubator/projects/", "/incubator/projects/recitation/", "/incubator/projects/mistake-notebook/"}:
             if headers.get("x-robots-tag") != "index, follow":
                 raise SystemExit(f"FAIL {path}: public page is not indexable")
         elif headers.get("x-robots-tag") != "noindex, nofollow, noarchive":

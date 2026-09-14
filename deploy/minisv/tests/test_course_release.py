@@ -74,6 +74,7 @@ class CourseReleaseTests(unittest.TestCase):
                 module_thinking / "audience" / "assets",
                 module_thinking / "teacher" / "assets",
                 portal,
+                portal / "incubator" / "projects",
             ):
                 directory.mkdir(parents=True, exist_ok=True)
 
@@ -183,6 +184,17 @@ class CourseReleaseTests(unittest.TestCase):
             (portal / "index.html").write_text('<html><head></head><body><a href="/course/">课程大纲</a></body></html>')
             (portal / "404.html").write_text('<html><head></head><body><a href="/">返回 MINI硅谷首页</a></body></html>')
             (portal / "sitemap.xml").write_text('<urlset><url><loc>https://minisv.vip/</loc></url></urlset>\n')
+            incubator_links = (
+                '<a href="/incubator/projects/recitation/">背课文</a>'
+                '<a href="/incubator/projects/mistake-notebook/">错题集</a>'
+            )
+            (portal / "incubator" / "index.html").write_text(
+                f'<html><head></head><body><b>MINI硅谷</b>{incubator_links}</body></html>'
+            )
+            (portal / "incubator" / "projects" / "index.html").write_text(
+                f'<html><head></head><body><b>MINI硅谷</b>{incubator_links}</body></html>'
+            )
+            (portal / "incubator" / "incubator.css").write_text("body{}")
             for name in ("portal.css", "portal.js", "ui-theme.css", "ui-theme.js", "robots.txt", "site.webmanifest"):
                 if name == "ui-theme.js":
                     value = (
@@ -287,7 +299,11 @@ class CourseReleaseTests(unittest.TestCase):
             snapshot = json.loads((output / "workshop" / "confirmed-baseline.json").read_text())
             self.assertEqual(snapshot["source"]["channel"], "released")
             self.assertEqual(snapshot["scope"], "public-redacted-summary")
-            self.assertEqual(json.loads((output / "sitemap.json").read_text())["routes"], ["/", "/world/", "/framework/", "/parents/"])
+            self.assertEqual(json.loads((output / "sitemap.json").read_text())["routes"], [
+                "/", "/world/", "/framework/", "/parents/", "/incubator/",
+                "/incubator/projects/", "/incubator/projects/recitation/",
+                "/incubator/projects/mistake-notebook/",
+            ])
             self.assertTrue((output / "world-preview.json").is_file())
             self.assertTrue((output / "sitemap.xml").is_file())
             release = json.loads((output / "release.json").read_text())
@@ -302,6 +318,11 @@ class CourseReleaseTests(unittest.TestCase):
             self.assertIn("shared-brand-home", release["features"])
             self.assertIn("released-workshop-snapshot", release["features"])
             self.assertIn("read-only-workshop-history-archive", release["features"])
+            self.assertIn("public-incubator-projects", release["features"])
+            self.assertEqual(release["incubatorProjectsArtifact"]["sha256"], MODULE.validate_incubator_projects(MODULE.INCUBATOR_PROJECTS_SOURCE)["sha256"])
+            self.assertFalse(release["incubatorProjectsArtifact"]["transformed"])
+            self.assertTrue((output / "incubator" / "projects" / "recitation" / "index.html").is_file())
+            self.assertTrue((output / "incubator" / "projects" / "mistake-notebook" / "index.html").is_file())
             self.assertFalse(release["coursewareArtifact"]["transformed"])
             self.assertEqual(release["coursewareArtifact"]["mentorRole"], "P")
             self.assertEqual(release["coursewareArtifact"]["revision"], 2)

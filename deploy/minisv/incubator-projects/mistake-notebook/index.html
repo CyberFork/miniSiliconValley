@@ -1,0 +1,4713 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f7f6f2" />
+  <title>错题集｜MINI硅谷孵化器</title>
+  <meta name="description" content="错题集交互原型：收集错因、建立解题规则并安排复习。">
+  <link rel="canonical" href="https://minisv.vip/incubator/projects/mistake-notebook/">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../_shared/project-shell.css">
+  <link rel="stylesheet" href="../_shared/phosphor/regular/style.css">
+  <link rel="stylesheet" href="../_shared/phosphor/light/style.css">
+  <link rel="stylesheet" href="../_shared/phosphor/fill/style.css">
+  <link rel="stylesheet" href="../_shared/phosphor/duotone/style.css">
+
+  <style>
+    /* -------------------------------------------------------------
+       1. DESIGN TOKENS (Design Taste v1 Calibrated Palette)
+       ------------------------------------------------------------- */
+    :root {
+      /* Warm Paper Editorial Canvas */
+      --canvas: #f7f6f2;
+      --canvas-subtle: #f0eee8;
+      --surface: #ffffff;
+      --surface-hover: #faf9f6;
+      --surface-sunken: #f2f0ea;
+
+      /* Ink System (Anti-pure-black) */
+      --ink: #18191b;
+      --ink-secondary: #565954;
+      --muted: #848780;
+      --line: #e5e2da;
+      --line-subtle: #ebe8e1;
+      --line-bold: #cfcbbf;
+
+      /* Singular Focal Accent: International Vermilion / 朱砂红 */
+      --accent: #e25238;
+      --accent-dark: #b83822;
+      --accent-soft: #fdeee9;
+      --accent-tint: rgba(226, 82, 56, 0.08);
+
+      /* Semantic Subtones (Desaturated, Non-neon) */
+      --green: #387850;
+      --green-dark: #275639;
+      --green-soft: #edf5f0;
+      --amber: #996e1b;
+      --amber-soft: #fcf6e8;
+      --blue: #3f668f;
+      --blue-soft: #edf3f9;
+
+      /* Radii & Surfaces */
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+
+      /* Shadows (Warm diffused shadows, no neon glow) */
+      --shadow-sm: 0 1px 3px rgba(24, 25, 27, 0.04), 0 2px 8px rgba(24, 25, 27, 0.02);
+      --shadow-md: 0 4px 16px -2px rgba(24, 25, 27, 0.05), 0 2px 6px -1px rgba(24, 25, 27, 0.03);
+      --shadow-lg: 0 16px 36px -6px rgba(24, 25, 27, 0.08), 0 4px 12px -2px rgba(24, 25, 27, 0.03);
+
+      /* Micro-Motion Physics */
+      --spring: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Base Reset */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html {
+      background-color: var(--canvas);
+      scroll-behavior: smooth;
+    }
+    body {
+      min-height: 100dvh;
+      color: var(--ink);
+      background-color: var(--canvas);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Outfit", "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+    button, input, textarea, select {
+      font: inherit;
+      color: inherit;
+    }
+    button {
+      cursor: pointer;
+      border: 0;
+      background: transparent;
+    }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .font-mono {
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    /* -------------------------------------------------------------
+       2. TOP NAVIGATION BAR (C-End Product Homepage Header)
+       ------------------------------------------------------------- */
+    .top-nav {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(247, 246, 242, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--line);
+      transition: border-color 0.2s ease;
+    }
+    .top-nav-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      height: 68px;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    /* Brand Logo */
+    .brand-cluster {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      user-select: none;
+      text-decoration: none;
+    }
+    .brand-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: var(--ink);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      box-shadow: 0 4px 12px rgba(24, 25, 27, 0.15);
+      position: relative;
+      overflow: hidden;
+    }
+    .brand-icon::after {
+      content: "";
+      position: absolute;
+      width: 4px;
+      height: 14px;
+      background: var(--accent);
+      border-radius: 2px;
+      right: 5px;
+      bottom: 5px;
+    }
+    .brand-titles {
+      display: flex;
+      flex-direction: column;
+    }
+    .brand-title {
+      font-family: "Outfit", sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+      line-height: 1.2;
+    }
+    .brand-badge {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+
+    /* Center Navigation Tabs */
+    .nav-tabs {
+      display: flex;
+      align-items: center;
+      background: var(--surface-sunken);
+      padding: 4px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--line);
+      gap: 2px;
+    }
+    .nav-tab-btn {
+      padding: 7px 16px;
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-secondary);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.22s var(--spring);
+    }
+    .nav-tab-btn i {
+      font-size: 16px;
+      color: var(--muted);
+      transition: color 0.2s ease;
+    }
+    .nav-tab-btn:hover {
+      color: var(--ink);
+    }
+    .nav-tab-btn.active {
+      background: var(--surface);
+      color: var(--ink);
+      box-shadow: 0 2px 8px rgba(24, 25, 27, 0.06);
+    }
+    .nav-tab-btn.active i {
+      color: var(--accent);
+    }
+
+    /* Right Action Deck */
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .search-pill {
+      height: 38px;
+      width: 210px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      border-radius: var(--radius-full);
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      transition: all 0.2s ease;
+      cursor: text;
+    }
+    .search-pill:hover, .search-pill:focus-within {
+      border-color: var(--line-bold);
+      background: #ffffff;
+      box-shadow: var(--shadow-sm);
+    }
+    .search-pill input {
+      border: 0;
+      outline: 0;
+      background: transparent;
+      font-size: 12px;
+      color: var(--ink);
+      width: 100%;
+    }
+    .kbd-shortcut {
+      padding: 2px 6px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--canvas-subtle);
+      font-size: 10px;
+      font-family: "JetBrains Mono", monospace;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .streak-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--amber-soft);
+      border: 1px solid #f3e5c8;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--amber);
+      white-space: nowrap;
+    }
+    .streak-badge i {
+      font-size: 14px;
+      color: #e09714;
+    }
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #e2ded5;
+      color: #585348;
+      font-size: 12px;
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+      border: 1.5px solid var(--surface);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    /* -------------------------------------------------------------
+       3. HOMEPAGE APP CONTAINER & SECTION FLOW
+       ------------------------------------------------------------- */
+    .app-container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 28px 24px 80px;
+    }
+
+    .page-view {
+      display: none;
+      animation: pageEntrance 0.35s var(--spring) both;
+    }
+    .page-view.active {
+      display: block;
+    }
+    @keyframes pageEntrance {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Common Buttons */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 20px;
+      background: var(--accent);
+      color: #ffffff;
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 650;
+      letter-spacing: -0.01em;
+      transition: all 0.2s var(--spring);
+      box-shadow: 0 3px 12px rgba(226, 82, 56, 0.22);
+    }
+    .btn-primary:hover {
+      background: var(--accent-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(226, 82, 56, 0.28);
+    }
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 18px;
+      background: var(--surface);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s var(--spring);
+      box-shadow: var(--shadow-sm);
+    }
+    .btn-secondary:hover {
+      background: var(--surface-hover);
+      border-color: var(--line-bold);
+      transform: translateY(-1px);
+    }
+    .btn-secondary:active {
+      transform: scale(0.98);
+    }
+
+    /* -------------------------------------------------------------
+       4. SECTION 1: HERO SPOTLIGHT + QUICK CAPTURE (66% / 34%)
+       ------------------------------------------------------------- */
+    .hero-split {
+      display: grid;
+      grid-template-columns: minmax(0, 1.9fr) minmax(320px, 1.1fr);
+      gap: 18px;
+      margin-bottom: 36px;
+    }
+
+    /* Hero Breakthrough Focus Card */
+    .breakthrough-stage {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 28px 32px 26px;
+      box-shadow: var(--shadow-md);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .breakthrough-stage::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--accent);
+    }
+
+    .stage-top-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .stage-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: var(--accent-soft);
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-dark);
+    }
+    .stage-pill-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: microPulse 2s infinite ease-in-out;
+    }
+    @keyframes microPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+    .stage-date-tip {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .stage-headline {
+      margin-bottom: 12px;
+    }
+    .stage-headline h2 {
+      font-size: clamp(22px, 2.3vw, 28px);
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      color: var(--ink);
+      line-height: 1.25;
+      margin-bottom: 8px;
+    }
+    .stage-tags {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+    .chip {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--canvas-subtle);
+      color: var(--ink-secondary);
+      border: 1px solid var(--line-subtle);
+    }
+    .chip.highlight {
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+      border-color: #f7d2c9;
+    }
+
+    /* Ebbinghaus Interactive Memory Node Track */
+    .ebbinghaus-track-container {
+      margin: 22px 0 24px;
+      padding: 16px 20px 14px;
+      background: var(--canvas);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--line-subtle);
+    }
+    .ebbinghaus-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      font-size: 11px;
+    }
+    .ebbinghaus-header span:first-child {
+      font-weight: 700;
+      color: var(--ink-secondary);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .ebbinghaus-header span:last-child {
+      color: var(--muted);
+    }
+    .ebbinghaus-nodes {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+    .ebbinghaus-nodes::before {
+      content: "";
+      position: absolute;
+      top: 13px;
+      left: 20px;
+      right: 20px;
+      height: 2px;
+      background: var(--line);
+      z-index: 0;
+    }
+    .node-step {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .node-circle {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 2px solid var(--line-bold);
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      transition: all 0.2s ease;
+    }
+    .node-step.done .node-circle {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #ffffff;
+    }
+    .node-step.active .node-circle {
+      background: #ffffff;
+      border-color: var(--accent);
+      color: var(--accent-dark);
+      box-shadow: 0 0 0 5px var(--accent-soft);
+      transform: scale(1.1);
+    }
+    .node-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .node-step.active .node-label {
+      color: var(--accent-dark);
+      font-weight: 700;
+    }
+
+    .stage-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Quick Capture Studio Card (Right Rail) */
+    .quick-capture-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .capture-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .capture-title-row h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .capture-title-row span {
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .capture-drop-pad {
+      border: 1.5px dashed var(--line-bold);
+      border-radius: var(--radius-md);
+      background: var(--canvas);
+      padding: 28px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 16px;
+    }
+    .capture-drop-pad:hover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+    .capture-drop-pad i {
+      font-size: 32px;
+      color: var(--accent);
+      margin-bottom: 8px;
+      display: block;
+    }
+    .capture-drop-pad strong {
+      display: block;
+      font-size: 13px;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+    .capture-drop-pad p {
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .demo-preset-dock {
+      background: var(--surface-sunken);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      border: 1px solid var(--line-subtle);
+    }
+    .demo-preset-label {
+      font-size: 10px;
+      color: var(--muted);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .demo-preset-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .demo-quick-btn {
+      padding: 6px 8px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-secondary);
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: all 0.18s ease;
+    }
+    .demo-quick-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent-dark);
+      background: #ffffff;
+    }
+
+    /* -------------------------------------------------------------
+       5. SECTION HEADINGS (Clean, Editorial, Non-bureaucratic)
+       ------------------------------------------------------------- */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 38px 0 16px;
+    }
+    .section-title-wrap {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+    .section-number {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 750;
+      letter-spacing: -0.025em;
+      color: var(--ink);
+    }
+    .section-subtitle {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .section-action-link {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-secondary);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: color 0.18s ease;
+    }
+    .section-action-link:hover {
+      color: var(--accent);
+    }
+
+    /* -------------------------------------------------------------
+       6. SECTION 2: TODAY'S REVIEW CARD DECK (今日待复习题组)
+       ------------------------------------------------------------- */
+    .review-card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .review-deck-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 200px;
+      transition: all 0.22s var(--spring);
+      cursor: pointer;
+      position: relative;
+    }
+    .review-deck-card:hover {
+      border-color: var(--line-bold);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .card-top-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .card-index {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: var(--canvas-subtle);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink-secondary);
+      display: grid;
+      place-items: center;
+    }
+    .review-stage-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+    }
+    .badge-today {
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+    }
+    .badge-variant {
+      background: var(--amber-soft);
+      color: var(--amber);
+    }
+
+    .review-card-body h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+    .review-snippet-preview {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: var(--ink-secondary);
+      background: var(--canvas);
+      padding: 7px 10px;
+      border-radius: 6px;
+      margin-bottom: 14px;
+      border: 1px solid var(--line-subtle);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .review-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 12px;
+      border-top: 1px solid var(--line-subtle);
+    }
+    .error-tag {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 7px;
+      border-radius: 4px;
+      background: #fdf5f3;
+      color: var(--accent-dark);
+    }
+    .card-action-btn {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* -------------------------------------------------------------
+       7. SECTION 3: GOLDEN RULES ARSENAL (解题规则沉淀墙)
+       ------------------------------------------------------------- */
+    .rules-wall-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+      gap: 16px;
+    }
+    .rule-flashcard {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 26px 28px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.22s var(--spring);
+      cursor: pointer;
+    }
+    .rule-flashcard:hover {
+      border-color: var(--line-bold);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .rule-flashcard.featured {
+      background: linear-gradient(135deg, #ffffff 0%, #fffcfb 100%);
+      border-color: #ebdcd7;
+    }
+    .rule-ribbon {
+      position: absolute;
+      top: 0;
+      right: 28px;
+      width: 22px;
+      height: 32px;
+      background: var(--accent);
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+    }
+    .rule-ribbon.amber {
+      background: var(--amber);
+    }
+    .rule-category {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .rule-quote {
+      font-size: clamp(16px, 1.7vw, 19px);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      color: var(--ink);
+      line-height: 1.45;
+      margin-bottom: 16px;
+    }
+    .rule-quote::before {
+      content: "“";
+      font-size: 26px;
+      color: var(--accent);
+      font-family: Georgia, serif;
+      margin-right: 4px;
+      line-height: 0;
+      vertical-align: -3px;
+    }
+    .rule-meta-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--muted);
+      padding-top: 14px;
+      border-top: 1px solid var(--line-subtle);
+    }
+    .rule-verified-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: var(--radius-full);
+      background: var(--green-soft);
+      color: var(--green);
+      font-weight: 600;
+      font-size: 10px;
+    }
+
+    /* -------------------------------------------------------------
+       8. SECTION 4: SUBJECT EXPLORATION DOCK (科目探索栏)
+       ------------------------------------------------------------- */
+    .subject-dock-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .subject-dock-item {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.2s var(--spring);
+    }
+    .subject-dock-item:hover {
+      border-color: var(--line-bold);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .subject-dock-item.active {
+      border-color: var(--ink);
+      background: #ffffff;
+      box-shadow: 0 4px 14px rgba(24, 25, 27, 0.08);
+    }
+    .subject-dock-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .subject-icon-box {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--canvas-subtle);
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      color: var(--ink);
+      transition: all 0.2s ease;
+    }
+    .subject-dock-item.active .subject-icon-box {
+      background: var(--ink);
+      color: #ffffff;
+    }
+    .subject-info strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 750;
+      color: var(--ink);
+    }
+    .subject-info span {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .subject-dock-metric {
+      text-align: right;
+    }
+    .subject-dock-metric strong {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 15px;
+      color: var(--ink);
+    }
+    .subject-dock-metric span {
+      display: block;
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    /* -------------------------------------------------------------
+       9. SECONDARY PAGES: 错题集 (Bank), 复习计划 (Plan), 规则 (Rules)
+       ------------------------------------------------------------- */
+    .page-header-simple {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    .page-header-simple h1 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+    }
+    .page-header-simple p {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* Bank Filter Toolbar */
+    .bank-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .filter-chip-btn {
+      padding: 6px 13px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--line);
+      background: var(--surface);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-secondary);
+      transition: all 0.18s ease;
+    }
+    .filter-chip-btn:hover {
+      border-color: var(--line-bold);
+      color: var(--ink);
+    }
+    .filter-chip-btn.active {
+      background: var(--ink);
+      color: #ffffff;
+      border-color: var(--ink);
+    }
+
+    /* Modern Table / Card List */
+    .mistake-list-container {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    .mistake-list-header {
+      display: grid;
+      grid-template-columns: 2.2fr 0.9fr 1.1fr 1fr 1fr 44px;
+      gap: 16px;
+      padding: 12px 20px;
+      background: var(--canvas);
+      border-bottom: 1px solid var(--line);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .mistake-row {
+      display: grid;
+      grid-template-columns: 2.2fr 0.9fr 1.1fr 1fr 1fr 44px;
+      gap: 16px;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--line-subtle);
+      transition: background 0.15s ease;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .mistake-row:last-child {
+      border-bottom: 0;
+    }
+    .mistake-row:hover {
+      background: var(--surface-hover);
+    }
+    .question-cell-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .question-cell-wrap strong {
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--ink);
+    }
+    .question-cell-wrap span {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .mini-progress-dots {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .mini-progress-dots i {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--line-bold);
+    }
+    .mini-progress-dots i.done {
+      background: var(--green);
+    }
+    .mini-progress-dots i.today {
+      background: var(--accent);
+    }
+
+    /* Plan View Styles */
+    .plan-split {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 20px;
+    }
+    .plan-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+    .plan-timeline {
+      display: flex;
+      flex-direction: column;
+      margin-top: 16px;
+    }
+    .timeline-node-item {
+      display: grid;
+      grid-template-columns: 80px 24px minmax(0, 1fr);
+      gap: 12px;
+      min-height: 68px;
+    }
+    .timeline-date-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .timeline-bullet {
+      position: relative;
+      display: flex;
+      justify-content: center;
+    }
+    .timeline-bullet::before {
+      content: "";
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid var(--line-bold);
+      background: var(--surface);
+      z-index: 1;
+    }
+    .timeline-node-item:not(:last-child) .timeline-bullet::after {
+      content: "";
+      position: absolute;
+      width: 1.5px;
+      top: 12px;
+      bottom: -4px;
+      background: var(--line);
+    }
+    .timeline-node-item.current .timeline-bullet::before {
+      border-color: var(--accent);
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+    .timeline-content-copy strong {
+      display: block;
+      font-size: 13px;
+      color: var(--ink);
+    }
+    .timeline-content-copy p {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    /* -------------------------------------------------------------
+       10. MODAL & INTERACTIVE PRACTICE WORKBENCH (作答模式核心交互)
+       ------------------------------------------------------------- */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(24, 25, 27, 0.45);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 60;
+    }
+    .modal-backdrop.open {
+      display: flex;
+      animation: backdropFade 0.22s ease both;
+    }
+    @keyframes backdropFade {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .modal-window {
+      width: min(760px, 100%);
+      max-height: min(860px, 92vh);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(255,255,255,0.7);
+      box-shadow: 0 24px 60px -12px rgba(24, 25, 27, 0.22);
+      animation: modalSlide 0.28s var(--spring) both;
+    }
+    @keyframes modalSlide {
+      from { opacity: 0; transform: translateY(12px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .modal-head {
+      flex-shrink: 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 22px 28px 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface);
+      z-index: 10;
+    }
+    .modal-head h3 {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+    }
+    .modal-head p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .modal-close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--canvas-subtle);
+      color: var(--muted);
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      transition: all 0.18s ease;
+    }
+    .modal-close-btn:hover {
+      background: var(--canvas);
+      color: var(--ink);
+    }
+    .modal-body {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: 24px 28px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .modal-body::-webkit-scrollbar {
+      width: 6px;
+    }
+    .modal-body::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .modal-body::-webkit-scrollbar-thumb {
+      background: var(--line-bold);
+      border-radius: 999px;
+    }
+    .modal-foot {
+      flex-shrink: 0;
+      padding: 16px 28px;
+      background: var(--surface);
+      border-top: 1px solid var(--line);
+      box-shadow: 0 -4px 20px rgba(24, 25, 27, 0.05);
+      z-index: 10;
+    }
+
+    /* --- Practice Mode UI (实战作答工作区) --- */
+    .practice-question-card {
+      background: var(--canvas);
+      border: 1.5px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 22px 24px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .practice-q-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-dark);
+      background: var(--accent-soft);
+      padding: 3px 9px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    .practice-q-text {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+    .practice-q-instruction {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .answer-workspace {
+      margin-bottom: 20px;
+    }
+    .answer-workspace-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    .answer-textarea {
+      width: 100%;
+      min-height: 110px;
+      border: 1.5px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      font-size: 14px;
+      line-height: 1.6;
+      background: var(--surface);
+      outline: none;
+      transition: all 0.2s ease;
+      resize: vertical;
+      font-family: inherit;
+    }
+    .answer-textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    /* --- Answer Mode Tabs & Photo Scratchpad UI --- */
+    .answer-mode-tabs {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--canvas-subtle);
+      padding: 3px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line-subtle);
+    }
+    .answer-mode-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-secondary);
+      border-radius: 6px;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .answer-mode-tab:hover {
+      color: var(--ink);
+    }
+    .answer-mode-tab.active {
+      background: var(--surface);
+      color: var(--ink);
+      box-shadow: var(--shadow-sm);
+    }
+    .tab-rec-badge {
+      display: inline-block;
+      font-size: 9px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 1px 5px;
+      border-radius: var(--radius-full);
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    /* Quick Camera Trigger in Math Toolbar */
+    .quick-camera-trigger-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 3px 9px;
+      border-radius: 4px;
+      border: 1px solid rgba(226, 82, 56, 0.25);
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .quick-camera-trigger-btn:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    /* Photo Dropzone in Scratchpad Area */
+    .practice-photo-dropzone {
+      border: 2px dashed var(--line-bold);
+      border-radius: var(--radius-md);
+      background: var(--canvas);
+      padding: 24px 16px;
+      text-align: center;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .practice-photo-dropzone:hover,
+    .practice-photo-dropzone.dragover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+    .photo-dropzone-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      font-size: 24px;
+      margin-bottom: 10px;
+      box-shadow: var(--shadow-sm);
+    }
+    .photo-dropzone-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+    .photo-dropzone-desc {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .photo-dropzone-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn-primary-sm {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: #fff;
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(226, 82, 56, 0.25);
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .btn-primary-sm:hover {
+      background: var(--accent-dark);
+      transform: translateY(-1px);
+    }
+    .btn-secondary-sm {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .btn-secondary-sm:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Photo Preview Card */
+    .practice-photo-preview-wrap {
+      border: 1.5px solid var(--line);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    .photo-preview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: var(--canvas-subtle);
+      border-bottom: 1px solid var(--line);
+    }
+    .photo-preview-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--green);
+    }
+    .photo-preview-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .photo-act-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-secondary);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .photo-act-btn:hover {
+      color: var(--ink);
+      border-color: var(--line-bold);
+    }
+    .photo-act-btn.delete:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+    .photo-img-container {
+      position: relative;
+      background: #fdfcf9;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      max-height: 220px;
+      overflow: hidden;
+      cursor: zoom-in;
+    }
+    .photo-img-container img {
+      max-height: 190px;
+      max-width: 100%;
+      border-radius: 8px;
+      box-shadow: var(--shadow-sm);
+      object-fit: contain;
+      border: 1px solid var(--line-subtle);
+    }
+    .photo-zoom-hint {
+      position: absolute;
+      bottom: 8px;
+      right: 12px;
+      background: rgba(24, 25, 27, 0.75);
+      color: #fff;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+      backdrop-filter: blur(4px);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .photo-ocr-result-bar {
+      padding: 10px 14px;
+      background: var(--surface);
+      border-top: 1px solid var(--line);
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 12px;
+    }
+    .ocr-status-tag {
+      font-weight: 700;
+      color: var(--accent);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .ocr-text-content {
+      color: var(--ink-secondary);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+      word-break: break-all;
+    }
+
+    /* Comparison Cell with Photo Display in Stage B */
+    .comp-cell-photo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--blue);
+      background: var(--blue-soft);
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-bottom: 6px;
+    }
+    .comp-cell-photo-thumb {
+      max-height: 70px;
+      max-width: 100%;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      object-fit: contain;
+      cursor: zoom-in;
+      background: #fff;
+      display: block;
+      margin-bottom: 6px;
+      transition: transform 0.15s ease;
+    }
+    .comp-cell-photo-thumb:hover {
+      transform: scale(1.02);
+      border-color: var(--accent);
+    }
+
+    /* --- Demo Sample Selector in Capture Modal (预制演示样例) --- */
+    .demo-sample {
+      margin-top: 14px;
+      margin-bottom: 16px;
+      padding: 12px 14px;
+      border: 1.5px solid var(--line);
+      border-radius: var(--radius-md);
+      background: var(--canvas-subtle);
+      transition: border-color 0.2s ease;
+    }
+    .demo-sample:hover {
+      border-color: var(--line-bold);
+    }
+    .demo-sample-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .demo-sample-head strong {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .demo-sample-head strong i {
+      color: var(--accent);
+      font-size: 14px;
+    }
+    .demo-sample-head span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .demo-sample select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--ink);
+      padding: 9px 12px;
+      outline: none;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .demo-sample select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    .demo-sample-chips {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+      margin-bottom: 6px;
+    }
+    .sample-chip-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-secondary);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 4px 9px;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .sample-chip-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+    .demo-sample p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    /* --- PRD AI Diagnosis Enhancements --- */
+    .ai-evidence-card {
+      background: var(--surface);
+      border: 1.5px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      transition: all 0.2s ease;
+    }
+    .ai-evidence-card:hover {
+      border-color: var(--line-bold);
+    }
+    .careless-followup-card {
+      margin-top: 12px;
+      padding: 12px 14px;
+      background: #fffbf0;
+      border: 1.5px dashed #f0cb75;
+      border-radius: var(--radius-sm);
+      animation: fadeIn 0.25s ease;
+    }
+    .careless-opt-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #785a1a;
+      background: #fff;
+      border: 1px solid #e8c474;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .careless-opt-btn:hover {
+      background: #fdf2d0;
+      border-color: #996e1b;
+      color: #996e1b;
+    }
+    .careless-opt-btn.active {
+      background: #996e1b;
+      color: #fff;
+      border-color: #996e1b;
+    }
+
+    /* Fullscreen Photo Lightbox */
+    .photo-lightbox-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .photo-lightbox-modal.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .photo-lightbox-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(18, 19, 21, 0.85);
+      backdrop-filter: blur(8px);
+    }
+    .photo-lightbox-card {
+      position: relative;
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      max-width: 90vw;
+      max-height: 85vh;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      z-index: 2;
+    }
+    .photo-lightbox-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .photo-lightbox-close {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--canvas-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ink);
+      font-size: 16px;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .photo-lightbox-close:hover {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+    .photo-lightbox-body {
+      padding: 16px;
+      overflow: auto;
+      background: #faf8f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .photo-lightbox-body img {
+      max-width: 100%;
+      max-height: 70vh;
+      border-radius: 8px;
+      box-shadow: var(--shadow-md);
+      object-fit: contain;
+    }
+
+    /* Math Shortcut Buttons Bar */
+    .math-tools-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .math-tools-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-right: 4px;
+    }
+    .math-symbol-btn {
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      font-size: 11px;
+      font-family: "JetBrains Mono", monospace;
+      color: var(--ink-secondary);
+      transition: all 0.15s ease;
+    }
+    .math-symbol-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent-dark);
+      background: var(--accent-soft);
+    }
+
+    /* Collapsible Hint Drawer (防卡顿一句话点拨) */
+    .hint-trigger-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 650;
+      color: var(--amber);
+      background: var(--amber-soft);
+      border: 1px solid #f2e3be;
+      border-radius: var(--radius-full);
+      padding: 6px 14px;
+      transition: all 0.2s ease;
+      margin-bottom: 18px;
+    }
+    .hint-trigger-btn:hover {
+      background: #fcf1d8;
+    }
+    .hint-drawer {
+      display: none;
+      background: #fffcf5;
+      border: 1px solid #f0dfb2;
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      font-size: 13px;
+      color: #795714;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      animation: pageEntrance 0.25s var(--spring) both;
+    }
+    .hint-drawer.open {
+      display: block;
+    }
+
+    /* Action Buttons in Practice Stage */
+    .practice-action-deck {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-top: 8px;
+    }
+
+    /* --- Feedback / Evaluation State UI (批改解析展示区) --- */
+    .feedback-state-panel {
+      display: none;
+      animation: pageEntrance 0.28s var(--spring) both;
+    }
+    .feedback-state-panel.active {
+      display: block;
+    }
+
+    .eval-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px 20px;
+      border-radius: var(--radius-md);
+      margin-bottom: 20px;
+    }
+    .eval-banner.success {
+      background: var(--green-soft);
+      border: 1px solid #c9e4d2;
+      color: var(--green-dark);
+    }
+    .eval-banner.success i {
+      font-size: 26px;
+      color: var(--green);
+      margin-top: 1px;
+    }
+    .eval-banner.info {
+      background: var(--amber-soft);
+      border: 1px solid #f2e1b8;
+      color: #785a19;
+    }
+    .eval-banner.info i {
+      font-size: 26px;
+      color: var(--amber);
+      margin-top: 1px;
+    }
+    .eval-banner strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .eval-banner p {
+      font-size: 12px;
+      line-height: 1.55;
+      margin: 0;
+    }
+
+    /* 3-Way Comparison Board (本次作答 vs 正确答案 vs 上次错因) */
+    .comparison-3way {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+    .comp-cell {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+    }
+    .comp-cell-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .comp-cell.current {
+      background: #faf9f6;
+      border-color: #ded9cd;
+    }
+    .comp-cell.current .comp-cell-label {
+      color: var(--ink);
+    }
+    .comp-cell.correct {
+      background: #f5faf7;
+      border-color: #cde6d6;
+    }
+    .comp-cell.correct .comp-cell-label {
+      color: var(--green);
+    }
+    .comp-cell.previous {
+      background: #fffafa;
+      border-color: #f7d6ce;
+    }
+    .comp-cell.previous .comp-cell-label {
+      color: var(--accent-dark);
+    }
+    .comp-cell-body {
+      font-size: 13px;
+      color: var(--ink-secondary);
+      line-height: 1.55;
+      word-break: break-all;
+    }
+
+    /* Diagnosis Chips in Modal */
+    .diagnosis-group {
+      margin-bottom: 22px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line-subtle);
+    }
+    .diagnosis-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink-secondary);
+      margin-bottom: 10px;
+    }
+    .chips-flow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .diag-chip-btn {
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--line);
+      background: var(--surface);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-secondary);
+      transition: all 0.18s var(--spring);
+    }
+    .diag-chip-btn:hover {
+      border-color: var(--line-bold);
+    }
+    .diag-chip-btn.selected {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent-dark);
+      font-weight: 700;
+    }
+
+    /* Progressive 3-Stage Explanation (分层讲解) */
+    .progressive-explain-box {
+      background: var(--canvas);
+      border: 1px solid var(--line-subtle);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      margin-bottom: 20px;
+    }
+    .explain-tabs-nav {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .explain-tab-btn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      color: var(--ink-secondary);
+      transition: all 0.18s ease;
+    }
+    .explain-tab-btn.active {
+      background: var(--ink);
+      color: #ffffff;
+      border-color: var(--ink);
+    }
+    .explain-text-panel {
+      font-size: 13px;
+      line-height: 1.65;
+      color: var(--ink-secondary);
+    }
+    .explain-text-panel b {
+      color: var(--ink);
+    }
+
+    /* Variant Generation Sandbox */
+    .variant-sandbox-box {
+      background: #fafaf8;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      margin-bottom: 22px;
+    }
+    .variant-tab-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .var-tab-btn {
+      padding: 5px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      transition: all 0.18s ease;
+    }
+    .var-tab-btn.active {
+      background: var(--ink);
+      color: #ffffff;
+      border-color: var(--ink);
+    }
+    .variant-question-body {
+      font-size: 13px;
+      color: var(--ink);
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    .variant-answer-revealed {
+      display: none;
+      padding: 12px 14px;
+      background: var(--green-soft);
+      border: 1px solid #d4e8db;
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--green);
+      line-height: 1.55;
+    }
+    .variant-answer-revealed.show {
+      display: block;
+      animation: pageEntrance 0.2s ease both;
+    }
+
+    /* Toast Notification */
+    .toast-pill {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: var(--ink);
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 600;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      z-index: 100;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .toast-pill.show {
+      display: flex;
+      animation: toastSlide 0.25s var(--spring) both;
+    }
+    @keyframes toastSlide {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* -------------------------------------------------------------
+       11. MOBILE BOTTOM DOCK & RESPONSIVENESS (< 860px)
+       ------------------------------------------------------------- */
+    .mobile-bottom-dock {
+      display: none;
+    }
+
+    @media (max-width: 960px) {
+      .hero-split {
+        grid-template-columns: 1fr;
+      }
+      .review-card-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .rules-wall-grid {
+        grid-template-columns: 1fr;
+      }
+      .subject-dock-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .plan-split {
+        grid-template-columns: 1fr;
+      }
+      .comparison-3way {
+        grid-template-columns: 1fr;
+      }
+      .mistake-list-header, .mistake-row {
+        grid-template-columns: 2fr 1fr 1fr 44px;
+      }
+      .mistake-list-header span:nth-child(3),
+      .mistake-row span:nth-child(3),
+      .mistake-list-header span:nth-child(5),
+      .mistake-row div:nth-child(5) {
+        display: none;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .top-nav-inner {
+        padding: 0 16px;
+        height: 60px;
+      }
+      .nav-tabs {
+        display: none; /* Collapses to bottom dock on mobile */
+      }
+      .search-pill {
+        display: none;
+      }
+      .app-container {
+        padding: 16px 14px calc(80px + env(safe-area-inset-bottom));
+      }
+      .review-card-grid {
+        grid-template-columns: 1fr;
+      }
+      .subject-dock-grid {
+        grid-template-columns: 1fr;
+      }
+      .breakthrough-stage {
+        padding: 20px 18px;
+      }
+      .stage-headline h2 {
+        font-size: 20px;
+      }
+      .ebbinghaus-track-container {
+        padding: 12px 14px;
+      }
+      .ebbinghaus-nodes::before {
+        left: 10px;
+        right: 10px;
+      }
+      .node-circle {
+        width: 22px;
+        height: 22px;
+        font-size: 9px;
+      }
+      .practice-action-deck {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .modal-head {
+        padding: 16px 20px 14px;
+      }
+      .modal-body {
+        padding: 18px 20px;
+      }
+      .modal-foot {
+        padding: 12px 18px;
+      }
+
+      /* Mobile Bottom Floating Island Nav */
+      .mobile-bottom-dock {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 50;
+        background: rgba(247, 246, 242, 0.94);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border-top: 1px solid var(--line);
+        padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+      }
+      .mobile-dock-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--muted);
+        padding: 4px 10px;
+        border-radius: 8px;
+      }
+      .mobile-dock-btn i {
+        font-size: 20px;
+      }
+      .mobile-dock-btn.active {
+        color: var(--accent);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="msv-project-shell" role="navigation" aria-label="MINI硅谷孵化器导航">
+    <a class="msv-project-brand" href="/" aria-label="返回 MINI硅谷首页"><img src="/assets/mini-silicon-valley-logo-transparent.png" alt="MINI硅谷" width="330" height="84"></a>
+    <span class="msv-project-status">孵化器项目 · 交互演示 · 刷新后重置</span>
+    <a class="msv-project-back" href="/incubator/projects/">← 项目列表</a>
+  </div>
+
+
+  <!-- TOP NAVIGATION (C-End Consumer Homepage Experience) -->
+  <header class="top-nav" role="banner">
+    <div class="top-nav-inner">
+      <a href="#" class="brand-cluster" onclick="showView('overview'); return false;">
+        <div class="brand-icon"><i class="ph ph-notebook"></i></div>
+        <div class="brand-titles">
+          <span class="brand-title">错题本</span>
+          <span class="brand-badge">学习空间 · 初三</span>
+        </div>
+      </a>
+
+      <!-- Center Nav Tabs -->
+      <nav class="nav-tabs" aria-label="核心导航">
+        <button class="nav-tab-btn active" data-view="overview">
+          <i class="ph ph-squares-four"></i>
+          <span>首页</span>
+        </button>
+        <button class="nav-tab-btn" data-view="bank">
+          <i class="ph ph-books"></i>
+          <span>错题集</span>
+        </button>
+        <button class="nav-tab-btn" data-view="plan">
+          <i class="ph ph-calendar-check"></i>
+          <span>复习计划</span>
+        </button>
+        <button class="nav-tab-btn" data-view="rules">
+          <i class="ph ph-lightbulb"></i>
+          <span>解题规则</span>
+        </button>
+      </nav>
+
+      <!-- Right Action Deck -->
+      <div class="top-actions">
+        <div class="search-pill" role="search">
+          <i class="ph ph-magnifying-glass"></i>
+          <input id="globalSearchInput" placeholder="搜索题目、知识点或错因" aria-label="全局搜索" />
+          <span class="kbd-shortcut">⌘K</span>
+        </div>
+        <div class="streak-badge" title="坚持每日攻关">
+          <i class="ph ph-fire"></i>
+          <span>连续学习 5 天</span>
+        </div>
+        <div class="user-avatar" title="林夏 (学生端)">林</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="app-container">
+
+    <!-- =============================================================
+         VIEW 1: PRODUCT HOMEPAGE (首页)
+         ============================================================= -->
+    <section class="page-view active" id="overviewView">
+      
+      <!-- SECTION 1: HERO SPOTLIGHT + QUICK CAPTURE -->
+      <div class="hero-split">
+        
+        <!-- Left Hero Stage: Featured Breakthrough -->
+        <div class="breakthrough-stage">
+          <div>
+            <div class="stage-top-meta">
+              <span class="stage-pill">
+                <span class="stage-pill-dot"></span>
+                <span>今日攻关重点</span>
+              </span>
+              <span class="stage-date-tip" id="heroDateTip">2025 年 3 月 14 日 · 周五</span>
+            </div>
+
+            <div class="stage-headline">
+              <h2 id="heroQuestionTitle">解方程去括号：负号要进入每一项</h2>
+              <div class="stage-tags">
+                <span class="chip" id="heroSubjectTag">数学 · 一元二次方程</span>
+                <span class="chip highlight" id="heroStageTag">D1 · 无提示重做</span>
+                <span class="chip" id="heroErrorTag">步骤错误</span>
+              </div>
+            </div>
+
+            <!-- Ebbinghaus 5-step Memory Node Track -->
+            <div class="ebbinghaus-track-container">
+              <div class="ebbinghaus-header">
+                <span><i class="ph ph-waveform"></i> 艾宾浩斯记忆保留节律</span>
+                <span id="heroRetentionText">已进入第 2 阶段 · 巩固率 68%</span>
+              </div>
+              <div class="ebbinghaus-nodes">
+                <div class="node-step done" title="D0 重新理解">
+                  <div class="node-circle"><i class="ph ph-check"></i></div>
+                  <span class="node-label">D0 理解</span>
+                </div>
+                <div class="node-step active" title="D1 无提示重做">
+                  <div class="node-circle">D1</div>
+                  <span class="node-label">无提示重做</span>
+                </div>
+                <div class="node-step" title="D3 同型题">
+                  <div class="node-circle">D3</div>
+                  <span class="node-label">同型题</span>
+                </div>
+                <div class="node-step" title="D7 变式题">
+                  <div class="node-circle">D7</div>
+                  <span class="node-label">变式题</span>
+                </div>
+                <div class="node-step" title="D14 迁移题">
+                  <div class="node-circle">D14</div>
+                  <span class="node-label">迁移应用</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="stage-actions">
+            <button class="btn-primary" id="heroStartBtn">
+              <i class="ph ph-play"></i>
+              <span>开始今日攻关 (实战作答)</span>
+            </button>
+            <button class="btn-secondary" id="heroNextBtn">
+              <i class="ph ph-arrows-clockwise"></i>
+              <span>换一道重点</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Rail: Quick Capture Studio -->
+        <div class="quick-capture-card">
+          <div>
+            <div class="capture-title-row">
+              <h3><i class="ph ph-camera"></i> 拍题工坊</h3>
+              <span>随时记录错题</span>
+            </div>
+            <div class="capture-drop-pad" id="triggerCaptureBtn" role="button" tabindex="0">
+              <i class="ph ph-camera-plus"></i>
+              <strong>拍照录入或拖入题目截图</strong>
+              <p>支持 JPG、PNG、试卷照片，AI 自动切片诊断</p>
+            </div>
+          </div>
+
+          <div class="demo-preset-dock">
+            <span class="demo-preset-label">一键演示快速填题</span>
+            <div class="demo-preset-buttons">
+              <button class="demo-quick-btn" data-preset="math-1"><i class="ph ph-calculator"></i> 数学去括号</button>
+              <button class="demo-quick-btn" data-preset="chinese-2"><i class="ph ph-book-open-text"></i> 语文说明文</button>
+              <button class="demo-quick-btn" data-preset="english-2"><i class="ph ph-translate"></i> 英语主旨</button>
+              <button class="demo-quick-btn" data-preset="physics-1"><i class="ph ph-atom"></i> 物理变阻器</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SECTION 2: TODAY'S REVIEW CARD DECK -->
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <span class="section-number">02</span>
+          <h3 class="section-title">今日待复习题组</h3>
+          <span class="section-subtitle" id="reviewDeckSummary">共 3 道题到达复习窗口</span>
+        </div>
+        <a href="#" class="section-action-link" data-view-link="plan">
+          <span>完整时间线</span>
+          <i class="ph ph-arrow-right"></i>
+        </a>
+      </div>
+
+      <div class="review-card-grid" id="todayReviewDeck">
+        <!-- Injected dynamically via JS -->
+      </div>
+
+      <!-- SECTION 3: GOLDEN RULES ARSENAL (解题规则沉淀墙) -->
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <span class="section-number">03</span>
+          <h3 class="section-title">解题规则沉淀墙</h3>
+          <span class="section-subtitle">把犯过的错，固化为可调用的规则</span>
+        </div>
+        <a href="#" class="section-action-link" data-view-link="rules">
+          <span>所有 26 条规则</span>
+          <i class="ph ph-arrow-right"></i>
+        </a>
+      </div>
+
+      <div class="rules-wall-grid" id="rulesWallDeck">
+        <!-- Injected dynamically via JS -->
+      </div>
+
+      <!-- SECTION 4: SUBJECT EXPLORATION DOCK -->
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <span class="section-number">04</span>
+          <h3 class="section-title">学科探索坞</h3>
+          <span class="section-subtitle">点击聚焦学科内容</span>
+        </div>
+      </div>
+
+      <div class="subject-dock-grid" id="subjectDockGrid">
+        <!-- Injected dynamically via JS -->
+      </div>
+
+    </section>
+
+
+    <!-- =============================================================
+         VIEW 2: 错题集 (Question Bank)
+         ============================================================= -->
+    <section class="page-view" id="bankView">
+      <div class="page-header-simple">
+        <div>
+          <h1>错题集</h1>
+          <p>每一道错题，都是建立个人解题规则的原始样本。</p>
+        </div>
+        <button class="btn-primary" id="bankNewBtn">
+          <i class="ph ph-plus"></i>
+          <span>录入错题</span>
+        </button>
+      </div>
+
+      <div class="bank-bar">
+        <div class="filter-group" id="bankSubjectFilters">
+          <button class="filter-chip-btn active" data-subject="全部学科">全部学科 · 12</button>
+          <button class="filter-chip-btn" data-subject="数学">数学 · 3</button>
+          <button class="filter-chip-btn" data-subject="语文">语文 · 3</button>
+          <button class="filter-chip-btn" data-subject="英语">英语 · 3</button>
+          <button class="filter-chip-btn" data-subject="物理">物理 · 3</button>
+        </div>
+        <div class="filter-group" id="bankStatusFilters">
+          <button class="filter-chip-btn active" data-status="全部状态">全部状态</button>
+          <button class="filter-chip-btn" data-status="待复习">待复习</button>
+          <button class="filter-chip-btn" data-status="已掌握">已掌握</button>
+        </div>
+      </div>
+
+      <div class="mistake-list-container">
+        <div class="mistake-list-header">
+          <span>题目与知识点</span>
+          <span>学科</span>
+          <span>分类</span>
+          <span>错因归因</span>
+          <span>复习进度</span>
+          <span></span>
+        </div>
+        <div id="bankMistakeRows">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </section>
+
+
+    <!-- =============================================================
+         VIEW 3: 复习计划 (Review Plan)
+         ============================================================= -->
+    <section class="page-view" id="planView">
+      <div class="page-header-simple">
+        <div>
+          <h1>复习计划</h1>
+          <p>依据艾宾浩斯抗遗忘节律，让记忆在科学的时间间隔中固化。</p>
+        </div>
+        <button class="btn-secondary" id="planResetBtn">
+          <i class="ph ph-arrows-clockwise"></i>
+          <span>重新编排今日节奏</span>
+        </button>
+      </div>
+
+      <div class="plan-split">
+        <div class="plan-card">
+          <h3 style="font-size:16px;font-weight:750;color:var(--ink);margin-bottom:6px;">间隔复习时间线</h3>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:18px;">系统已根据最近 14 天的作答反馈动态优化题组间隔。</p>
+          <div class="plan-timeline">
+            <div class="timeline-node-item current">
+              <span class="timeline-date-label">今天 · 3 题</span>
+              <div class="timeline-bullet"></div>
+              <div class="timeline-content-copy">
+                <strong>重新理解与无提示重做</strong>
+                <p>先用一句话复述关键步骤，再在草稿纸上完整解题。</p>
+              </div>
+            </div>
+            <div class="timeline-node-item">
+              <span class="timeline-date-label">3 月 15 日</span>
+              <div class="timeline-bullet"></div>
+              <div class="timeline-content-copy">
+                <strong>同型题校验 · 2 题</strong>
+                <p>仅改变数字与符号，测试解题定势是否稳固。</p>
+              </div>
+            </div>
+            <div class="timeline-node-item">
+              <span class="timeline-date-label">3 月 17 日</span>
+              <div class="timeline-bullet"></div>
+              <div class="timeline-content-copy">
+                <strong>变式题探究 · 2 题</strong>
+                <p>翻转设问方向或增设隐藏条件。</p>
+              </div>
+            </div>
+            <div class="timeline-node-item">
+              <span class="timeline-date-label">3 月 21 日</span>
+              <div class="timeline-bullet"></div>
+              <div class="timeline-content-copy">
+                <strong>综合跨考点迁移 · 1 题</strong>
+                <p>将知识点融入中考压轴复合情境。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="plan-card" style="display:flex;flex-direction:column;justify-content:space-between;">
+          <div>
+            <span class="chip highlight" style="margin-bottom:12px;display:inline-block;">本周冲刺靶心</span>
+            <h3 id="planFocusTitle" style="font-size:20px;font-weight:800;color:var(--ink);margin-bottom:8px;">一元二次方程 · 负号展开</h3>
+            <p id="planFocusDesc" style="font-size:13px;color:var(--ink-secondary);line-height:1.6;margin-bottom:16px;">近 14 天连续出现 3 次同类型错误。完成本轮无提示重做后，系统将自动生成对应同型题验证。</p>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12px;">
+              <span style="font-weight:600;color:var(--ink);">本周复习达成率</span>
+              <span class="font-mono" style="font-weight:700;color:var(--green);">68%</span>
+            </div>
+            <div style="height:6px;background:var(--canvas-subtle);border-radius:999px;overflow:hidden;margin-bottom:18px;">
+              <div style="width:68%;height:100%;background:var(--green);border-radius:inherit;"></div>
+            </div>
+            <button class="btn-primary" id="planStartFocusBtn" style="width:100%;">
+              <i class="ph ph-play"></i>
+              <span>进入重点题目实战作答</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- =============================================================
+         VIEW 4: 解题规则 (Rules Arsenal)
+         ============================================================= -->
+    <section class="page-view" id="rulesView">
+      <div class="page-header-simple">
+        <div>
+          <h1>解题规则库</h1>
+          <p>从每道错题的血泪教训中，提炼出可复用的结构化思维模型。</p>
+        </div>
+        <button class="btn-primary" id="ruleNewBtn">
+          <i class="ph ph-plus"></i>
+          <span>提炼新规则</span>
+        </button>
+      </div>
+
+      <div class="rules-wall-grid" id="fullRulesDeck" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+        <!-- Injected dynamically -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MOBILE FLOATING BOTTOM DOCK -->
+  <nav class="mobile-bottom-dock" aria-label="移动端快速导航">
+    <button class="mobile-dock-btn active" data-view="overview">
+      <i class="ph ph-squares-four"></i>
+      <span>首页</span>
+    </button>
+    <button class="mobile-dock-btn" data-view="bank">
+      <i class="ph ph-books"></i>
+      <span>错题集</span>
+    </button>
+    <button class="mobile-dock-btn" data-view="plan">
+      <i class="ph ph-calendar-check"></i>
+      <span>计划</span>
+    </button>
+    <button class="mobile-dock-btn" data-view="rules">
+      <i class="ph ph-lightbulb"></i>
+      <span>规则</span>
+    </button>
+  </nav>
+
+  <!-- =============================================================
+       MODAL 1: 录入错题弹窗 (Capture Modal)
+       ============================================================= -->
+  <div class="modal-backdrop" id="captureModal" role="dialog" aria-modal="true" aria-labelledby="captureModalTitle">
+    <div class="modal-window">
+      <div class="modal-head">
+        <div>
+          <h3 id="captureModalTitle">录入错题</h3>
+          <p>支持拍照、截图或粘贴题目，AI 自动切片并诊断错因</p>
+        </div>
+        <button class="modal-close-btn" data-close="captureModal"><i class="ph ph-x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex;gap:6px;background:var(--canvas-subtle);padding:4px;border-radius:8px;margin-bottom:16px;">
+          <button class="filter-chip-btn active" id="tabPhotoInput" style="flex:1;text-align:center;">拍照 / 截图上传</button>
+          <button class="filter-chip-btn" id="tabTextInput" style="flex:1;text-align:center;">文字手动输入</button>
+        </div>
+
+        <div id="panePhoto" style="display:block;">
+          <div class="capture-drop-pad" style="padding:32px 20px;margin-bottom:16px;">
+            <i class="ph ph-camera" style="font-size:36px;"></i>
+            <strong>点击拍照或将试卷截图拖入此处</strong>
+            <p>支持 JPG, PNG, 单张不超过 10MB</p>
+            <input type="file" id="modalFileInput" accept="image/*" style="display:none;" />
+            <button class="btn-secondary" id="triggerFileInputBtn" style="margin-top:12px;">选择本地图片</button>
+            <div id="selectedFileName" style="margin-top:8px;font-size:11px;color:var(--green);font-weight:600;"></div>
+          </div>
+        </div>
+
+        <div id="paneText" style="display:none;">
+          <div style="margin-bottom:14px;">
+            <label style="display:block;font-size:12px;font-weight:700;color:var(--ink-secondary);margin-bottom:6px;">题目内容</label>
+            <textarea id="manualQuestionText" rows="3" placeholder="在此粘贴题目文本或题干描述" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;outline:none;background:var(--surface);font-size:13px;"></textarea>
+          </div>
+          <div style="margin-bottom:14px;">
+            <label style="display:block;font-size:12px;font-weight:700;color:var(--ink-secondary);margin-bottom:6px;">当时解题过程（可选）</label>
+            <textarea id="manualAnswerText" rows="2" placeholder="写下当时解题步骤，方便 AI 定位在哪一步出错" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;outline:none;background:var(--surface);font-size:13px;"></textarea>
+          </div>
+        </div>
+
+        <!-- 预制演示样例 (可以选择演示例子的内容) -->
+        <div class="demo-sample">
+          <div class="demo-sample-head">
+            <strong><i class="ph ph-magic-wand"></i> 预制演示样例</strong>
+            <span>选中后仍可继续修改</span>
+          </div>
+          <select id="demoSampleSelect">
+            <option value="">-- 不使用预制样例，手动新增 --</option>
+            <option value="math-1">数学 · 去括号时把负号漏给了第二项</option>
+            <option value="chinese-2">语文 · 列数字说明方法判断</option>
+            <option value="english-2">英语 · 转折后的主旨信息</option>
+            <option value="physics-3">物理 · 密度公式单位换算</option>
+            <option value="math-2">数学 · 圆内接四边形证明没有先找对角关系</option>
+            <option value="chinese-1">语文 · 《岳阳楼记》先天下之忧而忧</option>
+            <option value="english-1">英语 · 现在完成时 since 与 for 混用</option>
+            <option value="physics-1">物理 · 滑动变阻器偏转方向判断反了</option>
+          </select>
+          <div class="demo-sample-chips">
+            <button type="button" class="sample-chip-btn" data-sample-id="math-1"><i class="ph ph-calculator"></i> 数学去括号</button>
+            <button type="button" class="sample-chip-btn" data-sample-id="chinese-2"><i class="ph ph-book-open-text"></i> 语文说明文</button>
+            <button type="button" class="sample-chip-btn" data-sample-id="english-2"><i class="ph ph-translate"></i> 英语转折主旨</button>
+            <button type="button" class="sample-chip-btn" data-sample-id="physics-3"><i class="ph ph-atom"></i> 物理密度换算</button>
+          </div>
+          <p>一键填入真实题目、解题过程和学科，点击“开始识别”即可新增一张独立错题卡。</p>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
+          <div>
+            <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:4px;">所属学科</label>
+            <select id="modalSubjectSelect" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);font-size:12px;">
+              <option value="数学">数学</option>
+              <option value="语文">语文</option>
+              <option value="英语">英语</option>
+              <option value="物理">物理</option>
+              <option value="化学">化学</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:4px;">错题来源</label>
+            <select id="modalSourceSelect" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);font-size:12px;">
+              <option value="日常作业">日常作业</option>
+              <option value="月考/期中考试">月考/期中考试</option>
+              <option value="练习册">练习册</option>
+              <option value="自主刷题">自主刷题</option>
+              <option value="周测">周测</option>
+              <option value="课堂练习">课堂练习</option>
+            </select>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-foot">
+        <div style="display:flex;justify-content:flex-end;gap:10px;width:100%;">
+          <button class="btn-secondary" data-close="captureModal">取消</button>
+          <button class="btn-primary" id="btnRunAnalyze">
+            <i class="ph ph-sparkle"></i>
+            <span>开始 AI 智能识别与诊断</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- =============================================================
+       MODAL 2: 错题实战作答与深度诊断工作台 (Practice & Diagnosis Workbench)
+       ============================================================= -->
+  <div class="modal-backdrop" id="detailModal" role="dialog" aria-modal="true" aria-labelledby="detailModalTitle">
+    <div class="modal-window">
+      <div class="modal-head">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="stage-pill" id="modalModeIndicator">
+              <span class="stage-pill-dot"></span>
+              <span id="modalModeText">今日攻关 · 实战作答</span>
+            </span>
+            <span class="chip highlight" id="modalReviewStageTag">D1 · 无提示重做</span>
+          </div>
+          <h3 id="detailModalTitle" style="margin-top:6px;">解方程去括号符号出错</h3>
+          <p id="detailModalMeta">一元二次方程 · 来自 3 月 12 日作业</p>
+        </div>
+        <button class="modal-close-btn" data-close="detailModal"><i class="ph ph-x"></i></button>
+      </div>
+
+      <div class="modal-body">
+
+        <!-- =========================================================
+             STAGE A: 用户实战作答模式 (Practice Stage)
+             ========================================================= -->
+        <div id="practiceStagePanel" style="display:block;">
+          
+          <!-- Question Statement Card -->
+          <div class="practice-question-card">
+            <div class="practice-q-badge"><i class="ph ph-target"></i> 题干要求</div>
+            <div class="practice-q-text" id="practiceQuestionText">
+              解方程：3x - 2(2x - 5) = 9。
+            </div>
+            <div class="practice-q-instruction">
+              请先独立回忆解法，在下方输入解题步骤或最终结果；如在草稿纸上演算完成，可直接核对。
+            </div>
+          </div>
+
+          <!-- Answer Scratchpad & Photo Capture Workspace -->
+          <div class="answer-workspace">
+            <div class="answer-workspace-label">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <i class="ph ph-pencil-line"></i>
+                <span>你的推导演练区</span>
+              </div>
+              
+              <!-- Mode Tabs: Keyboard vs Photo Upload -->
+              <div class="answer-mode-tabs">
+                <button type="button" class="answer-mode-tab active" id="tabModeType">
+                  <i class="ph ph-keyboard"></i> 键盘输入
+                </button>
+                <button type="button" class="answer-mode-tab" id="tabModePhoto">
+                  <i class="ph ph-camera"></i> 拍照上传草稿 <span class="tab-rec-badge">推荐</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Mode 1: Keyboard & Math Textarea Panel -->
+            <div id="panelAnswerText" style="display:block;">
+              <textarea id="practiceInput" class="answer-textarea" placeholder="在此输入你的关键解题步骤或答案（例如：去括号得 3x - 4x + 10 = 9，解得 x = 1）..."></textarea>
+              
+              <!-- Quick Math Shortcuts & Camera Button -->
+              <div class="math-tools-bar">
+                <span class="math-tools-label">快捷符号:</span>
+                <button type="button" class="math-symbol-btn" data-insert="x = ">x =</button>
+                <button type="button" class="math-symbol-btn" data-insert=" - ">−</button>
+                <button type="button" class="math-symbol-btn" data-insert=" + ">+</button>
+                <button type="button" class="math-symbol-btn" data-insert="≤">≤</button>
+                <button type="button" class="math-symbol-btn" data-insert="≥">≥</button>
+                <button type="button" class="math-symbol-btn" data-insert="∠">∠</button>
+                <button type="button" class="math-symbol-btn" data-insert="°">°</button>
+                <button type="button" class="math-symbol-btn" data-insert="√">√</button>
+                <button type="button" class="math-symbol-btn" data-insert="²">²</button>
+                <button type="button" class="quick-camera-trigger-btn" id="btnQuickCameraTrigger" style="margin-left:auto;">
+                  <i class="ph ph-camera"></i> 拍草稿纸上传
+                </button>
+              </div>
+            </div>
+
+            <!-- Mode 2: Photo Capture / Upload Panel -->
+            <div id="panelAnswerPhoto" style="display:none;">
+              <!-- Empty Dropzone State -->
+              <div class="practice-photo-dropzone" id="practicePhotoDropzone">
+                <input type="file" id="practicePhotoFileInput" accept="image/*" capture="environment" style="display:none;" />
+                <div class="photo-dropzone-icon">
+                  <i class="ph ph-camera-plus"></i>
+                </div>
+                <div class="photo-dropzone-title">拍摄或上传草稿纸演算过程</div>
+                <div class="photo-dropzone-desc">支持手机拍照、相册选图、电脑拖拽、截图直接粘贴 (Ctrl+V)</div>
+                <div class="photo-dropzone-actions">
+                  <button type="button" class="btn-primary-sm" id="btnTriggerPhotoUpload">
+                    <i class="ph ph-camera"></i> 拍照 / 选取照片
+                  </button>
+                  <button type="button" class="btn-secondary-sm" id="btnLoadDemoHandwriting">
+                    <i class="ph ph-sparkle"></i> 载入示例草稿手写图
+                  </button>
+                </div>
+              </div>
+
+              <!-- Loaded Photo Preview State -->
+              <div class="practice-photo-preview-wrap" id="practicePhotoPreviewCard" style="display:none;">
+                <div class="photo-preview-header">
+                  <span class="photo-preview-badge">
+                    <i class="ph ph-check-circle"></i> 草稿演算照片已就绪
+                  </span>
+                  <div class="photo-preview-actions">
+                    <button type="button" class="photo-act-btn" id="btnRetakePhoto">
+                      <i class="ph ph-arrows-clockwise"></i> 重拍/更换
+                    </button>
+                    <button type="button" class="photo-act-btn delete" id="btnRemovePhoto">
+                      <i class="ph ph-trash"></i> 移除
+                    </button>
+                  </div>
+                </div>
+                <div class="photo-img-container" id="practicePhotoContainer">
+                  <img id="practicePhotoImg" src="" alt="草稿纸演算照片" />
+                  <div class="photo-zoom-hint"><i class="ph ph-magnifying-glass-plus"></i> 点击放大查看照片</div>
+                </div>
+                <div class="photo-ocr-result-bar" id="photoOcrResultBar">
+                  <div class="ocr-status-tag"><i class="ph ph-sparkle"></i> AI 智能手写识别：</div>
+                  <div class="ocr-text-content" id="photoOcrText">
+                    识别完成：去括号得 3x - 4x + 10 = 9，移项得 -x = -1，解得 x = 1
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Collapsible Progressive Hint Drawer -->
+          <div>
+            <button class="hint-trigger-btn" id="btnToggleHint">
+              <i class="ph ph-lightbulb"></i>
+              <span>思考遇到卡点？获取一句话点拨（不直接给答案）</span>
+              <i class="ph ph-caret-down" id="hintCaretIcon"></i>
+            </button>
+            <div class="hint-drawer" id="practiceHintBox">
+              <!-- Hint text injected via JS -->
+            </div>
+          </div>
+
+        </div>
+
+
+        <!-- =========================================================
+             STAGE B: 批改反馈与规则固化模式 (Feedback / Diagnosis Stage)
+             ========================================================= -->
+        <div id="feedbackStagePanel" class="feedback-state-panel">
+          
+          <!-- Result Banner -->
+          <div class="eval-banner success" id="evalBanner">
+            <i class="ph ph-check-circle" id="evalBannerIcon"></i>
+            <div>
+              <strong id="evalBannerTitle">🎉 太棒了！本次作答完全正确</strong>
+              <p id="evalBannerDesc">你已成功克服了上次的负号遗漏陷阱，步骤严密规范！</p>
+            </div>
+          </div>
+
+          <!-- AI Recognition Result Card (PRD Section 1: 题目文本/学生答案/知识点) -->
+          <div class="ai-evidence-card" id="aiEvidenceCard" style="display:none;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:3px 8px;border-radius:4px;">
+                  <i class="ph ph-sparkle"></i> AI 智能切片识别
+                </span>
+                <span class="font-mono" style="font-size:11px;color:var(--green);font-weight:700;" id="evidenceConfidenceText">置信度 92%</span>
+                <span class="chip" style="font-size:10px;padding:2px 6px;" id="evidenceSubjectTag">数学</span>
+              </div>
+              <span style="font-size:11px;color:var(--muted);"><i class="ph ph-check-circle"></i> 已完成识别与校对</span>
+            </div>
+            <div style="font-size:13.5px;font-weight:700;color:var(--ink);line-height:1.6;" id="evidencePromptText">
+              <!-- Question prompt text -->
+            </div>
+          </div>
+
+          <!-- 3-Way Comparison Board -->
+          <div class="comparison-3way">
+            <div class="comp-cell current">
+              <div class="comp-cell-label"><i class="ph ph-user"></i> 本次作答</div>
+              <div id="compStudentPhotoBadge" class="comp-cell-photo-badge" style="display:none;">
+                <i class="ph ph-camera"></i> <span>草稿纸手写演算</span>
+              </div>
+              <div id="compStudentPhotoWrap" style="display:none;margin-bottom:8px;cursor:pointer;" title="点击放大查看草稿图片">
+                <img id="compStudentPhotoThumb" class="comp-cell-photo-thumb" src="" alt="手写演算草稿" />
+              </div>
+              <div class="comp-cell-body font-mono" id="compStudentAns">x = 1</div>
+            </div>
+            <div class="comp-cell correct">
+              <div class="comp-cell-label"><i class="ph ph-check"></i> 正确答案</div>
+              <div class="comp-cell-body font-mono" id="compCorrectAns">x = 1</div>
+            </div>
+            <div class="comp-cell previous">
+              <div class="comp-cell-label"><i class="ph ph-warning-circle"></i> 上次错因回溯</div>
+              <div class="comp-cell-body" id="compPreviousMistake">展开括号时第二项漏乘负号</div>
+            </div>
+          </div>
+
+          <!-- Diagnosis Chips -->
+          <div class="diagnosis-group">
+            <div class="diagnosis-header">
+              <span>AI 定位错因（点击可人工微调归因）</span>
+              <span style="color:var(--accent);"><i class="ph ph-cursor-click"></i> 自由修正</span>
+            </div>
+            <div class="chips-flow" id="diagnosisChipsContainer">
+              <!-- Chips populated dynamically -->
+            </div>
+            
+            <!-- Careless Followup Question Card (PRD Section 2: 粗心二次追问) -->
+            <div class="careless-followup-card" id="carelessFollowupCard" style="display:none;">
+              <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#996e1b;margin-bottom:6px;">
+                <i class="ph ph-chat-centered-text"></i>
+                <span>先别急着归为“粗心”，系统继续追问：</span>
+              </div>
+              <p style="font-size:11px;color:#785a1a;margin-bottom:8px;">你是看漏了关键条件，还是计算推导时没有进行检查？</p>
+              <div class="followup-chips" id="followupChipsContainer" style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button type="button" class="careless-opt-btn active" data-reason="看漏了题目关键条件与符号">看漏了关键条件/符号</button>
+                <button type="button" class="careless-opt-btn" data-reason="推导时没有进行代回检查验算">推导时未进行验算</button>
+                <button type="button" class="careless-opt-btn" data-reason="做题速度过快导致笔误手误">速度过快导致笔误</button>
+              </div>
+              <div id="carelessConfirmedNote" style="display:block;margin-top:8px;font-size:11px;color:var(--green);font-weight:600;">
+                <i class="ph ph-check"></i> <span id="carelessConfirmedText">已定位深层错因：看漏了关键条件/符号，下次审题先圈画限定词</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Progressive Explanation Box (分层讲解) -->
+          <div class="progressive-explain-box">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <strong style="font-size:12px;color:var(--ink);">分层点拨与完整推导</strong>
+            </div>
+            <div class="explain-tabs-nav">
+              <button class="explain-tab-btn" data-level="hint">一句话点拨</button>
+              <button class="explain-tab-btn active" data-level="steps">步骤讲解</button>
+              <button class="explain-tab-btn" data-level="full">完整推导解析</button>
+            </div>
+            <div class="explain-text-panel" id="explainTextPanel">
+              <!-- Content changes based on level -->
+            </div>
+          </div>
+
+          <!-- Golden Rule Card -->
+          <div style="background:var(--amber-soft);border:1px solid #f0e3bd;border-radius:var(--radius-md);padding:16px;margin-bottom:20px;">
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:750;color:var(--amber);margin-bottom:4px;">
+              <i class="ph ph-lightbulb-filament"></i>
+              <span>已提炼并收录至「我的解题规则」</span>
+            </div>
+            <p id="detailRuleText" style="font-size:13px;color:#785a1a;line-height:1.5;margin:0;">
+              遇到负号或负数乘括号，先把乘数分别乘进括号内每一项，再合并同类项。
+            </p>
+          </div>
+
+          <!-- Variant Practice Sandbox -->
+          <div class="variant-sandbox-box">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <strong style="font-size:12px;color:var(--ink);"><i class="ph ph-shuffle"></i> 变式演练 · 检验是否真会</strong>
+              <span class="chip highlight">巩固加练</span>
+            </div>
+            <div class="variant-tab-row">
+              <button class="var-tab-btn active" data-variant="same">同型题</button>
+              <button class="var-tab-btn" data-variant="changed">变式题</button>
+              <button class="var-tab-btn" data-variant="transfer">迁移题</button>
+            </div>
+            <div class="variant-question-body" id="variantQuestionText">
+              解方程：5x - 3(x - 4) = 16。
+            </div>
+            <!-- 即时实战演练区 (可作答、提交判卷、揭晓答案) -->
+            <div id="variantInteractiveSolver" style="margin-top:12px;padding:12px 14px;background:var(--surface);border:1.5px solid var(--line);border-radius:var(--radius-md);transition:all 0.25s var(--spring);">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <span style="font-size:12px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:6px;">
+                  <i class="ph ph-pencil-simple-line" style="color:var(--accent);"></i>
+                  <span id="variantInteractiveTitle">同型题即时实战演练</span>
+                </span>
+                <span class="chip highlight" id="variantPracticeBadge" style="font-size:10px;padding:2px 8px;">独立作答中</span>
+              </div>
+              <textarea id="variantStudentInput" rows="2" placeholder="在此写下你的作答思路或计算结果，检验是否真正掌握..." style="width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12.5px;background:var(--canvas-subtle);outline:none;font-family:inherit;box-sizing:border-box;resize:vertical;"></textarea>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:8px;">
+                <div style="display:flex;gap:8px;">
+                  <button type="button" class="btn-primary" id="btnSubmitVariantPractice" style="padding:6px 14px;font-size:11px;">
+                    <i class="ph ph-check-circle"></i>
+                    <span>提交作答并核对</span>
+                  </button>
+                  <button type="button" class="btn-secondary" id="btnAutofillVariant" style="padding:6px 12px;font-size:11px;color:var(--muted);">
+                    <i class="ph ph-magic-wand"></i>
+                    <span>一键填入演示答案</span>
+                  </button>
+                </div>
+                <button type="button" class="btn-ghost" id="btnRevealAnswer" style="padding:6px 12px;font-size:11px;">
+                  <i class="ph ph-eye"></i>
+                  <span>揭晓参考答案</span>
+                </button>
+              </div>
+              <div class="variant-answer-revealed" id="variantAnswerBox" style="margin-top:10px;">
+                去括号得 5x - 3x + 12 = 16，解得 x = 2。
+              </div>
+              <div id="variantFeedbackAlert" style="display:none;margin-top:10px;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.5;"></div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- 悬浮固定底部操作栏 (Sticky Modal Footer) -->
+      <div class="modal-foot">
+        <!-- 1. Practice Mode Actions (Stage A: 用户实战作答模式) -->
+        <div class="practice-action-deck" id="deckStageAActions" style="display:flex;justify-content:space-between;align-items:center;width:100%;gap:12px;">
+          <button class="btn-secondary" id="btnPaperCompleted">
+            <i class="ph ph-check-square"></i>
+            <span>我已在草稿纸演算完成，直接核对</span>
+          </button>
+          <button class="btn-primary" id="btnSubmitPractice">
+            <i class="ph ph-paper-plane-tilt"></i>
+            <span>提交作答，查看 AI 批改与诊断</span>
+          </button>
+        </div>
+
+        <!-- 2. Review Mode Actions (Stage B: 批改解析复习模式) -->
+        <div id="deckReviewActions" style="display:none;justify-content:space-between;align-items:center;width:100%;gap:12px;">
+          <button type="button" class="btn-secondary" id="btnRePractice">
+            <i class="ph ph-arrow-counter-clockwise"></i>
+            <span>重新作答本题</span>
+          </button>
+          <button type="button" class="btn-primary" id="btnCompleteReviewRound">
+            <i class="ph ph-check-circle"></i>
+            <span>完成本题攻关，推进艾宾浩斯节点</span>
+          </button>
+        </div>
+
+        <!-- 3. New Diagnosis Mode Actions (Stage B: 录入错题深度诊断模式) -->
+        <div id="deckDiagnosisActions" style="display:none;justify-content:space-between;align-items:center;width:100%;gap:12px;">
+          <button type="button" class="btn-secondary" id="btnTryVariantNow">
+            <i class="ph ph-shuffle"></i>
+            <span>立刻练一道同型题</span>
+          </button>
+          <button type="button" class="btn-primary" id="btnConfirmDiagnosis">
+            <i class="ph ph-check-circle"></i>
+            <span>确认诊断，纳入复习计划 (D0 重新理解)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Pill -->
+  <div class="toast-pill" id="toastPill">
+    <i class="ph ph-check"></i>
+    <span id="toastMessage">操作成功</span>
+  </div>
+
+  <!-- =============================================================
+       12. JAVASCRIPT APP LOGIC & STATE
+       ============================================================= -->
+  <script>
+    /* Question Database (Rich Student Data) */
+    const questionBank = [
+      {
+        id: 'math-1',
+        subject: '数学',
+        title: '去括号时把负号漏给了第二项',
+        source: '日常作业',
+        date: '2025.03.12',
+        knowledge: '一元一次方程 · 去括号',
+        errorType: '步骤错误',
+        confidence: 92,
+        dueToday: true,
+        reviewStage: 'D1 无提示重做',
+        prompt: '解方程：3x - 2(2x - 5) = 9。',
+        studentAnswer: '3x - 4x - 5 = 9\\n-x = 14\\nx = -14',
+        correctAnswer: 'x = 1',
+        wrongStep: '展开括号时将 -2(2x - 5) 误写为 -4x - 5，第二项未变号。',
+        rule: '看到 −( )，先把负号完整乘进括号内每一项，特别注意常数项变号。',
+        formulaSnippet: '3x - 2(2x - 5) = 9',
+        explanations: {
+          hint: '<b>先盯住括号外的 -2。</b> 它要同时乘到 2x 和 -5，常数项会变成 +10。',
+          steps: '<b>第一步：</b> -2 × 2x = -4x；<br><b>第二步：</b> -2 × (-5) = +10；<br><b>第三步：</b> 3x - 4x + 10 = 9，解得 x = 1。',
+          full: '<b>完整推导：</b> 原式为 3x - 2(2x - 5) = 9。展开去括号得 3x - 4x + 10 = 9，合并同类项得 -x = -1，解得 x = 1。代回验证原式成立。'
+        },
+        variants: {
+          same: { question: '解方程：5x - 3(x - 4) = 16。', answer: '去括号得 5x - 3x + 12 = 16，得 2x = 4，x = 2。' },
+          changed: { question: '若原式改为 3x - 2(2x + 5) = 9，展开后常数项是多少？', answer: '应为 -10，因为 -2 × 5 = -10。' },
+          transfer: { question: '小明说“负号只改变第一项”，请写出一个简明的反例说明他为什么错。', answer: '反例：-(a - b) = -a + b，两项都受负号作用。' }
+        }
+      },
+      {
+        id: 'math-2',
+        subject: '数学',
+        title: '圆内接四边形证明没有先找对角关系',
+        source: '月考/期中考试',
+        date: '2025.03.09',
+        knowledge: '圆内接四边形 · 几何证明',
+        errorType: '解题方法错误',
+        confidence: 86,
+        dueToday: true,
+        reviewStage: 'D3 同型题',
+        prompt: '四边形 ABCD 内接于圆，∠ABC = 68°，求 ∠ADC 并说明理由。',
+        studentAnswer: '连接 AC，∠ADC 与 ∠ABC 对应同弧，所以相等。',
+        correctAnswer: '∠ADC = 112°。理由：圆内接四边形对角互补。',
+        wrongStep: '将对角误当成同弧圆周角，未利用四边形内接圆定理。',
+        rule: '几何证明先定型：同弧找相等，圆内接四边形对角找互补（和为180°）。',
+        formulaSnippet: '∠ABC = 68° → 求 ∠ADC',
+        explanations: {
+          hint: '先确认两个角是位于圆同侧还是对立两侧？内接四边形看对角。',
+          steps: '<b>第一步：</b> 标出 ∠ABC 与 ∠ADC 是一组对角；<br><b>第二步：</b> 应用圆内接四边形定理：对角之和为 180°；<br><b>第三步：</b> ∠ADC = 180° - 68° = 112°。',
+          full: '<b>完整解析：</b> 四边形 ABCD 各顶点均在圆上，∠ABC 与 ∠ADC 是一对对角。由圆内接四边形对角互补定理，∠ADC = 180° - 68° = 112°。'
+        },
+        variants: {
+          same: { question: '圆内接四边形 PQRS 中，∠P = 74°，求 ∠R。', answer: '∠R = 180° - 74° = 106°。' },
+          changed: { question: '若 ∠P + ∠R = 180°，能否证明 P,Q,R,S 四点共圆？', answer: '可以，对角互补的四边形内接于圆。' },
+          transfer: { question: '证明题中如何快速选择使用“相等”还是“互补”？', answer: '同弧或等弧看相等；圆内接四边形看对角互补。' }
+        }
+      },
+      {
+        id: 'math-3',
+        subject: '数学',
+        title: '忽略了“至少”包含等于号',
+        source: '练习册',
+        date: '2025.03.02',
+        knowledge: '一元一次不等式 · 审题',
+        errorType: '审题错误',
+        confidence: 94,
+        dueToday: true,
+        reviewStage: 'D7 变式题',
+        prompt: '买笔记本每本 3 元，总预算 50 元，至少能买 1 本，最多买多少本？',
+        studentAnswer: '3x < 50，所以 x < 16.67，最多买 16 本。',
+        correctAnswer: '3x ≤ 50，x 最大正整数为 16。',
+        wrongStep: '将“总预算 50 元内”写成了严格小于号 <，遗漏了等于号。',
+        rule: '审题时先圈定界词：“至少/不低于”用 ≥，“至多/不超过”用 ≤。',
+        formulaSnippet: '3x ≤ 50 (预算包含等于)',
+        explanations: {
+          hint: '预算 50 元，刚好花 50 元行不行？可以，所以要带等号。',
+          steps: '<b>第一步：</b> “不超过 50 元”即总花费 ≤ 50；<br><b>第二步：</b> 3x ≤ 50，解得 x ≤ 16.67；<br><b>第三步：</b> x 为正整数，最大取 16。',
+          full: '<b>完整解析：</b> 不等式建模时，预算上限通常允许刚好用完，故应使用“≤”。3x ≤ 50 得到 x ≤ 16.67，所以最多买 16 本。'
+        },
+        variants: {
+          same: { question: '“至少完成 80 分”对应的数学表达式是什么？', answer: '成绩 x ≥ 80。' },
+          changed: { question: '若题目改为“花费严格少于 50 元”，不等式该怎么写？', answer: '3x < 50。' },
+          transfer: { question: '“不少于”、“不低于”、“不超过”分别对应什么符号？', answer: '不少于、不低于对应 ≥；不超过对应 ≤。' }
+        }
+      },
+      {
+        id: 'chinese-2',
+        subject: '语文',
+        title: '说明文把列数字误判为作比较',
+        source: '日常作业',
+        date: '2025.03.06',
+        knowledge: '说明文 · 说明方法判断',
+        errorType: '知识点不会',
+        confidence: 88,
+        dueToday: false,
+        reviewStage: 'D14 迁移题',
+        prompt: '“这座桥全长 1,276 米，桥面宽 32 米。”运用了什么说明方法？',
+        studentAnswer: '运用了作比较，说明桥很宽。',
+        correctAnswer: '列数字',
+        wrongStep: '看到两个数字就以为两者在比较，缺少参照物。',
+        rule: '说明方法找证据：纯数据是列数字；必须有明确对比参照物才是作比较。',
+        formulaSnippet: '全长 1276 米，宽 32 米',
+        explanations: {
+          hint: '句子里有没有出现另一座桥来对比？没有，只是精确数据。',
+          steps: '<b>第一步：</b> 圈出具体数字“1,276 米”和“32 米”；<br><b>第二步：</b> 确认无比较对象；<br><b>第三步：</b> 判定为列数字。',
+          full: '<b>完整解析：</b> 句中列出具体数据且无比较对象，属于列数字。其作用是准确具体地说明事物的特征，使说明更具说服力。'
+        },
+        variants: {
+          same: { question: '“赵州桥横跨在 37 米多宽的河面上”是哪种说明方法？', answer: '列数字。' },
+          changed: { question: '若改为“这座桥比普通公路桥长 3 倍”，运用了什么说明方法？', answer: '作比较（出现了普通公路桥作为参照物）。' },
+          transfer: { question: '简答说明方法作用时，必须紧扣哪两个核心词？', answer: '“准确具体”说明事物特征。' }
+        }
+      },
+      {
+        id: 'english-2',
+        subject: '英语',
+        title: '阅读理解漏看转折词后主旨句',
+        source: '月考/期中考试',
+        date: '2025.03.08',
+        knowledge: '阅读理解 · 转折主旨',
+        errorType: '审题错误',
+        confidence: 83,
+        dueToday: false,
+        reviewStage: 'D14 迁移题',
+        prompt: 'Although the app looks simple, it helps students build a daily habit. What is the main idea?',
+        studentAnswer: 'The app looks simple.',
+        correctAnswer: 'The app helps students build daily study habits.',
+        wrongStep: '只读到 although 前半句，忽视了逗号后的真正主句。',
+        rule: '阅读遇到 although / but / however，重锤永远在转折词之后的主句。',
+        formulaSnippet: 'Although A, B (Focus on B)',
+        explanations: {
+          hint: '看到 although，重点在后面的主句而不是从句。',
+          steps: '<b>第一步：</b> Although 引导让步；<br><b>第二步：</b> 主句是 helps students build habit；<br><b>第三步：</b> 主旨选取转折后的内容。',
+          full: '<b>完整解析：</b> Although 引导让步从句，作者真正强调的核心信息位于主句。主旨在说明该应用能帮助学生养成习惯。'
+        },
+        variants: {
+          same: { question: 'Although he was tired, he finished the homework. 重点强调什么？', answer: '强调他完成了作业。' },
+          changed: { question: '把 although 换成 but，句子结构如何变化？', answer: 'He was tired, but he finished the homework. 依然强调后半部分。' },
+          transfer: { question: '做中考阅读主旨题时，优先找哪三个转折标志词？', answer: 'however, but, although。' }
+        }
+      },
+      {
+        id: 'physics-1',
+        subject: '物理',
+        title: '滑动变阻器滑片移动有效电阻判断反',
+        source: '日常作业',
+        date: '2025.03.13',
+        knowledge: '电学实验 · 滑动变阻器',
+        errorType: '解题方法错误',
+        confidence: 84,
+        dueToday: false,
+        reviewStage: 'D3 同型题',
+        prompt: '滑片 P 向右移动时，接入左下和右上接线柱，电流表示数如何变化？',
+        studentAnswer: '滑片向右，电阻变小，电流变大。',
+        correctAnswer: '变小（电阻变大，电流变小）',
+        wrongStep: '只看滑片向右，没看下接线柱接的是左边。',
+        rule: '滑动变阻器看下柱：下接线柱到滑片之间的电阻丝才是真正的“有效电阻”。',
+        formulaSnippet: '接左下柱 + 滑片向右 → 变长',
+        explanations: {
+          hint: '先看接在哪个下接线柱？接左下，接入的就是左端到滑片这一段。',
+          steps: '<b>第一步：</b> 接入左下柱，有效段为 AP；<br><b>第二步：</b> P 向右移动，AP 变长，电阻 R 变大；<br><b>第三步：</b> 由 I = U/R，电流表示数变小。',
+          full: '<b>完整解析：</b> 滑动变阻器的有效阻值由下接线柱决定。左下接入时，滑片向右使接入导线长度增加，阻值变大。由欧姆定律，电流变小。'
+        },
+        variants: {
+          same: { question: '若改接右下和左上接线柱，滑片向右移动电流如何变化？', answer: '有效长度为右侧段，向右移动长度变短，阻值变小，电流变大。' },
+          changed: { question: '滑动变阻器若接左下和右下接线柱，移动滑片有用吗？', answer: '没用，此时相当于一个定值最大电阻。' },
+          transfer: { question: '电学画图时，闭合开关前滑片应该置于什么位置？', answer: '置于接入电阻阻值最大处，保护电路。' }
+        }
+      },
+      {
+        id: 'chinese-1',
+        subject: '语文',
+        title: '《岳阳楼记》先天下之忧而忧的情感对象混淆',
+        source: '日常作业',
+        date: '2025.03.11',
+        knowledge: '古诗文 · 主旨理解',
+        errorType: '概念理解错误',
+        confidence: 89,
+        dueToday: false,
+        reviewStage: 'D3 同型题',
+        prompt: '“先天下之忧而忧，后天下之乐而乐”表达了作者怎样的政治抱负？',
+        studentAnswer: '表达作者先享受快乐、后承担忧患的生活态度。',
+        correctAnswer: '表达作者以天下为己任、先忧后乐的政治抱负和忧国忧民的情怀。',
+        wrongStep: '把“先/后”理解成个人时间顺序，没有结合“天下”这一情感对象。',
+        basis: '你的答案把“先忧后乐”解释成个人生活安排，遗漏了“天下”与士大夫责任感。',
+        rule: '古文句意不能只做字面替换，要同时看情感对象、语境和作者身份。',
+        formulaSnippet: '先天下之忧而忧，后天下之乐而乐',
+        explanations: {
+          hint: '这句话的主语不是“我今天先做什么”，而是“天下人的忧乐”。',
+          steps: '<b>第一步：</b> 先解释“先”“后”是优先顺序；<br><b>第二步：</b> 明确“天下之忧/乐”是百姓与国家的处境；<br><b>第三步：</b> 得出以天下为己任、忧国忧民的抱负。',
+          full: '<b>完整解析：</b> “先天下之忧而忧，后天下之乐而乐”中的“先”和“后”是把天下人的忧乐置于个人之前之后。它不是生活顺序，而是价值排序，体现范仲淹以天下为己任、忧国忧民的政治抱负。'
+        },
+        variants: {
+          same: { question: '如何理解“居庙堂之高则忧其民，处江湖之远则忧其君”？', answer: '无论身处朝廷还是远离朝廷，都心系百姓和君主，体现忧国忧民。' },
+          changed: { question: '如果只写“作者很忧愁”，为什么不能拿到主旨题满分？', answer: '没有指出忧愁的对象、原因和价值指向，缺少“忧国忧民”的核心。' },
+          transfer: { question: '概括古文主旨时，除了情感词，还要补出哪两类信息？', answer: '情感对象和产生这种情感的语境或原因。' }
+        }
+      },
+      {
+        id: 'chinese-3',
+        subject: '语文',
+        title: '议论文论据没有回应中心论点',
+        source: '日常作业',
+        date: '2025.02.27',
+        knowledge: '议论文 · 论据作用',
+        errorType: '迁移错误',
+        confidence: 81,
+        dueToday: false,
+        reviewStage: 'D14 迁移题',
+        prompt: '中心论点：坚持阅读能够提升人的思辨能力。请判断“爱迪生发明电灯”的事例能否作为论据，并说明理由。',
+        studentAnswer: '能，因为爱迪生坚持实验，最后发明了电灯，说明坚持很重要。',
+        correctAnswer: '不能直接充分证明“阅读提升思辨能力”，事例与中心论点的关键概念不对应。',
+        wrongStep: '只看到“坚持”这个共同词，没有迁移中心论点中的“阅读”和“思辨能力”。',
+        basis: '论据与论点只共享“坚持”，但没有支撑“阅读能够提升思辨能力”这一因果关系。',
+        rule: '判断论据不能只看关键词相同，要核对论点中的对象、关系和结论是否都被支撑。',
+        formulaSnippet: '论据须支撑“阅读提升思辨”，非泛泛“坚持”',
+        explanations: {
+          hint: '论据中的人物做了什么？中心论点要证明的又是什么？',
+          steps: '<b>第一步：</b> 拆出论点对象“阅读”和结果“思辨能力”；<br><b>第二步：</b> 检查事例是否包含阅读经历及思辨结果；<br><b>第三步：</b> 只有关键词“坚持”相同，不能充分支撑论点。',
+          full: '<b>完整解析：</b> 论据要证明中心论点，不能只共享一个抽象词。爱迪生的事例能说明坚持实验有助于发明，但没有涉及阅读如何提升思辨能力，因此不能作为该中心论点的充分论据。'
+        },
+        variants: {
+          same: { question: '中心论点改为“成功需要长期坚持”，爱迪生的事例是否合适？', answer: '合适，因为长期实验与“长期坚持”这一关系直接对应。' },
+          changed: { question: '给论据做“对象—行动—结果”标注，有什么作用？', answer: '能检查论据是否真正覆盖论点的关键概念和因果关系。' },
+          transfer: { question: '为什么“都有坚持”不等于“能证明论点”？', answer: '论据必须支撑论点完整的对象、行动和结果，不能只凭一个共同词。' }
+        }
+      },
+      {
+        id: 'english-1',
+        subject: '英语',
+        title: '现在完成时中 since 与 for 的时间结构混用',
+        source: '周测',
+        date: '2025.03.10',
+        knowledge: '现在完成时 · since / for',
+        errorType: '概念理解错误',
+        confidence: 91,
+        dueToday: false,
+        reviewStage: 'D3 同型题',
+        prompt: 'I ______ (live) in Guangzhou since 2021.',
+        studentAnswer: 'I have lived in Guangzhou for 2021.',
+        correctAnswer: 'I have lived in Guangzhou since 2021.',
+        wrongStep: '把 since 后面的时间点当成了持续时长。',
+        basis: '2021 是起点，应该使用 since；for 后面应接 three years 这类时间段。',
+        rule: 'since 后接时间点，for 后接时间段；先判断时间表达的起点还是长度。',
+        formulaSnippet: 'since + point of time, for + duration',
+        explanations: {
+          hint: '2021 是一个起点，还是一段持续了多久的时间？',
+          steps: '<b>第一步：</b> since + 时间点；<br><b>第二步：</b> for + 时间段；<br><b>第三步：</b> live 的现在完成时为 have lived。',
+          full: '<b>完整解析：</b> 句意是“自 2021 年起一直住在广州”。2021 表示动作开始的时间点，用 since；主语 I 搭配 have，故答案是 I have lived in Guangzhou since 2021。'
+        },
+        variants: {
+          same: { question: 'She has worked here ______ five years. 应填 since 还是 for？', answer: 'for，因为 five years 是一段时间。' },
+          changed: { question: '把句子改为“她自 2021 年起在这里工作”，应如何表达？', answer: 'She has worked here since 2021.' },
+          transfer: { question: '判断 since / for 时，先问自己哪一个问题？', answer: '问“这是开始的时间点，还是持续的时间长度？”' }
+        }
+      },
+      {
+        id: 'english-3',
+        subject: '英语',
+        title: '第三人称单数主语后动词忘记加 s',
+        source: '课堂练习',
+        date: '2025.03.01',
+        knowledge: '一般现在时 · 主谓一致',
+        errorType: '知识点不会',
+        confidence: 88,
+        dueToday: false,
+        reviewStage: 'D7 变式题',
+        prompt: 'The museum ______ (open) at 9 a.m. every day.',
+        studentAnswer: 'The museum open at 9 a.m. every day.',
+        correctAnswer: 'The museum opens at 9 a.m. every day.',
+        wrongStep: '看到 every day 只判断出一般现在时，漏检主语是第三人称单数。',
+        basis: '主语 the museum 可替换为 it，谓语需要使用 opens。',
+        rule: '一般现在时先圈主语：he/she/it 或单数名词作主语，谓语动词通常加 s/es。',
+        formulaSnippet: 'The museum (it) -> opens',
+        explanations: {
+          hint: '先把 the museum 换成 it，再看动词需要什么形式。',
+          steps: '<b>第一步：</b> the museum 是单数名词；<br><b>第二步：</b> 单数主语相当于 it；<br><b>第三步：</b> open 变为 opens。',
+          full: '<b>完整解析：</b> every day 表明使用一般现在时，但时态判断之后还要检查主谓一致。the museum 是第三人称单数，谓语 open 需加 s，完整句子为 The museum opens at 9 a.m. every day。'
+        },
+        variants: {
+          same: { question: 'My brother ______ (watch) TV after dinner. 应填什么？', answer: 'watches，因为 my brother 是第三人称单数，watch 加 es。' },
+          changed: { question: '若主语改为 The museums，谓语如何变化？', answer: 'The museums open...，复数主语使用动词原形。' },
+          transfer: { question: '什么时候需要在一般现在时检查动词的 s / es？', answer: '句子主语是 he、she、it 或第三人称单数名词时。' }
+        }
+      },
+      {
+        id: 'physics-2',
+        subject: '物理',
+        title: '凸透镜成像实验中物距与像距读数顺序写反',
+        source: '月考/期中考试',
+        date: '2025.03.07',
+        knowledge: '光学 · 凸透镜成像',
+        errorType: '步骤错误',
+        confidence: 87,
+        dueToday: false,
+        reviewStage: 'D3 同型题',
+        prompt: '光具座上蜡烛位于 20 cm，凸透镜位于 50 cm，光屏位于 80 cm，求物距和像距。',
+        studentAnswer: '物距 u = 80 - 50 = 30 cm，像距 v = 50 - 20 = 30 cm。',
+        correctAnswer: '物距 u = 50 - 20 = 30 cm，像距 v = 80 - 50 = 30 cm。',
+        wrongStep: '没有先按照光线传播方向区分物体侧和像侧，导致列式顺序不规范。',
+        basis: '数值碰巧相同，但你的列式把光屏位置当成了物体位置；系统判定为步骤表达风险。',
+        rule: '光具座读数题统一用“透镜读数 - 物体读数”算物距，用“光屏读数 - 透镜读数”算像距。',
+        formulaSnippet: 'u = 50-20=30cm, v = 80-50=30cm',
+        explanations: {
+          hint: '以凸透镜为中心，左边是物距，右边是像距。',
+          steps: '<b>第一步：</b> u = x透镜 - x蜡烛 = 50 - 20；<br><b>第二步：</b> v = x光屏 - x透镜 = 80 - 50；<br><b>第三步：</b> 得到 u = v = 30 cm。',
+          full: '<b>完整解析：</b> 物距是物体到透镜的距离，像距是像到透镜的距离。按光具座读数：u = 50 - 20 = 30 cm，v = 80 - 50 = 30 cm。虽然本题两段距离恰好相等，但定义和列式顺序仍需写对。'
+        },
+        variants: {
+          same: { question: '蜡烛 15 cm、透镜 45 cm、光屏 75 cm，物距和像距是多少？', answer: 'u = 45 - 15 = 30 cm，v = 75 - 45 = 30 cm。' },
+          changed: { question: '若光屏移到 90 cm，物距不变，像距是多少？', answer: 'v = 90 - 50 = 40 cm（透镜位置仍为 50 cm 时）。' },
+          transfer: { question: '实验计算中数值碰巧正确，为什么步骤仍要规范？', answer: '规范定义能迁移到不对称数据，避免靠巧合得到答案。' }
+        }
+      },
+      {
+        id: 'physics-3',
+        subject: '物理',
+        title: '密度应用题把质量和体积单位混用',
+        source: '日常作业',
+        date: '2025.02.26',
+        knowledge: '质量与密度 · 单位换算',
+        errorType: '迁移错误',
+        confidence: 90,
+        dueToday: false,
+        reviewStage: 'D14 迁移题',
+        prompt: '一块铝的质量为 540 g，密度为 2.7 g/cm³，求铝块体积。',
+        studentAnswer: 'V = ρm = 2.7 × 540 = 1458 cm³。',
+        correctAnswer: 'V = m/ρ = 540 ÷ 2.7 = 200 cm³。',
+        wrongStep: '没有从密度公式变形，并把“质量越大体积越大”当作直接相乘。',
+        basis: '你写的是 ρm，而密度定义为 ρ = m/V，求体积应变形为 V = m/ρ。',
+        rule: '应用公式前先写定义式，再圈出所求量并变形；单位一致后再代数计算。',
+        formulaSnippet: 'V = m/ρ = 540 ÷ 2.7 = 200 cm³',
+        explanations: {
+          hint: '密度 = 质量 ÷ 体积，求体积时要用除法。',
+          steps: '<b>第一步：</b> 写 ρ = m/V；<br><b>第二步：</b> 变形得 V = m/ρ；<br><b>第三步：</b> V = 540 ÷ 2.7 = 200 cm³。',
+          full: '<b>完整解析：</b> 由 ρ = m/V 可得 V = m/ρ。题中质量和密度的单位分别为 g、g/cm³，已经一致，直接代入 V = 540 g ÷ 2.7 g/cm³ = 200 cm³。'
+        },
+        variants: {
+          same: { question: '一块铁质量 780 g、密度 7.8 g/cm³，体积是多少？', answer: 'V = 780 ÷ 7.8 = 100 cm³。' },
+          changed: { question: '若已知体积和密度，求质量应使用什么公式？', answer: 'm = ρV。' },
+          transfer: { question: '遇到公式应用题，代入数字前固定做哪三件事？', answer: '写定义式、按所求量变形、统一单位。' }
+        }
+      }
+    ];
+
+    /* App Active State */
+    let currentActiveView = 'overview';
+    let currentHeroQuestionId = 'math-1';
+    let currentDetailId = 'math-1';
+    let activeExplainLevel = 'steps';
+    let activeVariantType = 'same';
+    let currentAnswerMode = 'text';
+    let currentPracticePhoto = null;
+    let currentPracticeOcrText = '';
+    const state = {
+      subject: '全部学科',
+      status: '全部状态',
+      search: ''
+    };
+
+    const errorTypePills = ['知识点不会', '概念理解错误', '解题方法错误', '步骤错误', '审题错误', '计算错误', '迁移错误'];
+
+    /* -------------------------------------------------------------
+       UI Render Functions
+       ------------------------------------------------------------- */
+    function showView(viewName) {
+      currentActiveView = viewName;
+      // Update Top Nav
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === viewName);
+      });
+      // Update Mobile Dock
+      document.querySelectorAll('.mobile-dock-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === viewName);
+      });
+      // Update View Visibility
+      document.querySelectorAll('.page-view').forEach(view => {
+        view.classList.toggle('active', view.id === viewName + 'View');
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      if (viewName === 'overview') renderOverview();
+      if (viewName === 'bank') renderBank();
+      if (viewName === 'plan') renderPlan();
+      if (viewName === 'rules') renderRules();
+    }
+
+    function renderOverview() {
+      // 1. Render Hero Section
+      const heroQ = questionBank.find(q => q.id === currentHeroQuestionId) || questionBank[0];
+      document.getElementById('heroQuestionTitle').textContent = heroQ.title;
+      document.getElementById('heroSubjectTag').textContent = heroQ.subject + ' · ' + heroQ.knowledge.split(' · ')[0];
+      document.getElementById('heroStageTag').textContent = heroQ.reviewStage;
+      document.getElementById('heroErrorTag').textContent = heroQ.errorType;
+
+      // 2. Render Today Review Card Deck (3 items)
+      const dueQuestions = questionBank.filter(q => q.dueToday).slice(0, 3);
+      const deckContainer = document.getElementById('todayReviewDeck');
+      deckContainer.innerHTML = dueQuestions.map((q, idx) => `
+        <article class="review-deck-card" data-practice-id="${q.id}">
+          <div>
+            <div class="card-top-indicator">
+              <span class="card-index font-mono">0${idx + 1}</span>
+              <span class="review-stage-badge ${q.reviewStage.includes('D1') ? 'badge-today' : 'badge-variant'}">
+                ${q.reviewStage}
+              </span>
+            </div>
+            <div class="review-card-body">
+              <h4>${q.title}</h4>
+              <div class="review-snippet-preview">${q.formulaSnippet || q.prompt.slice(0, 24)}</div>
+            </div>
+          </div>
+          <div class="review-card-footer">
+            <span class="error-tag">${q.errorType}</span>
+            <span class="card-action-btn">
+              <span>快速重做</span>
+              <i class="ph ph-arrow-up-right"></i>
+            </span>
+          </div>
+        </article>
+      `).join('');
+
+      // 3. Render Rules Wall Flashcards
+      const rulesDeck = document.getElementById('rulesWallDeck');
+      const sampleRules = questionBank.slice(0, 2);
+      rulesDeck.innerHTML = sampleRules.map((q, idx) => `
+        <article class="rule-flashcard ${idx === 0 ? 'featured' : ''}" data-practice-id="${q.id}">
+          <div class="rule-ribbon ${idx === 1 ? 'amber' : ''}"></div>
+          <div>
+            <span class="rule-category"><i class="ph ph-bookmark-simple"></i> ${q.subject}解题定式</span>
+            <div class="rule-quote">${q.rule}</div>
+          </div>
+          <div class="rule-meta-bar">
+            <span>源自「${q.title.slice(0, 14)}...」</span>
+            <span class="rule-verified-tag"><i class="ph ph-check"></i> 已验证 ${idx === 0 ? '29' : '10'} 次</span>
+          </div>
+        </article>
+      `).join('');
+
+      // 4. Render Subject Exploration Dock
+      const subjects = [
+        { name: '数学', icon: 'ph-calculator', count: questionBank.filter(q => q.subject === '数学').length, mastered: 2 },
+        { name: '语文', icon: 'ph-book-open-text', count: questionBank.filter(q => q.subject === '语文').length, mastered: 2 },
+        { name: '英语', icon: 'ph-translate', count: questionBank.filter(q => q.subject === '英语').length, mastered: 2 },
+        { name: '物理', icon: 'ph-atom', count: questionBank.filter(q => q.subject === '物理').length, mastered: 1 }
+      ];
+      const dockContainer = document.getElementById('subjectDockGrid');
+      dockContainer.innerHTML = subjects.map(s => `
+        <div class="subject-dock-item ${state.subject === s.name ? 'active' : ''}" data-subject-name="${s.name}">
+          <div class="subject-dock-left">
+            <div class="subject-icon-box"><i class="ph ${s.icon}"></i></div>
+            <div class="subject-info">
+              <strong>${s.name}</strong>
+              <span>${s.count} 道错题</span>
+            </div>
+          </div>
+          <div class="subject-dock-metric">
+            <strong>${s.mastered} 题</strong>
+            <span>已掌握</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderBank() {
+      // 1. Update filter chip badges dynamically
+      const mathCount = questionBank.filter(q => q.subject === '数学').length;
+      const chineseCount = questionBank.filter(q => q.subject === '语文').length;
+      const englishCount = questionBank.filter(q => q.subject === '英语').length;
+      const physicsCount = questionBank.filter(q => q.subject === '物理').length;
+      const totalCount = questionBank.length;
+
+      document.querySelectorAll('#bankSubjectFilters [data-subject]').forEach(btn => {
+        const sub = btn.dataset.subject;
+        if (sub === '全部学科') btn.textContent = `全部学科 · ${totalCount}`;
+        else if (sub === '数学') btn.textContent = `数学 · ${mathCount}`;
+        else if (sub === '语文') btn.textContent = `语文 · ${chineseCount}`;
+        else if (sub === '英语') btn.textContent = `英语 · ${englishCount}`;
+        else if (sub === '物理') btn.textContent = `物理 · ${physicsCount}`;
+      });
+
+      const container = document.getElementById('bankMistakeRows');
+      const filtered = questionBank.filter(q => {
+        const matchSubject = state.subject === '全部学科' || q.subject === state.subject;
+        const matchStatus = state.status === '全部状态' || (state.status === '待复习' ? q.dueToday : q.reviewStage.includes('D14'));
+        const matchSearch = !state.search || (q.title + q.knowledge + q.prompt).toLowerCase().includes(state.search.toLowerCase());
+        return matchSubject && matchStatus && matchSearch;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div style="padding:36px;text-align:center;color:var(--muted);font-size:13px;">未检索到符合条件的错题记录</div>';
+        return;
+      }
+
+      container.innerHTML = filtered.map((q, idx) => `
+        <div class="mistake-row" data-practice-id="${q.id}">
+          <div class="question-cell-wrap">
+            <span class="font-mono" style="font-size:11px;color:var(--muted);">${String(idx + 1).padStart(2, '0')}</span>
+            <div>
+              <strong>${q.title}</strong>
+              <span>${q.knowledge} · ${q.date}</span>
+            </div>
+          </div>
+          <div><span class="chip">${q.subject}</span></div>
+          <span style="font-size:12px;color:var(--ink-secondary);">${q.source}</span>
+          <div><span class="error-tag">${q.errorType}</span></div>
+          <div class="mini-progress-dots">
+            <i class="done"></i>
+            <i class="${q.reviewStage.includes('D1') || q.reviewStage.includes('D3') || q.reviewStage.includes('D7') || q.reviewStage.includes('D14') ? 'done' : ''}"></i>
+            <i class="${q.reviewStage.includes('D3') || q.reviewStage.includes('D7') || q.reviewStage.includes('D14') ? 'done' : ''}"></i>
+            <i class="${q.reviewStage.includes('D7') || q.reviewStage.includes('D14') ? 'done' : ''}"></i>
+            <i class="${q.reviewStage.includes('D14') ? 'done' : ''}"></i>
+          </div>
+          <button class="modal-close-btn" style="width:28px;height:28px;font-size:14px;" title="实战作答"><i class="ph ph-pencil-simple"></i></button>
+        </div>
+      `).join('');
+    }
+
+    function renderPlan() {
+      const hero = questionBank.find(q => q.dueToday) || questionBank[0];
+      document.getElementById('planFocusTitle').textContent = hero.knowledge + ' · ' + hero.errorType;
+      document.getElementById('planFocusDesc').textContent = '基于近 14 天学习轨迹，该考点处于关键巩固期。建议完成今日「' + hero.reviewStage + '」实战作答后进入同型题演练。';
+    }
+
+    function renderRules() {
+      const container = document.getElementById('fullRulesDeck');
+      container.innerHTML = questionBank.map(q => `
+        <article class="rule-flashcard" data-practice-id="${q.id}">
+          <div>
+            <span class="rule-category"><i class="ph ph-lightbulb"></i> ${q.subject} · ${q.knowledge.split(' · ')[0]}</span>
+            <div class="rule-quote">${q.rule}</div>
+          </div>
+          <div class="rule-meta-bar">
+            <span>关联题目「${q.title.slice(0, 12)}...」</span>
+            <span class="rule-verified-tag"><i class="ph ph-shield-check"></i> 稳固调用</span>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    /* -------------------------------------------------------------
+       PRACTICE WORKBENCH: STAGE 1 (作答模式) / STAGE 2 (已解答诊断模式)
+       ------------------------------------------------------------- */
+    // Open directly in Stage B (已解答过的内容与AI诊断结果)
+    function openDiagnosisModal(id, customStudentAnswer = null, toastMsg = 'AI 识别与诊断完成，已展示历史解答与错因分析') {
+      currentDetailId = id;
+      const q = questionBank.find(item => item.id === id) || questionBank[0];
+
+      // 1. Direct switch to Feedback / Diagnosis Panel (Stage B)
+      document.getElementById('practiceStagePanel').style.display = 'none';
+      document.getElementById('feedbackStagePanel').classList.add('active');
+
+      // 2. Set Modal Header Info
+      document.getElementById('modalModeText').textContent = 'AI 智能切片与深度诊断';
+      document.getElementById('modalReviewStageTag').textContent = '新录入 · D0 重新理解';
+      document.getElementById('detailModalTitle').textContent = q.title;
+      document.getElementById('detailModalMeta').textContent = q.subject + ' · ' + q.knowledge + ' · 来自 ' + q.date + ' ' + q.source;
+
+      // 3. AI Evidence Card (PRD Section 1: 题目文本与识别校验)
+      const evidenceCard = document.getElementById('aiEvidenceCard');
+      if (evidenceCard) {
+        evidenceCard.style.display = 'block';
+        document.getElementById('evidencePromptText').textContent = q.prompt;
+        document.getElementById('evidenceConfidenceText').textContent = `置信度 ${q.confidence || 92}%`;
+        document.getElementById('evidenceSubjectTag').textContent = q.subject;
+      }
+
+      // 4. Comparison Board: Student's Previous Attempt vs Correct Answer vs Error Root Cause
+      const photoBadge = document.getElementById('compStudentPhotoBadge');
+      const photoWrap = document.getElementById('compStudentPhotoWrap');
+      const photoThumb = document.getElementById('compStudentPhotoThumb');
+
+      if (currentPracticePhoto) {
+        if (photoBadge) photoBadge.style.display = 'inline-flex';
+        if (photoWrap) photoWrap.style.display = 'block';
+        if (photoThumb) photoThumb.src = currentPracticePhoto;
+      } else {
+        if (photoBadge) photoBadge.style.display = 'none';
+        if (photoWrap) photoWrap.style.display = 'none';
+      }
+
+      const ansDisplay = customStudentAnswer || q.studentAnswer || '（已记录当时作业做错的推导过程）';
+      document.getElementById('compStudentAns').textContent = ansDisplay;
+      document.getElementById('compCorrectAns').textContent = q.correctAnswer;
+      document.getElementById('compPreviousMistake').textContent = q.wrongStep || q.basis || '识别到关键推导步骤存在逻辑偏差。';
+
+      // 5. Banner: AI Diagnosis Complete
+      const banner = document.getElementById('evalBanner');
+      const bannerTitle = document.getElementById('evalBannerTitle');
+      const bannerDesc = document.getElementById('evalBannerDesc');
+      const bannerIcon = document.getElementById('evalBannerIcon');
+
+      banner.className = 'eval-banner info';
+      bannerIcon.className = 'ph ph-sparkle';
+      bannerTitle.textContent = `💡 AI 智能切片与深度诊断已就绪 (置信度 ${q.confidence || 92}%)`;
+      bannerDesc.textContent = '已自动提取题干文本、你当时作答的步骤并锁定出错点，请先阅读下方分层点拨。';
+
+      // 6. Render Diagnosis Chips
+      const chipsBox = document.getElementById('diagnosisChipsContainer');
+      chipsBox.innerHTML = errorTypePills.map(err => `
+        <button class="diag-chip-btn ${q.errorType === err ? 'selected' : ''}" data-diag-error="${err}">${err}</button>
+      `).join('');
+
+      // Careless Followup check (PRD Section 2)
+      updateCarelessFollowupState(q.errorType);
+
+      // 7. Render Explanations (PRD Section 3: 默认第一层 一句话点拨，先给启发支架避免直接翻答案)
+      activeExplainLevel = 'hint';
+      updateExplainPanel(q);
+
+      // 8. Render Rule & Variant
+      document.getElementById('detailRuleText').textContent = q.rule;
+      activeVariantType = 'same';
+      updateVariantPanel(q);
+
+      // 9. Actions Deck: Switch to Diagnosis Mode Actions
+      const deckStageA = document.getElementById('deckStageAActions');
+      const deckReview = document.getElementById('deckReviewActions');
+      const deckDiag = document.getElementById('deckDiagnosisActions');
+      if (deckStageA) deckStageA.style.display = 'none';
+      if (deckReview) deckReview.style.display = 'none';
+      if (deckDiag) deckDiag.style.display = 'flex';
+
+      openModal('detailModal');
+      if (toastMsg) showToast(toastMsg);
+    }
+
+    function updateCarelessFollowupState(errType) {
+      const followupBox = document.getElementById('carelessFollowupCard');
+      if (!followupBox) return;
+      if (errType === '粗心错误') {
+        followupBox.style.display = 'block';
+      } else {
+        followupBox.style.display = 'none';
+      }
+    }
+
+    // Open in Stage A (实战作答练习模式，需独立演算)
+    function openPracticeModal(id, toastMsg) {
+      currentDetailId = id;
+      const q = questionBank.find(item => item.id === id) || questionBank[0];
+
+      // 1. Reset to Practice Stage
+      document.getElementById('practiceStagePanel').style.display = 'block';
+      document.getElementById('feedbackStagePanel').classList.remove('active');
+      const evidenceCard = document.getElementById('aiEvidenceCard');
+      if (evidenceCard) evidenceCard.style.display = 'none';
+      const deckStageA = document.getElementById('deckStageAActions');
+      const deckReview = document.getElementById('deckReviewActions');
+      const deckDiag = document.getElementById('deckDiagnosisActions');
+      if (deckStageA) deckStageA.style.display = 'flex';
+      if (deckReview) deckReview.style.display = 'none';
+      if (deckDiag) deckDiag.style.display = 'none';
+
+      // 2. Set Modal Header Info
+      document.getElementById('modalModeText').textContent = '今日攻关 · 实战作答';
+      document.getElementById('modalReviewStageTag').textContent = q.reviewStage;
+      document.getElementById('detailModalTitle').textContent = q.title;
+      document.getElementById('detailModalMeta').textContent = q.subject + ' · ' + q.knowledge + ' · 来自 ' + q.date + ' ' + q.source;
+
+      // 3. Set Question Statement (NO ANSWERS SHOWN!)
+      document.getElementById('practiceQuestionText').textContent = q.prompt;
+      document.getElementById('practiceInput').value = '';
+      
+      // Reset Photo State
+      resetPracticePhoto();
+      switchAnswerMode('text');
+
+      // 4. Reset Hint Drawer
+      const hintBox = document.getElementById('practiceHintBox');
+      hintBox.classList.remove('open');
+      hintBox.innerHTML = q.explanations.hint;
+      document.getElementById('hintCaretIcon').className = 'ph ph-caret-down';
+
+      openModal('detailModal');
+      if (toastMsg) showToast(toastMsg);
+    }
+
+    // Toggle Hint Drawer
+    function toggleHint() {
+      const box = document.getElementById('practiceHintBox');
+      box.classList.toggle('open');
+      const isOpen = box.classList.contains('open');
+      document.getElementById('hintCaretIcon').className = isOpen ? 'ph ph-caret-up' : 'ph ph-caret-down';
+    }
+
+
+    /* -------------------------------------------------------------
+       PHOTO SCRATCHPAD & CAMERA CAPTURE CONTROLLERS
+       ------------------------------------------------------------- */
+    // Fill Demo Sample in Capture Modal (恢复演示样例选择功能)
+    function fillDemoSample(sampleId) {
+      if (!sampleId) {
+        document.getElementById('manualQuestionText').value = '';
+        document.getElementById('manualAnswerText').value = '';
+        return;
+      }
+      const sample = questionBank.find(item => item.id === sampleId);
+      if (!sample) {
+        console.warn('未找到指定样例:', sampleId);
+        showToast('未找到该样例数据');
+        return;
+      }
+      
+      // Switch to text input tab so user sees populated content
+      const tabTextInput = document.getElementById('tabTextInput');
+      const tabPhotoInput = document.getElementById('tabPhotoInput');
+      const paneText = document.getElementById('paneText');
+      const panePhoto = document.getElementById('panePhoto');
+      
+      if (tabTextInput && tabPhotoInput && paneText && panePhoto) {
+        tabTextInput.classList.add('active');
+        tabPhotoInput.classList.remove('active');
+        paneText.style.display = 'block';
+        panePhoto.style.display = 'none';
+      }
+
+      // Populate input values
+      document.getElementById('manualQuestionText').value = sample.prompt;
+      document.getElementById('manualAnswerText').value = sample.studentAnswer;
+      document.getElementById('modalSubjectSelect').value = sample.subject;
+      document.getElementById('modalSourceSelect').value = sample.source;
+      
+      // Sync select element
+      const demoSelect = document.getElementById('demoSampleSelect');
+      if (demoSelect) demoSelect.value = sampleId;
+
+      showToast('已填入「' + sample.title + '」，你可以继续修改');
+    }
+
+    function switchAnswerMode(mode) {
+      currentAnswerMode = mode;
+      const tabType = document.getElementById('tabModeType');
+      const tabPhoto = document.getElementById('tabModePhoto');
+      const panelText = document.getElementById('panelAnswerText');
+      const panelPhoto = document.getElementById('panelAnswerPhoto');
+
+      if (mode === 'photo') {
+        tabType.classList.remove('active');
+        tabPhoto.classList.add('active');
+        panelText.style.display = 'none';
+        panelPhoto.style.display = 'block';
+      } else {
+        tabPhoto.classList.remove('active');
+        tabType.classList.add('active');
+        panelPhoto.style.display = 'none';
+        panelText.style.display = 'block';
+      }
+    }
+
+    function resetPracticePhoto() {
+      currentPracticePhoto = null;
+      currentPracticeOcrText = "";
+      const dropzone = document.getElementById('practicePhotoDropzone');
+      const previewCard = document.getElementById('practicePhotoPreviewCard');
+      const photoImg = document.getElementById('practicePhotoImg');
+      const fileInput = document.getElementById('practicePhotoFileInput');
+      if (dropzone) dropzone.style.display = 'block';
+      if (previewCard) previewCard.style.display = 'none';
+      if (photoImg) photoImg.src = '';
+      if (fileInput) fileInput.value = '';
+    }
+
+    function setPracticePhoto(dataUrl, ocrText) {
+      currentPracticePhoto = dataUrl;
+      currentPracticeOcrText = ocrText || "去括号得 3x - 4x + 10 = 9，移项得 -x = -1，解得 x = 1";
+      
+      const dropzone = document.getElementById('practicePhotoDropzone');
+      const previewCard = document.getElementById('practicePhotoPreviewCard');
+      const photoImg = document.getElementById('practicePhotoImg');
+      const ocrBox = document.getElementById('photoOcrText');
+
+      dropzone.style.display = 'none';
+      previewCard.style.display = 'block';
+      photoImg.src = dataUrl;
+      
+      ocrBox.innerHTML = `<span style="color:var(--muted);"><i class="ph ph-spinner-gap" style="animation:spin 1s linear infinite;"></i> AI 正在识别手写笔迹...</span>`;
+      setTimeout(() => {
+        ocrBox.textContent = currentPracticeOcrText;
+        showToast('已完成手写草稿识别，步骤已同步！');
+      }, 400);
+    }
+
+    function handlePracticePhotoFile(file) {
+      if (!file || !file.type.startsWith('image/')) {
+        showToast('请选择有效的草稿图片文件 (JPG/PNG)');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        setPracticePhoto(e.target.result, "手写推导识别：3x - 4x + 10 = 9  =>  -x = -1  =>  x = 1");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function openPhotoLightbox(imgSrc) {
+      const modal = document.getElementById('photoLightboxModal');
+      const img = document.getElementById('photoLightboxImg');
+      if (modal && img) {
+        img.src = imgSrc || currentPracticePhoto;
+        modal.classList.add('active');
+      }
+    }
+
+    function closePhotoLightbox() {
+      const modal = document.getElementById('photoLightboxModal');
+      if (modal) modal.classList.remove('active');
+    }
+
+    // Submit and Evaluate Answer
+    function submitPracticeAnswer(isPaperCompleted = false) {
+      const q = questionBank.find(item => item.id === currentDetailId) || questionBank[0];
+      const studentInput = document.getElementById('practiceInput').value.trim();
+
+      // Switch to Stage B: Feedback Panel
+      document.getElementById('practiceStagePanel').style.display = 'none';
+      document.getElementById('feedbackStagePanel').classList.add('active');
+      document.getElementById('modalModeText').textContent = 'AI 智能批改与解析';
+      const evidenceCard = document.getElementById('aiEvidenceCard');
+      if (evidenceCard) evidenceCard.style.display = 'none';
+      const deckStageA = document.getElementById('deckStageAActions');
+      const deckReview = document.getElementById('deckReviewActions');
+      const deckDiag = document.getElementById('deckDiagnosisActions');
+      if (deckStageA) deckStageA.style.display = 'none';
+      if (deckReview) deckReview.style.display = 'flex';
+      if (deckDiag) deckDiag.style.display = 'none';
+
+      // 1. Populate Comparison Board
+      const ansDisplay = isPaperCompleted ? (studentInput || '（已在草稿纸独立演算完成）') : (studentInput || '（未输入步骤，直接核对）');
+      document.getElementById('compStudentAns').textContent = ansDisplay;
+      document.getElementById('compCorrectAns').textContent = q.correctAnswer;
+      document.getElementById('compPreviousMistake').textContent = q.wrongStep;
+
+      // 2. Evaluate Success/Match
+      const isLikelyCorrect = isPaperCompleted || 
+        (studentInput && (
+          studentInput.includes(q.correctAnswer) || 
+          q.correctAnswer.toLowerCase().includes(studentInput.toLowerCase()) ||
+          studentInput.replace(/\\s+/g, '').includes('1') && q.correctAnswer.includes('1')
+        ));
+
+      const banner = document.getElementById('evalBanner');
+      const bannerTitle = document.getElementById('evalBannerTitle');
+      const bannerDesc = document.getElementById('evalBannerDesc');
+      const bannerIcon = document.getElementById('evalBannerIcon');
+
+      if (isLikelyCorrect) {
+        banner.className = 'eval-banner success';
+        bannerIcon.className = 'ph ph-check-circle';
+        bannerTitle.textContent = '🎉 太棒了！本次作答完全正确';
+        bannerDesc.textContent = '你已成功避开了上次的失误陷阱，步骤推导严密规范！';
+      } else {
+        banner.className = 'eval-banner info';
+        bannerIcon.className = 'ph ph-sparkle';
+        bannerTitle.textContent = '💡 AI 诊断报告已就绪';
+        bannerDesc.textContent = '请对照正确解法与上次失误点，确认是否彻底建立解题规则。';
+      }
+
+      // 3. Render Diagnosis Chips
+      const chipsBox = document.getElementById('diagnosisChipsContainer');
+      chipsBox.innerHTML = errorTypePills.map(err => `
+        <button class="diag-chip-btn ${q.errorType === err ? 'selected' : ''}" data-diag-error="${err}">${err}</button>
+      `).join('');
+
+      // 4. Render Explanations
+      activeExplainLevel = 'steps';
+      updateExplainPanel(q);
+
+      // 5. Render Rule & Variant
+      document.getElementById('detailRuleText').textContent = q.rule;
+      activeVariantType = 'same';
+      updateVariantPanel(q);
+
+      showToast('作答已提交，AI 诊断分析已生成');
+    }
+
+    function updateExplainPanel(q) {
+      document.querySelectorAll('.explain-tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.level === activeExplainLevel);
+      });
+      document.getElementById('explainTextPanel').innerHTML = q.explanations[activeExplainLevel] || q.explanations.steps;
+    }
+
+    function updateVariantPanel(q) {
+      document.querySelectorAll('.var-tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.variant === activeVariantType);
+      });
+      const v = (q.variants && q.variants[activeVariantType]) || { question: '暂无变式题', answer: '暂无答案' };
+      document.getElementById('variantQuestionText').textContent = v.question;
+      document.getElementById('variantAnswerBox').textContent = v.answer;
+      document.getElementById('variantAnswerBox').classList.remove('show');
+      document.getElementById('btnRevealAnswer').innerHTML = '<i class="ph ph-eye"></i> <span>揭晓参考答案</span>';
+
+      const typeTitles = {
+        same: '同型题即时实战演练',
+        changed: '变式题即时实战演练',
+        transfer: '迁移题即时实战演练'
+      };
+      const titleEl = document.getElementById('variantInteractiveTitle');
+      if (titleEl) titleEl.textContent = typeTitles[activeVariantType] || '变式题即时实战演练';
+
+      const feedbackEl = document.getElementById('variantFeedbackAlert');
+      if (feedbackEl) feedbackEl.style.display = 'none';
+
+      const badgeEl = document.getElementById('variantPracticeBadge');
+      if (badgeEl) {
+        badgeEl.textContent = '独立作答中';
+        badgeEl.className = 'chip highlight';
+        badgeEl.style.background = '';
+        badgeEl.style.color = '';
+      }
+
+      const inputEl = document.getElementById('variantStudentInput');
+      if (inputEl) inputEl.value = '';
+    }
+
+    function submitVariantPractice() {
+      const q = questionBank.find(item => item.id === currentDetailId);
+      if (!q) return;
+      const v = (q.variants && q.variants[activeVariantType]) || {};
+      const inputEl = document.getElementById('variantStudentInput');
+      let studentText = inputEl ? inputEl.value.trim() : '';
+
+      if (!studentText) {
+        studentText = v.answer || '已在草稿纸完成规范推导演算';
+        if (inputEl) inputEl.value = studentText;
+      }
+
+      const alertEl = document.getElementById('variantFeedbackAlert');
+      const badgeEl = document.getElementById('variantPracticeBadge');
+      const ansBox = document.getElementById('variantAnswerBox');
+
+      if (alertEl) {
+        alertEl.style.display = 'block';
+        alertEl.style.background = '#edf7ed';
+        alertEl.style.border = '1px solid #b7dfb9';
+        alertEl.style.color = '#1e4620';
+        alertEl.innerHTML = `
+          <div style="font-weight:750;display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:12.5px;">
+            <i class="ph ph-check-circle" style="color:var(--green);font-size:17px;"></i>
+            <span>🎉 AI 智能核对：作答正确！已避开前序同类失误陷阱</span>
+          </div>
+          <div style="font-size:12px;color:#2e7d32;margin-top:5px;line-height:1.6;">
+            <b>你的解答：</b>${studentText}<br>
+            <b>标准参考：</b>${v.answer || ''}
+          </div>
+        `;
+      }
+
+      if (ansBox) {
+        ansBox.classList.add('show');
+        document.getElementById('btnRevealAnswer').innerHTML = '<i class="ph ph-eye-closed"></i> <span>收起参考答案</span>';
+      }
+
+      if (badgeEl) {
+        badgeEl.textContent = '✅ 已通关 · 巩固完成';
+        badgeEl.className = 'chip success';
+        badgeEl.style.background = '#e8f5e9';
+        badgeEl.style.color = '#2e7d32';
+      }
+
+      const btnTry = document.getElementById('btnTryVariantNow');
+      if (btnTry) {
+        btnTry.innerHTML = '<i class="ph ph-check-circle"></i> <span>同型题已通关</span>';
+        btnTry.style.background = '#2e7d32';
+        btnTry.style.color = '#ffffff';
+        btnTry.style.borderColor = '#2e7d32';
+      }
+
+      showToast('🎉 太棒了！同型题演练完成，已彻底巩固该考点！');
+    }
+
+    function autofillVariantDemo() {
+      const q = questionBank.find(item => item.id === currentDetailId);
+      if (!q) return;
+      const v = (q.variants && q.variants[activeVariantType]) || {};
+      const inputEl = document.getElementById('variantStudentInput');
+      if (inputEl) {
+        inputEl.value = v.answer || '按考点标准规范推导完成';
+        showToast('已填入演算参考，点击“提交作答并核对”即可校验');
+        inputEl.focus();
+      }
+    }
+
+    /* Modal Open/Close */
+    function openModal(modalId) {
+      const el = document.getElementById(modalId);
+      if (el) el.classList.add('open');
+    }
+    function closeModal(modalId) {
+      const el = document.getElementById(modalId);
+      if (el) el.classList.remove('open');
+    }
+
+    /* Toast Notification */
+    let toastTimeout;
+    function showToast(msg) {
+      const pill = document.getElementById('toastPill');
+      document.getElementById('toastMessage').textContent = msg;
+      pill.classList.add('show');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        pill.classList.remove('show');
+      }, 2400);
+    }
+
+    /* -------------------------------------------------------------
+       13. EVENT WIRING & USER INTERACTIONS
+       ------------------------------------------------------------- */
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Navigation Tab Switching
+      document.querySelectorAll('.nav-tab-btn, .mobile-dock-btn').forEach(btn => {
+        btn.addEventListener('click', () => showView(btn.dataset.view));
+      });
+
+      // 2. View Link Delegation
+      document.querySelectorAll('[data-view-link]').forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          showView(link.dataset.viewLink);
+        });
+      });
+
+      // 3. Modal Close Buttons
+      document.querySelectorAll('[data-close]').forEach(btn => {
+        btn.addEventListener('click', () => closeModal(btn.dataset.close));
+      });
+      document.querySelectorAll('.modal-backdrop').forEach(bg => {
+        bg.addEventListener('click', (e) => {
+          if (e.target === bg) closeModal(bg.id);
+        });
+      });
+
+      // 4. Hero Section Actions
+      document.getElementById('heroStartBtn').addEventListener('click', () => {
+        openPracticeModal(currentHeroQuestionId, '进入实战作答模式，请独立演算');
+      });
+      document.getElementById('heroNextBtn').addEventListener('click', () => {
+        const remaining = questionBank.filter(q => q.id !== currentHeroQuestionId);
+        const nextQ = remaining[Math.floor(Math.random() * remaining.length)];
+        currentHeroQuestionId = nextQ.id;
+        renderOverview();
+        showToast('已切换攻关重点：「' + nextQ.title + '」');
+      });
+
+      // 5. Practice Mode Events (作答模式核心交互)
+      document.getElementById('btnToggleHint').addEventListener('click', toggleHint);
+
+      // --- Dual Mode Switcher: Keyboard vs Photo Scratchpad ---
+      const tabModeType = document.getElementById('tabModeType');
+      const tabModePhoto = document.getElementById('tabModePhoto');
+      if (tabModeType) {
+        tabModeType.addEventListener('click', (e) => {
+          e.preventDefault();
+          switchAnswerMode('text');
+        });
+      }
+      if (tabModePhoto) {
+        tabModePhoto.addEventListener('click', (e) => {
+          e.preventDefault();
+          switchAnswerMode('photo');
+          showToast('已切换至草稿纸拍照模式');
+        });
+      }
+
+      // Quick Camera Button in Math Toolbar
+      const btnQuickCameraTrigger = document.getElementById('btnQuickCameraTrigger');
+      if (btnQuickCameraTrigger) {
+        btnQuickCameraTrigger.addEventListener('click', (e) => {
+          e.preventDefault();
+          switchAnswerMode('photo');
+          showToast('已切换至拍照草稿纸模式');
+        });
+      }
+
+      // Photo Upload File Input Trigger
+      const photoFileInput = document.getElementById('practicePhotoFileInput');
+      const btnTriggerPhotoUpload = document.getElementById('btnTriggerPhotoUpload');
+      if (btnTriggerPhotoUpload && photoFileInput) {
+        btnTriggerPhotoUpload.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          photoFileInput.click();
+        });
+      }
+
+      // Click on Dropzone triggers file input
+      const dropzoneEl = document.getElementById('practicePhotoDropzone');
+      if (dropzoneEl && photoFileInput) {
+        dropzoneEl.addEventListener('click', (e) => {
+          if (e.target.id !== 'btnLoadDemoHandwriting' && !e.target.closest('#btnLoadDemoHandwriting')) {
+            photoFileInput.click();
+          }
+        });
+      }
+
+      // File input change handler
+      if (photoFileInput) {
+        photoFileInput.addEventListener('change', (e) => {
+          if (e.target.files && e.target.files[0]) {
+            handlePracticePhotoFile(e.target.files[0]);
+          }
+        });
+      }
+
+      // Drag and Drop on practice photo dropzone
+      if (dropzoneEl) {
+        ['dragenter', 'dragover'].forEach(name => {
+          dropzoneEl.addEventListener(name, (e) => {
+            e.preventDefault();
+            dropzoneEl.classList.add('dragover');
+          });
+        });
+        ['dragleave', 'drop'].forEach(name => {
+          dropzoneEl.addEventListener(name, (e) => {
+            e.preventDefault();
+            dropzoneEl.classList.remove('dragover');
+          });
+        });
+        dropzoneEl.addEventListener('drop', (e) => {
+          if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+            handlePracticePhotoFile(e.dataTransfer.files[0]);
+          }
+        });
+      }
+
+      // Load Demo Handwritten SVG Note
+      const btnLoadDemoHandwriting = document.getElementById('btnLoadDemoHandwriting');
+      if (btnLoadDemoHandwriting) {
+        btnLoadDemoHandwriting.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setPracticePhoto(DEMO_HANDWRITING_SVG, "AI 手写识别：3x - 4x + 10 = 9，移项 -x = -1，解得 x = 1 (负负得正)");
+          showToast('已载入示例草稿手写图，AI 笔迹已识别');
+        });
+      }
+
+      // Retake and Remove Photo buttons
+      const btnRetakePhoto = document.getElementById('btnRetakePhoto');
+      if (btnRetakePhoto && photoFileInput) {
+        btnRetakePhoto.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          photoFileInput.click();
+        });
+      }
+      const btnRemovePhoto = document.getElementById('btnRemovePhoto');
+      if (btnRemovePhoto) {
+        btnRemovePhoto.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          resetPracticePhoto();
+          showToast('已移除手写草稿照片');
+        });
+      }
+
+      // Click to Zoom / Lightbox Preview
+      const practicePhotoContainer = document.getElementById('practicePhotoContainer');
+      if (practicePhotoContainer) {
+        practicePhotoContainer.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (currentPracticePhoto) openPhotoLightbox(currentPracticePhoto);
+        });
+      }
+      const compStudentPhotoWrap = document.getElementById('compStudentPhotoWrap');
+      if (compStudentPhotoWrap) {
+        compStudentPhotoWrap.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (currentPracticePhoto) openPhotoLightbox(currentPracticePhoto);
+        });
+      }
+      const btnLightboxClose = document.getElementById('btnLightboxClose');
+      if (btnLightboxClose) {
+        btnLightboxClose.addEventListener('click', closePhotoLightbox);
+      }
+      const photoLightboxBackdrop = document.getElementById('photoLightboxBackdrop');
+      if (photoLightboxBackdrop) {
+        photoLightboxBackdrop.addEventListener('click', closePhotoLightbox);
+      }
+
+      // Screenshot Paste Support (Ctrl+V / Cmd+V)
+      document.addEventListener('paste', (e) => {
+        const detailModal = document.getElementById('detailModal');
+        if (!detailModal || !detailModal.classList.contains('active')) return;
+        const practicePanel = document.getElementById('practiceStagePanel');
+        if (!practicePanel || practicePanel.style.display === 'none') return;
+        
+        const items = e.clipboardData && e.clipboardData.items;
+        if (items) {
+          for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') !== -1) {
+              const file = items[i].getAsFile();
+              if (file) {
+                switchAnswerMode('photo');
+                handlePracticePhotoFile(file);
+                showToast('已从剪贴板自动粘贴手写草稿截图！');
+                e.preventDefault();
+                break;
+              }
+            }
+          }
+        }
+      });
+      
+      // Submit Practice Answer
+      document.getElementById('btnSubmitPractice').addEventListener('click', () => {
+        submitPracticeAnswer(false);
+      });
+
+      // Direct Paper Check
+      document.getElementById('btnPaperCompleted').addEventListener('click', () => {
+        submitPracticeAnswer(true);
+      });
+
+      // Re-practice button in feedback mode
+      document.getElementById('btnRePractice').addEventListener('click', () => {
+        openPracticeModal(currentDetailId, '已重置作答状态，请重新独立演算');
+      });
+
+      // Insert Math Symbols into Textarea
+      document.querySelectorAll('.math-symbol-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const insertText = btn.dataset.insert;
+          const textarea = document.getElementById('practiceInput');
+          const start = textarea.selectionStart;
+          const end = textarea.selectionEnd;
+          const val = textarea.value;
+          textarea.value = val.substring(0, start) + insertText + val.substring(end);
+          textarea.focus();
+          textarea.selectionStart = textarea.selectionEnd = start + insertText.length;
+        });
+      });
+
+      // 6. Capture Triggers
+      document.querySelectorAll('#triggerCaptureBtn, #bankNewBtn, #ruleNewBtn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const demoSelect = document.getElementById('demoSampleSelect');
+          if (demoSelect) demoSelect.value = '';
+          openModal('captureModal');
+        });
+      });
+      document.getElementById('triggerFileInputBtn').addEventListener('click', () => {
+        document.getElementById('modalFileInput').click();
+      });
+      document.getElementById('modalFileInput').addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          const file = e.target.files[0];
+          document.getElementById('selectedFileName').textContent = '已就绪：' + file.name;
+          const reader = new FileReader();
+          reader.onload = function(evt) {
+            currentPracticePhoto = evt.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // Capture Tabs (Photo vs Text)
+      document.getElementById('tabPhotoInput').addEventListener('click', () => {
+        document.getElementById('tabPhotoInput').classList.add('active');
+        document.getElementById('tabTextInput').classList.remove('active');
+        document.getElementById('panePhoto').style.display = 'block';
+        document.getElementById('paneText').style.display = 'none';
+      });
+      document.getElementById('tabTextInput').addEventListener('click', () => {
+        document.getElementById('tabTextInput').classList.add('active');
+        document.getElementById('tabPhotoInput').classList.remove('active');
+        document.getElementById('paneText').style.display = 'block';
+        document.getElementById('panePhoto').style.display = 'none';
+      });
+
+      // Quick Preset Autofill in Homepage
+      document.querySelectorAll('.demo-quick-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const presetId = btn.dataset.preset;
+          const targetQ = questionBank.find(q => q.id === presetId);
+          if (targetQ) {
+            openPracticeModal(targetQ.id, '已加载题目，请进行实战作答');
+          }
+        });
+      });
+
+      // Demo Sample Selector in Capture Modal
+      const demoSampleSelect = document.getElementById('demoSampleSelect');
+      if (demoSampleSelect) {
+        demoSampleSelect.addEventListener('change', (e) => {
+          fillDemoSample(e.target.value);
+        });
+      }
+
+      document.querySelectorAll('.sample-chip-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const sampleId = btn.dataset.sampleId;
+          fillDemoSample(sampleId);
+        });
+      });
+
+      // Run Analyze Action in Capture Modal (点击开始 AI 智能识别与诊断)
+      document.getElementById('btnRunAnalyze').addEventListener('click', () => {
+        const textPrompt = document.getElementById('manualQuestionText').value.trim();
+        const textAns = document.getElementById('manualAnswerText').value.trim();
+        const subject = document.getElementById('modalSubjectSelect').value;
+        const source = document.getElementById('modalSourceSelect').value;
+        const demoSel = document.getElementById('demoSampleSelect');
+        const sampleId = demoSel ? demoSel.value : '';
+
+        // Check if user selected a predefined sample
+        const baseQuestion = sampleId ? questionBank.find(q => q.id === sampleId) : (
+          textPrompt ? (questionBank.find(q => q.prompt.includes(textPrompt) || textPrompt.includes(q.prompt.slice(0, 10))) || null) : null
+        );
+
+        let targetId = currentHeroQuestionId;
+        let finalAns = textAns;
+
+        if (baseQuestion) {
+          targetId = baseQuestion.id;
+          finalAns = textAns || baseQuestion.studentAnswer;
+          // Update properties if customized
+          if (subject) baseQuestion.subject = subject;
+          if (source) baseQuestion.source = source;
+          if (textAns) baseQuestion.studentAnswer = textAns;
+        } else if (textPrompt) {
+          const newQ = {
+            id: 'custom-' + Date.now(),
+            subject: subject,
+            title: textPrompt.slice(0, 18) + (textPrompt.length > 18 ? '...' : ''),
+            source: source,
+            date: new Date().toLocaleDateString(),
+            knowledge: subject + ' · 核心考点诊断',
+            errorType: '步骤错误',
+            confidence: 91,
+            dueToday: true,
+            reviewStage: 'D0 重新理解',
+            prompt: textPrompt,
+            studentAnswer: textAns || '当时作业作答：去括号时符号未能正确分配到各项',
+            correctAnswer: '解得 x = 1 (标准推导步骤)',
+            wrongStep: '关键步骤中去括号未分配负号，导致常数项符号错误。',
+            rule: '解题前先圈画关键已知量，规范书写每一步代数演算。',
+            formulaSnippet: textPrompt.slice(0, 20),
+            explanations: {
+              hint: '先确认题目考察的核心考点与隐藏限制条件。',
+              steps: '<b>第一步：</b> 审清条件；<br><b>第二步：</b> 列出标准方程并展开；<br><b>第三步：</b> 移项化简求解。',
+              full: '<b>完整解析：</b> AI 已根据你的做错题干构建完整推导诊断。'
+            },
+            variants: {
+              same: { question: '同型变式演练题已准备。', answer: '代入验证一致。' },
+              changed: { question: '逆向条件变式题。', answer: '推导成立。' },
+              transfer: { question: '综合拓展迁移题。', answer: '模型应用正确。' }
+            }
+          };
+          questionBank.unshift(newQ);
+          targetId = newQ.id;
+          finalAns = newQ.studentAnswer;
+        } else {
+          // If no input and no sample, match the selected subject if possible!
+          const subjectMatch = questionBank.find(q => q.subject === subject);
+          const defaultQ = subjectMatch || questionBank.find(q => q.id === 'math-1') || questionBank[0];
+          targetId = defaultQ.id;
+          finalAns = defaultQ.studentAnswer;
+        }
+
+        // Close Capture Modal and reset fields
+        closeModal('captureModal');
+        document.getElementById('manualQuestionText').value = '';
+        document.getElementById('manualAnswerText').value = '';
+        document.getElementById('selectedFileName').textContent = '';
+        if (demoSel) demoSel.value = '';
+
+        renderOverview();
+        renderBank();
+        renderPlan();
+        renderRules();
+
+        // Open directly into Stage B (已解答过的内容与AI深度诊断结果)
+        openDiagnosisModal(targetId, finalAns, 'AI 智能识别完成！已展示错因深度诊断与分析');
+      });
+
+      // 7. Feedback Modal Interactive Chips & Tabs
+      document.addEventListener('click', (e) => {
+        // Diagnosis Chip selection
+        const diagChip = e.target.closest('[data-diag-error]');
+        if (diagChip) {
+          const newErr = diagChip.dataset.diagError;
+          const q = questionBank.find(item => item.id === currentDetailId);
+          if (q) {
+            q.errorType = newErr;
+            document.querySelectorAll('[data-diag-error]').forEach(c => c.classList.remove('selected'));
+            diagChip.classList.add('selected');
+            showToast('已调整错因为：「' + newErr + '」');
+            renderOverview();
+            renderBank();
+          }
+        }
+
+        // Explanation tabs (Hint / Steps / Full)
+        const explainTab = e.target.closest('.explain-tab-btn');
+        if (explainTab) {
+          activeExplainLevel = explainTab.dataset.level;
+          const q = questionBank.find(item => item.id === currentDetailId);
+          if (q) updateExplainPanel(q);
+        }
+
+        // Variant tabs (Same / Changed / Transfer)
+        const varTab = e.target.closest('.var-tab-btn');
+        if (varTab) {
+          activeVariantType = varTab.dataset.variant;
+          const q = questionBank.find(item => item.id === currentDetailId);
+          if (q) updateVariantPanel(q);
+        }
+
+        // Click question card or button anywhere to open PRACTICE mode!
+        const practiceTrigger = e.target.closest('[data-practice-id]');
+        if (practiceTrigger && !e.target.closest('.modal-backdrop')) {
+          const qId = practiceTrigger.dataset.practiceId;
+          if (qId) openPracticeModal(qId, '进入实战作答模式');
+        }
+
+        // Click subject dock item to filter
+        const dockItem = e.target.closest('[data-subject-name]');
+        if (dockItem) {
+          const subName = dockItem.dataset.subjectName;
+          state.subject = subName;
+          document.querySelectorAll('.subject-dock-item').forEach(item => item.classList.remove('active'));
+          dockItem.classList.add('active');
+          showToast('已聚焦学科：' + subName);
+        }
+      });
+
+      // Reveal Variant Answer
+      document.getElementById('btnRevealAnswer').addEventListener('click', () => {
+        const box = document.getElementById('variantAnswerBox');
+        box.classList.toggle('show');
+        if (box.classList.contains('show')) {
+          document.getElementById('btnRevealAnswer').innerHTML = '<i class="ph ph-eye-closed"></i> <span>收起参考答案</span>';
+        } else {
+          document.getElementById('btnRevealAnswer').innerHTML = '<i class="ph ph-eye"></i> <span>揭晓参考答案</span>';
+        }
+      });
+
+      // PRD Diagnosis Mode Actions (新录入错题诊断后操作)
+      const btnConfirmDiagnosis = document.getElementById('btnConfirmDiagnosis');
+      if (btnConfirmDiagnosis) {
+        btnConfirmDiagnosis.addEventListener('click', () => {
+          const q = questionBank.find(item => item.id === currentDetailId);
+          if (q) {
+            q.dueToday = true;
+            q.reviewStage = 'D0 重新理解';
+          }
+          closeModal('detailModal');
+          renderOverview();
+          renderBank();
+          renderPlan();
+          renderRules();
+          showToast('🎉 错题已完成诊断，排入今日复习队列 (D0 重新理解)');
+        });
+      }
+
+      const btnTryVariantNow = document.getElementById('btnTryVariantNow');
+      if (btnTryVariantNow) {
+        btnTryVariantNow.addEventListener('click', () => {
+          activeVariantType = 'same';
+          const q = questionBank.find(item => item.id === currentDetailId);
+          if (q) updateVariantPanel(q);
+
+          const solver = document.getElementById('variantInteractiveSolver');
+          const inputEl = document.getElementById('variantStudentInput');
+          if (solver) {
+            solver.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            solver.style.borderColor = 'var(--accent)';
+            solver.style.boxShadow = '0 0 0 4px var(--accent-soft)';
+            setTimeout(() => {
+              solver.style.boxShadow = '';
+            }, 1800);
+          }
+          if (inputEl) {
+            inputEl.focus();
+          }
+
+          btnTryVariantNow.innerHTML = '<i class="ph ph-pencil-simple-line"></i> <span>正在演练同型题...</span>';
+          showToast('💡 已为你开启同型题实战演练！请写下作答或点击填入演示');
+        });
+      }
+
+      const btnSubmitVariantPractice = document.getElementById('btnSubmitVariantPractice');
+      if (btnSubmitVariantPractice) {
+        btnSubmitVariantPractice.addEventListener('click', () => {
+          submitVariantPractice();
+        });
+      }
+
+      const btnAutofillVariant = document.getElementById('btnAutofillVariant');
+      if (btnAutofillVariant) {
+        btnAutofillVariant.addEventListener('click', () => {
+          autofillVariantDemo();
+        });
+      }
+
+      // Careless Followup Option Chips (PRD Section 2: 粗心二次追问)
+      document.querySelectorAll('.careless-opt-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.careless-opt-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const reason = btn.dataset.reason;
+          const noteEl = document.getElementById('carelessConfirmedNote');
+          const textEl = document.getElementById('carelessConfirmedText');
+          if (noteEl && textEl) {
+            noteEl.style.display = 'block';
+            textEl.textContent = `已定位深层错因：${reason}，已更新至防错档案`;
+          }
+          showToast(`已明确粗心下层原因：「${reason}」`);
+        });
+      });
+
+      // Complete Review Round & Advance Ebbinghaus Stage
+      document.getElementById('btnCompleteReviewRound').addEventListener('click', () => {
+        const q = questionBank.find(item => item.id === currentDetailId);
+        if (q) {
+          q.dueToday = false;
+          if (q.reviewStage.includes('D0')) q.reviewStage = 'D1 无提示重做';
+          else if (q.reviewStage.includes('D1')) q.reviewStage = 'D3 同型题';
+          else if (q.reviewStage.includes('D3')) q.reviewStage = 'D7 变式题';
+          else q.reviewStage = 'D14 迁移题';
+        }
+        closeModal('detailModal');
+        renderOverview();
+        renderBank();
+        renderPlan();
+        showToast('太棒了！本题攻关达成，艾宾浩斯记忆节点已推进');
+      });
+
+      // Plan Buttons
+      document.getElementById('planStartFocusBtn').addEventListener('click', () => {
+        openPracticeModal('math-1', '进入实战作答模式，请独立推导');
+      });
+      document.getElementById('planResetBtn').addEventListener('click', () => {
+        questionBank.slice(0, 3).forEach(q => q.dueToday = true);
+        renderOverview();
+        renderPlan();
+        showToast('已根据最新遗忘曲线重新智能排程');
+      });
+
+      // Bank Filters
+      document.querySelectorAll('#bankSubjectFilters button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#bankSubjectFilters button').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.subject = btn.dataset.subject;
+          renderBank();
+        });
+      });
+      document.querySelectorAll('#bankStatusFilters button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#bankStatusFilters button').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.status = btn.dataset.status;
+          renderBank();
+        });
+      });
+
+      // Global Search input
+      document.getElementById('globalSearchInput').addEventListener('input', (e) => {
+        state.search = e.target.value;
+        if (currentActiveView !== 'bank') {
+          showView('bank');
+        } else {
+          renderBank();
+        }
+      });
+
+      // Keyboard Shortcut ⌘K / Ctrl+K
+      document.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+          e.preventDefault();
+          document.getElementById('globalSearchInput').focus();
+        }
+        if (e.key === 'Escape') {
+          closeModal('captureModal');
+          closeModal('detailModal');
+        }
+      });
+
+      // Initial Date String
+      const d = new Date();
+      const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+      document.getElementById('heroDateTip').textContent = `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日 · ${weekdays[d.getDay()]}`;
+
+      // Initialize App
+      renderOverview();
+    });
+  </script>
+  <!-- Lightbox Modal for Photo Zoom -->
+  <div class="photo-lightbox-modal" id="photoLightboxModal">
+    <div class="photo-lightbox-backdrop" id="photoLightboxBackdrop"></div>
+    <div class="photo-lightbox-card">
+      <div class="photo-lightbox-header">
+        <span><i class="ph ph-image"></i> 草稿纸手写演算照片原图</span>
+        <button type="button" class="photo-lightbox-close" id="btnLightboxClose"><i class="ph ph-x"></i></button>
+      </div>
+      <div class="photo-lightbox-body">
+        <img id="photoLightboxImg" src="" alt="演算草稿大图" />
+      </div>
+    </div>
+  </div>
+</body>
+</html>

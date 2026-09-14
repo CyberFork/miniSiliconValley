@@ -61,7 +61,7 @@ test("T-109 separates the public website, teaching services and internal history
   const studio = read("app/studio/StudioApp.tsx");
   const consoleNav = read("app/console/ConsoleNav.tsx");
   const archiveAccess = read("app/api/auth/studio-archive-access/route.ts");
-  for (const route of ["/world/", "/framework/", "/parents/", "/classroom/", "/course/"]) {
+  for (const route of ["/world/", "/framework/", "/incubator/", "/parents/", "/classroom/", "/course/"]) {
     assert.match(portal, new RegExp(`href=["']${route.replaceAll("/", "\\/")}`), `官网缺少 ${route}`);
   }
   assert.doesNotMatch(portal, /href=["']\/(?:studio|workshop)\//, "公开官网不得暴露内部工作入口");

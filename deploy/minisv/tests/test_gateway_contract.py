@@ -16,7 +16,7 @@ class GatewayContractTests(unittest.TestCase):
         cls.tunnel = (ROOT / "cloudflared" / "config.yml.template").read_text()
 
     def test_every_public_route_has_an_explicit_owner(self) -> None:
-        for route in ("world", "alpha", "control", "framework", "parents", "workshop"):
+        for route in ("world", "alpha", "control", "framework", "parents", "incubator", "workshop"):
             self.assertRegex(self.gateway, rf"location[^\n]* /{route}(?:[ /{{])")
         self.assertIn("^/(studio|console|terminal|course|classroom|account|u|homework)", self.gateway)
         self.assertIn("/courseware/product-mentor-foundations/", self.gateway)
@@ -113,9 +113,19 @@ class GatewayContractTests(unittest.TestCase):
         self.assertIn("location = /world-preview.json { try_files $uri =404;", self.gateway)
         self.assertIn('"/" "index, follow";', self.gateway)
         self.assertIn('"/index.html" "index, follow";', self.gateway)
+        self.assertIn("world|framework|parents", self.gateway)
+        self.assertIn("incubator/projects/(?:recitation|mistake-notebook)", self.gateway)
         self.assertIn("Disallow: /workshop/", robots)
         self.assertIn("/world/", sitemap)
         self.assertNotIn("/workshop/", sitemap)
+
+    def test_incubator_projects_are_public_exact_static_artifacts(self) -> None:
+        self.assertIn("location = /incubator { return 308 /incubator/", self.gateway)
+        route = "location ^~ /incubator/ { try_files $uri $uri/ =404; expires -1; }"
+        self.assertIn(route, self.gateway)
+        self.assertNotIn("auth_request", route)
+        self.assertIn("microphone=(self)", self.gateway)
+        self.assertIn("~^/incubator/projects/recitation", self.gateway)
 
     def test_released_static_courseware_bytes_share_one_auth_gate(self) -> None:
         self.assertIn("location = /_minisv_courseware_auth", self.gateway)

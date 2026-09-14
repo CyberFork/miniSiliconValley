@@ -78,7 +78,7 @@ test("T-123 deployment gateway and internal deep links use the same route split"
   const gateway = source("deploy/minisv/gateway/default.conf");
   const workshop = source("deploy/minisv/workshop/archive.html");
   const runtime = source("app/classroom/ClassroomRuntime.tsx");
-  assert.match(gateway, /\(studio\|console\|terminal\|course\|classroom\|account\|u\)/);
+  assert.match(gateway, /\(studio\|console\|terminal\|course\|classroom\|account\|u\|homework\)/);
   assert.match(gateway, /location \^~ \/api\/terminal\//);
   assert.match(gateway, /location \^~ \/api\/public\/spaces\//);
   assert.doesNotMatch(workshop, /href="\/studio\//);

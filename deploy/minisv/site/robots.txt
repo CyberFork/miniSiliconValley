@@ -3,6 +3,7 @@ Allow: /
 Allow: /world/
 Allow: /framework/
 Allow: /parents/
+Allow: /incubator/
 Disallow: /auth/
 Disallow: /account/
 Disallow: /classroom/

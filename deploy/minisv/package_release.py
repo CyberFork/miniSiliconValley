@@ -24,6 +24,11 @@ BRAND_WORDMARK_SHA256 = "4dbbe4dea625fd372c6d760f2344fbf62b7b15f0d2d14e490cddd56
 REQUIRED_PAGES = (
     "index.html", "404.html", "world/index.html", "framework/index.html",
     "parents/index.html", "world-preview.json", "workshop/index.html",
+    "incubator/index.html", "incubator/projects/index.html",
+    "incubator/projects/recitation/index.html",
+    "incubator/projects/mistake-notebook/index.html",
+    "incubator/projects/_shared/project-shell.css",
+    "incubator/projects/_shared/phosphor/regular/Phosphor.woff2",
     "courseware/product-mentor-foundations/index.html",
     "courseware/product-mentor-foundations/r1/index.html",
     "courseware/product-mentor-foundations/r2/index.html",
@@ -43,6 +48,7 @@ CHJ_COURSE_R1_TREE = "d26045a3eb1c249629092dcddeb82e7812ff0ff5"
 CHJ_COURSE_UI_SHA = "806d804932e4cd4ae2796d84578d39197d7ea4ce"
 CHJ_COURSE_UI_TREE = "bde3426ee770272dc3263064a16d60659fffff9b"
 WORKSHOP_OVERLAY = Path(__file__).resolve().parent / "workshop"
+INCUBATOR_PROJECTS_SOURCE = Path(__file__).resolve().parent / "incubator-projects"
 MAX_WORKSHOP_SNAPSHOT_BYTES = 1024 * 1024
 CANONICAL_REPOSITORY = "https://github.com/CyberFork/miniSiliconValley.git"
 CANONICAL_REPOSITORY_IDENTITY = "github.com/cyberfork/minisiliconvalley"
@@ -458,6 +464,71 @@ def tree_digest(root: Path) -> tuple[str, int, int]:
     return digest.hexdigest(), files, total_bytes
 
 
+def validate_incubator_projects(source_root: Path, content_root: Path | None = None) -> dict:
+    """Validate the curated T-124 browser-only project bundle.
+
+    The source manifest is release tooling metadata and is deliberately not
+    copied to the public site. ``content_root`` lets release assembly prove the
+    copied public bytes against that private manifest.
+    """
+    manifest_path = source_root / "SOURCE-MANIFEST.json"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("T-124 incubator project manifest is missing or invalid") from exc
+    if manifest.get("schemaVersion") != 1 or manifest.get("todoId") != "T-124":
+        raise ValueError("T-124 incubator project manifest identity is invalid")
+    projects = manifest.get("projects")
+    files = manifest.get("files")
+    if not isinstance(projects, list) or not isinstance(files, list):
+        raise ValueError("T-124 incubator project manifest shape is invalid")
+    expected = {
+        ("recitation", "/incubator/projects/recitation/"),
+        ("mistake-notebook", "/incubator/projects/mistake-notebook/"),
+    }
+    if {(item.get("id"), item.get("route")) for item in projects if isinstance(item, dict)} != expected:
+        raise ValueError("T-124 incubator project routes are incomplete")
+    root = content_root or source_root
+    canonical: list[str] = []
+    seen: set[str] = set()
+    total_bytes = 0
+    for item in files:
+        if not isinstance(item, dict):
+            raise ValueError("T-124 incubator project file record is invalid")
+        relative = Path(str(item.get("path", "")))
+        key = relative.as_posix()
+        if relative.is_absolute() or ".." in relative.parts or not key or key in seen:
+            raise ValueError("T-124 incubator project manifest has an unsafe path")
+        seen.add(key)
+        path = root / relative
+        if not path.is_file():
+            raise ValueError(f"T-124 incubator project file is missing: {key}")
+        body = path.read_bytes()
+        digest = hashlib.sha256(body).hexdigest()
+        if item.get("bytes") != len(body) or item.get("sha256") != digest:
+            raise ValueError(f"T-124 incubator project digest mismatch: {key}")
+        canonical.append(f"{key}\0{digest}\n")
+        total_bytes += len(body)
+    digest = hashlib.sha256("".join(canonical).encode("utf-8")).hexdigest()
+    if manifest.get("contentTreeSha256") != digest:
+        raise ValueError("T-124 incubator project content tree digest mismatch")
+    for required in (
+        "recitation/index.html",
+        "mistake-notebook/index.html",
+        "_shared/project-shell.css",
+        "_shared/phosphor/regular/Phosphor.woff2",
+    ):
+        if required not in seen:
+            raise ValueError(f"T-124 incubator project required file is absent: {required}")
+    return {
+        "sha256": digest,
+        "files": len(seen),
+        "bytes": total_bytes,
+        "projects": projects,
+        "transforms": manifest.get("transforms", []),
+    }
+
+
 def build(
     legacy: Path,
     app_client: Path,
@@ -487,6 +558,7 @@ def build(
     market_courseware_source = app_client / MARKET_COURSEWARE
     market_courseware = validate_market_courseware(market_courseware_source)
     module_thinking = validate_module_thinking_courseware(module_thinking_courseware)
+    incubator_projects = validate_incubator_projects(INCUBATOR_PROJECTS_SOURCE)
     module_audience_digest = tree_digest(module_thinking_courseware / "audience")
     module_teacher_digest = tree_digest(module_thinking_courseware / "teacher")
     course_r0_source_digest, course_r0_source_files, course_r0_source_bytes = tree_digest(course_static)
@@ -537,6 +609,18 @@ def build(
 
     for item in portal.iterdir(): copy_entry(item, output / item.name)
     transform_tree(output)
+
+    # T-124 projects are curated browser-only applications. Copy their exact
+    # declared runtime files after global text/theme transforms so the original
+    # interactions cannot be silently altered and no patch/QA workspace files
+    # can leak into the public release.
+    incubator_output = output / "incubator" / "projects"
+    incubator_output.mkdir(parents=True, exist_ok=True)
+    for item in INCUBATOR_PROJECTS_SOURCE.iterdir():
+        if item.name != "SOURCE-MANIFEST.json":
+            copy_entry(item, incubator_output / item.name)
+    if validate_incubator_projects(INCUBATOR_PROJECTS_SOURCE, incubator_output) != incubator_projects:
+        raise ValueError("T-124 incubator projects changed during release assembly")
 
     # Never pass the colleague-owned build through rewrite_text() or the shared
     # theme injector. It is an independently built, immutable P-mentor
@@ -624,6 +708,7 @@ def build(
             "released-workshop-snapshot",
             "read-only-workshop-history-archive",
             "canonical-workspace-provenance",
+            "public-incubator-projects",
         ],
         "sources": {
             "main": main_sha,
@@ -707,11 +792,20 @@ def build(
             **market_courseware,
             "transformed": False,
         },
+        "incubatorProjectsArtifact": {
+            "root": "/incubator/projects/",
+            "transformed": False,
+            **incubator_projects,
+        },
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (output / "sitemap.json").write_text(json.dumps({
         "schemaVersion": 2,
         "scope": "public-website",
-        "routes": ["/", "/world/", "/framework/", "/parents/"],
+        "routes": [
+            "/", "/world/", "/framework/", "/parents/", "/incubator/",
+            "/incubator/projects/", "/incubator/projects/recitation/",
+            "/incubator/projects/mistake-notebook/",
+        ],
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     errors = []

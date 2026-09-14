@@ -196,7 +196,7 @@ test("T-099 Candidate API and editor require an exact base and expose a non-dest
 
 test("gateway owns Console, Terminal, Studio compatibility, Course and per-classroom routes", () => {
   const gateway = readFileSync(new URL("deploy/minisv/gateway/default.conf", root), "utf8");
-  assert.match(gateway, /\(studio\|console\|terminal\|course\|classroom\|account\|u\)/);
+  assert.match(gateway, /\(studio\|console\|terminal\|course\|classroom\|account\|u\|homework\)/);
   assert.doesNotMatch(gateway, /location \^~ \/alpha\//);
   assert.doesNotMatch(gateway, /location \^~ \/control\//);
   assert.match(gateway, /location = \/alpha \{ return 410;/);
