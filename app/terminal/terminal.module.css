@@ -5,3 +5,30 @@
 @media(max-width:460px){.appGrid,.shopGrid{grid-template-columns:1fr}.statusbar :global(.msv-brand-home__copy){display:none}.pixelRoom{min-height:380px}.roomWindow{width:38%}.roomWall{width:48%}.roomDesk{width:50%}}
 @media(prefers-reduced-motion:reduce){.loading span{animation:none}.appGrid button:hover{transform:none}}
 .placeholder a{display:inline-flex;min-height:44px;align-items:center;justify-content:center;margin:4px;padding:10px 16px;color:#fff;background:#17313b;border:3px solid #17313b;text-decoration:none;font-weight:900}.placeholder a+a{color:#17313b;background:#e8bb4b}
+
+/* Home is a real playable desktop. Inner apps keep the information-dense
+   workstation layout above, while the home screen becomes a wallpaper,
+   desktop icons, widgets and a bottom launcher. */
+.device[data-active-app=home] .screen{position:relative;display:block;min-height:calc(100svh - 118px)}
+.device[data-active-app=home] .workspace{min-height:calc(100svh - 118px);padding-bottom:126px;color:#fff8e5;background-color:#102933;background-image:linear-gradient(90deg,#071923d9 0%,#0b202ca8 42%,#10283255 100%),linear-gradient(0deg,#071923e0 0%,transparent 55%),var(--terminal-wallpaper);background-position:center;background-size:cover}
+.device[data-active-app=home] .workspace:before{position:absolute;inset:0;pointer-events:none;content:"";background-image:linear-gradient(#8bd2c014 1px,transparent 1px),linear-gradient(90deg,#8bd2c014 1px,transparent 1px);background-size:32px 32px;mask-image:linear-gradient(to bottom,transparent 8%,#000 70%)}
+.device[data-active-app=home] .appbar,.device[data-active-app=home] .desktop{position:relative;z-index:1}
+.device[data-active-app=home] .appbar{border-color:#8ac2b8aa;text-shadow:0 2px 10px #07171f}
+.device[data-active-app=home] .appbar small{color:#89d0c3}
+.device[data-active-app=home] .desktop{display:grid;grid-template-columns:minmax(480px,1fr) minmax(330px,.72fr);grid-template-areas:"apps identity" "apps quick";gap:20px 28px;align-items:start}
+.device[data-active-app=home] .identityStrip{grid-area:identity;margin-top:24px;background:#102a35e8;border:3px solid #8ac2b8;border-left:9px solid #efc75b;box-shadow:8px 8px 0 #071923aa;backdrop-filter:blur(8px)}
+.device[data-active-app=home] .appGrid{grid-area:apps;grid-template-columns:repeat(3,112px);align-content:start;gap:22px 28px;width:max-content;margin-top:30px}
+.device[data-active-app=home] .appGrid button{display:grid;grid-template-columns:1fr;grid-template-rows:auto auto;justify-items:center;gap:7px;min-height:120px;padding:10px 6px;color:#fff8e5;background:#0b202c99;border:2px solid transparent;text-align:center;box-shadow:none;text-shadow:0 2px 8px #07171f}
+.device[data-active-app=home] .appGrid button:hover,.device[data-active-app=home] .appGrid button:focus-visible{transform:translateY(-4px);background:#173a46e8;border-color:#f0c75a;box-shadow:5px 5px 0 #071923aa}
+.device[data-active-app=home] .appGrid button small{display:none}
+.device[data-active-app=home] .appIcon{grid-row:auto;width:66px;height:66px;color:#10262e;background:#f0c75a;border:4px solid #fff2bd;box-shadow:5px 5px 0 #d85e43;font-size:22px}
+.device[data-active-app=home] .appGrid b{font-size:14px}
+.device[data-active-app=home] .quickGrid{grid-area:quick;grid-template-columns:1fr;margin-top:0}
+.device[data-active-app=home] .quickGrid article{color:#14262d;background:#fff8e5e8;border:2px solid #8ac2b8;border-top:6px solid #f0c75a;box-shadow:5px 5px 0 #07192388;backdrop-filter:blur(8px)}
+.device[data-active-app=home] .rail{position:absolute;z-index:12;left:50%;bottom:18px;flex-direction:row;width:max-content;max-width:calc(100% - 36px);padding:9px;overflow-x:auto;border:3px solid #7eb3ac;border-right:3px solid #7eb3ac;background:#091e27e8;box-shadow:7px 7px 0 #d25d43;transform:translateX(-50%);backdrop-filter:blur(10px)}
+.device[data-active-app=home] .rail button{min-width:86px;min-height:62px;background:#15323c;border-color:#456f72}
+.device[data-active-app=home] .rail button[data-active=true]{background:#f0c75a;border-color:#fff1ba}
+
+@media(max-width:1050px){.device[data-active-app=home] .desktop{grid-template-columns:1fr;grid-template-areas:"identity" "apps" "quick"}.device[data-active-app=home] .appGrid{grid-template-columns:repeat(4,100px)}.device[data-active-app=home] .quickGrid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:760px){.device[data-active-app=home] .screen{display:flex;flex-direction:column}.device[data-active-app=home] .rail{position:sticky;left:auto;bottom:auto;order:0;width:auto;max-width:none;padding:7px;border:0;border-bottom:2px solid #55767a;box-shadow:none;transform:none;backdrop-filter:none}.device[data-active-app=home] .rail button{min-width:72px;min-height:58px}.device[data-active-app=home] .workspace{order:1;min-height:calc(100svh - 104px);padding-bottom:30px}.device[data-active-app=home] .desktop{display:block}.device[data-active-app=home] .identityStrip{margin-top:18px}.device[data-active-app=home] .appGrid{grid-template-columns:repeat(3,minmax(78px,1fr));width:auto;gap:12px}.device[data-active-app=home] .quickGrid{grid-template-columns:1fr}.device[data-active-app=home] .appGrid button{min-height:105px}.device[data-active-app=home] .appIcon{width:56px;height:56px}}
+@media(max-width:460px){.device[data-active-app=home] .appGrid{grid-template-columns:repeat(2,minmax(82px,1fr))}}

@@ -78,9 +78,9 @@ export default function TerminalClient({ initialApp, initialUser }: { initialApp
   const equippedTheme = data?.equipment.terminal ?? "terminal-default";
   return <main className={styles.page} data-theme={equippedTheme}>
     <a className={styles.skip} href="#terminal-content">跳到终端内容</a>
-    <section className={styles.device} aria-label="Mini Silicon Valley 学员时空终端">
+    <section className={styles.device} data-active-app={app} aria-label="Mini Silicon Valley 学员时空终端">
       <header className={styles.statusbar}>
-        <a href={publicPath("/")} className={styles.brand} aria-label="返回 MINI硅谷官网"><Image src={publicPath("/assets/mini-silicon-valley-logo-transparent.png")} alt="MINI硅谷" width={330} height={84} priority /></a>
+        <a href={publicPath("/")} className={styles.brand} aria-label="返回 MINI硅谷官网"><Image src={publicPath("/assets/mini-silicon-valley-logo-transparent.png")} alt="MINI硅谷" width={330} height={84} unoptimized priority /></a>
         <span className={styles.signal} aria-label="时空信号已连接">◼ ◼ ◻</span>
         <time aria-label="时间处于混乱状态">--:--</time>
         <AccountMenu user={initialUser} returnTo={app === "home" ? "/terminal/" : `/terminal/${app}/`} />
@@ -90,7 +90,7 @@ export default function TerminalClient({ initialApp, initialUser }: { initialApp
           <button type="button" data-active={app === "home"} onClick={() => open("home")}><span>⌂</span><b>桌面</b></button>
           {APPS.filter((item) => (item.learner ? isLearner : item.staff ? isStaff : true)).slice(0, 5).map((item) => <button type="button" key={item.id} data-active={app === item.id} onClick={() => open(item.id)}><span>{item.glyph}</span><b>{item.label}</b></button>)}
         </aside>
-        <section className={styles.workspace} id="terminal-content" tabIndex={-1}>
+        <section className={styles.workspace} id="terminal-content" tabIndex={-1} style={{ "--terminal-wallpaper": `url("${publicPath("/assets/silicon-valley-base-map.webp")}")` } as React.CSSProperties}>
           <header className={styles.appbar}>
             <div><small>TIME TERMINAL · {app.toUpperCase()}</small><h1>{app === "home" ? `欢迎回来，${initialUser.displayName}` : APPS.find((item) => item.id === app)?.label}</h1></div>
             {app !== "home" && <button type="button" onClick={() => open("home")}>← 返回桌面</button>}

@@ -8,6 +8,7 @@ const source = (path: string) => readFileSync(new URL(path, root), "utf8");
 test("T-124 exposes a refreshable terminal shell and every agreed app route", () => {
   const page = source("app/terminal/[[...app]]/page.tsx");
   const client = source("app/terminal/TerminalClient.tsx");
+  const styles = source("app/terminal/terminal.module.css");
   for (const app of ["home", "identity", "courses", "space", "wallet", "shop", "homework", "games", "grants"]) {
     assert.match(page, new RegExp(`"${app}"`));
   }
@@ -17,6 +18,11 @@ test("T-124 exposes a refreshable terminal shell and every agreed app route", ()
   assert.match(client, /<time aria-label="时间处于混乱状态">--:--<\/time>/);
   assert.match(client, /window\.history\.pushState/);
   assert.match(client, /window\.addEventListener\("popstate"/);
+  assert.match(client, /mini-silicon-valley-logo-transparent\.png[\s\S]*unoptimized/);
+  assert.match(client, /data-active-app=\{app\}/);
+  assert.match(styles, /\.device\[data-active-app=home\] \.workspace/);
+  assert.match(styles, /var\(--terminal-wallpaper\)/);
+  assert.match(styles, /\.device\[data-active-app=home\] \.rail/);
 });
 
 test("T-124 implements real APIs, public-space privacy, wallet isolation and designed confirmations", () => {

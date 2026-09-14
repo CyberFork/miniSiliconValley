@@ -68,7 +68,9 @@ def main() -> None:
                     page.on("pageerror", lambda error: errors.append(str(error)))
                     page.goto(f"{base}/homework/first-game/", wait_until="networkidle")
                     expect(page.get_by_role("heading", name="把脑中的游戏 讲清楚。")).to_be_visible()
-                    expect(page.get_by_text("任何知道查看页地址的人都能看到")).to_be_visible()
+                    expect(page.get_by_text("请使用昵称，不要填写手机号、住址、证件、密码或他人的私密信息。")).to_be_visible()
+                    expect(page.get_by_role("link", name="查看全部提交")).to_have_count(0)
+                    expect(page.get_by_role("link", name="时空终端")).to_have_count(0)
                     for title in ["我的游戏是什么", "谁来玩我的游戏", "游戏怎么玩", "怎样算赢", "画出我的游戏世界", "角色故事", "关卡和任务", "敌人、障碍和道具", "奖励和成长", "胜利、失败和结局", "游戏画风、颜色和声音"]:
                         assert title in page.locator("body").inner_text()
                     no_overflow(page, "form-tablet")

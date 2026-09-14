@@ -4,10 +4,11 @@ import test from "node:test";
 
 const root = new URL("../", import.meta.url); const source = (path: string) => readFileSync(new URL(path, root), "utf8");
 
-test("T-119 exposes public form, list, detail and APIs without auth coupling", () => {
+test("T-119 keeps the form public while showing its archive entry only to staff", () => {
   for (const path of ["app/homework/first-game/page.tsx", "app/homework/first-game/submissions/page.tsx", "app/homework/first-game/submissions/[submissionId]/page.tsx", "app/api/public/homework/first-game/submissions/route.ts", "app/api/public/homework/first-game/submissions/[submissionId]/route.ts"]) assert.equal(existsSync(new URL(path, root)), true, `missing ${path}`);
   const page = source("app/homework/first-game/page.tsx"); const shared = source("app/api/public/homework/_shared.ts");
-  assert.match(page, /不需要登录/); assert.match(page, /任何知道查看页地址的人都能看到/); assert.doesNotMatch(page + shared, /requireChatGPTUser|authenticateSession/);
+  assert.match(page, /getChatGPTUser/); assert.match(page, /user\?\.role === "admin" \|\| user\?\.role === "mentor"/); assert.match(page, /canReviewSubmissions &&/);
+  assert.match(page, /请使用昵称，不要填写手机号、住址、证件、密码或他人的私密信息/); assert.doesNotMatch(page, />时空终端</); assert.doesNotMatch(shared, /requireChatGPTUser|authenticateSession/);
   assert.match(shared, /assertSameOrigin/); assert.match(shared, /MAX_BODY_BYTES/);
 });
 
