@@ -110,8 +110,9 @@ try {
   const adminCookie = await login(fixture.dm.username, fixture.dm.password);
   const initial = await getData<Bootstrap>("/api/studio/bootstrap", adminCookie);
   assert.equal(new Set(initial.versions.map((item) => item.ref.courseId)).size, 2);
-  assert.deepEqual(initial.courseware.map((item) => item.mentorRole), ["P", "D", "D", "M", "M", "O"]);
+  assert.deepEqual(initial.courseware.map((item) => item.mentorRole), ["P", "D", "D", "D", "M", "M", "O"]);
   assert.ok(initial.courseware.some((item) => item.slug === "development-mentor-ligun"));
+  assert.ok(initial.courseware.some((item) => item.slug === "development-mentor-module-thinking"));
   assert.ok(initial.courseware.some((item) => item.slug === "market-mentor-user-system"));
   assert.ok(initial.courseware.every((item) => item.releasedRevision !== null && item.releasedDigest));
 

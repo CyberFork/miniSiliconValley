@@ -62,9 +62,13 @@ test("T-123 legacy Studio pages are redirects, not a second maintained UI", () =
     "app/studio/courseware/page.tsx": "/console/courseware/",
     "app/studio/history/page.tsx": "/console/archive/",
   };
+  const helper = source("app/studio/legacy-redirect.ts");
+  assert.match(helper, /permanentRedirect/);
+  assert.match(helper, /URLSearchParams/);
+  assert.match(helper, /params\.append/);
   for (const [path, target] of Object.entries(targets)) {
     const page = source(path);
-    assert.match(page, /permanentRedirect/);
+    assert.match(page, /permanentRedirect|redirectLegacyStudio/);
     assert.match(page, new RegExp(target.replaceAll("/", "\\/")));
     assert.doesNotMatch(page, /StudioApp|CoursewareFrame|ClassroomHub/);
   }

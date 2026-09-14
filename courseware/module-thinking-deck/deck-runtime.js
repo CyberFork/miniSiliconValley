@@ -35,13 +35,13 @@
   }
 
   function persist() {
-    try { localStorage.setItem(storageKey, JSON.stringify(state)); } catch {}
+    try { localStorage.setItem(storageKey, JSON.stringify(state)); } catch { /* private mode can deny storage */ }
   }
 
   function send(type, payload) {
     const message = { type, session, source: "audience", ...payload };
     channel?.postMessage(message);
-    try { localStorage.setItem(`${storageKey}:event`, JSON.stringify({ ...message, nonce: Math.random(), at: Date.now() })); } catch {}
+    try { localStorage.setItem(`${storageKey}:event`, JSON.stringify({ ...message, nonce: Math.random(), at: Date.now() })); } catch { /* BroadcastChannel remains available */ }
   }
 
   function render() {
@@ -96,10 +96,10 @@
   try {
     channel = new BroadcastChannel(channelName);
     channel.onmessage = (event) => acceptMessage(event.data);
-  } catch {}
+  } catch { /* storage-event fallback remains available */ }
   addEventListener("storage", (event) => {
     if (event.key !== `${storageKey}:event` || !event.newValue) return;
-    try { acceptMessage(JSON.parse(event.newValue)); } catch {}
+    try { acceptMessage(JSON.parse(event.newValue)); } catch { /* ignore malformed external storage events */ }
   });
   addEventListener("resize", fit);
   addEventListener("keydown", (event) => {

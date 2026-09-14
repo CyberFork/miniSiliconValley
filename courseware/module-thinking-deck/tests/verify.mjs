@@ -24,7 +24,13 @@ if (Object.keys(notes).length !== deck.slides.length) throw new Error("Notes con
 const audienceRoot = join(root, "dist/audience");
 const forbidden = ["现场顺序", "可接受回答", "硅谷币提示", "常见误区", "教师视图数据", "presenter-notes.js"];
 async function files(dir) {
-  const output=[]; for (const name of await readdir(dir)) { const p=join(dir,name); (await stat(p)).isDirectory() ? output.push(...await files(p)) : output.push(p); } return output;
+  const output=[];
+  for (const name of await readdir(dir)) {
+    const p=join(dir,name);
+    if ((await stat(p)).isDirectory()) output.push(...await files(p));
+    else output.push(p);
+  }
+  return output;
 }
 for (const path of await files(audienceRoot)) {
   if (!/\.(html|js|css|json)$/.test(path)) continue;

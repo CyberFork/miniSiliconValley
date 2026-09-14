@@ -59,7 +59,7 @@ const PRODUCT_COURSEWARE_R1_SOURCE_TREE = "d26045a3eb1c249629092dcddeb82e7812ff0
 const PRODUCT_COURSEWARE_R2_SOURCE_COMMIT = "806d804932e4cd4ae2796d84578d39197d7ea4ce";
 const PRODUCT_COURSEWARE_R2_SOURCE_TREE = "bde3426ee770272dc3263064a16d60659fffff9b";
 const DEVELOPMENT_LIGUN_CONTENT_TREE = "ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234";
-const DEVELOPMENT_MODULE_THINKING_CONTENT_TREE = "e33369be61fa206cc92befe383a90e7f1505d0cf26e230b2aedfc66d01316ae5";
+const DEVELOPMENT_MODULE_THINKING_CONTENT_TREE = "939a016bc645b37fe96ef0411b5d4c57634019f8c11d112a2a1b965aa8c0737b";
 const MARKET_USER_SYSTEM_CONTENT_TREE = "48b01a256bd3d408a5d539f798470e6aad0058a19dcdeb8b5d212b0e64add862";
 const BUNDLED_VERSIONS = [
   {
@@ -484,18 +484,17 @@ export function defaultCoursewareRefs(summaries: CoursewareSummary[]): ExactCour
   // happened to receive the newest timestamp. The module-thinking deck stays
   // discoverable in /course/ without silently replacing the existing D-role
   // classroom cue deck.
-  const preferredSlugs: Record<ClassroomMentorRole, string> = {
+  const preferredSlugs: Partial<Record<ClassroomMentorRole, string>> = {
     P: "product-mentor-foundations",
     D: "development-mentor-ligun",
     M: "market-mentor-user-system",
-    O: "operations-mentor-field-kit",
   };
   return CLASSROOM_MENTOR_ROLES.map((role) => {
     const released = summaries.filter((item) => item.mentorRole === role && item.releasedRevision !== null && item.releasedDigest);
     // Prefer an actual catalog-visible course over system fallback kits. This
     // deterministically selects the stable P/D/M bundles while O can continue
     // using an internal placeholder until its real package is uploaded.
-    const summary = released.find((item) => item.slug === preferredSlugs[role])
+    const summary = released.find((item) => preferredSlugs[role] && item.slug === preferredSlugs[role])
       ?? released.find(isCoursewareLibraryVisible)
       ?? released[0];
     if (!summary) throw new ClassroomError("COURSEWARE_DEFAULT_MISSING", `${role} 导师缺少已发布默认课件。`, 409);

@@ -23,19 +23,19 @@
     return { slide, reveal, updatedAt: Date.now() };
   }
   function readState() { try { return normalize(JSON.parse(localStorage.getItem(storageKey()) || "null")); } catch { return normalize(null); } }
-  function persist() { try { localStorage.setItem(storageKey(), JSON.stringify(state)); } catch {} }
+  function persist() { try { localStorage.setItem(storageKey(), JSON.stringify(state)); } catch { /* private mode can deny storage */ } }
   function setUrl() {
     const url = new URL(location.href); url.searchParams.set("session", session); history.replaceState(null, "", url);
     document.getElementById("session-label").textContent = session;
   }
   function connectChannel() {
     channel?.close?.(); channel = null;
-    try { channel = new BroadcastChannel(channelName()); channel.onmessage = event => acceptMessage(event.data); } catch {}
+    try { channel = new BroadcastChannel(channelName()); channel.onmessage = event => acceptMessage(event.data); } catch { /* storage-event fallback remains available */ }
   }
   function send(type, payload) {
     const message = { type, session, source: "presenter", ...payload };
     channel?.postMessage(message);
-    try { localStorage.setItem(eventKey(), JSON.stringify({ ...message, nonce: Math.random(), at: Date.now() })); } catch {}
+    try { localStorage.setItem(eventKey(), JSON.stringify({ ...message, nonce: Math.random(), at: Date.now() })); } catch { /* BroadcastChannel remains available */ }
   }
   function acceptMessage(message) {
     if (!message || message.session !== session || message.source === "presenter") return;
@@ -66,7 +66,7 @@
   }
   function directSlide(delta) { setState({ slide: Math.max(0, Math.min(model.slides.length - 1, state.slide + delta)), reveal: 0 }); }
 
-  function slideMarkup(slide, index, reveal) {
+  function slideMarkup(slide, index) {
     return `<section class="deck-slide" data-slide-id="${slide.id}" data-source="${slide.source}" data-theme="${slide.theme || "paper"}">
       <header class="slide-topline"><span class="slide-code">${slide.source} · ${slide.section}</span><img class="slide-brand" src="assets/mini-silicon-valley-logo-transparent.png" alt="MINI硅谷"></header>
       <div class="slide-heading"><h1>${slide.title}</h1><p>${slide.subtitle}</p></div>
@@ -79,7 +79,7 @@
   function renderPreview(container, index, reveal) {
     if (index < 0 || index >= model.slides.length) { container.innerHTML = '<div class="preview-empty">课程结束</div>'; return; }
     const stage = document.createElement("div"); stage.className = "mini-slide-stage";
-    stage.innerHTML = slideMarkup(model.slides[index], index, reveal);
+    stage.innerHTML = slideMarkup(model.slides[index], index);
     stage.querySelectorAll("[data-reveal]").forEach((node, i) => node.classList.toggle("revealed", i < reveal));
     container.replaceChildren(stage);
     requestAnimationFrame(() => {
@@ -151,7 +151,7 @@
 
   setUrl(); connectChannel(); render(); updateConnection();
   addEventListener("resize", render);
-  addEventListener("storage", event => { if (event.key === eventKey() && event.newValue) try { acceptMessage(JSON.parse(event.newValue)); } catch {} });
+  addEventListener("storage", event => { if (event.key === eventKey() && event.newValue) try { acceptMessage(JSON.parse(event.newValue)); } catch { /* ignore malformed external storage events */ } });
   addEventListener("keydown", event => {
     if (["INPUT","TEXTAREA"].includes(document.activeElement?.tagName)) return;
     if (event.key.toLowerCase() === "o") { event.preventDefault(); openAudience(); }
