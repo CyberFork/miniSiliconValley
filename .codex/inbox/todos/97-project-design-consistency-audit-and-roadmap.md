@@ -187,3 +187,9 @@ node --import tsx "/项目dev/.codex/inbox/audits/2026-09-10-design-consistency/
 ## 2026-09-12 T-082 r5 缓存纠正
 
 r4 正式字标生产复验后继续发现一个只影响已访问浏览器的缓存风险：旧 CSS 可缓存 4 小时，使正确的横向 PNG 仍按旧方形规则渲染。现已在 `20260912T194735CST-official-wordmark-r5` 对主页、全站共享主题、动态应用代理、Workshop、LIVE RUN 与 Studio Editor 的已变更 CSS/JS 全部换用新缓存键，并以公网 8×4 与登录后 10 路由证明实际加载 r5。该纠正补强 T-082，不改变 T-097 仍待真实设备／私有资料所有者完成的人工验收边界。
+
+## 2026-09-14 T-082 透明字标复核
+
+用户截图暴露了 r5 的真实样式遗漏：官方 PNG 有透明通道，但共享主题人为增加了白色卡片。现已在 `20260914T102054CST-transparent-wordmark-r7` 移除 React、静态页和 Studio Editor 三处白底／边框／内边距，并推进所有相关缓存键。r6 上线后的登录态复验曾捕获 Studio Editor 独立主题遗漏，修复后才发布 r7。生产公开 8×4 与登录态 10 路由的计算样式、无溢出和主页导航均通过。
+
+该纠正补强 T-082，不改变本总单仍待真实 iPad／Android、Safari／Windows 和 Workshop 私有资料所有者完成的人工验收边界；T-097 保持 `in-progress`。

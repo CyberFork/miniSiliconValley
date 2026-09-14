@@ -1,8 +1,8 @@
 {
   "ok": true,
   "base": "https://minisv.vip/",
-  "release": "20260912T194735CST-official-wordmark-r5",
-  "themeVersion": "20260912-official-wordmark-r5",
+  "release": "20260914T102054CST-transparent-wordmark-r7",
+  "themeVersion": "20260914-transparent-wordmark-r7",
   "routes": {
     "/": {
       "320": {
@@ -12,10 +12,19 @@
           "width": 126,
           "height": 34,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "390": {
@@ -25,10 +34,19 @@
           "width": 126,
           "height": 34,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "768": {
@@ -38,10 +56,19 @@
           "width": 154,
           "height": 40,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "1440": {
@@ -51,10 +78,19 @@
           "width": 154,
           "height": 40,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       }
     },
@@ -66,10 +102,19 @@
           "width": 126,
           "height": 34,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "390": {
@@ -79,10 +124,19 @@
           "width": 126,
           "height": 34,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "768": {
@@ -92,10 +146,19 @@
           "width": 154,
           "height": 40,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "1440": {
@@ -105,10 +168,19 @@
           "width": 154,
           "height": 40,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       }
     },
@@ -120,10 +192,19 @@
           "width": 126,
           "height": 34,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "390": {
@@ -133,10 +214,19 @@
           "width": 126,
           "height": 34,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "768": {
@@ -146,10 +236,19 @@
           "width": 154,
           "height": 40,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "1440": {
@@ -159,10 +258,19 @@
           "width": 154,
           "height": 40,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       }
     },
@@ -174,10 +282,19 @@
           "width": 126,
           "height": 34,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "390": {
@@ -187,10 +304,19 @@
           "width": 126,
           "height": 34,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "768": {
@@ -200,10 +326,19 @@
           "width": 154,
           "height": 40,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "1440": {
@@ -213,10 +348,19 @@
           "width": 154,
           "height": 40,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       }
     },
@@ -228,10 +372,19 @@
           "width": 126,
           "height": 34,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "390": {
@@ -241,10 +394,19 @@
           "width": 126,
           "height": 34,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "768": {
@@ -254,10 +416,19 @@
           "width": 154,
           "height": 40,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "1440": {
@@ -267,10 +438,19 @@
           "width": 154,
           "height": 40,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       }
     },
@@ -282,10 +462,19 @@
           "width": 126,
           "height": 34,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "390": {
@@ -295,10 +484,19 @@
           "width": 126,
           "height": 34,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "768": {
@@ -308,10 +506,19 @@
           "width": 154,
           "height": 40,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "1440": {
@@ -321,10 +528,19 @@
           "width": 154,
           "height": 40,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       }
     },
@@ -336,10 +552,19 @@
           "width": 126,
           "height": 34,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "390": {
@@ -349,10 +574,19 @@
           "width": 126,
           "height": 34,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "768": {
@@ -362,10 +596,19 @@
           "width": 154,
           "height": 40,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "1440": {
@@ -375,10 +618,19 @@
           "width": 154,
           "height": 40,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       }
     },
@@ -390,10 +642,19 @@
           "width": 126,
           "height": 34,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "390": {
@@ -403,10 +664,19 @@
           "width": 126,
           "height": 34,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "768": {
@@ -416,10 +686,19 @@
           "width": 154,
           "height": 40,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       },
       "1440": {
@@ -429,10 +708,19 @@
           "width": 154,
           "height": 40,
           "naturalWidth": 1650,
-          "naturalHeight": 420
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
         },
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       }
     }

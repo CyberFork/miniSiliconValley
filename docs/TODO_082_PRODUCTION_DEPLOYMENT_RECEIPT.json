@@ -1,23 +1,25 @@
 {
   "schemaVersion": 2,
-  "receiptId": "t082-official-wordmark-production-20260912-r5",
-  "generatedAt": "2026-09-12T20:05:00+08:00",
+  "receiptId": "t082-transparent-wordmark-production-20260914-r7",
+  "generatedAt": "2026-09-14T10:35:48+08:00",
   "scope": [
-    "official MINI硅谷 wordmark across public and protected shells",
+    "official transparent MINI硅谷 wordmark across public and protected shells",
+    "no synthetic white card on React, static or Studio Editor brand images",
     "framework hydration-safe brand repair",
     "classroom runtime, controller, members and shared screen",
-    "courseware viewer and Studio/editor shells",
-    "LIVE RUN and Workshop operational surfaces"
+    "courseware viewer, Studio/editor, LIVE RUN and Workshop shells"
   ],
   "release": {
-    "id": "20260912T194735CST-official-wordmark-r5",
+    "id": "20260914T102054CST-transparent-wordmark-r7",
     "origin": "hecate",
     "canonicalOrigin": "https://minisv.vip",
-    "sourceCommit": "ead63d032f341a02046babb9f36f10f2046c4622",
-    "appBuildId": "09a58cf6-e097-4a5d-872c-e4abab4ddbd9",
-    "appSha256": "07695e110f6b9567356d95877f5bfd40de520f8cb6705597917c9f31c6ae032f",
-    "remoteArchiveSha256": "a183d3c7e8af31e20e133c63b2c5cc9a04def17afad5bec71899ad91b23792d6",
-    "previousRelease": "20260912T190236CST-official-wordmark-r4"
+    "sourceCommit": "189e7f942d409d4417be38051ecf2985143d8b01",
+    "appBuildId": "acf6bf1d-3ed3-4c5c-bb65-dd742015b871",
+    "appSha256": "07edf21cbef7f12ad9a08e71cf50f0f0e1ae3d171a0a84efacc31364feb61912",
+    "siteManifestSha256": "7d71b608a02fc021bd4874a514a7c3497d8cd590c5437f2607e4559c7c263bce",
+    "bundleManifestSha256": "a5630f81b4b1c616d75e464192e24c78b80c1ebc61839e1fa00b527f57dbc4b9",
+    "remoteArchiveSha256": "4eec560c68df082a8a5b8802ee4c1ef767b8c41fd88bcbe344ff82cbef4e3c00",
+    "previousRelease": "20260914T100935CST-transparent-wordmark-r6"
   },
   "implementation": {
     "asset": "/assets/mini-silicon-valley-logo-transparent.png",
@@ -43,33 +45,41 @@
     "courseOrClassroomTruthModified": false,
     "releaseDigestGate": true,
     "productionSmokeDigestGate": true,
-    "sharedThemeCacheVersion": "20260912-official-wordmark-r5",
-    "editorThemeCacheVersion": "official-wordmark-r5",
-    "portalCssCacheVersion": "20260912-official-wordmark-r5",
-    "staleSquareLogoCacheEvicted": true
+    "sharedThemeCacheVersion": "20260914-transparent-wordmark-r7",
+    "editorThemeCacheVersion": "transparent-wordmark-r7",
+    "portalCssCacheVersion": "20260914-transparent-wordmark-r7",
+    "staleSquareLogoCacheEvicted": true,
+    "nativePngAlphaChannel": true,
+    "syntheticImageBackground": false,
+    "syntheticImageBorder": false,
+    "syntheticImagePadding": false,
+    "reactSharedThemeFixed": true,
+    "staticSharedThemeFixed": true,
+    "studioEditorThemeFixed": true,
+    "staleWhiteCardCacheEvicted": true
   },
   "validation": {
-    "npmTest": "54/54 passed",
+    "npmTest": "55/55 passed",
     "coursePlatform": "163/163 passed",
     "deploymentUnitTests": "53/53 passed",
-    "brandContract": "6/6 passed",
-    "studioEditorBrowser": "passed at 430/768/1180/1440; no horizontal overflow",
-    "isolatedClassroomBrowser": "13-block runtime passed; classroom, screen and courseware shell brand links passed; 390px no overflow",
-    "isolatedProtectedShellBrowser": "Studio, Classroom, Course and Account official wordmark passed with synthetic D1 accounts",
-    "publicIaBrowser": "homepage and Workshop archive passed at desktop/mobile",
-    "productionPublicBrowser": "8 routes × 4 viewports passed; official wordmark, r5 theme cache key, 1650x420 bytes and keyboard current-tab navigation passed",
-    "productionAuthenticatedBrowser": "10 protected/application routes passed with r5 theme cache key; 0 page errors; 0 non-navigation request failures; 390px classroom/account no overflow",
-    "hecateHealth": "MINISV_HECATE_HEALTHY",
+    "brandContract": "7/7 passed; React, static and Studio Editor theme copies covered",
+    "productionPublicBrowser": "8 routes × 4 viewports passed; transparent image background, zero border/padding, no overflow, r7 theme and keyboard current-tab navigation",
+    "productionAuthenticatedBrowser": "10 protected/application routes passed including Studio Editor; transparent image background, zero border/padding, 0 page errors, 0 request failures",
+    "productionStudioEditorScreenshot": "transparent wordmark header captured at 1440px",
+    "hecateHealth": "200; MINISV_HECATE_HEALTHY",
     "publicSmoke": "MINISV_PUBLIC_SMOKE_OK",
-    "productionCacheBust": "homepage portal.css plus shared UI CSS/JS and Studio editor theme CSS/JS all use new immutable r5 query keys; no current shell references 20260908-10"
+    "productionCacheBust": "homepage portal, shared UI CSS/JS and Studio Editor CSS/JS use immutable r7 keys",
+    "r6ProtectiveFinding": "authenticated production check caught the omitted Studio Editor theme copy; r7 fixed it before final delivery"
   },
   "evidence": [
     "docs/qa/t082-shared-brand-home/production-public-browser.json",
     "docs/qa/t082-shared-brand-home/production-authenticated-browser.json",
     "docs/qa/t082-shared-brand-home/brand-home-390.png",
+    "docs/qa/t082-shared-brand-home/brand-home-1440.png",
     "docs/qa/t082-shared-brand-home/brand-framework-390.png",
     "docs/qa/t082-shared-brand-home/brand-register-390.png",
-    "docs/qa/t082-shared-brand-home/brand-404-390.png"
+    "docs/qa/t082-shared-brand-home/brand-404-390.png",
+    "docs/qa/t082-shared-brand-home/brand-studio-editor-header-1440.png"
   ],
   "safety": {
     "productionAuthenticationSessionOnly": true,

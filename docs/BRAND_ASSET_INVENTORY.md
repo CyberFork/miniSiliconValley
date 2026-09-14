@@ -13,8 +13,8 @@
 ## 实现边界
 
 - React 页面统一使用 `BrandHomeLink`，静态页面统一使用 `.msv-static-brand`。
-- 字标保持原比例并使用 `object-fit: contain`；深色界面使用白色安全底，不使用滤镜改色。
-- 桌面完整字标外框为 `154 × 40`；紧凑入口为 `126 × 34`；窄屏紧凑入口为 `112 × 34`。
+- 字标保持原比例并使用 `object-fit: contain`；直接使用 PNG 原生透明通道叠加页面背景，禁止再添加白色矩形、边框、内边距或滤镜伪造对比度。
+- 桌面完整字标渲染框为 `154 × 40`；紧凑入口为 `126 × 34`；窄屏紧凑入口为 `112 × 34`。渲染框透明，不是可见卡片。
 - 左上角品牌入口必须是原生 `<a href="/">`，辅助名称固定为“返回 Mini Silicon Valley 主页”，支持鼠标、键盘和触摸。
 - 上下文名称（课堂名、Course Studio、家长服务台等）可显示在字标旁；不得重复写一个肉眼相同的“MINI硅谷”假字标。
 - `/courseware/*` 下已经发布的 P／D／M 导师课件是不可变 bundle，不注入或重写。它们自身已有的品牌属于课件原始字节。
@@ -38,8 +38,8 @@ node deploy/minisv/tests/test_ui_theme_runtime.mjs
 npm run test:t109:browser
 npm run test:t106-t107:browser
 MSV_APP_URL=https://minisv.vip/ \
-  MSV_EXPECTED_RELEASE=20260912T194735CST-official-wordmark-r5 \
-  MSV_EXPECTED_THEME_VERSION=20260912-official-wordmark-r5 \
+  MSV_EXPECTED_RELEASE=20260914T102054CST-transparent-wordmark-r7 \
+  MSV_EXPECTED_THEME_VERSION=20260914-transparent-wordmark-r7 \
   MSV_QA_ARTIFACT_DIR=docs/qa/t082-shared-brand-home \
   python3 tools/live-run/tests/verify_brand_browser.py
 ```
@@ -48,4 +48,4 @@ MSV_APP_URL=https://minisv.vip/ \
 
 ## 缓存更新规则
 
-正式字标本身使用固定摘要；任何改变字标尺寸、容器或水合修复逻辑的 CSS／JS 发布，都必须同步推进静态页、应用代理和 Studio Editor 的资源查询版本。当前生产键为 `20260912-official-wordmark-r5`（编辑器短键 `official-wordmark-r5`）。禁止仅覆盖同一路径后要求用户强制刷新，因为旧浏览器和 CDN 仍可能在缓存期内套用方形 Logo 规则。
+正式字标本身使用固定摘要；任何改变字标尺寸、容器或水合修复逻辑的 CSS／JS 发布，都必须同步推进静态页、应用代理和 Studio Editor 的资源查询版本。当前生产键为 `20260914-transparent-wordmark-r7`（编辑器短键 `transparent-wordmark-r7`）。禁止仅覆盖同一路径后要求用户强制刷新，因为旧浏览器和 CDN 仍可能在缓存期内套用方形 Logo 或白色卡片规则。

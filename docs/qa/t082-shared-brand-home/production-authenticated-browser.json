@@ -3,8 +3,8 @@
   "base": "https://minisv.vip",
   "accountRole": "mentor",
   "secretsRecorded": false,
-  "release": "20260912T194735CST-official-wordmark-r5",
-  "themeVersion": "20260912-official-wordmark-r5",
+  "release": "20260914T102054CST-transparent-wordmark-r7",
+  "themeVersion": "20260914-transparent-wordmark-r7",
   "routes": {
     "/account/": {
       "viewport": [
@@ -24,8 +24,21 @@
         "rootWidth": 390,
         "bodyWidth": 390,
         "viewportWidth": 390,
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       }
     },
@@ -47,8 +60,21 @@
         "rootWidth": 1440,
         "bodyWidth": 1440,
         "viewportWidth": 1440,
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       }
     },
@@ -70,8 +96,21 @@
         "rootWidth": 1440,
         "bodyWidth": 1440,
         "viewportWidth": 1440,
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       }
     },
@@ -93,8 +132,21 @@
         "rootWidth": 1440,
         "bodyWidth": 1440,
         "viewportWidth": 1440,
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       }
     },
@@ -116,8 +168,21 @@
         "rootWidth": 1440,
         "bodyWidth": 1440,
         "viewportWidth": 1440,
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       }
     },
@@ -139,8 +204,21 @@
         "rootWidth": 390,
         "bodyWidth": 390,
         "viewportWidth": 390,
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       }
     },
@@ -162,8 +240,21 @@
         "rootWidth": 1440,
         "bodyWidth": 1440,
         "viewportWidth": 1440,
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       }
     },
@@ -185,8 +276,21 @@
         "rootWidth": 1440,
         "bodyWidth": 1440,
         "viewportWidth": 1440,
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       }
     },
@@ -208,8 +312,21 @@
         "rootWidth": 1440,
         "bodyWidth": 1440,
         "viewportWidth": 1440,
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       }
     },
@@ -231,8 +348,21 @@
         "rootWidth": 1440,
         "bodyWidth": 1440,
         "viewportWidth": 1440,
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "border": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
+        "padding": [
+          "0px",
+          "0px",
+          "0px",
+          "0px"
+        ],
         "theme": [
-          "/ui-theme.css?v=20260912-official-wordmark-r5"
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
         ]
       }
     }
