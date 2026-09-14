@@ -89,7 +89,7 @@ def exercise(context, base: str, viewport_name: str, artifacts: Path) -> None:
     page.locator('[data-mode="挖空"]').click()
     page.locator("#confirmPracticeBtn").click()
     expect(page.locator("#practiceSessionModal.open")).to_be_visible()
-    expect(page.locator("#sessionBody")).to_contain_text("至若")
+    expect(page.locator("#sessionBody")).to_contain_text("填回重点词语")
     assert_no_overflow(page, f"{viewport_name}:recitation")
     page.screenshot(path=str(artifacts / f"{viewport_name}-recitation.png"), full_page=False)
 
