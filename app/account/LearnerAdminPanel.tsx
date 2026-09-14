@@ -209,7 +209,7 @@ function DeleteDialog({ learner, onClose, onChanged }: DialogProps & { learner: 
     {preview && !preview.deletable && <div className={styles.formError}><b>不能删除，必须保留历史证据：</b><ul>{preview.blockers.map((blocker) => <li key={blocker.code}>{blocker.label} · {blocker.count} 项</li>)}</ul><span>可以取消后将账号状态改为“停用”。</span></div>}
     {preview?.deletable && <><div className={styles.deleteWarning}>该账号没有历史依赖，可以永久删除。删除后旧 ID 不会交给新学员。</div><label className={styles.field}><span className={styles.fieldLabel}>输入登录账号确认</span><input ref={firstField} value={confirm} onChange={(event) => setConfirm(event.target.value)} placeholder={learner.username} autoComplete="off" /></label></>}
     {error && <div className={styles.formError} role="alert">{error}</div>}
-    <div className={styles.dialogActions}><button className={styles.secondaryButton} type="button" onClick={onClose} disabled={busy}>取消</button><button className={styles.dangerButton} disabled={busy || !preview?.deletable || confirm !== learner.username}>永久删除账号</button></div>
+    <div className={styles.dialogActions}><button className={styles.secondaryButton} type="button" onClick={onClose} disabled={busy}>取消</button><button className={styles.dangerButton} type="submit" disabled={busy || !preview?.deletable || confirm !== learner.username}>永久删除账号</button></div>
   </form></Dialog>;
 }
 
@@ -218,7 +218,7 @@ function Dialog({ title, eyebrow, onClose, busy, children }: { title: string; ey
 }
 
 function DialogActions({ busy, onClose, primary, danger = false }: { busy: boolean; onClose: () => void; primary: string; danger?: boolean }) {
-  return <div className={styles.dialogActions}><button className={styles.secondaryButton} type="button" onClick={onClose} disabled={busy}>取消</button><button className={danger ? styles.dangerButton : styles.primaryButton} disabled={busy}>{busy ? "正在处理…" : primary}</button></div>;
+  return <div className={styles.dialogActions}><button className={styles.secondaryButton} type="button" onClick={onClose} disabled={busy}>取消</button><button className={danger ? styles.dangerButton : styles.primaryButton} type="submit" disabled={busy}>{busy ? "正在处理…" : primary}</button></div>;
 }
 
 type DialogProps = { onClose: () => void; onChanged: (message: string) => Promise<void> };

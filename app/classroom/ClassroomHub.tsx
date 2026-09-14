@@ -876,7 +876,7 @@ function FactoryCreateLearnerDialog({ seat, onClose, onCreated }: { seat: number
       <label>一次性初始密码<input type="password" value={initialPassword} onChange={(event) => setInitialPassword(event.target.value)} minLength={12} maxLength={128} autoComplete="new-password" required /><small>至少 12 个字符；创建后不会再次显示。</small></label>
       <label>Admin 备注（可选）<textarea value={adminNotes} onChange={(event) => setAdminNotes(event.target.value.slice(0, 500))} maxLength={500} placeholder="仅平台 Admin 可见；不要填写密码" /></label>
       {error && <div className={styles.localError} role="alert">{error}</div>}
-      <div className={styles.dialogActions}><button className={styles.secondary} type="button" onClick={onClose} disabled={busy}>取消，保留课堂配置</button><button className={styles.button} disabled={busy}>{busy ? "正在创建…" : "创建并回填当前席位"}</button></div>
+      <div className={styles.dialogActions}><button className={styles.secondary} type="button" onClick={onClose} disabled={busy}>取消，保留课堂配置</button><button className={styles.button} type="submit" disabled={busy}>{busy ? "正在创建…" : "创建并回填当前席位"}</button></div>
     </form>
   </section></div>;
 }

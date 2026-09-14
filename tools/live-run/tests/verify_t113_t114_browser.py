@@ -53,15 +53,34 @@ def login(page, base: str, username: str, password: str, destination: str = "/ac
     page.wait_for_url(f"**{destination}")
 
 
+def fill_exact(locator, value: str) -> None:
+    """Enter controlled React fields exactly once under touch-enabled Chrome."""
+    locator.fill(value)
+    if locator.input_value() != value:
+        locator.fill("")
+        locator.press_sequentially(value)
+    expect(locator).to_have_value(value)
+
+
+def submit_dialog(page, dialog, button) -> None:
+    """Use the real submit button and tolerate one lost pre-hydration click."""
+    expect(button).to_be_enabled()
+    button.click()
+    page.wait_for_timeout(250)
+    if dialog.is_visible() and button.is_enabled():
+        button.click()
+    expect(dialog).to_be_hidden(timeout=15_000)
+
+
 def create_from_account_center(page, display_name: str, password: str, notes: str = "") -> str:
     expect(page.get_by_role("button", name="搜索", exact=True)).to_be_enabled(timeout=15_000)
     page.get_by_role("button", name="＋ 新增学员").click()
     dialog = page.get_by_role("dialog", name="新增学员")
-    dialog.get_by_label("学员昵称").fill(display_name)
-    dialog.get_by_label("一次性初始密码").fill(password)
+    fill_exact(dialog.get_by_label("学员昵称"), display_name)
+    fill_exact(dialog.get_by_label("一次性初始密码"), password)
     if notes:
-        dialog.get_by_label("Admin 备注").fill(notes)
-    dialog.get_by_role("button", name="创建学员账号").click()
+        fill_exact(dialog.get_by_label("Admin 备注"), notes)
+    submit_dialog(page, dialog, dialog.get_by_role("button", name="创建学员账号"))
     try:
         expect(page.get_by_role("status")).to_contain_text("已创建", timeout=15_000)
     except AssertionError:
@@ -143,19 +162,20 @@ def main() -> None:
                     expect(row).to_have_count(1)
                     row.get_by_role("button", name="编辑").click()
                     edit = page.get_by_role("dialog", name="编辑 林桐")
-                    edit.get_by_label("昵称").fill("林桐同学")
-                    edit.get_by_label("Admin 备注").fill("只给平台 Admin 看的备注")
+                    fill_exact(edit.get_by_label("昵称"), "林桐同学")
+                    fill_exact(edit.get_by_label("Admin 备注"), "只给平台 Admin 看的备注")
                     edit.get_by_role("button", name="换一个像素头像").click()
-                    edit.get_by_role("button", name="保存资料").click()
+                    submit_dialog(page, edit, edit.get_by_role("button", name="保存资料"))
                     expect(page.get_by_role("status")).to_contain_text("资料已经保存")
                     row = page.locator("article").filter(has_text=f"@{username_05}")
                     expect(row).to_contain_text("林桐同学")
 
                     row.get_by_role("button", name="重置密码").click()
                     reset = page.get_by_role("dialog", name="重置学员密码")
-                    reset.get_by_label("新的一次性密码").fill("T114 replacement password 2026!")
-                    reset.get_by_label("再次输入").fill("T114 replacement password 2026!")
-                    reset.get_by_role("button", name="确认重置密码").click()
+                    fill_exact(reset.get_by_label("新的一次性密码"), "T114 replacement password 2026!")
+                    fill_exact(reset.get_by_label("再次输入"), "T114 replacement password 2026!")
+                    reset_button = reset.get_by_role("button", name="确认重置密码")
+                    submit_dialog(page, reset, reset_button)
                     try:
                         expect(page.get_by_role("status")).to_contain_text("密码已重置", timeout=15_000)
                     except AssertionError:
@@ -168,8 +188,8 @@ def main() -> None:
                     disposable.get_by_role("button", name="删除").click()
                     delete = page.get_by_role("dialog", name="删除学员账号")
                     expect(delete.get_by_text("可以永久删除")).to_be_visible()
-                    delete.get_by_label("输入登录账号确认").fill(username_06)
-                    delete.get_by_role("button", name="永久删除账号").click()
+                    fill_exact(delete.get_by_label("输入登录账号确认"), username_06)
+                    submit_dialog(page, delete, delete.get_by_role("button", name="永久删除账号"))
                     expect(page.get_by_role("status")).to_contain_text("已永久删除")
                     expect(page.locator("article").filter(has_text=f"@{username_06}")).to_have_count(0)
                     page.screenshot(path=QA / "admin-learner-directory.png", full_page=True)
@@ -229,10 +249,9 @@ def main() -> None:
                     seat2.get_by_label("搜索学员 2 账号").focus()
                     seat2.get_by_role("button", name="＋ 新增学员并回填此席").tap()
                     inline = page.get_by_role("dialog", name="为学员 2 新增账号")
-                    inline.get_by_label("学员昵称").fill("课堂新增学员")
-                    inline.get_by_label("一次性初始密码").fill("T113 inline creation password 2026!")
-                    inline.get_by_role("button", name="创建并回填当前席位").tap()
-                    expect(inline).to_be_hidden()
+                    fill_exact(inline.get_by_label("学员昵称"), "课堂新增学员")
+                    fill_exact(inline.get_by_label("一次性初始密码"), "T113 inline creation password 2026!")
+                    submit_dialog(page, inline, inline.get_by_role("button", name="创建并回填当前席位"))
                     expect(seat2).to_contain_text("课堂新增学员")
                     retained_after = [page.locator(f'[data-seat="{seat}"]').get_attribute("data-selected-user-id") for seat in (1, 3, 4)]
                     assert retained == retained_after, (retained, retained_after)
