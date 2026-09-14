@@ -2,7 +2,7 @@
 type: todo
 id: T-121
 title: "Admin 学员管理多选与安全批量删除"
-status: in-progress
+status: completed
 created: 2026-09-14
 updated: 2026-09-14
 captured_by: project-inbox
@@ -28,10 +28,19 @@ tags: [todo, admin, learners, multi-select, bulk-delete, safety, account-center]
 
 ## 验收
 
-- [ ] 从 `/account/` 的“学员管理”可以勾选多个学员并一次删除。
-- [ ] 本页全选、取消、跨搜索／分页选择和已选数量显示正确。
-- [ ] 删除弹窗完整展示可删除与保留账号，二次确认未完成时不能提交。
-- [ ] 无依赖账号真实删除；有历史依赖账号保留并说明原因。
-- [ ] 非 Admin 的 UI 和 API 均不能执行批量删除。
-- [ ] 隔离 D1 单元和真实浏览器链路通过，生产只做非破坏性入口复验。
-- [ ] 完成构建、部署、生产复验和交付记录后再标记完成。
+- [x] 从 `/account/` 的“学员管理”可以勾选多个学员并一次删除。
+- [x] 本页全选、取消、跨搜索／分页选择和已选数量显示正确。
+- [x] 删除弹窗完整展示可删除与保留账号，二次确认未完成时不能提交。
+- [x] 无依赖账号真实删除；有历史依赖账号保留并说明原因。
+- [x] 非 Admin 的 UI 和 API 均不能执行批量删除。
+- [x] 隔离 D1 单元和真实浏览器链路通过，生产只做非破坏性入口复验。
+- [x] 完成构建、部署、生产复验和交付记录后再标记完成。
+
+## 2026-09-14 交付记录
+
+- 列表支持单行、本页、跨搜索／分页选择，持续显示选中数量；键盘、鼠标和触摸使用同一原生 checkbox 语义。
+- 新增 Admin-only 批量预览／删除 API。一次聚合检查课堂、作品、学习、声望、资金和验收依赖；提交前重新检查，并保留所有有历史证据的账号。
+- 删除弹窗分列展示“可永久删除”和“因历史记录保留”，按实时可删除数量校验一次确认文字；错误数量不会发生任何删除。
+- 隔离 D1 单元 5／5、完整课程平台 169／169、部署单元 53／53、真实浏览器 CRUD／多选／批量删除链路通过。
+- 已部署 `20260914T130841CST-t121-bulk-delete-r1`，源码 `5a252a05d06eb58a73ff143d4b914b237c0e56fb`；生产只完成 Admin 登录、目录读取、路由安全和登出复验，没有删除或修改真实学员。
+- 详细证据：`docs/TODO_121_PRODUCTION_DEPLOYMENT_RECEIPT.json`、`docs/qa/t113-t114-learner-accounts/browser-receipt.json`、`docs/qa/t113-t114-learner-accounts/bulk-delete-confirmation.png`。

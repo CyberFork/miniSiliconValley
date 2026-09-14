@@ -1,0 +1,39 @@
+{
+  "ok": true,
+  "todo": "T-121",
+  "deployedAt": "2026-09-14T13:15:00+08:00",
+  "release": {
+    "id": "20260914T130841CST-t121-bulk-delete-r1",
+    "sourceCommit": "5a252a05d06eb58a73ff143d4b914b237c0e56fb",
+    "previousRelease": "20260914T120648CST-t113-t114-r1",
+    "archiveSha256": "a758925e7647e05df56cf93d9c675910a547a1d67769fb00b43a66259737e587",
+    "canonicalOrigin": "https://minisv.vip"
+  },
+  "validation": {
+    "typecheck": "passed",
+    "lint": "passed",
+    "adminLearnerUnitTests": "5/5 passed",
+    "coursePlatformTests": "169/169 passed",
+    "deploymentUnitTests": "53/53 passed",
+    "applicationBuild": "passed",
+    "browserFlow": "real multi-select, preview, confirmation and batch deletion passed on isolated D1",
+    "productionHealth": "passed"
+  },
+  "productionVerification": {
+    "releaseIdentity": "passed",
+    "adminAccountPage": 200,
+    "adminLearnerDirectory": 200,
+    "bulkDeleteGetSafety": 405,
+    "logout": 200
+  },
+  "safety": {
+    "maxSelection": 50,
+    "platformAdminOnly": true,
+    "serverSideDependencyPreview": true,
+    "dependencyRecheckBeforeEachDelete": true,
+    "historyBearingAccountsRetained": true,
+    "isolatedD1UsedForDestructiveTest": true,
+    "productionLearnerMutationPerformed": false,
+    "credentialsRecordedInReceipt": false
+  }
+}
