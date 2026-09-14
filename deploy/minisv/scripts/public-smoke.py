@@ -15,10 +15,14 @@ EXPECTED = {
     "/world-preview.json": 200,
     "/world/": 200,
     "/course/": 307,
-    "/studio/": 307,
+    "/studio/": 308,
+    "/console/": 307,
+    "/terminal/": 307,
     "/courseware/product-mentor-foundations/": 401,
     "/courseware/product-mentor-foundations/r1/": 401,
     "/courseware/development-mentor-ligun/": 401,
+    "/courseware/development-mentor-module-thinking/audience/": 401,
+    "/courseware/development-mentor-module-thinking/teacher/presenter.html": 401,
     "/courseware/market-mentor-user-system/": 401,
     "/course/development-mentor-ligun/?revision=0&slide=6&step=2": 307,
     "/framework/": 200,
@@ -53,6 +57,8 @@ COURSEWARE_MARKERS = {
     "/courseware/product-mentor-foundations/": ("青少年AI创业营", "MINI硅谷"),
     "/courseware/product-mentor-foundations/r1/": ("青少年AI创业营", "MINI硅谷"),
     "/courseware/development-mentor-ligun/": ("先立棍，再让 AI 跑", "DEVELOPMENT MENTOR"),
+    "/courseware/development-mentor-module-thinking/audience/": ("模块思维", "先拆块，再协作"),
+    "/courseware/development-mentor-module-thinking/teacher/presenter.html": ("教师控制", "硅谷币"),
     "/courseware/market-mentor-user-system/": ("产品的用户体系", "USER SYSTEM"),
 }
 MAX_UNAUTHORIZED_BODY_BYTES = 1024
@@ -99,6 +105,8 @@ def main() -> None:
             raise SystemExit(f"FAIL {path}: response did not originate at Hecate")
         if path == "/auth/login" and headers.get("location") != "/auth/login/":
             raise SystemExit("FAIL /auth/login: canonical trailing-slash redirect is invalid")
+        if path == "/studio/" and headers.get("location") != "/console/":
+            raise SystemExit("FAIL /studio/: legacy Studio must migrate to /console/")
         if path in {"/workshop/", "/workshop/confirmed-baseline.json"}:
             location = headers.get("location", "")
             target = urlsplit(location)
@@ -147,12 +155,24 @@ def main() -> None:
                 raise SystemExit("FAIL release.json: D-mentor courseware artifact was transformed or misclassified")
             if development.get("sha256") != "ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234":
                 raise SystemExit("FAIL release.json: D-mentor courseware digest is not the accepted T-093 tree")
+            module_thinking = release.get("moduleThinkingCoursewareArtifact", {})
+            if (
+                module_thinking.get("transformed") is not False
+                or module_thinking.get("mentorRole") != "D"
+                or module_thinking.get("route") != "/courseware/development-mentor-module-thinking/audience/"
+                or module_thinking.get("teacherRoute") != "/courseware/development-mentor-module-thinking/teacher/presenter.html"
+                or module_thinking.get("teacherAuthorization") != "server-side-admin-or-mentor"
+                or module_thinking.get("sha256") != "939a016bc645b37fe96ef0411b5d4c57634019f8c11d112a2a1b965aa8c0737b"
+                or module_thinking.get("audienceFiles") != 8
+                or module_thinking.get("teacherFiles") != 8
+            ):
+                raise SystemExit("FAIL release.json: T-122 split courseware identity or authorization is invalid")
             market = release.get("marketCoursewareArtifact", {})
             if market.get("transformed") is not False or market.get("mentorRole") != "M":
                 raise SystemExit("FAIL release.json: M-mentor courseware artifact was transformed or misclassified")
             if market.get("sha256") != "48b01a256bd3d408a5d539f798470e6aad0058a19dcdeb8b5d212b0e64add862":
                 raise SystemExit("FAIL release.json: M-mentor courseware digest is not the accepted user-system tree")
-            for feature in ("shared-brand-home", "official-brand-wordmark", "released-workshop-snapshot", "read-only-workshop-history-archive", "unified-course-factory", "course-studio", "versioned-product-manager-courseware"):
+            for feature in ("shared-brand-home", "official-brand-wordmark", "released-workshop-snapshot", "read-only-workshop-history-archive", "unified-course-factory", "course-studio", "versioned-product-manager-courseware", "split-module-thinking-courseware", "mentor-protected-teacher-courseware"):
                 if feature not in release.get("features", []):
                     raise SystemExit(f"FAIL release.json: missing {feature}")
         if path == "/world-preview.json":
