@@ -18,7 +18,7 @@ class GatewayContractTests(unittest.TestCase):
     def test_every_public_route_has_an_explicit_owner(self) -> None:
         for route in ("world", "alpha", "control", "framework", "parents", "workshop"):
             self.assertRegex(self.gateway, rf"location[^\n]* /{route}(?:[ /{{])")
-        self.assertIn("^/(studio|console|terminal|course|classroom|account|u)", self.gateway)
+        self.assertIn("^/(studio|console|terminal|course|classroom|account|u|homework)", self.gateway)
         self.assertIn("/courseware/product-mentor-foundations/", self.gateway)
         self.assertIn("/courseware/development-mentor-ligun/", self.gateway)
         self.assertIn("/courseware/development-mentor-module-thinking/", self.gateway)
@@ -76,7 +76,7 @@ class GatewayContractTests(unittest.TestCase):
         self.assertNotIn("/msv/demo/app", self.proxy)
         self.assertIn("proxy_set_header Host minisv.vip", self.proxy)
         self.assertIn("proxy_set_header X-Forwarded-Host minisv.vip", self.proxy)
-        route = re.search(r"location ~ \^/\(studio\|console\|terminal\|course\|classroom\|account\|u\)\(/\.\*\)\?\$ \{(.*?)\n    \}", self.gateway, re.DOTALL)
+        route = re.search(r"location ~ \^/\(studio\|console\|terminal\|course\|classroom\|account\|u\|homework\)\(/\.\*\)\?\$ \{(.*?)\n    \}", self.gateway, re.DOTALL)
         self.assertIsNotNone(route)
         self.assertIn("set $app_path $uri;", route.group(1))
         self.assertNotIn("set $app_path /$1;", route.group(1))
@@ -84,6 +84,15 @@ class GatewayContractTests(unittest.TestCase):
     def test_upstream_receives_the_real_browser_origin_for_csrf_validation(self) -> None:
         self.assertIn("proxy_set_header Origin $http_origin;", self.proxy)
         self.assertNotIn("proxy_set_header Origin https://minisv.vip;", self.proxy)
+
+    def test_public_homework_has_page_and_api_owners_without_auth_gate(self) -> None:
+        self.assertIn("|homework)(/.*)?$", self.gateway)
+        route = re.search(r"location \^~ /api/public/homework/ \{(.*?)\n    \}", self.gateway, re.DOTALL)
+        self.assertIsNotNone(route)
+        self.assertIn("client_max_body_size 1300k;", route.group(1))
+        self.assertIn("set $app_path $uri;", route.group(1))
+        self.assertIn("app-proxy.conf", route.group(1))
+        self.assertNotIn("auth_request", route.group(1))
 
     def test_public_site_semantics_and_private_workshop_boundary(self) -> None:
         site = ROOT / "site"

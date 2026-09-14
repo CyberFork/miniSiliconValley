@@ -37,6 +37,8 @@ probe /course/ 307
 probe /studio/ 308
 probe /console/ 307
 probe /terminal/ 307
+probe /homework/first-game/ 200
+probe /homework/first-game/submissions/ 200
 probe /courseware/product-mentor-foundations/ 401
 probe /courseware/development-mentor-ligun/ 401
 probe /courseware/development-mentor-module-thinking/audience/ 401
@@ -47,6 +49,7 @@ probe /parents/ 200
 probe /robots.txt 200
 probe /sitemap.xml 200
 probe /api/public/courses 200
+probe /api/public/homework/first-game/submissions 200
 probe /api/qa 200
 # The review endpoint is loopback-only and must never be a public route.
 probe /internal/knowledge-gaps 404

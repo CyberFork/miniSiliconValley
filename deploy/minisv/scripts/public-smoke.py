@@ -18,6 +18,8 @@ EXPECTED = {
     "/studio/": 308,
     "/console/": 307,
     "/terminal/": 307,
+    "/homework/first-game/": 200,
+    "/homework/first-game/submissions/": 200,
     "/courseware/product-mentor-foundations/": 401,
     "/courseware/product-mentor-foundations/r1/": 401,
     "/courseware/development-mentor-ligun/": 401,
@@ -39,6 +41,7 @@ EXPECTED = {
     "/healthz": 200,
     "/release.json": 200,
     "/api/public/courses": 200,
+    "/api/public/homework/first-game/submissions": 200,
     "/robots.txt": 200,
     "/sitemap.xml": 200,
     "/favicon.svg": 200,
@@ -212,6 +215,11 @@ def main() -> None:
             for forbidden in ('"mentorScript"', '"privateCards"', '"decks"', '"reviewQueue"', '"contentPackages"', '"sources"', '"fieldModel"'):
                 if forbidden in serialized:
                     raise SystemExit(f"FAIL public course catalog: leaked {forbidden}")
+        if path == "/api/public/homework/first-game/submissions":
+            envelope = json.loads(body)
+            data = envelope.get("data") if envelope.get("ok") is True else None
+            if not isinstance(data, dict) or not isinstance(data.get("submissions"), list):
+                raise SystemExit("FAIL public homework list: invalid response envelope")
         if path in {"/", "/world/", "/framework/", "/parents/"}:
             if headers.get("x-robots-tag") != "index, follow":
                 raise SystemExit(f"FAIL {path}: public page is not indexable")
