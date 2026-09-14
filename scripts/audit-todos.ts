@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
 export type TodoIssue = { file: string; message: string };
 export type TodoRecord = { id: string; title: string; status: string; file: string; unchecked: number };
@@ -39,7 +40,7 @@ export function auditTodos(dir = join(process.cwd(), ".codex/inbox/todos")) {
   return { records, issues, unfinished: records.filter((r) => r.status !== "completed"), warnings: records.filter((r) => r.status === "completed" && r.unchecked > 0) };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const result = auditTodos();
   const json = process.argv.includes("--json");
   if (json) console.log(JSON.stringify(result, null, 2));
