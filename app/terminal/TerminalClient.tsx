@@ -33,7 +33,7 @@ const APPS: Array<{ id: TerminalAppId; label: string; caption: string; glyph: st
   { id: "courses", label: "我的课程", caption: "课堂与只读课件", glyph: "▶" },
   { id: "wallet", label: "我的钱包", caption: "余额与可追溯流水", glyph: "C", learner: true },
   { id: "shop", label: "在线商店", caption: "装饰预览与兑换", glyph: "◇", learner: true },
-  { id: "homework", label: "课后作业", caption: "接口已预留", glyph: "✎", learner: true },
+  { id: "homework", label: "课后作业", caption: "我的第一款游戏", glyph: "✎", learner: true },
   { id: "games", label: "游戏中心", caption: "内容后续开放", glyph: "＋", learner: true },
   { id: "grants", label: "导师发币", caption: "人工奖励与纠错", glyph: "+C", staff: true },
 ];
@@ -104,7 +104,8 @@ export default function TerminalClient({ initialApp, initialUser }: { initialApp
             {app === "space" && isLearner && <SpaceApp data={data} busy={busy} onBusy={setBusy} onNotice={setNotice} onRefresh={refresh} />}
             {app === "wallet" && isLearner && <WalletApp data={data} busy={busy} onBusy={setBusy} onNotice={setNotice} onRefresh={refresh} />}
             {app === "shop" && isLearner && <ShopApp data={data} busy={busy} onBusy={setBusy} onNotice={setNotice} onRefresh={refresh} />}
-            {(app === "homework" || app === "games") && isLearner && <PlaceholderApp app={app} />}
+            {app === "homework" && isLearner && <HomeworkApp />}
+            {app === "games" && isLearner && <PlaceholderApp />}
             {app === "grants" && isStaff && <GrantApp busy={busy} onBusy={setBusy} onNotice={setNotice} />}
           </> : null}
         </section>
@@ -229,8 +230,12 @@ function PublicRoom({ space }: { space: TerminalPublicSpace }) {
   return <section className={styles.pixelRoom} data-space-item={item ?? "none"}><div className={styles.roomWindow}><span /><span /><span /></div><div className={styles.roomAvatar}><PixelAvatar seed={space.avatarSeed} label={space.displayName} size="large" /><b>{space.displayName}</b><small>@{space.studentId}</small></div><div className={styles.roomDesk}><span>⌨</span><b>{space.projectTitle || "作品工作台"}</b><small>{space.projectSummary || "公开作品将在这里展示"}</small></div><div className={styles.roomWall}><b>创意墙</b><span>{space.intro || "我正在学习把问题变成可以行动的方案。"}</span></div><div className={styles.roomTeam}><b>{space.teamName || "团队展位"}</b><span>{space.contribution || "团队与个人贡献会明确标注"}</span></div><div className={styles.roomItem} aria-label={item ? "已装备空间装饰" : "空装饰位"}>{item === "space-moon-rocket" ? "🚀" : item === "space-pixel-plant" ? "🌱" : "＋"}</div></section>;
 }
 
-function PlaceholderApp({ app }: { app: "homework" | "games" }) {
-  return <div className={styles.placeholder}><span>{app === "games" ? "＋" : "✎"}</span><small>{app === "games" ? "GAME CENTER" : "HOMEWORK CONNECTOR"}</small><h2>{app === "games" ? "游戏内容后续开放" : "课后作业接口已预留"}</h2><p>{app === "games" ? "这里现在只有稳定入口，不会擅自添加游戏、抽奖或自动奖励。" : "后续会接入明确发放的学习任务；当前不把 T-119 问卷系统伪装成已经完成。"}</p><button type="button" disabled>尚未开放</button></div>;
+function HomeworkApp() {
+  return <div className={styles.placeholder}><span>✎</span><small>OPEN HOMEWORK · NO LOGIN</small><h2>我的第一款游戏</h2><p>用短句、表格和作品图片讲清楚你的游戏。可以只填一部分，也可以重复提交；每次都会保存为独立记录。填写页和查看页都无需登录，请只使用昵称，不要填写敏感资料。</p><a href={publicPath("/homework/first-game/")}>打开作业表单 →</a><a href={publicPath("/homework/first-game/submissions/")}>查看公开提交</a></div>;
+}
+
+function PlaceholderApp() {
+  return <div className={styles.placeholder}><span>＋</span><small>GAME CENTER</small><h2>游戏内容后续开放</h2><p>这里现在只有稳定入口，不会擅自添加游戏、抽奖或自动奖励。</p><button type="button" disabled>尚未开放</button></div>;
 }
 
 function TerminalLoading() { return <div className={styles.loading} role="status"><span /><p>正在校验账号、课堂、课件与资产边界…</p></div>; }

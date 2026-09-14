@@ -1378,3 +1378,27 @@ export const learnerPublicSpaces = sqliteTable(
     check("chk_learner_public_space_contribution", sql`length(${table.contribution}) <= 240`),
   ],
 );
+
+/** Public T-119 form. Self-reported identity and answers are intentionally
+ * isolated from accounts, classrooms, wallets and learner public spaces. */
+export const homeworkFirstGameSubmissions = sqliteTable(
+  "homework_first_game_submissions",
+  {
+    id: text("id").primaryKey(),
+    respondentNickname: text("respondent_nickname").notNull().default(""),
+    respondentNote: text("respondent_note").notNull().default(""),
+    answersJson: text("answers_json").notNull().default("{}"),
+    answeredCount: integer("answered_count").notNull().default(0),
+    imageCount: integer("image_count").notNull().default(0),
+    clientRequestId: text("client_request_id").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("uidx_homework_first_game_request").on(table.clientRequestId),
+    index("idx_homework_first_game_created").on(table.createdAt, table.id),
+    check("chk_homework_first_game_nickname", sql`length(${table.respondentNickname}) <= 80`),
+    check("chk_homework_first_game_note", sql`length(${table.respondentNote}) <= 300`),
+    check("chk_homework_first_game_answered", sql`${table.answeredCount} >= 0`),
+    check("chk_homework_first_game_images", sql`${table.imageCount} between 0 and 5`),
+  ],
+);

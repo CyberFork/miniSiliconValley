@@ -91,6 +91,23 @@ try {
   assert.ok(!teamLoginLocation.search.includes("TEAM-MHKNJEAG"), "retired team-application query must not survive the T-085 membership flow");
   assert.equal((await smokeFetch(`${internalBase}/api/classroom/bootstrap`, { headers: proxyHeaders() })).status, 410);
 
+  const publicHomework = await get("/homework/first-game/");
+  assert.equal(publicHomework.status, 200);
+  assert.match(await publicHomework.text(), /我的第一款游戏|可以只填一部分/);
+  const emptyHomeworkList = await get("/api/public/homework/first-game/submissions");
+  assert.equal(emptyHomeworkList.status, 200);
+  assert.equal(((await emptyHomeworkList.json()) as Envelope<{ total: number }>).data?.total, 0);
+  const homeworkPayload = { respondentNickname: "冒烟作业", respondentNote: "隔离测试数据", answers: { gameName: "迷路星球", gameTypes: ["冒险游戏"], stepOne: "先找到地图" }, clientRequestId: "first-game.smoke.0001" };
+  const homeworkCreated = await postData<{ submission: { id: string; answeredCount: number }; replayed: boolean }>("/api/public/homework/first-game/submissions", homeworkPayload);
+  assert.equal(homeworkCreated.replayed, false); assert.equal(homeworkCreated.submission.answeredCount, 3);
+  const homeworkReplay = await postData<{ submission: { id: string }; replayed: boolean }>("/api/public/homework/first-game/submissions", homeworkPayload);
+  assert.equal(homeworkReplay.replayed, true); assert.equal(homeworkReplay.submission.id, homeworkCreated.submission.id);
+  const homeworkDetail = await get(`/api/public/homework/first-game/submissions/${homeworkCreated.submission.id}`);
+  assert.equal(homeworkDetail.status, 200); assert.match(await homeworkDetail.text(), /迷路星球/);
+  const homeworkDetailPage = await get(`/homework/first-game/submissions/${homeworkCreated.submission.id}/`);
+  assert.equal(homeworkDetailPage.status, 200); assert.match(await homeworkDetailPage.text(), /迷路星球/);
+  assert.equal((await post("/api/public/homework/first-game/submissions", { ...homeworkPayload, clientRequestId: "first-game.smoke.cross" }, undefined, "https://attacker.invalid")).status, 403);
+
   const wrong = await post("/api/auth/login", { username: "smoke-dm", password: "wrong password value", remember: false });
   assert.equal(wrong.status, 401);
   assert.doesNotMatch(await wrong.text(), /smoke-dm|correct horse/i);
@@ -275,7 +292,7 @@ try {
   assert.equal(limited.status, 429);
   assert.match(limited.headers.get("retry-after") ?? "", /^\d+$/);
 
-  console.log(`${deployment.toUpperCase()}_APP_SMOKE_PASS auth=password registration=open-learner membership=required terminal=wallet+public-space console=role-gated released-courseware=allowed studio=forbidden legacy-classroom=410 reset=single-use-fragment`);
+  console.log(`${deployment.toUpperCase()}_APP_SMOKE_PASS auth=password registration=open-learner membership=required terminal=wallet+public-space homework=public-fixed-form+list+detail+idempotent console=role-gated released-courseware=allowed studio=forbidden legacy-classroom=410 reset=single-use-fragment`);
 } catch (error) {
   if (diagnostics.trim()) console.error(`WRANGLER_DIAGNOSTICS\n${diagnostics}`);
   throw error;

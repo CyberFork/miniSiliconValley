@@ -16,6 +16,7 @@ export default async function TerminalPage({ params }: { params: Promise<{ app?:
   const requested = path.length === 0 ? "home" : path.length === 1 && APPS.has(path[0] as TerminalAppId) ? path[0] as TerminalAppId : null;
   if (!requested) redirect("/terminal/");
   if (requested === "grants" && user.role !== "admin" && user.role !== "mentor") redirect("/terminal/");
+  if (requested === "homework" && user.role !== "learner") redirect("/terminal/");
   return <TerminalClient
     initialApp={requested}
     initialUser={{
