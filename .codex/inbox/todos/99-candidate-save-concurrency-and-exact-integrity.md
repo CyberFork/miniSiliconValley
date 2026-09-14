@@ -2,7 +2,7 @@
 type: todo
 id: T-099
 title: "修复多人保存课程时的覆盖与exact指针损坏"
-status: done
+status: completed
 created: 2026-09-10
 completed: 2026-09-10
 captured_by: project-inbox

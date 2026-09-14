@@ -2,7 +2,7 @@
 type: todo
 id: T-101
 title: "保证课堂状态原子更新及弱网下视图和输入一致"
-status: complete
+status: completed
 created: 2026-09-10
 captured_by: project-inbox
 priority: P1

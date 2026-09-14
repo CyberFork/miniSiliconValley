@@ -21,7 +21,8 @@
   - `/terminal/space/`：维护本人公开空间与装备。
   - `/terminal/wallet/`：个人硅谷币余额及可追溯流水。
   - `/terminal/shop/`：装饰预览、确认兑换、持有与装备。
-  - `/terminal/homework/`、`/terminal/games/`：明确的后续开放占位，不伪装成已实现功能。
+  - `/terminal/homework/`：账号定向作业；查看导师发放、保存草稿、正式提交及读取反馈。
+  - `/terminal/games/`：明确的后续开放占位，不伪装成已实现功能。
   - `/terminal/grants/`：授权导师的手动发放与冲正入口；仍按课堂关系和服务端 RBAC 校验。
 - `/classroom/`：我的课堂、申请加入与继续课堂；不再包含课堂工厂、删除或全局管理。
 - `/classroom/{id}/`：当前账号的真实导师／学员席位；TEST 与 PRODUCTION 共用。
@@ -49,6 +50,7 @@
 /console/courseware/{packageId}/    单个课件包版本管理
 /console/classrooms/                TEST/Production 工厂、历史与生命周期
 /console/classrooms/{id}/control/   导师／Admin DM 课堂中控
+/console/homework/                  模板、课堂定向发放、回收与反馈
 /console/accounts/                  用户、昵称、备注、密码与 RBAC 管理
 /console/qa/                        测试与质量检查
 /console/archive/                   Workshop 与历史资料
@@ -83,6 +85,7 @@
 - `/api/public/spaces/{studentId}`：匿名公开空间 allow-list。
 - `/api/auth/*`：会话、登录、首次改密、账号集合与受限 Test 身份模拟。
 - `/api/terminal/*`：终端 bootstrap、钱包、空间、购买、装备、导师发放与冲正。
+- `/api/homework/*`：登录账号的版本化模板、课堂收件人快照、学员草稿／提交和导师反馈；与 `/api/public/homework/*` 的公开练习物理分离。
 - `/api/studio/*`：Candidate、视图验收、审核、课件与发布；mentor/admin。
 - `/api/platform/classrooms/*`：课堂创建、成员、中控、作品、screen、TEST reset/归档与 UI 回执。
 - `/api/qa`：限流的 Parent Q&A。

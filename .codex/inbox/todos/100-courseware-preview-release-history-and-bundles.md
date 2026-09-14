@@ -2,7 +2,7 @@
 type: todo
 id: T-100
 title: "闭合课件内部预览、历史发布与多文件资源更新"
-status: done
+status: completed
 created: 2026-09-10
 captured_by: project-inbox
 priority: P1

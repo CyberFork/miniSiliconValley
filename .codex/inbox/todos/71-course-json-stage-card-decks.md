@@ -2,7 +2,7 @@
 type: todo
 id: T-071
 title: "将五阶段学员卡组纳入课程 JSON 与编辑器"
-status: complete
+status: completed
 created: 2026-09-06
 updated: 2026-09-06
 captured_by: project-inbox

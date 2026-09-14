@@ -2,7 +2,7 @@
 type: todo
 id: T-103
 title: "收口共享投影实现与PDMO五步对外语义"
-status: complete
+status: completed
 created: 2026-09-10
 captured_by: project-inbox
 priority: P2

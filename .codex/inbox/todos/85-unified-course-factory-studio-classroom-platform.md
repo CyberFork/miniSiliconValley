@@ -2,7 +2,7 @@
 type: todo
 id: T-085
 title: "重构统一课程工厂、Course Studio 与 Classroom 运行体系"
-status: done
+status: completed
 created: 2026-09-08
 updated: 2026-09-08
 captured_by: project-inbox

@@ -330,6 +330,14 @@ T-106 新增：
 
 浏览器账号集合的明文能力令牌只存在 Secure、HttpOnly Cookie，D1 仅存 SHA-256 摘要。集合使用 version CAS 与幂等键处理多标签并发；数据库触发器保证 active user、active session 与集合成员一致。密码变更、账号停用和凭据重发会使旧凭据失效；空集合、退出全部和最终账号移除在同一原子批次内撤销。
 
+T-125 新增受控课后作业域：
+
+- `homework_templates` + `homework_template_versions`：可复用模板及不可变 revision；编辑只推进新版本。
+- `homework_assignments` + `homework_assignment_recipients`：绑定一场 Classroom、一个模板 revision，并在发放时快照 active learner 收件人。
+- `homework_assignment_responses`：每位收件人的草稿／提交和导师反馈；关闭后学员只读。
+
+平台 Admin 可管理所有未删除 Classroom；导师只管理自己担任 DM 或 Admin DM 的课堂。学员 API 只按登录 profile 与收件人表查询，不能遍历同学答案。T-119 `homework_first_game_submissions` 仍是明确公开、自报昵称且 append-only 的独立练习，绝不自动绑定受控作业、账号或 Membership。
+
 ## 10. 生产拓扑与统一发布
 
 ```text

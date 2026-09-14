@@ -1,16 +1,27 @@
 ---
 type: todo
 id: T-125
-title: "进阶课后作业与问卷：模板复用、团队定向发放及受控管理（待讨论）"
-status: backlog
-priority: low
+title: "进阶课后作业与问卷：模板复用、课堂定向发放及受控管理"
+status: in-progress
+priority: P1
 created: 2026-09-14
 captured_by: project-inbox
 related: [T-085, T-114, T-119, T-121, T-123]
 tags: [todo, after-class, questionnaire, template, team, assignment, needs-discussion]
 ---
 
-# 进阶课后作业与问卷：模板复用、团队定向发放及受控管理（待讨论）
+# 进阶课后作业与问卷：模板复用、课堂定向发放及受控管理
+
+## 2026-09-15 实施口径
+
+用户要求清理并完成所有遗漏 Todo 后，本单由“待讨论”进入实施。为避免另造团队体系，当前 Classroom 就是发放边界：
+
+- 模板支持短回答、长回答、单选和多选，1—30 题，可复用并以不可变 revision 保存。
+- 每次发放锁定模板 revision，并快照当时课堂中 active learner 收件人；后续改模板或增删成员不会悄悄改变历史作业。
+- 平台 Admin 可管理全部课堂；导师仅能管理自己担任 DM／Admin DM 的课堂。模板创建者或 Admin 可编辑，其他导师可复用。
+- 学员只读到发给自己账号的作业；支持草稿、正式提交、截止后只读和导师文字反馈。
+- TEST 与 Production 依附目标 Classroom 自然隔离；不把 T-119 公开自填昵称记录猜测绑定到任何账号。
+- T-119 继续作为独立公开练习保留，不迁移、不覆盖、不降低其现有数据边界。
 
 ## 拆分来源
 

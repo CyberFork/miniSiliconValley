@@ -1,0 +1,6 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),"utf8");
+test("T-125 exposes one staff workbench and one learner terminal flow",()=>{const nav=read("app/console/ConsoleNav.tsx"),consolePage=read("app/console/homework/ManagedHomeworkClient.tsx"),terminal=read("app/terminal/TerminalClient.tsx");assert.match(nav,/\/console\/homework\//);for(const label of["模板工坊","定向发放","回收反馈","检查收件人并发放","导师反馈"])assert.ok(consolePage.includes(label),label);for(const label of["导师发给我的作业","保存草稿","提交给导师","公开练习《我的第一款游戏》"])assert.ok(terminal.includes(label),label)});
+test("T-125 routes remain authenticated and use platform API protections",()=>{for(const path of["app/api/homework/templates/route.ts","app/api/homework/templates/[templateId]/route.ts","app/api/homework/assignments/route.ts","app/api/homework/assignments/[assignmentId]/route.ts","app/api/homework/assignments/[assignmentId]/response/route.ts","app/api/homework/assignments/[assignmentId]/feedback/[profileId]/route.ts"]){const source=read(path);assert.match(source,/withPlatformApi/);if(!path.endsWith("[assignmentId]/route.ts"))assert.match(source,/readPlatformJson|export async function GET/)}});

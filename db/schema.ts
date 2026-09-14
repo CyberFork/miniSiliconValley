@@ -1402,3 +1402,103 @@ export const homeworkFirstGameSubmissions = sqliteTable(
     check("chk_homework_first_game_images", sql`${table.imageCount} between 0 and 5`),
   ],
 );
+
+/** Authenticated, reusable homework definitions.  Every edit appends an
+ * immutable revision; assignments retain the exact revision they published. */
+export const homeworkTemplates = sqliteTable(
+  "homework_templates",
+  {
+    id: text("id").primaryKey(),
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    currentRevision: integer("current_revision").notNull().default(1),
+    status: text("status").notNull().default("active"),
+    createdByProfileId: text("created_by_profile_id").notNull().references(() => profiles.id, { onDelete: "restrict" }),
+    requestKey: text("request_key").notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("uidx_homework_template_request").on(table.createdByProfileId, table.requestKey),
+    index("idx_homework_template_status").on(table.status, table.updatedAt),
+    check("chk_homework_template_status", sql`${table.status} in ('active', 'archived')`),
+    check("chk_homework_template_revision", sql`${table.currentRevision} >= 1`),
+  ],
+);
+
+export const homeworkTemplateVersions = sqliteTable(
+  "homework_template_versions",
+  {
+    templateId: text("template_id").notNull().references(() => homeworkTemplates.id, { onDelete: "restrict" }),
+    revision: integer("revision").notNull(),
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    fieldsJson: text("fields_json").notNull(),
+    createdByProfileId: text("created_by_profile_id").notNull().references(() => profiles.id, { onDelete: "restrict" }),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.templateId, table.revision] }),
+    check("chk_homework_template_version_revision", sql`${table.revision} >= 1`),
+  ],
+);
+
+export const homeworkAssignments = sqliteTable(
+  "homework_assignments",
+  {
+    id: text("id").primaryKey(),
+    templateId: text("template_id").notNull().references(() => homeworkTemplates.id, { onDelete: "restrict" }),
+    templateRevision: integer("template_revision").notNull(),
+    roomId: text("room_id").notNull().references(() => rooms.id, { onDelete: "restrict" }),
+    title: text("title").notNull(),
+    instructions: text("instructions").notNull().default(""),
+    status: text("status").notNull().default("published"),
+    recipientCount: integer("recipient_count").notNull(),
+    dueAt: text("due_at"),
+    createdByProfileId: text("created_by_profile_id").notNull().references(() => profiles.id, { onDelete: "restrict" }),
+    requestKey: text("request_key").notNull(),
+    publishedAt: text("published_at").notNull(),
+    closedAt: text("closed_at"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("uidx_homework_assignment_request").on(table.createdByProfileId, table.requestKey),
+    index("idx_homework_assignment_room").on(table.roomId, table.createdAt),
+    check("chk_homework_assignment_status", sql`${table.status} in ('published', 'closed')`),
+    check("chk_homework_assignment_revision", sql`${table.templateRevision} >= 1`),
+    check("chk_homework_assignment_recipients", sql`${table.recipientCount} >= 1`),
+  ],
+);
+
+export const homeworkAssignmentRecipients = sqliteTable(
+  "homework_assignment_recipients",
+  {
+    assignmentId: text("assignment_id").notNull().references(() => homeworkAssignments.id, { onDelete: "cascade" }),
+    profileId: text("profile_id").notNull().references(() => profiles.id, { onDelete: "restrict" }),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.assignmentId, table.profileId] }),
+    index("idx_homework_recipient_profile").on(table.profileId, table.createdAt),
+  ],
+);
+
+export const homeworkAssignmentResponses = sqliteTable(
+  "homework_assignment_responses",
+  {
+    id: text("id").primaryKey(),
+    assignmentId: text("assignment_id").notNull().references(() => homeworkAssignments.id, { onDelete: "restrict" }),
+    profileId: text("profile_id").notNull().references(() => profiles.id, { onDelete: "restrict" }),
+    answersJson: text("answers_json").notNull().default("{}"),
+    status: text("status").notNull().default("draft"),
+    submittedAt: text("submitted_at"),
+    feedback: text("feedback").notNull().default(""),
+    feedbackByProfileId: text("feedback_by_profile_id").references(() => profiles.id, { onDelete: "restrict" }),
+    feedbackAt: text("feedback_at"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("uidx_homework_response_recipient").on(table.assignmentId, table.profileId),
+    index("idx_homework_response_assignment").on(table.assignmentId, table.status, table.updatedAt),
+    check("chk_homework_response_status", sql`${table.status} in ('draft', 'submitted')`),
+  ],
+);

@@ -2,7 +2,7 @@
 type: todo
 id: T-072
 title: "实现课程编辑器与 Alpha 调试课程即时同步"
-status: complete
+status: completed
 created: 2026-09-06
 updated: 2026-09-06
 captured_by: project-inbox

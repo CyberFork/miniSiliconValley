@@ -15,13 +15,14 @@ const groups = [
   ] },
   { label: "课堂交付", items: [
     { href: "/console/classrooms/", code: "06", label: "课堂管理" },
-    { href: "/console/accounts/", code: "07", label: "账号与协助" },
-    { href: "/terminal/grants/", code: "08", label: "发放硅谷币" },
+    { href: "/console/homework/", code: "07", label: "课后作业" },
+    { href: "/console/accounts/", code: "08", label: "账号与协助" },
+    { href: "/terminal/grants/", code: "09", label: "发放硅谷币" },
   ] },
   { label: "质量与资料", items: [
-    { href: "/console/qa/", code: "09", label: "质量检查" },
-    { href: "/console/archive/", code: "10", label: "资料与历史" },
-    { href: "/console/settings/", code: "11", label: "平台设置", adminOnly: true },
+    { href: "/console/qa/", code: "10", label: "质量检查" },
+    { href: "/console/archive/", code: "11", label: "资料与历史" },
+    { href: "/console/settings/", code: "12", label: "平台设置", adminOnly: true },
   ] },
 ] as const;
 

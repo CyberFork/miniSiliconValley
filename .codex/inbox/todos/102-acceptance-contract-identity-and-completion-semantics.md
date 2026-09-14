@@ -2,7 +2,7 @@
 type: todo
 id: T-102
 title: "统一验收版本身份、课堂完成语义与测试矩阵"
-status: complete
+status: completed
 created: 2026-09-10
 captured_by: project-inbox
 priority: P1

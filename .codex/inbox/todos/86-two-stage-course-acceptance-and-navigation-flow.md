@@ -2,7 +2,7 @@
 type: todo
 id: T-086
 title: "补齐课程视图验收、真实 UI 验收与正式发布闭环"
-status: done
+status: completed
 created: 2026-09-08
 updated: 2026-09-09
 captured_by: project-inbox

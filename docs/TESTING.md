@@ -194,6 +194,24 @@ npm run test:t109:browser
 
 该脚本从当前应用构建同源 `world-preview.json`，再用隔离 Chromium 验证官网桌面／390px 布局、World 滑杆、官网五个主要普通点击入口、公开 HTML 不含内部链接，以及 Workshop 十个合成 localStorage 键的只读展示、完整导出和刷新后逐字节不变。它不访问生产账号，不会上传浏览器记录，也不能代替资料所有者逐设备导出或 T-088 的 iPad Safari 真机验收。
 
+## T-125 受控课堂作业
+
+```bash
+node --import tsx --test tests/managed-homework-platform.test.ts tests/managed-homework-interface-contract.test.ts
+npm run test:t125:browser
+```
+
+纯函数／SQLite 测试覆盖模板 revision、同键冲突、课堂授权、收件人快照、必填校验、反馈和截止。浏览器测试使用临时 D1 与隔离账号，真实经过导师 Console 创建模板和发放、390px 触摸学员终端提交、导师反馈与学员回读；不读取或写入生产课堂。
+
+## Todo 注册表防漏审计
+
+```bash
+npm run audit:todos
+npm run audit:todos -- --json
+```
+
+审计强制 Todo ID 唯一、文件编号一致、状态枚举统一，并始终列出未完成项；completed 文件若仍有未勾选验收项会产生 warning。任何新增 Todo 都必须先进入 canonical `.codex/inbox/todos/`，再由此命令参与发布前检查。
+
 T-088 学员 Pad 无键盘工程回归：
 
 ```bash
