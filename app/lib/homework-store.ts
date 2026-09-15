@@ -29,7 +29,7 @@ export async function createFirstGameSubmission(db: ClassroomD1, input: unknown)
   const existing = await findByRequest(db, clientRequestId);
   if (existing) return { submission: existing, replayed: true };
 
-  const respondentNickname = boundedString(raw.respondentNickname, "姓名／昵称", 80, false);
+  const respondentNickname = boundedString(raw.respondentNickname, "姓名／昵称", 80, true);
   const respondentNote = boundedString(raw.respondentNote, "自我说明", 300, false);
   const answers = normalizeAnswers(raw.answers);
   const encoded = JSON.stringify(answers);

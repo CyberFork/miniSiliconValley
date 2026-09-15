@@ -71,10 +71,22 @@ def main() -> None:
                     expect(page.get_by_text("请使用昵称，不要填写手机号、住址、证件、密码或他人的私密信息。")).to_be_visible()
                     expect(page.get_by_role("link", name="查看全部提交")).to_have_count(0)
                     expect(page.get_by_role("link", name="时空终端")).to_have_count(0)
+                    for removed in ["可以只填一部分", "可以重复提交", "图片完全可选", "可以只交一部分"]:
+                        expect(page.get_by_text(removed, exact=True)).to_have_count(0)
                     for title in ["我的游戏是什么", "谁来玩我的游戏", "游戏怎么玩", "怎样算赢", "画出我的游戏世界", "角色故事", "关卡和任务", "敌人、障碍和道具", "奖励和成长", "胜利、失败和结局", "游戏画风、颜色和声音"]:
                         assert title in page.locator("body").inner_text()
                     no_overflow(page, "form-tablet")
-                    page.get_by_label("姓名／昵称（可留空）").fill("T119 浏览器验收")
+                    nickname = page.locator('label:has([aria-label="必填"]) input')
+                    expect(nickname).to_have_attribute("required", "")
+                    required_mark = page.locator('[aria-label="必填"]')
+                    expect(required_mark).to_have_text("*")
+                    assert required_mark.evaluate("el => getComputedStyle(el).color") == "rgb(255, 107, 87)"
+                    post_count = {"value": 0}
+                    page.on("request", lambda request: post_count.__setitem__("value", post_count["value"] + 1) if request.method == "POST" and "/api/public/homework/first-game/submissions" in request.url else None)
+                    page.get_by_role("button", name="提交这次作业 →").click()
+                    assert post_count["value"] == 0
+                    assert nickname.evaluate("el => el.validationMessage")
+                    nickname.fill("T119 浏览器验收")
                     page.get_by_label("我的游戏叫").fill("像素信使")
                     page.get_by_text("冒险游戏", exact=True).first.click()
                     page.locator('input[type="file"]').first.set_input_files(str(image))

@@ -53,7 +53,7 @@ export default function FirstGameHomeworkClient() {
       });
       const envelope = await response.json().catch(() => null) as Envelope<SubmitResult> | null;
       if (!response.ok || !envelope?.ok || !envelope.data) throw new Error(envelope?.error?.message ?? "没有收到保存确认，请稍后重试。");
-      setResult(envelope.data); setMessage("已保存为一份新的独立作业。你可以继续修改并再次提交，不会覆盖这份记录。"); requestId.current = newRequestId();
+      setResult(envelope.data); setMessage("已保存为一份新的独立作业。"); requestId.current = newRequestId();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "网络没有完成提交；你填写的内容仍在本页。请稍后重试。");
     } finally { setBusy(false); }
@@ -61,8 +61,8 @@ export default function FirstGameHomeworkClient() {
 
   return <form className={styles.form} onSubmit={submit}>
     <section className={styles.identityPanel} aria-labelledby="identity-title">
-      <div><small>00 · SELF-REPORTED</small><h2 id="identity-title">先留下这次作业的称呼</h2><p>不创建账号，也不会和同名学员自动绑定。可以只写昵称，不要填写手机号、证件、住址、密码等敏感资料。</p></div>
-      <label>姓名／昵称（可留空）<input value={nickname} maxLength={80} autoComplete="nickname" placeholder="例如：小航／星星队 2 号" onChange={(event) => setNickname(event.target.value)} /></label>
+      <div><small>00 · SELF-REPORTED</small><h2 id="identity-title">先留下这次作业的称呼</h2><p>不创建账号，也不会和同名学员自动绑定。请填写姓名或常用昵称，不要填写手机号、证件、住址、密码等敏感资料。</p></div>
+      <label><span>姓名／昵称 <b className={styles.requiredMark} aria-label="必填">*</b></span><input value={nickname} required aria-required="true" maxLength={80} autoComplete="nickname" placeholder="例如：小航／星星队 2 号" onChange={(event) => setNickname(event.target.value)} /></label>
       <label>想让查看者知道的话（可选）<textarea value={note} maxLength={300} placeholder="例如：这是我的第一版想法，还会继续改。" onChange={(event) => setNote(event.target.value)} /></label>
     </section>
     <nav className={styles.sectionJump} aria-label="作业主题快速跳转">{FIRST_GAME_HOMEWORK_SECTIONS.map((section, index) => <a href={`#section-${section.id}`} key={section.id}>{String(index + 1).padStart(2, "0")}</a>)}</nav>
@@ -71,7 +71,7 @@ export default function FirstGameHomeworkClient() {
       <div className={styles.fields}>{section.fields.map((field) => <HomeworkFieldControl field={field} value={answers[field.id]} onChange={(value) => setAnswer(field.id, value)} key={field.id} />)}</div>
     </details>)}
     <section className={styles.submitDock}>
-      <div><small>当前进度不是门槛</small><b>{answered} 项已有内容</b><p>可以只交一部分，也可以用同一昵称再次提交。每次主动提交都会保存为独立记录。</p></div>
+      <div><small>填写进度</small><b>{answered} 项已有内容</b><p>提交前请检查姓名／昵称和当前填写内容。</p></div>
       <div className={styles.submitActions}><button type="button" className={styles.secondaryButton} onClick={clearDraft} disabled={busy}>清空本机草稿</button><button type="submit" disabled={busy}>{busy ? "正在保存…" : "提交这次作业 →"}</button></div>
     </section>
     {message && <section className={result ? styles.success : styles.failure} role="status"><b>{result ? "提交成功" : "还没有提交成功"}</b><p>{message}</p>{result && <div><a href={publicPath(`/homework/first-game/submissions/${encodeURIComponent(result.submission.id)}/`)}>查看刚提交的完整内容 →</a><code>{result.submission.id}</code></div>}</section>}

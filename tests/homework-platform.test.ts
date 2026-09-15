@@ -34,18 +34,19 @@ test("T-119 accepts partial and repeated public submissions without account or c
 test("T-119 validates choices, image bytes and input limits while preserving literal text", async () => {
   const db = database();
   try {
-    const literal = await createFirstGameSubmission(db, { clientRequestId: "first-game.test.xss", respondentNote: "<script>alert(1)</script>", answers: { oneSentence: "<img src=x onerror=alert(1)>" } });
+    await assert.rejects(createFirstGameSubmission(db, { clientRequestId: "first-game.test.noname", answers: { gameName: "缺少称呼" } }), (error: unknown) => error instanceof HomeworkError && error.code === "HOMEWORK_FIELD_REQUIRED" && error.message === "请提供姓名／昵称。");
+    const literal = await createFirstGameSubmission(db, { clientRequestId: "first-game.test.xss", respondentNickname: "安全测试", respondentNote: "<script>alert(1)</script>", answers: { oneSentence: "<img src=x onerror=alert(1)>" } });
     assert.equal(literal.submission.respondentNote, "<script>alert(1)</script>"); assert.equal(literal.submission.answers.oneSentence, "<img src=x onerror=alert(1)>");
-    await assert.rejects(createFirstGameSubmission(db, { clientRequestId: "first-game.test.badchoice", answers: { gameTypes: ["注入的新类型"] } }), (error: unknown) => error instanceof HomeworkError && error.code === "HOMEWORK_CHOICE_INVALID");
-    await assert.rejects(createFirstGameSubmission(db, { clientRequestId: "first-game.test.svg", answers: { logoImage: "data:image/svg+xml;base64,PHN2Zz4=" } }), (error: unknown) => error instanceof HomeworkError && error.code === "HOMEWORK_IMAGE_TYPE_INVALID");
-    await assert.rejects(createFirstGameSubmission(db, { clientRequestId: "first-game.test.fakepng", answers: { logoImage: "data:image/png;base64,PHNjcmlwdD4=" } }), (error: unknown) => error instanceof HomeworkError && error.code === "HOMEWORK_IMAGE_TYPE_INVALID");
+    await assert.rejects(createFirstGameSubmission(db, { clientRequestId: "first-game.test.badchoice", respondentNickname: "安全测试", answers: { gameTypes: ["注入的新类型"] } }), (error: unknown) => error instanceof HomeworkError && error.code === "HOMEWORK_CHOICE_INVALID");
+    await assert.rejects(createFirstGameSubmission(db, { clientRequestId: "first-game.test.svg", respondentNickname: "安全测试", answers: { logoImage: "data:image/svg+xml;base64,PHN2Zz4=" } }), (error: unknown) => error instanceof HomeworkError && error.code === "HOMEWORK_IMAGE_TYPE_INVALID");
+    await assert.rejects(createFirstGameSubmission(db, { clientRequestId: "first-game.test.fakepng", respondentNickname: "安全测试", answers: { logoImage: "data:image/png;base64,PHNjcmlwdD4=" } }), (error: unknown) => error instanceof HomeworkError && error.code === "HOMEWORK_IMAGE_TYPE_INVALID");
   } finally { db.raw.close(); }
 });
 
 test("T-119 submissions are append-only at the database boundary", async () => {
   const db = database();
   try {
-    const saved = await createFirstGameSubmission(db, { clientRequestId: "first-game.test.immutable", answers: { gameName: "原始版本" } });
+    const saved = await createFirstGameSubmission(db, { clientRequestId: "first-game.test.immutable", respondentNickname: "不可变测试", answers: { gameName: "原始版本" } });
     assert.throws(() => db.raw.prepare("UPDATE homework_first_game_submissions SET answers_json = '{}' WHERE id = ?").run(saved.submission.id), /HOMEWORK_SUBMISSION_IMMUTABLE/);
     assert.throws(() => db.raw.prepare("DELETE FROM homework_first_game_submissions WHERE id = ?").run(saved.submission.id), /HOMEWORK_SUBMISSION_IMMUTABLE/);
   } finally { db.raw.close(); }
