@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#f8f7f4" />
   <title>背课文｜MINI硅谷孵化器</title>
+
   <meta name="description" content="背课文交互原型：理解路线、关键词、挖空与语音练习。">
   <link rel="canonical" href="https://minisv.vip/incubator/projects/recitation/">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -14,7 +15,7 @@
   <link rel="stylesheet" href="../_shared/phosphor/fill/style.css">
   <link rel="stylesheet" href="../_shared/phosphor/duotone/style.css">
 
-  <style>
+<style>
     :root {
       --canvas: #f8f7f4;
       --surface: #fff;
@@ -698,9 +699,9 @@
     .focus-actions .primary-btn:hover { background:#f56d63; }
     .focus-actions .secondary-btn { min-height:48px; padding:11px 15px; background:#fff; border-color:#e0e8f7; color:#475b89; }
     .focus-actions .secondary-btn:hover { background:#f5f7ff; }
-    .feature-visual { position:relative; min-height:248px; margin-top:16px; overflow:hidden; border-radius:18px; background:#e9f1ff; }
-    .feature-visual img { display:block; width:100%; height:100%; min-height:248px; object-fit:cover; }
-    .visual-quote { position:absolute; top:18px; right:18px; color:#355789; font-family:"STKaiti","KaiTi","Songti SC",serif; font-size:17px; line-height:1.75; writing-mode:vertical-rl; letter-spacing:.08em; }
+    .feature-visual { position:relative; margin-top:16px; overflow:hidden; border-radius:18px; background:#e9f1ff; aspect-ratio: 16/9; align-self: center; width: 100%; height: auto; min-height: unset; }
+    .feature-visual img { display:block; width:100%; height:100%; object-fit:cover; object-position: right center; min-height: unset; }
+    .visual-quote { display: none; }
     .streak-panel { grid-column:2; grid-row:1; padding:22px 22px 20px; border-radius:20px; background:#fff7f4; box-shadow:var(--shadow); }
     .streak-head { display:flex; align-items:center; justify-content:space-between; }
     .streak-head h3 { margin:0; color:#18274d; font-size:18px; letter-spacing:-.03em; }
@@ -729,7 +730,7 @@
 .import-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(109, 133, 219, 0.15); border-color: #d1dcf5; }
 .import-card-icon i { display: inline-block; font-size: 36px; color: #4b6be8 !important; line-height: 1; margin: 0; padding: 0; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); -webkit-text-stroke: 0; font-weight: normal; }
 .import-card:hover .import-card-icon i { transform: scale(1.15) rotate(90deg); color: #3659ce !important; }
-    
+
     .import-card h3 { margin:0; color:#172753; font-size:16px; letter-spacing:-.03em; }
     .import-card p { margin:4px 0 0; color:#8290b2; font-family:inherit; font-size:11px; line-height:1.45; }
     .import-card-methods { display:flex; gap:5px; margin:13px 0 11px; }
@@ -798,8 +799,8 @@
       .home-priority-grid { grid-template-columns:minmax(0,1fr) 270px; }
       .today-grid { grid-template-columns:minmax(0,1fr) 240px; }
       .feature-body { grid-template-columns:1fr; }
-      .feature-visual { min-height:210px; }
-      .feature-visual img { min-height:210px; }
+      .feature-visual { min-height: unset; }
+      .feature-visual img { min-height: unset; }
       .practice-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
     }
     @media (max-width:760px) {
@@ -845,8 +846,8 @@
       .focus-actions { display:grid; grid-template-columns:1fr 1fr; }
       .focus-actions .primary-btn { grid-column:1 / -1; width:100%; }
       .focus-actions .secondary-btn { width:100%; justify-content:center; }
-      .feature-visual { min-height:190px; margin-top:0; }
-      .feature-visual img { min-height:190px; }
+      .feature-visual { min-height: unset; margin-top:0; }
+      .feature-visual img { min-height: unset; }
       .streak-panel,.quote-card { grid-column:1; grid-row:auto; }
       .streak-panel { padding:18px; }
       .quote-card { min-height:120px; }
@@ -948,8 +949,7 @@
     .home-review-row:hover .home-review-main strong { color:#4b6be8; }
     .home-review-dot { width:8px; height:8px; border-radius:50%; background:#4b6be8; box-shadow:0 0 0 3px #edf1ff; }
     .home-review-row[data-review-subject="英语"] .home-review-dot { background:#e38a5f; box-shadow:0 0 0 3px #fff0e7; }
-    .home-review-row[data-review-subject="历史"] .home-review-dot { background:#7a69df; box-shadow:0 0 0 3px #f1efff; }
-    .home-review-row[data-review-subject="地理"] .home-review-dot { background:#20a67b; box-shadow:0 0 0 3px #e8faf3; }
+    .home-review-row[data-review-subject="数学"] .home-review-dot { background:#8d78d8; box-shadow:0 0 0 3px #f0edff; }
     .home-review-main { min-width:0; }
     .home-review-main strong { display:block; overflow:hidden; color:#263867; font-size:11px; text-overflow:ellipsis; white-space:nowrap; transition:color .18s ease; }
     .home-review-main span { display:block; overflow:hidden; margin-top:3px; color:#8b9ab8; font-size:9px; text-overflow:ellipsis; white-space:nowrap; }
@@ -1015,9 +1015,10 @@
     .overview-total { display:flex; align-items:baseline; gap:5px; padding:8px 12px; border:1px solid #dfe7f7; border-radius:12px; background:#fff; color:#8090b4; white-space:nowrap; }
     .overview-total strong { color:#3659ce; font-size:19px; }
     .overview-total span { font-size:10px; }
-    .content-groups { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+    .content-groups { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
     .content-group { --group:#4b6be8; --group-soft:#eef2ff; min-width:0; overflow:hidden; border:1px solid #e1e8f5; border-radius:18px; background:#fff; box-shadow:var(--shadow); }
     .group-english { --group:#d9855d; --group-soft:#fff3ea; }
+    .group-math { --group:#8d78d8; --group-soft:#f0edff; }
     .group-history { --group:#7a69df; --group-soft:#f1efff; }
     .group-geography { --group:#20a67b; --group-soft:#e8faf3; }
     .content-group-head { display:flex; justify-content:space-between; align-items:center; padding:15px 15px 11px; border-bottom:1px solid #edf1f8; }
@@ -1102,7 +1103,7 @@
       </nav>
       <div class="sidebar-spacer"></div>
       <div class="streak-card"><div class="streak-title"><span>好的坚持<br />会发光 ✨</span><i class="ph ph-sparkle"></i></div><strong>背课文</strong><p>陪你走过每一个努力的日子。</p></div>
-      <div class="profile"><div class="profile-main"><div class="avatar">林</div><div><strong>林夏</strong><span>初三 · 多学科</span></div></div><button class="icon-btn" aria-label="设置"><i class="ph ph-gear"></i></button></div>
+      <div class="profile"><div class="profile-main"><div class="avatar">林</div><div><strong>林夏</strong><span>小学四年级 · 三学科</span></div></div><button class="icon-btn" aria-label="设置"><i class="ph ph-gear"></i></button></div>
     </aside>
 
     <main class="main">
@@ -1110,14 +1111,14 @@
 
       <section class="page-view active" id="todayView">
         <div class="welcome-row"><div><h1>早上好，同学!</h1><p>今天也在悄悄靠近更好的自己 <span class="sprout-mark">✦</span></p></div><div class="welcome-note">一段一段的积累，<br />会让你看见更大的自己。</div></div>
-        <div class="home-secondary-heading"><div><h2>今日推荐内容</h2><p>从一篇内容开始，完成一次完整的理解与背诵。</p></div><button class="secondary-btn" id="openRecommendedBtn"><i class="ph ph-play"></i>继续岳阳楼记</button></div>
+        <div class="home-secondary-heading"><div><h2>今日推荐内容</h2><p>从一份四年级素材开始，完成一次完整的理解与练习。</p></div><button class="secondary-btn" id="openRecommendedBtn"><i class="ph ph-play"></i>继续观潮</button></div>
         <div class="today-grid">
           <article class="focus-card feature-card">
-            <div class="feature-head"><div class="material-crumb"><strong>语文</strong><span>·</span><span>八年级上册</span><span>·</span><span>文言文</span></div><div class="subject-switch" role="tablist" aria-label="选择学科"><button class="active" data-subject="语文">语文</button><button data-subject="英语">英语</button><button data-subject="历史">历史</button></div></div>
-            <div class="feature-body"><div class="focus-copy"><h2>《岳阳楼记》</h2><p class="meta">范仲淹</p><blockquote>“先天下之忧而忧，后天下之乐而乐。”<br />在更大的天地里，看见更广阔的自己。</blockquote><div class="focus-actions"><button class="primary-btn" id="startPracticeBtn"><i class="ph ph-play"></i>开始背诵</button><button class="secondary-btn" id="startUnderstandBtn"><i class="ph ph-file-text"></i>课文详情</button><button class="secondary-btn" id="openStructureBtn"><i class="ph ph-arrows-clockwise"></i>更换篇目</button></div></div><div class="feature-visual"><img id="featureVisualImage" src="assets/yueyanglou-pavilion.png" alt="《岳阳楼记》主题插画" /><span class="visual-quote">不以物喜<br />不以己悲</span></div></div>
+            <div class="feature-head"><div class="material-crumb"><strong>语文</strong><span>·</span><span>四年级上册</span><span>·</span><span>写景课文</span></div><div class="subject-switch" role="tablist" aria-label="选择学科"><button class="active" data-subject="语文">语文</button><button data-subject="数学">数学</button><button data-subject="英语">英语</button></div></div>
+            <div class="feature-body"><div class="focus-copy"><h2>《观潮》</h2><p class="meta">小学四年级语文 · 第一单元</p><blockquote>“钱塘江大潮，自古以来被称为天下奇观。”<br />用有顺序的观察，把壮观景象记在心里。</blockquote><div class="focus-actions"><button class="primary-btn" id="startPracticeBtn"><i class="ph ph-play"></i>开始练习</button><button class="secondary-btn" id="startUnderstandBtn"><i class="ph ph-file-text"></i>课文详情</button><button class="secondary-btn" id="openStructureBtn"><i class="ph ph-arrows-clockwise"></i>更换篇目</button></div></div><div class="feature-visual"><img id="featureVisualImage" src="assets/tidal-bore.jpg" alt="《观潮》主题插画" /><span class="visual-quote">天下奇观<br />钱塘大潮</span></div></div>
           </article>
           <aside class="streak-panel"><div class="streak-head"><h3>坚持背诵</h3><i class="ph ph-arrow-right"></i></div><div class="streak-count"><i class="ph ph-fire flame"></i><strong>7</strong><span>天</span></div><p>每一次坚持，<br />都是在靠近更好的自己。</p><div class="streak-timeline"><div class="streak-step done"><span><i class="ph ph-check"></i></span><small>D0</small></div><div class="streak-step done"><span><i class="ph ph-check"></i></span><small>D1</small></div><div class="streak-step done"><span><i class="ph ph-check"></i></span><small>D3</small></div><div class="streak-step current"><span>D7</span><small>D7</small></div><div class="streak-step"><span></span><small>D14</small></div></div></aside>
-          <aside class="quote-card import-card" aria-labelledby="importSideTitle"><div class="import-card-top"><span class="import-card-icon"><i class="ph-duotone ph-plus-circle"></i></span><div><h3 id="importSideTitle">新增背诵内容</h3><p>把新的课文、单词或任务加入复习计划。</p></div></div><div class="import-card-methods"><span>拍照</span><span>粘贴</span><span>选教材</span></div><button class="import-card-btn" id="openImportSideBtn"><span>导入内容</span><i class="ph ph-arrow-up-right"></i></button></aside>
+          <aside class="quote-card import-card" aria-labelledby="importSideTitle"><div class="import-card-top"><span class="import-card-icon"><i class="ph-duotone ph-plus-circle"></i></span><div><h3 id="importSideTitle">新增学习内容</h3><p>把课文、计算题或英语单词加入复习计划。</p></div></div><div class="import-card-methods"><span>拍照</span><span>粘贴</span><span>选教材</span></div><button class="import-card-btn" id="openImportSideBtn"><span>导入内容</span><i class="ph ph-arrow-up-right"></i></button></aside>
         </div>
 
         <div class="section-heading practice-heading"><div><h2>选择练习模式 <span>· 不同方式，帮你把课文记得更牢</span></h2></div><a href="#" id="openModeHelpLink">如何选择？ <i class="ph ph-question"></i></a></div>
@@ -1134,36 +1135,37 @@
         <div class="support-grid"><article class="support-card"><div class="support-head"><div><h3>一个问题，确认你真的懂了</h3><p>针对当前段落 · 1 / 3</p></div><i class="ph ph-chat-circle-dots"></i></div><div class="understand-question"><strong>这段内容里，“阴”与“晴”分别对应什么样的心情？</strong><p>不用复述原文，先用自己的话说一遍。</p></div><div class="support-footer"><span>答完后才进入背诵</span><button class="text-btn" id="answerQuestionBtn">开始回答 <i class="ph ph-arrow-right"></i></button></div></article><article class="support-card"><div class="support-head"><div><h3>反复卡住的句子</h3><p>近 7 天 · 需要单独练习</p></div><i class="ph ph-warning-circle"></i></div><div class="sentence-list"><div class="sentence-row"><div class="sentence-index">01</div><div><strong>至若春和景明，波澜不惊</strong><span>语序错误 · 已卡住 2 次</span></div><span class="tag coral">重点</span></div><div class="sentence-row"><div class="sentence-index">02</div><div><strong>上下天光，一碧万顷</strong><span>漏字 · 已卡住 1 次</span></div><span class="tag yellow">巩固</span></div></div></article></div>
 
         <section class="content-overview" aria-labelledby="contentOverviewTitle">
-          <div class="content-overview-head"><div><h2 id="contentOverviewTitle">我的背诵内容 <span>· 已按学科整理</span></h2><p>查看全部已记录内容，继续上次进度或开始一轮新的练习。</p></div><div class="content-overview-actions"><div class="overview-total"><strong>12</strong><span>条内容</span></div><button class="secondary-btn" data-view-link="materials">查看全部 <i class="ph ph-arrow-up-right"></i></button></div></div>
+          <div class="content-overview-head"><div><h2 id="contentOverviewTitle">我的学习内容 <span>· 四年级三学科</span></h2><p>查看语文、数学、英语素材，继续上次进度或开始新的练习。</p></div><div class="content-overview-actions"><div class="overview-total"><strong>15</strong><span>条内容</span></div><button class="secondary-btn" data-view-link="materials">查看全部 <i class="ph ph-arrow-up-right"></i></button></div></div>
           <div class="content-groups">
-            <article class="content-group group-chinese"><div class="content-group-head"><div><span class="subject-dot"></span><strong>语文</strong></div><span>3 条</span></div><div class="content-list">
-              <button class="content-item" data-demo-subject="语文" data-demo-index="0"><span class="content-item-main"><strong>《岳阳楼记》</strong><small>范仲淹 · 文言文 · 第 3 段</small></span><span class="content-item-side"><em>62%</em><i class="ph ph-arrow-up-right"></i></span></button>
-              <button class="content-item" data-demo-subject="语文" data-demo-index="1"><span class="content-item-main"><strong>《饮酒》（其五）</strong><small>陶渊明 · 古诗词 · 20 字重点</small></span><span class="content-item-side"><em>未开始</em><i class="ph ph-arrow-up-right"></i></span></button>
-              <button class="content-item" data-demo-subject="语文" data-demo-index="2"><span class="content-item-main"><strong>《背影》片段</strong><small>朱自清 · 现代文 · 4 个情感节点</small></span><span class="content-item-side"><em>38%</em><i class="ph ph-arrow-up-right"></i></span></button>
+            <article class="content-group group-chinese"><div class="content-group-head"><div><span class="subject-dot"></span><strong>语文</strong></div><span>5 条</span></div><div class="content-list">
+              <button class="content-item" data-demo-subject="语文" data-demo-index="0"><span class="content-item-main"><strong>《观潮》</strong><small>写景课文 · 潮来前后 · 观察顺序</small></span><span class="content-item-side"><em>62%</em><i class="ph ph-arrow-up-right"></i></span></button>
+              <button class="content-item" data-demo-subject="语文" data-demo-index="1"><span class="content-item-main"><strong>《爬山虎的脚》</strong><small>说明文 · 叶子变化 · 重点词语</small></span><span class="content-item-side"><em>48%</em><i class="ph ph-arrow-up-right"></i></span></button>
+              <button class="content-item" data-demo-subject="语文" data-demo-index="2"><span class="content-item-main"><strong>《走月亮》</strong><small>散文 · 月下景色 · 朗读表达</small></span><span class="content-item-side"><em>未开始</em><i class="ph ph-arrow-up-right"></i></span></button>
+              <button class="content-item" data-demo-subject="语文" data-demo-index="3"><span class="content-item-main"><strong>《麻雀》</strong><small>记叙文 · 故事情节 · 情感朗读</small></span><span class="content-item-side"><em>35%</em><i class="ph ph-arrow-up-right"></i></span></button>
+              <button class="content-item" data-demo-subject="语文" data-demo-index="4"><span class="content-item-main"><strong>《一只窝囊的大老虎》</strong><small>叙事文 · 人物心情 · 词语积累</small></span><span class="content-item-side"><em>未开始</em><i class="ph ph-arrow-up-right"></i></span></button>
             </div></article>
-            <article class="content-group group-english"><div class="content-group-head"><div><span class="subject-dot"></span><strong>英语</strong></div><span>3 条</span></div><div class="content-list">
-              <button class="content-item" data-demo-subject="英语" data-demo-index="0"><span class="content-item-main"><strong>Unit 4 · Environment</strong><small>课文 · 20 个单词 · 12 条例句</small></span><span class="content-item-side"><em>88%</em><i class="ph ph-arrow-up-right"></i></span></button>
-              <button class="content-item" data-demo-subject="英语" data-demo-index="1"><span class="content-item-main"><strong>Unit 5 · Travel</strong><small>课文 · 18 个单词 · 3 个易错词</small></span><span class="content-item-side"><em>74%</em><i class="ph ph-arrow-up-right"></i></span></button>
-              <button class="content-item" data-demo-subject="英语" data-demo-index="2"><span class="content-item-main"><strong>Giving Advice</strong><small>句型 · 8 个核心表达</small></span><span class="content-item-side"><em>未开始</em><i class="ph ph-arrow-up-right"></i></span></button>
+            <article class="content-group group-math"><div class="content-group-head"><div><span class="subject-dot"></span><strong>数学</strong></div><span>5 条</span></div><div class="content-list">
+              <button class="content-item" data-demo-subject="数学" data-demo-index="0"><span class="content-item-main"><strong>大数的认识</strong><small>数位顺序 · 读写大数 · 比较大小</small></span><span class="content-item-side"><em>76%</em><i class="ph ph-arrow-up-right"></i></span></button>
+              <button class="content-item" data-demo-subject="数学" data-demo-index="1"><span class="content-item-main"><strong>三位数乘两位数</strong><small>竖式计算 · 估算 · 易错点</small></span><span class="content-item-side"><em>54%</em><i class="ph ph-arrow-up-right"></i></span></button>
+              <button class="content-item" data-demo-subject="数学" data-demo-index="2"><span class="content-item-main"><strong>平行四边形和梯形</strong><small>图形特征 · 高 · 作图</small></span><span class="content-item-side"><em>未开始</em><i class="ph ph-arrow-up-right"></i></span></button>
+              <button class="content-item" data-demo-subject="数学" data-demo-index="3"><span class="content-item-main"><strong>除数是两位数的除法</strong><small>试商 · 笔算除法 · 验算</small></span><span class="content-item-side"><em>43%</em><i class="ph ph-arrow-up-right"></i></span></button>
+              <button class="content-item" data-demo-subject="数学" data-demo-index="4"><span class="content-item-main"><strong>条形统计图</strong><small>数据整理 · 读图 · 解决问题</small></span><span class="content-item-side"><em>未开始</em><i class="ph ph-arrow-up-right"></i></span></button>
             </div></article>
-            <article class="content-group group-history"><div class="content-group-head"><div><span class="subject-dot"></span><strong>历史</strong></div><span>3 条</span></div><div class="content-list">
-              <button class="content-item" data-demo-subject="历史" data-demo-index="0"><span class="content-item-main"><strong>唐朝盛世</strong><small>中国古代史 · 6 个时间节点</small></span><span class="content-item-side"><em>66%</em><i class="ph ph-arrow-up-right"></i></span></button>
-              <button class="content-item" data-demo-subject="历史" data-demo-index="1"><span class="content-item-main"><strong>工业革命</strong><small>世界史 · 5 个因果关键词</small></span><span class="content-item-side"><em>52%</em><i class="ph ph-arrow-up-right"></i></span></button>
-              <button class="content-item" data-demo-subject="历史" data-demo-index="2"><span class="content-item-main"><strong>辛亥革命</strong><small>近代史 · 3 个事件 · 2 个影响</small></span><span class="content-item-side"><em>未开始</em><i class="ph ph-arrow-up-right"></i></span></button>
-            </div></article>
-            <article class="content-group group-geography"><div class="content-group-head"><div><span class="subject-dot"></span><strong>地理</strong></div><span>3 条</span></div><div class="content-list">
-              <button class="content-item" data-demo-subject="地理" data-demo-index="0"><span class="content-item-main"><strong>水循环</strong><small>自然地理 · 5 个过程节点</small></span><span class="content-item-side"><em>61%</em><i class="ph ph-arrow-up-right"></i></span></button>
-              <button class="content-item" data-demo-subject="地理" data-demo-index="1"><span class="content-item-main"><strong>长江三角洲</strong><small>区域地理 · 3 个区位优势</small></span><span class="content-item-side"><em>47%</em><i class="ph ph-arrow-up-right"></i></span></button>
-              <button class="content-item" data-demo-subject="地理" data-demo-index="2"><span class="content-item-main"><strong>人口迁移</strong><small>人文地理 · 4 个推力 · 4 个拉力</small></span><span class="content-item-side"><em>未开始</em><i class="ph ph-arrow-up-right"></i></span></button>
+            <article class="content-group group-english"><div class="content-group-head"><div><span class="subject-dot"></span><strong>英语</strong></div><span>5 条</span></div><div class="content-list">
+              <button class="content-item" data-demo-subject="英语" data-demo-index="0"><span class="content-item-main"><strong>Unit 1 · My classroom</strong><small>教室物品 · 12 个单词 · 句型操练</small></span><span class="content-item-side"><em>88%</em><i class="ph ph-arrow-up-right"></i></span></button>
+              <button class="content-item" data-demo-subject="英语" data-demo-index="1"><span class="content-item-main"><strong>Unit 2 · My schoolbag</strong><small>学习用品 · 10 个单词 · There is</small></span><span class="content-item-side"><em>71%</em><i class="ph ph-arrow-up-right"></i></span></button>
+              <button class="content-item" data-demo-subject="英语" data-demo-index="2"><span class="content-item-main"><strong>Unit 3 · My friends</strong><small>外貌性格 · 8 个表达 · 口语练习</small></span><span class="content-item-side"><em>未开始</em><i class="ph ph-arrow-up-right"></i></span></button>
+              <button class="content-item" data-demo-subject="英语" data-demo-index="3"><span class="content-item-main"><strong>Unit 4 · My home</strong><small>房间家具 · 10 个单词 · 方位表达</small></span><span class="content-item-side"><em>66%</em><i class="ph ph-arrow-up-right"></i></span></button>
+              <button class="content-item" data-demo-subject="英语" data-demo-index="4"><span class="content-item-main"><strong>Unit 5 · Dinner's ready</strong><small>食物饮品 · 9 个单词 · 点餐对话</small></span><span class="content-item-side"><em>未开始</em><i class="ph ph-arrow-up-right"></i></span></button>
             </div></article>
           </div>
         </section>
 
         <div class="section-heading"><h2>接下来怎么复习</h2><a href="#" data-view-link="review">调整计划 <i class="ph ph-arrow-up-right"></i></a></div>
-        <div class="schedule-strip"><div class="schedule-day today"><div class="day"><span>今天</span><i class="ph ph-sun"></i></div><strong>重新理解</strong><p>6 个任务 · 4 个待完成</p></div><div class="schedule-day"><div class="day"><span>3 月 15 日</span><i class="ph ph-calendar-blank"></i></div><strong>短复习</strong><p>《岳阳楼记》</p></div><div class="schedule-day"><div class="day"><span>3 月 17 日</span><i class="ph ph-calendar-blank"></i></div><strong>无提示回忆</strong><p>英语 Unit 4</p></div><div class="schedule-day"><div class="day"><span>3 月 21 日</span><i class="ph ph-calendar-blank"></i></div><strong>完整复现</strong><p>物理公式</p></div><div class="schedule-day"><div class="day"><span>3 月 28 日</span><i class="ph ph-calendar-blank"></i></div><strong>长期检测</strong><p>共 2 个内容</p></div></div>
+        <div class="schedule-strip"><div class="schedule-day today"><div class="day"><span>今天</span><i class="ph ph-sun"></i></div><strong>理解新知</strong><p>9 个任务 · 4 个待完成</p></div><div class="schedule-day"><div class="day"><span>明天</span><i class="ph ph-calendar-blank"></i></div><strong>短复习</strong><p>《观潮》</p></div><div class="schedule-day"><div class="day"><span>周三</span><i class="ph ph-calendar-blank"></i></div><strong>口算练习</strong><p>三位数乘两位数</p></div><div class="schedule-day"><div class="day"><span>周五</span><i class="ph ph-calendar-blank"></i></div><strong>单词朗读</strong><p>英语 Unit 2</p></div><div class="schedule-day"><div class="day"><span>下周一</span><i class="ph ph-calendar-blank"></i></div><strong>长期检测</strong><p>共 3 个学科</p></div></div>
       </section>
 
-      <section class="page-view" id="materialsView"><div class="page-header"><div><h1>我的内容</h1><p>记录课文、单词、公式和其他需要掌握的内容。</p></div><button class="primary-btn" id="openImportBtn2"><i class="ph ph-plus"></i>添加内容</button></div><div class="bank-toolbar"><div class="filters"><button class="filter-btn active">全部 · 6</button><button class="filter-btn">语文 · 2</button><button class="filter-btn">英语 · 2</button><button class="filter-btn">物理 · 1</button><button class="filter-btn">其他 · 1</button></div><button class="secondary-btn"><i class="ph ph-funnel"></i>筛选</button></div><div class="material-grid"><article class="material-card"><div class="material-card-top"><span class="tag coral">语文 · 文言文</span><i class="ph ph-book-open-text"></i></div><h3>《岳阳楼记》</h3><p>范仲淹 · 5 个结构节点 · 286 字</p><div class="material-meta"><span>掌握 62%</span><button class="text-btn start-task">继续背诵 <i class="ph ph-arrow-right"></i></button></div></article><article class="material-card"><div class="material-card-top"><span class="tag blue">英语 · 单词</span><i class="ph ph-translate"></i></div><h3>Unit 4 · Environment</h3><p>20 个单词 · 例句 12 条 · 3 个易错词</p><div class="material-meta"><span>掌握 88%</span><button class="text-btn start-task">开始复习 <i class="ph ph-arrow-right"></i></button></div></article><article class="material-card"><div class="material-card-top"><span class="tag purple">物理 · 公式</span><i class="ph ph-atom"></i></div><h3>功和能</h3><p>8 个公式 · 4 个应用场景 · 1 个难点</p><div class="material-meta"><span>掌握 41%</span><button class="text-btn start-task">继续学习 <i class="ph ph-arrow-right"></i></button></div></article><article class="material-card"><div class="material-card-top"><span class="tag yellow">语文 · 演讲稿</span><i class="ph ph-microphone"></i></div><h3>校园艺术节发言稿</h3><p>3 个段落 · 2 分钟 · 语音模式</p><div class="material-meta"><span>掌握 70%</span><button class="text-btn start-task">开始复习 <i class="ph ph-arrow-right"></i></button></div></article><article class="material-card"><div class="material-card-top"><span class="tag blue">英语 · 课文</span><i class="ph ph-book-open"></i></div><h3>Lesson 6 · Reading</h3><p>4 个段落 · 逻辑关系已拆解</p><div class="material-meta"><span>掌握 55%</span><button class="text-btn start-task">继续背诵 <i class="ph ph-arrow-right"></i></button></div></article><article class="material-card" style="border-style:dashed;background:#fcfcfa"><div class="material-card-top"><span class="tag green">新内容</span><i class="ph ph-plus-circle"></i></div><h3>添加下一份内容</h3><p>拍照、粘贴文字，或选择需要记录的内容。</p><div class="material-meta"><span>支持多学科</span><button class="text-btn" id="openImportBtn3">添加 <i class="ph ph-arrow-right"></i></button></div></article></div></section>
+      <section class="page-view" id="materialsView"><div class="page-header"><div><h1>我的内容</h1><p>只保留小学四年级语文、数学、英语学习素材。</p></div><button class="primary-btn" id="openImportBtn2"><i class="ph ph-plus"></i>添加内容</button></div><div class="bank-toolbar"><div class="filters"><button class="filter-btn active">全部 · 9</button><button class="filter-btn">语文 · 3</button><button class="filter-btn">数学 · 3</button><button class="filter-btn">英语 · 3</button></div><button class="secondary-btn"><i class="ph ph-funnel"></i>筛选</button></div><div class="material-grid"><article class="material-card"><div class="material-card-top"><span class="tag coral">语文 · 写景课文</span><i class="ph ph-book-open-text"></i></div><h3>《观潮》</h3><p>潮来前后 · 5 个观察节点 · 重点词语</p><div class="material-meta"><span>掌握 62%</span><button class="text-btn start-task" data-material-subject="语文" data-material-index="0">继续练习 <i class="ph ph-arrow-right"></i></button></div></article><article class="material-card"><div class="material-card-top"><span class="tag purple">数学 · 数与计算</span><i class="ph ph-number-circle-eight"></i></div><h3>大数的认识</h3><p>数位顺序 · 读写大数 · 比较大小</p><div class="material-meta"><span>掌握 76%</span><button class="text-btn start-task" data-material-subject="数学" data-material-index="0">开始复习 <i class="ph ph-arrow-right"></i></button></div></article><article class="material-card"><div class="material-card-top"><span class="tag blue">英语 · 单词</span><i class="ph ph-translate"></i></div><h3>Unit 1 · My classroom</h3><p>12 个单词 · 4 个核心句型 · 跟读练习</p><div class="material-meta"><span>掌握 88%</span><button class="text-btn start-task" data-material-subject="英语" data-material-index="0">开始朗读 <i class="ph ph-arrow-right"></i></button></div></article><article class="material-card"><div class="material-card-top"><span class="tag coral">语文 · 说明文</span><i class="ph ph-leaf"></i></div><h3>《爬山虎的脚》</h3><p>叶子变化 · 观察顺序 · 4 个重点词</p><div class="material-meta"><span>掌握 48%</span><button class="text-btn start-task" data-material-subject="语文" data-material-index="1">继续复习 <i class="ph ph-arrow-right"></i></button></div></article><article class="material-card"><div class="material-card-top"><span class="tag purple">数学 · 乘法</span><i class="ph ph-calculator"></i></div><h3>三位数乘两位数</h3><p>竖式计算 · 估算 · 3 个易错点</p><div class="material-meta"><span>掌握 54%</span><button class="text-btn start-task" data-material-subject="数学" data-material-index="1">继续练习 <i class="ph ph-arrow-right"></i></button></div></article><article class="material-card"><div class="material-card-top"><span class="tag blue">英语 · 句型</span><i class="ph ph-chat-circle-text"></i></div><h3>Unit 2 · My schoolbag</h3><p>10 个单词 · There is/are · 情景对话</p><div class="material-meta"><span>掌握 71%</span><button class="text-btn start-task" data-material-subject="英语" data-material-index="1">开始复习 <i class="ph ph-arrow-right"></i></button></div></article><article class="material-card" style="border-style:dashed;background:#fcfcfa"><div class="material-card-top"><span class="tag green">新内容</span><i class="ph ph-plus-circle"></i></div><h3>添加下一份内容</h3><p>拍照、粘贴文字，或选择四年级语数英教材。</p><div class="material-meta"><span>语文 · 数学 · 英语</span><button class="text-btn" id="openImportBtn3">添加 <i class="ph ph-arrow-right"></i></button></div></article></div></section>
 
       <section class="page-view" id="reviewView"><div class="page-header"><div><h1>复习计划</h1><p>根据你的表现动态安排，记忆会在间隔中变得牢固。</p></div><div class="header-actions"><button class="primary-btn" id="startReviewBtn"><i class="ph ph-play"></i>开始今日复习</button><button class="secondary-btn" id="rebuildPlanBtn"><i class="ph ph-arrows-clockwise"></i>重新安排</button></div></div><div class="plan-layout"><article class="panel timeline-panel"><h3>间隔复习时间线</h3><p>当前共 6 个内容，按学科独立计算。</p><div class="timeline"><div class="timeline-item current"><div class="timeline-date">今天 · 6 个</div><div class="timeline-dot"></div><div class="timeline-copy"><strong>重新理解</strong><p>先看路线图和难点词，再用自己的话讲一遍。</p></div></div><div class="timeline-item"><div class="timeline-date">3 月 15 日 · 2 个</div><div class="timeline-dot"></div><div class="timeline-copy"><strong>短复习</strong><p>只看关键词和首字，快速回忆结构。</p></div></div><div class="timeline-item"><div class="timeline-date">3 月 17 日 · 2 个</div><div class="timeline-dot"></div><div class="timeline-copy"><strong>无提示回忆</strong><p>不看原文，完整复述一小段。</p></div></div><div class="timeline-item"><div class="timeline-date">3 月 21 日 · 1 个</div><div class="timeline-dot"></div><div class="timeline-copy"><strong>完整复现</strong><p>考试模式，检查漏字、顺序和停顿。</p></div></div><div class="timeline-item"><div class="timeline-date">3 月 28 日 · 1 个</div><div class="timeline-dot"></div><div class="timeline-copy"><strong>长期保持</strong><p>跨场景复述，确认记忆可以迁移。</p></div></div></div></article><article class="panel insight-panel"><h3>这周的复习重点</h3><p>按重复卡顿和学科掌握度排序。</p><div class="insight-stat"><div class="stat-line"><span>语文 · 句子顺序</span><span>需要关注</span></div><div class="insight-bars"><div class="insight-bar"><div><div class="bar-label"><span>岳阳楼记</span><span>62%</span></div><div class="bar-track"><span style="width:62%"></span></div></div><div class="bar-count">02</div></div><div class="insight-bar"><div><div class="bar-label"><span>英语 Unit 4</span><span>88%</span></div><div class="bar-track"><span style="width:88%"></span></div></div><div class="bar-count">01</div></div><div class="insight-bar"><div><div class="bar-label"><span>物理 · 功和能</span><span>41%</span></div><div class="bar-track"><span style="width:41%"></span></div></div><div class="bar-count">03</div></div></div></div><div class="route-note" style="margin-top:14px"><i class="ph ph-info"></i>连续两次卡顿的句子会被拆出来单独练习。</div></article></div></section>
 
@@ -1189,6 +1191,37 @@
     const views = [...document.querySelectorAll('.page-view')];
     const breadcrumbTitle = document.getElementById('breadcrumbTitle');
     const labels = { today:'首页', materials:'内容', review:'复习', insights:'统计' };
+    const materialFilters = document.querySelectorAll('#materialsView .filter-btn');
+    ['全部 · 15','语文 · 5','数学 · 5','英语 · 5'].forEach((text, index) => { if (materialFilters[index]) materialFilters[index].textContent = text; });
+    const visibleReplacements = {
+      '八年级上册':'四年级上册', '八年级下册':'四年级下册', '九年级上册':'四年级上册',
+      '《岳阳楼记》':'《观潮》', '岳阳楼记':'观潮', '《饮酒》（其五）':'《爬山虎的脚》', '饮酒':'爬山虎的脚', '《背影》片段':'《走月亮》', '背影':'走月亮',
+      'Unit 4 · Environment':'Unit 1 · My classroom', 'Environment':'My classroom', 'Unit 5 · Travel':'Unit 2 · My schoolbag', 'Travel':'My schoolbag', 'Giving Advice':'My friends',
+      '功和能':'三位数乘两位数', '物理 · 功和能':'数学 · 三位数乘两位数', '物理公式':'数学计算', '支持多学科':'语文 · 数学 · 英语'
+    };
+    document.querySelectorAll('body *:not(script):not(style)').forEach(el => { if (el.children.length === 0 && el.textContent) { let text = el.textContent; Object.entries(visibleReplacements).forEach(([from, to]) => { text = text.split(from).join(to); }); el.textContent = text; } });
+    const insightView = document.getElementById('insightsView');
+    if (insightView) {
+      const stableMetric = insightView.querySelector('.metric:nth-child(4) .metric-value strong');
+      if (stableMetric) stableMetric.textContent = '9';
+      const stableUnit = insightView.querySelector('.metric:nth-child(4) .metric-value span');
+      if (stableUnit) stableUnit.textContent = '条';
+      const suggestion = insightView.querySelector('.understand-question strong');
+      if (suggestion) suggestion.textContent = '把《观潮》的“潮来时”再拆成 2 个更小的分段';
+      const suggestionCopy = insightView.querySelector('.understand-question p');
+      if (suggestionCopy) suggestionCopy.textContent = '先记住声音、样子和动作，再用关键词复述潮头经过的画面。';
+    }
+    // 同步更新导入面板，避免旧示例出现在可见控件中。
+    const gradeSelect = document.getElementById('textbookGrade');
+    if (gradeSelect) gradeSelect.innerHTML = '<option>四年级上册</option><option>四年级下册</option>';
+    const textbookSubject = document.getElementById('textbookSubject');
+    if (textbookSubject) textbookSubject.innerHTML = '<option>语文</option><option>数学</option><option>英语</option>';
+    const subjectSelect = document.getElementById('subjectSelect');
+    if (subjectSelect) subjectSelect.innerHTML = '<option>语文</option><option>数学</option><option>英语</option>';
+    const materialType = document.getElementById('materialType');
+    if (materialType) materialType.innerHTML = '<option>课文</option><option>单词</option><option>计算题</option><option>知识点</option>';
+    const textbookOptions = document.querySelector('.textbook-options');
+    if (textbookOptions) textbookOptions.innerHTML = '<button type="button" class="textbook-option selected"><strong>《爬山虎的脚》</strong><span>四年级上册 · 说明文</span><i class="ph ph-check-circle"></i></button><button type="button" class="textbook-option"><strong>《走月亮》</strong><span>四年级上册 · 散文</span><i class="ph ph-circle"></i></button><button type="button" class="textbook-option"><strong>《麻雀》</strong><span>四年级上册 · 记叙文</span><i class="ph ph-circle"></i></button>';
     let toastTimer;
     let selectedPracticeMode = '复述';
     let routePracticeIndex = 0;
@@ -1226,6 +1259,13 @@
         body:'<div class="exam-panel"><h3>请完整默写或背诵本段</h3><p>完成后点击“完成本轮”，系统会根据你的自评记录本次结果。</p><textarea class="session-answer" placeholder="在这里输入你的复述内容，也可以直接口头背诵"></textarea></div>'
       }
     };
+    Object.assign(practiceModeMeta, {
+      '复述': { kicker:'看一遍，再复述 · 1 / 3', title:'阅读复述', progress:'33%', prompt:'先读一遍《观潮》，想想潮来前、潮来时和潮头过后的变化。', goal:'先理清观察顺序，再用自己的话复述景象。', body:'<div class="session-reading">钱塘江大潮，自古以来被称为天下奇观。潮来前，江面很平静；潮来时，远处传来隆隆的响声，浪潮越来越近。</div><div class="session-label" style="margin-top:13px">用自己的话复述这段内容</div><textarea class="session-answer" placeholder="例如：作者按照潮来前、潮来时的顺序写出了大潮的气势……"></textarea>' },
+      '关键词': { kicker:'关键词提示 · 1 / 3', title:'关键词', progress:'48%', prompt:'只看关键词，尝试在脑中还原四年级课文的画面和顺序。', goal:'抓住时间、景物、动作和心情四组关键词，串起内容。', body:'<div class="session-label">本段关键词</div><div class="session-hint"><span>潮来前</span><span>隆隆响声</span><span>白浪翻滚</span><span>横贯江面</span><span>人声鼎沸</span></div><div class="session-label" style="margin-top:18px">根据关键词复述</div><textarea class="session-answer" placeholder="把关键词串成一段完整的话"></textarea>' },
+      '挖空': { kicker:'挖空训练 · 1 / 3', title:'挖空', progress:'62%', prompt:'填回容易混淆的字词，检查你是否真的记住了重点。', goal:'优先练习课文中的时间顺序、数量词和数学关键词。', body:'<div class="cloze-line">潮来前，江面很 <input aria-label="挖空一" placeholder="？" />；潮来时，远处传来 <input aria-label="挖空二" placeholder="？" /> 的响声。</div><div class="session-label" style="margin-top:14px">不会时可以点击“查看关键词”</div><div class="session-hint"><span>平静</span><span>隆隆</span></div>' },
+      '语音': { kicker:'语音练习 · 1 / 3', title:'语音', progress:'76%', prompt:'开口朗读当前四年级素材，系统会记录漏字、多字、停顿和发音。', goal:'读完后查看识别结果，再针对卡顿位置重复一次。', body:'<div class="voice-panel"><button class="voice-button" id="voiceMockBtn" aria-label="开始录音"><i class="ph ph-microphone"></i></button><p class="voice-status" id="voiceStatus">点击麦克风开始朗读</p><div class="session-hint"><span>预计 30 秒</span><span>普通话/英语识别</span></div></div>' },
+      '考试': { kicker:'检测模式 · 1 / 1', title:'检测', progress:'90%', prompt:'不显示提示，完整复现当前四年级学习内容。', goal:'模拟课堂检测，重点检查顺序、计算步骤和关键词。', body:'<div class="exam-panel"><h3>请完整说一遍或写出答案</h3><p>完成后点击“完成本轮”，系统会根据你的自评记录结果。</p><textarea class="session-answer" placeholder="在这里输入复述内容或计算过程"></textarea></div>' }
+    });
     const demoExamples = {
       '语文': [
         { title:'《岳阳楼记》', meta:'范仲淹 · 文言文 · 第 3 段', preview:'先识别“阴 → 晴 → 古仁人”的情绪路线，再用关键词复述迁客骚人的心境。', steps:[['识别重点','AI 标出景物、动作和情绪'],['开始练习','选择复述或挖空模式'],['查看反馈','记录漏字和句子顺序']], icon:'ph-book-open-text', image:'assets/yueyanglou-pavilion.png', imageAlt:'《岳阳楼记》主题插画' },
@@ -1275,6 +1315,10 @@
       '历史-1': { src:'assets/hist-industry.jpg', alt:'工业革命主题插画', quote:'工业<br />革命' },
       '历史-2': { src:'assets/hist-xinhai.jpg', alt:'辛亥革命主题插画', quote:'辛亥<br />革命' },
       '地理-0': { src:'assets/environment-cover.svg', alt:'水循环主题插画', quote:'海陆<br />循环' },
+      '语文-3': { src:'assets/yueyanglou-pavilion.png', alt:'《麻雀》主题插画', quote:'母爱无畏<br />力量无限' },
+      '语文-4': { src:'assets/tiger-illustration.jpg', alt:'《一只窝囊的大老虎》主题插画', quote:'一只窝囊的大老虎' },
+      '语文-0': { src:'assets/tidal-bore.jpg', alt:'《观潮》主题插画', quote:'天下奇观<br />钱塘大潮' },
+      '语文-2': { src:'assets/moonlight.jpg', alt:'《走月亮》主题插画', quote:'月下漫步<br />温情脉脉' },
       '地理-1': { src:'assets/travel-cover.svg', alt:'长江三角洲主题插画', quote:'水陆<br />交通' },
       '地理-2': { src:'assets/environment-cover.svg', alt:'人口迁移主题插画', quote:'推力<br />拉力' },
       '物理-0': { src:'assets/study-path-banner.png', alt:'功和能主题插画', quote:'做功<br />功率' }
@@ -1294,6 +1338,149 @@
       '地理-1':'长江三角洲位于长江入海口，濒临黄海和东海，包括上海、江苏南部和浙江北部等地区。这里地势低平，河网密布，气候温暖湿润，农业生产条件较好。长江干流把内陆腹地与沿海地区联系起来，上海港等港口便于原料输入和产品输出，铁路、高速公路、航空和水运共同构成立体交通网络。区域内人口密集、经济发达，拥有较大的消费市场和充足的劳动力，上海、南京、杭州等城市之间分工协作，形成了具有竞争力的城市群。教育、科技、金融和信息服务业的发展，为先进制造业和现代服务业提供了人才与技术。随着经济发展，区域也需要解决土地紧张、交通拥堵和环境治理等问题。',
       '地理-2':'人口迁移通常受到推力和拉力共同影响。乡村就业机会少、收入较低、教育和医疗资源不足，可能促使居民离开原居住地，这些因素属于推力。城市就业机会多、工资水平较高、学校和医院较完善，便利的交通和丰富的公共服务会吸引人口进入，这些因素属于拉力。除了经济因素，家庭团聚、住房成本、生态环境、自然灾害和社会安全也会影响迁移决定。年轻人可能为了工作和学习从乡村进入城市，部分家庭则会综合考虑子女入学、老人照护和生活成本。人口迁移会改变迁出地和迁入地的年龄结构、劳动力数量与公共服务需求，也可能带来城市拥挤、交通压力和乡村人口老龄化等现象。'
     };
+    // 小学四年级素材：运行时清理旧学科并统一为语文、数学、英语各 5 条。
+    const grade4Examples = {
+      '语文': [
+        { title:'《观潮》', meta:'四年级上册 · 写景课文 · 5 个观察节点', preview:'按“潮来前—潮来时—潮头过后”的顺序，记住钱塘江大潮的壮观景象。', steps:[['观察顺序','潮来前、潮来时、潮头过后'],['关键词复述','宽阔、横贯、白浪翻滚'],['朗读表达','读出声音和气势']], icon:'ph-waves', image:'assets/tidal-bore.jpg', imageAlt:'《观潮》主题插画', quote: '天下奇观<br />钱塘大潮' },
+        { title:'《爬山虎的脚》', meta:'四年级上册 · 说明文 · 4 个变化节点', preview:'抓住爬山虎脚的位置、形状和生长变化，练习按顺序说明。', steps:[['看清位置','茎上长叶柄的地方'],['抓住变化','触、巴、拉、贴'],['完整说明','用自己的话介绍']], icon:'ph-leaf', image:'assets/chinese-nature.jpg', imageAlt:'《爬山虎的脚》主题插画', quote:'细致观察<br />发现自然' },
+        { title:'《走月亮》', meta:'四年级上册 · 散文 · 4 个画面', preview:'沿着月光下的村道、溪边和田埂，感受“我”和阿妈的温暖亲情。', steps:[['找出画面','村道、溪边、田埂'],['体会心情','宁静、幸福、甜蜜'],['有感情朗读','读出月光的柔和']], icon:'ph-moon-stars', image:'assets/moonlight.jpg', imageAlt:'《走月亮》主题插画', quote: '月下漫步<br />温情脉脉' },
+        { title:'《麻雀》', meta:'四年级上册 · 记叙文 · 5 个情节节点', preview:'按“发现麻雀—老麻雀保护—猎狗退缩”的顺序复述故事。', steps:[['梳理情节','起因、经过、结果'],['人物动作','飞、扑、挡、叫'],['感受母爱','读出紧张和勇敢']], icon:'ph-bird', image:'assets/chinese-nature.jpg', imageAlt:'《麻雀》主题插画', quote:'伟大母爱<br />勇敢无畏' },
+        { title:'《一只窝囊的大老虎》', meta:'四年级上册 · 叙事文 · 4 个心情节点', preview:'抓住期待、紧张、尴尬和释然四种心情，讲清演出经历。', steps:[['按时间讲','排练、演出、回家'],['标出心情','期待、紧张、失落'],['复述故事','说清人物变化']], icon:'ph-mask-happy', image:'assets/tiger-illustration.jpg', imageAlt:'《一只窝囊的大老虎》主题插画', quote: '一只窝囊的<br />大老虎' }
+      ],
+      '数学': [
+        { title:'大数的认识', meta:'四年级上册 · 数与计算 · 4 个知识点', preview:'认识数位顺序表，会读写大数、比较大小并用四舍五入求近似数。', steps:[['数位顺序','个、万、亿'],['读写大数','分级读写'],['估算应用','四舍五入']], icon:'ph-number-circle-eight', image:'assets/math-numbers.jpg', imageAlt:'大数的认识主题插画', quote:'星空漫游<br />大数之美' },
+        { title:'三位数乘两位数', meta:'四年级上册 · 乘法 · 3 个计算步骤', preview:'掌握竖式计算、估算和验算，注意积的定位与进位。', steps:[['列竖式','数位对齐'],['分步计算','先乘个位再乘十位'],['检查结果','估算验算']], icon:'ph-calculator', image:'assets/math-numbers.jpg', imageAlt:'三位数乘两位数主题插画', quote:'竖式计算<br />化繁为简' },
+        { title:'平行四边形和梯形', meta:'四年级上册 · 图形 · 4 个图形特征', preview:'认识平行四边形和梯形，学会找底、画高并比较图形特征。', steps:[['找平行线','两组或一组平行'],['认识底和高','高要垂直'],['动手作图','画出指定图形']], icon:'ph-shapes', image:'assets/math-geometry.jpg', imageAlt:'平行四边形和梯形主题插画', quote:'奇妙图形<br />云端拼图' },
+        { title:'除数是两位数的除法', meta:'四年级上册 · 除法 · 4 个计算要点', preview:'学会试商、调商和验算，解决平均分和购物问题。', steps:[['估计商位','先看被除数前两位'],['试商调商','不够减要调小'],['验算应用','商×除数+余数']], icon:'ph-divide', image:'assets/math-numbers.jpg', imageAlt:'除数是两位数的除法主题插画', quote:'除法奥秘<br />轻松掌握' },
+        { title:'条形统计图', meta:'四年级上册 · 统计 · 3 个读图步骤', preview:'会用一格表示多个单位，从统计图中读出数据并回答问题。', steps:[['看横纵轴','读懂项目和数量'],['找刻度','一格代表几'],['比较数据','说出最多最少']], icon:'ph-chart-bar', image:'assets/math-geometry.jpg', imageAlt:'条形统计图主题插画', quote:'数据整理<br />一目了然' }
+      ],
+      '英语': [
+        { title:'Unit 1 · My classroom', meta:'四年级上册 · 词汇 · 12 个单词', preview:'认识教室里的物品，用 What’s in the classroom? 进行问答。', steps:[['认读词汇','window、door、desk'],['跟读句型','What’s in...?'],['情景表达','介绍自己的教室']], icon:'ph-chalkboard', image:'assets/eng-classroom.jpg', imageAlt:'My classroom 主题插画', quote:'温馨教室<br />快乐英语' },
+        { title:'Unit 2 · My schoolbag', meta:'四年级上册 · 词汇 · 10 个单词', preview:'学习书包里的学习用品，用 I have... 描述物品。', steps:[['分类单词','book、pencil、ruler'],['练习句型','I have...'],['听音辨词','找出正确物品']], icon:'ph-backpack', image:'assets/eng-classroom.jpg', imageAlt:'My schoolbag 主题插画', quote:'神奇书包<br />知识宝库' },
+        { title:'Unit 3 · My friends', meta:'四年级上册 · 句型 · 8 个表达', preview:'用 tall、short、friendly 等词介绍朋友的外貌和性格。', steps:[['积累形容词','tall、quiet、friendly'],['问答练习','What’s his name?'],['完整介绍','说出三句话']], icon:'ph-users-three', image:'assets/eng-classroom.jpg', imageAlt:'My friends 主题插画', quote:'结交新朋<br />畅所欲言' },
+        { title:'Unit 4 · My home', meta:'四年级上册 · 词汇 · 10 个单词', preview:'认识房间和家具，用 Where is...? 询问物品位置。', steps:[['认读房间','bedroom、kitchen'],['方位表达','near、under、on'],['看图问答','Where is the...?']], icon:'ph-house', image:'assets/eng-classroom.jpg', imageAlt:'My home 主题插画', quote:'温馨家园<br />用爱表达' },
+        { title:"Unit 5 · Dinner's ready", meta:'四年级上册 · 对话 · 9 个单词', preview:'学习食物和餐具词汇，练习表达喜欢的食物和用餐需求。', steps:[['认识食物','beef、soup、vegetables'],['礼貌表达','Can I have...?'],['角色对话','完成点餐练习']], icon:'ph-fork-knife', image:'assets/eng-classroom.jpg', imageAlt:"Dinner's ready 主题插画", quote:'丰盛晚餐<br />美味分享' }
+      ]
+    };
+    const grade4SegmentTitles = {
+      '语文-0':['潮来前：江面平静','潮来时：声音与潮头由远及近','潮头过后：江面恢复平静'],
+      '语文-1':['爬山虎脚的位置','爬山虎脚的形状与颜色','爬山虎向上爬的过程'],
+      '语文-2':['月光下的村道与溪水','月下所见所闻的画面','我和阿妈的温暖亲情'],
+      '语文-3':['小麻雀落地遇险','老麻雀勇敢保护孩子','猎狗退缩与母爱的力量'],
+      '语文-4':['期待参加演出','舞台上的紧张与意外','经历失败后的成长'],
+      '数学-0':['认识生活中的大数','大数的读写与分级','比较大小与求近似数'],
+      '数学-1':['乘法估算与列式','竖式计算与进位','验算结果与生活应用'],
+      '数学-2':['平行四边形的特征','梯形的底和高','图形比较与生活观察'],
+      '数学-3':['试商与确定商位','调商与竖式计算','验算并解决实际问题'],
+      '数学-4':['统计图的组成','读刻度和比较数据','用统计图解决问题'],
+      '英语-0':['认识教室物品','There is/are 场景句型','介绍并维护教室'],
+      '英语-1':['书包里的学习用品','I have... 句型表达','整理物品并互相帮助'],
+      '英语-2':['朋友的外貌与性格','分享兴趣与校园活动','介绍我的好朋友'],
+      '英语-3':['认识房间和家具','询问物品位置','一起保持家庭整洁'],
+      '英语-4':['认识食物和餐具','礼貌点餐表达','家庭用餐与分享']
+    };
+    Object.entries(grade4Examples).forEach(([subject, items]) => items.forEach((item, index) => { item.segmentTitles = grade4SegmentTitles[subject + '-' + index] || item.steps.map(step => step[0]); }));
+    function renderTextbookOptions() {
+      if (!textbookOptions) return;
+      const subject = textbookSubject ? textbookSubject.value : '语文';
+      const items = (grade4Examples[subject] || []).slice(0, 3);
+      textbookOptions.innerHTML = items.map((item, index) => '<button type="button" class="textbook-option ' + (index === 0 ? 'selected' : '') + '" data-material-subject="' + subject + '" data-material-index="' + index + '"><strong>' + item.title + '</strong><span>' + item.meta + '</span><i class="ph ' + (index === 0 ? 'ph-check-circle' : 'ph-circle') + '"></i></button>').join('');
+    }
+    if (textbookSubject) textbookSubject.addEventListener('change', renderTextbookOptions);
+    renderTextbookOptions();
+    Object.keys(demoExamples).forEach(key => delete demoExamples[key]);
+    Object.assign(demoExamples, grade4Examples);
+    const grade4Passages = {
+      '语文-0':'钱塘江大潮自古以来就是天下奇观。潮来以前，江面很平静，宽阔的钱塘江横卧在眼前，江边的人们早早地等着潮水。午后一点左右，远处传来隆隆的响声，好像闷雷滚动，大家纷纷向江面望去。过了一会儿，东边水天相接的地方出现了一条白线，白线逐渐拉长、变粗，潮水越来越近。浪潮像千万匹白色战马齐头并进，浩浩荡荡地飞奔而来，声音如同山崩地裂。潮头过后，江面仍旧风号浪吼，许久才恢复平静。作者按照潮来前、潮来时和潮头过后的顺序，把大潮的声音、样子和气势写得清清楚楚。',
+      '语文-1':'爬山虎的脚长在茎上长叶柄的地方，形状像蜗牛的触角。刚长出来的脚是嫩红色的，后来逐渐变成灰色。爬山虎的脚触着墙的时候，六七根细丝的头上就变成小圆片，巴住墙；细丝原先是直的，后来弯曲，把爬山虎的嫩茎拉一把，使它紧贴在墙上。爬山虎就是这样一脚一脚地往上爬，脚要是没有触着墙，不几天就萎了，后来连痕迹也没有。作者连续观察，把脚的位置、形状、颜色和爬墙过程写得很细，告诉我们观察事物要有耐心，还要按照变化顺序记录。',
+      '语文-2':'秋天的夜晚，月亮升起来了，照亮了村头的小路，也照亮了溪水和远处的田埂。我和阿妈手牵着手走在月光下，闻到了稻谷和野花的香味。细细的溪水流着，水面映着月光，像一条闪闪发光的银带。我们走过果园，听见秋虫在草丛里唱歌；走过石拱桥，看见鹅卵石在水里闪着亮光。月光下的村庄安静而美丽，阿妈轻声说着家乡的故事，我感到十分幸福。作者把所见、所闻、所想交织在一起，用优美的语言写出月夜的景色，也写出了浓浓的母女亲情。',
+      '语文-3':'我在林荫路上发现一只刚出生不久的小麻雀，它从巢里掉下来，羽毛还没有长全，只能无助地拍打着翅膀。一只猎狗慢慢走近，张开大嘴，露出锋利的牙齿。突然，一只老麻雀从树上飞下来，像一块石头似的落在猎狗面前，用自己的身体挡住小麻雀。它全身的羽毛竖起来，发出嘶哑而急切的叫声，仿佛在说不要伤害我的孩子。猎狗被老麻雀的勇敢震住了，向后退了几步，最后转身离开。我被眼前的一幕感动了，赶紧抱起小麻雀放回树下。故事通过紧张的场面，表现了母爱的伟大和勇敢。',
+      '语文-4':'我一直盼望参加学校的演出，老师却让我扮演一只窝囊的大老虎。排练时，我穿着大纸壳做的老虎衣服，戴着笨重的头套，走路摇摇晃晃，心里既期待又紧张。正式演出那天，我按照要求从台幕后面跳出来，没想到纸壳卡住了脚，我扑通一声摔倒在地，引得台下笑声一片。我红着脸爬起来，努力把台词说完。演出结束后，大家夸我很投入，我反而觉得自己演得糟糕，回家后还闷闷不乐。后来我想明白了，第一次上台难免会出错，只要认真准备、勇敢尝试，就是一次有意义的经历。',
+      '数学-0':'我国有许多值得骄傲的大数。北京故宫有九百六十一万多平方米，长江全长约六千三百千米，地球到月球的平均距离约三十八万四千四百千米。读大数时，要先分级，再从最高级读起，每级末尾的零不读，中间连续几个零只读一个零。写数时，要先写最高级，再依次写出各级数字，哪一位没有数字就用零占位。比较两个大数时，先看位数，位数多的数就大；位数相同时，从最高位开始依次比较。生活中还常用四舍五入求近似数，例如把三十八万四千四百约成三十八万，能让数据表达更简洁。',
+      '数学-1':'计算三位数乘两位数时，可以先估算，再列竖式。比如计算 236×14，先用 200×10 估一估，结果大约是两千多。列竖式时，把相同数位对齐，先用 14 个位上的 4 去乘 236，再用十位上的 1 去乘 236，第二个积的末尾要和十位对齐，最后把两个积相加。计算过程中要特别注意进位，不能把进位数字漏掉。算完后，可以用估算或交换因数的位置重新检查。如果把 236 看作 200，把 14 看作 10，估得约两千八百，就能判断竖式结果是否合理。掌握方法后，还可以用乘法解决买文具、计算路程和统计人数等实际问题。',
+      '数学-2':'平行四边形和梯形都是四边形。平行四边形有两组对边分别平行，而且对边相等，对角相等；梯形只有一组对边平行，互相平行的两条边叫作梯形的底。画图时，可以先找出一条底，再从底上的一个点向另一条底画垂线，这条垂线段就是图形的高。平行四边形容易变形，但它的对边长度不会改变；长方形和正方形都是特殊的平行四边形。观察生活中的窗户、楼梯和栅栏，就能发现许多图形的影子。学习这些图形时，要边看边画，比较它们的边、角和平行关系，才能真正理解图形特征。',
+      '数学-3':'除数是两位数的除法，通常先看被除数的前两位，再估计商是几。如果前两位比除数小，就要看前三位。试商时可以把除数看成接近的整十数，例如把 38 看成 40，先试商，再根据余数大小调商。计算时要做到商乘除数，再加余数，结果必须等于被除数，余数还要比除数小。遇到生活问题，可以用除法解决平均分物品、安排座位和计算单价等问题。比如把 768 本书平均分给 24 个班，先估计每班三十多本，再列竖式计算。认真试商、及时验算，就能减少把商写错或忘记退位的错误。',
+      '数学-4':'条形统计图可以清楚地表示数量的多少。制作统计图时，要先确定横轴表示什么项目，纵轴表示什么数量，再看一格代表几个单位，最后根据数据画出长短不同的直条。读图时，可以先找标题和图例，再看每根直条对应的数量，比较谁最多、谁最少，还能计算相差多少。比如统计四个小组一周读书本数，如果一格代表五本，就要根据刻度画出合适高度的直条。统计图不仅能帮助我们整理班级数据，还能用来了解天气、运动时间和喜欢的水果。看图回答问题时，要把数量和单位说完整。',
+      '英语-0':"Our classroom is bright and clean. There are four windows, a big door and many desks and chairs. A computer is on the teacher's desk, and a blackboard is on the wall. We have a map, some pictures and a clock in the classroom. My seat is near the window. I like looking at the trees outside when I finish my work. Our teacher asks us to keep the classroom tidy. We put our books in the desk, clean the blackboard after class and close the windows before we go home. When a new student comes to our class, we show him or her around and say, Welcome to our classroom. I enjoy learning, reading and making friends here every day.",
+      '英语-1':"This is my schoolbag. It is blue and has two big pockets. In the first pocket, I have three books, a Chinese book, a maths book and an English book. In the second pocket, there are two pencils, a ruler, an eraser and a pencil box. I also have a notebook for drawing and a small water bottle. My schoolbag is heavy, but I can carry it easily. Before I go to school, I check my timetable and put the right books in my bag. My mother tells me to keep everything in order. At school, I share pencils with my friend when he forgets his. We help each other and take good care of our school things.",
+      '英语-2':"I have a new friend named Lily. She is tall and has long black hair. She is friendly, helpful and very funny. We sit near each other in the classroom. Lily likes drawing animals, and I like reading storybooks, so we often share our favourite books. At break time, we play games in the playground and talk about our families. Lily can speak English clearly, and she helps me read new words. I tell her about my pet cat and show her some pictures. We do our homework together after school. I am happy to have such a good friend because she listens to me, smiles often and makes every school day more interesting.",
+      '英语-3':"My home is warm and comfortable. There is a living room, a kitchen, two bedrooms and a bathroom. In the living room, a sofa is near the window, and a TV is on the wall. My bedroom is small but tidy. My bed is beside the desk, and my books are on the shelf. The kitchen is next to the living room. My mother cooks there, and I sometimes help her wash the vegetables. When I cannot find my schoolbag, I ask, Where is it? My family helps me look for it. We keep our home clean together. I love my home because every room is full of light, laughter and happy memories.",
+      "英语-4":"It is dinner time. Mum puts soup, beef, vegetables and rice on the table. Dad brings the bowls and spoons. I say, Can I have some soup, please? Mum gives me a bowl and says, Here you are. My brother likes beef, but he does not like vegetables. Dad tells him that vegetables are good for him, so he tries a little. We talk about our day while we eat. I tell my parents about a new English song, and my brother tells a funny story. After dinner, I help clear the table and wash the bowls. Sharing food with my family makes me feel happy, and I learn to say please and thank you at every meal."
+    };
+    Object.keys(contentData).forEach(key => delete contentData[key]);
+    function splitPassageIntoSegments(passage, count) {
+      const sentences = (String(passage || '').match(/[^。！？.!?]+[。！？.!?]+/g) || [String(passage || '')]).map(text => text.trim()).filter(Boolean);
+      const segments = [];
+      const size = Math.max(1, Math.ceil(sentences.length / count));
+      for (let index = 0; index < count; index += 1) {
+        const chunk = sentences.slice(index * size, (index + 1) * size).join(' ');
+        segments.push(chunk || sentences[sentences.length - 1] || passage);
+      }
+      return segments;
+    }
+    function buildRouteDetails(subject, item, passage) {
+      const segments = splitPassageIntoSegments(passage, item.steps.length);
+      return item.steps.map((step, index) => {
+        const segment = segments[index];
+        const label = (item.segmentTitles && item.segmentTitles[index]) || step[0];
+        const focus = step[1];
+        let aiExplain;
+        if (subject === '语文') {
+          aiExplain = '这一段围绕“' + label + '”展开。原文先写“' + segment.slice(0, 42) + (segment.length > 42 ? '…' : '') + '”，再通过具体的景物、动作或心情把画面写清楚。阅读时要先找出“谁在做什么”，再想一想作者想表达的感受。';
+        } else if (subject === '数学') {
+          aiExplain = '这一段讲的是“' + label + '”。题目中的关键是' + focus + '，做题时先读清条件，再确定方法，最后用估算或验算检查结果。把步骤说完整，比只记一个答案更重要。';
+        } else {
+          aiExplain = '这一段围绕“' + label + '”介绍场景和表达。重点关注“' + focus + '”，先理解句子的意思，再跟读关键词，最后尝试用自己的话或英语句型复述。';
+        }
+        return {
+          text: segment,
+          keywords: [label, focus],
+          logic: subject === '数学' ? '概念理解 → 方法选择 → 计算检查' : subject === '英语' ? '场景理解 → 词句跟读 → 情境表达' : '观察内容 → 抓住重点 → 体会表达',
+          difficult: '',
+          aiExplain,
+          mnemonic: '记忆方法：先记“' + label + '”，再联想“' + focus + '”。复述时按“' + (item.segmentTitles || item.steps.map(stepItem => stepItem[0])).join(' → ') + '”的顺序串起来。'
+        };
+      });
+    }
+    Object.entries(grade4Examples).forEach(([subject, items]) => items.forEach((item, index) => {
+      const key = subject + '-' + index;
+      const passage = grade4Passages[key] || (item.preview + ' 复习时请先看关键词，再用完整句子说一遍。');
+      contentData[key] = { subject, title:item.title, section:item.meta.split('·').slice(1).join('·').trim(), passage, keywords:item.steps.map(step => step[0]), cloze:[[item.steps[0][0] + '：','' + item.steps[0][1], '。'],[item.steps[1][0] + '：','' + item.steps[1][1], '。']], question:'下面哪项最符合这份四年级学习内容？', choices:[item.preview, '只需要记住标题', '不需要理解或计算'], correct:0, route:item.segmentTitles || item.steps.map(step => step[0]), routeDetails:buildRouteDetails(subject, item, passage) };
+    }));
+    Object.keys(materialImageMap).forEach(key => delete materialImageMap[key]);
+    Object.entries(grade4Examples).forEach(([subject, items]) => items.forEach((item, index) => { materialImageMap[subject + '-' + index] = { src:item.image, alt:item.imageAlt, quote:item.quote || item.title.replace(/^(《|Unit\s*\d+\s*·\s*)/, '').replace(/》$/, '') }; }));
+    Object.keys(passageOverrides).forEach(key => delete passageOverrides[key]);
+    Object.entries(contentData).forEach(([key, data]) => { passageOverrides[key] = data.passage; });
+    const grade4MaterialGrid = document.querySelector('#materialsView .material-grid');
+    if (grade4MaterialGrid) {
+      const tagClass = { '语文':'coral', '数学':'purple', '英语':'blue' };
+      const iconMap = { '语文':'ph-book-open-text', '数学':'ph-calculator', '英语':'ph-translate' };
+      const cards = Object.entries(grade4Examples).flatMap(([subject, items]) => items.map((item, index) => '<article class="material-card"><div class="material-card-top"><span class="tag ' + tagClass[subject] + '">' + subject + ' · 四年级</span><i class="ph ' + iconMap[subject] + '"></i></div><h3>' + item.title + '</h3><p>' + item.meta.split('·').slice(1).join(' · ').trim() + '</p><div class="material-meta"><span>掌握 ' + ([62,48,0,35,0,76,54,0,43,0,88,71,0,66,0][Object.keys(contentData).indexOf(subject + '-' + index)] || 0) + '%</span><button class="text-btn start-task" data-material-subject="' + subject + '" data-material-index="' + index + '">开始练习 <i class="ph ph-arrow-right"></i></button></div></article>'));
+      cards.push('<article class="material-card" style="border-style:dashed;background:#fcfcfa"><div class="material-card-top"><span class="tag green">新内容</span><i class="ph ph-plus-circle"></i></div><h3>添加下一份内容</h3><p>拍照、粘贴文字，或选择四年级语数英教材。</p><div class="material-meta"><span>语文 · 数学 · 英语</span><button class="text-btn" id="openImportBtn3">添加 <i class="ph ph-arrow-right"></i></button></div></article>');
+      grade4MaterialGrid.innerHTML = cards.join('');
+
+      // Filter Logic
+      const filterBtns = document.querySelectorAll('#materialsView .filter-btn');
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          filterBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          const text = btn.textContent;
+          let filterSubject = '全部';
+          if (text.includes('语文')) filterSubject = '语文';
+          else if (text.includes('数学')) filterSubject = '数学';
+          else if (text.includes('英语')) filterSubject = '英语';
+
+          const allCards = Array.from(grade4MaterialGrid.querySelectorAll('.material-card:not([style*="dashed"])'));
+          allCards.forEach(card => {
+            const isMatch = filterSubject === '全部' || card.querySelector('.tag').textContent.includes(filterSubject);
+            card.style.display = isMatch ? '' : 'none';
+          });
+        });
+      });
+    }
+
     function formatPassageText(key, text) {
       if (!text) return '';
       if (key.indexOf('英语-') === 0) return text.replace(/([.!?])\s+(?=[A-Z])/g, '$1\n\n');
@@ -1302,6 +1489,34 @@
     Object.keys(passageOverrides).forEach(key => { if (contentData[key]) contentData[key].passage = formatPassageText(key, passageOverrides[key]); });
     let activeMaterial = { subject:'语文', index:0 };
     let featuredMaterial = { subject:'语文', index:0 };
+    let practicePickerVisible = true;
+    function ensurePracticeMaterialPicker() {
+      const body = document.querySelector('#practiceModal .modal-body');
+      if (!body || document.getElementById('practiceMaterialPicker')) return;
+      body.insertAdjacentHTML('afterbegin', '<div id="practiceMaterialPicker" style="margin-bottom:18px;padding:16px;border:1px solid #dbe5ff;border-radius:14px;background:#f7f9ff"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><strong style="font-size:16px;color:#172554">先选择要练习的内容</strong><span style="font-size:12px;color:#7182a8">按学科筛选素材</span></div><div id="practiceSubjectTabs" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"></div><div id="practiceMaterialList" style="display:grid;gap:8px;margin-top:12px;max-height:190px;overflow:auto;padding-right:2px"></div></div>');
+    }
+    function renderPracticeMaterialPicker(subject, index) {
+      ensurePracticeMaterialPicker();
+      const tabs = document.getElementById('practiceSubjectTabs');
+      const list = document.getElementById('practiceMaterialList');
+      if (!tabs || !list) return;
+      subject = subject || '语文';
+      index = Number(index) || 0;
+      const subjects = ['语文','数学','英语'];
+      tabs.innerHTML = subjects.map(item => '<button type="button" data-practice-subject="' + item + '" style="border:1px solid ' + (item === subject ? '#3b82f6' : '#d7e0f5') + ';background:' + (item === subject ? '#eaf2ff' : '#fff') + ';color:' + (item === subject ? '#2563eb' : '#536486') + ';border-radius:999px;padding:6px 14px;font-size:13px;cursor:pointer">' + item + '</button>').join('');
+      const items = grade4Examples[subject] || [];
+      list.innerHTML = items.map((item, itemIndex) => '<button type="button" data-practice-material-subject="' + subject + '" data-practice-material-index="' + itemIndex + '" style="display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;border:1px solid ' + (itemIndex === index ? '#7aa7ff' : '#e1e8f5') + ';background:' + (itemIndex === index ? '#edf4ff' : '#fff') + ';border-radius:10px;padding:10px 12px;cursor:pointer"><span><strong style="display:block;color:#1e2f55;font-size:14px">' + item.title + '</strong><small style="display:block;color:#8190ae;margin-top:3px">' + item.meta + '</small></span><span style="color:' + (itemIndex === index ? '#2563eb' : '#a6b3ca') + ';font-size:18px">' + (itemIndex === index ? '✓' : '○') + '</span></button>').join('');
+      tabs.querySelectorAll('[data-practice-subject]').forEach(tab => tab.addEventListener('click', () => {
+        activeMaterial = { subject:tab.dataset.practiceSubject, index:0 };
+        renderPracticeMaterialPicker(activeMaterial.subject, activeMaterial.index);
+        updatePracticePicker();
+      }));
+      list.querySelectorAll('[data-practice-material-index]').forEach(itemButton => itemButton.addEventListener('click', () => {
+        activeMaterial = { subject:itemButton.dataset.practiceMaterialSubject, index:Number(itemButton.dataset.practiceMaterialIndex) || 0 };
+        renderPracticeMaterialPicker(activeMaterial.subject, activeMaterial.index);
+        updatePracticePicker();
+      }));
+    }
     const progressOverrides = {};
     let sessionSubmitted = false;
     let sessionResult = null;
@@ -1322,11 +1537,11 @@
       if (contentData[key]) return { ...contentData[key], index, key };
       const examples = demoExamples[subject] || demoExamples['语文'];
       const item = examples[index] || examples[0];
-      return { subject, index, key, title:item.title, section:item.meta.split('·').pop().trim(), passage:item.preview, keywords:item.steps.map(step => step[0]), cloze:item.steps.slice(0,2).map(step => ['', step[0], '']), question:'这份内容的核心信息是什么？', choices:['能够说出内容的核心结构和重点','只记住标题即可','不需要理解内容'], correct:0, route:item.steps.map(step => step[0]) };
+      return { subject, index, key, title:item.title, section:item.meta.split('·').pop().trim(), passage:item.preview, keywords:item.steps.map(step => step[0]), cloze:item.steps.slice(0,2).map(step => ['', step[0], '']), question:'这份内容的核心信息是什么？', choices:['能够说出内容的核心结构和重点','只记住标题即可','不需要理解内容'], correct:0, route:item.steps.map(step => step[0]), image:item.image, imageAlt:item.imageAlt, quote:item.quote };
     }
     function currentMaterialData() { return getMaterialData(activeMaterial.subject, activeMaterial.index); }
     function materialMastery(data) {
-      const defaults = {'语文-0':62,'语文-1':0,'语文-2':38,'英语-0':88,'英语-1':74,'英语-2':0,'历史-0':66,'历史-1':52,'历史-2':0,'地理-0':61,'地理-1':47,'地理-2':0};
+      const defaults = {'语文-0':62,'语文-1':48,'语文-2':0,'语文-3':35,'语文-4':0,'数学-0':76,'数学-1':54,'数学-2':0,'数学-3':43,'数学-4':0,'英语-0':88,'英语-1':71,'英语-2':0,'英语-3':66,'英语-4':0};
       return progressOverrides[data.key] ?? (defaults[data.key] || 0);
     }
     function routeStartIndex(data) {
@@ -1349,8 +1564,8 @@
       const visualImage = card.querySelector('#featureVisualImage');
       const recommend = document.getElementById('openRecommendedBtn');
       const supportQuestion = document.querySelector('.support-card .understand-question strong');
-      const image = materialImageMap[data.key] || { src:'assets/hero-study-desk.png', alt:data.title + '主题插画', quote: data.title };
-      if (crumb) crumb.innerHTML = '<strong>' + data.subject + '</strong><span>·</span><span>' + (data.subject === '英语' ? '八年级上册' : data.subject === '历史' ? '中国古代史' : data.subject === '地理' ? '自然地理' : '八年级上册') + '</span><span>·</span><span>' + data.section + '</span>';
+      const image = materialImageMap[data.key] || { src: data.image || 'assets/hero-study-desk.png', alt: data.imageAlt || data.title + '主题插画', quote: data.quote || data.title };
+      if (crumb) crumb.innerHTML = '<strong>' + data.subject + '</strong><span>·</span><span>四年级上册</span><span>·</span><span>' + data.section + '</span>';
       if (title) title.textContent = data.title;
       if (meta) meta.textContent = data.subject + ' · ' + data.section;
       if (quote) quote.innerHTML = '“' + data.keywords.slice(0, 2).join(' · ') + '”<br />先记住内容路线，再开始背诵。';
@@ -1364,7 +1579,7 @@
         showToast('已切换内容：' + data.title);
       }
     }
-    function modeLabel(mode) { return ({'复述':'看一遍，再复述','关键词':'关键词提示','挖空':'挖空训练','语音':'语音背诵','考试':'考试模式'})[mode] || '看一遍，再复述'; }
+    function modeLabel(mode) { return ({'复述':'再用自己的话复述一遍','关键词':'关键词提示','挖空':'挖空训练','语音':'语音背诵','考试':'考试模式'})[mode] || '再用自己的话复述一遍'; }
     function modeGoal(mode, data) {
       const keyWords = data.keywords.slice(0, 4).join('、');
       const blanks = data.cloze.map(item => item[1]).join('、');
@@ -1378,6 +1593,13 @@
     }
     function updatePracticePicker() {
       const data = currentMaterialData();
+      renderPracticeMaterialPicker(activeMaterial.subject, activeMaterial.index);
+      const materialPicker = document.getElementById('practiceMaterialPicker');
+      if (materialPicker) materialPicker.style.display = practicePickerVisible ? '' : 'none';
+      const structureButton = document.getElementById('practiceStructureBtn');
+      if (structureButton) structureButton.style.display = practicePickerVisible ? '' : 'none';
+      const title = document.getElementById('practiceTitle');
+      if (title) title.textContent = practicePickerVisible ? '选择内容与练习模式' : '选择背诵方法';
       const subtitle = document.getElementById('practiceSubtitle');
       if (subtitle) subtitle.textContent = data.title + ' · ' + data.subject + ' · ' + data.section;
       document.querySelectorAll('.mode-card').forEach(card => card.classList.toggle('selected', card.dataset.mode === selectedPracticeMode));
@@ -1386,6 +1608,7 @@
     }
     function openPracticeForMaterial(subject, index, mode = '复述') {
       activeMaterial = { subject, index:Number(index) || 0 };
+      practicePickerVisible = false;
       selectedPracticeMode = mode;
       activeDemo = { subject, index:Number(index) || 0, context:'practice' };
       updatePracticePicker();
@@ -1396,6 +1619,7 @@
         structureButton.className = 'secondary-btn';
         structureButton.id = 'practiceStructureBtn';
         structureButton.style.marginRight = 'auto';
+        structureButton.style.display = practicePickerVisible ? '' : 'none';
         structureButton.innerHTML = '<i class="ph ph-tree-structure"></i>查看内容拆解';
         structureButton.addEventListener('click', () => {
           closeModal('practiceModal');
@@ -1443,19 +1667,20 @@
       const note = document.querySelector('#structureModal .route-note');
       if (title) title.textContent = '内容拆解';
       if (subtitle) subtitle.textContent = data.title + ' · ' + data.section + ' · ' + data.subject;
-      if (heading) heading.textContent = data.subject === '语文' ? '文章路线图' : '内容路线图';
+      if (heading) heading.textContent = data.subject === '语文' ? '文章分段拆解' : '知识点分段拆解';
       const startIndex = routeStartIndex(data);
-      
+
       if (list) {
         list.innerHTML = data.route.map((item, routeIndex) => {
           const detail = data.routeDetails ? data.routeDetails[routeIndex] : null;
           const statusText = routeIndex < startIndex ? '已掌握' : routeIndex === startIndex ? '正在练习' : '待开始';
           const icon = ['compass','sun-dim','cloud-sun','heart','flag'][routeIndex % 5];
-          
+
           let expandedContent = '';
           if (detail) {
             expandedContent = `
-              <div class="structure-item-details" style="display: none; margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--line); font-size: 15px;">
+              <div class="structure-item-details" style="display: block; margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--line); font-size: 15px;">
+                <strong style="display:block; margin-bottom:8px; color:var(--muted); font-size:13px;">本段内容</strong>
                 <p style="margin-bottom: 16px; color: var(--ink); line-height: 1.8; font-size: 16px;">${detail.text}</p>
                 <div style="margin-bottom: 12px; display: flex; align-items: flex-start; gap: 8px;">
                   <strong style="color: var(--muted); font-size: 13px; white-space: nowrap; margin-top: 2px;">逻辑关系:</strong>
@@ -1469,6 +1694,7 @@
                   <strong style="color: var(--muted); font-size: 13px; white-space: nowrap; margin-top: 2px;">难点词语:</strong>
                   <span style="color: var(--ink-secondary); line-height: 1.6;">${detail.difficult}</span>
                 </div>` : ''}
+                ${(detail.aiExplain || detail.mnemonic) ? `<button class="show-ai-notes" type="button" style="display:inline-flex; align-items:center; gap:6px; margin:0 0 14px; padding:8px 12px; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--accent-dark); font-size:12px; font-weight:700; cursor:pointer;"><i class="ph ph-sparkle"></i>查看 AI 解读与记忆方法</button><div class="segment-ai-notes" hidden>${detail.aiExplain ? `<div style="margin-bottom: 14px; padding: 12px 14px; border-radius: 10px; background: var(--blue-soft); color: var(--blue-ink); line-height: 1.7;"><strong style="display:block; margin-bottom:4px; color: var(--ink);">AI 解读</strong>${detail.aiExplain}</div>` : ''}${detail.mnemonic ? `<div style="margin-bottom: 16px; padding: 12px 14px; border-radius: 10px; background: var(--yellow-soft); color: var(--yellow-ink); line-height: 1.7;"><strong style="display:block; margin-bottom:4px; color: var(--ink);">记忆方法</strong>${detail.mnemonic}</div>` : ''}</div>` : ''}
                 <div style="text-align: right; margin-top: 16px;">
                   <button class="btn-learn-segment" data-segment-index="${routeIndex}" style="display:inline-flex; align-items:center; gap:6px; padding:10px 20px; font-size:14px; font-weight:600; border-radius:99px; background:var(--accent-soft); color:var(--accent-dark); border:1px solid transparent; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='var(--accent)'; this.style.color='#fff';" onmouseout="this.style.background='var(--accent-soft)'; this.style.color='var(--accent-dark)';">
                     <i class="ph-fill ph-play-circle" style="font-size:18px;"></i> 专注练习此段
@@ -1478,7 +1704,7 @@
             `;
           } else {
             expandedContent = `
-              <div class="structure-item-details" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); font-size: 13px;">
+              <div class="structure-item-details" style="display: block; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); font-size: 13px;">
                 <p style="color: var(--muted);">此段暂无详细拆解数据。</p>
                 <div style="text-align: right; margin-top: 12px;">
                   <button class="btn-learn-segment" data-segment-index="${routeIndex}" style="display:inline-flex; align-items:center; gap:6px; padding:8px 16px; font-size:13px; font-weight:600; border-radius:99px; background:var(--accent-soft); color:var(--accent-dark); border:1px solid transparent; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='var(--accent)'; this.style.color='#fff';" onmouseout="this.style.background='var(--accent-soft)'; this.style.color='var(--accent-dark)';">
@@ -1494,7 +1720,7 @@
               <div class="structure-item-header" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                   <i class="ph ph-${icon}"></i>
-                  <strong>${item}</strong>
+                  <strong>第 ${routeIndex + 1} 段 · ${item}</strong>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
                   <span>${statusText}</span>
@@ -1513,7 +1739,7 @@
           const icon = item.querySelector('.toggle-icon');
           header.addEventListener('click', () => {
             const isVisible = details.style.display === 'block';
-            
+
             // Close all other items (optional accordion behavior)
             list.querySelectorAll('.structure-item-details').forEach(d => d.style.display = 'none');
             list.querySelectorAll('.toggle-icon').forEach(i => i.style.transform = 'rotate(0deg)');
@@ -1525,12 +1751,28 @@
           });
         });
 
+        list.querySelectorAll('.show-ai-notes').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const notes = btn.nextElementSibling;
+            if (!notes) return;
+            const hidden = notes.hasAttribute('hidden');
+            if (hidden) {
+              notes.removeAttribute('hidden');
+              btn.innerHTML = '<i class="ph ph-caret-up"></i>收起 AI 解读与记忆方法';
+            } else {
+              notes.setAttribute('hidden', '');
+              btn.innerHTML = '<i class="ph ph-sparkle"></i>查看 AI 解读与记忆方法';
+            }
+          });
+        });
+
         // Attach "Learn this segment" events
         list.querySelectorAll('.btn-learn-segment').forEach(btn => {
           btn.addEventListener('click', (e) => {
             e.stopPropagation(); // prevent accordion toggle
             const segmentIndex = parseInt(btn.dataset.segmentIndex, 10);
-            
+
             // Start route practice specifically at this segment
             routePracticeIndex = segmentIndex;
             routePracticePhase = 1;
@@ -1539,8 +1781,8 @@
           });
         });
       }
-      if (note) note.innerHTML = '<i class="ph ph-lightbulb"></i>记忆路线：' + data.route.join(' → ') + '。先拆解理解每一段，再分段吃透。';
-      
+      if (note) note.innerHTML = '<i class="ph ph-lightbulb"></i>学习路线：先阅读每段原文，再看 AI 解读和关键词，最后用记忆方法复述这一段。';
+
       // Hide the global "按路线开始背" button since we now use per-segment buttons
       const globalBtn = document.getElementById('structureToPracticeBtn');
       if (globalBtn) globalBtn.style.display = 'none';
@@ -1568,6 +1810,7 @@
     function openDemoExample(subject, index, context = 'library') {
       activeDemo = { subject, index, context };
       demoStepIndex = 0;
+      practicePickerVisible = false;
       openPracticeForMaterial(subject, index, context === 'review' ? '复述' : '复述');
     }
     function openReviewExample(subject, index) {
@@ -1576,52 +1819,65 @@
     function renderReviewContent() {
       const panel = document.querySelector('#reviewView .timeline-panel');
       if (!panel) return;
+      const reviewTitle = document.querySelector('#reviewView .page-header h1');
+      if (reviewTitle) reviewTitle.textContent = '艾宾浩斯复习计划';
+      const reviewIntro = document.querySelector('#reviewView .page-header p');
+      if (reviewIntro) reviewIntro.textContent = '采用艾宾浩斯记忆法，根据遗忘曲线与练习表现动态安排间隔复习。';
       panel.classList.add('review-content-panel');
       panel.innerHTML = `
         <div class="home-card-head review-card-head">
           <div>
             <p class="home-eyebrow">TODAY · 3 月 14 日</p>
             <h3>今日需要复习</h3>
-            <p>优先完成到期和反复卡住的内容，今天只专注这一小步。</p>
+            <p>采用艾宾浩斯记忆法，按遗忘曲线安排间隔重复；优先完成到期和反复卡住的内容。</p>
+            <div style="display:flex;align-items:center;gap:9px;margin-top:12px;padding:10px 12px;border-radius:10px;background:#eef4ff;color:#315fca;font-size:13px"><i class="ph ph-brain" style="font-size:18px"></i><strong>艾宾浩斯记忆法</strong><span style="color:#6c82ad">理解 → 间隔回忆 → 巩固长期记忆</span></div>
           </div>
-          <div class="review-count-badge"><strong>6</strong><span>条待复习</span></div>
+          <div class="review-count-badge"><strong>15</strong><span>条学习内容</span></div>
         </div>
         <div class="review-stats">
-          <div class="review-stat"><strong>2 / 6</strong><span>今日已完成</span></div>
+          <div class="review-stat"><strong>2 / 15</strong><span>今日已完成</span></div>
           <div class="review-stat"><strong>18 分钟</strong><span>预计用时</span></div>
           <div class="review-stat"><strong>2 条</strong><span>重点内容</span></div>
         </div>
         <div class="review-progress" aria-label="今日复习进度"><span></span></div>
         <div class="home-subject-filter review-subject-filter" role="tablist" aria-label="按学科筛选复习内容">
-          <button class="active" data-review-filter="all">全部 6</button>
-          <button data-review-filter="语文">语文 2</button>
-          <button data-review-filter="英语">英语 2</button>
-          <button data-review-filter="历史">历史 1</button>
-          <button data-review-filter="地理">地理 1</button>
+          <button class="active" data-review-filter="all">全部 15</button>
+          <button data-review-filter="语文">语文 5</button>
+          <button data-review-filter="数学">数学 5</button>
+          <button data-review-filter="英语">英语 5</button>
         </div>
         <div class="home-review-list review-page-list">
           <button class="home-review-row overdue" data-review-subject="语文" data-review-index="0">
-            <span class="home-review-dot"></span><span class="home-review-main"><strong>《岳阳楼记》</strong><span>语文 · 第 3 段 · 重新理解</span></span><span class="home-review-status"><strong>62%</strong><span>逾期 1 天</span></span><i class="ph ph-arrow-up-right home-review-arrow"></i>
+            <span class="home-review-dot"></span><span class="home-review-main"><strong>《观潮》</strong><span>语文 · 观察顺序 · 重新理解</span></span><span class="home-review-status"><strong>62%</strong><span>今天到期</span></span><i class="ph ph-arrow-up-right home-review-arrow"></i>
           </button>
           <button class="home-review-row" data-review-subject="语文" data-review-index="1">
-            <span class="home-review-dot"></span><span class="home-review-main"><strong>《饮酒》（其五）</strong><span>语文 · 古诗词 · 短复习</span></span><span class="home-review-status"><strong>38%</strong><span>今天到期</span></span><i class="ph ph-arrow-up-right home-review-arrow"></i>
+            <span class="home-review-dot"></span><span class="home-review-main"><strong>《爬山虎的脚》</strong><span>语文 · 说明顺序 · 短复习</span></span><span class="home-review-status"><strong>48%</strong><span>今天到期</span></span><i class="ph ph-arrow-up-right home-review-arrow"></i>
+          </button>
+          <button class="home-review-row" data-review-subject="数学" data-review-index="0">
+            <span class="home-review-dot"></span><span class="home-review-main"><strong>大数的认识</strong><span>数学 · 数位顺序 · 关键词提示</span></span><span class="home-review-status"><strong>76%</strong><span>今天到期</span></span><i class="ph ph-arrow-up-right home-review-arrow"></i>
           </button>
           <button class="home-review-row" data-review-subject="英语" data-review-index="0">
-            <span class="home-review-dot"></span><span class="home-review-main"><strong>Unit 4 · Environment</strong><span>英语 · 关键词提示 · 20 个单词</span></span><span class="home-review-status"><strong>88%</strong><span>今天到期</span></span><i class="ph ph-arrow-up-right home-review-arrow"></i>
+            <span class="home-review-dot"></span><span class="home-review-main"><strong>Unit 1 · My classroom</strong><span>英语 · 单词朗读 · 12 个单词</span></span><span class="home-review-status"><strong>88%</strong><span>今天到期</span></span><i class="ph ph-arrow-up-right home-review-arrow"></i>
           </button>
-          <button class="home-review-row" data-review-subject="英语" data-review-index="2">
-            <span class="home-review-dot"></span><span class="home-review-main"><strong>Giving Advice</strong><span>英语 · 无提示回忆 · 8 个句型</span></span><span class="home-review-status"><strong>74%</strong><span>今天到期</span></span><i class="ph ph-arrow-up-right home-review-arrow"></i>
-          </button>
-          <button class="home-review-row" data-review-subject="历史" data-review-index="0">
-            <span class="home-review-dot"></span><span class="home-review-main"><strong>唐朝盛世</strong><span>历史 · 无提示回忆 · 6 个时间节点</span></span><span class="home-review-status"><strong>66%</strong><span>今天到期</span></span><i class="ph ph-arrow-up-right home-review-arrow"></i>
-          </button>
-          <button class="home-review-row" data-review-subject="地理" data-review-index="0">
-            <span class="home-review-dot"></span><span class="home-review-main"><strong>水循环</strong><span>地理 · 完整复现 · 5 个过程节点</span></span><span class="home-review-status"><strong>61%</strong><span>今天到期</span></span><i class="ph ph-arrow-up-right home-review-arrow"></i>
+          <button class="home-review-row" data-review-subject="英语" data-review-index="1">
+            <span class="home-review-dot"></span><span class="home-review-main"><strong>Unit 2 · My schoolbag</strong><span>英语 · 句型练习 · There is/are</span></span><span class="home-review-status"><strong>71%</strong><span>今天到期</span></span><i class="ph ph-arrow-up-right home-review-arrow"></i>
           </button>
         </div>
         <div class="home-card-actions">
-          <button class="primary-btn" id="reviewStartListBtn"><i class="ph ph-play"></i>开始今日复习 · 6 条</button>
+          <button class="primary-btn" id="reviewStartListBtn"><i class="ph ph-play"></i>开始今日复习 · 15 条</button>
         </div>`;
+      const insight = document.querySelector('#reviewView .insight-panel');
+      if (insight) {
+        insight.innerHTML = `
+          <h3>这周的复习重点</h3>
+          <p>采用艾宾浩斯遗忘曲线，优先安排掌握度较低或近期卡顿的语数英内容。</p>
+          <div style="margin:14px 0;padding:13px 14px;border-radius:12px;background:#fff4e2;color:#9a5a16;display:flex;gap:10px;align-items:flex-start">
+            <i class="ph ph-brain" style="font-size:19px;margin-top:1px"></i>
+            <div><strong style="display:block">艾宾浩斯记忆法 · 间隔重复</strong><span style="display:block;margin-top:5px;font-size:12px;line-height:1.6">按照 D0 理解、D1 短复习、D3 无提示回忆、D7 完整复现、D14 长期保持的节奏循环。</span></div>
+          </div>
+          <div class="insight-stat"><div class="stat-line"><span>语文 · 句子顺序</span><span>需要关注</span></div><div class="insight-bars"><div class="insight-bar"><div><div class="bar-label"><span>《观潮》</span><span>62%</span></div><div class="bar-track"><span style="width:62%"></span></div></div><div class="bar-count">02</div></div><div class="insight-bar"><div><div class="bar-label"><span>三位数乘两位数</span><span>54%</span></div><div class="bar-track"><span style="width:54%"></span></div></div><div class="bar-count">02</div></div><div class="insight-bar"><div><div class="bar-label"><span>英语 Unit 2</span><span>71%</span></div><div class="bar-track"><span style="width:71%"></span></div></div><div class="bar-count">01</div></div></div></div>
+          <div class="route-note" style="margin-top:14px"><i class="ph ph-info"></i>连续两次卡顿的句子会根据遗忘曲线提前进入下一轮复习。</div>`;
+      }
     }
     renderReviewContent();
     function setupPlanEditor() {
@@ -1631,15 +1887,15 @@
       document.body.insertAdjacentHTML('beforeend', `
         <div class="modal-backdrop" id="planEditorModal" role="dialog" aria-modal="true" aria-labelledby="planEditorTitle">
           <div class="modal">
-            <div class="modal-head"><div><h2 id="planEditorTitle">修改复习计划</h2><p>根据你的学习节奏调整复习安排，保存后立即生效。</p></div><button class="close-btn" data-close="planEditorModal" aria-label="关闭"><i class="ph ph-x"></i></button></div>
+            <div class="modal-head"><div><h2 id="planEditorTitle">修改艾宾浩斯复习计划</h2><p>依据遗忘曲线调整复习间隔，保存后立即生效。</p></div><button class="close-btn" data-close="planEditorModal" aria-label="关闭"><i class="ph ph-x"></i></button></div>
             <div class="modal-body">
-              <div class="plan-editor-intro"><strong>当前计划：</strong>今天有 6 条内容待复习，系统默认采用间隔重复安排。</div>
+              <div class="plan-editor-intro"><strong>当前计划：</strong>今天有 15 条四年级内容待复习，系统采用艾宾浩斯记忆法进行间隔重复安排。</div>
               <div class="capture-meta">
                 <div class="field" style="margin:0"><label for="planInterval">复习间隔</label><select id="planInterval"><option>自适应（推荐）</option><option>固定间隔：1 / 3 / 7 / 14 天</option><option>手动安排</option></select></div>
-                <div class="field" style="margin:0"><label for="planDailyLimit">每日复习上限</label><select id="planDailyLimit"><option>6 条</option><option>8 条</option><option>10 条</option><option>不限</option></select></div>
+                <div class="field" style="margin:0"><label for="planDailyLimit">每日复习上限</label><select id="planDailyLimit"><option>15 条</option><option>8 条</option><option>10 条</option><option>不限</option></select></div>
               </div>
               <label class="plan-toggle"><span class="plan-toggle-copy"><strong>卡顿内容自动加练</strong><span>连续两次卡顿时，自动加入下一次复习。</span></span><input id="planAutoRetry" type="checkbox" checked /></label>
-              <div class="plan-editor-preview"><strong>时间线预览：</strong>D0 重新理解 → D1 短复习 → D3 无提示回忆 → D7 完整复现 → D14 长期保持</div>
+              <div class="plan-editor-preview"><strong>艾宾浩斯时间线：</strong>D0 重新理解 → D1 短复习 → D3 无提示回忆 → D7 完整复现 → D14 长期保持</div>
               <div class="modal-foot"><button class="secondary-btn" data-close="planEditorModal">取消</button><button class="primary-btn" id="savePlanBtn"><i class="ph ph-check"></i>保存并应用</button></div>
             </div>
           </div>
@@ -1657,8 +1913,14 @@
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
     document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => closeModal(btn.dataset.close)));
     document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.addEventListener('click', e => { if (e.target === backdrop) closeModal(backdrop.id); }));
-    document.querySelectorAll('.content-item').forEach(item => item.addEventListener('click', () => openDemoExample(item.dataset.demoSubject, Number(item.dataset.demoIndex))));
-    document.querySelectorAll('.home-review-row').forEach(row => row.addEventListener('click', () => openReviewExample(row.dataset.reviewSubject, Number(row.dataset.reviewIndex))));
+    document.querySelectorAll('.content-item').forEach(item => item.addEventListener('click', () => {
+      practicePickerVisible = false;
+      openDemoExample(item.dataset.demoSubject, Number(item.dataset.demoIndex));
+    }));
+    document.querySelectorAll('.home-review-row').forEach(row => row.addEventListener('click', () => {
+      practicePickerVisible = false;
+      openReviewExample(row.dataset.reviewSubject, Number(row.dataset.reviewIndex));
+    }));
     document.querySelectorAll('.review-subject-filter button').forEach(btn => btn.addEventListener('click', () => {
       const filter = btn.dataset.reviewFilter;
       document.querySelectorAll('.review-subject-filter button').forEach(item => item.classList.toggle('active', item === btn));
@@ -1690,7 +1952,7 @@
       updateFeaturedCard(subject, nextIndex);
     });
     document.getElementById('startPracticeBtn').addEventListener('click', () => openPracticeForMaterial(featuredMaterial.subject, featuredMaterial.index));
-    const materialCardMap = {'《岳阳楼记》':['语文',0],'Unit 4 · Environment':['英语',0],'功和能':['物理',0],'校园艺术节发言稿':['语文',2],'Lesson 6 · Reading':['英语',1]};
+    const materialCardMap = {'《观潮》':['语文',0],'大数的认识':['数学',0],'Unit 1 · My classroom':['英语',0],'《爬山虎的脚》':['语文',1],'三位数乘两位数':['数学',1],'Unit 2 · My schoolbag':['英语',1]};
     document.querySelectorAll('.material-card').forEach(card => {
       const title = card.querySelector('h3')?.textContent.trim();
       const mapped = materialCardMap[title];
@@ -1698,6 +1960,7 @@
       if (mapped && action) { action.dataset.materialSubject = mapped[0]; action.dataset.materialIndex = mapped[1]; }
     });
     document.querySelectorAll('.start-task').forEach(btn => btn.addEventListener('click', () => {
+      practicePickerVisible = true;
       const directMode = btn.dataset.practiceMode;
       if (btn.dataset.materialSubject) activeMaterial = { subject:btn.dataset.materialSubject, index:Number(btn.dataset.materialIndex) || 0 };
       if (directMode && practiceModeMeta[directMode]) {
@@ -1711,7 +1974,7 @@
     document.getElementById('openUnderstandLink').addEventListener('click', e => { e.preventDefault(); openUnderstandForMaterial(activeMaterial.subject, activeMaterial.index); });
     document.getElementById('openModeHelpLink').addEventListener('click', e => { e.preventDefault(); openUnderstandForMaterial(activeMaterial.subject, activeMaterial.index); });
     document.getElementById('answerQuestionBtn').addEventListener('click', () => openUnderstandForMaterial(activeMaterial.subject, activeMaterial.index));
-    document.getElementById('detailToPracticeBtn').addEventListener('click', () => { closeModal('detailModal'); setTimeout(() => { updatePracticePicker(); openModal('practiceModal'); }, 160); });
+    document.getElementById('detailToPracticeBtn').addEventListener('click', () => { closeModal('detailModal'); setTimeout(() => { practicePickerVisible = false; updatePracticePicker(); openModal('practiceModal'); }, 160); });
     document.getElementById('structureToPracticeBtn').addEventListener('click', () => {
       const data = currentMaterialData();
       routePracticeIndex = 0;
@@ -1721,26 +1984,21 @@
     document.querySelectorAll('.capture-tab').forEach(tab => tab.addEventListener('click', () => { const group = tab.parentElement; group.querySelectorAll('.capture-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.capture-pane').forEach(p => p.classList.remove('active')); tab.classList.add('active'); document.getElementById(tab.dataset.pane).classList.add('active'); }));
     document.getElementById('fileInput').addEventListener('change', e => { document.getElementById('fileName').textContent = e.target.files[0] ? '已选择：' + e.target.files[0].name : ''; });
     function showToast(message) { const toast = document.getElementById('toast'); toast.textContent = message; toast.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 2600); }
-    document.getElementById('analyzeMaterialBtn').addEventListener('click', () => { 
-  closeModal('importModal'); 
-  
+    document.getElementById('analyzeMaterialBtn').addEventListener('click', () => {
+  closeModal('importModal');
+
   // Find which tab is active
   const activePane = document.querySelector('.capture-pane.active');
   if (activePane && activePane.id === 'textbookPane') {
-    const selectedOption = activePane.querySelector('.textbook-option.selected strong');
-    if (selectedOption) {
-      const title = selectedOption.textContent.trim();
-      if (title.includes('岳阳楼记')) activeMaterial = { subject: '语文', index: 0 };
-      else if (title.includes('饮酒')) activeMaterial = { subject: '语文', index: 1 };
-      else if (title.includes('背影')) activeMaterial = { subject: '语文', index: 2 };
-    }
+    const selectedOption = activePane.querySelector('.textbook-option.selected');
+    if (selectedOption) activeMaterial = { subject: selectedOption.dataset.materialSubject || (subjectSelect ? subjectSelect.value : '语文'), index: Number(selectedOption.dataset.materialIndex) || 0 };
   }
-  
-  setTimeout(() => { 
+
+  setTimeout(() => {
     // Open the structure modal with the selected activeMaterial
-    openStructureForMaterial(activeMaterial.subject, activeMaterial.index); 
-    showToast('识别完成，AI 已拆出文章路线图'); 
-  }, 180); 
+    openStructureForMaterial(activeMaterial.subject, activeMaterial.index);
+    showToast('识别完成，AI 已拆出文章路线图');
+  }, 180);
 });
     function normalizeText(text) { return String(text || '').toLowerCase().replace(/[\s\n\r、，。；：？！“”‘’（）()【】\[\]《》〈〉…·,.;:!?"']/g, ''); }
     function buildSessionBody(mode, data) {
@@ -1852,16 +2110,16 @@
       const routeKeywords = detail ? detail.keywords : data.keywords.slice(currentIndex, currentIndex + 2);
       const routeAnswer = detail ? detail.text : ((data.routeAnswers && data.routeAnswers[currentIndex]) || data.passage || '请根据当前记忆节点，完整复述这一段内容。');
       const routeTrail = route.map((item, index) => '<span class="' + (index < currentIndex ? 'done' : index === currentIndex ? 'current' : '') + '">' + (index + 1) + '. ' + item + '</span>').join('');
-      
+
       document.getElementById('sessionKicker').textContent = '按路线背诵 · ' + (currentIndex + 1) + ' / ' + route.length;
       document.getElementById('sessionTitle').textContent = routeTitle;
       document.getElementById('sessionSubtitle').textContent = data.title + ' · 先完成当前路线节点，再进入下一段';
       document.getElementById('sessionProgressBar').style.width = ((currentIndex + 1) / Math.max(route.length, 1) * 100) + '%';
-      
+
       if (routePracticePhase === 1) {
         // Phase 1: Read and Memorize
         document.getElementById('sessionPrompt').textContent = '请先阅读并理解这一段的内容与逻辑。';
-        
+
         let extraContent = '';
         if (detail) {
           if (detail.aiExplain) {
@@ -1906,7 +2164,7 @@
           <textarea class="session-answer" style="min-height: 180px; border: 2px solid var(--accent-soft); background: #fdfefe; font-size: 15px; padding: 18px; line-height: 1.6;" placeholder="请在此默写或背诵该段内容..."></textarea>
           <div class="session-feedback" id="sessionFeedback" hidden></div>
         `;
-        
+
         document.getElementById('peekAnswerBtn').addEventListener('click', function() {
           const peek = document.getElementById('peekAnswer');
           peek.style.display = peek.style.display === 'none' ? 'block' : 'none';
@@ -2033,8 +2291,8 @@
     document.getElementById('startReviewBtn').addEventListener('click', () => openPracticeForMaterial('语文', 0, '复述'));
     document.getElementById('reviewStartListBtn').addEventListener('click', () => document.getElementById('startReviewBtn').click());
     document.getElementById('editPlanBtn').addEventListener('click', () => openModal('planEditorModal'));
-    document.getElementById('savePlanBtn').addEventListener('click', () => { closeModal('planEditorModal'); showToast('复习计划已更新，新的安排已生效'); });
-    document.getElementById('rebuildPlanBtn').addEventListener('click', () => showToast('计划已重新安排，保留今天的 6 个复习内容'));
+    document.getElementById('savePlanBtn').addEventListener('click', () => { closeModal('planEditorModal'); showToast('艾宾浩斯复习计划已更新，新的间隔安排已生效'); });
+    document.getElementById('rebuildPlanBtn').addEventListener('click', () => showToast('已按艾宾浩斯遗忘曲线重新安排今日复习'));
     document.getElementById('applySuggestionBtn').addEventListener('click', () => showToast('已采纳建议，岳阳楼记将拆成更小分段'));
     document.querySelectorAll('.filter-btn').forEach(btn => btn.addEventListener('click', () => { const group = btn.parentElement; group.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); showToast('已切换：' + btn.textContent); }));
     document.querySelectorAll('.subject-switch button').forEach(btn => btn.addEventListener('click', () => { const group = btn.parentElement; group.querySelectorAll('button').forEach(b => b.classList.remove('active')); btn.classList.add('active'); updateFeaturedCard(btn.dataset.subject, 0); }));

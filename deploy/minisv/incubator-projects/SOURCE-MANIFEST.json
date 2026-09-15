@@ -8,7 +8,7 @@
       "title": "背课文",
       "route": "/incubator/projects/recitation/",
       "sourceFile": "背课文.html",
-      "sourceSha256": "282d87442d09e34265e2d3ee07e15f9580f48cf6606d72fd12d90b92bcd88d4f",
+      "sourceSha256": "ed5e352c8197dc0264fdfde5db1fa186f7a43ca1fa4778275dd3a2e145e6294b",
       "runtime": "browser-only-demo",
       "persistence": "none"
     },
@@ -17,7 +17,7 @@
       "title": "错题集",
       "route": "/incubator/projects/mistake-notebook/",
       "sourceFile": "index.html",
-      "sourceSha256": "10a830f60560ad36f5c6b16063c38bb12516ecb016911cf96de664bdf6d05e54",
+      "sourceSha256": "bac7960dd09c0fd298fd194ebd440ca2b1d24541f02b53d7656b2c6385e02af8",
       "runtime": "browser-only-demo",
       "persistence": "none"
     }
@@ -25,7 +25,9 @@
   "transforms": [
     "vendor-phosphor-icons-2.1.1",
     "remove-blocked-google-fonts",
-    "add-official-brand-home-and-project-list-navigation",
+    "add-hidden-official-brand-navigation",
+    "hide-project-shell-on-project-pages",
+    "normalize-line-trailing-whitespace",
     "declare-browser-only-demo-boundary"
   ],
   "files": [
@@ -76,13 +78,13 @@
     },
     {
       "path": "_shared/project-shell.css",
-      "sha256": "5d99dec31d81ecb30eca995acb497426346db576b307dfb951bbca6d69bc5f4e",
-      "bytes": 1445
+      "sha256": "6645a67e13ba39d34dc43bfcc63a47510650de11976707269dfb12eb5dbd0cf7",
+      "bytes": 1488
     },
     {
       "path": "mistake-notebook/index.html",
-      "sha256": "e7e41290725b0d033bca71e7b2ba70aadae3982c5c4e857dbc084685fc32631c",
-      "bytes": 182159
+      "sha256": "e0fbfe345c8c0aa02d452f011ade4fa581f22a686ff7ea0e1b37e3da55a929d0",
+      "bytes": 195874
     },
     {
       "path": "recitation/assets/beiying-station.jpg",
@@ -90,9 +92,19 @@
       "bytes": 636214
     },
     {
+      "path": "recitation/assets/chinese-nature.jpg",
+      "sha256": "7c0245d9c0717778d044ebb40156421752d4a9706c8e4cdc732daf6e5da05590",
+      "bytes": 966289
+    },
+    {
       "path": "recitation/assets/eng-advice.jpg",
       "sha256": "a6bf72bdd473c1afd27a8f2a5dcfb9a1e13a8de2eabf019acba0420daf3078fb",
       "bytes": 613764
+    },
+    {
+      "path": "recitation/assets/eng-classroom.jpg",
+      "sha256": "32a24da1744eb867fcbd85f6bb60d2d7813ce9e62e816f3c96b23d686684f70e",
+      "bytes": 969797
     },
     {
       "path": "recitation/assets/eng-environment.jpg",
@@ -130,14 +142,34 @@
       "bytes": 553560
     },
     {
-      "path": "recitation/assets/history-cover.svg",
-      "sha256": "853aba50f71cdeede861c9d7e55487a70b142256001fabb0524f15f4ae045f1a",
-      "bytes": 1805
+      "path": "recitation/assets/math-geometry.jpg",
+      "sha256": "dbad9e0d60575397d53be4c9562d7aaf7f913da767f3983293ac587402c77faf",
+      "bytes": 688247
+    },
+    {
+      "path": "recitation/assets/math-numbers.jpg",
+      "sha256": "39c3b4ec0b6d949d2447a2e92cebfa128277595b1161c75145602be2ff7eb99c",
+      "bytes": 946001
+    },
+    {
+      "path": "recitation/assets/moonlight.jpg",
+      "sha256": "e2cd0a7419890bf4469982d3aa767ddf458329d114c8b453ad113b5d5773336a",
+      "bytes": 840758
     },
     {
       "path": "recitation/assets/study-path-banner.png",
       "sha256": "c8a089febb8eed1f71e87f2920baa0073a8c4430b6060b92dea093c886f91b1b",
       "bytes": 404787
+    },
+    {
+      "path": "recitation/assets/tidal-bore.jpg",
+      "sha256": "f135ce59566515e4217768bd2ce22f91e588e1681a888b802a99cf27643e8d8a",
+      "bytes": 911897
+    },
+    {
+      "path": "recitation/assets/tiger-illustration.jpg",
+      "sha256": "94c689a23af40c21f1cbae462e75c26db1678cc2175e1ceca336307959a26cfa",
+      "bytes": 821516
     },
     {
       "path": "recitation/assets/travel-cover.svg",
@@ -156,9 +188,9 @@
     },
     {
       "path": "recitation/index.html",
-      "sha256": "737af1926b0e9d5b48175a4ee4bffe7ea7acd5e62fdbaac39f4824b4d6eb98b0",
-      "bytes": 255476
+      "sha256": "f07b9224cd89c69e29b9a920d1c6484b64bd7af4a52105070e02d3638d2927a5",
+      "bytes": 297632
     }
   ],
-  "contentTreeSha256": "0fa1c8c42374fa425bd92d1b75fa9c1b9505005d98fc2f71532a4bf5acd10dfb"
+  "contentTreeSha256": "fd546d65991e0d60061be8ca7202a33e2f29907bba49d9d5b172a5b298719fad"
 }

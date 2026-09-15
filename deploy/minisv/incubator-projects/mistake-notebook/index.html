@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#f7f6f2" />
   <title>错题集｜MINI硅谷孵化器</title>
+
   <meta name="description" content="错题集交互原型：收集错因、建立解题规则并安排复习。">
   <link rel="canonical" href="https://minisv.vip/incubator/projects/mistake-notebook/">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -14,7 +15,7 @@
   <link rel="stylesheet" href="../_shared/phosphor/fill/style.css">
   <link rel="stylesheet" href="../_shared/phosphor/duotone/style.css">
 
-  <style>
+<style>
     /* -------------------------------------------------------------
        1. DESIGN TOKENS (Design Taste v1 Calibrated Palette)
        ------------------------------------------------------------- */
@@ -1167,6 +1168,212 @@
       color: var(--muted);
       margin-top: 3px;
     }
+    .today-plan-card {
+      margin-bottom: 20px;
+    }
+    .today-plan-card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .today-plan-card-head h3 {
+      font-size: 16px;
+      font-weight: 750;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+    .today-plan-card-head p {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .today-plan-count {
+      flex: 0 0 auto;
+      padding: 5px 10px;
+      border-radius: var(--radius-full);
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .today-plan-list {
+      display: grid;
+      gap: 10px;
+    }
+    .today-plan-item {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr) auto auto auto;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border: 1px solid var(--line-subtle);
+      border-radius: var(--radius-sm);
+      background: var(--surface-hover);
+      transition: border-color .2s ease, transform .2s var(--spring);
+    }
+    .today-plan-item:hover {
+      border-color: var(--line-bold);
+      transform: translateY(-1px);
+    }
+    .today-plan-index {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: #fff;
+      font: 700 11px "JetBrains Mono", monospace;
+    }
+    .today-plan-info {
+      min-width: 0;
+    }
+    .today-plan-info strong {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 13px;
+      color: var(--ink);
+    }
+    .today-plan-info span {
+      display: block;
+      margin-top: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .inline-stage-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 750;
+      line-height: 1.2;
+      vertical-align: middle;
+      letter-spacing: 0.02em;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+    .inline-stage-badge i {
+      font-size: 11px;
+    }
+    .plan-stage-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 11.5px;
+      font-weight: 750;
+      white-space: nowrap;
+      line-height: 1;
+      letter-spacing: 0.02em;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+    .plan-stage-badge i {
+      font-size: 12px;
+    }
+    .stage-d1, .stage-d1.inline-stage-badge {
+      background: #fff1f2;
+      color: #e11d48;
+      border: 1px solid #fecdd3;
+    }
+    .stage-d3, .stage-d3.inline-stage-badge {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+    .stage-d7, .stage-d7.inline-stage-badge {
+      background: #fffbeb;
+      color: #b45309;
+      border: 1px solid #fde68a;
+    }
+    .stage-d14, .stage-d14.inline-stage-badge {
+      background: #f0fdf4;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+    .plan-source-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 11.5px;
+      font-weight: 750;
+      white-space: nowrap;
+      line-height: 1;
+      letter-spacing: 0.02em;
+    }
+    .plan-source-tag i {
+      font-size: 12px;
+    }
+    .plan-source-tag.source-same {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+    .plan-source-tag.source-changed {
+      background: #fffbeb;
+      color: #b45309;
+      border: 1px solid #fde68a;
+    }
+    .plan-source-tag.source-transfer {
+      background: #f0fdf4;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+    .today-plan-subject {
+      padding: 4px 8px;
+      border-radius: var(--radius-full);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      font-size: 11px;
+      color: var(--ink-secondary);
+      white-space: nowrap;
+    }
+    .today-plan-action {
+      padding: 7px 10px;
+      border-radius: var(--radius-full);
+      background: var(--ink);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .memory-method-card {
+      background: var(--accent-soft);
+      border: 1px solid #f5c8bc;
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      margin-top: 18px;
+    }
+    .memory-method-card strong {
+      display: block;
+      color: var(--accent-dark);
+      font-size: 13px;
+      margin-bottom: 5px;
+    }
+    .memory-method-card p {
+      color: var(--ink-secondary);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+    @media (max-width: 720px) {
+      .today-plan-item {
+        grid-template-columns: 28px minmax(0, 1fr) auto auto;
+        gap: 8px;
+        padding: 10px 12px;
+      }
+      .today-plan-subject { display: none; }
+      .today-plan-action { padding: 6px 9px; font-size: 10.5px; }
+      .plan-source-tag { padding: 3px 7px; font-size: 10.5px; }
+    }
 
     /* -------------------------------------------------------------
        10. MODAL & INTERACTIVE PRACTICE WORKBENCH (作答模式核心交互)
@@ -2291,7 +2498,7 @@
         <div class="brand-icon"><i class="ph ph-notebook"></i></div>
         <div class="brand-titles">
           <span class="brand-title">错题本</span>
-          <span class="brand-badge">学习空间 · 初三</span>
+          <span class="brand-badge">学习空间 · 小学四年级</span>
         </div>
       </a>
 
@@ -2338,10 +2545,10 @@
          VIEW 1: PRODUCT HOMEPAGE (首页)
          ============================================================= -->
     <section class="page-view active" id="overviewView">
-      
+
       <!-- SECTION 1: HERO SPOTLIGHT + QUICK CAPTURE -->
       <div class="hero-split">
-        
+
         <!-- Left Hero Stage: Featured Breakthrough -->
         <div class="breakthrough-stage">
           <div>
@@ -2350,13 +2557,13 @@
                 <span class="stage-pill-dot"></span>
                 <span>今日攻关重点</span>
               </span>
-              <span class="stage-date-tip" id="heroDateTip">2025 年 3 月 14 日 · 周五</span>
+              <span class="stage-date-tip" id="heroDateTip">2026 年 9 月 15 日 · 周二</span>
             </div>
 
             <div class="stage-headline">
-              <h2 id="heroQuestionTitle">解方程去括号：负号要进入每一项</h2>
+              <h2 id="heroQuestionTitle">三位数乘两位数时进位漏写</h2>
               <div class="stage-tags">
-                <span class="chip" id="heroSubjectTag">数学 · 一元二次方程</span>
+                <span class="chip" id="heroSubjectTag">数学 · 笔算乘法</span>
                 <span class="chip highlight" id="heroStageTag">D1 · 无提示重做</span>
                 <span class="chip" id="heroErrorTag">步骤错误</span>
               </div>
@@ -2422,10 +2629,9 @@
           <div class="demo-preset-dock">
             <span class="demo-preset-label">一键演示快速填题</span>
             <div class="demo-preset-buttons">
-              <button class="demo-quick-btn" data-preset="math-1"><i class="ph ph-calculator"></i> 数学去括号</button>
-              <button class="demo-quick-btn" data-preset="chinese-2"><i class="ph ph-book-open-text"></i> 语文说明文</button>
-              <button class="demo-quick-btn" data-preset="english-2"><i class="ph ph-translate"></i> 英语主旨</button>
-              <button class="demo-quick-btn" data-preset="physics-1"><i class="ph ph-atom"></i> 物理变阻器</button>
+              <button class="demo-quick-btn" data-preset="math-1"><i class="ph ph-calculator"></i> 数学笔算乘法</button>
+              <button class="demo-quick-btn" data-preset="chinese-2"><i class="ph ph-book-open-text"></i> 语文说明方法</button>
+              <button class="demo-quick-btn" data-preset="english-2"><i class="ph ph-translate"></i> 英语实义动词</button>
             </div>
           </div>
         </div>
@@ -2499,11 +2705,10 @@
 
       <div class="bank-bar">
         <div class="filter-group" id="bankSubjectFilters">
-          <button class="filter-chip-btn active" data-subject="全部学科">全部学科 · 12</button>
+          <button class="filter-chip-btn active" data-subject="全部学科">全部学科 · 9</button>
           <button class="filter-chip-btn" data-subject="数学">数学 · 3</button>
           <button class="filter-chip-btn" data-subject="语文">语文 · 3</button>
           <button class="filter-chip-btn" data-subject="英语">英语 · 3</button>
-          <button class="filter-chip-btn" data-subject="物理">物理 · 3</button>
         </div>
         <div class="filter-group" id="bankStatusFilters">
           <button class="filter-chip-btn active" data-status="全部状态">全部状态</button>
@@ -2535,7 +2740,7 @@
       <div class="page-header-simple">
         <div>
           <h1>复习计划</h1>
-          <p>依据艾宾浩斯抗遗忘节律，让记忆在科学的时间间隔中固化。</p>
+          <p>今天复习什么、为什么现在复习，都由艾宾浩斯遗忘曲线记忆法安排。</p>
         </div>
         <button class="btn-secondary" id="planResetBtn">
           <i class="ph ph-arrows-clockwise"></i>
@@ -2543,66 +2748,18 @@
         </button>
       </div>
 
-      <div class="plan-split">
-        <div class="plan-card">
-          <h3 style="font-size:16px;font-weight:750;color:var(--ink);margin-bottom:6px;">间隔复习时间线</h3>
-          <p style="font-size:12px;color:var(--muted);margin-bottom:18px;">系统已根据最近 14 天的作答反馈动态优化题组间隔。</p>
-          <div class="plan-timeline">
-            <div class="timeline-node-item current">
-              <span class="timeline-date-label">今天 · 3 题</span>
-              <div class="timeline-bullet"></div>
-              <div class="timeline-content-copy">
-                <strong>重新理解与无提示重做</strong>
-                <p>先用一句话复述关键步骤，再在草稿纸上完整解题。</p>
-              </div>
-            </div>
-            <div class="timeline-node-item">
-              <span class="timeline-date-label">3 月 15 日</span>
-              <div class="timeline-bullet"></div>
-              <div class="timeline-content-copy">
-                <strong>同型题校验 · 2 题</strong>
-                <p>仅改变数字与符号，测试解题定势是否稳固。</p>
-              </div>
-            </div>
-            <div class="timeline-node-item">
-              <span class="timeline-date-label">3 月 17 日</span>
-              <div class="timeline-bullet"></div>
-              <div class="timeline-content-copy">
-                <strong>变式题探究 · 2 题</strong>
-                <p>翻转设问方向或增设隐藏条件。</p>
-              </div>
-            </div>
-            <div class="timeline-node-item">
-              <span class="timeline-date-label">3 月 21 日</span>
-              <div class="timeline-bullet"></div>
-              <div class="timeline-content-copy">
-                <strong>综合跨考点迁移 · 1 题</strong>
-                <p>将知识点融入中考压轴复合情境。</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="plan-card" style="display:flex;flex-direction:column;justify-content:space-between;">
+      <div class="plan-card today-plan-card">
+        <div class="today-plan-card-head">
           <div>
-            <span class="chip highlight" style="margin-bottom:12px;display:inline-block;">本周冲刺靶心</span>
-            <h3 id="planFocusTitle" style="font-size:20px;font-weight:800;color:var(--ink);margin-bottom:8px;">一元二次方程 · 负号展开</h3>
-            <p id="planFocusDesc" style="font-size:13px;color:var(--ink-secondary);line-height:1.6;margin-bottom:16px;">近 14 天连续出现 3 次同类型错误。完成本轮无提示重做后，系统将自动生成对应同型题验证。</p>
-          </div>
-          <div>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12px;">
-              <span style="font-weight:600;color:var(--ink);">本周复习达成率</span>
-              <span class="font-mono" style="font-weight:700;color:var(--green);">68%</span>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+              <h3 style="margin:0;">今天需要复习的题目</h3>
+              <span class="chip highlight" style="font-size:11px;padding:2px 8px;">艾宾浩斯三阶演练</span>
             </div>
-            <div style="height:6px;background:var(--canvas-subtle);border-radius:999px;overflow:hidden;margin-bottom:18px;">
-              <div style="width:68%;height:100%;background:var(--green);border-radius:inherit;"></div>
-            </div>
-            <button class="btn-primary" id="planStartFocusBtn" style="width:100%;">
-              <i class="ph ph-play"></i>
-              <span>进入重点题目实战作答</span>
-            </button>
+            <p>先独立回忆，再打开题目进行实战作答；涵盖<b>同型题</b>（基础巩固）、<b>变形题</b>（逆向变通）、<b>迁移题</b>（综合应用）三阶进阶练习。</p>
           </div>
+          <span class="today-plan-count" id="todayPlanCount">共 0 题</span>
         </div>
+        <div class="today-plan-list" id="todayPlanList"></div>
       </div>
     </section>
 
@@ -2620,6 +2777,15 @@
           <i class="ph ph-plus"></i>
           <span>提炼新规则</span>
         </button>
+      </div>
+
+      <div class="bank-bar" style="margin-top:18px;">
+        <div class="filter-group" id="rulesSubjectFilters" aria-label="按学科筛选解题规则">
+          <button class="filter-chip-btn active" data-rules-subject="全部学科">全部学科</button>
+          <button class="filter-chip-btn" data-rules-subject="语文">语文</button>
+          <button class="filter-chip-btn" data-rules-subject="数学">数学</button>
+          <button class="filter-chip-btn" data-rules-subject="英语">英语</button>
+        </div>
       </div>
 
       <div class="rules-wall-grid" id="fullRulesDeck" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
@@ -2697,20 +2863,17 @@
           </div>
           <select id="demoSampleSelect">
             <option value="">-- 不使用预制样例，手动新增 --</option>
-            <option value="math-1">数学 · 去括号时把负号漏给了第二项</option>
-            <option value="chinese-2">语文 · 列数字说明方法判断</option>
-            <option value="english-2">英语 · 转折后的主旨信息</option>
-            <option value="physics-3">物理 · 密度公式单位换算</option>
-            <option value="math-2">数学 · 圆内接四边形证明没有先找对角关系</option>
-            <option value="chinese-1">语文 · 《岳阳楼记》先天下之忧而忧</option>
-            <option value="english-1">英语 · 现在完成时 since 与 for 混用</option>
-            <option value="physics-1">物理 · 滑动变阻器偏转方向判断反了</option>
+            <option value="math-1">数学 · 三位数乘两位数进位</option>
+            <option value="chinese-2">语文 · 说明方法列数字</option>
+            <option value="english-2">英语 · be 动词和实义动词</option>
+            <option value="math-2">数学 · 小数点位置移动</option>
+            <option value="chinese-1">语文 · 关联词既……又……</option>
+            <option value="english-1">英语 · 第三人称单数</option>
           </select>
           <div class="demo-sample-chips">
-            <button type="button" class="sample-chip-btn" data-sample-id="math-1"><i class="ph ph-calculator"></i> 数学去括号</button>
-            <button type="button" class="sample-chip-btn" data-sample-id="chinese-2"><i class="ph ph-book-open-text"></i> 语文说明文</button>
-            <button type="button" class="sample-chip-btn" data-sample-id="english-2"><i class="ph ph-translate"></i> 英语转折主旨</button>
-            <button type="button" class="sample-chip-btn" data-sample-id="physics-3"><i class="ph ph-atom"></i> 物理密度换算</button>
+            <button type="button" class="sample-chip-btn" data-sample-id="math-1"><i class="ph ph-calculator"></i> 数学笔算乘法</button>
+            <button type="button" class="sample-chip-btn" data-sample-id="chinese-2"><i class="ph ph-book-open-text"></i> 语文说明方法</button>
+            <button type="button" class="sample-chip-btn" data-sample-id="english-2"><i class="ph ph-translate"></i> 英语实义动词</button>
           </div>
           <p>一键填入真实题目、解题过程和学科，点击“开始识别”即可新增一张独立错题卡。</p>
         </div>
@@ -2722,8 +2885,6 @@
               <option value="数学">数学</option>
               <option value="语文">语文</option>
               <option value="英语">英语</option>
-              <option value="物理">物理</option>
-              <option value="化学">化学</option>
             </select>
           </div>
           <div>
@@ -2767,8 +2928,8 @@
             </span>
             <span class="chip highlight" id="modalReviewStageTag">D1 · 无提示重做</span>
           </div>
-          <h3 id="detailModalTitle" style="margin-top:6px;">解方程去括号符号出错</h3>
-          <p id="detailModalMeta">一元二次方程 · 来自 3 月 12 日作业</p>
+          <h3 id="detailModalTitle" style="margin-top:6px;">乘法分配律简便计算漏乘括号内第二项</h3>
+          <p id="detailModalMeta">数学 · 来自 3 月 12 日作业</p>
         </div>
         <button class="modal-close-btn" data-close="detailModal"><i class="ph ph-x"></i></button>
       </div>
@@ -2779,12 +2940,12 @@
              STAGE A: 用户实战作答模式 (Practice Stage)
              ========================================================= -->
         <div id="practiceStagePanel" style="display:block;">
-          
+
           <!-- Question Statement Card -->
           <div class="practice-question-card">
             <div class="practice-q-badge"><i class="ph ph-target"></i> 题干要求</div>
             <div class="practice-q-text" id="practiceQuestionText">
-              解方程：3x - 2(2x - 5) = 9。
+              用简便方法计算：25 × (40 + 4)。
             </div>
             <div class="practice-q-instruction">
               请先独立回忆解法，在下方输入解题步骤或最终结果；如在草稿纸上演算完成，可直接核对。
@@ -2798,7 +2959,7 @@
                 <i class="ph ph-pencil-line"></i>
                 <span>你的推导演练区</span>
               </div>
-              
+
               <!-- Mode Tabs: Keyboard vs Photo Upload -->
               <div class="answer-mode-tabs">
                 <button type="button" class="answer-mode-tab active" id="tabModeType">
@@ -2812,20 +2973,19 @@
 
             <!-- Mode 1: Keyboard & Math Textarea Panel -->
             <div id="panelAnswerText" style="display:block;">
-              <textarea id="practiceInput" class="answer-textarea" placeholder="在此输入你的关键解题步骤或答案（例如：去括号得 3x - 4x + 10 = 9，解得 x = 1）..."></textarea>
-              
+              <textarea id="practiceInput" class="answer-textarea" placeholder="在此输入你的关键解题步骤或答案（例如：25 × 40 + 25 × 4 = 1100）..."></textarea>
+
               <!-- Quick Math Shortcuts & Camera Button -->
               <div class="math-tools-bar">
                 <span class="math-tools-label">快捷符号:</span>
-                <button type="button" class="math-symbol-btn" data-insert="x = ">x =</button>
-                <button type="button" class="math-symbol-btn" data-insert=" - ">−</button>
+                <button type="button" class="math-symbol-btn" data-insert=" × ">×</button>
+                <button type="button" class="math-symbol-btn" data-insert=" ÷ ">÷</button>
                 <button type="button" class="math-symbol-btn" data-insert=" + ">+</button>
-                <button type="button" class="math-symbol-btn" data-insert="≤">≤</button>
-                <button type="button" class="math-symbol-btn" data-insert="≥">≥</button>
-                <button type="button" class="math-symbol-btn" data-insert="∠">∠</button>
+                <button type="button" class="math-symbol-btn" data-insert=" - ">−</button>
+                <button type="button" class="math-symbol-btn" data-insert=" = ">=</button>
                 <button type="button" class="math-symbol-btn" data-insert="°">°</button>
-                <button type="button" class="math-symbol-btn" data-insert="√">√</button>
-                <button type="button" class="math-symbol-btn" data-insert="²">²</button>
+                <button type="button" class="math-symbol-btn" data-insert="∠">∠</button>
+                <button type="button" class="math-symbol-btn" data-insert="( )">( )</button>
                 <button type="button" class="quick-camera-trigger-btn" id="btnQuickCameraTrigger" style="margin-left:auto;">
                   <i class="ph ph-camera"></i> 拍草稿纸上传
                 </button>
@@ -2874,7 +3034,7 @@
                 <div class="photo-ocr-result-bar" id="photoOcrResultBar">
                   <div class="ocr-status-tag"><i class="ph ph-sparkle"></i> AI 智能手写识别：</div>
                   <div class="ocr-text-content" id="photoOcrText">
-                    识别完成：去括号得 3x - 4x + 10 = 9，移项得 -x = -1，解得 x = 1
+                    识别完成：25 × 40 + 25 × 4 = 1000 + 100 = 1100
                   </div>
                 </div>
               </div>
@@ -2900,13 +3060,13 @@
              STAGE B: 批改反馈与规则固化模式 (Feedback / Diagnosis Stage)
              ========================================================= -->
         <div id="feedbackStagePanel" class="feedback-state-panel">
-          
+
           <!-- Result Banner -->
           <div class="eval-banner success" id="evalBanner">
             <i class="ph ph-check-circle" id="evalBannerIcon"></i>
             <div>
               <strong id="evalBannerTitle">🎉 太棒了！本次作答完全正确</strong>
-              <p id="evalBannerDesc">你已成功克服了上次的负号遗漏陷阱，步骤严密规范！</p>
+              <p id="evalBannerDesc">你已成功掌握乘法分配律简便计算，步骤严密规范！</p>
             </div>
           </div>
 
@@ -2937,15 +3097,15 @@
               <div id="compStudentPhotoWrap" style="display:none;margin-bottom:8px;cursor:pointer;" title="点击放大查看草稿图片">
                 <img id="compStudentPhotoThumb" class="comp-cell-photo-thumb" src="" alt="手写演算草稿" />
               </div>
-              <div class="comp-cell-body font-mono" id="compStudentAns">x = 1</div>
+              <div class="comp-cell-body font-mono" id="compStudentAns">25 × (40 + 4) = 1100</div>
             </div>
             <div class="comp-cell correct">
               <div class="comp-cell-label"><i class="ph ph-check"></i> 正确答案</div>
-              <div class="comp-cell-body font-mono" id="compCorrectAns">x = 1</div>
+              <div class="comp-cell-body font-mono" id="compCorrectAns">1100</div>
             </div>
             <div class="comp-cell previous">
               <div class="comp-cell-label"><i class="ph ph-warning-circle"></i> 上次错因回溯</div>
-              <div class="comp-cell-body" id="compPreviousMistake">展开括号时第二项漏乘负号</div>
+              <div class="comp-cell-body" id="compPreviousMistake">展开时漏乘括号内第二项</div>
             </div>
           </div>
 
@@ -2958,7 +3118,7 @@
             <div class="chips-flow" id="diagnosisChipsContainer">
               <!-- Chips populated dynamically -->
             </div>
-            
+
             <!-- Careless Followup Question Card (PRD Section 2: 粗心二次追问) -->
             <div class="careless-followup-card" id="carelessFollowupCard" style="display:none;">
               <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#996e1b;margin-bottom:6px;">
@@ -2999,7 +3159,7 @@
               <span>已提炼并收录至「我的解题规则」</span>
             </div>
             <p id="detailRuleText" style="font-size:13px;color:#785a1a;line-height:1.5;margin:0;">
-              遇到负号或负数乘括号，先把乘数分别乘进括号内每一项，再合并同类项。
+              乘法分配律记心间：(a + b) × c = a × c + b × c，括号外面的数必须分别乘括号里的每一项。
             </p>
           </div>
 
@@ -3015,7 +3175,7 @@
               <button class="var-tab-btn" data-variant="transfer">迁移题</button>
             </div>
             <div class="variant-question-body" id="variantQuestionText">
-              解方程：5x - 3(x - 4) = 16。
+              用简便方法计算：125 × (80 + 8)。
             </div>
             <!-- 即时实战演练区 (可作答、提交判卷、揭晓答案) -->
             <div id="variantInteractiveSolver" style="margin-top:12px;padding:12px 14px;background:var(--surface);border:1.5px solid var(--line);border-radius:var(--radius-md);transition:all 0.25s var(--spring);">
@@ -3027,7 +3187,7 @@
                 <span class="chip highlight" id="variantPracticeBadge" style="font-size:10px;padding:2px 8px;">独立作答中</span>
               </div>
               <textarea id="variantStudentInput" rows="2" placeholder="在此写下你的作答思路或计算结果，检验是否真正掌握..." style="width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12.5px;background:var(--canvas-subtle);outline:none;font-family:inherit;box-sizing:border-box;resize:vertical;"></textarea>
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:8px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:gap:8px;">
                 <div style="display:flex;gap:8px;">
                   <button type="button" class="btn-primary" id="btnSubmitVariantPractice" style="padding:6px 14px;font-size:11px;">
                     <i class="ph ph-check-circle"></i>
@@ -3044,7 +3204,7 @@
                 </button>
               </div>
               <div class="variant-answer-revealed" id="variantAnswerBox" style="margin-top:10px;">
-                去括号得 5x - 3x + 12 = 16，解得 x = 2。
+                125 × 80 + 125 × 8 = 10000 + 1000 = 11000。
               </div>
               <div id="variantFeedbackAlert" style="display:none;margin-top:10px;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.5;"></div>
             </div>
@@ -3106,350 +3266,455 @@
        ============================================================= -->
   <script>
     /* Question Database (Rich Student Data) */
+    // Demo Handwriting Note SVG for 4th Grade Practice
+    const DEMO_HANDWRITING_SVG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="240" viewBox="0 0 600 240"><rect width="100%" height="100%" fill="%23fcfbf9"/><path d="M20 50 H580 M20 100 H580 M20 150 H580 M20 200 H580" stroke="%23e8e2d8" stroke-width="1.5"/><text x="35" y="42" font-family="sans-serif" font-size="18" fill="%232d3748" font-weight="600">错题推导：25 × (40 + 4)</text><text x="35" y="92" font-family="sans-serif" font-size="20" fill="%231a365d">= 25 × 40 + 25 × 4</text><text x="35" y="142" font-family="sans-serif" font-size="20" fill="%231a365d">= 1000 + 100</text><text x="35" y="192" font-family="sans-serif" font-size="22" fill="%232b6cb0" font-weight="700">= 1100  ✓ (乘法分配律展开)</text></svg>';
+
     const questionBank = [
-      {
-        id: 'math-1',
-        subject: '数学',
-        title: '去括号时把负号漏给了第二项',
-        source: '日常作业',
-        date: '2025.03.12',
-        knowledge: '一元一次方程 · 去括号',
-        errorType: '步骤错误',
-        confidence: 92,
-        dueToday: true,
-        reviewStage: 'D1 无提示重做',
-        prompt: '解方程：3x - 2(2x - 5) = 9。',
-        studentAnswer: '3x - 4x - 5 = 9\\n-x = 14\\nx = -14',
-        correctAnswer: 'x = 1',
-        wrongStep: '展开括号时将 -2(2x - 5) 误写为 -4x - 5，第二项未变号。',
-        rule: '看到 −( )，先把负号完整乘进括号内每一项，特别注意常数项变号。',
-        formulaSnippet: '3x - 2(2x - 5) = 9',
-        explanations: {
-          hint: '<b>先盯住括号外的 -2。</b> 它要同时乘到 2x 和 -5，常数项会变成 +10。',
-          steps: '<b>第一步：</b> -2 × 2x = -4x；<br><b>第二步：</b> -2 × (-5) = +10；<br><b>第三步：</b> 3x - 4x + 10 = 9，解得 x = 1。',
-          full: '<b>完整推导：</b> 原式为 3x - 2(2x - 5) = 9。展开去括号得 3x - 4x + 10 = 9，合并同类项得 -x = -1，解得 x = 1。代回验证原式成立。'
-        },
-        variants: {
-          same: { question: '解方程：5x - 3(x - 4) = 16。', answer: '去括号得 5x - 3x + 12 = 16，得 2x = 4，x = 2。' },
-          changed: { question: '若原式改为 3x - 2(2x + 5) = 9，展开后常数项是多少？', answer: '应为 -10，因为 -2 × 5 = -10。' },
-          transfer: { question: '小明说“负号只改变第一项”，请写出一个简明的反例说明他为什么错。', answer: '反例：-(a - b) = -a + b，两项都受负号作用。' }
-        }
+  {
+    "id": "math-1",
+    "subject": "数学",
+    "title": "乘法分配律简便计算漏乘括号内第二项",
+    "source": "日常作业",
+    "date": "2025.03.12",
+    "knowledge": "四则运算 · 乘法分配律",
+    "errorType": "步骤错误",
+    "confidence": 92,
+    "dueToday": true,
+    "reviewStage": "D1 无提示重做",
+    "prompt": "用简便方法计算：25 × (40 + 4)。",
+    "studentAnswer": "25 × (40 + 4)\n= 25 × 40 + 4\n= 1000 + 4\n= 1004",
+    "correctAnswer": "1100",
+    "wrongStep": "展开时 25 只乘了第一项 40，漏乘了第二项 4，误算为 25 × 40 + 4。",
+    "rule": "乘法分配律记心间：(a + b) × c = a × c + b × c，括号外面的数必须分别乘括号里的每一项。",
+    "formulaSnippet": "25 × (40 + 4) = 25 × 40 + 25 × 4",
+    "explanations": {
+      "hint": "<b>小提示：</b> 括号外面是 25，它要像发糖果一样，公平地分给括号里的 40 和 4，两项都要乘 25！",
+      "steps": "<b>第一步：</b> 乘法分配律展开：25 × 40 + 25 × 4；<br><b>第二步：</b> 分别算出两部分：1000 + 100；<br><b>第三步：</b> 相加得到最终结果：1100。",
+      "full": "<b>完整解析：</b> 本题考查四年级下册“运算定律”中的乘法分配律。公式为 (a + b) × c = a × c + b × c。错解中 25 仅与 40 相乘而漏乘了 4。正确过程：25 × (40 + 4) = 25 × 40 + 25 × 4 = 1000 + 100 = 1100。"
+    },
+    "variants": {
+      "same": {
+        "question": "用简便方法计算：125 × (80 + 8)。",
+        "answer": "125 × 80 + 125 × 8 = 10000 + 1000 = 11000。"
       },
-      {
-        id: 'math-2',
-        subject: '数学',
-        title: '圆内接四边形证明没有先找对角关系',
-        source: '月考/期中考试',
-        date: '2025.03.09',
-        knowledge: '圆内接四边形 · 几何证明',
-        errorType: '解题方法错误',
-        confidence: 86,
-        dueToday: true,
-        reviewStage: 'D3 同型题',
-        prompt: '四边形 ABCD 内接于圆，∠ABC = 68°，求 ∠ADC 并说明理由。',
-        studentAnswer: '连接 AC，∠ADC 与 ∠ABC 对应同弧，所以相等。',
-        correctAnswer: '∠ADC = 112°。理由：圆内接四边形对角互补。',
-        wrongStep: '将对角误当成同弧圆周角，未利用四边形内接圆定理。',
-        rule: '几何证明先定型：同弧找相等，圆内接四边形对角找互补（和为180°）。',
-        formulaSnippet: '∠ABC = 68° → 求 ∠ADC',
-        explanations: {
-          hint: '先确认两个角是位于圆同侧还是对立两侧？内接四边形看对角。',
-          steps: '<b>第一步：</b> 标出 ∠ABC 与 ∠ADC 是一组对角；<br><b>第二步：</b> 应用圆内接四边形定理：对角之和为 180°；<br><b>第三步：</b> ∠ADC = 180° - 68° = 112°。',
-          full: '<b>完整解析：</b> 四边形 ABCD 各顶点均在圆上，∠ABC 与 ∠ADC 是一对对角。由圆内接四边形对角互补定理，∠ADC = 180° - 68° = 112°。'
-        },
-        variants: {
-          same: { question: '圆内接四边形 PQRS 中，∠P = 74°，求 ∠R。', answer: '∠R = 180° - 74° = 106°。' },
-          changed: { question: '若 ∠P + ∠R = 180°，能否证明 P,Q,R,S 四点共圆？', answer: '可以，对角互补的四边形内接于圆。' },
-          transfer: { question: '证明题中如何快速选择使用“相等”还是“互补”？', answer: '同弧或等弧看相等；圆内接四边形看对角互补。' }
-        }
+      "changed": {
+        "question": "计算 36 × 99 + 36 时，怎样逆用乘法分配律简算？",
+        "answer": "把 36 看作 36 × 1，变形为 36 × (99 + 1) = 36 × 100 = 3600。"
       },
-      {
-        id: 'math-3',
-        subject: '数学',
-        title: '忽略了“至少”包含等于号',
-        source: '练习册',
-        date: '2025.03.02',
-        knowledge: '一元一次不等式 · 审题',
-        errorType: '审题错误',
-        confidence: 94,
-        dueToday: true,
-        reviewStage: 'D7 变式题',
-        prompt: '买笔记本每本 3 元，总预算 50 元，至少能买 1 本，最多买多少本？',
-        studentAnswer: '3x < 50，所以 x < 16.67，最多买 16 本。',
-        correctAnswer: '3x ≤ 50，x 最大正整数为 16。',
-        wrongStep: '将“总预算 50 元内”写成了严格小于号 <，遗漏了等于号。',
-        rule: '审题时先圈定界词：“至少/不低于”用 ≥，“至多/不超过”用 ≤。',
-        formulaSnippet: '3x ≤ 50 (预算包含等于)',
-        explanations: {
-          hint: '预算 50 元，刚好花 50 元行不行？可以，所以要带等号。',
-          steps: '<b>第一步：</b> “不超过 50 元”即总花费 ≤ 50；<br><b>第二步：</b> 3x ≤ 50，解得 x ≤ 16.67；<br><b>第三步：</b> x 为正整数，最大取 16。',
-          full: '<b>完整解析：</b> 不等式建模时，预算上限通常允许刚好用完，故应使用“≤”。3x ≤ 50 得到 x ≤ 16.67，所以最多买 16 本。'
-        },
-        variants: {
-          same: { question: '“至少完成 80 分”对应的数学表达式是什么？', answer: '成绩 x ≥ 80。' },
-          changed: { question: '若题目改为“花费严格少于 50 元”，不等式该怎么写？', answer: '3x < 50。' },
-          transfer: { question: '“不少于”、“不低于”、“不超过”分别对应什么符号？', answer: '不少于、不低于对应 ≥；不超过对应 ≤。' }
-        }
-      },
-      {
-        id: 'chinese-2',
-        subject: '语文',
-        title: '说明文把列数字误判为作比较',
-        source: '日常作业',
-        date: '2025.03.06',
-        knowledge: '说明文 · 说明方法判断',
-        errorType: '知识点不会',
-        confidence: 88,
-        dueToday: false,
-        reviewStage: 'D14 迁移题',
-        prompt: '“这座桥全长 1,276 米，桥面宽 32 米。”运用了什么说明方法？',
-        studentAnswer: '运用了作比较，说明桥很宽。',
-        correctAnswer: '列数字',
-        wrongStep: '看到两个数字就以为两者在比较，缺少参照物。',
-        rule: '说明方法找证据：纯数据是列数字；必须有明确对比参照物才是作比较。',
-        formulaSnippet: '全长 1276 米，宽 32 米',
-        explanations: {
-          hint: '句子里有没有出现另一座桥来对比？没有，只是精确数据。',
-          steps: '<b>第一步：</b> 圈出具体数字“1,276 米”和“32 米”；<br><b>第二步：</b> 确认无比较对象；<br><b>第三步：</b> 判定为列数字。',
-          full: '<b>完整解析：</b> 句中列出具体数据且无比较对象，属于列数字。其作用是准确具体地说明事物的特征，使说明更具说服力。'
-        },
-        variants: {
-          same: { question: '“赵州桥横跨在 37 米多宽的河面上”是哪种说明方法？', answer: '列数字。' },
-          changed: { question: '若改为“这座桥比普通公路桥长 3 倍”，运用了什么说明方法？', answer: '作比较（出现了普通公路桥作为参照物）。' },
-          transfer: { question: '简答说明方法作用时，必须紧扣哪两个核心词？', answer: '“准确具体”说明事物特征。' }
-        }
-      },
-      {
-        id: 'english-2',
-        subject: '英语',
-        title: '阅读理解漏看转折词后主旨句',
-        source: '月考/期中考试',
-        date: '2025.03.08',
-        knowledge: '阅读理解 · 转折主旨',
-        errorType: '审题错误',
-        confidence: 83,
-        dueToday: false,
-        reviewStage: 'D14 迁移题',
-        prompt: 'Although the app looks simple, it helps students build a daily habit. What is the main idea?',
-        studentAnswer: 'The app looks simple.',
-        correctAnswer: 'The app helps students build daily study habits.',
-        wrongStep: '只读到 although 前半句，忽视了逗号后的真正主句。',
-        rule: '阅读遇到 although / but / however，重锤永远在转折词之后的主句。',
-        formulaSnippet: 'Although A, B (Focus on B)',
-        explanations: {
-          hint: '看到 although，重点在后面的主句而不是从句。',
-          steps: '<b>第一步：</b> Although 引导让步；<br><b>第二步：</b> 主句是 helps students build habit；<br><b>第三步：</b> 主旨选取转折后的内容。',
-          full: '<b>完整解析：</b> Although 引导让步从句，作者真正强调的核心信息位于主句。主旨在说明该应用能帮助学生养成习惯。'
-        },
-        variants: {
-          same: { question: 'Although he was tired, he finished the homework. 重点强调什么？', answer: '强调他完成了作业。' },
-          changed: { question: '把 although 换成 but，句子结构如何变化？', answer: 'He was tired, but he finished the homework. 依然强调后半部分。' },
-          transfer: { question: '做中考阅读主旨题时，优先找哪三个转折标志词？', answer: 'however, but, although。' }
-        }
-      },
-      {
-        id: 'physics-1',
-        subject: '物理',
-        title: '滑动变阻器滑片移动有效电阻判断反',
-        source: '日常作业',
-        date: '2025.03.13',
-        knowledge: '电学实验 · 滑动变阻器',
-        errorType: '解题方法错误',
-        confidence: 84,
-        dueToday: false,
-        reviewStage: 'D3 同型题',
-        prompt: '滑片 P 向右移动时，接入左下和右上接线柱，电流表示数如何变化？',
-        studentAnswer: '滑片向右，电阻变小，电流变大。',
-        correctAnswer: '变小（电阻变大，电流变小）',
-        wrongStep: '只看滑片向右，没看下接线柱接的是左边。',
-        rule: '滑动变阻器看下柱：下接线柱到滑片之间的电阻丝才是真正的“有效电阻”。',
-        formulaSnippet: '接左下柱 + 滑片向右 → 变长',
-        explanations: {
-          hint: '先看接在哪个下接线柱？接左下，接入的就是左端到滑片这一段。',
-          steps: '<b>第一步：</b> 接入左下柱，有效段为 AP；<br><b>第二步：</b> P 向右移动，AP 变长，电阻 R 变大；<br><b>第三步：</b> 由 I = U/R，电流表示数变小。',
-          full: '<b>完整解析：</b> 滑动变阻器的有效阻值由下接线柱决定。左下接入时，滑片向右使接入导线长度增加，阻值变大。由欧姆定律，电流变小。'
-        },
-        variants: {
-          same: { question: '若改接右下和左上接线柱，滑片向右移动电流如何变化？', answer: '有效长度为右侧段，向右移动长度变短，阻值变小，电流变大。' },
-          changed: { question: '滑动变阻器若接左下和右下接线柱，移动滑片有用吗？', answer: '没用，此时相当于一个定值最大电阻。' },
-          transfer: { question: '电学画图时，闭合开关前滑片应该置于什么位置？', answer: '置于接入电阻阻值最大处，保护电路。' }
-        }
-      },
-      {
-        id: 'chinese-1',
-        subject: '语文',
-        title: '《岳阳楼记》先天下之忧而忧的情感对象混淆',
-        source: '日常作业',
-        date: '2025.03.11',
-        knowledge: '古诗文 · 主旨理解',
-        errorType: '概念理解错误',
-        confidence: 89,
-        dueToday: false,
-        reviewStage: 'D3 同型题',
-        prompt: '“先天下之忧而忧，后天下之乐而乐”表达了作者怎样的政治抱负？',
-        studentAnswer: '表达作者先享受快乐、后承担忧患的生活态度。',
-        correctAnswer: '表达作者以天下为己任、先忧后乐的政治抱负和忧国忧民的情怀。',
-        wrongStep: '把“先/后”理解成个人时间顺序，没有结合“天下”这一情感对象。',
-        basis: '你的答案把“先忧后乐”解释成个人生活安排，遗漏了“天下”与士大夫责任感。',
-        rule: '古文句意不能只做字面替换，要同时看情感对象、语境和作者身份。',
-        formulaSnippet: '先天下之忧而忧，后天下之乐而乐',
-        explanations: {
-          hint: '这句话的主语不是“我今天先做什么”，而是“天下人的忧乐”。',
-          steps: '<b>第一步：</b> 先解释“先”“后”是优先顺序；<br><b>第二步：</b> 明确“天下之忧/乐”是百姓与国家的处境；<br><b>第三步：</b> 得出以天下为己任、忧国忧民的抱负。',
-          full: '<b>完整解析：</b> “先天下之忧而忧，后天下之乐而乐”中的“先”和“后”是把天下人的忧乐置于个人之前之后。它不是生活顺序，而是价值排序，体现范仲淹以天下为己任、忧国忧民的政治抱负。'
-        },
-        variants: {
-          same: { question: '如何理解“居庙堂之高则忧其民，处江湖之远则忧其君”？', answer: '无论身处朝廷还是远离朝廷，都心系百姓和君主，体现忧国忧民。' },
-          changed: { question: '如果只写“作者很忧愁”，为什么不能拿到主旨题满分？', answer: '没有指出忧愁的对象、原因和价值指向，缺少“忧国忧民”的核心。' },
-          transfer: { question: '概括古文主旨时，除了情感词，还要补出哪两类信息？', answer: '情感对象和产生这种情感的语境或原因。' }
-        }
-      },
-      {
-        id: 'chinese-3',
-        subject: '语文',
-        title: '议论文论据没有回应中心论点',
-        source: '日常作业',
-        date: '2025.02.27',
-        knowledge: '议论文 · 论据作用',
-        errorType: '迁移错误',
-        confidence: 81,
-        dueToday: false,
-        reviewStage: 'D14 迁移题',
-        prompt: '中心论点：坚持阅读能够提升人的思辨能力。请判断“爱迪生发明电灯”的事例能否作为论据，并说明理由。',
-        studentAnswer: '能，因为爱迪生坚持实验，最后发明了电灯，说明坚持很重要。',
-        correctAnswer: '不能直接充分证明“阅读提升思辨能力”，事例与中心论点的关键概念不对应。',
-        wrongStep: '只看到“坚持”这个共同词，没有迁移中心论点中的“阅读”和“思辨能力”。',
-        basis: '论据与论点只共享“坚持”，但没有支撑“阅读能够提升思辨能力”这一因果关系。',
-        rule: '判断论据不能只看关键词相同，要核对论点中的对象、关系和结论是否都被支撑。',
-        formulaSnippet: '论据须支撑“阅读提升思辨”，非泛泛“坚持”',
-        explanations: {
-          hint: '论据中的人物做了什么？中心论点要证明的又是什么？',
-          steps: '<b>第一步：</b> 拆出论点对象“阅读”和结果“思辨能力”；<br><b>第二步：</b> 检查事例是否包含阅读经历及思辨结果；<br><b>第三步：</b> 只有关键词“坚持”相同，不能充分支撑论点。',
-          full: '<b>完整解析：</b> 论据要证明中心论点，不能只共享一个抽象词。爱迪生的事例能说明坚持实验有助于发明，但没有涉及阅读如何提升思辨能力，因此不能作为该中心论点的充分论据。'
-        },
-        variants: {
-          same: { question: '中心论点改为“成功需要长期坚持”，爱迪生的事例是否合适？', answer: '合适，因为长期实验与“长期坚持”这一关系直接对应。' },
-          changed: { question: '给论据做“对象—行动—结果”标注，有什么作用？', answer: '能检查论据是否真正覆盖论点的关键概念和因果关系。' },
-          transfer: { question: '为什么“都有坚持”不等于“能证明论点”？', answer: '论据必须支撑论点完整的对象、行动和结果，不能只凭一个共同词。' }
-        }
-      },
-      {
-        id: 'english-1',
-        subject: '英语',
-        title: '现在完成时中 since 与 for 的时间结构混用',
-        source: '周测',
-        date: '2025.03.10',
-        knowledge: '现在完成时 · since / for',
-        errorType: '概念理解错误',
-        confidence: 91,
-        dueToday: false,
-        reviewStage: 'D3 同型题',
-        prompt: 'I ______ (live) in Guangzhou since 2021.',
-        studentAnswer: 'I have lived in Guangzhou for 2021.',
-        correctAnswer: 'I have lived in Guangzhou since 2021.',
-        wrongStep: '把 since 后面的时间点当成了持续时长。',
-        basis: '2021 是起点，应该使用 since；for 后面应接 three years 这类时间段。',
-        rule: 'since 后接时间点，for 后接时间段；先判断时间表达的起点还是长度。',
-        formulaSnippet: 'since + point of time, for + duration',
-        explanations: {
-          hint: '2021 是一个起点，还是一段持续了多久的时间？',
-          steps: '<b>第一步：</b> since + 时间点；<br><b>第二步：</b> for + 时间段；<br><b>第三步：</b> live 的现在完成时为 have lived。',
-          full: '<b>完整解析：</b> 句意是“自 2021 年起一直住在广州”。2021 表示动作开始的时间点，用 since；主语 I 搭配 have，故答案是 I have lived in Guangzhou since 2021。'
-        },
-        variants: {
-          same: { question: 'She has worked here ______ five years. 应填 since 还是 for？', answer: 'for，因为 five years 是一段时间。' },
-          changed: { question: '把句子改为“她自 2021 年起在这里工作”，应如何表达？', answer: 'She has worked here since 2021.' },
-          transfer: { question: '判断 since / for 时，先问自己哪一个问题？', answer: '问“这是开始的时间点，还是持续的时间长度？”' }
-        }
-      },
-      {
-        id: 'english-3',
-        subject: '英语',
-        title: '第三人称单数主语后动词忘记加 s',
-        source: '课堂练习',
-        date: '2025.03.01',
-        knowledge: '一般现在时 · 主谓一致',
-        errorType: '知识点不会',
-        confidence: 88,
-        dueToday: false,
-        reviewStage: 'D7 变式题',
-        prompt: 'The museum ______ (open) at 9 a.m. every day.',
-        studentAnswer: 'The museum open at 9 a.m. every day.',
-        correctAnswer: 'The museum opens at 9 a.m. every day.',
-        wrongStep: '看到 every day 只判断出一般现在时，漏检主语是第三人称单数。',
-        basis: '主语 the museum 可替换为 it，谓语需要使用 opens。',
-        rule: '一般现在时先圈主语：he/she/it 或单数名词作主语，谓语动词通常加 s/es。',
-        formulaSnippet: 'The museum (it) -> opens',
-        explanations: {
-          hint: '先把 the museum 换成 it，再看动词需要什么形式。',
-          steps: '<b>第一步：</b> the museum 是单数名词；<br><b>第二步：</b> 单数主语相当于 it；<br><b>第三步：</b> open 变为 opens。',
-          full: '<b>完整解析：</b> every day 表明使用一般现在时，但时态判断之后还要检查主谓一致。the museum 是第三人称单数，谓语 open 需加 s，完整句子为 The museum opens at 9 a.m. every day。'
-        },
-        variants: {
-          same: { question: 'My brother ______ (watch) TV after dinner. 应填什么？', answer: 'watches，因为 my brother 是第三人称单数，watch 加 es。' },
-          changed: { question: '若主语改为 The museums，谓语如何变化？', answer: 'The museums open...，复数主语使用动词原形。' },
-          transfer: { question: '什么时候需要在一般现在时检查动词的 s / es？', answer: '句子主语是 he、she、it 或第三人称单数名词时。' }
-        }
-      },
-      {
-        id: 'physics-2',
-        subject: '物理',
-        title: '凸透镜成像实验中物距与像距读数顺序写反',
-        source: '月考/期中考试',
-        date: '2025.03.07',
-        knowledge: '光学 · 凸透镜成像',
-        errorType: '步骤错误',
-        confidence: 87,
-        dueToday: false,
-        reviewStage: 'D3 同型题',
-        prompt: '光具座上蜡烛位于 20 cm，凸透镜位于 50 cm，光屏位于 80 cm，求物距和像距。',
-        studentAnswer: '物距 u = 80 - 50 = 30 cm，像距 v = 50 - 20 = 30 cm。',
-        correctAnswer: '物距 u = 50 - 20 = 30 cm，像距 v = 80 - 50 = 30 cm。',
-        wrongStep: '没有先按照光线传播方向区分物体侧和像侧，导致列式顺序不规范。',
-        basis: '数值碰巧相同，但你的列式把光屏位置当成了物体位置；系统判定为步骤表达风险。',
-        rule: '光具座读数题统一用“透镜读数 - 物体读数”算物距，用“光屏读数 - 透镜读数”算像距。',
-        formulaSnippet: 'u = 50-20=30cm, v = 80-50=30cm',
-        explanations: {
-          hint: '以凸透镜为中心，左边是物距，右边是像距。',
-          steps: '<b>第一步：</b> u = x透镜 - x蜡烛 = 50 - 20；<br><b>第二步：</b> v = x光屏 - x透镜 = 80 - 50；<br><b>第三步：</b> 得到 u = v = 30 cm。',
-          full: '<b>完整解析：</b> 物距是物体到透镜的距离，像距是像到透镜的距离。按光具座读数：u = 50 - 20 = 30 cm，v = 80 - 50 = 30 cm。虽然本题两段距离恰好相等，但定义和列式顺序仍需写对。'
-        },
-        variants: {
-          same: { question: '蜡烛 15 cm、透镜 45 cm、光屏 75 cm，物距和像距是多少？', answer: 'u = 45 - 15 = 30 cm，v = 75 - 45 = 30 cm。' },
-          changed: { question: '若光屏移到 90 cm，物距不变，像距是多少？', answer: 'v = 90 - 50 = 40 cm（透镜位置仍为 50 cm 时）。' },
-          transfer: { question: '实验计算中数值碰巧正确，为什么步骤仍要规范？', answer: '规范定义能迁移到不对称数据，避免靠巧合得到答案。' }
-        }
-      },
-      {
-        id: 'physics-3',
-        subject: '物理',
-        title: '密度应用题把质量和体积单位混用',
-        source: '日常作业',
-        date: '2025.02.26',
-        knowledge: '质量与密度 · 单位换算',
-        errorType: '迁移错误',
-        confidence: 90,
-        dueToday: false,
-        reviewStage: 'D14 迁移题',
-        prompt: '一块铝的质量为 540 g，密度为 2.7 g/cm³，求铝块体积。',
-        studentAnswer: 'V = ρm = 2.7 × 540 = 1458 cm³。',
-        correctAnswer: 'V = m/ρ = 540 ÷ 2.7 = 200 cm³。',
-        wrongStep: '没有从密度公式变形，并把“质量越大体积越大”当作直接相乘。',
-        basis: '你写的是 ρm，而密度定义为 ρ = m/V，求体积应变形为 V = m/ρ。',
-        rule: '应用公式前先写定义式，再圈出所求量并变形；单位一致后再代数计算。',
-        formulaSnippet: 'V = m/ρ = 540 ÷ 2.7 = 200 cm³',
-        explanations: {
-          hint: '密度 = 质量 ÷ 体积，求体积时要用除法。',
-          steps: '<b>第一步：</b> 写 ρ = m/V；<br><b>第二步：</b> 变形得 V = m/ρ；<br><b>第三步：</b> V = 540 ÷ 2.7 = 200 cm³。',
-          full: '<b>完整解析：</b> 由 ρ = m/V 可得 V = m/ρ。题中质量和密度的单位分别为 g、g/cm³，已经一致，直接代入 V = 540 g ÷ 2.7 g/cm³ = 200 cm³。'
-        },
-        variants: {
-          same: { question: '一块铁质量 780 g、密度 7.8 g/cm³，体积是多少？', answer: 'V = 780 ÷ 7.8 = 100 cm³。' },
-          changed: { question: '若已知体积和密度，求质量应使用什么公式？', answer: 'm = ρV。' },
-          transfer: { question: '遇到公式应用题，代入数字前固定做哪三件事？', answer: '写定义式、按所求量变形、统一单位。' }
-        }
+      "transfer": {
+        "question": "学校买来 25 套课桌椅，一张桌子 68 元，一把椅子 32 元，一共要花多少钱？列综合算式并简便计算。",
+        "answer": "25 × (68 + 32) = 25 × 100 = 2500（元）。"
       }
-    ];
+    }
+  },
+  {
+    "id": "math-2",
+    "subject": "数学",
+    "title": "用量角器量角内外圈刻度看反",
+    "source": "课堂练习",
+    "date": "2025.03.09",
+    "knowledge": "角的度量 · 钝角与锐角",
+    "errorType": "概念理解错误",
+    "confidence": 86,
+    "dueToday": true,
+    "reviewStage": "D3 同型题",
+    "prompt": "如图所示，已知 ∠1 是一个钝角，用量角器量角时，一条边对准内圈 0 刻度线，另一条边指向 60°/120° 刻度线，∠1 的度数是多少？",
+    "studentAnswer": "∠1 = 60°",
+    "correctAnswer": "∠1 = 120°",
+    "wrongStep": "没有先观察角是钝角还是锐角，将内圈 120° 误读成了外圈的 60°。",
+    "rule": "量角三步法：中心对顶点，零线对一边；一条边指内圈就读内圈；钝角一定大于 90°，锐角一定小于 90°。",
+    "formulaSnippet": "钝角 > 90°，应读内圈 120° 而非 60°",
+    "explanations": {
+      "hint": "<b>小提示：</b> 观察角张开的口子，比直角（90°）大还是小？钝角怎么可能只有 60° 呢？",
+      "steps": "<b>第一步：</b> 判断角类型：∠1 是钝角，度数必大于 90°；<br><b>第二步：</b> 找零刻度线：一条边对齐内圈 0°，读数必须看内圈；<br><b>第三步：</b> 内圈读数为 120°，所以 ∠1 = 120°。",
+      "full": "<b>完整解析：</b> 四年级上册第三单元《角的度量》。量角器上有两圈刻度。量角时，边对准哪一圈的 0 刻度线，就读那一圈的度数；本题中开口边对齐内圈 0，故看内圈 120°。同时可先用直角直观估测：钝角大于 90°，绝不可能为 60°。"
+    },
+    "variants": {
+      "same": {
+        "question": "量一个锐角时，零刻度在内圈，另一条边在 70°/110°，这个角是几度？",
+        "answer": "锐角小于 90°，读内圈对应刻度 70°。"
+      },
+      "changed": {
+        "question": "画一个 135° 的角，量角器放好后应该找内圈还是外圈的 135°？",
+        "answer": "取决于以哪条射线为边对准 0° 刻度线，边对准内圈 0 就找内圈 135°，对准外圈 0 就找外圈 135°。"
+      },
+      "transfer": {
+        "question": "钟面上 4 时整，时针和分针所夹的较小角是多少度？它是锐角、直角还是钝角？",
+        "answer": "钟面每个大格为 30°，4 个大格是 30° × 4 = 120°，是钝角。"
+      }
+    }
+  },
+  {
+    "id": "math-3",
+    "subject": "数学",
+    "title": "小数减法被减数末尾未补0导致退位错误",
+    "source": "自主刷题",
+    "date": "2025.03.05",
+    "knowledge": "小数加减法 · 位数不同的小数减法",
+    "errorType": "计算错误",
+    "confidence": 78,
+    "dueToday": true,
+    "reviewStage": "D7 变式巩固",
+    "prompt": "列竖式计算：12.5 - 3.48。",
+    "studentAnswer": "12.5 - 3.48 = 9.18（误将百分位的 8 直接抄下）",
+    "correctAnswer": "9.02",
+    "wrongStep": "12.5 末尾没有补“0”变成 12.50，直接把减数百分位的 8 抄下来，忘记了“0 - 8 不够减要向前一位借 1”。",
+    "rule": "小数减法小数位数不同时，先在被减数末尾添“0”补齐数位，再从最低位借位退位相减。",
+    "formulaSnippet": "12.50 - 3.48 = 9.02",
+    "explanations": {
+      "hint": "<b>小提示：</b> 12.5 只有一位小数，3.48 有两位小数。先利用小数的性质把 12.5 变成 12.50 再减！",
+      "steps": "<b>第一步：</b> 小数点对齐，12.5 末尾添 0 写成 12.50；<br><b>第二步：</b> 百分位 0 减 8 不够减，向十分位借 1 当 10，10 - 8 = 2；<br><b>第三步：</b> 十分位 5 借走 1 剩 4，4 - 4 = 0；个位 12 - 3 = 9，得 9.02。",
+      "full": "<b>完整解析：</b> 四年级下册第六单元《小数的加法和减法》。当被减数的小数位数少于减数时，必须根据“小数末尾添上 0 大小不变”的性质添 0 占位，防止出现将减数直接抄下的严重误算。12.50 - 3.48 = 9.02。"
+    },
+    "variants": {
+      "same": {
+        "question": "列竖式计算：20.6 - 5.75。",
+        "answer": "化为 20.60 - 5.75 = 14.85。"
+      },
+      "changed": {
+        "question": "计算 8 - 3.25 时，整数 8 应该怎么写成小数来对齐相减？",
+        "answer": "把 8 改写为 8.00，8.00 - 3.25 = 4.75。"
+      },
+      "transfer": {
+        "question": "小华买一本笔记本花了 6.8 元，付给售货员一张 10 元纸币，应找回多少钱？",
+        "answer": "10.00 - 6.80 = 3.20（元），找回 3.2 元。"
+      }
+    }
+  },
+  {
+    "id": "chinese-1",
+    "subject": "语文",
+    "title": "《题西林壁》“只缘”字义与哲理误判",
+    "source": "日常作业",
+    "date": "2025.03.11",
+    "knowledge": "古诗三首 · 字词解释与哲理",
+    "errorType": "概念理解错误",
+    "confidence": 94,
+    "dueToday": false,
+    "reviewStage": "D1 无提示重做",
+    "prompt": "解释诗句“不识庐山真面目，只缘身在此山中”中“缘”的意思，并写出这首诗所蕴含的人生哲理。",
+    "studentAnswer": "“缘”是缘分的意思。哲理：说明庐山的风景太美，人和大山很有缘分。",
+    "correctAnswer": "“缘”是“因为”的意思。哲理：要想认识事物的全面与本质，必须跳出局部，全面客观地观察，正所谓“当局者迷，旁观者清”。",
+    "wrongStep": "望文生义，把古文中表因果的“缘”（因为）误解成了现代词语“缘分”，导致对整首诗哲理理解偏差。",
+    "rule": "古诗关键字词切忌现代望文生义：“缘”多意为“因为”；联系全诗思考诗人的认知视角。",
+    "formulaSnippet": "只缘身在此山中 → 缘：因为",
+    "explanations": {
+      "hint": "<b>小提示：</b> 诗人为什么看不清庐山的真面目？“只缘”就是“只是因为”的意思。",
+      "steps": "<b>第一步：</b> 逐字解词：“只缘”即“只是因为”；<br><b>第二步：</b> 串讲句意：看不清庐山本来的真面目，只是因为自己身在庐山之中，视线被周围峰峦局限；<br><b>第三步：</b> 提炼哲理：看问题要全面，不能片面。",
+      "full": "<b>完整解析：</b> 部编版四年级上册第九课《古诗三首》苏轼《题西林壁》。“横看成岭侧成峰，远近高低各不同。不识庐山真面目，只缘身在此山中。”“缘”在此处作连词，意为“因为”。全诗借景说理，强调身处局中往往看不清全貌。"
+    },
+    "variants": {
+      "same": {
+        "question": "王安石《登飞来峰》“不畏浮云遮望眼，自缘身在最高层”中的“自缘”是什么意思？",
+        "answer": "自缘：自然是因为。"
+      },
+      "changed": {
+        "question": "《题西林壁》前两句“横看成岭侧成峰，远近高低各不同”说明了什么？",
+        "answer": "说明观察的角度不同（正面、侧面、远近、高低），看到的庐山景象也各不相同。"
+      },
+      "transfer": {
+        "question": "在生活中遇到朋友因为一件小事钻牛角尖想不开，你可以用哪句俗语或成语劝他？",
+        "answer": "可以用“当局者迷，旁观者清”或“不识庐山真面目，只缘身在此山中”。"
+      }
+    }
+  },
+  {
+    "id": "chinese-2",
+    "subject": "语文",
+    "title": "修改病句：滥用介词导致句子成分残缺（缺主语）",
+    "source": "日常作业",
+    "date": "2025.03.10",
+    "knowledge": "病句辨析与修改 · 成分残缺",
+    "errorType": "审题错误",
+    "confidence": 82,
+    "dueToday": false,
+    "reviewStage": "D3 同型题",
+    "prompt": "修改下面的病句：“通过这次生动的科普讲座，使同学们学到了很多航天知识。”",
+    "studentAnswer": "通过这次生动的科普讲座，让同学们学到了很多航天知识。（仍缺主语）",
+    "correctAnswer": "删去“通过”或删去“使”。修改为：“这次生动的科普讲座，使同学们学到了很多航天知识。”或“通过这次生动的科普讲座，同学们学到了很多航天知识。”",
+    "wrongStep": "未识别出“通过……使……”连用把句子的主语淹没了，将“使”换成“让”仍然属于介词滥用导致缺主语。",
+    "rule": "修改病句口诀：看到“通过……使……”或“经过……让……”，二者必去其一，还句子一个真正的主语。",
+    "formulaSnippet": "[通过……] + [使……] → 删掉其一恢复主语",
+    "explanations": {
+      "hint": "<b>小提示：</b> 读一读这句话，是谁在“学到很多航天知识”？谁是句子的主人？",
+      "steps": "<b>第一步：</b> 划出句子主干，寻找“谁做了什么”；<br><b>第二步：</b> 发现“通过”和“使”把“科普讲座”和“同学们”都变成了介词宾语，整句话没有主语；<br><b>第三步：</b> 删掉“通过”或者删掉“使”，句子通顺。",
+      "full": "<b>完整解析：</b> 四年级常见常考病句类型——“介词滥用导致主语残缺”。“通过……”是状语，“使……”使后文变成动宾短语。只要去掉“通过”，主语就是“这次讲座”；若去掉“使”，主语就是“同学们”。"
+    },
+    "variants": {
+      "same": {
+        "question": "修改病句：“经过老师的耐心指导，使我的写作水平有了很大提高。”",
+        "answer": "删去“经过”或删去“使”。"
+      },
+      "changed": {
+        "question": "判断句子是否有语病：“听了战斗英雄的报告，受到了深刻的教育。”若有，如何修改？",
+        "answer": "有语病，缺主语。应在“受到了”前面加上“我们”或“同学们”。"
+      },
+      "transfer": {
+        "question": "四年级修改病句常用的四种修改符号是什么？",
+        "answer": "增补符号、删除符号、替换（改正）符号、调换位置符号。"
+      }
+    }
+  },
+  {
+    "id": "chinese-3",
+    "subject": "语文",
+    "title": "误把同类人事物比较句当成比喻句",
+    "source": "练习册",
+    "date": "2025.03.07",
+    "knowledge": "修辞手法 · 比喻句的识别",
+    "errorType": "概念理解错误",
+    "confidence": 89,
+    "dueToday": false,
+    "reviewStage": "D14 规律归档",
+    "prompt": "判断下列句子是否是比喻句：“小明长得非常结实，看起来很像他的亲哥哥。”",
+    "studentAnswer": "是比喻句，因为句子里有比喻词“像”。",
+    "correctAnswer": "不是比喻句。这只是同类事物（人与人）之间的相貌外貌比较，没有本体和喻体的异类相似关系。",
+    "wrongStep": "单纯依据是否存在比喻词“像”来判定比喻句，忽视了“比喻必须是两种本质不同但有相似点的事物”。",
+    "rule": "比喻判定铁律：打比方必须“打异类”（如人像松树），同类比较（如人像人、猫像猫）绝不是比喻句！",
+    "formulaSnippet": "含“像”≠ 比喻，必须是本质不同的两种事物",
+    "explanations": {
+      "hint": "<b>小提示：</b> 小明是人，哥哥也是人，人比作人叫作“同类比较”，并不是打比方哦！",
+      "steps": "<b>第一步：</b> 找出比较双方：本体是“小明”，比照对象是“哥哥”；<br><b>第二步：</b> 考察事物性质：两者都是同类事物（人）；<br><b>第三步：</b> 比喻要求本、喻体本质不同，故本句只是外貌比较，非比喻句。",
+      "full": "<b>完整解析：</b> 四年级语文阅读与写作核心修辞考点。含“像”、“好像”、“仿佛”的句子不一定是比喻句。常见非比喻四种情况：1. 表示同类比较（如像哥哥）；2. 表示猜测推测（如好像要下雨了）；3. 表示举例（如像雷锋这样的好人）；4. 表示联想回忆。"
+    },
+    "variants": {
+      "same": {
+        "question": "判断：“天阴沉沉的，好像马上就要下雪了。”是不是比喻句？为什么？",
+        "answer": "不是比喻句，“好像”在这里表示推测、猜测天气，没有喻体。"
+      },
+      "changed": {
+        "question": "将“妹妹红扑扑的脸蛋很像苹果”改为一个生动的比喻句，并指出本体和喻体。",
+        "answer": "“妹妹红扑扑的脸蛋像一个熟透的红苹果。”本体是脸蛋，喻体是苹果。"
+      },
+      "transfer": {
+        "question": "四年级课文《观潮》中“浪潮越来越近，犹如千万匹白色战马齐头并进”，这句话是比喻句吗？喻体是什么？",
+        "answer": "是比喻句。本体是浪潮，喻体是白色战马。"
+      }
+    }
+  },
+  {
+    "id": "english-1",
+    "subject": "英语",
+    "title": "There be 句型就近原则与名词单复数误判",
+    "source": "日常作业",
+    "date": "2025.03.11",
+    "knowledge": "There be 句型 · 就近原则",
+    "errorType": "步骤错误",
+    "confidence": 90,
+    "dueToday": true,
+    "reviewStage": "D1 无提示重做",
+    "prompt": "用 be 动词的正确形式（is / are）填空：There ______ an apple and three pears on the table.",
+    "studentAnswer": "There are an apple and three pears on the table.",
+    "correctAnswer": "There is an apple and three pears on the table.",
+    "wrongStep": "看到后面有 an apple 和 three pears 很多样水果，按总数复数误选了 are，违背了 There be 句型的“就近原则”。",
+    "rule": "There be 句型就近原则：be 动词只看离它最近的第一个名词！离它最近是单数用 is，是复数用 are。",
+    "formulaSnippet": "There is + [单数名词 an apple] + and [复数名词]",
+    "explanations": {
+      "hint": "<b>小提示：</b> There be 句型非常“近视眼”，它只看挨着它的第一个词 an apple 是单数还是复数！",
+      "steps": "<b>第一步：</b> 观察横线后面的第一个名词：an apple（单数）；<br><b>第二步：</b> 应用 There be 句型“就近原则”：be 动词由最近的主语决定；<br><b>第三步：</b> an apple 是单数，故填 is。",
+      "full": "<b>完整解析：</b> PEP 人教版小学四年级英语重点语法。There be 句型遵循“就近原则”（Proximity Rule），即 be 动词的形式完全取决于距其最近的那个名词。离它最近的是 an apple（可数名词单数），所以必须用 is；若调换顺序为 three pears and an apple，则用 are。"
+    },
+    "variants": {
+      "same": {
+        "question": "填空：There ______ two pencils and a ruler in my pencil box.",
+        "answer": "填 are。离 be 最近的是复数名词 two pencils。"
+      },
+      "changed": {
+        "question": "把“There is a book and two pens on the desk.”中的 a book 和 two pens 颠倒位置，句子怎么写？",
+        "answer": "There are two pens and a book on the desk."
+      },
+      "transfer": {
+        "question": "如果横线后面是不可数名词，如“There ______ some milk in the glass.”，be 动词用 is 还是 are？",
+        "answer": "用 is。milk 是不可数名词，视为单数。"
+      }
+    }
+  },
+  {
+    "id": "english-2",
+    "subject": "英语",
+    "title": "一般现在时第三人称单数动词漏加 -s/-es",
+    "source": "课堂练习",
+    "date": "2025.03.08",
+    "knowledge": "时态与动词 · 一般现在时单三主语",
+    "errorType": "步骤错误",
+    "confidence": 84,
+    "dueToday": false,
+    "reviewStage": "D3 同型题",
+    "prompt": "用括号内所给动词的正确形式填空：Amy usually ______ (go) to school by bike on Mondays.",
+    "studentAnswer": "go",
+    "correctAnswer": "goes",
+    "wrongStep": "忽略了主语 Amy 是第三人称单数（单数人名），直接填写了动词原形 go，忘记了在一般现在时中加 -es。",
+    "rule": "遇到单三人称主语（he/she/it/单个人名）：一般现在时动词一定要变身（加 -s 或 -es）！",
+    "formulaSnippet": "Amy (单三) + usually + goes (go+-es)",
+    "explanations": {
+      "hint": "<b>小提示：</b> 找到句子主语 Amy 是单个人名（相当于 she），遇到单三动词就要穿上“小外套”（加 -s 或 -es）。",
+      "steps": "<b>第一步：</b> 判断时态：usually 和 on Mondays 表明是一般现在时；<br><b>第二步：</b> 分析主语：Amy 是第三人称单数；<br><b>第三步：</b> 动词变形：go 以字母 o 结尾，加 -es 变成 goes。",
+      "full": "<b>完整解析：</b> 四年级下册核心时态考点。一般现在时中，当主语是第三人称单数（he, she, it, Amy, my father 等）时，谓语动词须用单三形式。以 s, x, ch, sh, o 结尾的动词加 -es，因此 go 变成 goes，watch 变成 watches。"
+    },
+    "variants": {
+      "same": {
+        "question": "填空：My brother always ______ (watch) TV on Saturday evenings.",
+        "answer": "填 watches。主语 brother 是单三，watch 加 -es。"
+      },
+      "changed": {
+        "question": "把句子改为否定句：“Amy goes to school by bike.”",
+        "answer": "Amy doesn't go to school by bike.（借助助动词 doesn't，后面的动词还原为原形 go）"
+      },
+      "transfer": {
+        "question": "当主语变成复数“They”时，动词 go 还需要变单三吗？",
+        "answer": "不需要，复数主语 They 后面动词用原形 go。"
+      }
+    }
+  },
+  {
+    "id": "english-3",
+    "subject": "英语",
+    "title": "成双成对衣物名词（glasses/shoes）误用单数 be 动词 is",
+    "source": "练习册",
+    "date": "2025.03.04",
+    "knowledge": "名词单复数与代词 · 衣物类复数名词",
+    "errorType": "概念理解错误",
+    "confidence": 75,
+    "dueToday": false,
+    "reviewStage": "D7 变式巩固",
+    "prompt": "单项选择：— Where ______ my glasses? — ______ on the desk. A. is; It is   B. are; They are   C. are; It is",
+    "studentAnswer": "A. is; It is",
+    "correctAnswer": "B. are; They are",
+    "wrongStep": "认为“一副眼镜”是一个物品，误当作单数使用了 is 和 It is。",
+    "rule": "成双成对名词（glasses 眼镜、shoes 鞋、pants 裤子、socks 袜子）天然是复数，be 动词用 are，代词用 they！若前面有 a pair of 才看 pair 单数。",
+    "formulaSnippet": "glasses / shoes / pants → 复数 are / They are",
+    "explanations": {
+      "hint": "<b>小提示：</b> 眼镜有两个镜片，鞋子有两只，英语里带 -s 的这类成双成对词属于复数，要用 are 和 they 代替！",
+      "steps": "<b>第一步：</b> 辨析名词属性：glasses（眼镜）是常以复数形式出现的名词；<br><b>第二步：</b> 问句 be 动词搭配：复数名词配 are；<br><b>第三步：</b> 答句人称代词指代：复数名词用 They are 回答，选 B。",
+      "full": "<b>完整解析：</b> PEP 四年级下册 Unit 5《My clothes》重难点。glasses, shoes, socks, pants, shorts 等衣物类词汇由两部分构成，默认以复数形式出现，谓语动词用 are，指代代词用 they。只有当出现 a pair of glasses 时，主语中心词才是 pair（单数），此时才用 is。"
+    },
+    "variants": {
+      "same": {
+        "question": "填空：These ______ (be) my new shoes. ______ (It / They) are very nice.",
+        "answer": "依次填 are；They。"
+      },
+      "changed": {
+        "question": "填空：This pair of shoes ______ (be) fifty yuan.",
+        "answer": "填 is。因为有 this pair of 修饰，中心词是 pair（单数）。"
+      },
+      "transfer": {
+        "question": "写出三个在小学四年级常见的由两部分组成的复数衣物名词。",
+        "answer": "glasses（眼镜）、pants（裤子）、socks（袜子）或 shoes（鞋子）。"
+      }
+    }
+  },
+  {
+    "id": "science-1",
+    "subject": "科学",
+    "title": "点亮小灯泡实验导线直连电池两端造成短路",
+    "source": "日常作业",
+    "date": "2025.03.11",
+    "knowledge": "简易电路 · 短路与通路连接",
+    "errorType": "概念理解错误",
+    "confidence": 91,
+    "dueToday": true,
+    "reviewStage": "D1 无提示重做",
+    "prompt": "在“点亮小灯泡”实验中，如果用一根导线直接将一节干电池的正极和负极连接起来，这种连接方式叫什么？会产生什么严重后果？",
+    "studentAnswer": "叫通路，小灯泡会变得非常亮。",
+    "correctAnswer": "这种连接方式叫短路。严重后果：导线和电池会瞬间发热发烫，极易损坏电池，甚至引发安全危险；小灯泡不会发光。",
+    "wrongStep": "混淆了“通路”与“短路”的概念，不知道电流没有经过用电器（小灯泡）直接形成回路叫短路。",
+    "rule": "电路安全第一条：绝不能用导线直接把电池的正负极连在一起！电流必须经过用电器（灯泡），避免发生短路。",
+    "formulaSnippet": "正极 ──(导线直连)── 负极 ＝ 短路（电池发烫损坏）",
+    "explanations": {
+      "hint": "<b>小提示：</b> 仔细看电流路线，电流有没有经过小灯泡的灯丝？没有经过小灯泡直接回到了电池，叫“短路”！",
+      "steps": "<b>第一步：</b> 识别电路结构：电流从正极出发，未经用电器直接流入负极；<br><b>第二步：</b> 明确术语定义：此现象称为“短路”（区别于正常工作的通路和断开的断路）；<br><b>第三步：</b> 明确危害：短路时电流非常大，电池和导线迅速发烫，电池报废。",
+      "full": "<b>完整解析：</b> 教科版小学科学四年级第二单元《电路》第 1 课《点亮小灯泡》。电路的三种状态：通路（电流流过灯泡灯丝，灯泡发光）、断路（电路某处断开，灯不亮）、短路（导线直接连通电池两极）。短路极其危险，实验中必须严格杜绝。"
+    },
+    "variants": {
+      "same": {
+        "question": "要让小灯泡发光，电流必须流经小灯泡的哪两个关键连接点？",
+        "answer": "必须流经小灯泡底部的锡点和金属螺纹（分别连着内部灯丝的两端）。"
+      },
+      "changed": {
+        "question": "在电路中，开关的主要作用是什么？它控制的是通路的闭合与什么状态？",
+        "answer": "开关的作用是控制电路中电流的通与断；闭合时是通路，断开时是断路。"
+      },
+      "transfer": {
+        "question": "我们在科学实验室做电路实验可以用干电池，但绝对不能直接用家里的插座电（220V），这是为什么？",
+        "answer": "因为家里的 220V 交流电远远超过人体安全电压（36V），直接接触会发生触电危险，危及生命。"
+      }
+    }
+  },
+  {
+    "id": "science-2",
+    "subject": "科学",
+    "title": "检验食物中是否含有淀粉实验误用试剂与现象误判",
+    "source": "课堂练习",
+    "date": "2025.03.07",
+    "knowledge": "食物与营养 · 淀粉的检验方法",
+    "errorType": "解题方法错误",
+    "confidence": 85,
+    "dueToday": false,
+    "reviewStage": "D3 同型题",
+    "prompt": "在检验土豆、米饭中是否含有淀粉的科学探究实验中，我们应该滴加什么试剂？如果含有淀粉，会观察到什么特征颜色变化？",
+    "studentAnswer": "滴加酒精，食物会变成红色。",
+    "correctAnswer": "应该滴加碘酒（或稀碘液）。若含有淀粉，颜色会变成蓝紫色（或蓝色）。",
+    "wrongStep": "记错了检验淀粉的专用指示剂，误把“碘酒”当成“酒精”，且记错了特征反应颜色（应为蓝紫色而非红色）。",
+    "rule": "淀粉遇碘变蓝紫：检验淀粉滴碘酒，颜色变蓝紫即可证明含淀粉！",
+    "formulaSnippet": "淀粉 ＋ 碘酒 ＝ 蓝紫色",
+    "explanations": {
+      "hint": "<b>小提示：</b> 记住这句顺口溜：“淀粉遇碘变蓝紫，土豆米饭试一试”。用来检验的药水叫碘酒！",
+      "steps": "<b>第一步：</b> 明确检验试剂：用滴管吸取少量“碘酒”（稀碘液）；<br><b>第二步：</b> 滴在新鲜切开的土豆或米饭切面上；<br><b>第三步：</b> 观察颜色反应：若滴入部位由棕黄色瞬间变成蓝紫色，证明含有大量淀粉。",
+      "full": "<b>完整解析：</b> 教科版小学科学四年级上册第二单元《呼吸与消化》第 4 课《食物中的营养》。检验食物营养成分的方法：1. 淀粉：滴加碘酒，变蓝紫色；2. 脂肪：在白纸上涂抹按压，留下透明油迹；3. 蛋白质：火烧有类似烧焦羽毛气味。"
+    },
+    "variants": {
+      "same": {
+        "question": "把碘酒滴在馒头和黄瓜片上，哪一个会变蓝紫色？说明了什么？",
+        "answer": "馒头会变成蓝紫色，说明馒头中含有淀粉，黄瓜不含或含极少量淀粉。"
+      },
+      "changed": {
+        "question": "如何用最简易的物理方法检验花生仁中是否含有较多脂肪？",
+        "answer": "将花生仁放在干净的白纸上用力按压、挤压，白纸上留下擦不掉的半透明油迹。"
+      },
+      "transfer": {
+        "question": "人体从米饭、土豆等富含淀粉的食物中获取的主要营养成分是哪一类？它能为人体提供什么？",
+        "answer": "主要是糖类（淀粉），它是人体各项生命活动的主要能量来源。"
+      }
+    }
+  },
+  {
+    "id": "science-3",
+    "subject": "科学",
+    "title": "使用弹簧测力计测力前忘记调零导致读数偏大",
+    "source": "自主刷题",
+    "date": "2025.03.03",
+    "knowledge": "运动和力 · 弹簧测力计的正确使用",
+    "errorType": "步骤错误",
+    "confidence": 79,
+    "dueToday": false,
+    "reviewStage": "D14 规律归档",
+    "prompt": "小红拿起弹簧测力计未挂物体时，指针已经指在 0.4 N 刻度处。她没有进行任何调整，直接挂上一个钩码进行测量，此时读数为 2.4 N。请问该钩码的实际重力是多少牛顿？她违反了弹簧测力计使用的哪条重要规则？",
+    "studentAnswer": "实际重力是 2.4 N。没有违规。",
+    "correctAnswer": "实际重力是 2.0 N（2.4 N - 0.4 N = 2.0 N）。她违反了“测量前必须先检查指针是否指在‘0’刻度，若未对准必须先调零”的操作规则。",
+    "wrongStep": "忽略了初始偏离零刻度的初始误差，误以为读数就是实际受力，未进行误差扣除。",
+    "rule": "弹簧测力计使用四步法：看量程认分度、测前指针先调零、读数视线要平齐、测量不能超量程！",
+    "formulaSnippet": "实际力 ＝ 测量读数 (2.4 N) － 初始零点 (0.4 N) ＝ 2.0 N",
+    "explanations": {
+      "hint": "<b>小提示：</b> 还没挂物体指针就已经指在 0.4 N 了，说明读数虚高了 0.4 N，必须减去这个“底数”！",
+      "steps": "<b>第一步：</b> 识别初始误差：未挂物体读数 0.4 N 为零点漂移；<br><b>第二步：</b> 规范纠正：实际测量值 = 测得读数 2.4 N - 初始读数 0.4 N = 2.0 N；<br><b>第三步：</b> 规范总结：使用任何测力仪器前，必须首先“校零/调零”。",
+      "full": "<b>完整解析：</b> 教科版小学科学四年级上册第三单元《运动和力》第 4 课《测量力的大小》。力的国际单位是牛顿（N）。弹簧测力计是利用“在弹性限度内，弹簧受到的拉力越大，伸长越长”的原理制成。使用规则：先调零、不超量程、视线与指针平齐。"
+    },
+    "variants": {
+      "same": {
+        "question": "若弹簧测力计测量前指针在 0 刻度线下方 0.2 N 处，测得拉力读数 3.5 N，物体的真实拉力是多少？",
+        "answer": "3.5 N - 0.2 N = 3.3 N。"
+      },
+      "changed": {
+        "question": "一个最大称量为 5 N 的弹簧测力计，能否用来测量一个重 8 N 的重物？为什么？",
+        "answer": "不能。因为 8 N 超过了测力计的最大量程（5 N），会损坏测力计弹簧。"
+      },
+      "transfer": {
+        "question": "我们在生活中称体重使用的体重秤，上秤之前首先应该确认什么？",
+        "answer": "确认屏幕或指针是否清零归零。"
+      }
+    }
+  }
+];
 
     /* App Active State */
     let currentActiveView = 'overview';
@@ -3465,6 +3730,7 @@
       status: '全部状态',
       search: ''
     };
+    let rulesSubjectFilter = '全部学科';
 
     const errorTypePills = ['知识点不会', '概念理解错误', '解题方法错误', '步骤错误', '审题错误', '计算错误', '迁移错误'];
 
@@ -3549,8 +3815,7 @@
       const subjects = [
         { name: '数学', icon: 'ph-calculator', count: questionBank.filter(q => q.subject === '数学').length, mastered: 2 },
         { name: '语文', icon: 'ph-book-open-text', count: questionBank.filter(q => q.subject === '语文').length, mastered: 2 },
-        { name: '英语', icon: 'ph-translate', count: questionBank.filter(q => q.subject === '英语').length, mastered: 2 },
-        { name: '物理', icon: 'ph-atom', count: questionBank.filter(q => q.subject === '物理').length, mastered: 1 }
+        { name: '英语', icon: 'ph-translate', count: questionBank.filter(q => q.subject === '英语').length, mastered: 2 }
       ];
       const dockContainer = document.getElementById('subjectDockGrid');
       dockContainer.innerHTML = subjects.map(s => `
@@ -3575,7 +3840,6 @@
       const mathCount = questionBank.filter(q => q.subject === '数学').length;
       const chineseCount = questionBank.filter(q => q.subject === '语文').length;
       const englishCount = questionBank.filter(q => q.subject === '英语').length;
-      const physicsCount = questionBank.filter(q => q.subject === '物理').length;
       const totalCount = questionBank.length;
 
       document.querySelectorAll('#bankSubjectFilters [data-subject]').forEach(btn => {
@@ -3584,7 +3848,6 @@
         else if (sub === '数学') btn.textContent = `数学 · ${mathCount}`;
         else if (sub === '语文') btn.textContent = `语文 · ${chineseCount}`;
         else if (sub === '英语') btn.textContent = `英语 · ${englishCount}`;
-        else if (sub === '物理') btn.textContent = `物理 · ${physicsCount}`;
       });
 
       const container = document.getElementById('bankMistakeRows');
@@ -3625,14 +3888,58 @@
     }
 
     function renderPlan() {
-      const hero = questionBank.find(q => q.dueToday) || questionBank[0];
-      document.getElementById('planFocusTitle').textContent = hero.knowledge + ' · ' + hero.errorType;
-      document.getElementById('planFocusDesc').textContent = '基于近 14 天学习轨迹，该考点处于关键巩固期。建议完成今日「' + hero.reviewStage + '」实战作答后进入同型题演练。';
+      const dueQuestions = questionBank.filter(q => q.dueToday).slice(0, 3);
+      const todayQuestions = dueQuestions.length ? dueQuestions : questionBank.slice(0, 3);
+      const countEl = document.getElementById('todayPlanCount');
+      const listEl = document.getElementById('todayPlanList');
+      if (countEl) countEl.textContent = `共 ${todayQuestions.length} 题`;
+
+      function getStageBadgeInfo(stage) {
+        if (!stage) stage = 'D1 无提示重做';
+        if (stage.includes('D14') || stage.includes('迁移')) {
+          return { text: stage, class: 'stage-d14', icon: 'ph-arrow-square-out', type: '迁移题' };
+        }
+        if (stage.includes('D7') || stage.includes('变式') || stage.includes('变形')) {
+          return { text: stage, class: 'stage-d7', icon: 'ph-shuffle', type: '变形题' };
+        }
+        if (stage.includes('D3') || stage.includes('同型')) {
+          return { text: stage, class: 'stage-d3', icon: 'ph-copy', type: '同型题' };
+        }
+        return { text: stage, class: 'stage-d1', icon: 'ph-lightning', type: '原题重做' };
+      }
+
+      if (listEl) {
+        listEl.innerHTML = todayQuestions.map((q, idx) => {
+          const st = getStageBadgeInfo(q.reviewStage);
+          return `
+          <div class="today-plan-item" data-practice-id="${q.id}" data-source-type="${st.type}">
+            <span class="today-plan-index">${String(idx + 1).padStart(2, '0')}</span>
+            <div class="today-plan-info">
+              <strong>${q.title}</strong>
+              <div style="margin-top:3px;font-size:11px;color:var(--muted);">题型：${q.errorType} · ${q.knowledge}</div>
+            </div>
+            <span class="plan-stage-badge ${st.class}">
+              <i class="ph ${st.icon}"></i> ${q.reviewStage}
+            </span>
+            <span class="today-plan-subject">${q.subject}</span>
+            <button class="today-plan-action" type="button">开始复习 <i class="ph ph-arrow-up-right"></i></button>
+          </div>
+          `;
+        }).join('');
+      }
+      const hero = todayQuestions[0] || questionBank[0];
+      const planFocusTitle = document.getElementById('planFocusTitle');
+      if (planFocusTitle) planFocusTitle.textContent = hero.knowledge + ' · ' + hero.errorType;
+      const planFocusDesc = document.getElementById('planFocusDesc');
+      if (planFocusDesc) planFocusDesc.textContent = '基于近 14 天学习轨迹，该考点处于关键巩固期。建议完成今日「' + hero.reviewStage + '」实战作答后进入同型题演练。';
     }
 
     function renderRules() {
       const container = document.getElementById('fullRulesDeck');
-      container.innerHTML = questionBank.map(q => `
+      const filteredRules = rulesSubjectFilter === '全部学科'
+        ? questionBank
+        : questionBank.filter(q => q.subject === rulesSubjectFilter);
+      container.innerHTML = filteredRules.map(q => `
         <article class="rule-flashcard" data-practice-id="${q.id}">
           <div>
             <span class="rule-category"><i class="ph ph-lightbulb"></i> ${q.subject} · ${q.knowledge.split(' · ')[0]}</span>
@@ -3744,7 +4051,7 @@
     }
 
     // Open in Stage A (实战作答练习模式，需独立演算)
-    function openPracticeModal(id, toastMsg) {
+    function openPracticeModal(id, toastMsg, planSourceType) {
       currentDetailId = id;
       const q = questionBank.find(item => item.id === id) || questionBank[0];
 
@@ -3761,15 +4068,24 @@
       if (deckDiag) deckDiag.style.display = 'none';
 
       // 2. Set Modal Header Info
-      document.getElementById('modalModeText').textContent = '今日攻关 · 实战作答';
-      document.getElementById('modalReviewStageTag').textContent = q.reviewStage;
+      document.getElementById('modalModeText').textContent = planSourceType ? `今日攻关 · ${planSourceType}演练` : '今日攻关 · 实战作答';
+      document.getElementById('modalReviewStageTag').textContent = planSourceType ? `来源：${planSourceType}` : q.reviewStage;
       document.getElementById('detailModalTitle').textContent = q.title;
-      document.getElementById('detailModalMeta').textContent = q.subject + ' · ' + q.knowledge + ' · 来自 ' + q.date + ' ' + q.source;
+      document.getElementById('detailModalMeta').textContent = q.subject + ' · ' + q.knowledge + ' · ' + (planSourceType ? '题目来源：' + planSourceType : '来自 ' + q.date + ' ' + q.source);
 
       // 3. Set Question Statement (NO ANSWERS SHOWN!)
-      document.getElementById('practiceQuestionText').textContent = q.prompt;
+      const promptEl = document.getElementById('practiceQuestionText');
+      if (planSourceType === '同型题' && q.variants && q.variants.same) {
+        promptEl.innerHTML = `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:750;margin-bottom:8px;"><i class="ph ph-copy"></i> 来源：同型题</span><br>${q.variants.same.question}`;
+      } else if (planSourceType === '变形题' && q.variants && q.variants.changed) {
+        promptEl.innerHTML = `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;background:#fffbeb;color:#b45309;font-size:11px;font-weight:750;margin-bottom:8px;"><i class="ph ph-shuffle"></i> 来源：变形题</span><br>${q.variants.changed.question}`;
+      } else if (planSourceType === '迁移题' && q.variants && q.variants.transfer) {
+        promptEl.innerHTML = `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:750;margin-bottom:8px;"><i class="ph ph-arrow-square-out"></i> 来源：迁移题</span><br>${q.variants.transfer.question}`;
+      } else {
+        promptEl.textContent = q.prompt;
+      }
       document.getElementById('practiceInput').value = '';
-      
+
       // Reset Photo State
       resetPracticePhoto();
       switchAnswerMode('text');
@@ -3809,13 +4125,13 @@
         showToast('未找到该样例数据');
         return;
       }
-      
+
       // Switch to text input tab so user sees populated content
       const tabTextInput = document.getElementById('tabTextInput');
       const tabPhotoInput = document.getElementById('tabPhotoInput');
       const paneText = document.getElementById('paneText');
       const panePhoto = document.getElementById('panePhoto');
-      
+
       if (tabTextInput && tabPhotoInput && paneText && panePhoto) {
         tabTextInput.classList.add('active');
         tabPhotoInput.classList.remove('active');
@@ -3828,7 +4144,7 @@
       document.getElementById('manualAnswerText').value = sample.studentAnswer;
       document.getElementById('modalSubjectSelect').value = sample.subject;
       document.getElementById('modalSourceSelect').value = sample.source;
-      
+
       // Sync select element
       const demoSelect = document.getElementById('demoSampleSelect');
       if (demoSelect) demoSelect.value = sampleId;
@@ -3871,8 +4187,8 @@
 
     function setPracticePhoto(dataUrl, ocrText) {
       currentPracticePhoto = dataUrl;
-      currentPracticeOcrText = ocrText || "去括号得 3x - 4x + 10 = 9，移项得 -x = -1，解得 x = 1";
-      
+      currentPracticeOcrText = ocrText || "25 × 40 + 25 × 4 = 1000 + 100 = 1100";
+
       const dropzone = document.getElementById('practicePhotoDropzone');
       const previewCard = document.getElementById('practicePhotoPreviewCard');
       const photoImg = document.getElementById('practicePhotoImg');
@@ -3881,7 +4197,7 @@
       dropzone.style.display = 'none';
       previewCard.style.display = 'block';
       photoImg.src = dataUrl;
-      
+
       ocrBox.innerHTML = `<span style="color:var(--muted);"><i class="ph ph-spinner-gap" style="animation:spin 1s linear infinite;"></i> AI 正在识别手写笔迹...</span>`;
       setTimeout(() => {
         ocrBox.textContent = currentPracticeOcrText;
@@ -3896,7 +4212,7 @@
       }
       const reader = new FileReader();
       reader.onload = function(e) {
-        setPracticePhoto(e.target.result, "手写推导识别：3x - 4x + 10 = 9  =>  -x = -1  =>  x = 1");
+        setPracticePhoto(e.target.result, "手写推导识别：25 × (40 + 4) = 25 × 40 + 25 × 4 = 1000 + 100 = 1100");
       };
       reader.readAsDataURL(file);
     }
@@ -3940,9 +4256,9 @@
       document.getElementById('compPreviousMistake').textContent = q.wrongStep;
 
       // 2. Evaluate Success/Match
-      const isLikelyCorrect = isPaperCompleted || 
+      const isLikelyCorrect = isPaperCompleted ||
         (studentInput && (
-          studentInput.includes(q.correctAnswer) || 
+          studentInput.includes(q.correctAnswer) ||
           q.correctAnswer.toLowerCase().includes(studentInput.toLowerCase()) ||
           studentInput.replace(/\\s+/g, '').includes('1') && q.correctAnswer.includes('1')
         ));
@@ -4238,7 +4554,7 @@
         btnLoadDemoHandwriting.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
-          setPracticePhoto(DEMO_HANDWRITING_SVG, "AI 手写识别：3x - 4x + 10 = 9，移项 -x = -1，解得 x = 1 (负负得正)");
+          setPracticePhoto(DEMO_HANDWRITING_SVG, "AI 手写识别：25 × (40 + 4) = 25 × 40 + 25 × 4 = 1000 + 100 = 1100 (乘法分配律展开)");
           showToast('已载入示例草稿手写图，AI 笔迹已识别');
         });
       }
@@ -4292,7 +4608,7 @@
         if (!detailModal || !detailModal.classList.contains('active')) return;
         const practicePanel = document.getElementById('practiceStagePanel');
         if (!practicePanel || practicePanel.style.display === 'none') return;
-        
+
         const items = e.clipboardData && e.clipboardData.items;
         if (items) {
           for (let i = 0; i < items.length; i++) {
@@ -4309,7 +4625,7 @@
           }
         }
       });
-      
+
       // Submit Practice Answer
       document.getElementById('btnSubmitPractice').addEventListener('click', () => {
         submitPracticeAnswer(false);
@@ -4440,14 +4756,14 @@
             dueToday: true,
             reviewStage: 'D0 重新理解',
             prompt: textPrompt,
-            studentAnswer: textAns || '当时作业作答：去括号时符号未能正确分配到各项',
-            correctAnswer: '解得 x = 1 (标准推导步骤)',
-            wrongStep: '关键步骤中去括号未分配负号，导致常数项符号错误。',
-            rule: '解题前先圈画关键已知量，规范书写每一步代数演算。',
+            studentAnswer: textAns || '当时作业作答：计算或步骤推导出现偏差',
+            correctAnswer: '标准解答与规范推导步骤',
+            wrongStep: '关键步骤中未能准确应用法则定律，导致结果错误。',
+            rule: '解题前先圈画关键已知量，规范书写每一步推导演算。',
             formulaSnippet: textPrompt.slice(0, 20),
             explanations: {
-              hint: '先确认题目考察的核心考点与隐藏限制条件。',
-              steps: '<b>第一步：</b> 审清条件；<br><b>第二步：</b> 列出标准方程并展开；<br><b>第三步：</b> 移项化简求解。',
+              hint: '先确认题目考察的核心考点与已知条件。',
+              steps: '<b>第一步：</b> 审清题目要求；<br><b>第二步：</b> 明确运算法则与解题规律；<br><b>第三步：</b> 规范作答并代回验算。',
               full: '<b>完整解析：</b> AI 已根据你的做错题干构建完整推导诊断。'
             },
             variants: {
@@ -4520,7 +4836,8 @@
         const practiceTrigger = e.target.closest('[data-practice-id]');
         if (practiceTrigger && !e.target.closest('.modal-backdrop')) {
           const qId = practiceTrigger.dataset.practiceId;
-          if (qId) openPracticeModal(qId, '进入实战作答模式');
+          const sourceType = practiceTrigger.dataset.sourceType;
+          if (qId) openPracticeModal(qId, '进入实战作答模式', sourceType);
         }
 
         // Click subject dock item to filter
@@ -4637,9 +4954,12 @@
       });
 
       // Plan Buttons
-      document.getElementById('planStartFocusBtn').addEventListener('click', () => {
-        openPracticeModal('math-1', '进入实战作答模式，请独立推导');
-      });
+      const planStartFocusBtn = document.getElementById('planStartFocusBtn');
+      if (planStartFocusBtn) {
+        planStartFocusBtn.addEventListener('click', () => {
+          openPracticeModal('math-1', '进入实战作答模式，请独立推导');
+        });
+      }
       document.getElementById('planResetBtn').addEventListener('click', () => {
         questionBank.slice(0, 3).forEach(q => q.dueToday = true);
         renderOverview();
@@ -4662,6 +4982,16 @@
           btn.classList.add('active');
           state.status = btn.dataset.status;
           renderBank();
+        });
+      });
+
+      // Rules subject filters
+      document.querySelectorAll('#rulesSubjectFilters button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#rulesSubjectFilters button').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          rulesSubjectFilter = btn.dataset.rulesSubject;
+          renderRules();
         });
       });
 

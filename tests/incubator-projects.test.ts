@@ -15,6 +15,7 @@ type ProjectRecord = { id: string; title: string; route: string; runtime: string
 const manifest = JSON.parse(read("deploy/minisv/incubator-projects/SOURCE-MANIFEST.json")) as {
   schemaVersion: number;
   todoId: string;
+  transforms: string[];
   files: FileRecord[];
   projects: ProjectRecord[];
   contentTreeSha256: string;
@@ -45,6 +46,7 @@ test("T-124 publishes an incubator introduction and a direct two-project library
 test("T-124 exact runtime manifest admits every and only declared browser file", () => {
   assert.equal(manifest.schemaVersion, 1);
   assert.equal(manifest.todoId, "T-124");
+  assert.ok(manifest.transforms?.includes("hide-project-shell-on-project-pages"));
   assert.deepEqual(
     manifest.projects.map(({ id, route, runtime, persistence }) => ({ id, route, runtime, persistence })),
     [
@@ -80,6 +82,8 @@ test("T-124 projects are self-contained, branded, navigable and explicit about p
     assert.doesNotMatch(html, /unpkg\.com|fonts\.googleapis\.com|fonts\.gstatic\.com/i);
     assert.doesNotMatch(html, /\b(?:localStorage|sessionStorage|indexedDB)\b|\bfetch\s*\(/);
   }
+  const projectShell = read("deploy/minisv/incubator-projects/_shared/project-shell.css");
+  assert.match(projectShell, /\.msv-project-shell\{display:none!important\}/);
   assert.match(recitation, /id="startPracticeBtn"[\s\S]*开始背诵/);
   assert.match(recitation, /SpeechRecognition|webkitSpeechRecognition/);
   assert.match(mistakes, /id="bankNewBtn"[\s\S]*录入错题/);
