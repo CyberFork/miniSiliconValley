@@ -1,13 +1,12 @@
 "use client";
 
-import Image from "next/image";
-import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { FIRST_GAME_HOMEWORK_SECTIONS, type FirstGameAnswer, type FirstGameAnswers, type FirstGameField } from "../../lib/first-game-homework";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FIRST_GAME_HOMEWORK_SECTIONS, FIRST_GAME_REQUIRED_FIELDS, type FirstGameAnswer, type FirstGameAnswers, type FirstGameField } from "../../lib/first-game-homework";
 import { publicPath } from "../../lib/public-path";
 import styles from "../homework.module.css";
 
 type Envelope<T> = { ok: boolean; data?: T; error?: { message?: string } };
-type SubmitResult = { submission: { id: string; respondentNickname: string; answeredCount: number; imageCount: number; createdAt: string }; replayed: boolean };
+type SubmitResult = { submission: { id: string; respondentNickname: string; answeredCount: number; createdAt: string }; replayed: boolean };
 const DRAFT_KEY = "minisv.homework.first-game.draft.v1";
 
 export default function FirstGameHomeworkClient() {
@@ -20,6 +19,8 @@ export default function FirstGameHomeworkClient() {
   const requestId = useRef(newRequestId());
   const loaded = useRef(false);
   const answered = useMemo(() => Object.values(answers).filter(hasContent).length, [answers]);
+  const missingRequired = useMemo(() => FIRST_GAME_REQUIRED_FIELDS.filter((field) => !hasContent(answers[field.id] ?? "")), [answers]);
+  const secondPartUnlocked = missingRequired.length === 0;
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -34,7 +35,7 @@ export default function FirstGameHomeworkClient() {
   useEffect(() => {
     if (!loaded.current) return;
     const timer = window.setTimeout(() => {
-      try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ nickname, note, answers })); } catch { /* Large image drafts may exceed device storage; live form still remains. */ }
+      try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ nickname, note, answers })); } catch { /* Device storage may be unavailable; the live form still remains. */ }
     }, 250);
     return () => window.clearTimeout(timer);
   }, [nickname, note, answers]);
@@ -45,7 +46,14 @@ export default function FirstGameHomeworkClient() {
     try { localStorage.removeItem(DRAFT_KEY); } catch { /* no-op */ }
   }
   async function submit(event: FormEvent) {
-    event.preventDefault(); setBusy(true); setMessage(""); setResult(null);
+    event.preventDefault(); setMessage(""); setResult(null);
+    if (missingRequired.length) {
+      const first = missingRequired[0];
+      setMessage(`请先完成第一部分必填项：${first.label}。`);
+      window.setTimeout(() => document.querySelector<HTMLElement>(`[data-field-id="${first.id}"] input, [data-field-id="${first.id}"] textarea, [data-field-id="${first.id}"] fieldset`)?.focus(), 0);
+      return;
+    }
+    setBusy(true);
     try {
       const response = await fetch(publicPath("/api/public/homework/first-game/submissions"), {
         method: "POST", credentials: "same-origin", headers: { Accept: "application/json", "Content-Type": "application/json" },
@@ -66,7 +74,10 @@ export default function FirstGameHomeworkClient() {
       <label>想让查看者知道的话（可选）<textarea value={note} maxLength={300} placeholder="例如：这是我的第一版想法，还会继续改。" onChange={(event) => setNote(event.target.value)} /></label>
     </section>
     <nav className={styles.sectionJump} aria-label="作业主题快速跳转">{FIRST_GAME_HOMEWORK_SECTIONS.map((section, index) => <a href={`#section-${section.id}`} key={section.id}>{String(index + 1).padStart(2, "0")}</a>)}</nav>
-    {FIRST_GAME_HOMEWORK_SECTIONS.map((section, index) => <details className={styles.section} id={`section-${section.id}`} key={section.id} open={index < 5}>
+    <section className={styles.partStatus} data-unlocked={secondPartUnlocked}><div><small>第一部分 · 01—05</small><b>{FIRST_GAME_REQUIRED_FIELDS.length - missingRequired.length}/{FIRST_GAME_REQUIRED_FIELDS.length} 个必填项已完成</b></div><p>{secondPartUnlocked ? "✓ 第一部分已完成，第二部分 06—11 已解锁。" : `完成第一部分后解锁第二部分，还差 ${missingRequired.length} 个必填项。`}</p></section>
+    {FIRST_GAME_HOMEWORK_SECTIONS.map((section, index) => index >= 5 && !secondPartUnlocked ? <section className={`${styles.section} ${styles.lockedSection}`} id={`section-${section.id}`} data-locked="true" key={section.id}>
+      <header><span>{section.level}</span><h2>{section.title}</h2><p>{section.intro}</p><b>🔒 完成 01—05 后解锁</b></header>
+    </section> : <details className={styles.section} id={`section-${section.id}`} key={section.id} open={index < 5}>
       <summary><span>{section.level}</span><h2>{section.title}</h2><p>{section.intro}</p><b>展开／收起</b></summary>
       <div className={styles.fields}>{section.fields.map((field) => <HomeworkFieldControl field={field} value={answers[field.id]} onChange={(value) => setAnswer(field.id, value)} key={field.id} />)}</div>
     </details>)}
@@ -79,52 +90,14 @@ export default function FirstGameHomeworkClient() {
 }
 
 function HomeworkFieldControl({ field, value, onChange }: { field: FirstGameField; value: FirstGameAnswer | undefined; onChange: (value: FirstGameAnswer) => void }) {
-  if (field.kind === "short" || field.kind === "long") return <label className={styles.field}><b>{field.label}</b>{field.prompt && <small>{field.prompt}</small>}{field.kind === "long" ? <textarea value={typeof value === "string" ? value : ""} maxLength={1200} onChange={(event) => onChange(event.target.value)} /> : <input value={typeof value === "string" ? value : ""} maxLength={1200} onChange={(event) => onChange(event.target.value)} />}</label>;
+  const requiredMark = field.required ? <span className={styles.requiredMark} aria-label="必填">*</span> : null;
+  if (field.kind === "short" || field.kind === "long") return <label className={styles.field} data-field-id={field.id}><b>{field.label} {requiredMark}</b>{field.prompt && <small>{field.prompt}</small>}{field.kind === "long" ? <textarea value={typeof value === "string" ? value : ""} required={field.required} aria-required={field.required} maxLength={1200} onChange={(event) => onChange(event.target.value)} /> : <input value={typeof value === "string" ? value : ""} required={field.required} aria-required={field.required} maxLength={1200} onChange={(event) => onChange(event.target.value)} />}</label>;
   if (field.kind === "single" || field.kind === "multi") {
     const choices = Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
-    return <fieldset className={styles.field}><legend>{field.label}</legend><div className={styles.choices}>{field.options?.map((option) => <label key={option}><input type={field.kind === "single" ? "radio" : "checkbox"} name={field.kind === "single" ? field.id : undefined} checked={choices.includes(option)} onChange={(event) => onChange(field.kind === "single" ? (event.target.checked ? [option] : []) : event.target.checked ? [...choices, option] : choices.filter((item) => item !== option))} /><span>{option}</span></label>)}</div></fieldset>;
+    return <fieldset className={styles.field} data-field-id={field.id} aria-required={field.required}><legend>{field.label} {requiredMark}</legend><div className={styles.choices}>{field.options?.map((option, index) => <label key={option}><input type={field.kind === "single" ? "radio" : "checkbox"} name={field.kind === "single" ? field.id : undefined} required={field.kind === "single" && field.required && index === 0} checked={choices.includes(option)} onChange={(event) => onChange(field.kind === "single" ? (event.target.checked ? [option] : []) : event.target.checked ? [...choices, option] : choices.filter((item) => item !== option))} /><span>{option}</span></label>)}</div></fieldset>;
   }
-  if (field.kind === "image") return <ImageField field={field} value={typeof value === "string" ? value : ""} onChange={onChange} />;
   const rows = Array.isArray(value) ? value.filter((item): item is Record<string, string> => typeof item === "object" && item !== null) : [];
   return <fieldset className={`${styles.field} ${styles.tableField}`}><legend>{field.label}</legend><div className={styles.tableScroll}><table><thead><tr><th>项目</th>{field.columns?.map((column) => <th key={column.id}>{column.label}</th>)}</tr></thead><tbody>{field.rows?.map((row, index) => { const current = rows[index] ?? { rowId: row.id }; return <tr key={row.id}><th>{row.label}</th>{field.columns?.map((column) => <td key={column.id}><textarea aria-label={`${row.label}：${column.label}`} maxLength={300} value={current[column.id] ?? ""} onChange={(event) => { const next = field.rows?.map((item, rowIndex) => ({ ...(rows[rowIndex] ?? { rowId: item.id }), rowId: item.id })) ?? []; next[index] = { ...current, rowId: row.id, [column.id]: event.target.value }; onChange(next); }} /></td>)}</tr>; })}</tbody></table></div></fieldset>;
-}
-
-function ImageField({ field, value, onChange }: { field: FirstGameField; value: string; onChange: (value: FirstGameAnswer) => void }) {
-  const [working, setWorking] = useState(false);
-  const [error, setError] = useState("");
-  async function select(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0]; if (!file) return;
-    setWorking(true); setError("");
-    try { onChange(await compressImage(file)); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : "图片没有处理成功。"); }
-    finally { setWorking(false); event.target.value = ""; }
-  }
-  return <fieldset className={`${styles.field} ${styles.imageField}`}><legend>{field.label}</legend>{field.prompt && <small>{field.prompt}</small>}<div>{value ? <Image src={value} width={1200} height={900} unoptimized alt={`${field.label}预览`} /> : <span className={styles.imageBlank}>＋<small>还没有图片</small></span>}<label className={styles.uploadButton}>{working ? "正在压缩…" : value ? "更换图片" : "拍照或选择图片"}<input type="file" accept="image/png,image/jpeg,image/webp" capture="environment" disabled={working} onChange={(event) => void select(event)} /></label>{value && <button type="button" className={styles.removeImage} onClick={() => onChange("")}>移除图片</button>}</div>{error && <p className={styles.inlineError}>{error}</p>}<p className={styles.help}>设备会自动缩小图片；仅接受 PNG、JPEG、WebP，不接受 SVG 或可执行文件。</p></fieldset>;
-}
-
-async function compressImage(file: File): Promise<string> {
-  if (!/^image\/(?:png|jpeg|webp)$/.test(file.type)) throw new Error("请选择 PNG、JPEG 或 WebP 图片。");
-  if (file.size <= 170_000) return readImageAsDataUrl(file);
-  const bitmap = await createImageBitmap(file);
-  let width = bitmap.width; let height = bitmap.height; const maxSide = 1280;
-  if (Math.max(width, height) > maxSide) { const ratio = maxSide / Math.max(width, height); width = Math.round(width * ratio); height = Math.round(height * ratio); }
-  const canvas = document.createElement("canvas"); const context = canvas.getContext("2d");
-  if (!context) throw new Error("这台设备暂时不能处理图片。");
-  for (const [scale, quality] of [[1, .78], [.82, .68], [.68, .58], [.52, .5]] as const) {
-    canvas.width = Math.max(1, Math.round(width * scale)); canvas.height = Math.max(1, Math.round(height * scale));
-    context.clearRect(0, 0, canvas.width, canvas.height); context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    const data = canvas.toDataURL("image/jpeg", quality); if (data.length * .75 <= 175_000) { bitmap.close(); return data; }
-  }
-  bitmap.close(); throw new Error("图片仍然太大，请裁剪后再上传。");
-}
-
-function readImageAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => typeof reader.result === "string" ? resolve(reader.result) : reject(new Error("图片没有读取成功。"));
-    reader.onerror = () => reject(new Error("图片没有读取成功。"));
-    reader.readAsDataURL(file);
-  });
 }
 
 function hasContent(value: FirstGameAnswer): boolean {

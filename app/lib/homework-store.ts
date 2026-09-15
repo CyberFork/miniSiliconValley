@@ -1,11 +1,9 @@
 import type { ClassroomD1 } from "../../db";
-import { FIRST_GAME_HOMEWORK_FIELDS, type FirstGameAnswer, type FirstGameAnswers, type FirstGameField } from "./first-game-homework";
+import { FIRST_GAME_HOMEWORK_FIELDS, FIRST_GAME_REQUIRED_FIELDS, type FirstGameAnswer, type FirstGameAnswers, type FirstGameField } from "./first-game-homework";
 
 const MAX_REQUEST_BYTES = 1_200_000;
 const MAX_TEXT_LENGTH = 1_200;
 const MAX_TABLE_CELL_LENGTH = 300;
-const MAX_IMAGE_BYTES = 180_000;
-const MAX_TOTAL_IMAGE_BYTES = 720_000;
 
 export class HomeworkError extends Error {
   constructor(public readonly code: string, message: string, public readonly status: number) { super(message); }
@@ -32,10 +30,12 @@ export async function createFirstGameSubmission(db: ClassroomD1, input: unknown)
   const respondentNickname = boundedString(raw.respondentNickname, "姓名／昵称", 80, true);
   const respondentNote = boundedString(raw.respondentNote, "自我说明", 300, false);
   const answers = normalizeAnswers(raw.answers);
+  const missingRequired = FIRST_GAME_REQUIRED_FIELDS.filter((field) => !answerHasContent(answers[field.id] ?? ""));
+  if (missingRequired.length) throw new HomeworkError("HOMEWORK_REQUIRED_MISSING", `请完成第一部分必填项：${missingRequired[0].label}。`, 400);
   const encoded = JSON.stringify(answers);
-  if (new TextEncoder().encode(encoded).byteLength > MAX_REQUEST_BYTES) throw new HomeworkError("HOMEWORK_TOO_LARGE", "文字和图片合计太大，请减少图片后重试。", 413);
+  if (new TextEncoder().encode(encoded).byteLength > MAX_REQUEST_BYTES) throw new HomeworkError("HOMEWORK_TOO_LARGE", "提交内容太大，请精简后重试。", 413);
   const fields = Object.entries(answers).filter(([, value]) => answerHasContent(value));
-  const imageCount = fields.filter(([id]) => FIRST_GAME_HOMEWORK_FIELDS.find((field) => field.id === id)?.kind === "image").length;
+  const imageCount = 0;
   const id = crypto.randomUUID();
   const createdAt = new Date().toISOString();
   try {
@@ -78,14 +78,11 @@ export async function getFirstGameSubmission(db: ClassroomD1, id: string): Promi
 function normalizeAnswers(value: unknown): FirstGameAnswers {
   const raw = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
   const output: FirstGameAnswers = {};
-  let totalImageBytes = 0;
   for (const field of FIRST_GAME_HOMEWORK_FIELDS) {
     const answer = normalizeAnswer(field, raw[field.id]);
     if (answer === null || !answerHasContent(answer)) continue;
-    if (field.kind === "image") totalImageBytes += imageBytes(answer as string);
     output[field.id] = answer;
   }
-  if (totalImageBytes > MAX_TOTAL_IMAGE_BYTES) throw new HomeworkError("HOMEWORK_IMAGES_TOO_LARGE", "作品图片合计不能超过 700 KiB，请压缩或减少图片。", 413);
   return output;
 }
 
@@ -96,13 +93,6 @@ function normalizeAnswer(field: FirstGameField, value: unknown): FirstGameAnswer
     const allowed = new Set(field.options ?? []);
     if (values.some((item) => !allowed.has(item))) throw new HomeworkError("HOMEWORK_CHOICE_INVALID", `${field.label}包含无效选项。`, 400);
     return [...new Set(values)];
-  }
-  if (field.kind === "image") {
-    const image = boundedString(value, field.label, 300_000, false);
-    if (!image) return "";
-    if (!/^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+=*$/.test(image) || !imageMagicValid(image)) throw new HomeworkError("HOMEWORK_IMAGE_TYPE_INVALID", `${field.label}只接受真实的 PNG、JPEG 或 WebP 图片。`, 415);
-    if (imageBytes(image) > MAX_IMAGE_BYTES) throw new HomeworkError("HOMEWORK_IMAGE_TOO_LARGE", `${field.label}压缩后仍超过 180 KiB，请换一张更小的图片。`, 413);
-    return image;
   }
   if (field.kind === "table") {
     const rows = Array.isArray(value) ? value : [];
@@ -122,22 +112,6 @@ function normalizeAnswer(field: FirstGameField, value: unknown): FirstGameAnswer
 function answerHasContent(answer: FirstGameAnswer): boolean {
   if (typeof answer === "string") return answer.trim().length > 0;
   if (Array.isArray(answer)) return answer.some((item) => typeof item === "string" ? item.trim().length > 0 : Object.entries(item).some(([key, value]) => key !== "rowId" && String(value).trim().length > 0));
-  return false;
-}
-
-function imageBytes(dataUrl: string): number {
-  const base64 = dataUrl.slice(dataUrl.indexOf(",") + 1);
-  return Math.floor(base64.length * 3 / 4) - (base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0);
-}
-
-function imageMagicValid(dataUrl: string): boolean {
-  const [header, encoded = ""] = dataUrl.split(",", 2);
-  try {
-    const bytes = Uint8Array.from(atob(encoded.slice(0, 32)), (value) => value.charCodeAt(0));
-    if (header.includes("image/png")) return [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a].every((value, index) => bytes[index] === value);
-    if (header.includes("image/jpeg")) return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
-    if (header.includes("image/webp")) return String.fromCharCode(...bytes.slice(0, 4)) === "RIFF" && String.fromCharCode(...bytes.slice(8, 12)) === "WEBP";
-  } catch { return false; }
   return false;
 }
 

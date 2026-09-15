@@ -2,7 +2,6 @@
 """Real Chromium acceptance for T-119 against an isolated local D1."""
 from __future__ import annotations
 
-import base64
 import http.client
 import os
 import socket
@@ -49,8 +48,7 @@ def main() -> None:
     assert (REPO / "dist/server/wrangler.json").exists(), "run npm run build:minisv-app first"
     port = free_port(); base = f"http://127.0.0.1:{port}"
     with tempfile.TemporaryDirectory(prefix="msv-t119-browser-") as temp:
-        root = Path(temp); log = root / "wrangler.log"; image = root / "pixel.png"
-        image.write_bytes(base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2nGQAAAAASUVORK5CYII="))
+        root = Path(temp); log = root / "wrangler.log"
         env = {**os.environ, "CI": "1", "NO_COLOR": "1", "WRANGLER_SEND_METRICS": "false"}
         with log.open("w", encoding="utf-8") as output:
             process = subprocess.Popen(
@@ -75,12 +73,15 @@ def main() -> None:
                         expect(page.get_by_text(removed, exact=True)).to_have_count(0)
                     for title in ["我的游戏是什么", "谁来玩我的游戏", "游戏怎么玩", "怎样算赢", "画出我的游戏世界", "角色故事", "关卡和任务", "敌人、障碍和道具", "奖励和成长", "胜利、失败和结局", "游戏画风、颜色和声音"]:
                         assert title in page.locator("body").inner_text()
+                    expect(page.locator('input[type="file"]')).to_have_count(0)
+                    expect(page.locator('section[data-locked="true"]')).to_have_count(6)
+                    expect(page.get_by_text("完成第一部分后解锁第二部分，还差 21 个必填项。")).to_be_visible()
                     no_overflow(page, "form-tablet")
-                    nickname = page.locator('label:has([aria-label="必填"]) input')
+                    nickname = page.locator('input[autocomplete="nickname"]')
                     expect(nickname).to_have_attribute("required", "")
                     required_mark = page.locator('[aria-label="必填"]')
-                    expect(required_mark).to_have_text("*")
-                    assert required_mark.evaluate("el => getComputedStyle(el).color") == "rgb(255, 107, 87)"
+                    expect(required_mark.first).to_have_text("*")
+                    assert required_mark.first.evaluate("el => getComputedStyle(el).color") == "rgb(255, 107, 87)"
                     post_count = {"value": 0}
                     page.on("request", lambda request: post_count.__setitem__("value", post_count["value"] + 1) if request.method == "POST" and "/api/public/homework/first-game/submissions" in request.url else None)
                     page.get_by_role("button", name="提交这次作业 →").click()
@@ -89,8 +90,29 @@ def main() -> None:
                     nickname.fill("T119 浏览器验收")
                     page.get_by_label("我的游戏叫").fill("像素信使")
                     page.get_by_text("冒险游戏", exact=True).first.click()
-                    page.locator('input[type="file"]').first.set_input_files(str(image))
-                    expect(page.locator('img[alt="游戏 Logo预览"]')).to_be_visible(timeout=10_000)
+                    page.get_by_label("一句话介绍").fill("帮助信使找到回家的路。")
+                    page.get_by_label("我的游戏是给谁玩的").fill("喜欢探索的初中生")
+                    page.get_by_label("适合几岁的小朋友").fill("12—15 岁")
+                    page.get_by_text("一个人玩", exact=True).first.click()
+                    page.get_by_text("成就感", exact=True).first.click()
+                    page.get_by_label("我觉得玩家会喜欢它，是因为").fill("每次路线都不同。")
+                    page.get_by_label("第一步｜玩家一开始要").fill("选择入口")
+                    page.get_by_label("第二步｜接下来玩家要").fill("收集线索")
+                    page.get_by_label("第三步｜玩家继续要").fill("找到出口")
+                    page.get_by_text("选择", exact=True).first.click()
+                    page.get_by_label("玩法句式").fill("看到路标，就选择方向，然后得到线索。")
+                    page.get_by_label("玩家最终要完成什么事情").fill("离开迷宫")
+                    page.get_by_label("完成什么就算赢").fill("找到出口")
+                    page.get_by_label("发生什么就会失败").fill("时间用完")
+                    page.get_by_label("玩家赢了以后会看到").fill("新的地图")
+                    page.get_by_text("重新开始", exact=True).first.click()
+                    page.get_by_label("游戏发生在哪里").fill("会变化的迷宫")
+                    page.get_by_label("玩家是谁").fill("小小探险家")
+                    page.get_by_label("玩家为什么要开始游戏").fill("找回丢失的地图")
+                    expect(page.get_by_text("✓ 第一部分已完成，第二部分 06—11 已解锁。")).to_be_visible()
+                    expect(page.locator('section[data-locked="true"]')).to_have_count(0)
+                    expect(page.locator('[aria-label="必填"]')).to_have_count(22)
+                    no_overflow(page, "form-tablet-unlocked")
 
                     aborted = {"done": False}
                     def abort_once(route):
@@ -110,7 +132,7 @@ def main() -> None:
                     expect(page.get_by_role("heading", name="T119 浏览器验收 的游戏")).to_be_visible()
                     expect(page.get_by_text("像素信使", exact=True)).to_be_visible()
                     expect(page.get_by_text("冒险游戏", exact=True)).to_be_visible()
-                    expect(page.locator('img[alt="游戏 Logo"]')).to_be_visible()
+                    expect(page.locator("img")).to_have_count(1)  # Brand logo only; no homework image output.
                     no_overflow(page, "detail-tablet")
                     page.get_by_role("link", name="全部提交").click(); page.wait_for_load_state("networkidle")
                     expect(page.get_by_role("heading", name="第一款游戏档案")).to_be_visible()
@@ -122,7 +144,7 @@ def main() -> None:
                 process.terminate()
                 try: process.wait(timeout=5)
                 except subprocess.TimeoutExpired: process.kill()
-    print("T119_BROWSER_PASS public=form+list+detail partial=yes image=png failure-preserves-input touch=820x1180 overflow=none d1=isolated")
+    print("T119_BROWSER_PASS public=form+list+detail part1-required=21 part2-lock=yes uploads=none failure-preserves-input touch=820x1180 overflow=none d1=isolated")
 
 
 if __name__ == "__main__": main()

@@ -19,9 +19,9 @@ export async function readPublicHomeworkJson(request: Request): Promise<unknown>
   assertSameOrigin(request);
   if (!(request.headers.get("content-type") ?? "").toLowerCase().includes("application/json")) throw new HomeworkError("HOMEWORK_JSON_REQUIRED", "提交必须使用 JSON 格式。", 415);
   const declared = Number(request.headers.get("content-length") ?? 0);
-  if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) throw new HomeworkError("HOMEWORK_TOO_LARGE", "文字和图片合计太大，请减少图片后重试。", 413);
+  if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) throw new HomeworkError("HOMEWORK_TOO_LARGE", "提交内容太大，请精简后重试。", 413);
   const raw = await request.text();
-  if (new TextEncoder().encode(raw).byteLength > MAX_BODY_BYTES) throw new HomeworkError("HOMEWORK_TOO_LARGE", "文字和图片合计太大，请减少图片后重试。", 413);
+  if (new TextEncoder().encode(raw).byteLength > MAX_BODY_BYTES) throw new HomeworkError("HOMEWORK_TOO_LARGE", "提交内容太大，请精简后重试。", 413);
   try { return JSON.parse(raw) as unknown; }
   catch { throw new HomeworkError("HOMEWORK_JSON_INVALID", "提交内容格式不正确。", 400); }
 }

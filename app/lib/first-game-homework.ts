@@ -8,7 +8,8 @@ export type FirstGameField = {
   id: string;
   label: string;
   prompt?: string;
-  kind: "short" | "long" | "single" | "multi" | "image" | "table";
+  kind: "short" | "long" | "single" | "multi" | "table";
+  required?: boolean;
   options?: readonly string[];
   columns?: readonly { id: string; label: string }[];
   rows?: readonly { id: string; label: string }[];
@@ -35,11 +36,10 @@ export const FIRST_GAME_HOMEWORK_SECTIONS: readonly FirstGameSection[] = [
     title: "01｜我的游戏是什么？",
     intro: "先用短句讲清楚：它叫什么、是什么类型、玩家要做什么。",
     fields: [
-      { id: "gameName", label: "我的游戏叫", kind: "short" },
-      { id: "gameTypes", label: "游戏类型", kind: "multi", options: GAME_TYPES },
+      { id: "gameName", label: "我的游戏叫", kind: "short", required: true },
+      { id: "gameTypes", label: "游戏类型", kind: "multi", options: GAME_TYPES, required: true },
       { id: "gameTypeOther", label: "其他类型（可选）", kind: "short" },
-      { id: "oneSentence", label: "一句话介绍", prompt: "这是一个让【谁】通过【做什么】来完成【什么目标】的游戏。", kind: "long" },
-      { id: "logoImage", label: "游戏 Logo", prompt: "可上传画好的 Logo：包含游戏名称、代表图形和一种主色。", kind: "image" },
+      { id: "oneSentence", label: "一句话介绍", prompt: "这是一个让【谁】通过【做什么】来完成【什么目标】的游戏。", kind: "long", required: true },
     ],
   },
   {
@@ -48,13 +48,13 @@ export const FIRST_GAME_HOMEWORK_SECTIONS: readonly FirstGameSection[] = [
     title: "02｜谁来玩我的游戏？",
     intro: "想一个具体玩家，而不是“所有人”。",
     fields: [
-      { id: "playerWho", label: "我的游戏是给谁玩的", kind: "long" },
-      { id: "playerAge", label: "适合几岁的小朋友", kind: "short" },
-      { id: "playMode", label: "一个人玩，还是和朋友一起玩", kind: "single", options: ["一个人玩", "和朋友一起玩", "两种都可以", "其他"] },
+      { id: "playerWho", label: "我的游戏是给谁玩的", kind: "long", required: true },
+      { id: "playerAge", label: "适合几岁的小朋友", kind: "short", required: true },
+      { id: "playMode", label: "一个人玩，还是和朋友一起玩", kind: "single", options: ["一个人玩", "和朋友一起玩", "两种都可以", "其他"], required: true },
       { id: "playModeOther", label: "其他玩法人数（可选）", kind: "short" },
-      { id: "playerFeelings", label: "我希望玩家感受到", kind: "multi", options: FEELINGS },
+      { id: "playerFeelings", label: "我希望玩家感受到", kind: "multi", options: FEELINGS, required: true },
       { id: "playerFeelingOther", label: "其他感受（可选）", kind: "short" },
-      { id: "playerWhy", label: "我觉得玩家会喜欢它，是因为", kind: "long" },
+      { id: "playerWhy", label: "我觉得玩家会喜欢它，是因为", kind: "long", required: true },
     ],
   },
   {
@@ -63,12 +63,12 @@ export const FIRST_GAME_HOMEWORK_SECTIONS: readonly FirstGameSection[] = [
     title: "03｜游戏怎么玩？",
     intro: "按游戏开始后的顺序写，不需要一次写很多。",
     fields: [
-      { id: "stepOne", label: "第一步｜玩家一开始要", kind: "long" },
-      { id: "stepTwo", label: "第二步｜接下来玩家要", kind: "long" },
-      { id: "stepThree", label: "第三步｜玩家继续要", kind: "long" },
-      { id: "mainActions", label: "玩家最常做的事情", kind: "multi", options: ACTIONS },
+      { id: "stepOne", label: "第一步｜玩家一开始要", kind: "long", required: true },
+      { id: "stepTwo", label: "第二步｜接下来玩家要", kind: "long", required: true },
+      { id: "stepThree", label: "第三步｜玩家继续要", kind: "long", required: true },
+      { id: "mainActions", label: "玩家最常做的事情", kind: "multi", options: ACTIONS, required: true },
       { id: "mainActionOther", label: "其他主要动作（可选）", kind: "short" },
-      { id: "playSentence", label: "玩法句式", prompt: "玩家看到 ______，就会 ______，然后得到 ______。", kind: "long" },
+      { id: "playSentence", label: "玩法句式", prompt: "玩家看到 ______，就会 ______，然后得到 ______。", kind: "long", required: true },
     ],
   },
   {
@@ -77,13 +77,12 @@ export const FIRST_GAME_HOMEWORK_SECTIONS: readonly FirstGameSection[] = [
     title: "04｜怎样算赢？",
     intro: "说清目标、成功和失败，玩家才知道自己为什么行动。",
     fields: [
-      { id: "gameGoal", label: "玩家最终要完成什么事情", kind: "long" },
-      { id: "victoryCondition", label: "完成什么就算赢", kind: "long" },
-      { id: "failureCondition", label: "发生什么就会失败", kind: "long" },
-      { id: "afterWin", label: "玩家赢了以后会看到", kind: "long" },
-      { id: "afterLoss", label: "玩家输了以后可以", kind: "multi", options: ["重新开始", "回到上一关", "选择新的角色", "其他"] },
+      { id: "gameGoal", label: "玩家最终要完成什么事情", kind: "long", required: true },
+      { id: "victoryCondition", label: "完成什么就算赢", kind: "long", required: true },
+      { id: "failureCondition", label: "发生什么就会失败", kind: "long", required: true },
+      { id: "afterWin", label: "玩家赢了以后会看到", kind: "long", required: true },
+      { id: "afterLoss", label: "玩家输了以后可以", kind: "multi", options: ["重新开始", "回到上一关", "选择新的角色", "其他"], required: true },
       { id: "afterLossOther", label: "其他失败后选择（可选）", kind: "short" },
-      { id: "winLossImage", label: "胜利或失败画面", kind: "image" },
     ],
   },
   {
@@ -92,11 +91,10 @@ export const FIRST_GAME_HOMEWORK_SECTIONS: readonly FirstGameSection[] = [
     title: "05｜画出我的游戏世界",
     intro: "至少想出发生地点、玩家角色和一个重要物品、障碍或敌人。",
     fields: [
-      { id: "worldLocation", label: "游戏发生在哪里", kind: "long" },
-      { id: "worldPlayer", label: "玩家是谁", kind: "long" },
-      { id: "worldReason", label: "玩家为什么要开始游戏", kind: "long" },
-      { id: "worldImage", label: "游戏世界图", prompt: "可上传地图、房间、森林、城市、太空、城堡或其他场景。", kind: "image" },
-      { id: "worldImageNote", label: "世界图补充说明（可选）", kind: "long" },
+      { id: "worldLocation", label: "游戏发生在哪里", kind: "long", required: true },
+      { id: "worldPlayer", label: "玩家是谁", kind: "long", required: true },
+      { id: "worldReason", label: "玩家为什么要开始游戏", kind: "long", required: true },
+      { id: "worldImageNote", label: "游戏世界补充说明（可选）", kind: "long" },
     ],
   },
   {
@@ -109,7 +107,6 @@ export const FIRST_GAME_HOMEWORK_SECTIONS: readonly FirstGameSection[] = [
       { id: "characterAbility", label: "角色最厉害的能力", kind: "long" },
       { id: "characterDifficulty", label: "角色最害怕或最容易遇到的困难", kind: "long" },
       { id: "characterGoal", label: "角色最想完成的事情", kind: "long" },
-      { id: "characterImage", label: "角色图与能力标注", kind: "image" },
       { id: "otherCharacters", label: "游戏里还有谁", kind: "table", columns: [{ id: "name", label: "角色名称" }, { id: "who", label: "他是谁" }, { id: "action", label: "他会做什么" }], rows: [{ id: "1", label: "角色 1" }, { id: "2", label: "角色 2" }, { id: "3", label: "角色 3" }] },
     ],
   },
@@ -152,7 +149,6 @@ export const FIRST_GAME_HOMEWORK_SECTIONS: readonly FirstGameSection[] = [
       { id: "victoryEnding", label: "完成最终任务后发生了什么", kind: "long" },
       { id: "failureEnding", label: "没有完成任务时发生了什么", kind: "long" },
       { id: "finalEnding", label: "游戏最后，玩家会", kind: "long" },
-      { id: "endingImage", label: "最终结局画面", kind: "image" },
     ],
   },
   {
@@ -173,6 +169,7 @@ export const FIRST_GAME_HOMEWORK_SECTIONS: readonly FirstGameSection[] = [
 ] as const;
 
 export const FIRST_GAME_HOMEWORK_FIELDS = FIRST_GAME_HOMEWORK_SECTIONS.flatMap((section) => section.fields);
+export const FIRST_GAME_REQUIRED_FIELDS = FIRST_GAME_HOMEWORK_FIELDS.filter((field) => field.required);
 
 export function firstGameField(id: string): FirstGameField | undefined {
   return FIRST_GAME_HOMEWORK_FIELDS.find((field) => field.id === id);
