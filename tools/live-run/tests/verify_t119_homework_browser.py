@@ -75,7 +75,8 @@ def main() -> None:
                         assert title in page.locator("body").inner_text()
                     expect(page.locator('input[type="file"]')).to_have_count(0)
                     expect(page.locator('section[data-locked="true"]')).to_have_count(6)
-                    expect(page.get_by_text("完成第一部分后解锁第二部分，还差 21 个必填项。")).to_be_visible()
+                    expect(page.get_by_text("第二部分尚未解锁：还差 21 个必填项。")).to_be_visible()
+                    expect(page.get_by_text("最前面的未完成项：01｜我的游戏是什么？ → 我的游戏叫")).to_be_visible()
                     no_overflow(page, "form-tablet")
                     nickname = page.locator('input[autocomplete="nickname"]')
                     expect(nickname).to_have_attribute("required", "")
@@ -88,7 +89,12 @@ def main() -> None:
                     assert post_count["value"] == 0
                     assert nickname.evaluate("el => el.validationMessage")
                     nickname.fill("T119 浏览器验收")
+                    page.get_by_role("button", name="去填写“我的游戏叫” ↑").click()
+                    expect(page.get_by_label("我的游戏叫")).to_be_focused()
                     page.get_by_label("我的游戏叫").fill("像素信使")
+                    expect(page.get_by_text("最前面的未完成项：01｜我的游戏是什么？ → 游戏类型")).to_be_visible()
+                    page.get_by_role("button", name="🔒 去补第一处未完成项").first.click()
+                    expect(page.locator('[data-field-id="gameTypes"] input').first).to_be_focused()
                     page.get_by_text("冒险游戏", exact=True).first.click()
                     page.get_by_label("一句话介绍").fill("帮助信使找到回家的路。")
                     page.get_by_label("我的游戏是给谁玩的").fill("喜欢探索的初中生")
@@ -112,6 +118,7 @@ def main() -> None:
                     expect(page.get_by_text("✓ 第一部分已完成，第二部分 06—11 已解锁。")).to_be_visible()
                     expect(page.locator('section[data-locked="true"]')).to_have_count(0)
                     expect(page.locator('[aria-label="必填"]')).to_have_count(22)
+                    expect(page.locator('[data-required-missing="true"]')).to_have_count(0)
                     no_overflow(page, "form-tablet-unlocked")
 
                     aborted = {"done": False}
