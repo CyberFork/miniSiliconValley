@@ -41,6 +41,18 @@ test("T-123 enforces Console RBAC on the server and leaves personal surfaces sep
   assert.match(managedClassrooms, /mode="manage"/);
 });
 
+test("portable account controls keep their color tokens and readable foregrounds inside Console", () => {
+  const styles = source("app/auth/auth.module.css");
+  assert.match(styles, /\.authPage,\s*\.accountPage,\s*\.learnerAdmin,\s*\.accountGrid\s*\{[\s\S]*?--a-ink:\s*#102126;/);
+  assert.match(styles, /\.adminToolbar\s*\{[^}]*color:\s*var\(--a-cream\);[^}]*background:\s*var\(--a-ink\);/);
+  assert.match(styles, /\.selectionCheckbox span\s*\{[^}]*color:\s*var\(--a-ink\);[^}]*background:\s*var\(--a-cream\);/);
+  assert.match(styles, /\.learnerFacts>span\s*\{[^}]*color:\s*var\(--a-ink\);[^}]*background:\s*#8fcfc3;/);
+  assert.match(styles, /\.learnerFacts>span\[data-status="disabled"\]\s*\{[^}]*color:\s*var\(--a-cream\);[^}]*background:\s*var\(--a-coral-dark\);/);
+  const homeworkStyles = source("app/console/homework/homework.module.css");
+  assert.match(homeworkStyles, /\.hero small\{color:#67b5ac\}/);
+  assert.match(homeworkStyles, /\.workbench small,\.delivery small,\.results small\{color:#286a65\}/);
+});
+
 test("T-123 keeps public navigation cache-safe and reveals Workbench only from account projection", () => {
   const homepage = source("deploy/minisv/site/index.html");
   const portal = source("deploy/minisv/site/portal.js");
