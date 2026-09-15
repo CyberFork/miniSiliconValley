@@ -93,7 +93,7 @@ def main() -> None:
                     expect(page.get_by_label("我的游戏叫")).to_be_focused()
                     page.get_by_label("我的游戏叫").fill("像素信使")
                     expect(page.get_by_text("最前面的未完成项：01｜我的游戏是什么？ → 游戏类型")).to_be_visible()
-                    page.get_by_role("button", name="🔒 去补第一处未完成项").first.click()
+                    page.get_by_role("button", name="🔒 去补未完成项").first.click()
                     expect(page.locator('[data-field-id="gameTypes"] input').first).to_be_focused()
                     page.get_by_text("冒险游戏", exact=True).first.click()
                     page.get_by_label("一句话介绍").fill("帮助信使找到回家的路。")

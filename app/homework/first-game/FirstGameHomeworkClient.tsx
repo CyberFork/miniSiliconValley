@@ -81,7 +81,7 @@ export default function FirstGameHomeworkClient() {
       <div><p>{secondPartUnlocked ? "✓ 第一部分已完成，第二部分 06—11 已解锁。" : `第二部分尚未解锁：还差 ${missingRequired.length} 个必填项。`}</p>{firstMissing && <button type="button" onClick={() => focusRequiredField(firstMissing.id)}>去填写“{firstMissing.label}” ↑</button>}</div>
     </section>
     {FIRST_GAME_HOMEWORK_SECTIONS.map((section, index) => index >= 5 && !secondPartUnlocked ? <section className={`${styles.section} ${styles.lockedSection}`} id={`section-${section.id}`} data-locked="true" key={section.id}>
-      <header><span>{section.level}</span><h2>{section.title}</h2><p>{section.intro}</p><button type="button" onClick={() => firstMissing && focusRequiredField(firstMissing.id)}>🔒 去补第一处未完成项</button></header>
+      <header><span>{section.level}</span><h2>{section.title}</h2><p>{section.intro}</p><button type="button" onClick={() => firstMissing && focusRequiredField(firstMissing.id)}>🔒 去补未完成项</button></header>
     </section> : <details className={styles.section} id={`section-${section.id}`} key={section.id} open={index < 5}>
       <summary><span>{section.level}</span><h2>{section.title}</h2><p>{section.intro}</p><b>展开／收起</b></summary>
       <div className={styles.fields}>{section.fields.map((field) => <HomeworkFieldControl field={field} value={answers[field.id]} onChange={(value) => setAnswer(field.id, value)} key={field.id} />)}</div>
