@@ -174,7 +174,8 @@ def main() -> None:
                 or module_thinking.get("route") != "/courseware/development-mentor-module-thinking/audience/"
                 or module_thinking.get("teacherRoute") != "/courseware/development-mentor-module-thinking/teacher/presenter.html"
                 or module_thinking.get("teacherAuthorization") != "server-side-admin-or-mentor"
-                or module_thinking.get("sha256") != "939a016bc645b37fe96ef0411b5d4c57634019f8c11d112a2a1b965aa8c0737b"
+                or module_thinking.get("revision") != 1
+                or module_thinking.get("sha256") != "b5c9bc18229c8585676840d5cab02c8b10fc837afa87f348cb32c58282e397ac"
                 or module_thinking.get("audienceFiles") != 8
                 or module_thinking.get("teacherFiles") != 8
             ):

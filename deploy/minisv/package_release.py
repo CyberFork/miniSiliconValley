@@ -781,7 +781,7 @@ def build(
             "route": "/courseware/development-mentor-module-thinking/audience/",
             "teacherRoute": "/courseware/development-mentor-module-thinking/teacher/presenter.html",
             "mentorRole": "D",
-            "revision": 0,
+            "revision": 1,
             **module_thinking,
             "transformed": False,
             "teacherAuthorization": "server-side-admin-or-mentor",

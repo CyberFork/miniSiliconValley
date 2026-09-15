@@ -1,10 +1,10 @@
 {
   "ok": true,
   "todo": "T-122",
-  "verifiedAt": "2026-09-14T14:58:00+08:00",
+  "verifiedAt": "2026-09-15T18:45:00+08:00",
   "artifact": {
     "id": "module-thinking-p1",
-    "version": "2026.09.14-r1",
+    "version": "2026.09.15-r2",
     "sourceXmindSha256": "a31489645adcfaf6b7afd3be734349175740c520120cda65552cfa0f3e833793",
     "slideCount": 16
   },
@@ -18,7 +18,9 @@
     "presenterAudienceSync": "passed with BroadcastChannel session",
     "sessionIsolation": "passed",
     "mobileTouch": "passed at 390x844 without page overflow",
-    "printables": "passed: module map and two interface cards"
+    "printables": "passed: module map and two interface cards",
+    "darkThemeContrast": "passed: S09/S10 light cards use explicit dark text; S10 key text contrast >= 4.5:1",
+    "blackboxInteraction": "passed: mouse, keyboard and touch-safe input/output feedback without accidental slide advance"
   },
   "commands": [
     "node scripts/build.mjs",
@@ -27,8 +29,8 @@
     "python3 tests/verify-browser.py"
   ],
   "deployment": {
-    "status": "not-deployed",
-    "reason": "teacher bundle requires server-side mentor authorization; local completion does not publish private notes as public static files"
+    "status": "built-and-automated-tested",
+    "reason": "production deployment is tracked by the unified release manifest; teacher notes remain protected by server-side mentor authorization"
   },
   "manualAcceptance": "not-signed-by-user"
 }

@@ -14,7 +14,7 @@ const registry = await readFile(join(repoRoot, "app/lib/courseware-store.ts"), "
 const gateway = await readFile(join(repoRoot, "deploy/minisv/gateway/default.conf"), "utf8");
 const packager = await readFile(join(repoRoot, "deploy/minisv/package_release.py"), "utf8");
 
-if (!registry.includes(`DEVELOPMENT_MODULE_THINKING_CONTENT_TREE = "${digest}"`)) {
+if (!registry.includes(`DEVELOPMENT_MODULE_THINKING_R1_CONTENT_TREE = "${digest}"`)) {
   throw new Error(`T-122 registry digest is not the built bundle digest: ${digest}`);
 }
 if (!registry.includes('entryPath: "/courseware/development-mentor-module-thinking/audience/"')) {

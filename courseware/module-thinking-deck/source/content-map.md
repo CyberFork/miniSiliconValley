@@ -3,7 +3,7 @@
 Source: `Mini硅谷.xmind → 日志 → 2026年09月14日 → 课程设计 → P1模块`
 
 - Deck ID: `module-thinking-p1`
-- Version: `2026.09.14-r1`
+- Version: `2026.09.15-r2`
 - Source SHA-256: `a31489645adcfaf6b7afd3be734349175740c520120cda65552cfa0f3e833793`
 - Stable mapping: `module-s01`—`module-s16` 对应源提纲 `S01`—`S16`
 

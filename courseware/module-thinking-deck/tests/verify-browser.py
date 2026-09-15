@@ -40,11 +40,67 @@ with sync_playwright() as p:
     isolated.goto(f"{BASE}{AUDIENCE}/index.html?session=qa-isolated&controlled=1", wait_until="networkidle")
     assert isolated.evaluate("MSVModuleDeckController.getState().slide") == 0
 
+    audience.evaluate("MSVModuleDeckController.setState({slide:9,reveal:99})")
+    contrast = audience.evaluate("""() => {
+      const rgb = value => value.match(/\\d+(?:\\.\\d+)?/g).slice(0, 3).map(Number);
+      const luminance = value => {
+        const channels = rgb(value).map(channel => channel / 255).map(channel => channel <= .04045 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4);
+        return .2126 * channels[0] + .7152 * channels[1] + .0722 * channels[2];
+      };
+      const ratio = node => {
+        const style = getComputedStyle(node);
+        const high = Math.max(luminance(style.color), luminance(style.backgroundColor));
+        const low = Math.min(luminance(style.color), luminance(style.backgroundColor));
+        return (high + .05) / (low + .05);
+      };
+      return {
+        input: ratio(document.querySelector('[data-blackbox-case]')),
+        output: ratio(document.querySelector('[data-blackbox-output]')),
+        question: ratio(document.querySelector('.three-questions span')),
+        answer: ratio(document.querySelector('.reveal-card')),
+      };
+    }""")
+    assert all(value >= 4.5 for value in contrast.values()), contrast
+    second_input = audience.locator('[data-blackbox-case="1"]')
+    second_input.click()
+    assert second_input.get_attribute("aria-pressed") == "true"
+    assert audience.locator('[data-blackbox-output]').nth(1).get_attribute("data-active") is not None
+    assert "输入 5 → 返回 10" in audience.locator("[data-blackbox-status]").inner_text()
+    wrong_input = audience.locator('[data-blackbox-case="2"]')
+    wrong_input.click()
+    assert audience.locator('[data-blackbox-output]').nth(2).locator("b").inner_text() == "拒绝"
+    assert "发现失败行为" in audience.locator("[data-blackbox-status]").inner_text()
+    wrong_input.focus()
+    audience.keyboard.press("Space")
+    assert audience.evaluate("MSVModuleDeckController.getState().slide") == 9
+
     for index in range(16):
         audience.evaluate("index => MSVModuleDeckController.setState({slide:index,reveal:99})", index)
         dimensions = audience.evaluate("""() => { const slide=document.querySelector('.deck-slide'); const body=document.querySelector('.slide-body'); return {slideScroll:slide.scrollHeight,slideClient:slide.clientHeight,bodyScroll:body.scrollHeight,bodyClient:body.clientHeight}; }""")
         assert dimensions["slideScroll"] <= dimensions["slideClient"] + 1, (index, dimensions)
         assert dimensions["bodyScroll"] <= dimensions["bodyClient"] + 1, (index, dimensions)
+        low_contrast = audience.evaluate("""() => {
+          const parse = value => { const values = value.match(/[\\d.]+/g)?.map(Number) || []; return [values[0] || 0, values[1] || 0, values[2] || 0, values[3] ?? 1]; };
+          const luminance = ([r,g,b]) => { const convert = value => (value /= 255) <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4; return .2126 * convert(r) + .7152 * convert(g) + .0722 * convert(b); };
+          const ratio = (foreground, background) => { const a = luminance(foreground); const b = luminance(background); return (Math.max(a,b) + .05) / (Math.min(a,b) + .05); };
+          return [...document.querySelectorAll('.deck-slide *')]
+            .filter(node => [...node.childNodes].some(child => child.nodeType === 3 && child.textContent.trim()) && getComputedStyle(node).visibility !== 'hidden' && getComputedStyle(node).opacity !== '0')
+            .map(node => {
+              let backgroundNode = node;
+              let background = [0,0,0,0];
+              while (backgroundNode) {
+                background = parse(getComputedStyle(backgroundNode).backgroundColor);
+                if (background[3] > .95) break;
+                backgroundNode = backgroundNode.parentElement;
+              }
+              const style = getComputedStyle(node);
+              const contrast = ratio(parse(style.color), background);
+              const minimum = parseFloat(style.fontSize) >= 24 ? 3 : 4.5;
+              return { text: node.textContent.trim().slice(0, 48), contrast, minimum };
+            })
+            .filter(item => item.contrast < item.minimum);
+        }""")
+        assert not low_contrast, (index, low_contrast)
 
     mobile_context = browser.new_context(viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
     mobile = mobile_context.new_page()
@@ -53,6 +109,9 @@ with sync_playwright() as p:
     assert metrics["sw"] <= metrics["cw"] and metrics["sh"] <= metrics["ch"]
     mobile.tap("#advance")
     assert mobile.evaluate("MSVModuleDeckController.getState().reveal") == 1
+    mobile.evaluate("MSVModuleDeckController.setState({slide:9,reveal:99})")
+    mobile.tap('[data-blackbox-case="2"]')
+    assert mobile.locator('[data-blackbox-output]').nth(2).locator("b").inner_text() == "拒绝"
 
     module_map = context.new_page()
     module_map.goto(f"{BASE}{AUDIENCE}/printables/module-map.html", wait_until="networkidle")
@@ -63,4 +122,4 @@ with sync_playwright() as p:
     assert not errors, errors
     browser.close()
 
-print("T-122 browser checks passed: projection, reveal/refresh, presenter sync, session isolation, all-slide overflow, mobile touch and printables.")
+print("T-122 browser checks passed: projection, reveal/refresh, presenter sync, session isolation, all-slide contrast/overflow, S10 mouse-keyboard-touch interaction and printables.")

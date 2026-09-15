@@ -55,6 +55,9 @@ test("T-122 publishes a second D-mentor deck without replacing the classroom def
   const gateway = readFileSync(new URL("deploy/minisv/gateway/default.conf", root), "utf8");
   const packager = readFileSync(new URL("deploy/minisv/package_release.py", root), "utf8");
   assert.match(runtime, /cw-development-mentor-module-thinking/);
+  assert.match(runtime, /DEVELOPMENT_MODULE_THINKING_R0_CONTENT_TREE/);
+  assert.match(runtime, /DEVELOPMENT_MODULE_THINKING_R1_CONTENT_TREE/);
+  assert.match(runtime, /revision: 1,[\s\S]*?isCurrent: true,[\s\S]*?entryPath: "\/courseware\/development-mentor-module-thinking\/audience\/"/);
   assert.match(runtime, /entryPath: "\/courseware\/development-mentor-module-thinking\/audience\/"/);
   assert.match(runtime, /D: "development-mentor-ligun"/);
   assert.match(studio, /development-mentor-module-thinking\/teacher\/presenter\.html/);

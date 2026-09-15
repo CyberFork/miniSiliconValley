@@ -59,9 +59,27 @@
         <div class="slide-progress" aria-hidden="true"><i style="width:${((state.slide + 1) / model.slides.length) * 100}%"></i></div>
       </section>`;
     deck.querySelectorAll("[data-reveal]").forEach((node, index) => node.classList.toggle("revealed", index < state.reveal));
+    wireSlideInteractions();
     document.title = `${slide.source} ${slide.title}｜模块思维`;
     status.textContent = `AUDIENCE · ${controlled ? "PRESENTER" : "LOCAL"} · ${session}`;
     fit();
+  }
+
+  function wireSlideInteractions() {
+    const inputs = [...deck.querySelectorAll("[data-blackbox-case]")];
+    const outputs = [...deck.querySelectorAll("[data-blackbox-output]")];
+    const statusNode = deck.querySelector("[data-blackbox-status]");
+    if (!inputs.length || !outputs.length || !statusNode) return;
+    inputs.forEach((input) => input.addEventListener("click", () => {
+      const index = Number(input.dataset.blackboxCase);
+      inputs.forEach((item) => item.setAttribute("aria-pressed", String(item === input)));
+      outputs.forEach((item, outputIndex) => item.toggleAttribute("data-active", outputIndex === index));
+      const output = outputs[index];
+      const result = output?.dataset.result;
+      const value = output?.querySelector("b");
+      if (result && value) value.textContent = result;
+      statusNode.textContent = input.dataset.feedback || "已完成一次黑箱测试";
+    }));
   }
 
   function setState(next, notify) {
@@ -103,6 +121,7 @@
   });
   addEventListener("resize", fit);
   addEventListener("keydown", (event) => {
+    if (event.target instanceof Element && event.target.closest("button,a,input,textarea,select")) return;
     if (["ArrowRight", "PageDown", " "].includes(event.key)) { event.preventDefault(); advance(); }
     if (["ArrowLeft", "PageUp", "Backspace"].includes(event.key)) { event.preventDefault(); back(); }
     if (event.key === "Home") setState({ slide: 0, reveal: 0 }, true);

@@ -182,9 +182,17 @@
       theme: "mystery",
       content: `
         <div class="blackbox-lab">
-          <div class="input-stack"><span>2</span><span>5</span><span>?</span></div>
-          <div class="blackbox"><i>?</i><b>神秘模块</b></div>
-          <div class="output-stack"><span>4</span><span>10</span><span>?</span></div>
+          <div class="input-stack" aria-label="测试输入">
+            <button type="button" data-blackbox-case="0" data-feedback="输入 2 → 返回 4：基础样例通过" aria-pressed="false"><b>2</b><small>测试输入</small></button>
+            <button type="button" data-blackbox-case="1" data-feedback="输入 5 → 返回 10：重复样例通过" aria-pressed="false"><b>5</b><small>测试输入</small></button>
+            <button type="button" data-blackbox-case="2" data-feedback="输入“文字” → 拒绝：发现失败行为" aria-pressed="false"><b>文字</b><small>故意给错</small></button>
+          </div>
+          <div class="blackbox"><i>?</i><b>神秘模块</b><small data-blackbox-status aria-live="polite">选择一个输入，观察返回</small></div>
+          <div class="output-stack" aria-label="模块返回">
+            <span data-blackbox-output><b>4</b><small>正常返回</small></span>
+            <span data-blackbox-output><b>10</b><small>正常返回</small></span>
+            <span data-blackbox-output data-result="拒绝"><b>?</b><small>异常返回</small></span>
+          </div>
         </div>
         <div class="three-questions">
           <span>给它什么？</span><span>它返回什么？</span><span>失败时怎样？</span>
@@ -302,7 +310,7 @@
 
   window.MSV_MODULE_DECK = Object.freeze({
     id: "module-thinking-p1",
-    version: "2026.09.14-r1",
+    version: "2026.09.15-r2",
     title: "模块思维：把大问题拆成能工作的模块",
     sourceHash: "a31489645adcfaf6b7afd3be734349175740c520120cda65552cfa0f3e833793",
     slides: Object.freeze(slides.map(Object.freeze)),

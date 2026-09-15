@@ -37,7 +37,7 @@ const manifest = {
   schemaVersion: 1,
   todoId: "T-122",
   coursewareId: "module-thinking-p1",
-  version: "2026.09.14-r1",
+  version: "2026.09.15-r2",
   sourceXmindSha256: "a31489645adcfaf6b7afd3be734349175740c520120cda65552cfa0f3e833793",
   audience: await collect(audience, [...audienceFiles, "assets/mini-silicon-valley-logo-transparent.png", "printables/module-map.html", "printables/interface-card.html"]),
   teacher: await collect(teacher, [...teacherFiles, "assets/mini-silicon-valley-logo-transparent.png"]),
