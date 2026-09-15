@@ -68,7 +68,6 @@ export const FIRST_GAME_HOMEWORK_SECTIONS: readonly FirstGameSection[] = [
       { id: "stepThree", label: "第三步｜玩家继续要", kind: "long", required: true },
       { id: "mainActions", label: "玩家最常做的事情", kind: "multi", options: ACTIONS, required: true },
       { id: "mainActionOther", label: "其他主要动作（可选）", kind: "short" },
-      { id: "playSentence", label: "玩法句式", prompt: "玩家看到 ______，就会 ______，然后得到 ______。", kind: "long", required: true },
     ],
   },
   {

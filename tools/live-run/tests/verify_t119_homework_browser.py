@@ -75,7 +75,8 @@ def main() -> None:
                         assert title in page.locator("body").inner_text()
                     expect(page.locator('input[type="file"]')).to_have_count(0)
                     expect(page.locator('section[data-locked="true"]')).to_have_count(6)
-                    expect(page.get_by_text("第二部分尚未解锁：还差 21 个必填项。")).to_be_visible()
+                    expect(page.get_by_text("第二部分尚未解锁：还差 20 个必填项。")).to_be_visible()
+                    expect(page.get_by_text("玩法句式", exact=True)).to_have_count(0)
                     expect(page.get_by_text("最前面的未完成项：01｜我的游戏是什么？ → 我的游戏叫")).to_be_visible()
                     no_overflow(page, "form-tablet")
                     nickname = page.locator('input[autocomplete="nickname"]')
@@ -89,6 +90,7 @@ def main() -> None:
                     assert post_count["value"] == 0
                     assert nickname.evaluate("el => el.validationMessage")
                     nickname.fill("T119 浏览器验收")
+                    page.get_by_label("公司名称").fill("像素信使工作室")
                     page.get_by_role("button", name="去填写“我的游戏叫” ↑").click()
                     expect(page.get_by_label("我的游戏叫")).to_be_focused()
                     page.get_by_label("我的游戏叫").fill("像素信使")
@@ -106,7 +108,6 @@ def main() -> None:
                     page.get_by_label("第二步｜接下来玩家要").fill("收集线索")
                     page.get_by_label("第三步｜玩家继续要").fill("找到出口")
                     page.get_by_text("选择", exact=True).first.click()
-                    page.get_by_label("玩法句式").fill("看到路标，就选择方向，然后得到线索。")
                     page.get_by_label("玩家最终要完成什么事情").fill("离开迷宫")
                     page.get_by_label("完成什么就算赢").fill("找到出口")
                     page.get_by_label("发生什么就会失败").fill("时间用完")
@@ -151,7 +152,7 @@ def main() -> None:
                 process.terminate()
                 try: process.wait(timeout=5)
                 except subprocess.TimeoutExpired: process.kill()
-    print("T119_BROWSER_PASS public=form+list+detail part1-required=21 part2-lock=yes uploads=none failure-preserves-input touch=820x1180 overflow=none d1=isolated")
+    print("T119_BROWSER_PASS public=form+list+detail identity-required=2 part1-required=20 part2-lock=yes uploads=none failure-preserves-input touch=820x1180 overflow=none d1=isolated")
 
 
 if __name__ == "__main__": main()

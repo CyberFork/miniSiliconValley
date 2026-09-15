@@ -28,7 +28,7 @@ export async function createFirstGameSubmission(db: ClassroomD1, input: unknown)
   if (existing) return { submission: existing, replayed: true };
 
   const respondentNickname = boundedString(raw.respondentNickname, "姓名／昵称", 80, true);
-  const respondentNote = boundedString(raw.respondentNote, "自我说明", 300, false);
+  const respondentNote = boundedString(raw.respondentNote, "公司名称", 120, true);
   const answers = normalizeAnswers(raw.answers);
   const missingRequired = FIRST_GAME_REQUIRED_FIELDS.filter((field) => !answerHasContent(answers[field.id] ?? ""));
   if (missingRequired.length) throw new HomeworkError("HOMEWORK_REQUIRED_MISSING", `请完成第一部分必填项：${missingRequired[0].label}。`, 400);

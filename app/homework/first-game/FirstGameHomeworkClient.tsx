@@ -73,7 +73,7 @@ export default function FirstGameHomeworkClient() {
     <section className={styles.identityPanel} aria-labelledby="identity-title">
       <div><small>00 · SELF-REPORTED</small><h2 id="identity-title">先留下这次作业的称呼</h2><p>不创建账号，也不会和同名学员自动绑定。请填写姓名或常用昵称，不要填写手机号、证件、住址、密码等敏感资料。</p></div>
       <label><span>姓名／昵称 <b className={styles.requiredMark} aria-label="必填">*</b></span><input value={nickname} required aria-required="true" maxLength={80} autoComplete="nickname" placeholder="例如：小航／星星队 2 号" onChange={(event) => setNickname(event.target.value)} /></label>
-      <label>想让查看者知道的话（可选）<textarea value={note} maxLength={300} placeholder="例如：这是我的第一版想法，还会继续改。" onChange={(event) => setNote(event.target.value)} /></label>
+      <label><span>公司名称 <b className={styles.requiredMark} aria-label="必填">*</b></span><input value={note} required aria-required="true" maxLength={120} autoComplete="organization" placeholder="例如：星际信使工作室" onChange={(event) => setNote(event.target.value)} /></label>
     </section>
     <nav className={styles.sectionJump} aria-label="作业主题快速跳转">{FIRST_GAME_HOMEWORK_SECTIONS.map((section, index) => <a href={`#section-${section.id}`} key={section.id}>{String(index + 1).padStart(2, "0")}</a>)}</nav>
     <section className={styles.partStatus} data-unlocked={secondPartUnlocked} aria-live="polite">

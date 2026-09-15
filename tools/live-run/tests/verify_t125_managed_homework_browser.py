@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Real Chromium T-125 flow with isolated accounts, classroom and D1."""
 from __future__ import annotations
-import http.client,json,os,socket,subprocess,tempfile,time
+import http.client,json,os,re,socket,subprocess,tempfile,time
 from pathlib import Path
 from urllib.parse import quote
 from playwright.sync_api import expect,sync_playwright
@@ -58,15 +58,23 @@ INSERT INTO memberships(id,room_id,profile_id,role,seat,status,last_seen_at,crea
      mp.once("dialog",lambda d:d.accept());mp.get_by_role("button",name="检查收件人并发放").click();expect(mp.get_by_role("status")).to_contain_text("已发给 2 名学员")
      learner=browser.new_context(viewport={"width":390,"height":844},has_touch=True,is_mobile=True);lp=learner.new_page();lp.on("pageerror",lambda e:errors.append(str(e)))
      login(lp,base,"t125-learner-a",password,"/terminal/homework/");expect(lp.get_by_text("第一周：找到一个真问题",exact=True).first).to_be_visible();no_overflow(lp,"learner-mobile")
+     clock=lp.locator("header time");expect(clock).to_have_text(re.compile(r"^\d{4}\.\d{2}\.\d{2} \d{2}:\d{2}$"));assert clock.get_attribute("datetime")
+     lp.evaluate("document.fonts.ready");assert lp.evaluate('document.fonts.check(\'12px "Terrarum Sans Bitmap"\')')
+     families=lp.evaluate("()=>['main','header time','header details summary','button'].map(selector=>getComputedStyle(document.querySelector(selector)).fontFamily)")
+     assert all("Terrarum Sans Bitmap" in family for family in families),families
      lp.get_by_label("本周最想解决的具体问题").fill("午餐时间排队太久")
      lp.get_by_text("先采访",exact=True).click();lp.get_by_role("button",name="提交给导师").click();expect(lp.get_by_text("提交成功",exact=False)).to_be_visible()
      mp.reload(wait_until="networkidle");expect(mp.get_by_text("1/2 已提交")).to_be_visible();mp.get_by_text("T125 学员甲",exact=True).click();expect(mp.get_by_text("午餐时间排队太久",exact=True)).to_be_visible();mp.get_by_label("导师反馈").fill("很好，再记录三个人各自等了多久。")
      mp.get_by_role("button",name="保存反馈").click();expect(mp.get_by_role("status")).to_contain_text("已保存给 T125 学员甲")
      lp.reload(wait_until="networkidle");expect(lp.get_by_text("很好，再记录三个人各自等了多久。",exact=True)).to_be_visible();no_overflow(lp,"learner-feedback")
+     desktop=browser.new_context(viewport={"width":1440,"height":1000});dp=desktop.new_page();login(dp,base,"t125-learner-a",password,"/terminal/")
+     expect(dp.locator("header time")).to_have_text(re.compile(r"^\d{4}\.\d{2}\.\d{2} \d{2}:\d{2}$"));no_overflow(dp,"learner-desktop")
+     status_size=dp.locator("header").first.evaluate("el=>({client:el.clientWidth,scroll:el.scrollWidth})");assert status_size["scroll"]<=status_size["client"],status_size
+     desktop.close()
      assert not errors,errors;browser.close()
    finally:
     proc.terminate()
     try:proc.wait(timeout=5)
     except subprocess.TimeoutExpired:proc.kill()
- print("T125_BROWSER_PASS template=versioned assignment=2-recipients learner=touch-submit mentor=feedback d1=isolated overflow=none")
+ print("T125_BROWSER_PASS template=versioned assignment=2-recipients learner=touch-submit mentor=feedback terminal-clock=local terminal-font=terrarum d1=isolated overflow=none")
 if __name__=="__main__":main()

@@ -5,6 +5,7 @@ import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } fro
 import type { AuthUser } from "../lib/auth-model";
 import type { TerminalShopItem } from "../lib/terminal-catalog";
 import type { TerminalPublicSpace, TerminalWalletSummary } from "../lib/terminal-store";
+import { formatTerminalDateTime, type TerminalClock } from "../lib/terminal-clock";
 import { publicPath } from "../lib/public-path";
 import { PixelAvatar } from "../components/PixelAvatar";
 import { AccountMenu } from "../components/AccountMenu";
@@ -45,6 +46,7 @@ export default function TerminalClient({ initialApp, initialUser }: { initialApp
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState("");
+  const [clock, setClock] = useState<TerminalClock | null>(null);
   const isLearner = initialUser.role === "learner";
   const isStaff = initialUser.role === "admin" || initialUser.role === "mentor";
 
@@ -61,6 +63,13 @@ export default function TerminalClient({ initialApp, initialUser }: { initialApp
   }, []);
 
   useEffect(() => { const timer = window.setTimeout(() => void refresh(), 0); return () => window.clearTimeout(timer); }, [refresh]);
+
+  useEffect(() => {
+    const updateClock = () => setClock(formatTerminalDateTime(new Date()));
+    updateClock();
+    const timer = window.setInterval(updateClock, 1_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const onPop = () => setApp(appFromPath(window.location.pathname));
@@ -82,8 +91,8 @@ export default function TerminalClient({ initialApp, initialUser }: { initialApp
       <header className={styles.statusbar}>
         <a href={publicPath("/")} className={styles.brand} aria-label="返回 MINI硅谷官网"><Image src={publicPath("/assets/mini-silicon-valley-logo-transparent.png")} alt="MINI硅谷" width={330} height={84} unoptimized priority /></a>
         <span className={styles.signal} aria-label="时空信号已连接">◼ ◼ ◻</span>
-        <time aria-label="时间处于混乱状态">--:--</time>
-        <AccountMenu user={initialUser} returnTo={app === "home" ? "/terminal/" : `/terminal/${app}/`} />
+        <time dateTime={clock?.dateTime} aria-label={clock ? `当前日期和时间：${clock.display}` : "正在读取当前日期和时间"}>{clock?.display ?? "正在校时"}</time>
+        <AccountMenu className={styles.terminalAccountMenu} user={initialUser} returnTo={app === "home" ? "/terminal/" : `/terminal/${app}/`} />
       </header>
       <div className={styles.screen}>
         <aside className={styles.rail} aria-label="终端快捷入口">
