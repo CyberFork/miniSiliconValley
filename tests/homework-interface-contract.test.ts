@@ -23,3 +23,12 @@ test("T-119 keeps eleven topics, gates part two, requires part one and removes i
   for (const removed of ["可以只填一部分", "可以重复提交", "图片完全可选", "可以只交一部分"]) { assert.doesNotMatch(page, new RegExp(removed)); assert.doesNotMatch(client, new RegExp(removed)); }
   assert.match(terminal, /\/homework\/first-game\//); assert.doesNotMatch(terminal, /T-119 问卷系统伪装/);
 });
+
+test("T-119 explains the two-part homework and Silicon Valley coin rewards", () => {
+  const page = source("app/homework/first-game/page.tsx");
+  assert.match(page, /第一节课我们已经对自己要设计的游戏有了初步的构想/);
+  assert.match(page, /第一部分01-05大题必答/);
+  assert.match(page, /完成第一部分作业即可获得500积分硅谷币/);
+  assert.match(page, /进阶完成第二部分作业，额外还可获得500积分硅谷币/);
+  assert.doesNotMatch(page, /这不是作文，也不是比谁写得多/);
+});

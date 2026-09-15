@@ -572,7 +572,7 @@ def build(
     # so their _next trees can be merged without route ambiguity.
     for name in ("_next", "assets", "favicon.svg", "og.png"):
         if (legacy / name).exists(): copy_entry(legacy / name, output / name)
-    for name in ("_next", "assets", "favicon.svg", "og.png", "vinext-client-entry-manifest.json"):
+    for name in ("_next", "assets", "fonts", "favicon.svg", "og.png", "vinext-client-entry-manifest.json"):
         if (app_client / name).exists(): copy_entry(app_client / name, output / name)
 
     page_map = {

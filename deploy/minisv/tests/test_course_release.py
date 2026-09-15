@@ -61,6 +61,7 @@ class CourseReleaseTests(unittest.TestCase):
                 legacy,
                 client / "_next",
                 client / "assets",
+                client / "fonts" / "terrarum-sans-bitmap",
                 client / "courseware" / "development-mentor-ligun" / "assets",
                 client / "courseware" / "market-mentor-user-system",
                 static / "world",
@@ -98,6 +99,8 @@ class CourseReleaseTests(unittest.TestCase):
                 )
             }
             (client / "favicon.svg").write_text("<svg xmlns='http://www.w3.org/2000/svg'/>")
+            terminal_font = b"fixture-terrarum-woff2"
+            (client / "fonts" / "terrarum-sans-bitmap" / "TerrarumSansBitmap.woff2").write_bytes(terminal_font)
             brand_source = Path(__file__).parents[3] / "public" / MODULE.BRAND_WORDMARK
             (client / MODULE.BRAND_WORDMARK).write_bytes(brand_source.read_bytes())
             development = client / "courseware" / "development-mentor-ligun"
@@ -305,6 +308,10 @@ class CourseReleaseTests(unittest.TestCase):
                 "/incubator/projects/mistake-notebook/",
             ])
             self.assertTrue((output / "world-preview.json").is_file())
+            self.assertEqual(
+                (output / "fonts" / "terrarum-sans-bitmap" / "TerrarumSansBitmap.woff2").read_bytes(),
+                terminal_font,
+            )
             self.assertTrue((output / "sitemap.xml").is_file())
             release = json.loads((output / "release.json").read_text())
             self.assertEqual(release["sources"]["main"], main_sha)
