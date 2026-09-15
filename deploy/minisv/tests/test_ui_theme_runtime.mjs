@@ -88,7 +88,7 @@ function boot({ search = "", stored = null, pathname = "/", legacySwitcher = fal
   const runtime = boot({ pathname: "/framework/" });
   const nav = runtime.body.walk().find((item) => item.id === "msv-public-nav");
   assert.ok(nav, "framework must receive the shared public-service navigator");
-  assert.deepEqual(Array.from(nav.children, (item) => item.href), ["/", "/world/", "/framework/", "/parents/", "/classroom/", "/course/"]);
+  assert.deepEqual(Array.from(nav.children, (item) => item.href), ["/", "/world/", "/framework/", "/incubator/", "/parents/", "/classroom/", "/course/"]);
   assert.equal(nav.children[2].attributes["aria-current"], "page");
   assert.equal(runtime.root.dataset.msvTheme, "adventure");
   assert.equal(runtime.root.dataset.msvSurface, "light");
