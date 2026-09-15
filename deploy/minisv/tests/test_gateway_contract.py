@@ -24,6 +24,12 @@ class GatewayContractTests(unittest.TestCase):
         self.assertIn("/courseware/development-mentor-module-thinking/", self.gateway)
         self.assertIn("/courseware/market-mentor-user-system/", self.gateway)
 
+    def test_release_owned_fonts_are_served_as_immutable_static_assets(self) -> None:
+        route = re.search(r"location \^~ /fonts/ \{(.*?)\n    \}", self.gateway, re.DOTALL)
+        self.assertIsNotNone(route)
+        self.assertIn("try_files $uri =404;", route.group(1))
+        self.assertIn("expires 1y;", route.group(1))
+
     def test_all_origins_are_loopback_and_windows_is_not_a_dependency(self) -> None:
         combined = self.gateway + self.tunnel
         self.assertNotIn("192.168.", combined)
