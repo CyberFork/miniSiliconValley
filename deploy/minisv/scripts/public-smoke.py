@@ -20,6 +20,8 @@ EXPECTED = {
     "/terminal/": 307,
     "/homework/first-game/": 200,
     "/homework/first-game/submissions/": 200,
+    "/homework/ai-daily-quiz/": 200,
+    "/homework/ai-daily-quiz/submissions/": 307,
     "/courseware/product-mentor-foundations/": 401,
     "/courseware/product-mentor-foundations/r1/": 401,
     "/courseware/development-mentor-ligun/": 401,
@@ -51,6 +53,7 @@ EXPECTED = {
     "/release.json": 200,
     "/api/public/courses": 200,
     "/api/public/homework/first-game/submissions": 200,
+    "/api/homework/ai-daily-quiz/submissions": 401,
     "/robots.txt": 200,
     "/sitemap.xml": 200,
     "/favicon.svg": 200,
@@ -125,6 +128,12 @@ def main() -> None:
             returned = parse_qs(target.query).get("returnTo", [""])[0]
             if target.path.rstrip("/") != "/auth/login" or returned != "/workshop/":
                 raise SystemExit(f"FAIL {path}: internal archive auth returnTo is invalid: {location!r}")
+        if path == "/homework/ai-daily-quiz/submissions/":
+            location = headers.get("location", "")
+            target = urlsplit(location)
+            returned = parse_qs(target.query).get("returnTo", [""])[0]
+            if target.path.rstrip("/") != "/auth/login" or returned != path:
+                raise SystemExit(f"FAIL {path}: teacher-review auth returnTo is invalid: {location!r}")
         if path.startswith("/course/development-mentor-ligun/"):
             location = headers.get("location", "")
             target = urlsplit(location)
@@ -224,6 +233,11 @@ def main() -> None:
             text = body.decode("utf-8", "replace")
             if "COURSE SYSTEM" not in text or "/ui-theme.js" not in text:
                 raise SystemExit("FAIL /framework/: native hydrated shell or public navigation runtime is missing")
+        if path == "/homework/ai-daily-quiz/":
+            text = body.decode("utf-8", "replace")
+            for marker in ("AI 每日一题", "7 DAYS", "每天五题"):
+                if marker not in text:
+                    raise SystemExit(f"FAIL AI daily quiz: missing {marker!r}")
         if path in {"/incubator/", "/incubator/projects/"}:
             text = body.decode("utf-8", "replace")
             for marker in ("MINI硅谷", "/incubator/projects/recitation/", "/incubator/projects/mistake-notebook/"):
