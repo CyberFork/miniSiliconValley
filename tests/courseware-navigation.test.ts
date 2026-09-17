@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-import { coursewarePlayerHref } from "../app/lib/courseware-navigation";
+import { coursewarePlayerHref, coursewarePresenterSurface } from "../app/lib/courseware-navigation";
 
 test("static courseware hand-off preserves package launch mode and exact identity", () => {
   const href = coursewarePlayerHref({
@@ -21,6 +21,22 @@ test("explicit deep links overlay defaults without producing a second question m
   }, 17, 3);
   assert.equal(href, `/courseware/product-mentor-foundations/r2/?view=overview&slide=17&revision=2&digest=${"b".repeat(64)}&step=3`);
   assert.equal(coursewarePlayerHref({ entryPath: null, revision: 0, digest: "c".repeat(64) }), null);
+});
+
+test("private presenter metadata is centralized and only declared for the dual-screen D deck", () => {
+  const presenter = coursewarePresenterSurface("cw-development-mentor-module-thinking");
+  assert.equal(presenter?.href, "/courseware/development-mentor-module-thinking/teacher/presenter.html");
+  assert.equal(presenter?.label, "打开导师讲解控制台");
+  assert.match(presenter?.description ?? "", /逐页讲稿/);
+  assert.equal(coursewarePresenterSurface("cw-development-mentor-ligun"), null);
+});
+
+test("course library exposes the protected presenter to mentors without mixing it into the audience artifact", () => {
+  const directory = readFileSync(new URL("../app/course/page.tsx", import.meta.url), "utf8");
+  assert.match(directory, /canManage \? coursewarePresenterSurface\(item\.packageId\) : null/);
+  assert.match(directory, /打开投屏窗口/);
+  assert.match(directory, /只打开投屏画面/);
+  assert.match(directory, /target="_blank"/);
 });
 
 test("all authenticated static entry routes redirect before rendering the old launch gate", () => {

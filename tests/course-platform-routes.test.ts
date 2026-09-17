@@ -51,6 +51,8 @@ test("T-085 route surface exists and has no legacy navigation dependency", () =>
 test("T-122 publishes a second D-mentor deck without replacing the classroom default and protects teacher notes", () => {
   const runtime = readFileSync(new URL("app/lib/courseware-store.ts", root), "utf8");
   const studio = readFileSync(new URL("app/studio/StudioApp.tsx", root), "utf8");
+  const navigation = readFileSync(new URL("app/lib/courseware-navigation.ts", root), "utf8");
+  const library = readFileSync(new URL("app/course/page.tsx", root), "utf8");
   const access = readFileSync(new URL("app/api/auth/mentor-courseware-access/route.ts", root), "utf8");
   const gateway = readFileSync(new URL("deploy/minisv/gateway/default.conf", root), "utf8");
   const packager = readFileSync(new URL("deploy/minisv/package_release.py", root), "utf8");
@@ -60,7 +62,9 @@ test("T-122 publishes a second D-mentor deck without replacing the classroom def
   assert.match(runtime, /revision: 1,[\s\S]*?isCurrent: true,[\s\S]*?entryPath: "\/courseware\/development-mentor-module-thinking\/audience\/"/);
   assert.match(runtime, /entryPath: "\/courseware\/development-mentor-module-thinking\/audience\/"/);
   assert.match(runtime, /D: "development-mentor-ligun"/);
-  assert.match(studio, /development-mentor-module-thinking\/teacher\/presenter\.html/);
+  assert.match(studio, /coursewarePresenterSurface/);
+  assert.match(navigation, /development-mentor-module-thinking\/teacher\/presenter\.html/);
+  assert.match(library, /canManage \? coursewarePresenterSurface/);
   assert.match(access, /\["admin", "mentor"\]/);
   assert.doesNotMatch(access, /\["admin", "mentor", "learner"\]/);
   assert.match(access, /user\.impersonation \|\| user\.mustChangePassword/);

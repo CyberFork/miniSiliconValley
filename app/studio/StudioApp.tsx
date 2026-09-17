@@ -15,6 +15,7 @@ import type { CourseContentReviewDisposition, CourseContentReviewState } from ".
 import type { ParentQaReviewSnapshot } from "../lib/parent-qa-review-client";
 import { courseDataIdForRef, type CoursePackage, type CoursePackageRef } from "../lib/course-package";
 import { buildStudioProjection, resolveLearnerPolicy, validateCourseInstantiation } from "../lib/course-platform";
+import { coursewarePresenterSurface } from "../lib/courseware-navigation";
 import type { CoursewareSummary } from "../lib/courseware-store";
 import styles from "./studio.module.css";
 
@@ -669,12 +670,13 @@ function CoursewareLibrary({ data, onChanged, onError }: { data: Bootstrap; onCh
       <div className={styles.sectionTitle}><div><h2>已安装课件</h2><p>点击 exact 预览，打开的就是课堂导师会使用的版本。</p></div><Link href="/course/">进入导师课件播放 →</Link></div>
       <div className={styles.coursewareGrid}>{data.courseware.map((item) => {
         const canManage = item.ownerProfileId !== "system-courseware" && (data.user.role === "admin" || item.ownerProfileId === data.user.userId);
+        const presenter = coursewarePresenterSurface(item.packageId);
         return <article className={styles.coursewareCard} data-role={item.mentorRole} key={item.packageId}>
           <header><div><small>{item.mentorRole} · MENTOR COURSEWARE</small><h3>{item.title}</h3></div><span className={styles.badge}>{item.availability === "placeholder" ? "内部占位" : item.releasedRevision === item.latestRevision ? "已发布" : "有新版本"}</span></header>
           <div className={styles.meta}>packageId · {item.packageId}<br />/{item.slug}/ · r{item.latestRevision}<br />{item.latestDigest} · {item.contentKind}</div>
           <div className={styles.actions}>
             {item.availability === "playable" ? <Link href={`/console/courseware/${encodeURIComponent(item.packageId)}/?revision=${item.latestRevision}&digest=${item.latestDigest}`} target="_blank" rel="noopener noreferrer">打开内部 exact 预览 ↗</Link> : <span className={styles.placeholderAction}>尚无真实课件 · 不提供失效链接</span>}
-            {item.packageId === "cw-development-mentor-module-thinking" && <Link href="/courseware/development-mentor-module-thinking/teacher/presenter.html" target="_blank" rel="noopener noreferrer">打开导师控制台 ↗</Link>}
+            {presenter && <Link href={presenter.href} target="_blank" rel="noopener noreferrer">{presenter.label} ↗</Link>}
             {canManage && item.contentKind === "inline-html" && <button className={styles.buttonSecondary} type="button" onClick={() => choosePackage(item.packageId)}>创建下一版本</button>}
             {canManage && item.releasedRevision !== item.latestRevision && <button className={styles.button} type="button" onClick={async () => { try { await api("/api/studio/courseware/release", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ packageId: item.packageId, revision: item.latestRevision, digest: item.latestDigest }) }); await onChanged(`${item.title} r${item.latestRevision} 已发布。`); } catch (cause) { onError(messageOf(cause)); } }}>发布此版本</button>}
           </div>
