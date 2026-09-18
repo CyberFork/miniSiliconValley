@@ -152,6 +152,7 @@ class CourseReleaseTests(unittest.TestCase):
                 "schemaVersion": 1,
                 "todoId": "T-122",
                 "coursewareId": "module-thinking-p1",
+                "releaseRevision": 3,
                 "version": "2026.09.14-test",
                 "sourceXmindSha256": "b" * 64,
                 "audience": audience_records,
@@ -318,6 +319,7 @@ class CourseReleaseTests(unittest.TestCase):
             self.assertEqual(release["workspaceProvenance"], provenance)
             self.assertIn("canonical-workspace-provenance", release["features"])
             self.assertEqual(release["moduleThinkingCoursewareArtifact"]["teacherAuthorization"], "server-side-admin-or-mentor")
+            self.assertEqual(release["moduleThinkingCoursewareArtifact"]["revision"], 3)
             self.assertEqual(release["sources"]["chjCourseUi"], MODULE.CHJ_COURSE_UI_SHA)
             self.assertEqual(release["sources"]["chjCourseTree"], MODULE.CHJ_COURSE_UI_TREE)
             self.assertIn("verbatim-product-mentor-courseware", release["features"])

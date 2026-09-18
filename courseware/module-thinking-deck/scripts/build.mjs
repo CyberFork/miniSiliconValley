@@ -45,6 +45,7 @@ const manifest = {
   todoId: "T-122",
   changeTodoIds: ["T-122", "T-128"],
   coursewareId: "module-thinking-p1",
+  releaseRevision: 3,
   version: "2026.09.18-r4",
   sourceXmindSha256: "a31489645adcfaf6b7afd3be734349175740c520120cda65552cfa0f3e833793",
   audience: await collect(audience, [...audienceFiles, "assets/mini-silicon-valley-logo-transparent.png", "vendor/three.module.min.js", "vendor/three.core.min.js", "vendor/THREE-LICENSE.txt", "printables/module-map.html", "printables/interface-card.html"]),

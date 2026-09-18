@@ -276,6 +276,8 @@ def validate_module_thinking_courseware(root: Path) -> dict:
         manifest.get("schemaVersion") != 1
         or manifest.get("todoId") != "T-122"
         or manifest.get("coursewareId") != "module-thinking-p1"
+        or not isinstance(manifest.get("releaseRevision"), int)
+        or manifest["releaseRevision"] < 0
         or not isinstance(manifest.get("version"), str)
         or not re.fullmatch(r"[0-9a-f]{64}", str(manifest.get("sourceXmindSha256", "")))
     ):
@@ -338,6 +340,7 @@ def validate_module_thinking_courseware(root: Path) -> dict:
         "sha256": hashlib.sha256("".join(canonical).encode("utf-8")).hexdigest(),
         "files": len(seen),
         "bytes": total_bytes,
+        "revision": manifest["releaseRevision"],
         "version": manifest["version"],
         "sourceXmindSha256": manifest["sourceXmindSha256"],
         "audienceSha256": split_trees["audience"],
@@ -781,7 +784,6 @@ def build(
             "route": "/courseware/development-mentor-module-thinking/audience/",
             "teacherRoute": "/courseware/development-mentor-module-thinking/teacher/presenter.html",
             "mentorRole": "D",
-            "revision": 1,
             **module_thinking,
             "transformed": False,
             "teacherAuthorization": "server-side-admin-or-mentor",
