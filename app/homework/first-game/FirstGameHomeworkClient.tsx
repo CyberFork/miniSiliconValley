@@ -78,7 +78,7 @@ export default function FirstGameHomeworkClient() {
     <nav className={styles.sectionJump} aria-label="作业主题快速跳转">{FIRST_GAME_HOMEWORK_SECTIONS.map((section, index) => <a href={`#section-${section.id}`} key={section.id}>{String(index + 1).padStart(2, "0")}</a>)}</nav>
     <section className={styles.partStatus} data-unlocked={secondPartUnlocked} aria-live="polite">
       <div><small>第一部分 · 01—05</small><b>{FIRST_GAME_REQUIRED_FIELDS.length - missingRequired.length}/{FIRST_GAME_REQUIRED_FIELDS.length} 个必填项已完成</b>{firstMissing && <span>最前面的未完成项：{firstMissingSection?.title} → {firstMissing.label}</span>}</div>
-      <div><p>{secondPartUnlocked ? "✓ 第一部分已完成，第二部分 06—11 已解锁。" : `第二部分尚未解锁：还差 ${missingRequired.length} 个必填项。`}</p>{firstMissing && <button type="button" onClick={() => focusRequiredField(firstMissing.id)}>去填写“{firstMissing.label}” ↑</button>}</div>
+      <div><p>{secondPartUnlocked ? `✓ 第一部分已完成，第二部分 06—${String(FIRST_GAME_HOMEWORK_SECTIONS.length).padStart(2, "0")} 已解锁。` : `第二部分尚未解锁：还差 ${missingRequired.length} 个必填项。`}</p>{firstMissing && <button type="button" onClick={() => focusRequiredField(firstMissing.id)}>去填写“{firstMissing.label}” ↑</button>}</div>
     </section>
     {FIRST_GAME_HOMEWORK_SECTIONS.map((section, index) => index >= 5 && !secondPartUnlocked ? <section className={`${styles.section} ${styles.lockedSection}`} id={`section-${section.id}`} data-locked="true" key={section.id}>
       <header><span>{section.level}</span><h2>{section.title}</h2><p>{section.intro}</p><button type="button" onClick={() => firstMissing && focusRequiredField(firstMissing.id)}>🔒 去补未完成项</button></header>

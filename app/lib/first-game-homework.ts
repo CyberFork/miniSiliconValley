@@ -27,7 +27,6 @@ const GAME_TYPES = ["闯关游戏", "冒险游戏", "角色扮演游戏", "益�
 const FEELINGS = ["开心", "紧张", "刺激", "神秘", "成就感", "放松", "其他"] as const;
 const ACTIONS = ["跑", "跳", "收集", "躲避", "战斗", "建造", "选择", "解谜", "交换", "其他"] as const;
 const REWARDS = ["金币", "星星", "新角色", "新武器", "新地图", "新能力", "其他"] as const;
-const ART_STYLES = ["可爱", "冒险", "神秘", "搞笑", "紧张", "科幻", "梦幻", "其他"] as const;
 
 export const FIRST_GAME_HOMEWORK_SECTIONS: readonly FirstGameSection[] = [
   {
@@ -145,21 +144,6 @@ export const FIRST_GAME_HOMEWORK_SECTIONS: readonly FirstGameSection[] = [
     fields: [
       { id: "victoryEnding", label: "完成最终任务后发生了什么", kind: "long" },
       { id: "failureEnding", label: "没有完成任务时发生了什么", kind: "long" },
-    ],
-  },
-  {
-    id: "style",
-    level: "第二层｜感兴趣再完成",
-    title: "11｜游戏画风、颜色和声音",
-    intro: "让别人闭上眼睛也能想象你的游戏是什么感觉。",
-    fields: [
-      { id: "overallStyle", label: "游戏整体感觉", kind: "multi", options: ART_STYLES },
-      { id: "overallStyleOther", label: "其他整体感觉（可选）", kind: "short" },
-      { id: "mainColors", label: "游戏主要使用的颜色", kind: "short" },
-      { id: "characterStyle", label: "我希望角色画成", kind: "long" },
-      { id: "sceneStyle", label: "我希望游戏场景画成", kind: "long" },
-      { id: "victorySound", label: "玩家胜利时，我希望听到", kind: "long" },
-      { id: "failureSound", label: "玩家失败时，我希望听到", kind: "long" },
     ],
   },
 ] as const;

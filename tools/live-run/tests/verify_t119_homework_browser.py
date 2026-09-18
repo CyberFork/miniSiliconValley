@@ -71,10 +71,11 @@ def main() -> None:
                     expect(page.get_by_role("link", name="时空终端")).to_have_count(0)
                     for removed in ["可以只填一部分", "可以重复提交", "图片完全可选", "可以只交一部分"]:
                         expect(page.get_by_text(removed, exact=True)).to_have_count(0)
-                    for title in ["我的游戏是什么", "谁来玩我的游戏", "游戏怎么玩", "怎样算赢", "画出我的游戏世界", "角色故事", "关卡和任务", "敌人、障碍和道具", "奖励和成长", "胜利、失败和结局", "游戏画风、颜色和声音"]:
+                    for title in ["我的游戏是什么", "谁来玩我的游戏", "游戏怎么玩", "怎样算赢", "画出我的游戏世界", "角色故事", "关卡和任务", "敌人、障碍和道具", "奖励和成长", "胜利、失败和结局"]:
                         assert title in page.locator("body").inner_text()
+                    expect(page.get_by_text("游戏画风、颜色和声音", exact=True)).to_have_count(0)
                     expect(page.locator('input[type="file"]')).to_have_count(0)
-                    expect(page.locator('section[data-locked="true"]')).to_have_count(6)
+                    expect(page.locator('section[data-locked="true"]')).to_have_count(5)
                     expect(page.get_by_text("第二部分尚未解锁：还差 20 个必填项。")).to_be_visible()
                     expect(page.get_by_text("玩法句式", exact=True)).to_have_count(0)
                     for removed in ["玩家怎样从“小菜鸟”变得越来越厉害", "后面的关卡比前面难在哪里", "游戏最后，玩家会"]:
@@ -118,7 +119,7 @@ def main() -> None:
                     page.get_by_label("游戏发生在哪里").fill("会变化的迷宫")
                     page.get_by_label("玩家是谁").fill("小小探险家")
                     page.get_by_label("玩家为什么要开始游戏").fill("找回丢失的地图")
-                    expect(page.get_by_text("✓ 第一部分已完成，第二部分 06—11 已解锁。")).to_be_visible()
+                    expect(page.get_by_text("✓ 第一部分已完成，第二部分 06—10 已解锁。")).to_be_visible()
                     expect(page.locator('section[data-locked="true"]')).to_have_count(0)
                     expect(page.locator('[aria-label="必填"]')).to_have_count(22)
                     expect(page.locator('[data-required-missing="true"]')).to_have_count(0)
