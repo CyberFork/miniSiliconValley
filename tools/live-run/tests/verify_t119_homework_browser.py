@@ -77,6 +77,8 @@ def main() -> None:
                     expect(page.locator('section[data-locked="true"]')).to_have_count(6)
                     expect(page.get_by_text("第二部分尚未解锁：还差 20 个必填项。")).to_be_visible()
                     expect(page.get_by_text("玩法句式", exact=True)).to_have_count(0)
+                    for removed in ["玩家怎样从“小菜鸟”变得越来越厉害", "后面的关卡比前面难在哪里", "游戏最后，玩家会"]:
+                        expect(page.get_by_text(removed, exact=True)).to_have_count(0)
                     expect(page.get_by_text("最前面的未完成项：01｜我的游戏是什么？ → 我的游戏叫")).to_be_visible()
                     no_overflow(page, "form-tablet")
                     nickname = page.locator('input[autocomplete="nickname"]')

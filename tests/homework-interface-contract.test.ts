@@ -18,6 +18,7 @@ test("T-119 keeps eleven topics, gates part two, requires part one and removes i
   assert.equal((definition.match(/kind: "image"/g) ?? []).length, 0); assert.equal((definition.match(/kind: "table"/g) ?? []).length, 3); assert.equal((definition.match(/required: true/g) ?? []).length, 20);
   assert.match(client, /localStorage\.setItem/); assert.match(client, /公司名称[\s\S]*required aria-required="true"/); assert.match(client, /styles\.requiredMark/); assert.match(client, /FIRST_GAME_REQUIRED_FIELDS/); assert.match(client, /第二部分尚未解锁/); assert.match(store, /HOMEWORK_REQUIRED_MISSING/); assert.match(store, /boundedString\(raw\.respondentNickname, "姓名／昵称", 80, true\)/); assert.match(store, /boundedString\(raw\.respondentNote, "公司名称", 120, true\)/);
   assert.doesNotMatch(definition, /playSentence|玩法句式|玩家看到 ______/);
+  for (const removed of ["growthPath", "玩家怎样从“小菜鸟”变得越来越厉害", "laterDifficulty", "后面的关卡比前面难在哪里", "finalEnding", "游戏最后，玩家会"]) assert.doesNotMatch(definition, new RegExp(removed));
   assert.match(client, /最前面的未完成项/); assert.match(client, /去填写“/); assert.match(client, /focusRequiredField/); assert.match(client, /data-required-missing/);
   for (const removed of ["type=\"file\"", "ImageField", "compressImage", "capture=\"environment\"", "kind === \"image\""]) { assert.doesNotMatch(client, new RegExp(removed)); assert.doesNotMatch(detail, new RegExp(removed)); }
   for (const removed of ["可以只填一部分", "可以重复提交", "图片完全可选", "可以只交一部分"]) { assert.doesNotMatch(page, new RegExp(removed)); assert.doesNotMatch(client, new RegExp(removed)); }

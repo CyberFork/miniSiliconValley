@@ -135,8 +135,6 @@ export const FIRST_GAME_HOMEWORK_SECTIONS: readonly FirstGameSection[] = [
     fields: [
       { id: "rewards", label: "完成任务后会得到", kind: "multi", options: REWARDS },
       { id: "rewardOther", label: "其他奖励（可选）", kind: "short" },
-      { id: "growthPath", label: "玩家怎样从“小菜鸟”变得越来越厉害", kind: "long" },
-      { id: "laterDifficulty", label: "后面的关卡比前面难在哪里", kind: "long" },
     ],
   },
   {
@@ -147,7 +145,6 @@ export const FIRST_GAME_HOMEWORK_SECTIONS: readonly FirstGameSection[] = [
     fields: [
       { id: "victoryEnding", label: "完成最终任务后发生了什么", kind: "long" },
       { id: "failureEnding", label: "没有完成任务时发生了什么", kind: "long" },
-      { id: "finalEnding", label: "游戏最后，玩家会", kind: "long" },
     ],
   },
   {
