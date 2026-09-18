@@ -7,6 +7,7 @@ import hashlib
 import http.client
 import json
 import ssl
+import time
 from urllib.parse import parse_qs, urlsplit
 
 
@@ -82,16 +83,23 @@ def request(base: str, path: str) -> tuple[int, bytes, dict[str, str]]:
     target = urlsplit(base)
     if target.scheme != "https" or not target.hostname:
         raise ValueError("base URL must be HTTPS")
-    connection = http.client.HTTPSConnection(
-        target.hostname, target.port or 443, timeout=15, context=ssl.create_default_context()
-    )
-    connection.request("GET", path, headers={"User-Agent": "MiniSV-Public-Smoke/1.0"})
-    response = connection.getresponse()
-    body = response.read()
-    headers = {name.lower(): value for name, value in response.getheaders()}
-    status = response.status
-    connection.close()
-    return status, body, headers
+    for attempt in range(3):
+        connection = http.client.HTTPSConnection(
+            target.hostname, target.port or 443, timeout=15, context=ssl.create_default_context()
+        )
+        try:
+            connection.request("GET", path, headers={"User-Agent": "MiniSV-Public-Smoke/1.0"})
+            response = connection.getresponse()
+            body = response.read()
+            headers = {name.lower(): value for name, value in response.getheaders()}
+            return response.status, body, headers
+        except (TimeoutError, ConnectionError, http.client.HTTPException):
+            if attempt == 2:
+                raise
+            time.sleep(0.5 * (attempt + 1))
+        finally:
+            connection.close()
+    raise AssertionError("unreachable")
 
 
 def verify_cleartext_redirect(hostname: str) -> None:
@@ -183,10 +191,10 @@ def main() -> None:
                 or module_thinking.get("route") != "/courseware/development-mentor-module-thinking/audience/"
                 or module_thinking.get("teacherRoute") != "/courseware/development-mentor-module-thinking/teacher/presenter.html"
                 or module_thinking.get("teacherAuthorization") != "server-side-admin-or-mentor"
-                or module_thinking.get("revision") != 1
-                or module_thinking.get("sha256") != "b5c9bc18229c8585676840d5cab02c8b10fc837afa87f348cb32c58282e397ac"
-                or module_thinking.get("audienceFiles") != 8
-                or module_thinking.get("teacherFiles") != 8
+                or module_thinking.get("revision") != 3
+                or module_thinking.get("sha256") != "40a0f17d0a24a225810f56b64fabd2452d264d6df6b273a9411c433b4fd2023f"
+                or module_thinking.get("audienceFiles") != 12
+                or module_thinking.get("teacherFiles") != 12
             ):
                 raise SystemExit("FAIL release.json: T-122 split courseware identity or authorization is invalid")
             market = release.get("marketCoursewareArtifact", {})

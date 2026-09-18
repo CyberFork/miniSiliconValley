@@ -25,6 +25,11 @@ class DeployScriptContractTests(unittest.TestCase):
         self.assertIn('launchctl bootout "$DOMAIN/$label"', self.script)
         self.assertIn('launchctl disable "$DOMAIN/$label"', self.script)
 
+    def test_public_smoke_retries_transient_https_handshakes(self) -> None:
+        self.assertIn("for attempt in range(3)", self.public_smoke)
+        self.assertIn("except (TimeoutError, ConnectionError, http.client.HTTPException)", self.public_smoke)
+        self.assertIn("time.sleep(0.5 * (attempt + 1))", self.public_smoke)
+
     def test_healthy_tunnel_is_preserved_after_local_stack(self) -> None:
         gateway = self.script.index('"$DOCKER" compose -f compose.yml up -d --force-recreate gateway')
         tunnel = self.script.rindex("\nensure_cloudflared\n")
