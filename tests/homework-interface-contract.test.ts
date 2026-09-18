@@ -32,5 +32,7 @@ test("T-119 explains the two-part homework and Silicon Valley coin rewards", () 
   assert.match(page, /第一部分01-05大题必答/);
   assert.match(page, /完成第一部分作业即可获得500积分硅谷币/);
   assert.match(page, /进阶完成第二部分作业，额外还可获得500积分硅谷币/);
+  assert.match(page, /兴趣扩展 6—10/);
+  assert.doesNotMatch(page, /兴趣扩展 6—11/);
   assert.doesNotMatch(page, /这不是作文，也不是比谁写得多/);
 });
