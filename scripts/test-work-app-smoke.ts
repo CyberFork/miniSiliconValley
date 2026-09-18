@@ -93,13 +93,24 @@ try {
 
   const publicHomework = await get("/homework/first-game/");
   assert.equal(publicHomework.status, 200);
-  assert.match(await publicHomework.text(), /我的第一款游戏|可以只填一部分/);
+  assert.match(await publicHomework.text(), /我的第一款游戏|第一部分01-05大题必答/);
   const emptyHomeworkList = await get("/api/public/homework/first-game/submissions");
   assert.equal(emptyHomeworkList.status, 200);
   assert.equal(((await emptyHomeworkList.json()) as Envelope<{ total: number }>).data?.total, 0);
-  const homeworkPayload = { respondentNickname: "冒烟作业", respondentNote: "隔离测试数据", answers: { gameName: "迷路星球", gameTypes: ["冒险游戏"], stepOne: "先找到地图" }, clientRequestId: "first-game.smoke.0001" };
+  const homeworkPayload = {
+    respondentNickname: "冒烟作业",
+    respondentNote: "隔离测试数据",
+    answers: {
+      gameName: "迷路星球", gameTypes: ["冒险游戏"], oneSentence: "帮助迷路的人找到出口。",
+      playerWho: "喜欢探索的初中生", playerAge: "12—15 岁", playMode: ["一个人玩"], playerFeelings: ["成就感"], playerWhy: "每次路线都不同。",
+      stepOne: "先找到地图", stepTwo: "收集线索", stepThree: "找到出口", mainActions: ["选择"],
+      gameGoal: "离开迷宫", victoryCondition: "找到出口", failureCondition: "时间用完", afterWin: "新的地图", afterLoss: ["重新开始"],
+      worldLocation: "会变化的迷宫", worldPlayer: "小小探险家", worldReason: "找回丢失的地图",
+    },
+    clientRequestId: "first-game.smoke.0001",
+  };
   const homeworkCreated = await postData<{ submission: { id: string; answeredCount: number }; replayed: boolean }>("/api/public/homework/first-game/submissions", homeworkPayload);
-  assert.equal(homeworkCreated.replayed, false); assert.equal(homeworkCreated.submission.answeredCount, 3);
+  assert.equal(homeworkCreated.replayed, false); assert.equal(homeworkCreated.submission.answeredCount, 20);
   const homeworkReplay = await postData<{ submission: { id: string }; replayed: boolean }>("/api/public/homework/first-game/submissions", homeworkPayload);
   assert.equal(homeworkReplay.replayed, true); assert.equal(homeworkReplay.submission.id, homeworkCreated.submission.id);
   const homeworkDetail = await get(`/api/public/homework/first-game/submissions/${homeworkCreated.submission.id}`);

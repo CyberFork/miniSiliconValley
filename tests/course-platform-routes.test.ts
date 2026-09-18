@@ -59,7 +59,9 @@ test("T-122 publishes a second D-mentor deck without replacing the classroom def
   assert.match(runtime, /cw-development-mentor-module-thinking/);
   assert.match(runtime, /DEVELOPMENT_MODULE_THINKING_R0_CONTENT_TREE/);
   assert.match(runtime, /DEVELOPMENT_MODULE_THINKING_R1_CONTENT_TREE/);
-  assert.match(runtime, /revision: 1,[\s\S]*?isCurrent: true,[\s\S]*?entryPath: "\/courseware\/development-mentor-module-thinking\/audience\/"/);
+  assert.match(runtime, /DEVELOPMENT_MODULE_THINKING_R2_CONTENT_TREE/);
+  assert.match(runtime, /DEVELOPMENT_MODULE_THINKING_R3_CONTENT_TREE/);
+  assert.match(runtime, /revision: 3,[\s\S]*?isCurrent: true,[\s\S]*?entryPath: "\/courseware\/development-mentor-module-thinking\/audience\/"/);
   assert.match(runtime, /entryPath: "\/courseware\/development-mentor-module-thinking\/audience\/"/);
   assert.match(runtime, /D: "development-mentor-ligun"/);
   assert.match(studio, /coursewarePresenterSurface/);

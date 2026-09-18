@@ -1,36 +1,44 @@
 {
   "ok": true,
-  "todo": "T-122",
-  "verifiedAt": "2026-09-15T18:45:00+08:00",
+  "todo": "T-128",
+  "verifiedAt": "2026-09-18T21:15:12+08:00",
   "artifact": {
     "id": "module-thinking-p1",
-    "version": "2026.09.15-r2",
+    "version": "2026.09.18-r4",
     "sourceXmindSha256": "a31489645adcfaf6b7afd3be734349175740c520120cda65552cfa0f3e833793",
-    "slideCount": 16
+    "sourceUnits": 16,
+    "slideCount": 17,
+    "releaseRevision": 3,
+    "contentTreeSha256": "40a0f17d0a24a225810f56b64fabd2452d264d6df6b273a9411c433b4fd2023f"
   },
   "checks": {
-    "sourceMapping": "passed: S01-S16 stable ids",
-    "presenterNotes": "passed: all 16 slides have goal, script, answers, misconception, rewards, acceptance and materials",
+    "sourceMapping": "passed: S01-S16 semantic ids preserved; S02 split into S02-A/S02-B with legacy module-s02 retained",
+    "teachingSequence": "passed: prebuilt-component recombination -> build components from constrained primitives -> software reuse/build decision",
+    "accuracyBoundaries": "passed: three reusable parts, incompatible-interface counterexample, constrained LEGO primitives, reuse/build trade-off",
+    "presenterNotes": "passed: all 17 slides have goal, script, answers, misconception, rewards, acceptance and materials; total 60 minutes",
+    "interaction": "passed: S02-A local Three.js component morph and S02-B automated conveyor layer switch work by mouse, keyboard and touch",
+    "interactionSync": "passed: presenter-to-audience and audience-to-presenter choices synchronize without dual-transport reordering and survive audience refresh",
+    "offlineAndFallback": "passed: self-hosted Three.js 0.180.0 has no remote media dependency; HTML/CSS fallback remains readable without WebGL, during print and with reduced motion",
+    "coursewareIcon": "passed: audience and teacher use the course-specific yellow M pixel icon with a versioned URL instead of the global W icon",
     "bundleSeparation": "passed: audience bundle contains no teacher notes or presenter scripts",
-    "desktopProjection": "passed: 1440x900 fixed-ratio fit",
-    "allSlideOverflow": "passed: 16/16 slides",
-    "revealAndRefresh": "passed",
-    "presenterAudienceSync": "passed with BroadcastChannel session",
+    "desktopProjection": "passed: 1600x900 visual inspection and 1440x900 automated browser run",
+    "allSlideOverflowAndContrast": "passed: 17/17 slides in both audience and dark-shell teacher preview contexts",
     "sessionIsolation": "passed",
     "mobileTouch": "passed at 390x844 without page overflow",
     "printables": "passed: module map and two interface cards",
-    "darkThemeContrast": "passed: S09/S10 light cards use explicit dark text; S10 key text contrast >= 4.5:1",
-    "blackboxInteraction": "passed: mouse, keyboard and touch-safe input/output feedback without accidental slide advance"
+    "registry": "passed: immutable revision 3 registered as current without removing revisions 0/1/2"
   },
   "commands": [
-    "node scripts/build.mjs",
-    "node tests/verify.mjs",
-    "python3 -m http.server 8122",
-    "python3 tests/verify-browser.py"
+    "npm run test:t122:browser",
+    "npm run typecheck",
+    "node --import tsx --test tests/course-platform-routes.test.ts tests/courseware-navigation.test.ts tests/development-mentor-package.test.ts",
+    "python3 -m unittest discover -s deploy/minisv/tests -p test_course_release.py",
+    "npm run lint",
+    "git diff --check"
   ],
   "deployment": {
-    "status": "built-and-automated-tested",
-    "reason": "production deployment is tracked by the unified release manifest; teacher notes remain protected by server-side mentor authorization"
+    "status": "not-deployed",
+    "reason": "T-128 requested implementation; production deployment was not requested in this turn"
   },
   "manualAcceptance": "not-signed-by-user"
 }

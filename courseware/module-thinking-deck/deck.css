@@ -42,7 +42,13 @@ button { font: inherit; }
   background-size: 32px 32px;
   box-shadow: 0 36px 110px rgba(0,0,0,.48);
 }
-.deck-slide { position: absolute; inset: 0; padding: 70px 82px 72px; overflow: hidden; }
+.deck-slide {
+  position: absolute; inset: 0; padding: 70px 82px 72px; overflow: hidden;
+  /* The same slide DOM is mounted under both the light audience shell and the
+     dark teacher shell. Own the base foreground here instead of inheriting it
+     from the host page; dark slide themes override this contract below. */
+  color: var(--ink); color-scheme: light;
+}
 .slide-topline { display: flex; align-items: center; justify-content: space-between; min-height: 40px; }
 .slide-code {
   color: var(--blue);
@@ -97,14 +103,99 @@ button { font: inherit; }
 .choice-grid span { padding: 16px 18px; border: 3px solid #5c8097; background: #183c53; font-size: 23px; }
 .question-panel .action-call { margin-top: 20px; background: #0d2131; }
 
-/* S02 */
-.analogy-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
-.analogy-card { padding: 26px; border: 4px solid var(--navy); background: var(--paper); box-shadow: var(--shadow); text-align: center; }
-.analogy-card:nth-child(2) { transform: translateY(12px); background: #e2f6ee; }
-.analogy-card h3 { margin: 7px 0; font-size: 29px; }
-.analogy-card p { margin: 0; color: var(--muted); font-size: 21px; }
-.big-icon { font-size: 64px; }
-.analogy-grid + .mission-question { margin-top: 30px; }
+/* S02-A: 预制组件在约束内重组 */
+.transformer-demo { display: grid; grid-template-columns: 190px 440px 1fr; gap: 18px; min-height: 305px; }
+.transformer-switch { display: grid; align-content: start; gap: 12px; }
+.transformer-switch button, .build-observer button {
+  min-height: 62px; padding: 12px 16px; border: 4px solid var(--navy); color: var(--navy); background: var(--paper);
+  box-shadow: 5px 5px 0 rgba(16,41,63,.14); cursor: pointer; font: 900 21px/1.1 inherit;
+}
+.transformer-switch button:hover, .build-observer button:hover { transform: translate(-2px,-2px); background: #fff0ad; }
+.transformer-switch button:focus-visible, .build-observer button:focus-visible { outline: 5px solid var(--blue); outline-offset: 3px; }
+.transformer-switch button[aria-pressed="true"], .build-observer button[aria-pressed="true"] { color: var(--navy); background: var(--yellow); box-shadow: 7px 7px 0 var(--mint); }
+.transformer-stage { position: relative; display: grid; justify-items: center; align-content: end; padding: 20px 22px; border: 4px solid var(--navy); background: #dce9ff; box-shadow: var(--shadow); }
+.transformer-stage > b { z-index: 2; margin-top: 7px; font-size: 19px; text-align: center; }
+.transformer-stage > small { z-index: 2; margin-top: 5px; color: var(--muted); font-size: 15px; font-weight: 800; }
+.module-3d-host { position: relative; overflow: hidden; border: 3px solid var(--navy); background: linear-gradient(145deg,#eaf2ff,#d8f4e8); cursor: grab; }
+.module-3d-host:active { cursor: grabbing; }
+.module-3d-canvas { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; }
+.module-3d-fallback { position: absolute; z-index: 1; inset: 0; display: grid; place-items: center; }
+.module-3d-host[data-webgl-ready="true"] .module-3d-fallback { visibility: hidden; }
+.module-3d-hint { position: absolute; z-index: 3; right: 8px; bottom: 8px; padding: 6px 8px; color: #fff; background: #10293f; border: 2px solid #fff; font-size: 12px; font-weight: 900; pointer-events: none; }
+.transform-3d { width: 100%; height: 205px; }
+.toy-shape { position: relative; width: 315px; height: 190px; transition: transform .25s ease; }
+.toy-part, .toy-shell, .toy-wing { position: absolute; display: block; border: 4px solid var(--navy); transition: inset .25s ease, width .25s ease, height .25s ease, transform .25s ease, border-radius .25s ease; }
+.toy-shell { z-index: 1; left: 52px; top: 72px; width: 210px; height: 74px; background: var(--blue); }
+.toy-wing { z-index: 0; left: 83px; top: 86px; width: 155px; height: 52px; background: #bdd2ff; }
+.toy-wheel { z-index: 3; width: 58px; height: 58px; border-radius: 50%; background: var(--yellow); box-shadow: inset 0 0 0 13px #2c4658; }
+.toy-wheel.one { left: 62px; top: 126px; }
+.toy-wheel.two { right: 62px; top: 126px; }
+.toy-glass { z-index: 2; left: 112px; top: 38px; width: 105px; height: 61px; background: var(--mint); transform: skew(-17deg); }
+.toy-joint { z-index: 4; left: 142px; top: 105px; width: 34px; height: 34px; border-radius: 50%; background: var(--orange); }
+.transformer-stage[data-transform-stage="plane"] .toy-shell { left: 117px; top: 48px; width: 83px; height: 125px; border-radius: 48% 48% 15% 15%; }
+.transformer-stage[data-transform-stage="plane"] .toy-wing { left: 35px; top: 89px; width: 245px; height: 53px; transform: skew(-24deg); }
+.transformer-stage[data-transform-stage="plane"] .toy-wheel.one { left: 92px; top: 149px; width: 43px; height: 43px; }
+.transformer-stage[data-transform-stage="plane"] .toy-wheel.two { right: 92px; top: 149px; width: 43px; height: 43px; }
+.transformer-stage[data-transform-stage="plane"] .toy-glass { left: 126px; top: 34px; width: 65px; height: 51px; transform: none; border-radius: 45% 45% 0 0; }
+.transformer-stage[data-transform-stage="plane"] .toy-joint { left: 141px; top: 99px; }
+.transformer-stage[data-transform-stage="robot"] .toy-shell { left: 112px; top: 60px; width: 92px; height: 92px; }
+.transformer-stage[data-transform-stage="robot"] .toy-wing { left: 67px; top: 75px; width: 180px; height: 34px; }
+.transformer-stage[data-transform-stage="robot"] .toy-wheel.one { left: 90px; top: 142px; width: 48px; height: 48px; }
+.transformer-stage[data-transform-stage="robot"] .toy-wheel.two { right: 90px; top: 142px; width: 48px; height: 48px; }
+.transformer-stage[data-transform-stage="robot"] .toy-glass { left: 132px; top: 72px; width: 51px; height: 45px; transform: none; }
+.transformer-stage[data-transform-stage="robot"] .toy-joint { left: 141px; top: 23px; }
+.component-ledger { display: grid; gap: 10px; }
+.component-ledger article { display: grid; grid-template-columns: 34px minmax(0,1fr) 150px; align-items: center; gap: 12px; min-height: 80px; padding: 12px 14px; border: 3px solid var(--navy); background: var(--paper); }
+.component-ledger span, .component-ledger b, .component-ledger em { display: block; }
+.component-ledger b { font-size: 20px; }
+.component-ledger em { margin-top: 5px; color: var(--muted); font-size: 14px; font-style: normal; }
+.component-ledger strong { padding: 8px 10px; color: var(--navy); background: #fff0ad; border-left: 6px solid var(--blue); font-size: 17px; }
+.part-dot { width: 28px; height: 28px; border: 3px solid var(--navy); }
+.part-dot.wheel { border-radius: 50%; background: var(--yellow); box-shadow: inset 0 0 0 6px #2c4658; }
+.part-dot.glass { background: var(--mint); transform: skew(-12deg); }
+.part-dot.joint { border-radius: 50%; background: var(--orange); }
+.reuse-boundary { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 10px 16px; border: 3px solid var(--red); background: #ffe2dd; font-size: 16px; }
+.reuse-boundary b { color: #8e271c; }
+.reuse-boundary span { padding: 5px 9px; border: 3px solid var(--navy); background: var(--paper); font-weight: 900; }
+.reuse-boundary .large-plug { padding-inline: 18px; }
+.reuse-boundary i { color: var(--red); font: 900 25px/1 monospace; }
+.reuse-boundary strong { margin-left: auto; font-size: 15px; }
+
+/* S02-B: 基础零件 → 自制组件 → 完整作品 */
+.build-observer { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 15px; }
+.build-observer button { min-height: 50px; padding: 8px 12px; font-size: 17px; }
+.build-observer button b { margin-right: 10px; color: var(--navy); font: 900 15px/1 monospace; }
+.build-layer-grid { display: grid; grid-template-columns: 1fr 38px 1fr 38px 1fr; align-items: stretch; gap: 9px; }
+.build-layer-grid > article { min-width: 0; min-height: 270px; padding: 18px; border: 4px solid #8799a2; background: rgba(255,253,247,.72); opacity: .62; transition: opacity .2s ease, transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.build-layer-grid > article[data-active] { border-color: var(--navy); background: var(--paper); box-shadow: 7px 7px 0 var(--mint); opacity: 1; transform: translateY(-4px); }
+.build-layer-grid header small, .build-layer-grid header b { display: block; }
+.build-layer-grid header small { color: var(--blue); font: 900 14px/1 monospace; letter-spacing: .1em; }
+.build-layer-grid header b { margin-top: 8px; font-size: 23px; }
+.build-layer-grid article > p { margin: 12px 0 0; color: var(--muted); font-size: 16px; line-height: 1.45; }
+.build-arrow { align-self: center; color: var(--blue); font: 900 34px/1 monospace; text-align: center; }
+.brick-bin { position: relative; height: 92px; margin-top: 18px; border-bottom: 4px solid var(--navy); }
+.brick { position: absolute; display: block; border: 3px solid var(--navy); background: var(--yellow); }
+.brick.b1 { left: 6px; bottom: 8px; width: 66px; height: 34px; }
+.brick.b2 { left: 79px; bottom: 8px; width: 43px; height: 62px; background: var(--blue); }
+.brick.b3 { left: 130px; bottom: 8px; width: 73px; height: 45px; background: var(--orange); }
+.brick.wheel { right: 10px; bottom: 7px; width: 54px; height: 54px; border-radius: 50%; background: var(--yellow); box-shadow: inset 0 0 0 11px #2c4658; }
+.brick.axle { left: 24px; top: 8px; width: 119px; height: 8px; background: var(--mint); }
+.brick.glass { right: 25px; top: 8px; width: 50px; height: 32px; background: var(--mint); transform: skew(-16deg); }
+.component-kit, .work-kit { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 18px; }
+.component-kit span, .work-kit span { min-height: 78px; display: grid; place-items: center; padding: 8px; border: 3px solid var(--navy); color: var(--navy); background: #d8f4e8; font-size: 17px; font-weight: 900; text-align: center; }
+.component-kit span:nth-child(2), .work-kit span:nth-child(2) { background: #dce9ff; }
+.component-kit span:nth-child(3), .work-kit span:nth-child(3) { background: #fff0ad; }
+.work-kit span { min-height: 95px; font-size: 20px; }
+.build-feedback { min-height: 46px; margin-top: 14px; padding: 11px 16px; color: #fff; background: var(--navy); border-left: 8px solid var(--yellow); font-size: 17px; font-weight: 800; }
+.lego-automation-demo { display: grid; grid-template-columns: minmax(0,1.62fr) minmax(350px,.9fr); gap: 16px; height: 270px; }
+.lego-automation-3d { min-width: 0; height: 270px; background: linear-gradient(145deg,#dce9ff,#fff8e7); }
+.lego-automation-3d .brick-bin { width: 420px; transform: scale(1.22); }
+.build-layer-rail { display: grid; grid-template-rows: 1fr 16px 1fr 16px 1fr; gap: 2px; }
+.build-layer-rail article { display: grid; grid-template-columns: 145px 1fr; align-items: center; gap: 12px; min-height: 0; padding: 9px 13px; border: 3px solid #8799a2; background: rgba(255,253,247,.72); opacity: .64; transition: opacity .2s ease, transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.build-layer-rail article[data-active] { border-color: var(--navy); background: var(--paper); box-shadow: 5px 5px 0 var(--mint); opacity: 1; transform: translateX(-4px); }
+.build-layer-rail article b { color: var(--blue); font-size: 19px; }
+.build-layer-rail article span { color: var(--ink); font-size: 15px; line-height: 1.35; }
+.build-layer-rail > i { align-self: center; color: var(--blue); font: 900 20px/1 monospace; text-align: center; }
 
 /* S03 */
 .pipeline { display: flex; align-items: stretch; gap: 12px; }
@@ -265,7 +356,7 @@ button { font: inherit; }
 .forking-paths + .mission-question { width: 1080px; margin: 28px auto 0; }
 
 /* Themes */
-.deck-slide[data-theme="terminal"], .deck-slide[data-theme="mystery"] { background: #0b2233; color: #fff; }
+.deck-slide[data-theme="terminal"], .deck-slide[data-theme="mystery"] { background: #0b2233; color: #fff; color-scheme: dark; }
 .deck-slide[data-theme="terminal"] .slide-heading h1,
 .deck-slide[data-theme="mystery"] .slide-heading h1 { color: #fff8e7; }
 .deck-slide[data-theme="terminal"] .slide-heading p,
@@ -297,5 +388,7 @@ button { font: inherit; }
   body { overflow: visible; background: white; }
   .viewport { position: static; overflow: visible; }
   .deck-stage { position: static; transform: none !important; box-shadow: none; break-after: page; }
+  .module-3d-canvas, .module-3d-hint { display: none !important; }
+  .module-3d-fallback { visibility: visible !important; }
   .audience-controls, .audience-status { display: none !important; }
 }

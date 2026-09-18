@@ -14,16 +14,16 @@ const registry = await readFile(join(repoRoot, "app/lib/courseware-store.ts"), "
 const gateway = await readFile(join(repoRoot, "deploy/minisv/gateway/default.conf"), "utf8");
 const packager = await readFile(join(repoRoot, "deploy/minisv/package_release.py"), "utf8");
 
-if (!registry.includes(`DEVELOPMENT_MODULE_THINKING_R1_CONTENT_TREE = "${digest}"`)) {
-  throw new Error(`T-122 registry digest is not the built bundle digest: ${digest}`);
+if (!registry.includes(`DEVELOPMENT_MODULE_THINKING_R3_CONTENT_TREE = "${digest}"`)) {
+  throw new Error(`T-128 registry digest is not the built bundle digest: ${digest}`);
 }
 if (!registry.includes('entryPath: "/courseware/development-mentor-module-thinking/audience/"')) {
-  throw new Error("T-122 audience entry is missing from the Courseware Library registry");
+  throw new Error("T-128 audience entry is missing from the Courseware Library registry");
 }
 if (!gateway.includes("auth_request /_minisv_mentor_courseware_auth")) {
-  throw new Error("T-122 teacher route lacks the mentor-only server gate");
+  throw new Error("T-128 teacher route lacks the mentor-only server gate");
 }
 if (!packager.includes("validate_module_thinking_courseware")) {
-  throw new Error("T-122 bundle is not part of release assembly validation");
+  throw new Error("T-128 bundle is not part of release assembly validation");
 }
-console.log(`T-122 release integration passed: ${digest}, audience ${manifest.audience.length}, teacher ${manifest.teacher.length}.`);
+console.log(`T-128 release integration passed: ${digest}, audience ${manifest.audience.length}, teacher ${manifest.teacher.length}.`);

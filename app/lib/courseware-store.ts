@@ -61,6 +61,8 @@ const PRODUCT_COURSEWARE_R2_SOURCE_TREE = "bde3426ee770272dc3263064a16d60659ffff
 const DEVELOPMENT_LIGUN_CONTENT_TREE = "ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234";
 const DEVELOPMENT_MODULE_THINKING_R0_CONTENT_TREE = "939a016bc645b37fe96ef0411b5d4c57634019f8c11d112a2a1b965aa8c0737b";
 const DEVELOPMENT_MODULE_THINKING_R1_CONTENT_TREE = "b5c9bc18229c8585676840d5cab02c8b10fc837afa87f348cb32c58282e397ac";
+const DEVELOPMENT_MODULE_THINKING_R2_CONTENT_TREE = "f418d7d98af61f0ec32f70492a135419cb24a6a52681cb4b90f23943ecc0a5d4";
+const DEVELOPMENT_MODULE_THINKING_R3_CONTENT_TREE = "40a0f17d0a24a225810f56b64fabd2452d264d6df6b273a9411c433b4fd2023f";
 const MARKET_USER_SYSTEM_CONTENT_TREE = "48b01a256bd3d408a5d539f798470e6aad0058a19dcdeb8b5d212b0e64add862";
 const BUNDLED_VERSIONS = [
   {
@@ -135,10 +137,36 @@ const BUNDLED_VERSIONS = [
     role: "D" as const,
     revision: 1,
     releasedAt: "2026-09-15T18:45:00Z",
-    isCurrent: true,
+    isCurrent: false,
     kind: "static-bundle" as const,
     entryPath: "/courseware/development-mentor-module-thinking/audience/",
     sourceIdentity: `t122:sha256:${DEVELOPMENT_MODULE_THINKING_R1_CONTENT_TREE}`,
+    html: null,
+  },
+  {
+    id: "cw-development-mentor-module-thinking",
+    slug: "development-mentor-module-thinking",
+    title: "开发导师｜模块思维：先拆块，再协作",
+    role: "D" as const,
+    revision: 2,
+    releasedAt: "2026-09-18T10:07:07Z",
+    isCurrent: false,
+    kind: "static-bundle" as const,
+    entryPath: "/courseware/development-mentor-module-thinking/audience/",
+    sourceIdentity: `t128:sha256:${DEVELOPMENT_MODULE_THINKING_R2_CONTENT_TREE}`,
+    html: null,
+  },
+  {
+    id: "cw-development-mentor-module-thinking",
+    slug: "development-mentor-module-thinking",
+    title: "开发导师｜模块思维：先拆块，再协作",
+    role: "D" as const,
+    revision: 3,
+    releasedAt: "2026-09-18T11:57:20Z",
+    isCurrent: true,
+    kind: "static-bundle" as const,
+    entryPath: "/courseware/development-mentor-module-thinking/audience/",
+    sourceIdentity: `t128:sha256:${DEVELOPMENT_MODULE_THINKING_R3_CONTENT_TREE}`,
     html: null,
   },
   {

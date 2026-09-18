@@ -13,6 +13,7 @@
   const status = document.getElementById("audience-status");
   let channel = null;
   let state = readState();
+  let renderVersion = 0;
 
   function sanitizeSession(value) {
     return value && /^[a-zA-Z0-9_-]{1,64}$/.test(value) ? value : "";
@@ -26,7 +27,9 @@
   function normalize(next) {
     const slide = Math.max(0, Math.min(model.slides.length - 1, Number(next?.slide) || 0));
     const reveal = Math.max(0, Math.min(maxReveal(slide), Number(next?.reveal) || 0));
-    return { slide, reveal, updatedAt: Date.now() };
+    const transformCase = ["car", "plane", "robot"].includes(next?.activity?.transformCase) ? next.activity.transformCase : "car";
+    const buildStep = ["parts", "components", "works"].includes(next?.activity?.buildStep) ? next.activity.buildStep : "parts";
+    return { slide, reveal, activity: { transformCase, buildStep }, updatedAt: Date.now() };
   }
 
   function readState() {
@@ -40,11 +43,12 @@
 
   function send(type, payload) {
     const message = { type, session, source: "audience", ...payload };
-    channel?.postMessage(message);
-    try { localStorage.setItem(`${storageKey}:event`, JSON.stringify({ ...message, nonce: Math.random(), at: Date.now() })); } catch { /* BroadcastChannel remains available */ }
+    if (channel) channel.postMessage(message);
+    else try { localStorage.setItem(`${storageKey}:event`, JSON.stringify({ ...message, nonce: Math.random(), at: Date.now() })); } catch { /* no cross-window transport is available */ }
   }
 
   function render() {
+    const version = ++renderVersion;
     const slide = model.slides[state.slide];
     deck.innerHTML = `
       <section class="deck-slide" data-slide-id="${slide.id}" data-source="${slide.source}" data-theme="${slide.theme || "paper"}">
@@ -63,9 +67,51 @@
     document.title = `${slide.source} ${slide.title}｜模块思维`;
     status.textContent = `AUDIENCE · ${controlled ? "PRESENTER" : "LOCAL"} · ${session}`;
     fit();
+    mountThreeScenes(version);
   }
 
   function wireSlideInteractions() {
+    const transformButtons = [...deck.querySelectorAll("[data-transform-case]")];
+    const transformStage = deck.querySelector("[data-transform-stage]");
+    if (transformButtons.length && transformStage) {
+      const selectTransform = (value, notify) => {
+        const button = transformButtons.find((item) => item.dataset.transformCase === value) || transformButtons[0];
+        const selected = button.dataset.transformCase;
+        transformButtons.forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+        transformStage.dataset.transformStage = selected;
+        const scene = deck.querySelector('[data-module-3d="transform"]');
+        if (scene) scene.setAttribute("data-module-3d-mode", selected);
+        for (const role of ["wheel", "glass", "joint"]) {
+          const target = deck.querySelector(`[data-transform-role="${role}"]`);
+          if (target) target.textContent = button.dataset[role] || "待确认";
+        }
+        const feedback = deck.querySelector("[data-transform-feedback]");
+        if (feedback) feedback.textContent = button.dataset.feedback || "已切换课堂示意";
+        if (notify) setState({ ...state, activity: { ...state.activity, transformCase: selected } }, true);
+      };
+      selectTransform(state.activity.transformCase, false);
+      transformButtons.forEach((button) => button.addEventListener("click", () => selectTransform(button.dataset.transformCase, true)));
+    }
+
+    const buildButtons = [...deck.querySelectorAll("[data-build-step]")];
+    const buildStage = deck.querySelector("[data-build-stage]");
+    if (buildButtons.length && buildStage) {
+      const selectBuildStep = (value, notify) => {
+        const button = buildButtons.find((item) => item.dataset.buildStep === value) || buildButtons[0];
+        const selected = button.dataset.buildStep;
+        buildButtons.forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+        buildStage.dataset.buildStage = selected;
+        const scene = deck.querySelector('[data-module-3d="automation"]');
+        if (scene) scene.setAttribute("data-module-3d-mode", selected);
+        deck.querySelectorAll("[data-build-layer]").forEach((item) => item.toggleAttribute("data-active", item.dataset.buildLayer === selected));
+        const feedback = deck.querySelector("[data-build-feedback]");
+        if (feedback) feedback.textContent = button.dataset.feedback || "已切换观察层级";
+        if (notify) setState({ ...state, activity: { ...state.activity, buildStep: selected } }, true);
+      };
+      selectBuildStep(state.activity.buildStep, false);
+      buildButtons.forEach((button) => button.addEventListener("click", () => selectBuildStep(button.dataset.buildStep, true)));
+    }
+
     const inputs = [...deck.querySelectorAll("[data-blackbox-case]")];
     const outputs = [...deck.querySelectorAll("[data-blackbox-output]")];
     const statusNode = deck.querySelector("[data-blackbox-status]");
@@ -80,6 +126,12 @@
       if (result && value) value.textContent = result;
       statusNode.textContent = input.dataset.feedback || "已完成一次黑箱测试";
     }));
+  }
+
+  function mountThreeScenes(version) {
+    import("./module-3d.js")
+      .then((module) => { if (version === renderVersion) module.mountModuleScenes(deck); })
+      .catch((error) => console.warn("3D 课堂示意加载失败，已保留 HTML 降级图。", error));
   }
 
   function setState(next, notify) {

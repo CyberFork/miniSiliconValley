@@ -32,22 +32,75 @@
     },
     {
       id: "module-s02",
-      source: "S02",
-      section: "发现模块",
-      title: "生活里早就有模块",
-      subtitle: "每一块任务不同，但可以接在一起。",
+      source: "S02-A",
+      section: "预制组件",
+      title: "同一个构件，为什么换了角色？",
+      subtitle: "变形玩具已经把组件设计好；我们在接口与结构约束内重新组合。",
       theme: "paper",
       content: `
-        <div class="analogy-grid">
-          <article class="analogy-card"><div class="big-icon">🧱</div><h3>积木</h3><p>形状不同，接口统一</p></article>
-          <article class="analogy-card"><div class="big-icon">🍜</div><h3>餐厅</h3><p>点单、做饭、打包、配送</p></article>
-          <article class="analogy-card"><div class="big-icon">🛠️</div><h3>组装</h3><p>零件单独制造，最后拼成整体</p></article>
+        <div class="transformer-demo">
+          <div class="transformer-switch" role="group" aria-label="切换课堂示意形态">
+            <button type="button" aria-pressed="true" data-transform-case="car" data-wheel="行驶轮" data-glass="车窗" data-joint="车门铰链" data-feedback="汽车：构件进入道路行驶场景。">汽车</button>
+            <button type="button" aria-pressed="false" data-transform-case="plane" data-wheel="起落架轮" data-glass="座舱透明罩" data-joint="折叠机翼转轴" data-feedback="飞机：同类构件换了位置与角色，接口仍要匹配。">飞机</button>
+            <button type="button" aria-pressed="false" data-transform-case="robot" data-wheel="脚部滚轮" data-glass="胸口观察罩" data-joint="手肘关节" data-feedback="机器人：名称与位置变化，基础能力没有随便改变。">机器人</button>
+          </div>
+          <div class="transformer-stage" data-transform-stage="car" aria-live="polite">
+            <div class="module-3d-host transform-3d" data-module-3d="transform" data-module-3d-mode="car" aria-label="可拖动观察的预制组件三维课堂示意">
+              <div class="module-3d-fallback" aria-hidden="true">
+                <div class="toy-shape">
+                  <span class="toy-part toy-wheel one"></span><span class="toy-part toy-wheel two"></span>
+                  <span class="toy-part toy-glass"></span><span class="toy-part toy-joint"></span>
+                  <span class="toy-shell"></span><span class="toy-wing"></span>
+                </div>
+              </div>
+              <span class="module-3d-hint">拖动旋转 · 按按钮变形</span>
+            </div>
+            <b data-transform-feedback>汽车：构件进入道路行驶场景。</b>
+            <small>同色标记始终代表同一个构件</small>
+          </div>
+          <div class="component-ledger">
+            <article><i class="part-dot wheel"></i><span><b>轮子</b><em>核心能力：支撑、滚动</em></span><strong data-transform-role="wheel">行驶轮</strong></article>
+            <article><i class="part-dot glass"></i><span><b>透明件</b><em>核心能力：透视、隔离</em></span><strong data-transform-role="glass">车窗</strong></article>
+            <article><i class="part-dot joint"></i><span><b>铰链／转轴</b><em>核心能力：受约束转动</em></span><strong data-transform-role="joint">车门铰链</strong></article>
+          </div>
         </div>
-        <div class="mission-question">
-          <b>模块猎人</b>
-          <span>在你的书包、游戏或食堂里，再找一个“能单独做事、又能组合”的东西。</span>
+        <div class="reuse-boundary">
+          <b>复用失败示例</b><span class="bad-plug">小接口</span><i>≠</i><span class="large-plug">大接口</span><strong>尺寸、方向、空间或强度不匹配，长得像也不能直接用。</strong>
         </div>
-        <div class="reveal-card" data-reveal><b>判断钥匙</b><span>它能说清自己的任务吗？它怎样和别的部分连接？</span></div>`,
+        <div class="reveal-card" data-reveal><b>第一层：使用预制组件</b><span>位置和场景角色可以改变；基础能力没乱变，接口与约束仍要检查。</span></div>`,
+    },
+    {
+      id: "module-s02-build",
+      source: "S02-B",
+      section: "创造组件",
+      title: "乐高多给了我们哪一层设计权？",
+      subtitle: "基础零件仍有约束，但玩家可以先创造组件，再组合完整作品。",
+      theme: "blueprint",
+      content: `
+        <div class="build-observer" role="group" aria-label="观察三层组合关系">
+          <button type="button" aria-pressed="true" data-build-step="parts" data-feedback="先选任务，再挑合适零件；不是随便堆完才起名字。"><b>01</b>看基础零件</button>
+          <button type="button" aria-pressed="false" data-build-step="components" data-feedback="轮胎、轴和连接件组成可滚动轮组；透明件、框架和铰链组成可开合座舱。"><b>02</b>创造组件</button>
+          <button type="button" aria-pressed="false" data-build-step="works" data-feedback="自制组件有明确连接点后，就能像预制组件一样进入汽车、飞机和更大场景。"><b>03</b>组合整体</button>
+        </div>
+        <div class="lego-automation-demo" data-build-stage="parts">
+          <div class="module-3d-host lego-automation-3d" data-module-3d="automation" data-module-3d-mode="parts" aria-label="可拖动观察的积木自动化三维课堂示意">
+            <div class="module-3d-fallback" aria-hidden="true">
+              <div class="brick-bin">
+                <i class="brick b1"></i><i class="brick b2"></i><i class="brick b3"></i><i class="brick wheel"></i><i class="brick axle"></i><i class="brick glass"></i>
+              </div>
+            </div>
+            <span class="module-3d-hint">拖动旋转 · 第 3 步启动传送带</span>
+          </div>
+          <div class="build-layer-rail">
+            <article data-build-layer="parts" data-active><b>基础零件</b><span>积木、轮胎、轴、透明件、齿轮和连接件</span></article>
+            <i>↓</i>
+            <article data-build-layer="components"><b>功能组件</b><span>轮组、齿轮传动、传送带、感应门</span></article>
+            <i>↓</i>
+            <article data-build-layer="works"><b>自动化整体</b><span>动力输入 → 传动 → 搬运 → 感应</span></article>
+          </div>
+        </div>
+        <div class="build-feedback" data-build-feedback aria-live="polite">先选任务，再挑合适零件；不是随便堆完才起名字。</div>
+        <div class="reveal-card conclusion" data-reveal><b>第二层：先创造，再组合</b><span>自建不一定更好；按需求选择复用或自建，并为结果承担测试和维护。</span></div>`,
     },
     {
       id: "module-s03",
@@ -87,7 +140,7 @@
           <article><b>♻️</b><h3>能复用</h3><p>一块能力服务多个地方</p></article>
         </div>
         <div class="mission-question"><b>快速选择</b><span>轮胎坏了：整辆车重造，还是只换轮胎？对应哪一种超能力？</span></div>
-        <div class="reveal-card" data-reveal><b>关键不是“拆得多”</b><span>而是每块责任清楚，能独立修改，也能重新接回整体。</span></div>`,
+        <div class="reveal-card" data-reveal><b>关键不是“拆得多”</b><span>稳定模块 + 明确接口，才让同一能力能够被替换、复用并接回不同整体。</span></div>`,
     },
     {
       id: "module-s05",
@@ -102,8 +155,8 @@
           <article class="layer module"><span>模块</span><b>信息发布模块</b><em>支撑一组功能的责任单元</em></article>
           <article class="layer function"><span>功能</span><b>提交失物信息</b><em>用户能完成的一件事</em></article>
         </div>
-        <div class="mission-question"><b>陷阱题</b><span>一个红色按钮，一定是模块吗？</span></div>
-        <div class="reveal-card" data-reveal><b>不一定</b><span>别看它长什么样，要看它是否承担独立、清楚的责任。</span></div>`,
+        <div class="mission-question"><b>尺度题</b><span>轮组相对汽车是组件；相对轮胎和轴，它又是什么？</span></div>
+        <div class="reveal-card" data-reveal><b>边界随任务改变</b><span>轮组内部也有更小模块；但一个按钮仍不一定承担完整业务责任。</span></div>`,
     },
     {
       id: "module-s06",
@@ -310,7 +363,7 @@
 
   window.MSV_MODULE_DECK = Object.freeze({
     id: "module-thinking-p1",
-    version: "2026.09.15-r2",
+    version: "2026.09.18-r4",
     title: "模块思维：把大问题拆成能工作的模块",
     sourceHash: "a31489645adcfaf6b7afd3be734349175740c520120cda65552cfa0f3e833793",
     slides: Object.freeze(slides.map(Object.freeze)),

@@ -15,6 +15,7 @@ with sync_playwright() as p:
     page.on("console", lambda msg: errors.append(f"console:{msg.type}:{msg.text}") if msg.type == "error" else None)
     page.on("pageerror", lambda err: errors.append(f"page:{err}"))
     page.goto(f"{BASE}{AUDIENCE}/index.html?session=qa-audience", wait_until="networkidle")
+    assert page.locator('link[rel="icon"]').get_attribute("href") == "favicon.svg?v=20260918-r4"
     assert page.locator(".deck-slide").get_attribute("data-source") == "S01"
     page.keyboard.press("ArrowRight")
     assert page.evaluate("MSVModuleDeckController.getState().reveal") == 1
@@ -25,6 +26,7 @@ with sync_playwright() as p:
 
     presenter = context.new_page()
     presenter.goto(f"{BASE}{TEACHER}/presenter.html?session=qa-sync", wait_until="networkidle")
+    assert presenter.locator('link[rel="icon"]').get_attribute("href") == "favicon.svg?v=20260918-r4"
     assert presenter.locator("#note-goal").inner_text().strip()
     with context.expect_page() as popup_info:
         presenter.click("#open-audience")
@@ -35,12 +37,43 @@ with sync_playwright() as p:
     presenter.keyboard.press("Shift+ArrowRight")
     audience.wait_for_function("MSVModuleDeckController.getState().slide === 1")
     assert presenter.locator("#connection").inner_text() == "投屏已连接"
+    audience.wait_for_selector('[data-module-3d="transform"] canvas.module-3d-canvas')
+    assert audience.locator('[data-module-3d="transform"]').get_attribute("data-webgl-ready") == "true"
+    assert audience.locator('[data-module-3d="transform"] .module-3d-fallback').count() == 1
+
+    plane = presenter.locator('#current-preview [data-transform-case="plane"]')
+    plane.click(force=True)
+    audience.wait_for_function("MSVModuleDeckController.getState().activity.transformCase === 'plane'")
+    assert audience.locator("[data-transform-stage]").get_attribute("data-transform-stage") == "plane"
+    assert audience.locator('[data-module-3d="transform"]').get_attribute("data-module-3d-mode") == "plane"
+    assert audience.locator('[data-transform-role="wheel"]').inner_text() == "起落架轮"
+    assert "接口仍要匹配" in audience.locator("[data-transform-feedback]").inner_text()
+    robot = audience.locator('[data-transform-case="robot"]')
+    robot.focus()
+    audience.keyboard.press("Space")
+    presenter.wait_for_function("MSVModulePresenterController.getState().activity.transformCase === 'robot'")
+    audience.wait_for_function("MSVModuleDeckController.getState().activity.transformCase === 'robot'")
+    assert presenter.locator('#current-preview [data-transform-stage]').get_attribute("data-transform-stage") == "robot"
+
+    presenter.keyboard.press("Shift+ArrowRight")
+    audience.wait_for_function("MSVModuleDeckController.getState().slide === 2")
+    presenter.wait_for_function("MSVModulePresenterController.getState().slide === 2")
+    audience.wait_for_selector('[data-module-3d="automation"] canvas.module-3d-canvas')
+    presenter.locator('#current-preview [data-build-step="components"]').click(force=True)
+    audience.wait_for_function("MSVModuleDeckController.getState().activity.buildStep === 'components'")
+    assert audience.locator('[data-build-layer="components"]').get_attribute("data-active") is not None
+    assert audience.locator('[data-module-3d="automation"]').get_attribute("data-module-3d-mode") == "components"
+    assert "轮组" in audience.locator("[data-build-feedback]").inner_text()
+    audience.reload(wait_until="networkidle")
+    assert audience.evaluate("MSVModuleDeckController.getState().activity.buildStep") == "components"
+    assert audience.locator('[data-build-layer="components"]').get_attribute("data-active") is not None
 
     isolated = context.new_page()
     isolated.goto(f"{BASE}{AUDIENCE}/index.html?session=qa-isolated&controlled=1", wait_until="networkidle")
     assert isolated.evaluate("MSVModuleDeckController.getState().slide") == 0
 
-    audience.evaluate("MSVModuleDeckController.setState({slide:9,reveal:99})")
+    blackbox_index = audience.evaluate("MSV_MODULE_DECK.slides.findIndex(slide => slide.id === 'module-s10')")
+    audience.evaluate("index => MSVModuleDeckController.setState({slide:index,reveal:99})", blackbox_index)
     contrast = audience.evaluate("""() => {
       const rgb = value => value.match(/\\d+(?:\\.\\d+)?/g).slice(0, 3).map(Number);
       const luminance = value => {
@@ -72,9 +105,11 @@ with sync_playwright() as p:
     assert "发现失败行为" in audience.locator("[data-blackbox-status]").inner_text()
     wrong_input.focus()
     audience.keyboard.press("Space")
-    assert audience.evaluate("MSVModuleDeckController.getState().slide") == 9
+    assert audience.evaluate("MSVModuleDeckController.getState().slide") == blackbox_index
 
-    for index in range(16):
+    slide_count = audience.evaluate("MSV_MODULE_DECK.slides.length")
+    assert slide_count == 17
+    for index in range(slide_count):
         audience.evaluate("index => MSVModuleDeckController.setState({slide:index,reveal:99})", index)
         dimensions = audience.evaluate("""() => { const slide=document.querySelector('.deck-slide'); const body=document.querySelector('.slide-body'); return {slideScroll:slide.scrollHeight,slideClient:slide.clientHeight,bodyScroll:body.scrollHeight,bodyClient:body.clientHeight}; }""")
         assert dimensions["slideScroll"] <= dimensions["slideClient"] + 1, (index, dimensions)
@@ -102,6 +137,37 @@ with sync_playwright() as p:
         }""")
         assert not low_contrast, (index, low_contrast)
 
+    # Slides are also embedded inside the dark teacher shell. The slide must
+    # own its foreground palette instead of inheriting the shell's light text.
+    # Audit every current-preview slide so a light card cannot silently turn
+    # white again only in presenter mode.
+    assert presenter.evaluate("MSV_MODULE_DECK.slides.length") == slide_count
+    for index in range(slide_count):
+        presenter.evaluate("index => MSVModulePresenterController.setState({slide:index,reveal:99})", index)
+        presenter.wait_for_function("index => MSVModulePresenterController.getState().slide === index", arg=index)
+        teacher_low_contrast = presenter.locator("#current-preview").evaluate("""root => {
+          const parse = value => { const values = value.match(/[\\d.]+/g)?.map(Number) || []; return [values[0] || 0, values[1] || 0, values[2] || 0, values[3] ?? 1]; };
+          const luminance = ([r,g,b]) => { const convert = value => (value /= 255) <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4; return .2126 * convert(r) + .7152 * convert(g) + .0722 * convert(b); };
+          const ratio = (foreground, background) => { const a = luminance(foreground); const b = luminance(background); return (Math.max(a,b) + .05) / (Math.min(a,b) + .05); };
+          return [...root.querySelectorAll('.deck-slide *')]
+            .filter(node => [...node.childNodes].some(child => child.nodeType === 3 && child.textContent.trim()) && getComputedStyle(node).visibility !== 'hidden' && getComputedStyle(node).opacity !== '0')
+            .map(node => {
+              let backgroundNode = node;
+              let background = [0,0,0,0];
+              while (backgroundNode) {
+                background = parse(getComputedStyle(backgroundNode).backgroundColor);
+                if (background[3] > .95) break;
+                backgroundNode = backgroundNode.parentElement;
+              }
+              const style = getComputedStyle(node);
+              const contrast = ratio(parse(style.color), background);
+              const minimum = parseFloat(style.fontSize) >= 24 ? 3 : 4.5;
+              return { text: node.textContent.trim().slice(0, 48), contrast, minimum };
+            })
+            .filter(item => item.contrast < item.minimum);
+        }""")
+        assert not teacher_low_contrast, ("teacher", index, teacher_low_contrast)
+
     mobile_context = browser.new_context(viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
     mobile = mobile_context.new_page()
     mobile.goto(f"{BASE}{AUDIENCE}/index.html?session=qa-mobile", wait_until="networkidle")
@@ -109,7 +175,16 @@ with sync_playwright() as p:
     assert metrics["sw"] <= metrics["cw"] and metrics["sh"] <= metrics["ch"]
     mobile.tap("#advance")
     assert mobile.evaluate("MSVModuleDeckController.getState().reveal") == 1
-    mobile.evaluate("MSVModuleDeckController.setState({slide:9,reveal:99})")
+    mobile.evaluate("MSVModuleDeckController.setState({slide:1,reveal:0})")
+    mobile.wait_for_selector('[data-module-3d="transform"] canvas.module-3d-canvas')
+    mobile.tap('[data-transform-case="plane"]')
+    assert mobile.locator('[data-transform-role="wheel"]').inner_text() == "起落架轮"
+    mobile.evaluate("MSVModuleDeckController.setState({slide:2,reveal:0})")
+    mobile.wait_for_selector('[data-module-3d="automation"] canvas.module-3d-canvas')
+    mobile.tap('[data-build-step="works"]')
+    assert mobile.locator('[data-build-layer="works"]').get_attribute("data-active") is not None
+    assert mobile.locator('[data-module-3d="automation"]').get_attribute("data-module-3d-mode") == "works"
+    mobile.evaluate("index => MSVModuleDeckController.setState({slide:index,reveal:99})", mobile.evaluate("MSV_MODULE_DECK.slides.findIndex(slide => slide.id === 'module-s10')"))
     mobile.tap('[data-blackbox-case="2"]')
     assert mobile.locator('[data-blackbox-output]').nth(2).locator("b").inner_text() == "拒绝"
 
@@ -122,4 +197,4 @@ with sync_playwright() as p:
     assert not errors, errors
     browser.close()
 
-print("T-122 browser checks passed: projection, reveal/refresh, presenter sync, session isolation, all-slide contrast/overflow, S10 mouse-keyboard-touch interaction and printables.")
+print("T-128 browser checks passed: local Three.js scenes, projection, reveal/refresh, presenter sync, session isolation, 17-slide contrast/overflow, S02-A/S02-B and S10 mouse-keyboard-touch interaction, HTML fallbacks, and printables.")

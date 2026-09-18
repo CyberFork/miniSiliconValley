@@ -20,7 +20,9 @@
   function normalize(next) {
     const slide = Math.max(0, Math.min(model.slides.length - 1, Number(next?.slide) || 0));
     const reveal = Math.max(0, Math.min(maxReveal(slide), Number(next?.reveal) || 0));
-    return { slide, reveal, updatedAt: Date.now() };
+    const transformCase = ["car", "plane", "robot"].includes(next?.activity?.transformCase) ? next.activity.transformCase : "car";
+    const buildStep = ["parts", "components", "works"].includes(next?.activity?.buildStep) ? next.activity.buildStep : "parts";
+    return { slide, reveal, activity: { transformCase, buildStep }, updatedAt: Date.now() };
   }
   function readState() { try { return normalize(JSON.parse(localStorage.getItem(storageKey()) || "null")); } catch { return normalize(null); } }
   function persist() { try { localStorage.setItem(storageKey(), JSON.stringify(state)); } catch { /* private mode can deny storage */ } }
@@ -34,8 +36,8 @@
   }
   function send(type, payload) {
     const message = { type, session, source: "presenter", ...payload };
-    channel?.postMessage(message);
-    try { localStorage.setItem(eventKey(), JSON.stringify({ ...message, nonce: Math.random(), at: Date.now() })); } catch { /* BroadcastChannel remains available */ }
+    if (channel) channel.postMessage(message);
+    else try { localStorage.setItem(eventKey(), JSON.stringify({ ...message, nonce: Math.random(), at: Date.now() })); } catch { /* no cross-window transport is available */ }
   }
   function acceptMessage(message) {
     if (!message || message.session !== session || message.source === "presenter") return;
@@ -76,12 +78,58 @@
       <div class="slide-progress"><i style="width:${((index + 1)/model.slides.length)*100}%"></i></div>
     </section>`;
   }
-  function renderPreview(container, index, reveal) {
+  function wirePreviewInteractions(stage, interactive) {
+    const transformButtons = [...stage.querySelectorAll("[data-transform-case]")];
+    const transformStage = stage.querySelector("[data-transform-stage]");
+    if (transformButtons.length && transformStage) {
+      const selectTransform = (value, notify) => {
+        const button = transformButtons.find((item) => item.dataset.transformCase === value) || transformButtons[0];
+        const selected = button.dataset.transformCase;
+        transformButtons.forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+        transformStage.dataset.transformStage = selected;
+        const scene = stage.querySelector('[data-module-3d="transform"]');
+        if (scene) scene.setAttribute("data-module-3d-mode", selected);
+        for (const role of ["wheel", "glass", "joint"]) {
+          const target = stage.querySelector(`[data-transform-role="${role}"]`);
+          if (target) target.textContent = button.dataset[role] || "待确认";
+        }
+        const feedback = stage.querySelector("[data-transform-feedback]");
+        if (feedback) feedback.textContent = button.dataset.feedback || "已切换课堂示意";
+        if (notify) setState({ ...state, activity: { ...state.activity, transformCase: selected } });
+      };
+      selectTransform(state.activity.transformCase, false);
+      if (interactive) transformButtons.forEach((button) => button.addEventListener("click", () => selectTransform(button.dataset.transformCase, true)));
+    }
+
+    const buildButtons = [...stage.querySelectorAll("[data-build-step]")];
+    const buildStage = stage.querySelector("[data-build-stage]");
+    if (buildButtons.length && buildStage) {
+      const selectBuildStep = (value, notify) => {
+        const button = buildButtons.find((item) => item.dataset.buildStep === value) || buildButtons[0];
+        const selected = button.dataset.buildStep;
+        buildButtons.forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+        buildStage.dataset.buildStage = selected;
+        const scene = stage.querySelector('[data-module-3d="automation"]');
+        if (scene) scene.setAttribute("data-module-3d-mode", selected);
+        stage.querySelectorAll("[data-build-layer]").forEach((item) => item.toggleAttribute("data-active", item.dataset.buildLayer === selected));
+        const feedback = stage.querySelector("[data-build-feedback]");
+        if (feedback) feedback.textContent = button.dataset.feedback || "已切换观察层级";
+        if (notify) setState({ ...state, activity: { ...state.activity, buildStep: selected } });
+      };
+      selectBuildStep(state.activity.buildStep, false);
+      if (interactive) buildButtons.forEach((button) => button.addEventListener("click", () => selectBuildStep(button.dataset.buildStep, true)));
+    }
+  }
+  function renderPreview(container, index, reveal, interactive = false) {
     if (index < 0 || index >= model.slides.length) { container.innerHTML = '<div class="preview-empty">课程结束</div>'; return; }
     const stage = document.createElement("div"); stage.className = "mini-slide-stage";
     stage.innerHTML = slideMarkup(model.slides[index], index);
     stage.querySelectorAll("[data-reveal]").forEach((node, i) => node.classList.toggle("revealed", i < reveal));
+    wirePreviewInteractions(stage, interactive);
     container.replaceChildren(stage);
+    import("./module-3d.js")
+      .then((module) => { if (stage.isConnected) module.mountModuleScenes(stage); })
+      .catch((error) => console.warn("3D 课堂示意加载失败，已保留 HTML 降级图。", error));
     requestAnimationFrame(() => {
       const scale = Math.min(container.clientWidth / 1600, container.clientHeight / 900);
       stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
@@ -122,7 +170,7 @@
   }
   function render() {
     const slide = model.slides[state.slide];
-    renderPreview(document.getElementById("current-preview"), state.slide, state.reveal);
+    renderPreview(document.getElementById("current-preview"), state.slide, state.reveal, true);
     renderPreview(document.getElementById("next-preview"), state.slide + 1, 0);
     document.getElementById("current-title").textContent = `${slide.source} · ${slide.title} · 揭示 ${state.reveal}/${maxReveal(state.slide)}`;
     document.getElementById("next-title").textContent = model.slides[state.slide + 1]?.title || "课程结束";
