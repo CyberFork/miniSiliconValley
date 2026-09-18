@@ -1,7 +1,7 @@
 {
   "ok": true,
   "todo": "T-128",
-  "verifiedAt": "2026-09-18T21:15:12+08:00",
+  "verifiedAt": "2026-09-18T22:44:24+08:00",
   "artifact": {
     "id": "module-thinking-p1",
     "version": "2026.09.18-r4",
@@ -37,8 +37,14 @@
     "git diff --check"
   ],
   "deployment": {
-    "status": "not-deployed",
-    "reason": "T-128 requested implementation; production deployment was not requested in this turn"
+    "status": "deployed",
+    "releaseId": "20260918T2237CST-t128-contrast-r3",
+    "sourceCommit": "7e380f756b0e246629013f2cc6d9c12b3a8cb20c",
+    "audienceUrl": "https://minisv.vip/courseware/development-mentor-module-thinking/audience/",
+    "teacherUrl": "https://minisv.vip/courseware/development-mentor-module-thinking/teacher/presenter.html",
+    "healthcheck": "passed on Hecate",
+    "publicSmoke": "passed: MINISV_PUBLIC_SMOKE_OK",
+    "productionBytes": "passed: revision 3, r4 content digest, light/dark color contracts and approved M favicon digest"
   },
   "manualAcceptance": "not-signed-by-user"
 }

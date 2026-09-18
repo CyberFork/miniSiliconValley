@@ -206,5 +206,7 @@ tags: [todo, development-mentor, courseware, module-thinking, html-ppt, presente
 
 ### 边界
 
-- 本轮完成开发、构建与自动验证，未部署生产。
+- 已部署生产 release `20260918T2237CST-t128-contrast-r3`，源提交 `7e380f756b0e246629013f2cc6d9c12b3a8cb20c`。
+- Hecate 原子部署、主机 healthcheck 和完整公开 smoke 均通过；生产回执确认 revision 3、`2026.09.18-r4`、内容摘要、浅色／深色文字契约和黄色 M 图标摘要一致。
+- 验收入口：投屏端 `https://minisv.vip/courseware/development-mentor-module-thinking/audience/`；教师端 `https://minisv.vip/courseware/development-mentor-module-thinking/teacher/presenter.html`。
 - 未代替用户签署人工课堂教学效果或最终 UI 验收。
