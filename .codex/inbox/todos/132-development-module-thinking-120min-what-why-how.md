@@ -43,7 +43,7 @@ tags: [todo, development-mentor, module-thinking, html-ppt, presenter-view, voxe
 - [x] 旧 ID／案例／三组 Three.js 保留，界面和教学顺序重排。
 - [x] 三项个人产出、软性前置、速填卡和四份下载材料实现。
 - [x] 学生／教师物理分包；跨课件、跨会话隔离；版本存储隔离。
-- [x] 自动化和浏览器证据见 [本地实施回执](../../../../docs/T132_T133_IMPLEMENTATION_RECEIPT.md)。
+- [x] 自动化和浏览器证据见 [实施与生产部署回执](../../../../docs/T132_T133_IMPLEMENTATION_RECEIPT.md)。
 - [ ] 导师真实 120 分钟试讲、实体物料审定、实际扩展投影人工验收。
 
 人工试讲未签，不将其勾为通过；不涉及其他导师或 Classroom 状态。
@@ -51,3 +51,9 @@ tags: [todo, development-mentor, module-thinking, html-ppt, presenter-view, voxe
 ## 追加：部署授权
 
 用户已要求直接部署；具体生产证据见实施回执后续段落。三维场景新增双轴旋转、平移、缩放和复位；修复 S02-C 舞台被误绑为按钮导致的拖动回弹。人工试讲仍不代签。
+
+## 部署完成
+
+- [x] 已按既有流程部署 `20260919T1506CST-p132-p133-orbit-r2`（源 `57f372b`），线上真实交互、访问权限、版本与完整 smoke 通过。
+- [x] 旧课件字节保留，P1 r5／P2 r1 新入口已进入 `/course/`。
+- 人工试讲与实体物料审定仍待用户验收，因此保留 `in-progress`，不冒签全部完成。
