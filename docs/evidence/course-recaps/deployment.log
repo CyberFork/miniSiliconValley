@@ -1,0 +1,53 @@
+MINISV_QA_REVIEW_TOKEN_PRESERVED
+{
+  "ok": true,
+  "mode": "sqlite-read-only",
+  "database": "/Users/hecate/Services/msv-classroom/data/v3/d1/miniflare-D1DatabaseObject/faaf2b0445ab934c3aac48ddf0cdfade8f9bac050be98993748742cdd2cb05fb.sqlite",
+  "findings": []
+}
+MINISV_COURSE_REGISTRY_PREFLIGHT_OK
+parent Q&A ready (attempt 1)
+classroom worker ready (attempt 1)
+ Container minisv-gateway  Recreate
+ Container minisv-gateway  Recreated
+ Container minisv-gateway  Starting
+ Container minisv-gateway  Started
+cloudflared preserved (healthy; effective inputs unchanged)
+OK app:/api/auth/session 401
+OK app:/api/internal/course-registry/release 404
+OK /healthz 200
+OK / 200
+OK /world-preview.json 200
+OK /world/ 200
+OK /course/ 307
+OK /studio/ 308
+OK /console/ 307
+OK /terminal/ 307
+OK /homework/first-game/ 200
+OK /homework/first-game/submissions/ 200
+OK /courseware/product-mentor-foundations/ 401
+OK /courseware/development-mentor-ligun/ 401
+OK /courseware/development-mentor-module-thinking/audience/ 401
+OK /courseware/development-mentor-module-thinking/teacher/presenter.html 401
+OK /courseware/market-mentor-user-system/ 401
+OK /framework/ 200
+OK /parents/ 200
+OK /robots.txt 200
+OK /sitemap.xml 200
+OK /api/public/courses 200
+OK /api/public/homework/first-game/submissions 200
+OK /api/qa 200
+OK /internal/knowledge-gaps 404
+OK /workshop/ 307
+OK /workshop/confirmed-baseline.json 307
+OK /workshop/_source/index.html 404
+OK /favicon.svg 200
+OK /this-worldline-does-not-exist 404
+OK /classroom/ 307
+OK /alpha/ 410
+OK /control/ 410
+OK /api/internal/course-registry/release 404
+OK retired-port 18790 closed
+OK retired-port 18791 closed
+MINISV_HECATE_HEALTHY
+MINISV_DEPLOYED release=20260919T1710CST-course-recaps previous=20260919T1617CST-p2-visual-r2 backup=/Users/hecate/Services/minisv/backups/20260919T091426Z-20260919T1710CST-course-recaps app=unified

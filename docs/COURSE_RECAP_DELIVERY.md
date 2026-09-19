@@ -23,4 +23,21 @@
 - `python3 courseware/shared/tests/verify-recap-browser.py`：真实从旧尾页翻入新增回顾，点击/键盘揭示、后退复习、教师/投屏同步、刷新恢复、Pad尺寸触摸。
 - 平台测试222项、部署测试65项、TypeScript/ESLint/应用构建/smoke/T-090 E2E。
 
-部署与线上复验完成后追加证据；人工试讲与学生理解程度未代签。
+人工试讲与学生理解程度未代签。
+
+
+## 部署与线上复验完成
+
+- 发布：`20260919T1710CST-course-recaps`，源提交 `049264fd69feaf90e222bc6779d2d2a77a6b05f9`；Hecate 健康检查及公开冒烟通过。
+- P1 r8 / P2 r3 已进入课程库最新入口，566 个原有课件文件逐字节保留。
+- 线上两版共 84 个文件 hash 与构建一致；匿名、学员、导师访问边界以及历史版本入口通过。
+- 线上真实从旧尾页翻入复习页，三次揭示、键盘后退、刷新恢复、Pad 触摸和教师/投屏同步均通过；无浏览器异常。截图已由开发代理目视检查，无浅底白字或内容截断。
+- 本地 54 页 × 双表面检查、222 项平台测试、65 项部署测试、TypeScript / ESLint / 构建 / smoke / T-090 E2E 均通过。
+- 证据目录：`docs/evidence/course-recaps/`（本地测试、线上截图/报告、访问与哈希、发布日志及 release.json）。
+
+### 导师检查入口
+
+- [P1 第26页：模块怎样合作？](https://minisv.vip/courseware/development-mentor-module-thinking/r8/teacher/presenter.html?slideId=module-review)
+- [P2 第28页：怎样让 AI 做对？](https://minisv.vip/courseware/development-mentor-ligun/r3/teacher/presenter.html?slideId=ligun-review)
+
+使用导师账号登录；点击“揭示 / 继续”分三次回顾，或打开投屏观察同步。每课仍为120分钟。教学效果和现场试讲留给导师确认，没有代签人工 View/UI 验收。

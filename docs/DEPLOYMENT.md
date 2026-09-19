@@ -170,3 +170,8 @@ P1 r7 同样要求 `--module-history-root <r5 dist> --module-history-root <r6 di
 发布 `20260919T1617CST-p2-visual-r2`，代码 `dde4072`。P2 五组可视化嵌入原有 27 页 / 120 分钟，双视图讲稿和真实 A/B/B 演示一致；新增不可变 r2，原 528 个课件文件不改。P1 仍为 r7。
 
 完整构建、权限、浏览器及部署证据见 [T133_VISUAL_TEACHING_RECEIPT.md](T133_VISUAL_TEACHING_RECEIPT.md)。以后发布 P2 新版须携带 `--ligun-history-root`，缺历史包或 digest 不符将阻止发布。人工教学试讲未签署。
+
+
+### 2026-09-19｜P1 / P2 最后一页复习回顾
+
+发布 `20260919T1710CST-course-recaps`，源 `049264f`。P1 r8（26页）/ P2 r3（28页），每课120分钟；566个历史课件文件不变。健康检查、线上84文件哈希、权限、目录最新导航及真实回顾页交互通过。实现与完整证据见 [COURSE_RECAP_DELIVERY.md](COURSE_RECAP_DELIVERY.md)，不替代人工教学验收。

@@ -1,0 +1,56 @@
+{
+  "decks": [
+    {
+      "name": "module-thinking-deck",
+      "slides": 26,
+      "surfaces": 2,
+      "contrast": "PASS",
+      "overflow": "PASS",
+      "sync": "PASS",
+      "buildDigest": "971cc25ef8fba30f6377a2d5caa86841f29bbf8a56f227776bc9ab0909236c17"
+    },
+    {
+      "name": "ligun-deck",
+      "slides": 28,
+      "surfaces": 2,
+      "contrast": "PASS",
+      "overflow": "PASS",
+      "sync": "PASS",
+      "buildDigest": "dba0adb24b45d1942d36a06b9baa97fe833bffd53e0fd9a71f65956c90587396"
+    }
+  ],
+  "screenshots": [
+    "/tmp/msv-recap-broad-evidence/module-thinking-deck-02.png",
+    "/tmp/msv-recap-broad-evidence/module-thinking-deck-04.png",
+    "/tmp/msv-recap-broad-evidence/module-thinking-deck-06.png",
+    "/tmp/msv-recap-broad-evidence/module-thinking-deck-20.png",
+    "/tmp/msv-recap-broad-evidence/module-thinking-deck-25.png",
+    "/tmp/msv-recap-broad-evidence/ligun-deck-04.png",
+    "/tmp/msv-recap-broad-evidence/ligun-deck-06.png",
+    "/tmp/msv-recap-broad-evidence/ligun-deck-11.png",
+    "/tmp/msv-recap-broad-evidence/ligun-deck-18.png",
+    "/tmp/msv-recap-broad-evidence/ligun-deck-23.png",
+    "/tmp/msv-recap-broad-evidence/ligun-deck-27.png"
+  ],
+  "pdfs": [
+    "/tmp/msv-recap-broad-evidence/quick-start.pdf",
+    "/tmp/msv-recap-broad-evidence/module-map.pdf",
+    "/tmp/msv-recap-broad-evidence/interface-card.pdf",
+    "/tmp/msv-recap-broad-evidence/validation-record.pdf"
+  ],
+  "interactions": [
+    "dual-display",
+    "directory",
+    "keyboard",
+    "timer",
+    "refresh",
+    "deck/session isolation",
+    "legacy links",
+    "clipboard + denied fallback",
+    "custom child + download",
+    "print",
+    "game failure + fix + full path",
+    "touch"
+  ],
+  "manualAcceptance": "NOT SIGNED; rehearsal and physical projector remain human review"
+}

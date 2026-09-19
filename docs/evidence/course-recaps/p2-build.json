@@ -1,0 +1,221 @@
+{
+  "schemaVersion": 1,
+  "todoId": "T-133",
+  "changeTodoIds": [
+    "T-089",
+    "T-120",
+    "T-133"
+  ],
+  "coursewareId": "ligun-p2",
+  "releaseRevision": 3,
+  "version": "2026.09.19-p2-r3",
+  "releaseStatus": "deployment-ready",
+  "manualAcceptance": "not-signed-by-user",
+  "sourceXmindSha256": null,
+  "audience": [
+    {
+      "path": "audience/assets/mini-silicon-valley-logo-transparent.png",
+      "sha256": "4dbbe4dea625fd372c6d760f2344fbf62b7b15f0d2d14e490cddd56e05ffbe87",
+      "bytes": 542270
+    },
+    {
+      "path": "audience/deck-data.js",
+      "sha256": "eae3f2859cbc0288ee0970711ff601c3474d90a5732fe2a79a1be4043ee72282",
+      "bytes": 33462
+    },
+    {
+      "path": "audience/deck-runtime.js",
+      "sha256": "aa75e8f3e5c1f1283cb05e9b3ec5040f45ac413672e758e944176abd4b8ffc30",
+      "bytes": 14046
+    },
+    {
+      "path": "audience/deck.css",
+      "sha256": "4d8a501f34341823b8443998b4c0229ef2c700356b54e54f3d90637e9778a205",
+      "bytes": 37507
+    },
+    {
+      "path": "audience/demo/demo.js",
+      "sha256": "e1d3402b87421738bc2d74474fbf74260af3c3bc9333b2b60e32dcceb2171c49",
+      "bytes": 2415
+    },
+    {
+      "path": "audience/demo/game.js",
+      "sha256": "5b46d38fe9af7d8056c7a1184f0e5ec903b865859acd946f82f5203dcbc8cb7e",
+      "bytes": 4193
+    },
+    {
+      "path": "audience/demo/index.html",
+      "sha256": "2b98b17b637dc436ea36fbceca46f97552f38a181ecbd362ee91765598a52837",
+      "bytes": 2505
+    },
+    {
+      "path": "audience/favicon.svg",
+      "sha256": "1f8f0a43980007cbc3000449803ce1503de17155f07ee69d2eea9e76a3d7f1f4",
+      "bytes": 241
+    },
+    {
+      "path": "audience/index.html",
+      "sha256": "6b910af7c5032eefff27959e4aab4827dc87d3480d7f2c690ffdc5d82cfe8ca4",
+      "bytes": 1341
+    },
+    {
+      "path": "audience/lesson-tools.js",
+      "sha256": "6c15edd6b4b5f8c439daeeb465799ce2b92111064a2245466ee202d829b90345",
+      "bytes": 2198
+    },
+    {
+      "path": "audience/p2-visuals.css",
+      "sha256": "01917dd5c5eb342bd06e78b721453784128b69162234eae4d64ffbd1e1caddb7",
+      "bytes": 5180
+    },
+    {
+      "path": "audience/recap.css",
+      "sha256": "0d8ae3d786669069837a7caa05d4bdd774cb120156bc63ce2282c45d9efff1f6",
+      "bytes": 2088
+    },
+    {
+      "path": "audience/templates/alignment-prompt.md",
+      "sha256": "affe21a32a2dfefc4c5ca49c56b18b64ea55f93352bcb1039a5938b40f89e52d",
+      "bytes": 2287
+    },
+    {
+      "path": "audience/templates/campus-clues.md",
+      "sha256": "df37ee0d7fbab761a467a47cd376260ad287868178c8df118a115066a02cf876",
+      "bytes": 1624
+    },
+    {
+      "path": "audience/templates/campus-inventory.md",
+      "sha256": "aad0e2502eda05e6f4247f027e4525f6d25abccd8bfdb910d2860cb5342dae99",
+      "bytes": 1653
+    },
+    {
+      "path": "audience/templates/campus-map.md",
+      "sha256": "7c3173428f5e5c1a11d6827816765625236a083976ceca17509ee78251db8146",
+      "bytes": 1771
+    },
+    {
+      "path": "audience/templates/campus-master.md",
+      "sha256": "b5daba85fdab01dd2e2ffbde13e68583ce3ef73d2ee38d1e775711b0aa57bd27",
+      "bytes": 2371
+    },
+    {
+      "path": "audience/templates/campus-movement.md",
+      "sha256": "5d5d4759297cc60f9e87f91336534572fb750833d7c80d438bf8e2f97125f592",
+      "bytes": 1692
+    },
+    {
+      "path": "audience/templates/campus-obstacles.md",
+      "sha256": "00c8077311fd34a64ce55a64ac14afb692b6a3c0ab02cc579a5fa486c3b18c76",
+      "bytes": 1593
+    },
+    {
+      "path": "audience/templates/campus-outcome.md",
+      "sha256": "bede674b9fd98dde646e5050fa10f438486a5145ddd42a0905873dbce5bc0a4b",
+      "bytes": 1672
+    },
+    {
+      "path": "audience/templates/catalog.json",
+      "sha256": "8b3424719ece2643768f627ff9c56a6d71701ec5ddf236144f3db5127e327102",
+      "bytes": 1533
+    },
+    {
+      "path": "audience/templates/feedback-rework.md",
+      "sha256": "f20908775faa820e2b6dbdab8093c5960716b95e3d1de62fa03e57729ae79572",
+      "bytes": 561
+    },
+    {
+      "path": "audience/templates/master-rod.md",
+      "sha256": "0e2f7f23abdfe7af98a03d580558eecc591f85e1acda2291d78da15306848e66",
+      "bytes": 1390
+    },
+    {
+      "path": "audience/templates/sub-rod.md",
+      "sha256": "b619eeca6ceb77f6a1ee14951cf5608bcd16e387460bdadb1c5028a8920c168a",
+      "bytes": 1197
+    },
+    {
+      "path": "audience/templates/templates.zip",
+      "sha256": "2bbe96acaf760d2df048d278ecb54bd1bb90fe3d5a1667a127ecc9c21b39dc71",
+      "bytes": 12709
+    },
+    {
+      "path": "audience/workbook/catalog.js",
+      "sha256": "5eaac883ec9f34d64c06de6ec0f9777391bc3b1622ea8b29932d7ba455e877cc",
+      "bytes": 19431
+    },
+    {
+      "path": "audience/workbook/index.html",
+      "sha256": "9c3b94541303b69b9f94ba4984a14a50eb89ef291a367ba263c0ee79a2de34d1",
+      "bytes": 1791
+    },
+    {
+      "path": "audience/workbook/workbook.css",
+      "sha256": "b13ba68d0294125c809cad227620afe0309a825374bfea6ee852d0e0633e3602",
+      "bytes": 1799
+    },
+    {
+      "path": "audience/workbook/workbook.js",
+      "sha256": "20c0620d37623672bd3ceb8aab0588febc0c0c196e77b36e4d207c35185a09bb",
+      "bytes": 3026
+    }
+  ],
+  "teacher": [
+    {
+      "path": "teacher/assets/mini-silicon-valley-logo-transparent.png",
+      "sha256": "4dbbe4dea625fd372c6d760f2344fbf62b7b15f0d2d14e490cddd56e05ffbe87",
+      "bytes": 542270
+    },
+    {
+      "path": "teacher/deck-data.js",
+      "sha256": "eae3f2859cbc0288ee0970711ff601c3474d90a5732fe2a79a1be4043ee72282",
+      "bytes": 33462
+    },
+    {
+      "path": "teacher/deck.css",
+      "sha256": "4d8a501f34341823b8443998b4c0229ef2c700356b54e54f3d90637e9778a205",
+      "bytes": 37507
+    },
+    {
+      "path": "teacher/favicon.svg",
+      "sha256": "1f8f0a43980007cbc3000449803ce1503de17155f07ee69d2eea9e76a3d7f1f4",
+      "bytes": 241
+    },
+    {
+      "path": "teacher/lesson-tools.js",
+      "sha256": "6c15edd6b4b5f8c439daeeb465799ce2b92111064a2245466ee202d829b90345",
+      "bytes": 2198
+    },
+    {
+      "path": "teacher/p2-visuals.css",
+      "sha256": "01917dd5c5eb342bd06e78b721453784128b69162234eae4d64ffbd1e1caddb7",
+      "bytes": 5180
+    },
+    {
+      "path": "teacher/presenter-notes.js",
+      "sha256": "92c6f856ba2bf73bd308402a93ba305e207d307b4197290a0961605e1ae1c994",
+      "bytes": 28584
+    },
+    {
+      "path": "teacher/presenter-runtime.js",
+      "sha256": "c491fa8d931cb7d38479b411ac77a9502788d6fe9babcdfcaa899eed8f880f7e",
+      "bytes": 17511
+    },
+    {
+      "path": "teacher/presenter.css",
+      "sha256": "3dcee98b03b35a1eec9ff99d74ad79f053a1a753cb5028ef4fec935c10d0fab0",
+      "bytes": 6031
+    },
+    {
+      "path": "teacher/presenter.html",
+      "sha256": "a60eb78bbd5dac69200bdcb5f1ea37a52baf3d9f583bf74248f79596bae7b001",
+      "bytes": 3984
+    },
+    {
+      "path": "teacher/recap.css",
+      "sha256": "0d8ae3d786669069837a7caa05d4bdd774cb120156bc63ce2282c45d9efff1f6",
+      "bytes": 2088
+    }
+  ],
+  "securityBoundary": "audience 不含教师提示；teacher 必须沿用服务端导师权限保护。以新 revision URL 部署，不覆盖历史版本；人工试讲未签署。",
+  "digest": "dba0adb24b45d1942d36a06b9baa97fe833bffd53e0fd9a71f65956c90587396"
+}

@@ -210,3 +210,5 @@ tags: [todo, development-mentor, html-ppt, ligun, prompting, module-thinking, pr
 - 从原收束环节调配 2 分钟，不增加总课时，仍为 120 分钟。
 - 以新 r3 发布，不覆盖已发布历史版本。实现与发布证据见 `docs/COURSE_RECAP_DELIVERY.md`。
 - 人工试讲和学生掌握情况不由自动化代签。
+
+- [x] 复习回顾已部署：`20260919T1710CST-course-recaps`（源 `049264f`），r3 末页 `ligun-review`；线上点击/键盘/触摸/双视图同步、权限和84文件哈希复验通过。保留所有历史课件，人工试讲不代签。
