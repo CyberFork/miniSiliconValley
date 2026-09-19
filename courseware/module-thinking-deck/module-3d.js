@@ -354,7 +354,7 @@ function createAutomationLab(host) {
 
 function createVoxelForge(host) {
   const common = createCommonScene(host, [8.4, 5.4, 10.5]);
-  common.camera.fov = 25;
+  common.camera.fov = 40; // Fit separated wheels/seats too, not just the assembled car.
   common.camera.updateProjectionMatrix();
   const root = new THREE.Group();
   root.scale.setScalar(1.45);
@@ -445,6 +445,22 @@ function createVoxelForge(host) {
         scale: [1, 1, 1],
       }, first);
     }
+    // Record default framing from actual geometry, so content checks catch clipped models.
+    common.camera.updateMatrixWorld();
+    root.updateMatrixWorld(true);
+    const framing = { min: [Infinity, Infinity], max: [-Infinity, -Infinity] };
+    for (const piece of pieces) {
+      if (!design[piece.userData.materialKey][piece.userData.materialIndex]) continue;
+      for (const x of [-1, 1]) for (const y of [-1, 1]) for (const z of [-1, 1]) {
+        const corner = piece.userData.targetPosition.clone().add(new THREE.Vector3(x, y, z).multiplyScalar(VOXEL_EDGE / 2));
+        root.localToWorld(corner).project(common.camera);
+        for (const [axis, value] of [corner.x, corner.y].entries()) {
+          framing.min[axis] = Math.min(framing.min[axis], value);
+          framing.max[axis] = Math.max(framing.max[axis], value);
+        }
+      }
+    }
+    host.dataset.voxelFraming = JSON.stringify(framing);
     first = false;
   };
   setMode(host.getAttribute("data-module-3d-mode") || "car:blocks");

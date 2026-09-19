@@ -212,7 +212,7 @@ class GatewayContractTests(unittest.TestCase):
         self.assertEqual(portal_version.group(1), proxy_version.group(1), "静态页与 Classroom 必须命中同一套 UI runtime")
 
     def test_120_minute_decks_protect_all_teacher_assets_at_new_revision_paths(self) -> None:
-        for path in ("development-mentor-module-thinking/r5", "development-mentor-module-thinking/r6", "development-mentor-ligun/r1"):
+        for path in ("development-mentor-module-thinking/r5", "development-mentor-module-thinking/r6", "development-mentor-module-thinking/r7", "development-mentor-ligun/r1"):
             pattern = re.escape(f"location ^~ /courseware/{path}/teacher/ {{") + r"(.*?)\n    \}"
             route = re.search(pattern, self.gateway, re.DOTALL)
             self.assertIsNotNone(route)

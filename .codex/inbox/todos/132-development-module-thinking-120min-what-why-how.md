@@ -29,13 +29,13 @@ tags: [todo, development-mentor, module-thinking, html-ppt, presenter-view, voxe
 
 ## 实施位置
 
-完整开发在 `codex/t132-t133-120min` 独立最新工作区；稳定可运行源码和证据副本在项目 `cowork/课件/development-courseware/p1-p2-120min-review-20260919/`。旧 `dev` 仅同步本单与文档，不把旧工程当成最新代码。
+完整开发在 `codex/t132-t133-120min` 独立最新工作区；稳定可运行源码和证据副本在项目 `cowork/课件/development-courseware/p1-module-thinking-r6-20260919/`。旧 `dev` 仅同步本单与文档，不把旧工程当成最新代码。
 
 - `courseware/module-thinking-deck/`：25 页内容、完整教师提示、三景、计时、目录、材料。
 - `courseware/module-thinking-deck/source/content-map.md`：旧页映射及逐页教师脚本。
 - `courseware/module-thinking-deck/printables/`：四份内容初稿和下载入口。
 - `courseware/shared/`：P1／P2 共用构建与回归测试。
-- 版本：`2026.09.19-p1-r6`，**deployment-ready，新增 r5，不覆盖历史 r4**。
+- 当前版本：`2026.09.19-p1-r7`，**已部署 registry r6，不覆盖历史 r5/r4**。
 
 ## 交付检查
 
@@ -65,6 +65,8 @@ tags: [todo, development-mentor, module-thinking, html-ppt, presenter-view, voxe
 - [x] S03/S05/S04/S14 可交互复用前面 Three.js 模型，讲稿与六字段例子同步。
 - [x] 保留原 25 页／120 分钟、核心案例与个人实践，不修改 P2 r1。
 - [x] 几何、双视图、真实点击拖动、双屏同步及原始相机手势回归。
-- [ ] P1 r6 生产发布与在线复验（完成后附证据）。
+- [x] P1 r6 生产发布与在线复验：`20260919T1537CST-p1-voxel-reuse-r6`，源提交 `3a90216`；权限、哈希、模型操作与投屏同步通过。
 
 详情：[P1 r6 实施回执](../../../../docs/P1_R6_VOXEL_REUSE_RECEIPT.md)。本单仍不代签现场试讲与人工验收。
+
+- [x] 补充默认取景修正：模型相机投影边界检查 18 个场景通过，避免仅检查 HTML 而漏掉画布内部裁切。以新 r7 发布，不覆盖 r6。

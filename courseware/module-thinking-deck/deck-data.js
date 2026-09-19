@@ -2,7 +2,7 @@
   "use strict";
   window.MSV_MODULE_DECK = Object.freeze({
   "id": "module-thinking-p1",
-  "version": "2026.09.19-p1-r7",
+  "version": "2026.09.19-p1-r8",
   "legacySlideIds": [
     "module-s01",
     "module-s02",

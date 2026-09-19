@@ -1,6 +1,6 @@
 # 模块思维 P1｜HTML-PPT 与教师视图
 
-T-122 建立的双视图课件，已由 T-132 重排为 `2026.09.19-p1-r7` 120 分钟版：保留原 18 页 ID，扩展为 25 张 16:9 投屏页面、120 分钟。S02 用三页递进讲清“预制组件重组 → 用基础零件创造组件 → 用材料方块塑形组件并组合对象”，并加入本地自托管的 Three.js 三维课堂示意。
+T-122 建立的双视图课件，已由 T-132 重排为 `2026.09.19-p1-r8` 120 分钟版：保留原 18 页 ID，扩展为 25 张 16:9 投屏页面、120 分钟。S02 用三页递进讲清“预制组件重组 → 用基础零件创造组件 → 用材料方块塑形组件并组合对象”，并加入本地自托管的 Three.js 三维课堂示意。
 
 ## 入口
 
@@ -81,7 +81,7 @@ dist/BUILD-MANIFEST.json
 
 ## 发布状态
 
-本交付已部署到生产 P1 r5，教师 bundle 受服务端导师权限保护；Courseware Library 指向新不可变版本，原 P1 r4 及 P／D／M 历史产物不覆盖。
+本交付已部署到生产 P1 r6，教师 bundle 受服务端导师权限保护；Courseware Library 指向新不可变版本，原 P1 r5/r4 及 P／D／M 历史产物不覆盖。
 
 完整使用方式、P2 衔接与发布边界见 [共同说明](../shared/README.md)。
 
@@ -102,3 +102,5 @@ dist/BUILD-MANIFEST.json
 S02-C 方块边长减半、数量 8 倍，整体尺寸不变。S03/S05/S04/S14 重用同一组三维模型讲输入输出、层级、复用和接回验证；六句描述与教师讲稿同步。保留 25 页与 120 分钟。P2 r1 不变。
 
 新增验证：`node courseware/module-thinking-deck/tests/verify-voxel.mjs`、`python3 courseware/module-thinking-deck/tests/verify-reuse.py`。部署记录见 `docs/P1_R6_VOXEL_REUSE_RECEIPT.md`。
+
+当前教师入口：https://minisv.vip/courseware/development-mentor-module-thinking/r6/teacher/presenter.html

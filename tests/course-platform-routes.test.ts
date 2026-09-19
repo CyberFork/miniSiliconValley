@@ -62,11 +62,11 @@ test("T-122 publishes a second D-mentor deck without replacing the classroom def
   assert.match(runtime, /DEVELOPMENT_MODULE_THINKING_R2_CONTENT_TREE/);
   assert.match(runtime, /DEVELOPMENT_MODULE_THINKING_R3_CONTENT_TREE/);
   assert.match(runtime, /DEVELOPMENT_MODULE_THINKING_R4_CONTENT_TREE/);
-  assert.match(runtime, /revision: 4,[\s\S]*?isCurrent: false,[\s\S]*?revision: 6,[\s\S]*?isCurrent: true,[\s\S]*?entryPath: "\/courseware\/development-mentor-module-thinking\/r6\/audience\/"/);
+  assert.match(runtime, /revision: 4,[\s\S]*?isCurrent: false,[\s\S]*?revision: 7,[\s\S]*?isCurrent: true,[\s\S]*?entryPath: "\/courseware\/development-mentor-module-thinking\/r7\/audience\/"/);
   assert.match(runtime, /entryPath: "\/courseware\/development-mentor-module-thinking\/audience\/"/);
   assert.match(runtime, /D: "development-mentor-ligun"/);
   assert.match(studio, /coursewarePresenterSurface/);
-  assert.match(navigation, /development-mentor-module-thinking\/r6\/teacher\/presenter\.html/);
+  assert.match(navigation, /development-mentor-module-thinking\/r7\/teacher\/presenter\.html/);
   assert.match(library, /canManage \? coursewarePresenterSurface/);
   assert.match(access, /\["admin", "mentor"\]/);
   assert.doesNotMatch(access, /\["admin", "mentor", "learner"\]/);

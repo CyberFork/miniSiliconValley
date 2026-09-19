@@ -157,3 +157,7 @@ $HOME/Services/minisv/current/ops/scripts/rollback-hecate.sh <KNOWN_GOOD_UNIFIED
 `package_release.py` 新增可重复的 `--module-history-root`。P1 r6 构建除原 `--module-previous-root <已验证 r4 dist>` 外，必须提供 `--module-history-root <已发布 r5 dist>`；r5 内容 identity 固定验证，缺项/重复/篡改均阻止打包。保留 r4 根入口及 r5 版本入口，只将当前登记指针推进到新 r6。P2 r1 本轮内容完全不变。
 
 本次实现和发布复验见 `docs/P1_R6_VOXEL_REUSE_RECEIPT.md`，不要用旧 r5 的发布回执冒充 r6。
+
+P1 r6 已部署 `20260919T1537CST-p1-voxel-reuse-r6`（source `3a90216b7e16627565c6b6a99003558404b31546`）：健康检查、全站公开冒烟、真实线上交互与权限复验通过；444 个历史课件文件逐文件不变。
+
+P1 r7 同样要求 `--module-history-root <r5 dist> --module-history-root <r6 dist>`，两版均按已发布内容摘要验证，防止新发布丢失历史链接。

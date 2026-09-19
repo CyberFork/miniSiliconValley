@@ -27,7 +27,7 @@ if (!gateway.includes("auth_request /_minisv_mentor_courseware_auth")) {
 if (!packager.includes("validate_module_thinking_courseware")) {
   throw new Error("T-128 bundle is not part of release assembly validation");
 }
-for (const [name,constant,route] of [["module-thinking-deck","DEVELOPMENT_MODULE_THINKING_R6_CONTENT_TREE","development-mentor-module-thinking/r6"],["ligun-deck","DEVELOPMENT_LIGUN_R1_CONTENT_TREE","development-mentor-ligun/r1"]]) {
+for (const [name,constant,route] of [["module-thinking-deck","DEVELOPMENT_MODULE_THINKING_R7_CONTENT_TREE","development-mentor-module-thinking/r7"],["ligun-deck","DEVELOPMENT_LIGUN_R1_CONTENT_TREE","development-mentor-ligun/r1"]]) {
   const build = JSON.parse(await readFile(join(repoRoot, "courseware", name, "dist/BUILD-MANIFEST.json"), "utf8"));
   const smoke = await readFile(join(repoRoot, "deploy/minisv/scripts/public-smoke.py"), "utf8");
   if (!smoke.includes(build.digest)) throw new Error("Public smoke pins an obsolete build: " + name);

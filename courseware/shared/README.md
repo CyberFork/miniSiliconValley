@@ -1,6 +1,6 @@
 # 开发导师 120 分钟双课件
 
-T-132／T-133 已部署：`20260919T1506CST-p132-p133-orbit-r2`。新增 P1 r5、P2 r1，保留原 P1 r4 与立棍 r0；不代签 View/UI 或现场试讲。
+当前部署：`20260919T1537CST-p1-voxel-reuse-r6`。P1 已补充细颗粒方块与贯穿案例，最新 r6；P2 r1 未改。保留 P1 r5/r4 与立棍 r0；不代签 View/UI 或现场试讲。
 
 ## 预览
 
@@ -47,7 +47,7 @@ npm run lint
 
 ## 线上发布
 
-- P1 教师：https://minisv.vip/courseware/development-mentor-module-thinking/r5/teacher/presenter.html
+- P1 教师：https://minisv.vip/courseware/development-mentor-module-thinking/r6/teacher/presenter.html
 - P2 教师：https://minisv.vip/courseware/development-mentor-ligun/r1/teacher/presenter.html
 - 用教师账号从 `/course/` 也可进入；两端都有“打开投屏窗口”。
 - `BUILD-MANIFEST.json` 标记 `deployment-ready`，不代表试讲签名；发布使用不可变新版本 URL、字节哈希及服务端教师权限。详见 `docs/T132_T133_IMPLEMENTATION_RECEIPT.md` 与 `docs/DEPLOYMENT.md`。
@@ -55,3 +55,5 @@ npm run lint
 ## 人工检查
 
 现场导师需试讲两个独立 120 分钟课，检查六年级学生理解、40 分钟个人实践容量、实际投影及自选 AI 工具。四张 A4 仅内容初稿，由同事制作最终实体物料。这些不由自动化代签。
+
+P1 r6 补充验收：`python3 courseware/module-thinking-deck/tests/verify-reuse.py`；细化与发布记录见 `docs/P1_R6_VOXEL_REUSE_RECEIPT.md`。

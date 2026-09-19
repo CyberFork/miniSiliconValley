@@ -33,4 +33,25 @@
 
 ## 生产发布
 
-待本次发布完成后追加真实 release、source SHA、在线复验结果；此处不是发布成功声明。
+已部署并在线复验：
+
+- Release：`20260919T1537CST-p1-voxel-reuse-r6`。
+- Source commit：`3a90216b7e16627565c6b6a99003558404b31546`。
+- Hecate 标准构建→备份→原子切换→健康检查流程完成，`MINISV_DEPLOYED` / `MINISV_HECATE_HEALTHY`。
+- 旧课件 444 个文件逐文件 SHA256 不变，包括 P1 r5/r4、P2 r1/r0、P/M 历史课件。
+- 线上匿名 401；学员可看 audience、teacher 403；导师可看双视图。新几何文件/CSS/讲稿等内容哈希与构建一致，`/course/` 指向 P1 r6、P2 r1。
+- 线上 8 个复用视图和 4 次教师→投屏模式切换通过；三组场景 × 双视图真实上下左右拖动、滚轮、键盘、双指缩放/平移、复位、缩放边界通过。
+- 原课堂、作业及钱包未用于测试数据写入，未签发人工 View/UI 验收。
+- 证据：`docs/evidence/p1-r6/{local-browser,local-reuse,local-orbit,live-access,live-reuse,live-orbit}.json`。
+
+教师直达：<https://minisv.vip/courseware/development-mentor-module-thinking/r6/teacher/presenter.html?slideId=module-s02-voxel>。
+旧 r5 链接保持旧版；使用新入口或从 `/course/` 打开当前课件。
+
+本地私有源码快照：`cowork/课件/development-courseware/p1-module-thinking-r6-20260919/`（含校验清单及同名 zip，不可整包公开）。
+
+
+## r7 后续：完整默认取景
+
+r6 线上目视复核发现拆开小车后局部超出 Three.js 画布，HTML 溢出检查无法识别画布内部裁切。因此将默认视场角调整为 40°（不改模型世界尺寸），并增加 `verify-framing.py`：根据实际方块坐标投影到相机空间，验证 S02-C 两案例三层级、S05 三层级在双视图中均完整入镜，共 18 个场景。
+
+该修正使用全新 P1 r7，内容版本 `2026.09.19-p1-r8`，digest `dc678fb345cf938004f223e8a8c9f2faaf636fd481fa675ad3ea219199b70457`；不覆盖已发布 r6。P2 r1 继续保持原字节。r7 生产回执待发布后追加。
