@@ -11,7 +11,7 @@ export async function buildDeck(name){
  const p1=name==='module-thinking-deck';const box={window:{}};vm.createContext(box);vm.runInContext(await readFile(join(root,'deck-data.js'),'utf8'),box);const model=box.window.MSV_MODULE_DECK;
  await writeTeachingPlan(root,model);
  await rm(dist,{recursive:true,force:true});
- const local=['deck-data.js'];const engineFiles=['deck-runtime.js','deck.css','presenter-runtime.js','presenter.css','lesson-tools.js','favicon.svg'];
+ const local=p1?['deck-data.js']:['deck-data.js','p2-visuals.css'];const engineFiles=['deck-runtime.js','deck.css','presenter-runtime.js','presenter.css','lesson-tools.js','favicon.svg'];
  for(const surface of ['audience','teacher']){
   const target=join(dist,surface);await mkdir(target,{recursive:true});
   for(const file of local)await cp(join(root,file),join(target,file));
@@ -34,7 +34,7 @@ export async function buildDeck(name){
  zip(materials,join(materials,p1?'materials.zip':'templates.zip'));
  async function list(dir){let out=[];for(const entry of (await readdir(dir,{withFileTypes:true})).sort((a,b)=>a.name.localeCompare(b.name))){const p=join(dir,entry.name);out.push(...(entry.isDirectory()?await list(p):[p]));}return out;}
  async function records(surface){return Promise.all((await list(join(dist,surface))).map(async path=>{const buf=await readFile(path);return {path:relative(dist,path),sha256:createHash('sha256').update(buf).digest('hex'),bytes:buf.length};}));}
- const manifest={schemaVersion:1,todoId:p1?'T-132':'T-133',changeTodoIds:p1?['T-122','T-128','T-130','T-132']:['T-089','T-120','T-133'],coursewareId:model.id,releaseRevision:p1?7:1,version:model.version,releaseStatus:'deployment-ready',manualAcceptance:'not-signed-by-user',sourceXmindSha256:model.sourceHash||null,audience:await records('audience'),teacher:await records('teacher'),securityBoundary:'audience 不含教师提示；teacher 必须沿用服务端导师权限保护。以新 revision URL 部署，不覆盖历史版本；人工试讲未签署。'};
+ const manifest={schemaVersion:1,todoId:p1?'T-132':'T-133',changeTodoIds:p1?['T-122','T-128','T-130','T-132']:['T-089','T-120','T-133'],coursewareId:model.id,releaseRevision:p1?7:2,version:model.version,releaseStatus:'deployment-ready',manualAcceptance:'not-signed-by-user',sourceXmindSha256:model.sourceHash||null,audience:await records('audience'),teacher:await records('teacher'),securityBoundary:'audience 不含教师提示；teacher 必须沿用服务端导师权限保护。以新 revision URL 部署，不覆盖历史版本；人工试讲未签署。'};
  manifest.digest=createHash('sha256').update([...manifest.audience,...manifest.teacher].map(i=>i.path+'\0'+i.sha256+'\n').join('')).digest('hex');
  await writeFile(join(dist,'BUILD-MANIFEST.json'),JSON.stringify(manifest,null,2)+'\n');
  zip(join(dist,'audience'),join(dist,'audience-offline.zip'));zip(join(dist,'teacher'),join(dist,'teacher-private.zip'));

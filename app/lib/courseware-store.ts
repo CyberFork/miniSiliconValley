@@ -68,6 +68,7 @@ const DEVELOPMENT_MODULE_THINKING_R5_CONTENT_TREE = "84ab82bcba6a34aab72284b3fc4
 const DEVELOPMENT_MODULE_THINKING_R6_CONTENT_TREE = "4d78573094e87726c45e8e8ffe13572a34ea19b042d5d7206c174b8ea0992b72";
 const DEVELOPMENT_MODULE_THINKING_R7_CONTENT_TREE = "dc678fb345cf938004f223e8a8c9f2faaf636fd481fa675ad3ea219199b70457";
 const DEVELOPMENT_LIGUN_R1_CONTENT_TREE = "6b48d7d9fac75f88180bc00c8caf2f8c2a533d611580493eb538e3eef73ad1d9";
+const DEVELOPMENT_LIGUN_R2_CONTENT_TREE = "2427551404eccf63e594b2a28654d5d06e76e0c6d6fec95b5f612cb69d954446";
 const MARKET_USER_SYSTEM_CONTENT_TREE = "48b01a256bd3d408a5d539f798470e6aad0058a19dcdeb8b5d212b0e64add862";
 const BUNDLED_VERSIONS = [
   {
@@ -233,10 +234,23 @@ const BUNDLED_VERSIONS = [
     role: "D" as const,
     revision: 1,
     releasedAt: "2026-09-19T07:00:00Z",
-    isCurrent: true,
+    isCurrent: false,
     kind: "static-bundle" as const,
     entryPath: "/courseware/development-mentor-ligun/r1/audience/",
     sourceIdentity: `t133:sha256:${DEVELOPMENT_LIGUN_R1_CONTENT_TREE}`,
+    html: null,
+  },
+  {
+    id: "cw-development-mentor-ligun",
+    slug: "development-mentor-ligun",
+    title: "开发导师｜先立棍，再让 AI 跑",
+    role: "D" as const,
+    revision: 2,
+    releasedAt: "2026-09-19T08:30:00Z",
+    isCurrent: true,
+    kind: "static-bundle" as const,
+    entryPath: "/courseware/development-mentor-ligun/r2/audience/",
+    sourceIdentity: `t133:sha256:${DEVELOPMENT_LIGUN_R2_CONTENT_TREE}`,
     html: null,
   },
   {

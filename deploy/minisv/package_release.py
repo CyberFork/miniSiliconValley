@@ -558,6 +558,24 @@ def validate_module_history(roots: list[Path], current_revision: int) -> dict[in
     return history
 
 
+LIGUN_HISTORY_DIGESTS = {1: "6b48d7d9fac75f88180bc00c8caf2f8c2a533d611580493eb538e3eef73ad1d9"}
+
+
+def validate_ligun_history(roots: list[Path], current_revision: int) -> dict[int, Path]:
+    history = {}
+    for root in roots:
+        artifact = validate_module_thinking_courseware(root, courseware_id="ligun-p2")
+        revision = artifact["revision"]
+        if revision in history:
+            raise ValueError("duplicate historical P2 revision")
+        if artifact["sha256"] != LIGUN_HISTORY_DIGESTS.get(revision):
+            raise ValueError("historical P2 identity mismatch")
+        history[revision] = root
+    if set(history) != set(range(1, current_revision)):
+        raise ValueError("missing or unexpected historical P2 revision")
+    return history
+
+
 def build(
     legacy: Path,
     app_client: Path,
@@ -574,6 +592,7 @@ def build(
     module_previous_root: Path | None = None,
     module_history_roots: list[Path] | None = None,
     ligun_root: Path | None = None,
+    ligun_history_roots: list[Path] | None = None,
     chj_sha: str = CHJ_COURSE_UI_SHA,
     chj_tree: str = CHJ_COURSE_UI_TREE,
     workshop_snapshot: Path | None = None,
@@ -598,6 +617,7 @@ def build(
         if previous["revision"] != 4 or previous["sha256"] != "5d0e6d1dd92c10c99ad4767d33d92ef1039733996f9ec909d5a0910572787644":
             raise ValueError("historical P1 r4 baseline identity mismatch")
     module_history = validate_module_history(module_history_roots or [], module_thinking["revision"])
+    ligun_history = validate_ligun_history(ligun_history_roots or [], ligun["revision"] if ligun else 1)
     incubator_projects = validate_incubator_projects(INCUBATOR_PROJECTS_SOURCE)
     module_audience_digest = tree_digest(module_thinking_courseware / "audience")
     module_teacher_digest = tree_digest(module_thinking_courseware / "teacher")
@@ -736,6 +756,12 @@ def build(
     if tree_digest(module_output / "teacher") != module_teacher_digest:
         raise ValueError("T-122 teacher bundle changed during release assembly")
 
+    for revision, history_root in ligun_history.items():
+        for split in ("audience", "teacher"):
+            destination = development_courseware_output / f"r{revision}" / split
+            copy_entry(history_root / split, destination)
+            if tree_digest(history_root / split) != tree_digest(destination):
+                raise ValueError("historical P2 revision changed during assembly")
     if ligun:
         ligun_output = development_courseware_output / f"r{ligun['revision']}"
         if ligun_output.exists():
@@ -935,6 +961,7 @@ def main() -> None:
     parser.add_argument("--module-thinking-root", required=True, type=Path, help="verified T-122 dist root containing audience and teacher bundles")
     parser.add_argument("--module-previous-root", type=Path, help="verified immutable P1 r4 build")
     parser.add_argument("--module-history-root", action="append", type=Path, default=[], help="verified immutable P1 r5+ builds; supply each historical revision")
+    parser.add_argument("--ligun-history-root", type=Path, action="append", default=[], help="immutable previously published P2 split build")
     parser.add_argument("--ligun-root", type=Path, help="verified P2 split build")
     parser.add_argument("--portal-root", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
@@ -956,6 +983,7 @@ def main() -> None:
         module_previous_root=args.module_previous_root,
         module_history_roots=args.module_history_root,
         ligun_root=args.ligun_root,
+        ligun_history_roots=args.ligun_history_root,
         chj_sha=args.chj_sha,
         chj_tree=args.chj_tree,
         workshop_snapshot=args.workshop_snapshot,

@@ -3,7 +3,9 @@ export function createGame({broken=false}={}){
  let position={...MAP.start},ids=[],message='从入口出发，寻找 A、B、C 三条不同线索。';
  const same=(a,b)=>a.x===b.x&&a.y===b.y;
  function canEnter(p){if(!Number.isInteger(p?.x)||!Number.isInteger(p?.y))return {ok:false,reason:'坐标无效'};if(p.x<0||p.y<0||p.x>=MAP.width||p.y>=MAP.height)return {ok:false,reason:'不能走出地图'};if(MAP.walls.some(wall=>same(wall,p)))return {ok:false,reason:'前面是墙'};return {ok:true,reason:'可以通过'};}
- function outcome(){const enough=broken?ids.length>=3:['A','B','C'].every(id=>ids.includes(id));return {won:same(position,MAP.exit)&&enough,reason:!same(position,MAP.exit)?'还没到出口':enough?'集齐线索，到达出口！':'线索还不够，请继续探索'};}
+ // Both versions use the SAME outcome rule. The bag contract promises only
+ // distinct valid A/B/C IDs; the broken collect() violates that contract.
+ function outcome(){const enough=ids.length>=3;return {won:same(position,MAP.exit)&&enough,reason:!same(position,MAP.exit)?'还没到出口':enough?'集齐线索，到达出口！':'线索还不够，请继续探索'};}
  function bagResult(ok){return {ok,reason:message,collectedIds:[...ids],count:ids.length};}
  function collect(id){if(!['A','B','C'].includes(id)){message='线索编号无效，背包未改变';return bagResult(false);}if(!broken&&ids.includes(id)){message='已经拥有 '+id+'，不能重复算';return bagResult(false);}ids.push(id);message='收下线索 '+id;return bagResult(true);}
  function move(direction){const delta={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]}[direction];if(!delta)return {ok:false,position:{...position},reason:'方向无效'};const next={x:position.x+delta[0],y:position.y+delta[1]};const check=canEnter(next);if(!check.ok){message=check.reason;return {...check,position:{...position}};}position=next;message='现在位置 '+position.x+','+position.y;const clue=MAP.clues.find(c=>same(c,position));if(clue)collect(clue.id);if(same(position,MAP.exit))message=outcome().reason;return {ok:true,position:{...position},reason:message};}
@@ -20,4 +22,20 @@ export function runChecks(broken){
  g.reset();['right','right','right','right','down','down','down','down','down','left','right','right'].forEach(d=>g.move(d));results.push({name:'完整路径：集齐 A/B/C 并到出口获胜',pass:g.snapshot().won});
  g.reset();results.push({name:'重置后位置、背包、胜利状态清空',pass:g.snapshot().position.x===0&&g.snapshot().count===0&&!g.snapshot().won});
  return results;
+}
+
+// Run the exact slide counterexample against BOTH implementations from a clean
+// initial state. This isolated replay never mutates the student's playable map.
+export function compareRepeatedClue() {
+ return [true,false].map(broken=>{
+  const game=createGame({broken});
+  ['A','B','B'].forEach(id=>game.collect(id));
+  const bag=game.snapshot();
+  // Down then right reaches the exit without touching the missing C at (3,5).
+  // Use row 4 before approaching the exit from above.
+  for(let i=0;i<4;i++)game.move('down');
+  for(let i=0;i<5;i++)game.move('right');
+  game.move('down');
+  return {version:broken?'首版':'修正版',input:['A','B','B'],ids:bag.collectedIds,count:bag.count,wonAtExit:game.snapshot().won};
+ });
 }

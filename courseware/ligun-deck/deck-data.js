@@ -2,7 +2,7 @@
   "use strict";
   window.MSV_MODULE_DECK = Object.freeze({
   "id": "ligun-p2",
-  "version": "2026.09.19-p2-r1",
+  "version": "2026.09.19-p2-r2",
   "title": "立棍｜把我的游戏交给 AI，一步步做对",
   "footer": "立棍 · 说清楚，做一轮，再验证",
   "slides": [
@@ -78,10 +78,10 @@
       "phase": "02 · 六项与校园寻宝",
       "section": "六项与校园寻宝",
       "minutes": 2,
-      "title": "完整愿景，不等于一口气做完",
-      "subtitle": "把想做的写完整，再圈出本轮优先实现范围。",
+      "title": "主棍：整款游戏的一张总说明",
+      "subtitle": "先看完整愿景，再圈出本轮范围；共同规则不会因为分工而消失。",
       "theme": "paper",
-      "content": "<div class=\"lesson-grid cols-2\"><article><h3>完整游戏</h3><p>有地图、移动、线索、背包、障碍、胜负。</p></article><article><h3>本轮先跑通</h3><p>在小地图上移动，取得一条线索并放入背包。</p></article><article><h3>后续再完善</h3><p>更完整的关卡、更多线索、胜负提示逐步接入。</p></article><article><h3>保留而不偷做</h3><p>未来模块仍有子棍；本轮未选中的不擅自实现。</p></article></div><div class=\"lesson-banner\" data-reveal><b>记住这一句</b><span>先跑通一条玩家路径，不是先堆出很多互不相连的页面。</span></div>"
+      "content": "<div class=\"p2-visual\" data-p2-visual=\"master\"><div class=\"p2-six\"><article data-field=\"执行者\"><h3><i>1</i>执行者</h3><p>AI 制作与检查<br>学生确认玩法和结果</p></article><article data-field=\"上下文与项目设计\"><h3><i>2</i>上下文与项目设计</h3><p><b>完整游戏：</b>虚构校园寻宝<br>六个模块一起配合</p></article><article data-field=\"目标\"><h3><i>3</i>目标</h3><p><b>最终：</b>集齐 A、B、C，到出口才能赢<br><mark>本轮：</mark>小地图避墙，收下一条线索</p></article><article data-field=\"约束\" data-reveal><h3><i>4</i>约束</h3><p><em>全员继承</em>坐标 x、y；编号 A／B／C<br>背包只保存不同编号</p></article><article data-field=\"避免\" data-reveal><h3><i>5</i>避免</h3><p>不收真实身份、位置<br>不把“捡三次”当“不同三条”</p></article><article data-field=\"验收\" data-reveal><h3><i>6</i>验收</h3><p>本轮：拿到 A，背包为 1<br>完整：三条不同＋出口才赢</p></article></div><div class=\"p2-strip\"><b>完整愿景 ≠ 本轮全做完</b><span>其他模块仍保留子棍，按依赖逐步接入。</span></div></div>"
     },
     {
       "id": "ligun-08",
@@ -122,10 +122,10 @@
       "phase": "02 · 六项与校园寻宝",
       "section": "六项与校园寻宝",
       "minutes": 3,
-      "title": "每个模块，都是主棍下的一根子棍",
-      "subtitle": "子棍也写六项，只把范围缩到自己负责的事。",
+      "title": "一根主棍，分出六份清楚的责任",
+      "subtitle": "虚线表示“分工与继承”，不是六个模块的执行顺序。",
       "theme": "paper",
-      "content": "<div class=\"lesson-grid cols-2\"><article><h3>继承</h3><p>完整游戏目标、共同规则、隐私边界、接口格式不变。</p></article><article><h3>收窄</h3><p>背包子棍负责收下与展示线索，不接管移动和输赢。</p></article><article><h3>说清交接</h3><p>输入线索编号；输出已收集列表、数量和成功／失败。</p></article><article><h3>检查连接</h3><p>背包自己对了，还要能让胜负模块正确判断。</p></article></div><div class=\"lesson-banner\" data-reveal><b>记住这一句</b><span>把几个子棍粘在一起，不等于游戏已经接好了。</span></div>"
+      "content": "<div class=\"p2-visual\" data-p2-visual=\"decomposition\"><div class=\"p2-root\"><b>校园寻宝 · 主棍</b><span>完整目标 · 共同规则 · 本轮范围 · 整体验收</span></div><svg class=\"p2-branches\" viewBox=\"0 0 1200 40\" preserveAspectRatio=\"none\" aria-hidden=\"true\"><path d=\"M600 0V40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-dasharray=\"8 6\"/></svg><div class=\"p2-roles\"><article data-reveal><h3>地图子棍</h3><p><b>负责：</b>给出布局、入口、出口</p><p><b>不负责：</b>不保存玩家位置</p></article><article data-reveal><h3>移动子棍</h3><p><b>负责：</b>接收方向，更新位置</p><p><b>不负责：</b>不自己决定哪里能走</p></article><article data-reveal><h3>线索子棍</h3><p><b>负责：</b>按位置交出编号</p><p><b>不负责：</b>不保存已收集列表</p></article><article data-reveal><h3>背包子棍</h3><p><b>负责：</b>保存不同编号并展示</p><p><b>不负责：</b>不决定输赢</p></article><article data-reveal><h3>障碍子棍</h3><p><b>负责：</b>判断越界或撞墙</p><p><b>不负责：</b>不直接移动玩家</p></article><article data-reveal><h3>胜负子棍</h3><p><b>负责：</b>读背包与出口位置</p><p><b>不负责：</b>不修改线索数量</p></article></div><div class=\"p2-strip\"><b>六份同级，都沿用六项</b><span>模块之间“交什么、何时交”，在交接图里另看。</span></div></div>"
     },
     {
       "id": "ligun-12",
@@ -199,10 +199,10 @@
       "phase": "04 · 写好我的主棍与子棍",
       "section": "写好我的主棍与子棍",
       "minutes": 14,
-      "title": "每个模块，都有自己的子棍",
-      "subtitle": "全部模块先做到可执行核心模板，再深入优先项。",
+      "title": "放大一根子棍：背包也写同样六项",
+      "subtitle": "青色是继承，蓝色是自己负责；然后给你的每个模块各写一份。",
       "theme": "paper",
-      "content": "<div class=\"lesson-grid cols-2\"><article><h3>每个模块各一份</h3><p>学生项目有几个模块就建几份；不是一律六个。</p></article><article><h3>同样六项</h3><p>执行者、上下文与项目设计、目标、约束、避免、验收。</p></article><article><h3>不要只换名称</h3><p>输入、处理、输出、接口、依赖与异常要写本模块的。</p></article><article><h3>保留共同来源</h3><p>写明继承哪份主棍与版本；未知项明确列出。</p></article></div><div class=\"lesson-banner\" data-reveal><b>记住这一句</b><span>主棍完整、子棍具体，才知道下一步把什么交给 AI。</span></div><a class=\"lesson-link\" href=\"workbook/index.html\" data-resource=\"workbook\" target=\"_blank\" rel=\"noopener\">打开可编辑模板 · 复制／下载 →</a>"
+      "content": "<div class=\"p2-visual\" data-p2-visual=\"child\"><div class=\"p2-legend\"><span class=\"p2-inherit\">继承主棍：共同规则</span><span class=\"p2-own\">背包自己：职责与处理</span><span>交接：收编号 → 交唯一列表</span></div><div class=\"p2-six\"><article data-field=\"执行者\"><h3><i>1</i>执行者</h3><p>AI 做背包；学生确认改变<br><em>继承</em>校园寻宝主棍 v1</p></article><article data-field=\"上下文与项目设计\"><h3><i>2</i>上下文与项目设计</h3><p><b>只管背包：</b>接收线索编号<br>有效、未拥有才加入列表</p></article><article data-field=\"目标\"><h3><i>3</i>目标</h3><p>保存并展示不同编号<br>交付模块、调用样例与检查结果</p></article><article data-field=\"约束\" data-reveal><h3><i>4</i>约束</h3><p><em>继承</em>A／B／C、隐私与运行条件<br>背包是已收集状态唯一来源</p></article><article data-field=\"避免\" data-reveal><h3><i>5</i>避免</h3><p>不接管移动或胜负<br>不改“集齐 A、B、C，到出口才能赢”</p></article><article data-field=\"验收\" data-reveal><h3><i>6</i>验收</h3><p>A、B、B → [A, B]／2<br>空编号拒绝；重置清空</p></article></div><div class=\"p2-handoff\" data-reveal><span>线索交来编号</span><b>→</b><span>背包保存不同编号</span><b>→</b><span>胜负只读列表</span></div><a class=\"p2-link\" data-resource=\"workbook\" href=\"workbook/index.html\" target=\"_blank\" rel=\"noopener\">为全部模块填写子棍 ↗</a></div>"
     },
     {
       "id": "ligun-19",
@@ -210,10 +210,10 @@
       "phase": "04 · 写好我的主棍与子棍",
       "section": "写好我的主棍与子棍",
       "minutes": 8,
-      "title": "检查：各自能做，合起来也能做吗？",
-      "subtitle": "不只检查每根子棍，还检查它们之间的接头。",
+      "title": "各自会做，还得接得上",
+      "subtitle": "这次看数据交接：箭头表示交给谁、交什么，不是上一张分工树。",
       "theme": "paper",
-      "content": "<div class=\"lesson-grid cols-2\"><article><h3>名字一致</h3><p>线索叫 clueId，不能另一块叫积分而含义不一样。</p></article><article><h3>责任不重复</h3><p>背包保存线索；胜负读取结果，不能两边各算一份数量。</p></article><article><h3>先后说清楚</h3><p>先拿到线索，再交背包，最后到出口判断。</p></article><article><h3>失败传得到</h3><p>没编号、走到墙里、线索不够时，玩家得到明确提示。</p></article></div><div class=\"lesson-banner\" data-reveal><b>记住这一句</b><span>P1 检查模块能接上；P2 把这些连接约定写给执行者。</span></div>"
+      "content": "<div class=\"p2-visual\" data-p2-visual=\"integration\"><div class=\"p2-flow-row\"><article><h3>地图</h3><p>布局、墙、出口、线索位置</p></article><b class=\"p2-arrow\">→ 提供共同布局</b><article><h3>移动 ↔ 障碍</h3><p>方向 → 下一位置 → 能否进入<br>允许才更新玩家位置</p></article></div><div class=\"p2-chain\" data-reveal><article><h3>线索</h3><p>按当前位置<br>交出编号 A／B／C</p></article><b>→</b><article><h3>背包</h3><p>收下不同编号<br>交出唯一列表</p></article><b>→</b><article><h3>胜负</h3><p>读列表＋当前位置<br>齐了且到出口才赢</p></article></div><div class=\"p2-checks\" data-reveal><span><b>正常：</b>A、B、C ＋出口 → 赢</span><span><b>重复：</b>A、B、B ＋出口 → 不赢</span><span><b>未到：</b>A、B、C ＋非出口 → 不赢</span></div><div class=\"p2-strip\"><b>两人互查</b><span>一人读输出，一人读输入；格式、时机、失败都对得上吗？</span></div></div>"
     },
     {
       "id": "ligun-20",
@@ -243,10 +243,10 @@
       "phase": "05 · 让 AI 做，再检查",
       "section": "让 AI 做，再检查",
       "minutes": 5,
-      "title": "同一份线索，能算三条吗？",
-      "subtitle": "预设课堂反例：故意给重复输入，再看修正后的版本。",
+      "title": "要求没变，错的是这次结果",
+      "subtitle": "预设课堂示范：不是学生 AI 的生成结果。用同一组输入，看清哪里要改。",
       "theme": "paper",
-      "content": "<div class=\"lesson-grid cols-2\"><article><h3>先预测</h3><p>重复收下 A 三次，背包应有几条不同线索？</p></article><article><h3>试第一版</h3><p>观察实际数量和胜负；这个示例故意没有去重。</p></article><article><h3>写清差异</h3><p>预期 1，实际 3；不能为过关把要求改成“捡三次”。</p></article><article><h3>修正后复测</h3><p>同样输入 A、A、A，数量应始终为 1。</p></article></div><div class=\"lesson-banner\" data-reveal><b>记住这一句</b><span>这是预设课堂示范，不是学生 AI 的生成结果。</span></div><a class=\"lesson-link\" href=\"demo/index.html\" data-resource=\"demo\" target=\"_blank\" rel=\"noopener\">打开校园寻宝 · 试错与修正 →</a>"
+      "content": "<div class=\"p2-visual\" data-p2-visual=\"repair\"><div class=\"p2-repair\"><div class=\"p2-repair-steps\"><div class=\"p2-repair-row\"><b>要求</b><span>主棍：集齐 A、B、C，到出口才能赢</span></div><div class=\"p2-repair-row\" data-reveal><b>交给 AI</b><span>主棍＋背包子棍：同一编号只算一次</span></div><div class=\"p2-repair-row\" data-reveal><b>首版结果</b><span>输入 A、B、B → 列表 [A, B, B]，数量 3</span></div><div class=\"p2-repair-row\" data-reveal><b>指出偏差</b><span>错在重复计数；不是把胜利条件改成“捡三次”</span></div><div class=\"p2-repair-row\" data-reveal><b>修正与复查</b><span>同样输入 A、B、B → [A, B]，数量 2；还缺 C</span></div></div><aside><h3>说清楚再返工</h3><p>哪里不符？<br>原本应该怎样？<br>只修哪一块？<br>改完重测什么？</p><strong>规则不变<br>输入不变</strong></aside></div><div class=\"p2-strip\"><b>再检查完整路径</b><span>A、B、C 集齐但未到出口仍不赢；到出口才赢。</span></div><a class=\"p2-link\" data-resource=\"demo\" href=\"demo/index.html\" target=\"_blank\" rel=\"noopener\">打开演示：重放 A、B、B ↗</a></div>"
     },
     {
       "id": "ligun-23",
@@ -287,10 +287,10 @@
       "phase": "06 · 互查与课后继续",
       "section": "互查与课后继续",
       "minutes": 4,
-      "title": "模块做完，不等于游戏做完",
-      "subtitle": "最后要让一个玩家从开始一直走到结果。",
+      "title": "把同一张图，换成你自己的游戏",
+      "subtitle": "每块分别能用，还要检查它们接起来能不能完成整件事。",
       "theme": "paper",
-      "content": "<div class=\"lesson-grid cols-2\"><article><h3>组合起来测</h3><p>地图、移动、线索、背包、障碍、胜负沿同一路径工作。</p></article><article><h3>共同规则测</h3><p>重复线索、越界、线索不足都不会被悄悄放过。</p></article><article><h3>体验也要测</h3><p>另一人不看你的解释，能知道下一步怎么做吗？</p></article><article><h3>结果诚实分开</h3><p>通过、失败、没执行、待决定分别记录。</p></article></div><div class=\"lesson-banner\" data-reveal><b>记住这一句</b><span>先设计，再实现，再检查再修正；不是互不回头的四个阶段。</span></div>"
+      "content": "<div class=\"p2-visual\" data-p2-visual=\"transfer\"><div class=\"p2-transfer\"><article><h3>看示例：校园寻宝</h3><div class=\"p2-game-root\">主棍：集齐 A、B、C，到出口才能赢</div><div class=\"p2-chip-grid\"><span>地图子棍</span><span>移动子棍</span><span>线索子棍</span><span>背包子棍</span><span>障碍子棍</span><span>胜负子棍</span></div><p>从入口走到结局<br>同时检查正常、失败、重置</p></article><b class=\"p2-transfer-arrow\">换成<br>我的 →</b><article data-reveal><h3>马上对照：我的游戏</h3><div class=\"p2-game-root\">主棍：玩家要完成什么整件事？</div><div class=\"p2-chip-grid\"><span>我的模块…</span><span>我的模块…</span><span>还有哪些？</span></div><p>每个模块都有子棍<br>选本轮路径 → 执行 → 检查 → 修正</p></article></div><div class=\"p2-strip\" data-reveal><b>不用照抄六个模块</b><span>你的游戏有几块，就写几份；共同规则要一致。</span></div><a class=\"p2-link\" data-resource=\"workbook\" href=\"workbook/index.html\" target=\"_blank\" rel=\"noopener\">带走我的主棍与全部子棍 ↗</a></div>"
     },
     {
       "id": "ligun-27",

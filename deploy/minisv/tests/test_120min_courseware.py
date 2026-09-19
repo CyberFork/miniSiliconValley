@@ -11,7 +11,7 @@ SPEC=importlib.util.spec_from_file_location('release120', ROOT/'deploy/minisv/pa
 M=importlib.util.module_from_spec(SPEC);SPEC.loader.exec_module(M)
 class SplitReleaseTests(unittest.TestCase):
     def test_both_new_artifacts_and_teacher_boundaries_are_validated(self):
-        for folder,identity,revision in [('module-thinking-deck','module-thinking-p1',7),('ligun-deck','ligun-p2',1)]:
+        for folder,identity,revision in [('module-thinking-deck','module-thinking-p1',7),('ligun-deck','ligun-p2',2)]:
             source=ROOT/'courseware'/folder/'dist'
             with tempfile.TemporaryDirectory() as temp:
                 dest=Path(temp)/'dist';shutil.copytree(source,dest)
@@ -47,3 +47,18 @@ class HistoryTests(unittest.TestCase):
             self.assertEqual(M.validate_module_history(roots, 7), dict(zip((5, 6), roots)))
         with patch.object(M, "validate_module_thinking_courseware", return_value=artifacts[0]):
             with self.assertRaisesRegex(ValueError, "missing"): M.validate_module_history(roots[:1], 7)
+
+
+class LigunHistoryTests(unittest.TestCase):
+    def test_published_r1_required_and_identity_pinned(self):
+        self.assertEqual(M.validate_ligun_history([],1),{})
+        with self.assertRaisesRegex(ValueError,'missing'): M.validate_ligun_history([],2)
+        root=Path('/isolated/p2-r1')
+        artifact={'revision':1,'sha256':M.LIGUN_HISTORY_DIGESTS[1]}
+        with patch.object(M,'validate_module_thinking_courseware',return_value=artifact) as validate:
+            self.assertEqual(M.validate_ligun_history([root],2),{1:root})
+            validate.assert_called_with(root,courseware_id='ligun-p2')
+            with self.assertRaisesRegex(ValueError,'duplicate'): M.validate_ligun_history([root,root],2)
+            with self.assertRaisesRegex(ValueError,'unexpected'): M.validate_ligun_history([root],1)
+        with patch.object(M,'validate_module_thinking_courseware',return_value={'revision':1,'sha256':'0'*64}):
+            with self.assertRaisesRegex(ValueError,'identity mismatch'): M.validate_ligun_history([root],2)

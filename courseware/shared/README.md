@@ -57,3 +57,11 @@ npm run lint
 现场导师需试讲两个独立 120 分钟课，检查六年级学生理解、40 分钟个人实践容量、实际投影及自选 AI 工具。四张 A4 仅内容初稿，由同事制作最终实体物料。这些不由自动化代签。
 
 P1 r6 补充验收：`python3 courseware/module-thinking-deck/tests/verify-reuse.py`；细化与发布记录见 `docs/P1_R6_VOXEL_REUSE_RECEIPT.md`。
+
+## T-133 可视化补强（P2 r2）
+
+- 现行 P2 教师入口：`/courseware/development-mentor-ligun/r2/teacher/presenter.html`；旧 r1 保留为历史版本。
+- 五组图对应 P2-07、11、18、22、19/26，仍为 27 页、120 分钟。
+- 专用浏览器检查：`python3 courseware/ligun-deck/tests/verify-visual-browser.py`。线上可传 `BASE_URL` 与私有 `STORAGE_STATE`，不把会话文件加入仓库。
+- P2 新版打包必须提供 `--ligun-history-root` 指向已验证的 r1 构建；历史身份不匹配或缺失时拒绝发布。
+- 证据与人工试讲边界见 `docs/T133_VISUAL_TEACHING_RECEIPT.md`。

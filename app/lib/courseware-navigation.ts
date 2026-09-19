@@ -8,7 +8,7 @@ export type CoursewarePresenterSurface = {
 
 const COURSEWARE_PRESENTER_SURFACES: Readonly<Record<string, CoursewarePresenterSurface>> = Object.freeze({
   "cw-development-mentor-ligun": {
-    href: "/courseware/development-mentor-ligun/r1/teacher/presenter.html",
+    href: "/courseware/development-mentor-ligun/r2/teacher/presenter.html",
     label: "打开导师讲解控制台",
     description: "P2 120 分钟逐页讲稿、下一页预览、主棍／子棍模板和实操引导。",
   },

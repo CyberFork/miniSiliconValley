@@ -38,8 +38,11 @@ EXPECTED = {
     "/courseware/development-mentor-module-thinking/r6/teacher/presenter-notes.js": 401,
     "/courseware/development-mentor-module-thinking/r7/teacher/presenter-notes.js": 401,
     "/courseware/development-mentor-ligun/r1/audience/": 401,
+    "/courseware/development-mentor-ligun/r2/audience/": 401,
     "/courseware/development-mentor-ligun/r1/teacher/presenter.html": 401,
+    "/courseware/development-mentor-ligun/r2/teacher/presenter.html": 401,
     "/courseware/development-mentor-ligun/r1/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-ligun/r2/teacher/presenter-notes.js": 401,
     "/courseware/market-mentor-user-system/": 401,
     "/course/development-mentor-ligun/?revision=0&slide=6&step=2": 307,
     "/framework/": 200,
@@ -92,8 +95,11 @@ COURSEWARE_MARKERS = {
     "/courseware/development-mentor-module-thinking/r6/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-module-thinking/r7/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-ligun/r1/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r2/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-ligun/r1/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r2/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-ligun/r1/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r2/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/product-mentor-foundations/": ("青少年AI创业营", "MINI硅谷"),
     "/courseware/product-mentor-foundations/r1/": ("青少年AI创业营", "MINI硅谷"),
     "/courseware/development-mentor-ligun/": ("先立棍，再让 AI 跑", "DEVELOPMENT MENTOR"),
@@ -210,7 +216,7 @@ def main() -> None:
                 raise SystemExit("FAIL release.json: D-mentor courseware digest is not the accepted T-093 tree")
             for key, slug, revision, digest, audience_files, teacher_files in (
                 ("moduleThinkingCoursewareArtifact", "development-mentor-module-thinking", 7, "dc678fb345cf938004f223e8a8c9f2faaf636fd481fa675ad3ea219199b70457", 25, 17),
-                ("ligun120CoursewareArtifact", "development-mentor-ligun", 1, "6b48d7d9fac75f88180bc00c8caf2f8c2a533d611580493eb538e3eef73ad1d9", 27, 9),
+                ("ligun120CoursewareArtifact", "development-mentor-ligun", 2, "2427551404eccf63e594b2a28654d5d06e76e0c6d6fec95b5f612cb69d954446", 28, 10),
             ):
                 deck = release.get(key, {})
                 if (
