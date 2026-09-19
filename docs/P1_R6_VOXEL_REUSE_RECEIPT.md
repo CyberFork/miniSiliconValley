@@ -1,4 +1,6 @@
-# P1 r6｜方块颗粒度与案例复用
+# P1 r6/r7｜方块颗粒度与案例复用
+
+当前线上：**P1 r7**；下面保留 r6 的首次发布与后续取景修正记录。
 
 ## 用户需求与实现
 
@@ -54,4 +56,13 @@
 
 r6 线上目视复核发现拆开小车后局部超出 Three.js 画布，HTML 溢出检查无法识别画布内部裁切。因此将默认视场角调整为 40°（不改模型世界尺寸），并增加 `verify-framing.py`：根据实际方块坐标投影到相机空间，验证 S02-C 两案例三层级、S05 三层级在双视图中均完整入镜，共 18 个场景。
 
-该修正使用全新 P1 r7，内容版本 `2026.09.19-p1-r8`，digest `dc678fb345cf938004f223e8a8c9f2faaf636fd481fa675ad3ea219199b70457`；不覆盖已发布 r6。P2 r1 继续保持原字节。r7 生产回执待发布后追加。
+该修正使用全新 P1 r7，内容版本 `2026.09.19-p1-r8`，digest `dc678fb345cf938004f223e8a8c9f2faaf636fd481fa675ad3ea219199b70457`；不覆盖已发布 r6。P2 r1 继续保持原字节。r7 已部署并在线复验：
+
+- Release：`20260919T1551CST-p1-framing-r7`。
+- Source：`5001fb4ec23321fe6aeb112c9c75a00823eb6dd2`。
+- 486 个既有课件文件完整保留，未覆盖 r6/r5/r4、P2 或其他导师课件。
+- 222 项平台、63 项部署测试通过；线上 18 个真实投影边界、8 个复用视图、4 次投屏模式同步、6 组三维手势回归通过。
+- 全站健康、公开冒烟、访问权限、最新课程目录和关键文件哈希复验通过。
+- `docs/evidence/p1-r7/` 保存本地和线上证据；View/UI 与现场试讲仍未代签。
+- 最新教师直达：<https://minisv.vip/courseware/development-mentor-module-thinking/r7/teacher/presenter.html?slideId=module-s02-voxel>。
+- 最新私有源码包：`cowork/课件/development-courseware/p1-module-thinking-r7-20260919/` 及同名 zip。

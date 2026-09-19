@@ -81,7 +81,7 @@ dist/BUILD-MANIFEST.json
 
 ## 发布状态
 
-本交付已部署到生产 P1 r6，教师 bundle 受服务端导师权限保护；Courseware Library 指向新不可变版本，原 P1 r5/r4 及 P／D／M 历史产物不覆盖。
+本交付已部署到生产 P1 r7，教师 bundle 受服务端导师权限保护；Courseware Library 指向新不可变版本，原 P1 r6/r5/r4 及 P／D／M 历史产物不覆盖。
 
 完整使用方式、P2 衔接与发布边界见 [共同说明](../shared/README.md)。
 
@@ -103,4 +103,6 @@ S02-C 方块边长减半、数量 8 倍，整体尺寸不变。S03/S05/S04/S14 �
 
 新增验证：`node courseware/module-thinking-deck/tests/verify-voxel.mjs`、`python3 courseware/module-thinking-deck/tests/verify-reuse.py`。部署记录见 `docs/P1_R6_VOXEL_REUSE_RECEIPT.md`。
 
-当前教师入口：https://minisv.vip/courseware/development-mentor-module-thinking/r6/teacher/presenter.html
+当前教师入口：https://minisv.vip/courseware/development-mentor-module-thinking/r7/teacher/presenter.html
+
+默认取景完整性：`python3 courseware/module-thinking-deck/tests/verify-framing.py`，检查 18 个模型投影边界场景，而不只检查 HTML 溢出。

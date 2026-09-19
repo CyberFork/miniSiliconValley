@@ -161,3 +161,5 @@ $HOME/Services/minisv/current/ops/scripts/rollback-hecate.sh <KNOWN_GOOD_UNIFIED
 P1 r6 已部署 `20260919T1537CST-p1-voxel-reuse-r6`（source `3a90216b7e16627565c6b6a99003558404b31546`）：健康检查、全站公开冒烟、真实线上交互与权限复验通过；444 个历史课件文件逐文件不变。
 
 P1 r7 同样要求 `--module-history-root <r5 dist> --module-history-root <r6 dist>`，两版均按已发布内容摘要验证，防止新发布丢失历史链接。
+
+最终 P1 r7 已部署 `20260919T1551CST-p1-framing-r7`（source `5001fb4ec23321fe6aeb112c9c75a00823eb6dd2`）：默认相机完整取景 18 场景、线上交互与权限通过；486 个历史课件文件不变。P2 r1 未修改。

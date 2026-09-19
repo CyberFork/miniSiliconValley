@@ -1,0 +1,98 @@
+{
+  "release": "20260919T1551CST-p1-framing-r7",
+  "accessChecks": [
+    {
+      "role": "anonymous",
+      "path": "/courseware/development-mentor-module-thinking/r7/audience/",
+      "status": 401
+    },
+    {
+      "role": "anonymous",
+      "path": "/courseware/development-mentor-module-thinking/r7/teacher/presenter.html",
+      "status": 401
+    },
+    {
+      "role": "anonymous",
+      "path": "/courseware/development-mentor-module-thinking/r7/teacher/presenter-notes.js",
+      "status": 401
+    },
+    {
+      "role": "anonymous",
+      "path": "/courseware/development-mentor-ligun/r1/audience/",
+      "status": 401
+    },
+    {
+      "role": "anonymous",
+      "path": "/courseware/development-mentor-ligun/r1/teacher/presenter.html",
+      "status": 401
+    },
+    {
+      "role": "anonymous",
+      "path": "/courseware/development-mentor-ligun/r1/teacher/presenter-notes.js",
+      "status": 401
+    },
+    {
+      "role": "learner",
+      "path": "/courseware/development-mentor-module-thinking/r7/audience/",
+      "status": 200
+    },
+    {
+      "role": "learner",
+      "path": "/courseware/development-mentor-module-thinking/r7/teacher/presenter.html",
+      "status": 403
+    },
+    {
+      "role": "learner",
+      "path": "/courseware/development-mentor-module-thinking/r7/teacher/presenter-notes.js",
+      "status": 403
+    },
+    {
+      "role": "learner",
+      "path": "/courseware/development-mentor-ligun/r1/audience/",
+      "status": 200
+    },
+    {
+      "role": "learner",
+      "path": "/courseware/development-mentor-ligun/r1/teacher/presenter.html",
+      "status": 403
+    },
+    {
+      "role": "learner",
+      "path": "/courseware/development-mentor-ligun/r1/teacher/presenter-notes.js",
+      "status": 403
+    },
+    {
+      "role": "mentor",
+      "path": "/courseware/development-mentor-module-thinking/r7/audience/",
+      "status": 200
+    },
+    {
+      "role": "mentor",
+      "path": "/courseware/development-mentor-module-thinking/r7/teacher/presenter.html",
+      "status": 200
+    },
+    {
+      "role": "mentor",
+      "path": "/courseware/development-mentor-module-thinking/r7/teacher/presenter-notes.js",
+      "status": 200
+    },
+    {
+      "role": "mentor",
+      "path": "/courseware/development-mentor-ligun/r1/audience/",
+      "status": 200
+    },
+    {
+      "role": "mentor",
+      "path": "/courseware/development-mentor-ligun/r1/teacher/presenter.html",
+      "status": 200
+    },
+    {
+      "role": "mentor",
+      "path": "/courseware/development-mentor-ligun/r1/teacher/presenter-notes.js",
+      "status": 200
+    }
+  ],
+  "criticalFileHashes": "PASS",
+  "oldEntries": "PASS",
+  "directory": "PASS"
+}

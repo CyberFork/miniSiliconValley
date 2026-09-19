@@ -1,0 +1,12 @@
+{
+  "release": "20260919T1551CST-p1-framing-r7",
+  "sourceCommit": "5001fb4ec23321fe6aeb112c9c75a00823eb6dd2",
+  "p1Revision": 7,
+  "p1Digest": "dc678fb345cf938004f223e8a8c9f2faaf636fd481fa675ad3ea219199b70457",
+  "p2Revision": 1,
+  "previousCoursewareFilesUnchanged": 486,
+  "platformTests": 222,
+  "deployTests": 63,
+  "framingScenarios": 18,
+  "humanAcceptance": "not-signed-by-user"
+}

@@ -1,6 +1,6 @@
 # 开发导师 120 分钟双课件
 
-当前部署：`20260919T1537CST-p1-voxel-reuse-r6`。P1 已补充细颗粒方块与贯穿案例，最新 r6；P2 r1 未改。保留 P1 r5/r4 与立棍 r0；不代签 View/UI 或现场试讲。
+当前部署：`20260919T1551CST-p1-framing-r7`。P1 已补充细颗粒方块与贯穿案例，最新 r7；P2 r1 未改。保留 P1 r6/r5/r4 与立棍 r0；不代签 View/UI 或现场试讲。
 
 ## 预览
 
@@ -47,7 +47,7 @@ npm run lint
 
 ## 线上发布
 
-- P1 教师：https://minisv.vip/courseware/development-mentor-module-thinking/r6/teacher/presenter.html
+- P1 教师：https://minisv.vip/courseware/development-mentor-module-thinking/r7/teacher/presenter.html
 - P2 教师：https://minisv.vip/courseware/development-mentor-ligun/r1/teacher/presenter.html
 - 用教师账号从 `/course/` 也可进入；两端都有“打开投屏窗口”。
 - `BUILD-MANIFEST.json` 标记 `deployment-ready`，不代表试讲签名；发布使用不可变新版本 URL、字节哈希及服务端教师权限。详见 `docs/T132_T133_IMPLEMENTATION_RECEIPT.md` 与 `docs/DEPLOYMENT.md`。
