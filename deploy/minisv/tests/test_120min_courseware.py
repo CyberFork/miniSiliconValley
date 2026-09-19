@@ -5,12 +5,13 @@ from pathlib import Path
 import shutil
 import tempfile
 import unittest
+from unittest.mock import patch
 ROOT=Path(__file__).parents[3]
 SPEC=importlib.util.spec_from_file_location('release120', ROOT/'deploy/minisv/package_release.py')
 M=importlib.util.module_from_spec(SPEC);SPEC.loader.exec_module(M)
 class SplitReleaseTests(unittest.TestCase):
     def test_both_new_artifacts_and_teacher_boundaries_are_validated(self):
-        for folder,identity,revision in [('module-thinking-deck','module-thinking-p1',5),('ligun-deck','ligun-p2',1)]:
+        for folder,identity,revision in [('module-thinking-deck','module-thinking-p1',6),('ligun-deck','ligun-p2',1)]:
             source=ROOT/'courseware'/folder/'dist'
             with tempfile.TemporaryDirectory() as temp:
                 dest=Path(temp)/'dist';shutil.copytree(source,dest)
@@ -24,3 +25,17 @@ class SplitReleaseTests(unittest.TestCase):
                 (dest/'audience/leaked-teacher.js').unlink()
                 manifest['digest']='0'*64;(dest/'BUILD-MANIFEST.json').write_text(json.dumps(manifest))
                 with self.assertRaisesRegex(ValueError,'deployment-ready'):M.validate_module_thinking_courseware(dest,courseware_id=identity)
+
+
+class HistoryTests(unittest.TestCase):
+    def test_r5_is_required_for_r6_and_validated_against_immutable_identity(self):
+        with self.assertRaisesRegex(ValueError, "missing"): M.validate_module_history([], 6)
+        root = Path("/isolated/previous-r5")
+        artifact = {"revision": 5, "sha256": M.MODULE_HISTORY_DIGESTS[5]}
+        with patch.object(M, "validate_module_thinking_courseware", return_value=artifact):
+            self.assertEqual(M.validate_module_history([root], 6), {5: root})
+            with self.assertRaisesRegex(ValueError, "duplicate"): M.validate_module_history([root, root], 6)
+            with self.assertRaisesRegex(ValueError, "unexpected"): M.validate_module_history([root], 5)
+        for artifact in ({"revision": 5, "sha256": "0" * 64}, {"revision": 6, "sha256": M.MODULE_HISTORY_DIGESTS[5]}):
+            with patch.object(M, "validate_module_thinking_courseware", return_value=artifact):
+                with self.assertRaisesRegex(ValueError, "identity mismatch"): M.validate_module_history([root], 6)

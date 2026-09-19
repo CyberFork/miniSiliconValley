@@ -1,0 +1,15 @@
+/* P1-only teaching compositions. Shared engine/P2 revision remains immutable. */
+.case-reuse-grid { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:22px; align-items:stretch; }
+.case-reuse-grid > div { min-width:0; }
+.case-reuse-scene { height:290px; min-width:0; }
+.case-reuse-scene .module-3d-fallback { padding:24px; color:#10293f; text-align:center; }
+.case-reuse-cards { display:grid; gap:12px; }
+.case-reuse-cards article { padding:14px 18px; color:#152a36; background:#fff8e7; border:3px solid #10293f; box-shadow:4px 4px 0 #c9c3b3; }
+.case-reuse-cards h3 { margin:0 0 7px; font-size:25px; color:#10293f; }
+.case-reuse-cards p { margin:0; font-size:22px; line-height:1.35; color:#334b58; }
+.case-reuse-cards.two-column { grid-template-columns:1fr 1fr; }
+.case-reuse-transform .transformer-switch { display:flex; flex-direction:row; margin-bottom:16px; gap:12px; }
+.case-reuse-transform .transformer-switch button { flex:1; }
+.case-reuse-toolbar { grid-template-columns:1fr 1.3fr; }
+.case-reuse-grid + .lesson-banner { margin-top:20px; }
+@media print { .case-reuse-scene { height:230px; } }

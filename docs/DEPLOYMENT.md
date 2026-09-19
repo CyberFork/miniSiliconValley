@@ -151,3 +151,9 @@ $HOME/Services/minisv/current/ops/scripts/rollback-hecate.sh <KNOWN_GOOD_UNIFIED
 - `npm run build:t132-t133:courseware` 后，打包额外传入 `--module-previous-root <已校验 P1 r4 dist>`、`--ligun-root courseware/ligun-deck/dist`；`--module-thinking-root` 为新 P1 dist。
 - packager 必须验证新旧 manifest、哈希、物理分包及复制后字节；P1 历史包必须精确匹配 r4 的登记摘要。P／M 课件不变。
 - `deployment-ready` 是部署构建状态，不代表人工 120 分钟试讲通过。保留 `manualAcceptance: not-signed-by-user`。
+
+### P1 r6 及后续版本：历史课件保留门禁
+
+`package_release.py` 新增可重复的 `--module-history-root`。P1 r6 构建除原 `--module-previous-root <已验证 r4 dist>` 外，必须提供 `--module-history-root <已发布 r5 dist>`；r5 内容 identity 固定验证，缺项/重复/篡改均阻止打包。保留 r4 根入口及 r5 版本入口，只将当前登记指针推进到新 r6。P2 r1 本轮内容完全不变。
+
+本次实现和发布复验见 `docs/P1_R6_VOXEL_REUSE_RECEIPT.md`，不要用旧 r5 的发布回执冒充 r6。

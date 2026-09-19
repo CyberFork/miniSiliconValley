@@ -1,4 +1,5 @@
 import * as THREE from "./vendor/three.module.min.js";
+import { createVoxelDesigns, VOXEL_EDGE } from "./voxel-designs.js";
 import { OrbitControls } from "./vendor/OrbitControls.js";
 
 const PALETTE = Object.freeze({
@@ -359,57 +360,7 @@ function createVoxelForge(host) {
   root.scale.setScalar(1.45);
   common.scene.add(root);
 
-  const point = (position, component) => ({ position, component });
-  const car = { rubber: [], iron: [], plastic: [], glass: [], metal: [] };
-  const wheelCenters = [
-    [-2.3, -0.72, -1.3, "wheel-left-front"], [2.3, -0.72, -1.3, "wheel-left-back"],
-    [-2.3, -0.72, 1.3, "wheel-right-front"], [2.3, -0.72, 1.3, "wheel-right-back"],
-  ];
-  for (const [x, y, z, component] of wheelCenters) {
-    for (const [dx, dy] of [[0, 0], [-0.48, 0], [0.48, 0], [0, -0.48], [0, 0.48]]) {
-      car.rubber.push(point([x + dx, y + dy, z], component));
-    }
-  }
-  for (const x of [-3, -2, -1, 0, 1, 2, 3]) {
-    for (const z of [-0.8, 0, 0.8]) car.iron.push(point([x, -0.35, z], "frame"));
-  }
-  for (const x of [-1, 0, 1]) {
-    for (const z of [-0.8, 0.8]) car.iron.push(point([x, 0.15, z], "frame"));
-    car.iron.push(point([x, 0.65, 0], "frame"));
-  }
-  for (const [index, x] of [-0.65, 0.55].entries()) {
-    const component = `seat-${index}`;
-    car.plastic.push(point([x, 0.18, -0.35], component));
-    car.plastic.push(point([x, 0.18, 0.35], component));
-    car.plastic.push(point([x, 0.65, 0.35], component));
-  }
-  for (const [dx, dy] of [[0, 0], [-0.42, 0], [0.42, 0], [0, -0.42], [0, 0.42]]) {
-    car.plastic.push(point([1.55 + dx, 0.72 + dy, -0.55], "steering"));
-  }
-
-  const scope = { rubber: [], iron: [], plastic: [], glass: [], metal: [] };
-  for (const x of [-3, -2.5, -2]) {
-    for (const y of [-0.5, 0, 0.5]) scope.iron.push(point([x, y, 0], "stock"));
-  }
-  for (const x of [-1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2, 2.5]) {
-    for (const z of [-0.28, 0.28]) scope.iron.push(point([x, 0, z], "stock"));
-  }
-  for (const y of [-0.5, -1]) {
-    for (const z of [-0.22, 0.22]) scope.iron.push(point([0, y, z], "stock"));
-  }
-  for (const x of [-1, -0.5, 0, 0.5, 1, 1.5, 2]) {
-    for (const z of [-0.28, 0.28]) scope.metal.push(point([x, 1.05, z], "scope"));
-  }
-  for (const x of [0, 1.5]) {
-    for (const z of [-0.25, 0.25]) scope.metal.push(point([x, 0.55, z], "scope"));
-  }
-  for (const x of [-1.3, 2.3]) {
-    for (const y of [0.82, 1.28]) {
-      for (const z of [-0.22, 0.22]) scope.glass.push(point([x, y, z], "scope"));
-    }
-  }
-
-  const designs = { car, scope };
+  const designs = createVoxelDesigns();
   const colors = {
     rubber: 0x27313a,
     iron: 0x8f9fa8,
@@ -419,16 +370,33 @@ function createVoxelForge(host) {
   };
   const materialKeys = Object.keys(colors);
   const pieces = [];
+  const batches = [];
+  const geometry = new THREE.BoxGeometry(VOXEL_EDGE, VOXEL_EDGE, VOXEL_EDGE);
   for (const materialKey of materialKeys) {
     const capacity = Math.max(...Object.values(designs).map((design) => design[materialKey].length));
+    // One GPU draw batch per material, rather than hundreds of meshes per preview.
+    const batch = new THREE.InstancedMesh(geometry, material(colors[materialKey], materialKey === "glass"
+      ? { transparent: true, opacity: 0.7, depthWrite: false } : {}), capacity);
+    batch.name = `voxel-${materialKey}`;
+    batch.castShadow = true;
+    batch.receiveShadow = true;
+    batch.frustumCulled = false; // Matrices move between separated components and the complete object.
+    batch.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    batches.push(batch);
+    root.add(batch);
     for (let index = 0; index < capacity; index += 1) {
-      const piece = box(`voxel-${materialKey}-${index}`, colors[materialKey], [0.44, 0.44, 0.44], materialKey === "glass");
-      piece.userData.materialKey = materialKey;
-      piece.userData.materialIndex = index;
-      root.add(piece);
+      const piece = new THREE.Object3D(); // CPU transform only; never added as a separate draw call.
+      piece.userData = { materialKey, materialIndex: index, batch };
+      // Subtle checker shading makes the smaller cells readable without increasing draw calls.
+      const sub = index % 8;
+      const shade = ((sub >> 2) + ((sub >> 1) & 1) + (sub & 1)) % 2 ? 0.82 : 1;
+      batch.setColorAt(index, new THREE.Color(shade, shade, shade));
       pieces.push(piece);
     }
   }
+  host.dataset.voxelGeometry = JSON.stringify({ edge: VOXEL_EDGE, resolution: 2, batches: batches.length,
+    counts: Object.fromEntries(Object.entries(designs).map(([name, design]) =>
+      [name, Object.values(design).reduce((sum, cells) => sum + cells.length, 0)])) });
 
   const scatterOrigins = {
     car: { rubber: [-4.2, -1.3, -1.1], iron: [-1.4, -1.3, -1.1], plastic: [2.7, -1.3, -1.1] },
@@ -443,10 +411,12 @@ function createVoxelForge(host) {
     },
     scope: { stock: [-0.65, -0.65, 0], scope: [0.75, 1.25, 0] },
   };
-  const scatterTarget = (caseName, materialKey, index) => {
+  const scatterTarget = (caseName, materialKey, target) => {
+    const index = target.sourceIndex;
+    const cellOffset = [target.subIndex >> 2, (target.subIndex >> 1) & 1, target.subIndex & 1].map(bit => (bit ? 1 : -1) * VOXEL_EDGE / 2);
     const [originX, originY, originZ] = scatterOrigins[caseName][materialKey] || [0, -1.3, 0];
     return {
-      position: [originX + (index % 5) * 0.48, originY + (Math.floor(index / 5) % 4) * 0.48, originZ + Math.floor(index / 20) * 0.48],
+      position: [originX + (index % 5) * 0.48, originY + (Math.floor(index / 5) % 4) * 0.48, originZ + Math.floor(index / 20) * 0.48].map((v, axis) => v + cellOffset[axis]),
     };
   };
 
@@ -466,7 +436,7 @@ function createVoxelForge(host) {
         continue;
       }
       if (currentStep === "blocks") {
-        setTransform(piece, { ...scatterTarget(currentCase, materialKey, piece.userData.materialIndex), scale: [1, 1, 1] }, first);
+        setTransform(piece, { ...scatterTarget(currentCase, materialKey, target), scale: [1, 1, 1] }, first);
         continue;
       }
       const offset = currentStep === "components" ? (componentOffsets[currentCase][target.component] || [0, 0, 0]) : [0, 0, 0];
@@ -481,7 +451,12 @@ function createVoxelForge(host) {
 
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const update = (time) => {
-    pieces.forEach((piece) => approachTarget(piece, reducedMotion ? 1 : 0.105));
+    pieces.forEach((piece) => {
+      approachTarget(piece, reducedMotion ? 1 : 0.105);
+      piece.updateMatrix();
+      piece.userData.batch.setMatrixAt(piece.userData.materialIndex, piece.matrix);
+    });
+    batches.forEach(batch => { batch.instanceMatrix.needsUpdate = true; });
     const idle = reducedMotion ? 0 : Math.sin(time * 0.0003) * 0.08;
     root.rotation.y = idle;
     root.position.x = currentCase === "car" && currentStep === "object" && !reducedMotion ? Math.sin(time * 0.0011) * 0.2 : 0;
@@ -512,6 +487,9 @@ function mountScene(host) {
     if (!host.isConnected) { dispose(); return; }
     instance.update(time);
     instance.renderer.render(instance.scene, instance.camera);
+    if (!host.dataset.renderStats) host.dataset.renderStats = JSON.stringify({
+      calls: instance.renderer.info.render.calls, geometries: instance.renderer.info.memory.geometries,
+    });
     frame = requestAnimationFrame(draw);
   };
   const dispose = () => {

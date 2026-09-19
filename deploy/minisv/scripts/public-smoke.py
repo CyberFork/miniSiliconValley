@@ -29,8 +29,11 @@ EXPECTED = {
     "/courseware/development-mentor-module-thinking/audience/": 401,
     "/courseware/development-mentor-module-thinking/teacher/presenter.html": 401,
     "/courseware/development-mentor-module-thinking/r5/audience/": 401,
+    "/courseware/development-mentor-module-thinking/r6/audience/": 401,
     "/courseware/development-mentor-module-thinking/r5/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r6/teacher/presenter.html": 401,
     "/courseware/development-mentor-module-thinking/r5/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-module-thinking/r6/teacher/presenter-notes.js": 401,
     "/courseware/development-mentor-ligun/r1/audience/": 401,
     "/courseware/development-mentor-ligun/r1/teacher/presenter.html": 401,
     "/courseware/development-mentor-ligun/r1/teacher/presenter-notes.js": 401,
@@ -77,8 +80,11 @@ EXPECTED = {
 # leaked courseware document without coupling the smoke test to Nginx wording.
 COURSEWARE_MARKERS = {
     "/courseware/development-mentor-module-thinking/r5/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r6/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-module-thinking/r5/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r6/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-module-thinking/r5/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r6/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-ligun/r1/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-ligun/r1/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-ligun/r1/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
@@ -197,7 +203,7 @@ def main() -> None:
             if development.get("sha256") != "ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234":
                 raise SystemExit("FAIL release.json: D-mentor courseware digest is not the accepted T-093 tree")
             for key, slug, revision, digest, audience_files, teacher_files in (
-                ("moduleThinkingCoursewareArtifact", "development-mentor-module-thinking", 5, "84ab82bcba6a34aab72284b3fc4f8d05b3f243bed4e8493c04fd9ab437b05412", 23, 15),
+                ("moduleThinkingCoursewareArtifact", "development-mentor-module-thinking", 6, "4d78573094e87726c45e8e8ffe13572a34ea19b042d5d7206c174b8ea0992b72", 25, 17),
                 ("ligun120CoursewareArtifact", "development-mentor-ligun", 1, "6b48d7d9fac75f88180bc00c8caf2f8c2a533d611580493eb538e3eef73ad1d9", 27, 9),
             ):
                 deck = release.get(key, {})

@@ -65,6 +65,7 @@ const DEVELOPMENT_MODULE_THINKING_R2_CONTENT_TREE = "f418d7d98af61f0ec32f70492a1
 const DEVELOPMENT_MODULE_THINKING_R3_CONTENT_TREE = "40a0f17d0a24a225810f56b64fabd2452d264d6df6b273a9411c433b4fd2023f";
 const DEVELOPMENT_MODULE_THINKING_R4_CONTENT_TREE = "5d0e6d1dd92c10c99ad4767d33d92ef1039733996f9ec909d5a0910572787644";
 const DEVELOPMENT_MODULE_THINKING_R5_CONTENT_TREE = "84ab82bcba6a34aab72284b3fc4f8d05b3f243bed4e8493c04fd9ab437b05412";
+const DEVELOPMENT_MODULE_THINKING_R6_CONTENT_TREE = "4d78573094e87726c45e8e8ffe13572a34ea19b042d5d7206c174b8ea0992b72";
 const DEVELOPMENT_LIGUN_R1_CONTENT_TREE = "6b48d7d9fac75f88180bc00c8caf2f8c2a533d611580493eb538e3eef73ad1d9";
 const MARKET_USER_SYSTEM_CONTENT_TREE = "48b01a256bd3d408a5d539f798470e6aad0058a19dcdeb8b5d212b0e64add862";
 const BUNDLED_VERSIONS = [
@@ -192,10 +193,23 @@ const BUNDLED_VERSIONS = [
     role: "D" as const,
     revision: 5,
     releasedAt: "2026-09-19T07:00:00Z",
-    isCurrent: true,
+    isCurrent: false,
     kind: "static-bundle" as const,
     entryPath: "/courseware/development-mentor-module-thinking/r5/audience/",
     sourceIdentity: `t132:sha256:${DEVELOPMENT_MODULE_THINKING_R5_CONTENT_TREE}`,
+    html: null,
+  },
+  {
+    id: "cw-development-mentor-module-thinking",
+    slug: "development-mentor-module-thinking",
+    title: "开发导师｜模块思维：先拆块，再协作",
+    role: "D" as const,
+    revision: 6,
+    releasedAt: "2026-09-19T07:30:00Z",
+    isCurrent: true,
+    kind: "static-bundle" as const,
+    entryPath: "/courseware/development-mentor-module-thinking/r6/audience/",
+    sourceIdentity: `t132:sha256:${DEVELOPMENT_MODULE_THINKING_R6_CONTENT_TREE}`,
     html: null,
   },
   {

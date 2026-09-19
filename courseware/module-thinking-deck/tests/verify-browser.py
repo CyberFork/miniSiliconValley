@@ -15,7 +15,7 @@ with sync_playwright() as p:
     page.on("console", lambda msg: errors.append(f"console:{msg.type}:{msg.text}") if msg.type == "error" else None)
     page.on("pageerror", lambda err: errors.append(f"page:{err}"))
     page.goto(f"{BASE}{AUDIENCE}/index.html?session=qa-audience", wait_until="networkidle")
-    assert page.locator('link[rel="icon"]').get_attribute("href") == "favicon.svg?v=20260919-p1-r6"
+    assert page.locator('link[rel="icon"]').get_attribute("href") == "favicon.svg?v=" + page.evaluate("MSV_MODULE_DECK.version.replaceAll('.','')")
     assert page.locator(".deck-slide").get_attribute("data-source") == "S01"
     page.keyboard.press("ArrowRight")
     assert page.evaluate("MSVModuleDeckController.getState().reveal") == 1
@@ -26,7 +26,7 @@ with sync_playwright() as p:
 
     presenter = context.new_page()
     presenter.goto(f"{BASE}{TEACHER}/presenter.html?session=qa-sync", wait_until="networkidle")
-    assert presenter.locator('link[rel="icon"]').get_attribute("href") == "favicon.svg?v=20260919-p1-r6"
+    assert presenter.locator('link[rel="icon"]').get_attribute("href") == "favicon.svg?v=" + page.evaluate("MSV_MODULE_DECK.version.replaceAll('.','')")
     assert presenter.locator("#note-goal").inner_text().strip()
     with context.expect_page() as popup_info:
         presenter.click("#open-audience")

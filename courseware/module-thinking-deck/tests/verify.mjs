@@ -57,7 +57,7 @@ if (createHash("sha256").update(coursewareIcon).digest("hex") !== "1f8f0a4398000
   throw new Error("T-128 courseware-specific M icon no longer matches the approved asset");
 }
 for (const entry of [audienceEntry, teacherEntry]) {
-  if (!entry.includes('href="favicon.svg?v=20260919-p1-r6"')) throw new Error("Courseware icon cache-busting link is missing");
+  if (!entry.includes(`href="favicon.svg?v=${deck.version.replaceAll(".", "")}"`)) throw new Error("Courseware icon cache-busting link is missing");
 }
 
 const audienceRoot = join(root, "dist/audience");
@@ -81,3 +81,5 @@ if (!presenter.includes('data-audience-url="../audience/index.html"')) throw new
 for (const path of ["printables/module-map.html","printables/interface-card.html"]) if (!(await readFile(join(audienceRoot,path),"utf8")).includes("@page")) throw new Error(`Missing print style ${path}`);
 for (const path of ["module-3d.js", "vendor/three.module.min.js", "vendor/three.core.min.js", "vendor/THREE-LICENSE.txt"]) if (!(await stat(join(audienceRoot,path))).isFile()) throw new Error(`Missing local 3D dependency ${path}`);
 console.log("T-132 structural checks passed (T-128/T-130 preserved): 25 slides/16 original source units, 120 minutes, three local 3D scenes, complete notes, separated audience bundle, printable worksheets.");
+
+await import("./verify-voxel.mjs");

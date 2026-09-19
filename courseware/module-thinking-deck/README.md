@@ -1,6 +1,6 @@
 # 模块思维 P1｜HTML-PPT 与教师视图
 
-T-122 建立的双视图课件，已由 T-132 重排为 `2026.09.19-p1-r6` 120 分钟版：保留原 18 页 ID，扩展为 25 张 16:9 投屏页面、120 分钟。S02 用三页递进讲清“预制组件重组 → 用基础零件创造组件 → 用材料方块塑形组件并组合对象”，并加入本地自托管的 Three.js 三维课堂示意。
+T-122 建立的双视图课件，已由 T-132 重排为 `2026.09.19-p1-r7` 120 分钟版：保留原 18 页 ID，扩展为 25 张 16:9 投屏页面、120 分钟。S02 用三页递进讲清“预制组件重组 → 用基础零件创造组件 → 用材料方块塑形组件并组合对象”，并加入本地自托管的 Three.js 三维课堂示意。
 
 ## 入口
 
@@ -95,3 +95,10 @@ dist/BUILD-MANIFEST.json
 - 摄像机操作不翻页、不切换案例。S02-C 只给 `button[data-voxel-case]` 绑定案例操作，禁止给整个舞台绑定按钮事件（否则拖动松手会重绘并复位）。
 
 回归：`python3 courseware/module-thinking-deck/tests/verify-orbit.py`，真实鼠标、键盘、CDP 双指测试，覆盖三景 × 投屏／教师双视图。
+
+
+## 方块细化与后续案例复用（r6）
+
+S02-C 方块边长减半、数量 8 倍，整体尺寸不变。S03/S05/S04/S14 重用同一组三维模型讲输入输出、层级、复用和接回验证；六句描述与教师讲稿同步。保留 25 页与 120 分钟。P2 r1 不变。
+
+新增验证：`node courseware/module-thinking-deck/tests/verify-voxel.mjs`、`python3 courseware/module-thinking-deck/tests/verify-reuse.py`。部署记录见 `docs/P1_R6_VOXEL_REUSE_RECEIPT.md`。

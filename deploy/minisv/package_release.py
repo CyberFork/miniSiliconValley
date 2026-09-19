@@ -537,6 +537,26 @@ def validate_incubator_projects(source_root: Path, content_root: Path | None = N
     }
 
 
+MODULE_HISTORY_DIGESTS = {
+    5: "84ab82bcba6a34aab72284b3fc4f8d05b3f243bed4e8493c04fd9ab437b05412",
+}
+
+
+def validate_module_history(roots: list[Path], current_revision: int) -> dict[int, Path]:
+    history = {}
+    for root in roots:
+        artifact = validate_module_thinking_courseware(root)
+        revision = artifact["revision"]
+        if revision in history:
+            raise ValueError("duplicate historical P1 revision")
+        if artifact["sha256"] != MODULE_HISTORY_DIGESTS.get(revision):
+            raise ValueError("historical P1 identity mismatch")
+        history[revision] = root
+    if set(history) != set(range(5, current_revision)):
+        raise ValueError("missing or unexpected historical P1 revision")
+    return history
+
+
 def build(
     legacy: Path,
     app_client: Path,
@@ -551,6 +571,7 @@ def build(
     *,
     main_sha: str = "uncommitted",
     module_previous_root: Path | None = None,
+    module_history_roots: list[Path] | None = None,
     ligun_root: Path | None = None,
     chj_sha: str = CHJ_COURSE_UI_SHA,
     chj_tree: str = CHJ_COURSE_UI_TREE,
@@ -575,6 +596,7 @@ def build(
         previous = validate_module_thinking_courseware(module_previous_root)
         if previous["revision"] != 4 or previous["sha256"] != "5d0e6d1dd92c10c99ad4767d33d92ef1039733996f9ec909d5a0910572787644":
             raise ValueError("historical P1 r4 baseline identity mismatch")
+    module_history = validate_module_history(module_history_roots or [], module_thinking["revision"])
     incubator_projects = validate_incubator_projects(INCUBATOR_PROJECTS_SOURCE)
     module_audience_digest = tree_digest(module_thinking_courseware / "audience")
     module_teacher_digest = tree_digest(module_thinking_courseware / "teacher")
@@ -699,6 +721,12 @@ def build(
             copy_entry(module_previous_root / split, module_output / split)
             if tree_digest(module_previous_root / split) != tree_digest(module_output / split):
                 raise ValueError("historical P1 changed during assembly")
+        for revision, history_root in module_history.items():
+            for split in ("audience", "teacher"):
+                destination = module_output / f"r{revision}" / split
+                copy_entry(history_root / split, destination)
+                if tree_digest(history_root / split) != tree_digest(destination):
+                    raise ValueError("historical P1 revision changed during assembly")
         module_output = module_output / f"r{module_thinking['revision']}"
     copy_entry(module_thinking_courseware / "audience", module_output / "audience")
     copy_entry(module_thinking_courseware / "teacher", module_output / "teacher")
@@ -905,6 +933,7 @@ def main() -> None:
     parser.add_argument("--product-courseware-r2-root", required=True, type=Path, help="immutable chj9-11 product-mentor r2 artifact")
     parser.add_argument("--module-thinking-root", required=True, type=Path, help="verified T-122 dist root containing audience and teacher bundles")
     parser.add_argument("--module-previous-root", type=Path, help="verified immutable P1 r4 build")
+    parser.add_argument("--module-history-root", action="append", type=Path, default=[], help="verified immutable P1 r5+ builds; supply each historical revision")
     parser.add_argument("--ligun-root", type=Path, help="verified P2 split build")
     parser.add_argument("--portal-root", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
@@ -924,6 +953,7 @@ def main() -> None:
         *(getattr(args, name) for name in ("legacy_root", "app_client_root", "app_static_root", "course_static_root", "product_courseware_r1_root", "product_courseware_r2_root", "module_thinking_root", "portal_root", "output", "release_id")),
         main_sha=args.main_sha,
         module_previous_root=args.module_previous_root,
+        module_history_roots=args.module_history_root,
         ligun_root=args.ligun_root,
         chj_sha=args.chj_sha,
         chj_tree=args.chj_tree,

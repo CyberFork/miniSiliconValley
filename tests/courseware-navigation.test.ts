@@ -25,7 +25,7 @@ test("explicit deep links overlay defaults without producing a second question m
 
 test("private presenter metadata is centralized and declared for both dual-screen D decks", () => {
   const presenter = coursewarePresenterSurface("cw-development-mentor-module-thinking");
-  assert.equal(presenter?.href, "/courseware/development-mentor-module-thinking/r5/teacher/presenter.html");
+  assert.equal(presenter?.href, "/courseware/development-mentor-module-thinking/r6/teacher/presenter.html");
   assert.equal(presenter?.label, "打开导师讲解控制台");
   assert.match(presenter?.description ?? "", /逐页讲稿/);
   assert.equal(coursewarePresenterSurface("cw-development-mentor-ligun")?.href, "/courseware/development-mentor-ligun/r1/teacher/presenter.html");

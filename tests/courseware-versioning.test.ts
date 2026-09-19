@@ -272,10 +272,11 @@ test("120-minute P1/P2 upgrade adds new URLs without rewriting historical regist
   const db = database();
   try {
     for (const [slug, currentRevision, oldRevision, oldSource] of [
-      ["development-mentor-module-thinking", 5, 4, "t130:sha256:5d0e6d1dd92c10c99ad4767d33d92ef1039733996f9ec909d5a0910572787644"],
+      ["development-mentor-module-thinking", 6, 4, "t130:sha256:5d0e6d1dd92c10c99ad4767d33d92ef1039733996f9ec909d5a0910572787644"],
+      ["development-mentor-module-thinking", 6, 5, "t132:sha256:84ab82bcba6a34aab72284b3fc4f8d05b3f243bed4e8493c04fd9ab437b05412"],
       ["development-mentor-ligun", 1, 0, "t093:sha256:ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234"],
     ] as const) {
-      const oldPath = `/courseware/${slug}/${oldRevision === 4 ? "audience/" : ""}`;
+      const oldPath = `/courseware/${slug}/${oldRevision === 4 ? "audience/" : oldRevision === 5 ? "r5/audience/" : ""}`;
       const oldDigest = await digest(new TextEncoder().encode(`static-bundle:${oldPath}:${oldSource}`));
       const current = await loadCoursewareBySlug(db, slug);
       assert.equal(current.revision, currentRevision);
