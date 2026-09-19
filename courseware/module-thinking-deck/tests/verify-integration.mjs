@@ -29,6 +29,8 @@ if (!packager.includes("validate_module_thinking_courseware")) {
 }
 for (const [name,constant,route] of [["module-thinking-deck","DEVELOPMENT_MODULE_THINKING_R5_CONTENT_TREE","development-mentor-module-thinking/r5"],["ligun-deck","DEVELOPMENT_LIGUN_R1_CONTENT_TREE","development-mentor-ligun/r1"]]) {
   const build = JSON.parse(await readFile(join(repoRoot, "courseware", name, "dist/BUILD-MANIFEST.json"), "utf8"));
+  const smoke = await readFile(join(repoRoot, "deploy/minisv/scripts/public-smoke.py"), "utf8");
+  if (!smoke.includes(build.digest)) throw new Error("Public smoke pins an obsolete build: " + name);
   if (!registry.includes(`${constant} = "${build.digest}"`)) throw new Error("New revision digest missing: " + name);
   if (!registry.includes(`/courseware/${route}/audience/`)) throw new Error("New immutable route missing: " + name);
   if (!gateway.includes(`location ^~ /courseware/${route}/teacher/ {\n        auth_request /_minisv_mentor_courseware_auth;`)) throw new Error("Teacher route is not protected: " + name);

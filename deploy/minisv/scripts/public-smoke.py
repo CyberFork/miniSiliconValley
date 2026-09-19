@@ -28,6 +28,12 @@ EXPECTED = {
     "/courseware/development-mentor-ligun/": 401,
     "/courseware/development-mentor-module-thinking/audience/": 401,
     "/courseware/development-mentor-module-thinking/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r5/audience/": 401,
+    "/courseware/development-mentor-module-thinking/r5/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r5/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-ligun/r1/audience/": 401,
+    "/courseware/development-mentor-ligun/r1/teacher/presenter.html": 401,
+    "/courseware/development-mentor-ligun/r1/teacher/presenter-notes.js": 401,
     "/courseware/market-mentor-user-system/": 401,
     "/course/development-mentor-ligun/?revision=0&slide=6&step=2": 307,
     "/framework/": 200,
@@ -70,6 +76,12 @@ EXPECTED = {
 # fingerprints and the size ceiling distinguish that generic response from a
 # leaked courseware document without coupling the smoke test to Nginx wording.
 COURSEWARE_MARKERS = {
+    "/courseware/development-mentor-module-thinking/r5/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r5/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r5/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r1/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r1/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r1/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/product-mentor-foundations/": ("青少年AI创业营", "MINI硅谷"),
     "/courseware/product-mentor-foundations/r1/": ("青少年AI创业营", "MINI硅谷"),
     "/courseware/development-mentor-ligun/": ("先立棍，再让 AI 跑", "DEVELOPMENT MENTOR"),
@@ -184,19 +196,22 @@ def main() -> None:
                 raise SystemExit("FAIL release.json: D-mentor courseware artifact was transformed or misclassified")
             if development.get("sha256") != "ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234":
                 raise SystemExit("FAIL release.json: D-mentor courseware digest is not the accepted T-093 tree")
-            module_thinking = release.get("moduleThinkingCoursewareArtifact", {})
-            if (
-                module_thinking.get("transformed") is not False
-                or module_thinking.get("mentorRole") != "D"
-                or module_thinking.get("route") != "/courseware/development-mentor-module-thinking/audience/"
-                or module_thinking.get("teacherRoute") != "/courseware/development-mentor-module-thinking/teacher/presenter.html"
-                or module_thinking.get("teacherAuthorization") != "server-side-admin-or-mentor"
-                or module_thinking.get("revision") != 4
-                or module_thinking.get("sha256") != "5d0e6d1dd92c10c99ad4767d33d92ef1039733996f9ec909d5a0910572787644"
-                or module_thinking.get("audienceFiles") != 12
-                or module_thinking.get("teacherFiles") != 12
+            for key, slug, revision, digest, audience_files, teacher_files in (
+                ("moduleThinkingCoursewareArtifact", "development-mentor-module-thinking", 5, "84ab82bcba6a34aab72284b3fc4f8d05b3f243bed4e8493c04fd9ab437b05412", 23, 15),
+                ("ligun120CoursewareArtifact", "development-mentor-ligun", 1, "6b48d7d9fac75f88180bc00c8caf2f8c2a533d611580493eb538e3eef73ad1d9", 27, 9),
             ):
-                raise SystemExit("FAIL release.json: T-122 split courseware identity or authorization is invalid")
+                deck = release.get(key, {})
+                if (
+                    deck.get("route") != f"/courseware/{slug}/r{revision}/audience/"
+                    or deck.get("teacherRoute") != f"/courseware/{slug}/r{revision}/teacher/presenter.html"
+                    or deck.get("teacherAuthorization") != "server-side-admin-or-mentor"
+                    or deck.get("revision") != revision or deck.get("sha256") != digest
+                    or deck.get("audienceFiles") != audience_files or deck.get("teacherFiles") != teacher_files
+                ):
+                    raise SystemExit(f"FAIL release.json: {key} exact split identity or authorization is invalid")
+            module_thinking = release["moduleThinkingCoursewareArtifact"]
+            if module_thinking.get("transformed") is not False or module_thinking.get("mentorRole") != "D":
+                raise SystemExit("FAIL release.json: P1 artifact was transformed or misclassified")
             market = release.get("marketCoursewareArtifact", {})
             if market.get("transformed") is not False or market.get("mentorRole") != "M":
                 raise SystemExit("FAIL release.json: M-mentor courseware artifact was transformed or misclassified")
