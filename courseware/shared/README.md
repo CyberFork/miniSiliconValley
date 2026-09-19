@@ -1,6 +1,6 @@
 # 开发导师 120 分钟双课件
 
-当前为 T-132／T-133 **本地候选版**。不覆盖已发布 P1 r5 和旧立棍，不代签 View/UI 或现场试讲。
+T-132／T-133 已部署：`20260919T1506CST-p132-p133-orbit-r2`。新增 P1 r5、P2 r1，保留原 P1 r4 与立棍 r0；不代签 View/UI 或现场试讲。
 
 ## 预览
 
@@ -45,9 +45,12 @@ npm run lint
 
 共享引擎目前由 P1 源文件提供；构建复制到 P2，不维护两份可变 runtime/CSS。Markdown 为提示词唯一正文，catalog 仅存元数据，浏览器 catalog.js 构建时派生。Three.js 本地依赖和许可随包，P2 不无谓加载 Three.js。
 
-## 发布留待单独执行
+## 线上发布
 
-候选 `BUILD-MANIFEST.json` 标记 `releaseStatus=candidate`，与已发布库 digest 不同。**不能使用这一工作区直接覆盖生产发布包**；当前生产打包校验仍校验已发布身份，会拒绝候选。正式发布需在用户确认后建立新不可变版本、更新发布身份，并验证 P2 teacher 服务端权限及旧版入口，不通过放松旧版本校验绕过。
+- P1 教师：https://minisv.vip/courseware/development-mentor-module-thinking/r5/teacher/presenter.html
+- P2 教师：https://minisv.vip/courseware/development-mentor-ligun/r1/teacher/presenter.html
+- 用教师账号从 `/course/` 也可进入；两端都有“打开投屏窗口”。
+- `BUILD-MANIFEST.json` 标记 `deployment-ready`，不代表试讲签名；发布使用不可变新版本 URL、字节哈希及服务端教师权限。详见 `docs/T132_T133_IMPLEMENTATION_RECEIPT.md` 与 `docs/DEPLOYMENT.md`。
 
 ## 人工检查
 

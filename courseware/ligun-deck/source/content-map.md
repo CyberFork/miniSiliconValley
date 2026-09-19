@@ -1,6 +1,6 @@
 # P2：旧 18 页到 120 分钟扩展版
 
-旧原稿继续保留在 public/courseware/development-mentor-ligun/index.html；本源是同一课件的候选升级版，不覆盖旧产物。
+旧原稿继续保留在 public/courseware/development-mentor-ligun/index.html；本源是同一课件的 120 分钟升级版，不覆盖旧产物。
 
 - 旧第 1 页 开场与方向 → 新 P2-01–03（六项与称谓遵循最新决定）。
 - 旧第 2 页 模糊设备预约要求 → 新 P2-01（六项与称谓遵循最新决定）。
