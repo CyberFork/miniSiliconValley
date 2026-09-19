@@ -15,7 +15,7 @@ with sync_playwright() as p:
     page.on("console", lambda msg: errors.append(f"console:{msg.type}:{msg.text}") if msg.type == "error" else None)
     page.on("pageerror", lambda err: errors.append(f"page:{err}"))
     page.goto(f"{BASE}{AUDIENCE}/index.html?session=qa-audience", wait_until="networkidle")
-    assert page.locator('link[rel="icon"]').get_attribute("href") == "favicon.svg?v=20260918-r4"
+    assert page.locator('link[rel="icon"]').get_attribute("href") == "favicon.svg?v=20260919-r5"
     assert page.locator(".deck-slide").get_attribute("data-source") == "S01"
     page.keyboard.press("ArrowRight")
     assert page.evaluate("MSVModuleDeckController.getState().reveal") == 1
@@ -26,7 +26,7 @@ with sync_playwright() as p:
 
     presenter = context.new_page()
     presenter.goto(f"{BASE}{TEACHER}/presenter.html?session=qa-sync", wait_until="networkidle")
-    assert presenter.locator('link[rel="icon"]').get_attribute("href") == "favicon.svg?v=20260918-r4"
+    assert presenter.locator('link[rel="icon"]').get_attribute("href") == "favicon.svg?v=20260919-r5"
     assert presenter.locator("#note-goal").inner_text().strip()
     with context.expect_page() as popup_info:
         presenter.click("#open-audience")
@@ -68,6 +68,28 @@ with sync_playwright() as p:
     assert audience.evaluate("MSVModuleDeckController.getState().activity.buildStep") == "components"
     assert audience.locator('[data-build-layer="components"]').get_attribute("data-active") is not None
 
+    presenter.keyboard.press("Shift+ArrowRight")
+    audience.wait_for_function("MSVModuleDeckController.getState().slide === 3")
+    presenter.wait_for_function("MSVModulePresenterController.getState().slide === 3")
+    audience.wait_for_selector('[data-module-3d="voxel"] canvas.module-3d-canvas')
+    assert audience.locator('[data-module-3d="voxel"]').get_attribute("data-webgl-ready") == "true"
+    assert audience.locator('[data-module-3d="voxel"] .module-3d-fallback').count() == 1
+    presenter.locator('#current-preview [data-voxel-case="scope"]').click(force=True)
+    audience.wait_for_function("MSVModuleDeckController.getState().activity.voxelCase === 'scope'")
+    assert audience.locator('[data-module-3d="voxel"]').get_attribute("data-module-3d-mode") == "scope:blocks"
+    assert "玻璃方块 + 金属方块" in audience.locator('[data-voxel-material="one"]').inner_text()
+    component_step = audience.locator('[data-voxel-step="components"]')
+    component_step.focus()
+    audience.keyboard.press("Space")
+    presenter.wait_for_function("MSVModulePresenterController.getState().activity.voxelStep === 'components'")
+    audience.wait_for_function("MSVModuleDeckController.getState().activity.voxelStep === 'components'")
+    assert audience.locator('[data-voxel-layer="components"]').get_attribute("data-active") is not None
+    assert audience.locator('[data-module-3d="voxel"]').get_attribute("data-module-3d-mode") == "scope:components"
+    assert "枪托" in audience.locator("[data-voxel-feedback]").inner_text()
+    audience.reload(wait_until="networkidle")
+    assert audience.evaluate("MSVModuleDeckController.getState().activity.voxelCase") == "scope"
+    assert audience.evaluate("MSVModuleDeckController.getState().activity.voxelStep") == "components"
+
     isolated = context.new_page()
     isolated.goto(f"{BASE}{AUDIENCE}/index.html?session=qa-isolated&controlled=1", wait_until="networkidle")
     assert isolated.evaluate("MSVModuleDeckController.getState().slide") == 0
@@ -108,7 +130,7 @@ with sync_playwright() as p:
     assert audience.evaluate("MSVModuleDeckController.getState().slide") == blackbox_index
 
     slide_count = audience.evaluate("MSV_MODULE_DECK.slides.length")
-    assert slide_count == 17
+    assert slide_count == 18
     for index in range(slide_count):
         audience.evaluate("index => MSVModuleDeckController.setState({slide:index,reveal:99})", index)
         dimensions = audience.evaluate("""() => { const slide=document.querySelector('.deck-slide'); const body=document.querySelector('.slide-body'); return {slideScroll:slide.scrollHeight,slideClient:slide.clientHeight,bodyScroll:body.scrollHeight,bodyClient:body.clientHeight}; }""")
@@ -184,6 +206,12 @@ with sync_playwright() as p:
     mobile.tap('[data-build-step="works"]')
     assert mobile.locator('[data-build-layer="works"]').get_attribute("data-active") is not None
     assert mobile.locator('[data-module-3d="automation"]').get_attribute("data-module-3d-mode") == "works"
+    mobile.evaluate("MSVModuleDeckController.setState({slide:3,reveal:0})")
+    mobile.wait_for_selector('[data-module-3d="voxel"] canvas.module-3d-canvas')
+    mobile.tap('[data-voxel-case="scope"]')
+    mobile.tap('[data-voxel-step="object"]')
+    assert mobile.locator('[data-voxel-layer="object"]').get_attribute("data-active") is not None
+    assert mobile.locator('[data-module-3d="voxel"]').get_attribute("data-module-3d-mode") == "scope:object"
     mobile.evaluate("index => MSVModuleDeckController.setState({slide:index,reveal:99})", mobile.evaluate("MSV_MODULE_DECK.slides.findIndex(slide => slide.id === 'module-s10')"))
     mobile.tap('[data-blackbox-case="2"]')
     assert mobile.locator('[data-blackbox-output]').nth(2).locator("b").inner_text() == "拒绝"
@@ -197,4 +225,4 @@ with sync_playwright() as p:
     assert not errors, errors
     browser.close()
 
-print("T-128 browser checks passed: local Three.js scenes, projection, reveal/refresh, presenter sync, session isolation, 17-slide contrast/overflow, S02-A/S02-B and S10 mouse-keyboard-touch interaction, HTML fallbacks, and printables.")
+print("T-130 browser checks passed: three local Three.js scenes, projection, reveal/refresh, presenter sync, session isolation, 18-slide contrast/overflow, S02-A/S02-B/S02-C and S10 mouse-keyboard-touch interaction, HTML fallbacks, and printables.")

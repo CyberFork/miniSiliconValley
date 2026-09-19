@@ -22,7 +22,9 @@
     const reveal = Math.max(0, Math.min(maxReveal(slide), Number(next?.reveal) || 0));
     const transformCase = ["car", "plane", "robot"].includes(next?.activity?.transformCase) ? next.activity.transformCase : "car";
     const buildStep = ["parts", "components", "works"].includes(next?.activity?.buildStep) ? next.activity.buildStep : "parts";
-    return { slide, reveal, activity: { transformCase, buildStep }, updatedAt: Date.now() };
+    const voxelCase = ["car", "scope"].includes(next?.activity?.voxelCase) ? next.activity.voxelCase : "car";
+    const voxelStep = ["blocks", "components", "object"].includes(next?.activity?.voxelStep) ? next.activity.voxelStep : "blocks";
+    return { slide, reveal, activity: { transformCase, buildStep, voxelCase, voxelStep }, updatedAt: Date.now() };
   }
   function readState() { try { return normalize(JSON.parse(localStorage.getItem(storageKey()) || "null")); } catch { return normalize(null); } }
   function persist() { try { localStorage.setItem(storageKey(), JSON.stringify(state)); } catch { /* private mode can deny storage */ } }
@@ -118,6 +120,40 @@
       };
       selectBuildStep(state.activity.buildStep, false);
       if (interactive) buildButtons.forEach((button) => button.addEventListener("click", () => selectBuildStep(button.dataset.buildStep, true)));
+    }
+
+    const voxelCaseButtons = [...stage.querySelectorAll("[data-voxel-case]")];
+    const voxelStepButtons = [...stage.querySelectorAll("[data-voxel-step]")];
+    const voxelStage = stage.querySelector("[data-voxel-stage]");
+    if (voxelCaseButtons.length && voxelStepButtons.length && voxelStage) {
+      const applyVoxel = (caseValue, stepValue, notify) => {
+        const caseButton = voxelCaseButtons.find((item) => item.dataset.voxelCase === caseValue) || voxelCaseButtons[0];
+        const stepButton = voxelStepButtons.find((item) => item.dataset.voxelStep === stepValue) || voxelStepButtons[0];
+        const selectedCase = caseButton.dataset.voxelCase;
+        const selectedStep = stepButton.dataset.voxelStep;
+        voxelCaseButtons.forEach((item) => item.setAttribute("aria-pressed", String(item === caseButton)));
+        voxelStepButtons.forEach((item) => item.setAttribute("aria-pressed", String(item === stepButton)));
+        voxelStage.dataset.voxelCase = selectedCase;
+        voxelStage.dataset.voxelStep = selectedStep;
+        const scene = stage.querySelector('[data-module-3d="voxel"]');
+        if (scene) scene.setAttribute("data-module-3d-mode", `${selectedCase}:${selectedStep}`);
+        stage.querySelectorAll("[data-voxel-layer]").forEach((item) => item.toggleAttribute("data-active", item.dataset.voxelLayer === selectedStep));
+        const objectName = stage.querySelector("[data-voxel-object-name]");
+        if (objectName) objectName.textContent = caseButton.dataset.objectName || "功能对象";
+        for (const key of ["one", "two", "three"]) {
+          const target = stage.querySelector(`[data-voxel-material="${key}"]`);
+          if (target) target.textContent = caseButton.dataset[`material${key[0].toUpperCase()}${key.slice(1)}`] || "待确认";
+        }
+        const feedback = stage.querySelector("[data-voxel-feedback]");
+        const feedbackKey = `${selectedStep}Feedback`;
+        if (feedback) feedback.textContent = caseButton.dataset[feedbackKey] || "已切换方块组合层级";
+        if (notify) setState({ ...state, activity: { ...state.activity, voxelCase: selectedCase, voxelStep: selectedStep } });
+      };
+      applyVoxel(state.activity.voxelCase, state.activity.voxelStep, false);
+      if (interactive) {
+        voxelCaseButtons.forEach((button) => button.addEventListener("click", () => applyVoxel(button.dataset.voxelCase, state.activity.voxelStep, true)));
+        voxelStepButtons.forEach((button) => button.addEventListener("click", () => applyVoxel(state.activity.voxelCase, button.dataset.voxelStep, true)));
+      }
     }
   }
   function renderPreview(container, index, reveal, interactive = false) {

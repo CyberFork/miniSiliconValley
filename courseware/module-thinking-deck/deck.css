@@ -197,6 +197,50 @@ button { font: inherit; }
 .build-layer-rail article span { color: var(--ink); font-size: 15px; line-height: 1.35; }
 .build-layer-rail > i { align-self: center; color: var(--blue); font: 900 20px/1 monospace; text-align: center; }
 
+/* S02-C: 材料方块 → 塑形组件 → 功能对象 */
+.voxel-toolbar { display: grid; grid-template-columns: 1.18fr .82fr; gap: 16px; margin-bottom: 12px; }
+.voxel-case-switch, .voxel-step-switch { display: flex; align-items: stretch; gap: 9px; min-width: 0; }
+.voxel-case-switch > b { display: grid; place-items: center; flex: 0 0 92px; color: var(--navy); background: #d8f4e8; border: 3px solid var(--navy); font-size: 16px; }
+.voxel-case-switch button, .voxel-step-switch button {
+  min-height: 48px; padding: 8px 12px; border: 3px solid var(--navy); color: var(--navy); background: var(--paper);
+  box-shadow: 4px 4px 0 rgba(16,41,63,.14); cursor: pointer; font-size: 16px; font-weight: 900;
+}
+.voxel-case-switch button { flex: 1 1 0; }
+.voxel-step-switch button { flex: 1 1 0; }
+.voxel-step-switch button b { margin-right: 7px; color: var(--navy); font: 900 13px/1 monospace; }
+.voxel-case-switch button:hover, .voxel-step-switch button:hover { transform: translate(-2px,-2px); background: #fff0ad; }
+.voxel-case-switch button:focus-visible, .voxel-step-switch button:focus-visible { outline: 5px solid var(--blue); outline-offset: 3px; }
+.voxel-case-switch button[aria-pressed="true"], .voxel-step-switch button[aria-pressed="true"] { color: var(--navy); background: var(--yellow); box-shadow: 6px 6px 0 var(--mint); }
+.voxel-lab { display: grid; grid-template-columns: minmax(0,1.65fr) minmax(360px,.82fr); gap: 14px; height: 235px; }
+.voxel-forge-3d { min-width: 0; height: 235px; background: linear-gradient(145deg,#e4f7ee,#dce9ff); }
+.voxel-ledger { display: grid; grid-template-rows: auto repeat(3,1fr); gap: 7px; min-width: 0; }
+.voxel-ledger header { padding: 10px 13px; color: #fff8e7; background: var(--navy); border: 3px solid #071b2b; }
+.voxel-ledger header small, .voxel-ledger header b { display: block; }
+.voxel-ledger header small { color: var(--mint); font: 900 11px/1 monospace; letter-spacing: .12em; }
+.voxel-ledger header b { margin-top: 5px; font-size: 17px; line-height: 1.2; }
+.voxel-ledger article { display: grid; grid-template-columns: 27px 1fr; align-items: center; gap: 9px; min-height: 0; padding: 7px 10px; color: var(--ink); background: var(--paper); border: 3px solid var(--navy); }
+.voxel-ledger article span { font-size: 14px; font-weight: 900; line-height: 1.25; }
+.voxel-swatch { width: 25px; height: 25px; border: 3px solid var(--navy); background: var(--yellow); }
+.voxel-swatch.material-one { background: #27313a; }
+.voxel-swatch.material-two { background: #96a5ad; }
+.voxel-swatch.material-three { background: var(--orange); }
+.voxel-lab[data-voxel-case="scope"] .voxel-swatch.material-one { background: linear-gradient(135deg,#77dfe8 0 48%,#bac5ca 48% 100%); }
+.voxel-lab[data-voxel-case="scope"] .voxel-swatch.material-two { background: #96a5ad; }
+.voxel-lab[data-voxel-case="scope"] .voxel-swatch.material-three { background: repeating-linear-gradient(0deg,#fff0ad 0 5px,#dce9ff 5px 10px); }
+.voxel-layer-rail { display: grid; grid-template-columns: 1fr 26px 1fr 26px 1fr; align-items: stretch; gap: 7px; margin-top: 10px; }
+.voxel-layer-rail article { display: grid; grid-template-columns: 118px 1fr; align-items: center; gap: 9px; min-height: 53px; padding: 8px 11px; color: var(--ink); background: rgba(255,253,247,.78); border: 3px solid #8799a2; opacity: .64; }
+.voxel-layer-rail article[data-active] { border-color: var(--navy); background: var(--paper); box-shadow: 4px 4px 0 var(--mint); opacity: 1; transform: translateY(-2px); }
+.voxel-layer-rail article b { color: var(--blue); font-size: 17px; }
+.voxel-layer-rail article span { font-size: 13px; font-weight: 800; line-height: 1.25; }
+.voxel-layer-rail > i { align-self: center; color: var(--blue); font: 900 21px/1 monospace; text-align: center; }
+.voxel-feedback { min-height: 37px; margin-top: 9px; padding: 8px 13px; color: #fff8e7; background: var(--navy); border-left: 7px solid var(--yellow); font-size: 14px; font-weight: 800; }
+.voxel-fallback { grid-template-columns: repeat(5,auto); gap: 18px; color: var(--navy); font-size: 20px; }
+.voxel-fallback i { color: var(--blue); font: 900 25px/1 monospace; }
+.voxel-cluster { width: 55px; height: 55px; border: 4px solid var(--navy); box-shadow: 13px 0 0 -4px currentColor, 0 13px 0 -4px currentColor; }
+.voxel-cluster.rubber { color: #27313a; background: #27313a; }
+.voxel-cluster.iron { color: #96a5ad; background: #96a5ad; }
+.voxel-cluster.plastic { color: var(--orange); background: var(--orange); }
+
 /* S03 */
 .pipeline { display: flex; align-items: stretch; gap: 12px; }
 .pipeline article { flex: 1; min-width: 0; padding: 27px 22px; border: 4px solid var(--navy); background: var(--paper); box-shadow: 5px 5px 0 rgba(16,41,63,.12); }

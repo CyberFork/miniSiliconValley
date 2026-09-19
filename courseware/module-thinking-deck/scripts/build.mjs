@@ -43,10 +43,10 @@ async function collect(base, names) {
 const manifest = {
   schemaVersion: 1,
   todoId: "T-122",
-  changeTodoIds: ["T-122", "T-128"],
+  changeTodoIds: ["T-122", "T-128", "T-130"],
   coursewareId: "module-thinking-p1",
-  releaseRevision: 3,
-  version: "2026.09.18-r4",
+  releaseRevision: 4,
+  version: "2026.09.19-r5",
   sourceXmindSha256: "a31489645adcfaf6b7afd3be734349175740c520120cda65552cfa0f3e833793",
   audience: await collect(audience, [...audienceFiles, "assets/mini-silicon-valley-logo-transparent.png", "vendor/three.module.min.js", "vendor/three.core.min.js", "vendor/THREE-LICENSE.txt", "printables/module-map.html", "printables/interface-card.html"]),
   teacher: await collect(teacher, [...teacherFiles, "assets/mini-silicon-valley-logo-transparent.png", "vendor/three.module.min.js", "vendor/three.core.min.js", "vendor/THREE-LICENSE.txt"]),

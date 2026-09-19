@@ -300,10 +300,153 @@ function createAutomationLab(host) {
   return { ...common, setMode, update, dragCleanup };
 }
 
+function createVoxelForge(host) {
+  const common = createCommonScene(host, [8.4, 5.4, 10.5]);
+  common.camera.fov = 25;
+  common.camera.updateProjectionMatrix();
+  const root = new THREE.Group();
+  root.scale.setScalar(1.45);
+  common.scene.add(root);
+
+  const point = (position, component) => ({ position, component });
+  const car = { rubber: [], iron: [], plastic: [], glass: [], metal: [] };
+  const wheelCenters = [
+    [-2.3, -0.72, -1.3, "wheel-left-front"], [2.3, -0.72, -1.3, "wheel-left-back"],
+    [-2.3, -0.72, 1.3, "wheel-right-front"], [2.3, -0.72, 1.3, "wheel-right-back"],
+  ];
+  for (const [x, y, z, component] of wheelCenters) {
+    for (const [dx, dy] of [[0, 0], [-0.48, 0], [0.48, 0], [0, -0.48], [0, 0.48]]) {
+      car.rubber.push(point([x + dx, y + dy, z], component));
+    }
+  }
+  for (const x of [-3, -2, -1, 0, 1, 2, 3]) {
+    for (const z of [-0.8, 0, 0.8]) car.iron.push(point([x, -0.35, z], "frame"));
+  }
+  for (const x of [-1, 0, 1]) {
+    for (const z of [-0.8, 0.8]) car.iron.push(point([x, 0.15, z], "frame"));
+    car.iron.push(point([x, 0.65, 0], "frame"));
+  }
+  for (const [index, x] of [-0.65, 0.55].entries()) {
+    const component = `seat-${index}`;
+    car.plastic.push(point([x, 0.18, -0.35], component));
+    car.plastic.push(point([x, 0.18, 0.35], component));
+    car.plastic.push(point([x, 0.65, 0.35], component));
+  }
+  for (const [dx, dy] of [[0, 0], [-0.42, 0], [0.42, 0], [0, -0.42], [0, 0.42]]) {
+    car.plastic.push(point([1.55 + dx, 0.72 + dy, -0.55], "steering"));
+  }
+
+  const scope = { rubber: [], iron: [], plastic: [], glass: [], metal: [] };
+  for (const x of [-3, -2.5, -2]) {
+    for (const y of [-0.5, 0, 0.5]) scope.iron.push(point([x, y, 0], "stock"));
+  }
+  for (const x of [-1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2, 2.5]) {
+    for (const z of [-0.28, 0.28]) scope.iron.push(point([x, 0, z], "stock"));
+  }
+  for (const y of [-0.5, -1]) {
+    for (const z of [-0.22, 0.22]) scope.iron.push(point([0, y, z], "stock"));
+  }
+  for (const x of [-1, -0.5, 0, 0.5, 1, 1.5, 2]) {
+    for (const z of [-0.28, 0.28]) scope.metal.push(point([x, 1.05, z], "scope"));
+  }
+  for (const x of [0, 1.5]) {
+    for (const z of [-0.25, 0.25]) scope.metal.push(point([x, 0.55, z], "scope"));
+  }
+  for (const x of [-1.3, 2.3]) {
+    for (const y of [0.82, 1.28]) {
+      for (const z of [-0.22, 0.22]) scope.glass.push(point([x, y, z], "scope"));
+    }
+  }
+
+  const designs = { car, scope };
+  const colors = {
+    rubber: 0x27313a,
+    iron: 0x8f9fa8,
+    plastic: PALETTE.orange,
+    glass: 0x73dce8,
+    metal: 0xc4cdd2,
+  };
+  const materialKeys = Object.keys(colors);
+  const pieces = [];
+  for (const materialKey of materialKeys) {
+    const capacity = Math.max(...Object.values(designs).map((design) => design[materialKey].length));
+    for (let index = 0; index < capacity; index += 1) {
+      const piece = box(`voxel-${materialKey}-${index}`, colors[materialKey], [0.44, 0.44, 0.44], materialKey === "glass");
+      piece.userData.materialKey = materialKey;
+      piece.userData.materialIndex = index;
+      root.add(piece);
+      pieces.push(piece);
+    }
+  }
+
+  const scatterOrigins = {
+    car: { rubber: [-4.2, -1.3, -1.1], iron: [-1.4, -1.3, -1.1], plastic: [2.7, -1.3, -1.1] },
+    scope: { glass: [-4.1, -1.3, -1.1], metal: [-1.35, -1.3, -1.1], iron: [2.35, -1.3, -1.1] },
+  };
+  const componentOffsets = {
+    car: {
+      frame: [0, -0.55, 0],
+      "wheel-left-front": [-1.1, 0.7, -0.35], "wheel-left-back": [1.1, 0.7, -0.35],
+      "wheel-right-front": [-1.1, 0.7, 0.35], "wheel-right-back": [1.1, 0.7, 0.35],
+      "seat-0": [-0.45, 1.15, 0], "seat-1": [0.45, 1.15, 0], steering: [0.8, 1.15, 0],
+    },
+    scope: { stock: [-0.65, -0.65, 0], scope: [0.75, 1.25, 0] },
+  };
+  const scatterTarget = (caseName, materialKey, index) => {
+    const [originX, originY, originZ] = scatterOrigins[caseName][materialKey] || [0, -1.3, 0];
+    return {
+      position: [originX + (index % 5) * 0.48, originY + (Math.floor(index / 5) % 4) * 0.48, originZ + Math.floor(index / 20) * 0.48],
+    };
+  };
+
+  let currentCase = "car";
+  let currentStep = "blocks";
+  let first = true;
+  const setMode = (value) => {
+    const [caseValue, stepValue] = String(value || "").split(":");
+    currentCase = designs[caseValue] ? caseValue : "car";
+    currentStep = ["blocks", "components", "object"].includes(stepValue) ? stepValue : "blocks";
+    const design = designs[currentCase];
+    for (const piece of pieces) {
+      const materialKey = piece.userData.materialKey;
+      const target = design[materialKey][piece.userData.materialIndex];
+      if (!target) {
+        setTransform(piece, { position: [0, -1.8, 0], scale: [0.001, 0.001, 0.001] }, first);
+        continue;
+      }
+      if (currentStep === "blocks") {
+        setTransform(piece, { ...scatterTarget(currentCase, materialKey, piece.userData.materialIndex), scale: [1, 1, 1] }, first);
+        continue;
+      }
+      const offset = currentStep === "components" ? (componentOffsets[currentCase][target.component] || [0, 0, 0]) : [0, 0, 0];
+      setTransform(piece, {
+        position: target.position.map((coordinate, index) => coordinate + offset[index]),
+        scale: [1, 1, 1],
+      }, first);
+    }
+    first = false;
+  };
+  setMode(host.getAttribute("data-module-3d-mode") || "car:blocks");
+
+  const dragCleanup = addDragRotation(host, root);
+  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const update = (time) => {
+    pieces.forEach((piece) => approachTarget(piece, reducedMotion ? 1 : 0.105));
+    const idle = reducedMotion ? 0 : Math.sin(time * 0.0003) * 0.08;
+    root.rotation.y = (root.userData.dragRotation || 0) + idle;
+    root.position.x = currentCase === "car" && currentStep === "object" && !reducedMotion ? Math.sin(time * 0.0011) * 0.2 : 0;
+  };
+  return { ...common, setMode, update, dragCleanup };
+}
+
 function mountScene(host) {
   let instance;
   try {
-    instance = host.dataset.module3d === "transform" ? createTransformToy(host) : createAutomationLab(host);
+    const factories = { transform: createTransformToy, automation: createAutomationLab, voxel: createVoxelForge };
+    const sceneType = host.getAttribute("data-module-3d");
+    const factory = factories[sceneType];
+    if (!factory) throw new Error(`未知 3D 课堂场景：${sceneType}`);
+    instance = factory(host);
   } catch (error) {
     host.dataset.webglFailed = "true";
     console.warn("3D 课堂示意无法启动，已保留 HTML 降级图。", error);

@@ -14,7 +14,7 @@ const registry = await readFile(join(repoRoot, "app/lib/courseware-store.ts"), "
 const gateway = await readFile(join(repoRoot, "deploy/minisv/gateway/default.conf"), "utf8");
 const packager = await readFile(join(repoRoot, "deploy/minisv/package_release.py"), "utf8");
 
-if (!registry.includes(`DEVELOPMENT_MODULE_THINKING_R3_CONTENT_TREE = "${digest}"`)) {
+if (!registry.includes(`DEVELOPMENT_MODULE_THINKING_R4_CONTENT_TREE = "${digest}"`)) {
   throw new Error(`T-128 registry digest is not the built bundle digest: ${digest}`);
 }
 if (!registry.includes('entryPath: "/courseware/development-mentor-module-thinking/audience/"')) {
@@ -26,4 +26,4 @@ if (!gateway.includes("auth_request /_minisv_mentor_courseware_auth")) {
 if (!packager.includes("validate_module_thinking_courseware")) {
   throw new Error("T-128 bundle is not part of release assembly validation");
 }
-console.log(`T-128 release integration passed: ${digest}, audience ${manifest.audience.length}, teacher ${manifest.teacher.length}.`);
+console.log(`T-130 release integration passed: ${digest}, audience ${manifest.audience.length}, teacher ${manifest.teacher.length}.`);

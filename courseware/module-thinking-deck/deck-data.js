@@ -103,6 +103,63 @@
         <div class="reveal-card conclusion" data-reveal><b>第二层：先创造，再组合</b><span>自建不一定更好；按需求选择复用或自建，并为结果承担测试和维护。</span></div>`,
     },
     {
+      id: "module-s02-voxel",
+      source: "S02-C",
+      section: "方块造物",
+      title: "从方块造组件，再由组件造对象",
+      subtitle: "《我的世界》式方块把可编辑粒度再下放一层：共享网格接口，但材料能力不同。",
+      theme: "blueprint",
+      content: `
+        <div class="voxel-toolbar">
+          <div class="voxel-case-switch" role="group" aria-label="选择方块造物案例">
+            <b>选择案例</b>
+            <button type="button" aria-pressed="true" data-voxel-case="car"
+              data-object-name="可滚动小车"
+              data-material-one="橡胶方块 → 四个轮组"
+              data-material-two="铁方块 → 车架"
+              data-material-three="塑料方块 → 方向盘与座椅"
+              data-blocks-feedback="先按材料能力选方块：橡胶、铁和塑料承担不同任务。"
+              data-components-feedback="橡胶块塑成轮组，铁块塑成车架，塑料块塑成驾驶组件。"
+              data-object-feedback="把轮组、车架和驾驶组件按接口对齐，组合成可滚动小车。">案例一 · 小车</button>
+            <button type="button" aria-pressed="false" data-voxel-case="scope"
+              data-object-name="瞄准观察道具（课堂模型）"
+              data-material-one="玻璃方块 + 金属方块 → 瞄准镜"
+              data-material-two="铁方块 → 枪托与主体"
+              data-material-three="标准网格 → 组件对齐接口"
+              data-blocks-feedback="先分清玻璃、金属和铁方块的能力，不把相同外形当成相同材料。"
+              data-components-feedback="玻璃与金属块塑成瞄准镜，铁块塑成枪托与主体。"
+              data-object-feedback="将瞄准镜与枪托主体按网格接口组合成课堂道具模型；不讨论真实武器结构。">案例二 · 瞄准镜与枪托</button>
+          </div>
+          <div class="voxel-step-switch" role="group" aria-label="选择方块组合层级">
+            <button type="button" aria-pressed="true" data-voxel-step="blocks"><b>01</b>材料方块</button>
+            <button type="button" aria-pressed="false" data-voxel-step="components"><b>02</b>塑形组件</button>
+            <button type="button" aria-pressed="false" data-voxel-step="object"><b>03</b>组合对象</button>
+          </div>
+        </div>
+        <div class="voxel-lab" data-voxel-stage data-voxel-case="car" data-voxel-step="blocks">
+          <div class="module-3d-host voxel-forge-3d" data-module-3d="voxel" data-module-3d-mode="car:blocks" aria-label="可拖动观察的方块塑形与组件组合三维课堂示意">
+            <div class="module-3d-fallback voxel-fallback" aria-hidden="true">
+              <span class="voxel-cluster rubber"></span><span class="voxel-cluster iron"></span><span class="voxel-cluster plastic"></span>
+              <i>→</i><strong>组件</strong><i>→</i><strong>对象</strong>
+            </div>
+            <span class="module-3d-hint">拖动旋转 · 依次观察三层</span>
+          </div>
+          <aside class="voxel-ledger" aria-live="polite">
+            <header><small>当前目标</small><b data-voxel-object-name>可滚动小车</b></header>
+            <article><i class="voxel-swatch material-one"></i><span data-voxel-material="one">橡胶方块 → 四个轮组</span></article>
+            <article><i class="voxel-swatch material-two"></i><span data-voxel-material="two">铁方块 → 车架</span></article>
+            <article><i class="voxel-swatch material-three"></i><span data-voxel-material="three">塑料方块 → 方向盘与座椅</span></article>
+          </aside>
+        </div>
+        <div class="voxel-layer-rail" aria-label="方块到对象的三层关系">
+          <article data-voxel-layer="blocks" data-active><b>材料方块</b><span>共享网格，不同材料能力</span></article><i>→</i>
+          <article data-voxel-layer="components"><b>功能组件</b><span>先为任务塑形与命名</span></article><i>→</i>
+          <article data-voxel-layer="object"><b>功能对象</b><span>按接口组合并验证用途</span></article>
+        </div>
+        <div class="voxel-feedback" data-voxel-feedback aria-live="polite">先按材料能力选方块：橡胶、铁和塑料承担不同任务。</div>
+        <div class="reveal-card conclusion" data-reveal><b>第三层：从更细粒度开始设计</b><span>自由度更高，也要承担更多塑形、接口、测试与维护工作；并不是越细越好。</span></div>`,
+    },
+    {
       id: "module-s03",
       source: "S03",
       section: "核心工具",
@@ -363,7 +420,7 @@
 
   window.MSV_MODULE_DECK = Object.freeze({
     id: "module-thinking-p1",
-    version: "2026.09.18-r4",
+    version: "2026.09.19-r5",
     title: "模块思维：把大问题拆成能工作的模块",
     sourceHash: "a31489645adcfaf6b7afd3be734349175740c520120cda65552cfa0f3e833793",
     slides: Object.freeze(slides.map(Object.freeze)),
