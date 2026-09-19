@@ -16,10 +16,10 @@ function loadGlobal(file, key) {
 
 const deck = loadGlobal('deck-data.js', 'MSV_MODULE_DECK');
 const notes = loadGlobal('presenter-notes.js', 'MSV_MODULE_PRESENTER_NOTES');
-assert.equal(deck.version, '2026.09.19-p2-r2');
-assert.equal(deck.slides.length, 27);
+assert.equal(deck.version, '2026.09.19-p2-r3');
+assert.equal(deck.slides.length, 28);
 assert.equal(deck.slides.reduce((sum, slide) => sum + slide.minutes, 0), 120);
-assert.deepEqual(Array.from(deck.slides, (slide) => slide.id), Array.from({ length: 27 }, (_, i) => `ligun-${String(i + 1).padStart(2, '0')}`));
+assert.deepEqual(Array.from(deck.slides, (slide) => slide.id), [...Array.from({ length: 27 }, (_, i) => `ligun-${String(i + 1).padStart(2, '0')}`), 'ligun-review']);
 assert.deepEqual(Object.keys(notes).sort(), Array.from(deck.slides, (slide) => slide.id).sort());
 
 const byId = (id) => deck.slides.find((slide) => slide.id === id);
@@ -63,4 +63,4 @@ assert.deepEqual(compareRepeatedClue(),[
  {version:'首版',input:['A','B','B'],ids:['A','B','B'],count:3,wonAtExit:true},
  {version:'修正版',input:['A','B','B'],ids:['A','B'],count:2,wonAtExit:false}
 ]);
-console.log('P2 visuals: six fields, six children, 27 slides/120 minutes, same-input repair and physical styles PASS');
+console.log('P2 visuals: six fields, six children, 28 slides/120 minutes, same-input repair and physical styles PASS');

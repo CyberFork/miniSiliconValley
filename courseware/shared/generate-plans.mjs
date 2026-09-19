@@ -11,7 +11,7 @@ export async function writeTeachingPlan(root,model){
  const path=join(root,'source/content-map.md');
  let preamble=(await readFile(path,'utf8')).split(/## (?:完整脚本索引|逐页教学脚本)/)[0];
  if(model.legacySlideIds){
-  preamble=`# P1 ${model.version} 内容迁移与活动脚本\n\n保留旧 18 页语义 ID，新增 7 页。时间是试讲基线，非已通过试讲。\n\n`;
+  preamble=`# P1 ${model.version} 内容迁移与活动脚本\n\n保留旧 ${model.legacySlideIds.length} 页语义 ID，新增 ${model.slides.length-model.legacySlideIds.length} 页。时间是试讲基线，非已通过试讲。\n\n`;
   preamble+=model.slides.map((s,i)=>`${model.legacySlideIds.includes(s.id)?'- 保留旧':'- 新增'} ${s.source} → 第 ${i+1} 页 \`${s.id}\`：${s.title}。`).join('\n')+'\n\n';
  }
  let content=preamble+'## 逐页教学脚本\n\n以下由 deck-data.js 与 presenter-notes.js 构建生成；修改源数据后重新构建，不手改副本。\n';

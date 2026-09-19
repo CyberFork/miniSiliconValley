@@ -65,3 +65,11 @@ P1 r6 补充验收：`python3 courseware/module-thinking-deck/tests/verify-reuse
 - 专用浏览器检查：`python3 courseware/ligun-deck/tests/verify-visual-browser.py`。线上可传 `BASE_URL` 与私有 `STORAGE_STATE`，不把会话文件加入仓库。
 - P2 新版打包必须提供 `--ligun-history-root` 指向已验证的 r1 构建；历史身份不匹配或缺失时拒绝发布。
 - 证据与人工试讲边界见 `docs/T133_VISUAL_TEACHING_RECEIPT.md`。
+
+## P1/P2 最后一页复习回顾
+
+P1 新版 r8（26页）末页 `module-review`；P2 新版 r3（28页）末页 `ligun-review`。两课仍各120分钟，原结尾、模板和案例不删除。
+
+- `node courseware/shared/tests/verify-recap.mjs` 校验最后页、旧尾页保留、讲稿时长、术语与双表面样式。
+- `python3 courseware/shared/tests/verify-recap-browser.py` 检查真实翻到最后页、逐步揭示、反向复习、双屏同步、刷新与触摸。可用 `LIVE_ORIGIN=https://minisv.vip` 与私有 `STORAGE_STATE` 做线上复验。
+- 交付证据见 `docs/COURSE_RECAP_DELIVERY.md`。

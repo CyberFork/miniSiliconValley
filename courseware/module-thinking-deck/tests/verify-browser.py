@@ -130,7 +130,7 @@ with sync_playwright() as p:
     assert audience.evaluate("MSVModuleDeckController.getState().slide") == blackbox_index
 
     slide_count = audience.evaluate("MSV_MODULE_DECK.slides.length")
-    assert slide_count == 25
+    assert slide_count == 26
     for index in range(slide_count):
         audience.evaluate("index => MSVModuleDeckController.setState({slide:index,reveal:99})", index)
         dimensions = audience.evaluate("""() => { const slide=document.querySelector('.deck-slide'); const body=document.querySelector('.slide-body'); return {slideScroll:slide.scrollHeight,slideClient:slide.clientHeight,bodyScroll:body.scrollHeight,bodyClient:body.clientHeight}; }""")
@@ -225,4 +225,4 @@ with sync_playwright() as p:
     assert not errors, errors
     browser.close()
 
-print("T-132 browser checks passed (T-128/T-130 preserved): three local Three.js scenes, projection, reveal/refresh, presenter sync, session isolation, 25-slide contrast/overflow, S02-A/S02-B/S02-C and S10 mouse-keyboard-touch interaction, HTML fallbacks, and printables.")
+print("T-132 browser checks passed (T-128/T-130 preserved): three local Three.js scenes, projection, reveal/refresh, presenter sync, session isolation, 26-slide contrast/overflow, S02-A/S02-B/S02-C and S10 mouse-keyboard-touch interaction, HTML fallbacks, and printables.")

@@ -2,7 +2,7 @@
   "use strict";
   window.MSV_MODULE_DECK = Object.freeze({
   "id": "ligun-p2",
-  "version": "2026.09.19-p2-r2",
+  "version": "2026.09.19-p2-r3",
   "title": "立棍｜把我的游戏交给 AI，一步步做对",
   "footer": "立棍 · 说清楚，做一轮，再验证",
   "slides": [
@@ -297,11 +297,22 @@
       "source": "P2-27",
       "phase": "06 · 互查与课后继续",
       "section": "互查与课后继续",
-      "minutes": 3,
+      "minutes": 1,
       "title": "把今天的成果带走，课后接着做",
       "subtitle": "不是今天完成整款游戏，而是已经知道怎样继续。",
       "theme": "paper",
       "content": "<div class=\"lesson-grid cols-2\"><article><h3>带走完整主棍</h3><p>六项齐全、全愿景和本轮范围明确。</p></article><article><h3>带走全部子棍</h3><p>每个模块有核心模板，与主棍保持一致。</p></article><article><h3>带走执行记录</h3><p>首版、检查、至少一次修正及复测；未完成如实列出。</p></article><article><h3>写下一步</h3><p>下一根优先子棍、依赖条件、待决定问题。</p></article></div><div class=\"lesson-banner\" data-reveal><b>记住这一句</b><span>P1 学会描述模块；P2 学会把整体说清，并启动真实制作。</span></div><a class=\"lesson-link\" href=\"workbook/index.html\" data-resource=\"workbook\" target=\"_blank\" rel=\"noopener\">打开可编辑模板 · 复制／下载 →</a>"
+    },
+    {
+      "id": "ligun-review",
+      "source": "P2 · 回顾",
+      "phase": "06 · 互查与课后继续",
+      "section": "复习回顾",
+      "minutes": 2,
+      "title": "复习回顾：怎样让 AI 做对？",
+      "subtitle": "从校园寻宝回到自己的游戏：方向说清，分工写明，结果亲自检查。",
+      "theme": "paper",
+      "content": "<div class=\"course-recap\" data-recap=\"p2\"><div class=\"recap-template-label\">主棍和子棍，都用同一套六项</div><div class=\"recap-six\"><span>执行者</span><span>上下文与项目设计</span><span>目标</span><span>约束</span><span>避免</span><span>验收</span></div><div class=\"recap-cards\">\n<article><h3>① 整体与分工</h3><p class=\"recap-question\">主棍管什么？子棍管什么？</p><div class=\"recap-answer\" data-reveal><p>主棍管整体和本轮范围；<br>子棍管模块，继承共同规则。</p><strong>微棍交给 AI 拆；<br>知道即可，不要求填写。</strong></div></article>\n<article><h3>② 先对齐，再执行</h3><p class=\"recap-question\">没说清的，让 AI 猜吗？</p><div class=\"recap-answer\" data-reveal><p>一次只问一个问题，<br>记录已确认／待决定。</p><strong>全部子棍先写清；<br>确认后先做优先子棍。</strong></div></article>\n<article><h3>③ 检查，再修正</h3><p class=\"recap-question\">AI 说好了，就算完成吗？</p><div class=\"recap-answer\" data-reveal><p>按要求检查实际结果；<br>修正后，同一输入复查。</p><strong>A、B、B 只算两条；<br>修错，不改胜利规则。</strong></div></article>\n</div><div class=\"recap-takeaway\"><b>记住这条路</b><span>说清要求 → 执行 → 检查 → 修正 → 复查</span></div><p class=\"recap-exit\">用自己的游戏说一句：我的子棍负责____；我会用____，证明它真的做好了。</p></div>"
     }
   ]
 });

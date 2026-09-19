@@ -11,7 +11,7 @@ SPEC=importlib.util.spec_from_file_location('release120', ROOT/'deploy/minisv/pa
 M=importlib.util.module_from_spec(SPEC);SPEC.loader.exec_module(M)
 class SplitReleaseTests(unittest.TestCase):
     def test_both_new_artifacts_and_teacher_boundaries_are_validated(self):
-        for folder,identity,revision in [('module-thinking-deck','module-thinking-p1',7),('ligun-deck','ligun-p2',2)]:
+        for folder,identity,revision in [('module-thinking-deck','module-thinking-p1',8),('ligun-deck','ligun-p2',3)]:
             source=ROOT/'courseware'/folder/'dist'
             with tempfile.TemporaryDirectory() as temp:
                 dest=Path(temp)/'dist';shutil.copytree(source,dest)
@@ -62,3 +62,14 @@ class LigunHistoryTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'unexpected'): M.validate_ligun_history([root],1)
         with patch.object(M,'validate_module_thinking_courseware',return_value={'revision':1,'sha256':'0'*64}):
             with self.assertRaisesRegex(ValueError,'identity mismatch'): M.validate_ligun_history([root],2)
+
+
+class RecapHistoryTests(unittest.TestCase):
+    def test_new_versions_require_every_published_predecessor(self):
+        for validator,known,revisions,current in [(M.validate_module_history,M.MODULE_HISTORY_DIGESTS,[5,6,7],8),(M.validate_ligun_history,M.LIGUN_HISTORY_DIGESTS,[1,2],3)]:
+            roots=[Path(f'/isolated/r{r}') for r in revisions]
+            artifacts=[{'revision':r,'sha256':known[r]} for r in revisions]
+            with patch.object(M,'validate_module_thinking_courseware',side_effect=artifacts):
+                self.assertEqual(validator(roots,current),dict(zip(revisions,roots)))
+            with patch.object(M,'validate_module_thinking_courseware',side_effect=artifacts[:-1]):
+                with self.assertRaisesRegex(ValueError,'missing'):validator(roots[:-1],current)

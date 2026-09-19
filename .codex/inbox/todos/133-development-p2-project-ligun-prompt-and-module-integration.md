@@ -201,3 +201,12 @@ tags: [todo, development-mentor, html-ppt, ligun, prompting, module-thinking, pr
 - 新维护工作区：`/private/tmp/minisv-t133-visual-r2-20260919`，分支 `codex/t133-visual-r2`；未覆盖原临时目录内另一项三维引擎工作。
 - 回执：[T133 可视化教学补强](../../../../docs/T133_VISUAL_TEACHING_RECEIPT.md)，证据：`docs/evidence/p2-r2/`。
 - 人工试讲和学生教学效果四项仍未勾选，没有签署人工 View/UI 验收。
+
+
+## 2026-09-19 补充：最后一页复习回顾
+
+- 原结尾主要是下一课预告/成果整理，不替代复习。保留原内容，追加专门最后一页 `ligun-review`，新课件 28 页。
+- 新页先提问，再分三次揭示重点，并让学生用自己的游戏复述；双视图教师提示同步。
+- 从原收束环节调配 2 分钟，不增加总课时，仍为 120 分钟。
+- 以新 r3 发布，不覆盖已发布历史版本。实现与发布证据见 `docs/COURSE_RECAP_DELIVERY.md`。
+- 人工试讲和学生掌握情况不由自动化代签。

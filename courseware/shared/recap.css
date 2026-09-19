@@ -1,0 +1,24 @@
+/* Final recap owns its surfaces and colors in both audience and teacher shells. */
+.deck-slide .course-recap {color:#162b3a;font-size:24px;line-height:1.4;}
+.course-recap b,.course-recap h3,.course-recap strong {color:#10293f;}
+.recap-examples {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 18px;border:3px solid #35576b;background:#dfe9ff;}
+.recap-examples i {font-style:normal;color:#2154d7;font-size:32px;font-weight:800;}
+.recap-cards {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:14px;}
+.recap-cards article {min-height:302px;padding:14px 20px;border:3px solid #35576b;border-top:7px solid #2154d7;background:#fffdf7;box-shadow:5px 5px 0 #d7d7c7;}
+.recap-cards article:nth-child(2){border-top-color:#297c73;}
+.recap-cards article:nth-child(3){border-top-color:#ac7300;}
+.recap-cards h3 {font-size:29px;line-height:1.2;margin:0 0 10px;}
+.recap-question {color:#435b6a;font-size:23px;min-height:32px;margin:0 0 10px;}
+.recap-answer p {margin:0 0 10px;}
+.recap-answer strong {display:block;font-size:23px;font-weight:700;}
+.recap-fields {display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.recap-fields span {padding:3px 8px;background:#e0f3ea;border:2px solid #35576b;font-size:23px;}
+.recap-takeaway {display:flex;align-items:center;justify-content:center;gap:28px;margin-top:14px;padding:10px 18px;border:3px solid #35576b;background:#fff0ad;}
+.recap-takeaway b {flex:none;}
+.recap-exit {margin:10px 0 0;font-size:23px;text-align:center;color:#162b3a;}
+.recap-template-label {margin-bottom:6px;color:#10293f;font-size:24px;font-weight:800;}
+.recap-six {display:grid;grid-template-columns:1fr 2.2fr 1fr 1fr 1fr 1fr;gap:12px;}
+.recap-six span {padding:8px 5px;border:3px solid #35576b;background:#dfe9ff;text-align:center;color:#10293f;font-size:24px;font-weight:800;}
+.course-recap[data-recap="p2"] .recap-cards article {min-height:286px;padding:14px 20px;}
+.course-recap[data-recap="p2"] .recap-question {min-height:32px;}
+.course-recap[data-recap="p2"] .recap-takeaway {margin-top:14px;}

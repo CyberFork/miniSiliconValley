@@ -272,11 +272,13 @@ test("120-minute P1/P2 upgrade adds new URLs without rewriting historical regist
   const db = database();
   try {
     for (const [slug, currentRevision, oldRevision, oldSource] of [
-      ["development-mentor-module-thinking", 7, 4, "t130:sha256:5d0e6d1dd92c10c99ad4767d33d92ef1039733996f9ec909d5a0910572787644"],
-      ["development-mentor-module-thinking", 7, 5, "t132:sha256:84ab82bcba6a34aab72284b3fc4f8d05b3f243bed4e8493c04fd9ab437b05412"],
-      ["development-mentor-module-thinking", 7, 6, "t132:sha256:4d78573094e87726c45e8e8ffe13572a34ea19b042d5d7206c174b8ea0992b72"],
-      ["development-mentor-ligun", 2, 0, "t093:sha256:ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234"],
-      ["development-mentor-ligun", 2, 1, "t133:sha256:6b48d7d9fac75f88180bc00c8caf2f8c2a533d611580493eb538e3eef73ad1d9"],
+      ["development-mentor-module-thinking", 8, 4, "t130:sha256:5d0e6d1dd92c10c99ad4767d33d92ef1039733996f9ec909d5a0910572787644"],
+      ["development-mentor-module-thinking", 8, 5, "t132:sha256:84ab82bcba6a34aab72284b3fc4f8d05b3f243bed4e8493c04fd9ab437b05412"],
+      ["development-mentor-module-thinking", 8, 6, "t132:sha256:4d78573094e87726c45e8e8ffe13572a34ea19b042d5d7206c174b8ea0992b72"],
+      ["development-mentor-ligun", 3, 0, "t093:sha256:ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234"],
+      ["development-mentor-ligun", 3, 1, "t133:sha256:6b48d7d9fac75f88180bc00c8caf2f8c2a533d611580493eb538e3eef73ad1d9"],
+      ["development-mentor-module-thinking", 8, 7, "t132:sha256:dc678fb345cf938004f223e8a8c9f2faaf636fd481fa675ad3ea219199b70457"],
+      ["development-mentor-ligun", 3, 2, "t133:sha256:2427551404eccf63e594b2a28654d5d06e76e0c6d6fec95b5f612cb69d954446"],
     ] as const) {
       const oldPath = `/courseware/${slug}/${oldRevision === 4 ? "audience/" : (oldRevision >= 5 || (slug === "development-mentor-ligun" && oldRevision >= 1)) ? `r${oldRevision}/audience/` : ""}`;
       const oldDigest = await digest(new TextEncoder().encode(`static-bundle:${oldPath}:${oldSource}`));

@@ -2,7 +2,7 @@
   "use strict";
   window.MSV_MODULE_DECK = Object.freeze({
   "id": "module-thinking-p1",
-  "version": "2026.09.19-p1-r8",
+  "version": "2026.09.19-p1-r9",
   "legacySlideIds": [
     "module-s01",
     "module-s02",
@@ -299,7 +299,18 @@
       "theme": "finale",
       "content": "\n        <div class=\"forking-paths\">\n          <div class=\"prompt-chip\">帮我做登录模块</div>\n          <i>↙</i><i>↓</i><i>↘</i>\n          <article><b>目标不同</b><span>给谁使用？解决什么？</span></article>\n          <article><b>边界不同</b><span>做什么？不做什么？</span></article>\n          <article><b>完成不同</b><span>怎样才算真的可用？</span></article>\n        </div>\n        <div class=\"mission-question\"><b>最后一问</b><span>不说清哪件事，AI 最容易做偏？</span></div>\n        <div class=\"reveal-card conclusion\" data-reveal><b>下一课：立棍</b><span>把完整游戏写成主棍，把每个模块写成子棍，再交给 AI 实践。</span></div>",
       "phase": "总结与下一课",
-      "minutes": 5
+      "minutes": 2
+    },
+    {
+      "id": "module-review",
+      "source": "P1 · 回顾",
+      "phase": "总结与下一课",
+      "section": "复习回顾",
+      "minutes": 3,
+      "title": "复习回顾：模块怎样合作？",
+      "subtitle": "先用自己的话回答，再揭示重点。把例子和自己的游戏连起来。",
+      "theme": "paper",
+      "content": "<div class=\"course-recap\" data-recap=\"p1\"><div class=\"recap-examples\"><span><b>变形玩具</b> · 重组预制组件</span><i>→</i><span><b>乐高</b> · 从零件造组件</span><i>→</i><span><b>方块</b> · 更细颗粒度来组合</span></div><div class=\"recap-cards\">\n<article><h3>WHAT · 模块是什么？</h3><p class=\"recap-question\">随便切小就算模块吗？</p><div data-reveal class=\"recap-answer\"><p>有明确职责，<br>能和别的模块合作。</p><strong>复用或自建，<br>都要讲清接口与约束。</strong></div></article>\n<article><h3>WHY · 为什么要拆？</h3><p class=\"recap-question\">换轮子为什么不用全重做？</p><div data-reveal class=\"recap-answer\"><p>分清责任，方便替换、<br>复用、合作和检查。</p><strong>不是越小越好；<br>连接太多也会变复杂。</strong></div></article>\n<article><h3>HOW · 怎样讲清？</h3><p class=\"recap-question\">别人不听解释也能接上吗？</p><div data-reveal class=\"recap-answer\"><div class=\"recap-fields\"><span>职责</span><span>输入</span><span>处理规则</span><span>输出</span><span>接口</span><span>正常／异常</span></div><strong>先纸面走查，再两人互查。</strong></div></article>\n</div><div class=\"recap-takeaway\"><b>我能带走</b><span>模块地图</span><span>详细设计卡</span><span>正常／异常走查记录</span></div><p class=\"recap-exit\">用自己的游戏说一句：这块负责____，收到____，交出____；失败时____。</p></div>"
     }
   ],
   "footer": "模块思维 · 马上用到我的游戏",

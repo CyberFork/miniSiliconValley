@@ -538,6 +538,7 @@ def validate_incubator_projects(source_root: Path, content_root: Path | None = N
 
 
 MODULE_HISTORY_DIGESTS = {
+    7: "dc678fb345cf938004f223e8a8c9f2faaf636fd481fa675ad3ea219199b70457",
     6: "4d78573094e87726c45e8e8ffe13572a34ea19b042d5d7206c174b8ea0992b72",
     5: "84ab82bcba6a34aab72284b3fc4f8d05b3f243bed4e8493c04fd9ab437b05412",
 }
@@ -558,7 +559,7 @@ def validate_module_history(roots: list[Path], current_revision: int) -> dict[in
     return history
 
 
-LIGUN_HISTORY_DIGESTS = {1: "6b48d7d9fac75f88180bc00c8caf2f8c2a533d611580493eb538e3eef73ad1d9"}
+LIGUN_HISTORY_DIGESTS = {2: "2427551404eccf63e594b2a28654d5d06e76e0c6d6fec95b5f612cb69d954446", 1: "6b48d7d9fac75f88180bc00c8caf2f8c2a533d611580493eb538e3eef73ad1d9"}
 
 
 def validate_ligun_history(roots: list[Path], current_revision: int) -> dict[int, Path]:

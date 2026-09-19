@@ -1,5 +1,5 @@
 """Actual reveal controls, same-input replay and dual-view P2 visual QA.
-BASE_URL points to .../r2 for post-deploy verification; STORAGE_STATE is private.
+BASE_URL points to .../r3 for post-deploy verification; STORAGE_STATE is private.
 """
 import functools,http.server,json,os,threading
 from pathlib import Path
@@ -13,7 +13,7 @@ if os.getenv('BASE_URL'):base=os.environ['BASE_URL'].rstrip('/')
 else:
  server=http.server.ThreadingHTTPServer(('127.0.0.1',0),functools.partial(Quiet,directory=str(ROOT/'dist')))
  threading.Thread(target=server.serve_forever,daemon=True).start();base=f'http://127.0.0.1:{server.server_port}'
-report={'url':base,'version':'2026.09.19-p2-r2','pages':[],'errors':[]}
+report={'url':base,'version':'2026.09.19-p2-r3','pages':[],'errors':[]}
 AUDIT='''root=>{
  const body=root.closest('.slide-body'),br=body.getBoundingClientRect(),nodes=[...root.querySelectorAll('article,.p2-strip,.p2-handoff,.p2-link,.p2-repair-row')];
  const overflow=nodes.filter(n=>{const r=n.getBoundingClientRect();return r.bottom>br.bottom+1||r.right>br.right+1||n.scrollHeight>n.clientHeight+1||n.scrollWidth>n.clientWidth+1}).map(n=>n.textContent);

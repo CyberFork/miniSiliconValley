@@ -46,7 +46,7 @@ try:
    page.on('console',lambda msg: errors.append(msg.text) if msg.type=='error' else None)
    return page
   teacher_pages={}
-  for name,count in [('module-thinking-deck',25),('ligun-deck',27)]:
+  for name,count in [('module-thinking-deck',26),('ligun-deck',28)]:
    base=f'{BASE}/{name}/dist'; teacher=page_new();teacher.goto(base+'/teacher/presenter.html?session=shared-name',wait_until='networkidle');teacher_pages[name]=teacher
    with context.expect_page() as popup: teacher.click('#open-audience')
    audience=popup.value;audience.wait_for_load_state('networkidle')
@@ -69,7 +69,7 @@ try:
     for page,selector in [(audience,'.deck-slide'),(teacher,'#current-preview .deck-slide')]:
      audit=page.locator(selector).evaluate(AUDIT)
      assert not audit['contrast'] and not audit['overflow'] and not audit['headingOverlap'] and not audit['intersections'],(name,index,selector,audit)
-    if index in ([1,3,5,19,24] if count==25 else [3,5,10,17,22,26]):
+    if index in ([1,3,5,19,24] if count==26 else [3,5,10,17,22,26]):
      dest=OUT/f'{name}-{index+1:02}.png';audience.locator('.deck-slide').screenshot(path=str(dest));report['screenshots'].append(str(dest))
    resource=teacher.locator('.lesson-timer a').get_attribute('href');assert '/audience/' in resource
    assert context.request.get(resource).status==200
@@ -147,4 +147,4 @@ try:
   browser.close()
 finally:
  server.shutdown()
-print('T-132/T-133 real-browser checks PASS: 52 pages × 2 surfaces, copy/edit/download, playable demo, 4 A4 PDFs, touch; '+str(OUT))
+print('T-132/T-133 real-browser checks PASS: 54 pages × 2 surfaces, copy/edit/download, playable demo, 4 A4 PDFs, touch; '+str(OUT))

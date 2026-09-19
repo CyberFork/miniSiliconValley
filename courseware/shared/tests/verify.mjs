@@ -10,7 +10,7 @@ const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const headings=['执行者','上下文与项目设计','目标','约束','避免','验收'];
 async function files(dir){const out=[];for(const name of await readdir(dir)){const p=join(dir,name);out.push(...((await stat(p)).isDirectory()?await files(p):[p]));}return out;}
 const results=[];
-for(const [name,count,times] of [['module-thinking-deck',25,[5,40,10,20,40,5]],['ligun-deck',27,[8,27,10,40,22,13]]]){
+for(const [name,count,times] of [['module-thinking-deck',26,[5,40,10,20,40,5]],['ligun-deck',28,[8,27,10,40,22,13]]]){
  const deckRoot=join(root,name),box={window:{}};vm.createContext(box);
  for(const file of ['deck-data.js','presenter-notes.js'])vm.runInContext(await readFile(join(deckRoot,file),'utf8'),box);
  const deck=box.window.MSV_MODULE_DECK,notes=box.window.MSV_MODULE_PRESENTER_NOTES;
