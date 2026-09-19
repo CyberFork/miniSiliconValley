@@ -7,12 +7,12 @@
   const params = new URLSearchParams(location.search);
   const session = sanitizeSession(params.get("session")) || "direct";
   const controlled = params.get("controlled") === "1";
-  const storageKey = `msv:module-thinking:${model.version}:${session}`;
-  const channelName = `msv:module-thinking:${model.version}:${session}`;
+  const storageKey = `msv:${model.id}:${model.version}:${session}`;
+  const channelName = `msv:${model.id}:${model.version}:${session}`;
   const deck = document.getElementById("deck");
   const status = document.getElementById("audience-status");
   let channel = null;
-  let state = readState();
+  let state = initialState();
   let renderVersion = 0;
 
   function sanitizeSession(value) {
@@ -25,16 +25,25 @@
   }
 
   function normalize(next) {
-    const slide = Math.max(0, Math.min(model.slides.length - 1, Number(next?.slide) || 0));
+    const idIndex = next?.slide === undefined ? model.slides.findIndex(item => item.id === next?.slideId) : -1;
+    const rawIndex = Number(next?.slide);
+    const slide = idIndex >= 0 ? idIndex : Math.max(0, Math.min(model.slides.length - 1, Number.isFinite(rawIndex) ? Math.floor(rawIndex) : 0));
     const reveal = Math.max(0, Math.min(maxReveal(slide), Number(next?.reveal) || 0));
     const transformCase = ["car", "plane", "robot"].includes(next?.activity?.transformCase) ? next.activity.transformCase : "car";
     const buildStep = ["parts", "components", "works"].includes(next?.activity?.buildStep) ? next.activity.buildStep : "parts";
     const voxelCase = ["car", "scope"].includes(next?.activity?.voxelCase) ? next.activity.voxelCase : "car";
     const voxelStep = ["blocks", "components", "object"].includes(next?.activity?.voxelStep) ? next.activity.voxelStep : "blocks";
-    return { slide, reveal, activity: { transformCase, buildStep, voxelCase, voxelStep }, updatedAt: Date.now() };
+    return { slide, slideId: model.slides[slide].id, reveal, activity: { transformCase, buildStep, voxelCase, voxelStep }, updatedAt: Date.now() };
   }
 
-  function readState() {
+  function initialState() {
+    const id = params.get("slideId");
+    if (id && model.slides.some(slide => slide.id === id)) return normalize({slideId:id, reveal:params.get("step")});
+    if (params.has("slide")) {
+      const index = Number(params.get("slide"));
+      const oldId = model.legacySlideIds?.[index];
+      return normalize(oldId ? {slideId:oldId,reveal:params.get("step")} : {slide:index,reveal:params.get("step")});
+    }
     try { return normalize(JSON.parse(localStorage.getItem(storageKey) || "null")); }
     catch { return normalize(null); }
   }
@@ -55,25 +64,27 @@
     deck.innerHTML = `
       <section class="deck-slide" data-slide-id="${slide.id}" data-source="${slide.source}" data-theme="${slide.theme || "paper"}">
         <header class="slide-topline">
-          <span class="slide-code">${slide.source} · ${slide.section}</span>
+          <span class="slide-code">${slide.source} · ${slide.phase || slide.section}</span>
           <img class="slide-brand" src="assets/mini-silicon-valley-logo-transparent.png" alt="MINI硅谷">
         </header>
         <div class="slide-heading"><h1>${slide.title}</h1><p>${slide.subtitle}</p></div>
         <div class="slide-body">${slide.content}</div>
-        <div class="slide-footer">模块思维 · 先体验，再命名</div>
+        <div class="slide-footer">${model.footer || model.title}</div>
         <div class="slide-page">${String(state.slide + 1).padStart(2, "0")} / ${String(model.slides.length).padStart(2, "0")}</div>
         <div class="slide-progress" aria-hidden="true"><i style="width:${((state.slide + 1) / model.slides.length) * 100}%"></i></div>
       </section>`;
     deck.querySelectorAll("[data-reveal]").forEach((node, index) => node.classList.toggle("revealed", index < state.reveal));
     wireSlideInteractions();
-    document.title = `${slide.source} ${slide.title}｜模块思维`;
+    window.MSVLessonTools?.wireResources(deck);
+    window.MSVLessonTools?.update(state.slide);
+    document.title = `${slide.source} ${slide.title}｜${model.title}`;
     status.textContent = `AUDIENCE · ${controlled ? "PRESENTER" : "LOCAL"} · ${session}`;
     fit();
     mountThreeScenes(version);
   }
 
   function wireSlideInteractions() {
-    const transformButtons = [...deck.querySelectorAll("[data-transform-case]")];
+    const transformButtons = [...deck.querySelectorAll("button[data-transform-case]")];
     const transformStage = deck.querySelector("[data-transform-stage]");
     if (transformButtons.length && transformStage) {
       const selectTransform = (value, notify) => {
@@ -95,7 +106,7 @@
       transformButtons.forEach((button) => button.addEventListener("click", () => selectTransform(button.dataset.transformCase, true)));
     }
 
-    const buildButtons = [...deck.querySelectorAll("[data-build-step]")];
+    const buildButtons = [...deck.querySelectorAll("button[data-build-step]")];
     const buildStage = deck.querySelector("[data-build-stage]");
     if (buildButtons.length && buildStage) {
       const selectBuildStep = (value, notify) => {
@@ -114,8 +125,8 @@
       buildButtons.forEach((button) => button.addEventListener("click", () => selectBuildStep(button.dataset.buildStep, true)));
     }
 
-    const voxelCaseButtons = [...deck.querySelectorAll("[data-voxel-case]")];
-    const voxelStepButtons = [...deck.querySelectorAll("[data-voxel-step]")];
+    const voxelCaseButtons = [...deck.querySelectorAll("button[data-voxel-case]")];
+    const voxelStepButtons = [...deck.querySelectorAll("button[data-voxel-step]")];
     const voxelStage = deck.querySelector("[data-voxel-stage]");
     if (voxelCaseButtons.length && voxelStepButtons.length && voxelStage) {
       const applyVoxel = (caseValue, stepValue, notify) => {
@@ -163,6 +174,7 @@
   }
 
   function mountThreeScenes(version) {
+    if (!deck.querySelector("[data-module-3d]")) return;
     import("./module-3d.js")
       .then((module) => { if (version === renderVersion) module.mountModuleScenes(deck); })
       .catch((error) => console.warn("3D 课堂示意加载失败，已保留 HTML 降级图。", error));
@@ -207,7 +219,11 @@
   });
   addEventListener("resize", fit);
   addEventListener("keydown", (event) => {
-    if (event.target instanceof Element && event.target.closest("button,a,input,textarea,select")) return;
+    if (event.target instanceof Element) {
+      if (event.target.closest("input,textarea,select,[contenteditable=true]")) return;
+      if ([" ","Enter"].includes(event.key) && event.target.closest("button,a,summary")) return;
+    }
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
     if (["ArrowRight", "PageDown", " "].includes(event.key)) { event.preventDefault(); advance(); }
     if (["ArrowLeft", "PageUp", "Backspace"].includes(event.key)) { event.preventDefault(); back(); }
     if (event.key === "Home") setState({ slide: 0, reveal: 0 }, true);

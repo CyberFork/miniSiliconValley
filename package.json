@@ -64,7 +64,10 @@
     "test:t122:browser": "npm run test:t122:courseware && sh -c 'python3 -m http.server 18122 --directory courseware/module-thinking-deck/dist >/tmp/minisv-t122-http.log 2>&1 & pid=$!; trap \"kill $pid 2>/dev/null || true\" EXIT INT TERM; sleep 1; MSV_T122_URL=http://127.0.0.1:18122 MSV_T122_MODE=dist python3 courseware/module-thinking-deck/tests/verify-browser.py'",
     "test:t119:browser": "npm run build:minisv-app && python3 tools/live-run/tests/verify_t119_homework_browser.py",
     "test:t124:browser": "python3 tools/live-run/tests/verify_t124_incubator_browser.py",
-    "test:t125:browser": "npm run build:minisv-app && python3 tools/live-run/tests/verify_t125_managed_homework_browser.py"
+    "test:t125:browser": "npm run build:minisv-app && python3 tools/live-run/tests/verify_t125_managed_homework_browser.py",
+    "build:t132-t133:courseware": "node courseware/module-thinking-deck/scripts/build.mjs && node courseware/ligun-deck/scripts/build.mjs",
+    "test:t132-t133:courseware": "node courseware/shared/tests/verify.mjs && node courseware/module-thinking-deck/tests/verify.mjs && node courseware/module-thinking-deck/tests/verify-integration.mjs",
+    "test:t132-t133:browser": "npm run build:t132-t133:courseware && python3 courseware/shared/tests/verify-browser.py"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",

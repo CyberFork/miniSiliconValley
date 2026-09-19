@@ -23,12 +23,13 @@ test("explicit deep links overlay defaults without producing a second question m
   assert.equal(coursewarePlayerHref({ entryPath: null, revision: 0, digest: "c".repeat(64) }), null);
 });
 
-test("private presenter metadata is centralized and only declared for the dual-screen D deck", () => {
+test("private presenter metadata is centralized and declared for both dual-screen D decks", () => {
   const presenter = coursewarePresenterSurface("cw-development-mentor-module-thinking");
-  assert.equal(presenter?.href, "/courseware/development-mentor-module-thinking/teacher/presenter.html");
+  assert.equal(presenter?.href, "/courseware/development-mentor-module-thinking/r5/teacher/presenter.html");
   assert.equal(presenter?.label, "打开导师讲解控制台");
   assert.match(presenter?.description ?? "", /逐页讲稿/);
-  assert.equal(coursewarePresenterSurface("cw-development-mentor-ligun"), null);
+  assert.equal(coursewarePresenterSurface("cw-development-mentor-ligun")?.href, "/courseware/development-mentor-ligun/r1/teacher/presenter.html");
+  assert.equal(coursewarePresenterSurface("unknown"), null);
 });
 
 test("course library exposes the protected presenter to mentors without mixing it into the audience artifact", () => {

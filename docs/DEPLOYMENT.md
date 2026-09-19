@@ -142,3 +142,12 @@ $HOME/Services/minisv/current/ops/scripts/rollback-hecate.sh <KNOWN_GOOD_UNIFIED
 ```
 
 回滚只允许已通过统一 manifest 的 release。运行数据不随代码回滚；若 schema 变更不向后兼容，必须按该发布的迁移方案恢复受控数据备份，而不是删除数据库。
+
+## T-132／T-133 双 120 分钟课件（2026-09-19）
+
+- 新 P1 使用 `/courseware/development-mentor-module-thinking/r5/audience/`；新 P2 使用 `/courseware/development-mentor-ligun/r1/audience/`。
+- 对应 `teacher/presenter.html`、讲稿和所有教师资源均由 mentor-courseware 服务端权限保护；不是仅隐藏入口。
+- 原 P1 根路径 r4 与 P2 根路径 r0 保持原字节，不能把新包覆盖旧 URL。
+- `npm run build:t132-t133:courseware` 后，打包额外传入 `--module-previous-root <已校验 P1 r4 dist>`、`--ligun-root courseware/ligun-deck/dist`；`--module-thinking-root` 为新 P1 dist。
+- packager 必须验证新旧 manifest、哈希、物理分包及复制后字节；P1 历史包必须精确匹配 r4 的登记摘要。P／M 课件不变。
+- `deployment-ready` 是部署构建状态，不代表人工 120 分钟试讲通过。保留 `manualAcceptance: not-signed-by-user`。

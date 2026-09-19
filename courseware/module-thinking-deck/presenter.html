@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="robots" content="noindex,nofollow,noarchive">
-  <link rel="icon" href="favicon.svg?v=20260919-r5" type="image/svg+xml">
+  <link rel="icon" href="favicon.svg?v=20260919-p1-r6" type="image/svg+xml">
   <title>教师视图｜模块思维</title>
   <link rel="stylesheet" href="deck.css">
   <link rel="stylesheet" href="presenter.css">
@@ -26,7 +26,7 @@
 
   <main class="presenter-grid">
     <aside class="slide-rail">
-      <div class="rail-heading"><b>课程目录</b><span id="rail-progress">01 / 16</span></div>
+      <div class="rail-heading"><b>课程目录</b><span id="rail-progress">加载中</span></div>
       <nav id="slide-list" aria-label="课件目录"></nav>
     </aside>
 
@@ -47,7 +47,8 @@
     </section>
 
     <aside class="notes-panel">
-      <div class="note-head"><span id="note-source">S01</span><b id="note-time">4 分钟</b></div>
+      <div class="lesson-timer"><button type="button" id="timer-toggle">开始本页计时</button><output id="timer-value" aria-live="off">--:--</output><button type="button" id="timer-reset">重置计时</button><a href="printables/index.html" data-resource="materials" target="_blank" rel="noopener">材料下载</a></div>
+      <div class="note-head"><span id="note-source">S01</span><b id="note-time">-- 分钟</b></div>
       <section class="note-important"><small>本页目标</small><h2 id="note-goal"></h2></section>
       <section><small>现场顺序</small><ol id="note-script"></ol></section>
       <section><small>可接受回答</small><ul id="note-acceptable"></ul></section>
@@ -66,6 +67,7 @@
   </footer>
 
   <script src="deck-data.js"></script>
+  <script src="lesson-tools.js"></script>
   <script src="presenter-notes.js"></script>
   <script src="presenter-runtime.js"></script>
 </body>

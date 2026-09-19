@@ -1,0 +1,53 @@
+---
+type: todo
+id: T-132
+title: "开发导师模块思维课件扩展：120 分钟 WHAT／WHY／HOW 与学生游戏模块设计"
+status: in-progress
+created: 2026-09-19
+updated: 2026-09-19
+captured_by: project-inbox
+courseware_role: D
+planning_status: confirmed
+related: [T-089, T-120, T-122, T-128, T-133]
+tags: [todo, development-mentor, module-thinking, html-ppt, presenter-view, voxel, game-design]
+---
+# T-132｜P1 模块思维：120 分钟实施
+
+## 最终口径（2026-09-19 用户确认开始实施）
+
+唯一决策记录：[P1／P2 已确认设计](../../../../docs/DEVELOPMENT_P1_P2_CONFIRMED_DESIGN.md)。
+原始要求与只读调研保留在 [历史讨论快照](../../../../docs/decisions/T132-discussion-history.md)，不是现行待确认项。
+
+- 仅开发导师 P1；独立 120 分钟，不安排固定休息。
+- 5 分钟混乱挑战 → 40 分钟 WHAT／Three.js 与案例 → 10 分钟 WHY → 20 分钟公共案例 → 40 分钟“马上用到我的游戏” → 5 分钟收束。
+- 保留变形玩具、乐高、我的世界式方块三景，以及原有校园案例、AI 模块、黑箱测试等内容；原 18 页 ID 保留，重排并扩展为 25 页。
+- 导师投屏并邀请学生操作 Three.js；不要求学生编程。
+- 最终能描述模块六字段：职责、输入、处理规则、输出、接口、正常／异常表现。
+- 每人用自己的游戏交付模块地图、关键模块设计卡、正常／异常走查记录；两人互查，公共案例小组完成。
+- Day 2 产品导师作业是软性前置；缺少者用 5 分钟速填卡。不扩建作业、识图或账号后台。
+- 四份 A4 内容初稿在课件内引导，另提供 HTML／Markdown 下载；交同事做实体物料，不冒称印刷定稿。
+
+## 实施位置
+
+完整开发在 `codex/t132-t133-120min` 独立最新工作区；稳定可运行源码和证据副本在项目 `cowork/课件/development-courseware/p1-p2-120min-review-20260919/`。旧 `dev` 仅同步本单与文档，不把旧工程当成最新代码。
+
+- `courseware/module-thinking-deck/`：25 页内容、完整教师提示、三景、计时、目录、材料。
+- `courseware/module-thinking-deck/source/content-map.md`：旧页映射及逐页教师脚本。
+- `courseware/module-thinking-deck/printables/`：四份内容初稿和下载入口。
+- `courseware/shared/`：P1／P2 共用构建与回归测试。
+- 版本：`2026.09.19-p1-r6`，**deployment-ready，新增 r5，不覆盖历史 r4**。
+
+## 交付检查
+
+- [x] 逐问决定已回写，时间合计 120 分钟。
+- [x] 旧 ID／案例／三组 Three.js 保留，界面和教学顺序重排。
+- [x] 三项个人产出、软性前置、速填卡和四份下载材料实现。
+- [x] 学生／教师物理分包；跨课件、跨会话隔离；版本存储隔离。
+- [x] 自动化和浏览器证据见 [本地实施回执](../../../../docs/T132_T133_IMPLEMENTATION_RECEIPT.md)。
+- [ ] 导师真实 120 分钟试讲、实体物料审定、实际扩展投影人工验收。
+
+人工试讲未签，不将其勾为通过；不涉及其他导师或 Classroom 状态。
+
+## 追加：部署授权
+
+用户已要求直接部署；具体生产证据见实施回执后续段落。三维场景新增双轴旋转、平移、缩放和复位；修复 S02-C 舞台被误绑为按钮导致的拖动回弹。人工试讲仍不代签。

@@ -59,3 +59,4 @@ html, body.presenter-shell { width: 100%; height: 100%; overflow: hidden; backgr
   .presenter-brand div { display: none; }
   .session-label { display: none; }
 }
+.lesson-timer{padding:12px;background:#10293f;border:2px solid #35576b;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:18px;color:#fff8e7}.lesson-timer button,.lesson-timer a{border:2px solid #718c9c;padding:8px;background:#173d59;color:#fff8e7;font:inherit;text-decoration:none;cursor:pointer}.lesson-timer output{color:#f2c84b;font:bold 20px monospace}.lesson-timer button:focus-visible,.lesson-timer a:focus-visible{outline:4px solid #63d7b0;outline-offset:2px}

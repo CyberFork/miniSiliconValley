@@ -267,3 +267,26 @@ test("migration fails closed on mismatched legacy refs and installs immutable ex
     assert.throws(() => guarded.raw.prepare("INSERT INTO courseware_releases (package_id,revision,digest,released_at,released_by_profile_id) VALUES (?,0,?,?,?)").run("cw-guard", "e".repeat(64), now, author.userId), /COURSEWARE_EXACT_REF_INVALID/);
   } finally { guarded.raw.close(); }
 });
+
+test("120-minute P1/P2 upgrade adds new URLs without rewriting historical registry identities", async () => {
+  const db = database();
+  try {
+    for (const [slug, currentRevision, oldRevision, oldSource] of [
+      ["development-mentor-module-thinking", 5, 4, "t130:sha256:5d0e6d1dd92c10c99ad4767d33d92ef1039733996f9ec909d5a0910572787644"],
+      ["development-mentor-ligun", 1, 0, "t093:sha256:ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234"],
+    ] as const) {
+      const oldPath = `/courseware/${slug}/${oldRevision === 4 ? "audience/" : ""}`;
+      const oldDigest = await digest(new TextEncoder().encode(`static-bundle:${oldPath}:${oldSource}`));
+      const current = await loadCoursewareBySlug(db, slug);
+      assert.equal(current.revision, currentRevision);
+      assert.equal(current.entryPath, `/courseware/${slug}/r${currentRevision}/audience/`);
+      const historical = await loadCoursewareExact(db, current.packageId, oldRevision, oldDigest);
+      assert.equal(historical.entryPath, oldPath);
+      assert.equal(historical.releaseStatus, "historical");
+      assert.notEqual(current.digest, oldDigest);
+      const snapshots = db.raw.prepare("SELECT * FROM courseware_versions WHERE package_id = ? ORDER BY revision").all(current.packageId);
+      await listCourseware(db);
+      assert.deepEqual(db.raw.prepare("SELECT * FROM courseware_versions WHERE package_id = ? ORDER BY revision").all(current.packageId), snapshots);
+    }
+  } finally { db.raw.close(); }
+});

@@ -1,4 +1,5 @@
 import * as THREE from "./vendor/three.module.min.js";
+import { OrbitControls } from "./vendor/OrbitControls.js";
 
 const PALETTE = Object.freeze({
   navy: 0x10293f,
@@ -87,7 +88,9 @@ function createCommonScene(host, cameraPosition = [8, 5.5, 10]) {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.domElement.className = "module-3d-canvas";
-  renderer.domElement.setAttribute("aria-hidden", "true");
+  renderer.domElement.tabIndex = 0;
+  renderer.domElement.setAttribute("role", "img");
+  renderer.domElement.setAttribute("aria-label", "可旋转的三维模型。拖动上下左右旋转，滚轮缩放，Shift 加拖动平移。方向键旋转，加减号缩放，0 复位。");
   renderer.domElement.style.touchAction = "none";
   host.prepend(renderer.domElement);
 
@@ -118,28 +121,78 @@ function createCommonScene(host, cameraPosition = [8, 5.5, 10]) {
   resize();
   const observer = new ResizeObserver(resize);
   observer.observe(host);
-  return { scene, camera, renderer, observer };
+  const cameraCleanup = addCameraControls(host, camera, renderer.domElement);
+  return { scene, camera, renderer, observer, cameraCleanup };
 }
 
-function addDragRotation(host, root) {
-  let dragging = false;
-  let lastX = 0;
-  const down = (event) => { dragging = true; lastX = event.clientX; host.setPointerCapture?.(event.pointerId); };
-  const move = (event) => {
-    if (!dragging) return;
-    root.userData.dragRotation = (root.userData.dragRotation || 0) + (event.clientX - lastX) * 0.008;
-    lastX = event.clientX;
+function addCameraControls(host, camera, canvas) {
+  const controls = new OrbitControls(camera, canvas);
+  controls.target.set(0, 0.3, 0);
+  controls.rotateSpeed = 0.65;
+  controls.zoomSpeed = 0.85;
+  controls.minDistance = camera.position.distanceTo(controls.target) * 0.4;
+  controls.maxDistance = camera.position.distanceTo(controls.target) * 2.5;
+  controls.minPolarAngle = 0.08;
+  controls.maxPolarAngle = Math.PI / 2 - 0.03;
+  controls.maxTargetRadius = 6;
+  controls.update();
+  controls.saveState();
+  // A read-only observation hook also supports deterministic gesture regression tests.
+  const report = () => { host.dataset.cameraState = JSON.stringify({
+    azimuth: controls.getAzimuthalAngle(), polar: controls.getPolarAngle(),
+    distance: controls.getDistance(), target: controls.target.toArray(),
+    minDistance: controls.minDistance, maxDistance: controls.maxDistance,
+  }); };
+  controls.addEventListener("change", report);
+  report();
+  const help = "拖动上下左右旋转；滚轮缩放；Shift＋拖动平移。触屏：单指旋转，双指缩放／平移。键盘：方向键、＋／−、0 复位。";
+  canvas.title = help;
+  const hint = host.querySelector(".module-3d-hint");
+  if (hint) { hint.textContent = "上下左右拖动 · 滚轮／双指缩放"; hint.title = help; }
+  const toolbar = document.createElement("div");
+  toolbar.className = "module-3d-toolbar";
+  toolbar.setAttribute("role", "group");
+  toolbar.setAttribute("aria-label", "三维视角控制");
+  const zoom = (factor) => {
+    camera.position.sub(controls.target).multiplyScalar(factor).add(controls.target);
+    controls.update();
   };
-  const up = () => { dragging = false; };
-  host.addEventListener("pointerdown", down);
-  host.addEventListener("pointermove", move);
-  host.addEventListener("pointerup", up);
-  host.addEventListener("pointercancel", up);
+  const act = (action) => {
+    if (action === "reset") controls.reset();
+    else zoom(action === "in" ? 0.8 : 1.25);
+  };
+  for (const [action, label, text] of [["in", "放大模型", "＋"], ["out", "缩小模型", "−"], ["reset", "复位视角", "复位"]]) {
+    const button = document.createElement("button");
+    button.type = "button"; button.dataset.cameraAction = action;
+    button.textContent = text; button.setAttribute("aria-label", label); button.title = label;
+    button.addEventListener("click", (event) => { event.stopPropagation(); act(action); });
+    toolbar.append(button);
+  }
+  // Do not let the deck's page shortcuts consume native toolbar activation.
+  const stopKeys = (event) => event.stopPropagation();
+  toolbar.addEventListener("keydown", stopKeys);
+  host.append(toolbar);
+  const key = (event) => {
+    if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "+", "=", "-", "_", "0"].includes(event.key)) return;
+    event.preventDefault(); event.stopPropagation();
+    if (event.key === "0") { controls.reset(); return; }
+    if (["+", "=", "-", "_"].includes(event.key)) { zoom(["+", "="].includes(event.key) ? 0.8 : 1.25); return; }
+    const spherical = new THREE.Spherical().setFromVector3(camera.position.clone().sub(controls.target));
+    if (event.key === "ArrowLeft") spherical.theta -= 0.15;
+    if (event.key === "ArrowRight") spherical.theta += 0.15;
+    if (event.key === "ArrowUp") spherical.phi -= 0.15;
+    if (event.key === "ArrowDown") spherical.phi += 0.15;
+    camera.position.setFromSpherical(spherical).add(controls.target);
+    controls.update();
+  };
+  canvas.addEventListener("keydown", key);
   return () => {
-    host.removeEventListener("pointerdown", down);
-    host.removeEventListener("pointermove", move);
-    host.removeEventListener("pointerup", up);
-    host.removeEventListener("pointercancel", up);
+    controls.removeEventListener("change", report);
+    controls.dispose();
+    canvas.removeEventListener("keydown", key);
+    toolbar.removeEventListener("keydown", stopKeys);
+    toolbar.remove();
+    delete host.dataset.cameraState;
   };
 }
 
@@ -193,16 +246,15 @@ function createTransformToy(host) {
   };
   setMode(host.getAttribute("data-module-3d-mode") || "car");
 
-  const dragCleanup = addDragRotation(host, root);
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const update = (time) => {
     Object.values(pieces).forEach((piece) => approachTarget(piece, reducedMotion ? 1 : 0.105));
     const idle = reducedMotion ? 0 : Math.sin(time * 0.00045) * 0.12;
-    root.rotation.y = (root.userData.dragRotation || 0) + idle;
+    root.rotation.y = idle;
     pieces.wheelA.rotation.y += reducedMotion ? 0 : 0.012;
     pieces.wheelB.rotation.y += reducedMotion ? 0 : 0.012;
   };
-  return { ...common, setMode, update, dragCleanup };
+  return { ...common, setMode, update };
 }
 
 function createAutomationLab(host) {
@@ -280,12 +332,11 @@ function createAutomationLab(host) {
     first = false;
   };
   setMode(host.getAttribute("data-module-3d-mode") || "parts");
-  const dragCleanup = addDragRotation(host, root);
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const update = (time) => {
     Object.values(pieces).forEach((piece) => approachTarget(piece, reducedMotion ? 1 : 0.105));
     if (mode !== "works" || reducedMotion) parcels.forEach((parcel) => approachTarget(parcel, reducedMotion ? 1 : 0.105));
-    root.rotation.y = (root.userData.dragRotation || 0) + (reducedMotion ? 0 : Math.sin(time * 0.00025) * 0.08);
+    root.rotation.y = (reducedMotion ? 0 : Math.sin(time * 0.00025) * 0.08);
     if (mode === "works" && !reducedMotion) {
       pieces.gearA.userData.rotor.rotation.z += 0.035;
       pieces.gearB.userData.rotor.rotation.z -= 0.025;
@@ -297,7 +348,7 @@ function createAutomationLab(host) {
       for (const name of ["sensorLeft", "sensorTop", "sensorRight"]) pieces[name].material.opacity = pulse;
     }
   };
-  return { ...common, setMode, update, dragCleanup };
+  return { ...common, setMode, update };
 }
 
 function createVoxelForge(host) {
@@ -428,15 +479,14 @@ function createVoxelForge(host) {
   };
   setMode(host.getAttribute("data-module-3d-mode") || "car:blocks");
 
-  const dragCleanup = addDragRotation(host, root);
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const update = (time) => {
     pieces.forEach((piece) => approachTarget(piece, reducedMotion ? 1 : 0.105));
     const idle = reducedMotion ? 0 : Math.sin(time * 0.0003) * 0.08;
-    root.rotation.y = (root.userData.dragRotation || 0) + idle;
+    root.rotation.y = idle;
     root.position.x = currentCase === "car" && currentStep === "object" && !reducedMotion ? Math.sin(time * 0.0011) * 0.2 : 0;
   };
-  return { ...common, setMode, update, dragCleanup };
+  return { ...common, setMode, update };
 }
 
 function mountScene(host) {
@@ -470,7 +520,7 @@ function mountScene(host) {
     cancelAnimationFrame(frame);
     modeObserver.disconnect();
     instance.observer.disconnect();
-    instance.dragCleanup();
+    instance.cameraCleanup();
     instance.scene.traverse((object) => {
       object.geometry?.dispose?.();
       if (Array.isArray(object.material)) object.material.forEach((item) => item.dispose?.());

@@ -11,19 +11,20 @@ const sandbox = { window: {} }; vm.createContext(sandbox); vm.runInContext(dataC
 const deck = sandbox.window.MSV_MODULE_DECK;
 const notes = sandbox.window.MSV_MODULE_PRESENTER_NOTES;
 const expectedSources = ["S01", "S02-A", "S02-B", "S02-C", ...Array.from({ length: 14 }, (_, index) => `S${String(index + 3).padStart(2,"0")}`)];
-if (!deck || deck.slides.length !== 18) throw new Error(`Expected 18 slides, got ${deck?.slides?.length}`);
+if (!deck || deck.slides.length !== 25) throw new Error(`Expected 25 slides, got ${deck?.slides?.length}`);
 const ids = new Set();
 for (let i = 0; i < deck.slides.length; i++) {
   const slide = deck.slides[i];
   if (ids.has(slide.id)) throw new Error(`Duplicate slide id ${slide.id}`); ids.add(slide.id);
-  if (slide.source !== expectedSources[i]) throw new Error(`Bad source mapping ${slide.source}`);
+
   if (!slide.title || !slide.subtitle || !slide.content) throw new Error(`Incomplete slide ${slide.id}`);
   if (!notes[slide.id]) throw new Error(`Missing presenter notes ${slide.id}`);
   for (const field of ["minutes","goal","script","acceptable","misconception","reward","acceptance","materials"]) if (!notes[slide.id][field]) throw new Error(`Missing ${field} for ${slide.id}`);
 }
+for (const source of expectedSources) if (!deck.slides.some(slide => slide.source === source)) throw new Error(`Lost original source ${source}`);
 if (Object.keys(notes).length !== deck.slides.length) throw new Error("Notes contain unmatched slide ids");
 const totalMinutes = Object.values(notes).reduce((sum, note) => sum + Number.parseInt(note.minutes, 10), 0);
-if (totalMinutes !== 60) throw new Error(`Expected 60 teaching minutes, got ${totalMinutes}`);
+if (totalMinutes !== 120) throw new Error(`Expected 120 teaching minutes, got ${totalMinutes}`);
 
 const transform = deck.slides.find((slide) => slide.id === "module-s02");
 const build = deck.slides.find((slide) => slide.id === "module-s02-build");
@@ -56,7 +57,7 @@ if (createHash("sha256").update(coursewareIcon).digest("hex") !== "1f8f0a4398000
   throw new Error("T-128 courseware-specific M icon no longer matches the approved asset");
 }
 for (const entry of [audienceEntry, teacherEntry]) {
-  if (!entry.includes('href="favicon.svg?v=20260919-r5"')) throw new Error("Courseware icon cache-busting link is missing");
+  if (!entry.includes('href="favicon.svg?v=20260919-p1-r6"')) throw new Error("Courseware icon cache-busting link is missing");
 }
 
 const audienceRoot = join(root, "dist/audience");
@@ -79,4 +80,4 @@ const presenter = await readFile(join(root,"dist/teacher/presenter.html"),"utf8"
 if (!presenter.includes('data-audience-url="../audience/index.html"')) throw new Error("Teacher bundle audience link is wrong");
 for (const path of ["printables/module-map.html","printables/interface-card.html"]) if (!(await readFile(join(audienceRoot,path),"utf8")).includes("@page")) throw new Error(`Missing print style ${path}`);
 for (const path of ["module-3d.js", "vendor/three.module.min.js", "vendor/three.core.min.js", "vendor/THREE-LICENSE.txt"]) if (!(await stat(join(audienceRoot,path))).isFile()) throw new Error(`Missing local 3D dependency ${path}`);
-console.log("T-130 structural checks passed: 18 slides/16 source units, 60 minutes, three local 3D scenes, complete notes, separated audience bundle, printable worksheets.");
+console.log("T-132 structural checks passed (T-128/T-130 preserved): 25 slides/16 original source units, 120 minutes, three local 3D scenes, complete notes, separated audience bundle, printable worksheets.");

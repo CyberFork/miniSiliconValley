@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import assert from "node:assert/strict";
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 import { readFile, mkdtemp, rm, writeFile } from "node:fs/promises";
@@ -73,7 +74,9 @@ try {
   const pCourseware = mustCourseware(bootstrap.courseware, "P", "product-mentor-foundations");
   const dCourseware = mustCourseware(bootstrap.courseware, "D", "development-mentor-ligun");
   const mCourseware = mustCourseware(bootstrap.courseware, "M", "market-mentor-user-system");
-  assert.equal(dCourseware.latestDigest, "cafb8878e710a698237631523428dff7e0832180415c1b5605acbe6f3ddcf69d");
+  const p2Build = JSON.parse(await readFile(join(process.cwd(), "courseware/ligun-deck/dist/BUILD-MANIFEST.json"), "utf8")) as { digest: string };
+  assert.equal(dCourseware.latestRevision, 1);
+  assert.equal(dCourseware.latestDigest, createHash("sha256").update(`static-bundle:/courseware/development-mentor-ligun/r1/audience/:t133:sha256:${p2Build.digest}`).digest("hex"));
   assert.equal(mCourseware.latestDigest, "c48010b29cf4e9319552cee7748b6a8126ddf2c00486390e967e5b40d10cdc20");
   assert.equal((await get("/courseware/development-mentor-ligun/index.html", adminCookie)).status, 200);
   assert.equal((await get("/courseware/market-mentor-user-system/index.html", adminCookie)).status, 200);

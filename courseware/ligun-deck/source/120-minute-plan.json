@@ -1,0 +1,41 @@
+{
+  "totalMinutes": 120,
+  "phases": [
+    {
+      "name": "01 · 别让 AI 跑偏",
+      "minutes": 8,
+      "start": 0,
+      "end": 8
+    },
+    {
+      "name": "02 · 六项与校园寻宝",
+      "minutes": 27,
+      "start": 8,
+      "end": 35
+    },
+    {
+      "name": "03 · 一次只问一个",
+      "minutes": 10,
+      "start": 35,
+      "end": 45
+    },
+    {
+      "name": "04 · 写好我的主棍与子棍",
+      "minutes": 40,
+      "start": 45,
+      "end": 85
+    },
+    {
+      "name": "05 · 让 AI 做，再检查",
+      "minutes": 22,
+      "start": 85,
+      "end": 107
+    },
+    {
+      "name": "06 · 互查与课后继续",
+      "minutes": 13,
+      "start": 107,
+      "end": 120
+    }
+  ]
+}

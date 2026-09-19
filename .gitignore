@@ -43,3 +43,5 @@ yarn-error.log*
 /work/
 /.npm-cache/
 *.tsbuildinfo
+
+/courseware/ligun-deck/dist/

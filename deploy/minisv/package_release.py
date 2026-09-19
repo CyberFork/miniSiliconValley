@@ -263,7 +263,7 @@ def validate_market_courseware(root: Path) -> dict:
     return validate_manifested_courseware(root, label="M-mentor", slide_count=49)
 
 
-def validate_module_thinking_courseware(root: Path) -> dict:
+def validate_module_thinking_courseware(root: Path, *, courseware_id: str = "module-thinking-p1") -> dict:
     """Verify the separately built T-122 audience/teacher artifact boundary."""
     manifest_path = root / "BUILD-MANIFEST.json"
     if not manifest_path.is_file():
@@ -274,12 +274,12 @@ def validate_module_thinking_courseware(root: Path) -> dict:
         raise ValueError("T-122 module-thinking build manifest is invalid") from exc
     if (
         manifest.get("schemaVersion") != 1
-        or manifest.get("todoId") != "T-122"
-        or manifest.get("coursewareId") != "module-thinking-p1"
+        or manifest.get("todoId") not in ({"T-122", "T-132"} if courseware_id == "module-thinking-p1" else {"T-133"})
+        or manifest.get("coursewareId") != courseware_id
         or not isinstance(manifest.get("releaseRevision"), int)
         or manifest["releaseRevision"] < 0
         or not isinstance(manifest.get("version"), str)
-        or not re.fullmatch(r"[0-9a-f]{64}", str(manifest.get("sourceXmindSha256", "")))
+        or (courseware_id == "module-thinking-p1" and not re.fullmatch(r"[0-9a-f]{64}", str(manifest.get("sourceXmindSha256", ""))))
     ):
         raise ValueError("T-122 module-thinking identity contract is invalid")
 
@@ -333,6 +333,11 @@ def validate_module_thinking_courseware(root: Path) -> dict:
     for marker in ("presenter-notes.js", "现场顺序", "可接受回答", "硅谷币提示"):
         if marker in audience_text:
             raise ValueError(f"T-122 audience bundle leaks teacher marker: {marker}")
+    computed_digest = hashlib.sha256("".join(canonical).encode("utf-8")).hexdigest()
+    if manifest.get("todoId") in {"T-132", "T-133"} and (
+        manifest.get("digest") != computed_digest or manifest.get("releaseStatus") != "deployment-ready"
+    ):
+        raise ValueError("120-minute courseware is not an exact deployment-ready build")
     presenter = (root / "teacher" / "presenter.html").read_text(encoding="utf-8")
     if 'data-audience-url="../audience/index.html"' not in presenter:
         raise ValueError("T-122 teacher-to-audience route is invalid")
@@ -545,6 +550,8 @@ def build(
     release_id: str,
     *,
     main_sha: str = "uncommitted",
+    module_previous_root: Path | None = None,
+    ligun_root: Path | None = None,
     chj_sha: str = CHJ_COURSE_UI_SHA,
     chj_tree: str = CHJ_COURSE_UI_TREE,
     workshop_snapshot: Path | None = None,
@@ -561,6 +568,13 @@ def build(
     market_courseware_source = app_client / MARKET_COURSEWARE
     market_courseware = validate_market_courseware(market_courseware_source)
     module_thinking = validate_module_thinking_courseware(module_thinking_courseware)
+    ligun = validate_module_thinking_courseware(ligun_root, courseware_id="ligun-p2") if ligun_root else None
+    if module_thinking["revision"] >= 5:
+        if not module_previous_root or not ligun:
+            raise ValueError("120-minute release requires immutable P1 r4 baseline and P2 split bundle")
+        previous = validate_module_thinking_courseware(module_previous_root)
+        if previous["revision"] != 4 or previous["sha256"] != "5d0e6d1dd92c10c99ad4767d33d92ef1039733996f9ec909d5a0910572787644":
+            raise ValueError("historical P1 r4 baseline identity mismatch")
     incubator_projects = validate_incubator_projects(INCUBATOR_PROJECTS_SOURCE)
     module_audience_digest = tree_digest(module_thinking_courseware / "audience")
     module_teacher_digest = tree_digest(module_thinking_courseware / "teacher")
@@ -680,12 +694,27 @@ def build(
     # mentor-only gateway location. Copy only declared build outputs, never the
     # source tree or BUILD-MANIFEST.json, and prove both copies byte-identical.
     module_output = output / MODULE_THINKING_COURSEWARE
+    if module_thinking["revision"] >= 5:
+        for split in ("audience", "teacher"):
+            copy_entry(module_previous_root / split, module_output / split)
+            if tree_digest(module_previous_root / split) != tree_digest(module_output / split):
+                raise ValueError("historical P1 changed during assembly")
+        module_output = module_output / f"r{module_thinking['revision']}"
     copy_entry(module_thinking_courseware / "audience", module_output / "audience")
     copy_entry(module_thinking_courseware / "teacher", module_output / "teacher")
     if tree_digest(module_output / "audience") != module_audience_digest:
         raise ValueError("T-122 audience bundle changed during release assembly")
     if tree_digest(module_output / "teacher") != module_teacher_digest:
         raise ValueError("T-122 teacher bundle changed during release assembly")
+
+    if ligun:
+        ligun_output = development_courseware_output / f"r{ligun['revision']}"
+        if ligun_output.exists():
+            raise ValueError("P2 target revision already exists")
+        for split in ("audience", "teacher"):
+            copy_entry(ligun_root / split, ligun_output / split)
+            if tree_digest(ligun_root / split) != tree_digest(ligun_output / split):
+                raise ValueError("P2 split bundle changed during assembly")
 
     (output / "release.json").write_text(json.dumps({
         "service": "minisv", "release": release_id,
@@ -781,13 +810,19 @@ def build(
             "transformed": False,
         },
         "moduleThinkingCoursewareArtifact": {
-            "route": "/courseware/development-mentor-module-thinking/audience/",
-            "teacherRoute": "/courseware/development-mentor-module-thinking/teacher/presenter.html",
+            "route": f"/{module_output.relative_to(output)}/audience/",
+            "teacherRoute": f"/{module_output.relative_to(output)}/teacher/presenter.html",
             "mentorRole": "D",
             **module_thinking,
             "transformed": False,
             "teacherAuthorization": "server-side-admin-or-mentor",
         },
+        "ligun120CoursewareArtifact": ({
+            **ligun,
+            "route": f"/{DEVELOPMENT_COURSEWARE}/r{ligun['revision']}/audience/",
+            "teacherRoute": f"/{DEVELOPMENT_COURSEWARE}/r{ligun['revision']}/teacher/presenter.html",
+            "teacherAuthorization": "server-side-admin-or-mentor",
+        } if ligun else None),
         "marketCoursewareArtifact": {
             "route": "/courseware/market-mentor-user-system/",
             "mentorRole": "M",
@@ -869,6 +904,8 @@ def main() -> None:
     parser.add_argument("--product-courseware-r1-root", required=True, type=Path, help="immutable chj9-11 product-manager r1 artifact")
     parser.add_argument("--product-courseware-r2-root", required=True, type=Path, help="immutable chj9-11 product-mentor r2 artifact")
     parser.add_argument("--module-thinking-root", required=True, type=Path, help="verified T-122 dist root containing audience and teacher bundles")
+    parser.add_argument("--module-previous-root", type=Path, help="verified immutable P1 r4 build")
+    parser.add_argument("--ligun-root", type=Path, help="verified P2 split build")
     parser.add_argument("--portal-root", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--release-id", required=True)
@@ -886,6 +923,8 @@ def main() -> None:
     build(
         *(getattr(args, name) for name in ("legacy_root", "app_client_root", "app_static_root", "course_static_root", "product_courseware_r1_root", "product_courseware_r2_root", "module_thinking_root", "portal_root", "output", "release_id")),
         main_sha=args.main_sha,
+        module_previous_root=args.module_previous_root,
+        ligun_root=args.ligun_root,
         chj_sha=args.chj_sha,
         chj_tree=args.chj_tree,
         workshop_snapshot=args.workshop_snapshot,

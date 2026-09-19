@@ -1,0 +1,41 @@
+{
+  "totalMinutes": 120,
+  "phases": [
+    {
+      "name": "混乱挑战",
+      "minutes": 5,
+      "start": 0,
+      "end": 5
+    },
+    {
+      "name": "WHAT · 认识模块",
+      "minutes": 40,
+      "start": 5,
+      "end": 45
+    },
+    {
+      "name": "WHY · 为什么要用",
+      "minutes": 10,
+      "start": 45,
+      "end": 55
+    },
+    {
+      "name": "HOW · 公共案例",
+      "minutes": 20,
+      "start": 55,
+      "end": 75
+    },
+    {
+      "name": "HOW · 马上用到我的游戏",
+      "minutes": 40,
+      "start": 75,
+      "end": 115
+    },
+    {
+      "name": "总结与下一课",
+      "minutes": 5,
+      "start": 115,
+      "end": 120
+    }
+  ]
+}

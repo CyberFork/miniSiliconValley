@@ -15,7 +15,7 @@ with sync_playwright() as p:
     page.on("console", lambda msg: errors.append(f"console:{msg.type}:{msg.text}") if msg.type == "error" else None)
     page.on("pageerror", lambda err: errors.append(f"page:{err}"))
     page.goto(f"{BASE}{AUDIENCE}/index.html?session=qa-audience", wait_until="networkidle")
-    assert page.locator('link[rel="icon"]').get_attribute("href") == "favicon.svg?v=20260919-r5"
+    assert page.locator('link[rel="icon"]').get_attribute("href") == "favicon.svg?v=20260919-p1-r6"
     assert page.locator(".deck-slide").get_attribute("data-source") == "S01"
     page.keyboard.press("ArrowRight")
     assert page.evaluate("MSVModuleDeckController.getState().reveal") == 1
@@ -26,7 +26,7 @@ with sync_playwright() as p:
 
     presenter = context.new_page()
     presenter.goto(f"{BASE}{TEACHER}/presenter.html?session=qa-sync", wait_until="networkidle")
-    assert presenter.locator('link[rel="icon"]').get_attribute("href") == "favicon.svg?v=20260919-r5"
+    assert presenter.locator('link[rel="icon"]').get_attribute("href") == "favicon.svg?v=20260919-p1-r6"
     assert presenter.locator("#note-goal").inner_text().strip()
     with context.expect_page() as popup_info:
         presenter.click("#open-audience")
@@ -130,7 +130,7 @@ with sync_playwright() as p:
     assert audience.evaluate("MSVModuleDeckController.getState().slide") == blackbox_index
 
     slide_count = audience.evaluate("MSV_MODULE_DECK.slides.length")
-    assert slide_count == 18
+    assert slide_count == 25
     for index in range(slide_count):
         audience.evaluate("index => MSVModuleDeckController.setState({slide:index,reveal:99})", index)
         dimensions = audience.evaluate("""() => { const slide=document.querySelector('.deck-slide'); const body=document.querySelector('.slide-body'); return {slideScroll:slide.scrollHeight,slideClient:slide.clientHeight,bodyScroll:body.scrollHeight,bodyClient:body.clientHeight}; }""")
@@ -218,11 +218,11 @@ with sync_playwright() as p:
 
     module_map = context.new_page()
     module_map.goto(f"{BASE}{AUDIENCE}/printables/module-map.html", wait_until="networkidle")
-    assert "项目模块地图" in module_map.locator("h1").inner_text()
+    assert "我的游戏模块地图" in module_map.locator("h1").inner_text()
     interface_card = context.new_page()
     interface_card.goto(f"{BASE}{AUDIENCE}/printables/interface-card.html", wait_until="networkidle")
-    assert interface_card.locator(".card").count() == 2
+    assert interface_card.locator(".field").count() == 6
     assert not errors, errors
     browser.close()
 
-print("T-130 browser checks passed: three local Three.js scenes, projection, reveal/refresh, presenter sync, session isolation, 18-slide contrast/overflow, S02-A/S02-B/S02-C and S10 mouse-keyboard-touch interaction, HTML fallbacks, and printables.")
+print("T-132 browser checks passed (T-128/T-130 preserved): three local Three.js scenes, projection, reveal/refresh, presenter sync, session isolation, 25-slide contrast/overflow, S02-A/S02-B/S02-C and S10 mouse-keyboard-touch interaction, HTML fallbacks, and printables.")

@@ -6,10 +6,10 @@
 
   const params = new URLSearchParams(location.search);
   let session = sanitizeSession(params.get("session")) || createSession();
-  const storageKey = () => `msv:module-thinking:${model.version}:${session}`;
+  const storageKey = () => `msv:${model.id}:${model.version}:${session}`;
   const eventKey = () => `${storageKey()}:event`;
-  const channelName = () => `msv:module-thinking:${model.version}:${session}`;
-  let state = readState();
+  const channelName = () => `msv:${model.id}:${model.version}:${session}`;
+  let state = params.has("slideId") ? normalize({slideId:params.get("slideId"),reveal:params.get("step")}) : readState();
   let channel = null;
   let audienceWindow = null;
   let lastAudienceSignal = 0;
@@ -18,13 +18,15 @@
   function createSession() { return `run-${new Date().toISOString().slice(0,10).replaceAll("-","")}-${Math.random().toString(36).slice(2,8)}`; }
   function maxReveal(index) { return ((model.slides[index]?.content || "").match(/data-reveal/g) || []).length; }
   function normalize(next) {
-    const slide = Math.max(0, Math.min(model.slides.length - 1, Number(next?.slide) || 0));
+    const idIndex = next?.slide === undefined ? model.slides.findIndex(item => item.id === next?.slideId) : -1;
+    const rawIndex = Number(next?.slide);
+    const slide = idIndex >= 0 ? idIndex : Math.max(0, Math.min(model.slides.length - 1, Number.isFinite(rawIndex) ? Math.floor(rawIndex) : 0));
     const reveal = Math.max(0, Math.min(maxReveal(slide), Number(next?.reveal) || 0));
     const transformCase = ["car", "plane", "robot"].includes(next?.activity?.transformCase) ? next.activity.transformCase : "car";
     const buildStep = ["parts", "components", "works"].includes(next?.activity?.buildStep) ? next.activity.buildStep : "parts";
     const voxelCase = ["car", "scope"].includes(next?.activity?.voxelCase) ? next.activity.voxelCase : "car";
     const voxelStep = ["blocks", "components", "object"].includes(next?.activity?.voxelStep) ? next.activity.voxelStep : "blocks";
-    return { slide, reveal, activity: { transformCase, buildStep, voxelCase, voxelStep }, updatedAt: Date.now() };
+    return { slide, slideId: model.slides[slide].id, reveal, activity: { transformCase, buildStep, voxelCase, voxelStep }, updatedAt: Date.now() };
   }
   function readState() { try { return normalize(JSON.parse(localStorage.getItem(storageKey()) || "null")); } catch { return normalize(null); } }
   function persist() { try { localStorage.setItem(storageKey(), JSON.stringify(state)); } catch { /* private mode can deny storage */ } }
@@ -72,16 +74,16 @@
 
   function slideMarkup(slide, index) {
     return `<section class="deck-slide" data-slide-id="${slide.id}" data-source="${slide.source}" data-theme="${slide.theme || "paper"}">
-      <header class="slide-topline"><span class="slide-code">${slide.source} · ${slide.section}</span><img class="slide-brand" src="assets/mini-silicon-valley-logo-transparent.png" alt="MINI硅谷"></header>
+      <header class="slide-topline"><span class="slide-code">${slide.source} · ${slide.phase || slide.section}</span><img class="slide-brand" src="assets/mini-silicon-valley-logo-transparent.png" alt="MINI硅谷"></header>
       <div class="slide-heading"><h1>${slide.title}</h1><p>${slide.subtitle}</p></div>
       <div class="slide-body">${slide.content}</div>
-      <div class="slide-footer">模块思维 · 先体验，再命名</div>
+      <div class="slide-footer">${model.footer || model.title}</div>
       <div class="slide-page">${String(index + 1).padStart(2,"0")} / ${String(model.slides.length).padStart(2,"0")}</div>
       <div class="slide-progress"><i style="width:${((index + 1)/model.slides.length)*100}%"></i></div>
     </section>`;
   }
   function wirePreviewInteractions(stage, interactive) {
-    const transformButtons = [...stage.querySelectorAll("[data-transform-case]")];
+    const transformButtons = [...stage.querySelectorAll("button[data-transform-case]")];
     const transformStage = stage.querySelector("[data-transform-stage]");
     if (transformButtons.length && transformStage) {
       const selectTransform = (value, notify) => {
@@ -103,7 +105,7 @@
       if (interactive) transformButtons.forEach((button) => button.addEventListener("click", () => selectTransform(button.dataset.transformCase, true)));
     }
 
-    const buildButtons = [...stage.querySelectorAll("[data-build-step]")];
+    const buildButtons = [...stage.querySelectorAll("button[data-build-step]")];
     const buildStage = stage.querySelector("[data-build-stage]");
     if (buildButtons.length && buildStage) {
       const selectBuildStep = (value, notify) => {
@@ -122,8 +124,8 @@
       if (interactive) buildButtons.forEach((button) => button.addEventListener("click", () => selectBuildStep(button.dataset.buildStep, true)));
     }
 
-    const voxelCaseButtons = [...stage.querySelectorAll("[data-voxel-case]")];
-    const voxelStepButtons = [...stage.querySelectorAll("[data-voxel-step]")];
+    const voxelCaseButtons = [...stage.querySelectorAll("button[data-voxel-case]")];
+    const voxelStepButtons = [...stage.querySelectorAll("button[data-voxel-step]")];
     const voxelStage = stage.querySelector("[data-voxel-stage]");
     if (voxelCaseButtons.length && voxelStepButtons.length && voxelStage) {
       const applyVoxel = (caseValue, stepValue, notify) => {
@@ -163,7 +165,8 @@
     stage.querySelectorAll("[data-reveal]").forEach((node, i) => node.classList.toggle("revealed", i < reveal));
     wirePreviewInteractions(stage, interactive);
     container.replaceChildren(stage);
-    import("./module-3d.js")
+    window.MSVLessonTools?.wireResources(stage);
+    if (stage.querySelector("[data-module-3d]")) import("./module-3d.js")
       .then((module) => { if (stage.isConnected) module.mountModuleScenes(stage); })
       .catch((error) => console.warn("3D 课堂示意加载失败，已保留 HTML 降级图。", error));
     requestAnimationFrame(() => {
@@ -212,13 +215,14 @@
     document.getElementById("next-title").textContent = model.slides[state.slide + 1]?.title || "课程结束";
     document.getElementById("rail-progress").textContent = `${String(state.slide + 1).padStart(2,"0")} / ${model.slides.length}`;
     renderList(); renderNotes(slide);
+    window.MSVLessonTools?.update(state.slide);
   }
   function audienceUrl() {
     const raw = document.documentElement.dataset.audienceUrl || "./index.html";
     const url = new URL(raw, location.href); url.searchParams.set("session", session); url.searchParams.set("controlled", "1"); return url.href;
   }
   function openAudience() {
-    audienceWindow = window.open(audienceUrl(), `msv-module-audience-${session}`, "popup=yes,width=1280,height=720,resizable=yes");
+    audienceWindow = window.open(audienceUrl(), `msv-${model.id}-audience-${session}`, "popup=yes,width=1280,height=720,resizable=yes");
     if (!audienceWindow) {
       const button = document.getElementById("open-audience");
       button.textContent = "弹窗被拦截，请再次点击"; button.classList.remove("primary");
@@ -237,7 +241,11 @@
   addEventListener("resize", render);
   addEventListener("storage", event => { if (event.key === eventKey() && event.newValue) try { acceptMessage(JSON.parse(event.newValue)); } catch { /* ignore malformed external storage events */ } });
   addEventListener("keydown", event => {
-    if (["INPUT","TEXTAREA"].includes(document.activeElement?.tagName)) return;
+    if (event.target instanceof Element) {
+      if (event.target.closest("input,textarea,select,[contenteditable=true]")) return;
+      if ([" ","Enter"].includes(event.key) && event.target.closest("button,a,summary")) return;
+    }
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
     if (event.key.toLowerCase() === "o") { event.preventDefault(); openAudience(); }
     else if (event.key === "ArrowRight" && event.shiftKey) { event.preventDefault(); directSlide(1); }
     else if (event.key === "ArrowLeft" && event.shiftKey) { event.preventDefault(); directSlide(-1); }
