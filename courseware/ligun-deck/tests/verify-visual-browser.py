@@ -43,16 +43,21 @@ try:
     audit=page.locator(selector+' [data-p2-visual]').evaluate(AUDIT);assert not audit['overflow'] and not audit['intersections'],(kind,audit)
    assert teacher.locator('#note-script').inner_text()
    audience.locator('.deck-slide').screenshot(path=str(OUT/f'{kind}.png'))
+   if kind in ('child','repair'):
+    with ctx.expect_page() as linked:teacher.locator('#current-preview .p2-link').click()
+    target=linked.value;target.wait_for_load_state('networkidle')
+    assert '/audience/' in target.url,target.url
+    if kind=='child':workbook=target
+    else:demo=target
    report['pages'].append({'slide':index+1,'visual':kind,'revealSteps':num,'controls':'mouse+keyboard','dualView':'PASS','layout':'PASS'})
   teacher.screenshot(path=str(OUT/'teacher.png'),full_page=True)
-  demo=ctx.new_page();demo.goto(base+'/audience/demo/index.html',wait_until='networkidle')
   before=demo.locator('#bag').inner_text();demo.click('#replay-abb')
   replay=demo.locator('#replay-result').inner_text();assert '数量 3' in replay and '数量 2' in replay and '错误判赢' in replay and '不赢，仍缺 C' in replay
   assert demo.locator('#bag').inner_text()==before
   demo.select_option('#version','fixed');demo.click('#check');assert demo.locator('#checks .passed').count()==7
   demo.screenshot(path=str(OUT/'same-input-repair.png'),full_page=True)
   report['sameInputReplay']={'input':['A','B','B'],'brokenCount':3,'fixedCount':2,'unchangedPlayer':True,'fixedChecks':7}
-  workbook=ctx.new_page();workbook.goto(base+'/audience/workbook/index.html',wait_until='networkidle');assert workbook.evaluate('MSV_PROMPT_TEMPLATES.length')==11
+  assert workbook.evaluate('MSV_PROMPT_TEMPLATES.length')==11
   report['templates']=11
   # An actual touch tap must reveal the diagram on a tablet; no hover-only data.
   touch=browser.new_context(viewport={'width':1024,'height':768},has_touch=True,storage_state=os.getenv('STORAGE_STATE') or None)

@@ -1,0 +1,69 @@
+{
+  "url": "https://minisv.vip/courseware/development-mentor-ligun/r2",
+  "version": "2026.09.19-p2-r2",
+  "pages": [
+    {
+      "slide": 7,
+      "visual": "master",
+      "revealSteps": 3,
+      "controls": "mouse+keyboard",
+      "dualView": "PASS",
+      "layout": "PASS"
+    },
+    {
+      "slide": 11,
+      "visual": "decomposition",
+      "revealSteps": 6,
+      "controls": "mouse+keyboard",
+      "dualView": "PASS",
+      "layout": "PASS"
+    },
+    {
+      "slide": 18,
+      "visual": "child",
+      "revealSteps": 4,
+      "controls": "mouse+keyboard",
+      "dualView": "PASS",
+      "layout": "PASS"
+    },
+    {
+      "slide": 19,
+      "visual": "integration",
+      "revealSteps": 2,
+      "controls": "mouse+keyboard",
+      "dualView": "PASS",
+      "layout": "PASS"
+    },
+    {
+      "slide": 22,
+      "visual": "repair",
+      "revealSteps": 4,
+      "controls": "mouse+keyboard",
+      "dualView": "PASS",
+      "layout": "PASS"
+    },
+    {
+      "slide": 26,
+      "visual": "transfer",
+      "revealSteps": 2,
+      "controls": "mouse+keyboard",
+      "dualView": "PASS",
+      "layout": "PASS"
+    }
+  ],
+  "errors": [],
+  "sameInputReplay": {
+    "input": [
+      "A",
+      "B",
+      "B"
+    ],
+    "brokenCount": 3,
+    "fixedCount": 2,
+    "unchangedPlayer": true,
+    "fixedChecks": 7
+  },
+  "templates": 11,
+  "touch": "PASS",
+  "browser": "153.0.8010.48"
+}

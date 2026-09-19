@@ -33,3 +33,18 @@
 学生能否看图说清主棍/子棍、模块分工、继承与交接、偏差与复查，须由导师实际试讲及学生表现确认。自动化通过不代表以上教学效果已通过。
 
 部署与在线复验记录在执行完成后追加，不预填上线成功。
+
+
+## 部署与线上复验（已执行）
+
+- Hecate 发布 `20260919T1617CST-p2-visual-r2`，源码 `dde4072743cc4f34d607c9b387795e0bfc2a9716`；部署脚本输出 `MINISV_HECATE_HEALTHY` 与 `MINISV_DEPLOYED`。
+- 全部既有 528 个课件文件 hash 不变；P1 保持 r7。P2 r1 历史构建以固定 digest 校验后装配，r2 是新增目录。
+- 平台 222/222、部署 64/64；TypeScript、ESLint、构建、应用 smoke、T-090 E2E 通过。既有 CSS 重名构建提示、Python SQLite fixture ResourceWarning 为非阻断警告，未隐藏。
+- 浏览器 Chrome 153.0.8010.48。隔离本地 52 页×双表面检查通过；新版六张图在本地与 https://minisv.vip/courseware/development-mentor-ligun/r2 均通过真实点击/方向键/触摸、双视图同步与布局检查。
+- 从教师页实际点开模板和演示链接；A/B/B 同输入重放得到 3/2，修正版七项检查通过，独立重放不修改当前玩家状态。
+- 匿名访问 401；学员访问投屏 200、教师 HTML/讲稿 403；导师 200。P2 全 38 个文件与 manifest hash 一致，课程库默认指向 r2，历史入口仍可访问。
+- 本地和线上报告、截图、release.json、完整部署日志位于 `docs/evidence/p2-r2/`。没有保存凭据或浏览器会话到仓库。
+- 人工试讲仍未签署，T-133 保持 in-progress，仅完成本次新增实现与回归项。
+
+教师检查入口：
+https://minisv.vip/courseware/development-mentor-ligun/r2/teacher/presenter.html?slideId=ligun-07

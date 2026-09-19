@@ -1,0 +1,1 @@
+MINISV_APP_SMOKE_PASS auth=password registration=open-learner membership=required terminal=wallet+public-space homework=public-fixed-form+list+detail+staff-revision+idempotent console=role-gated released-courseware=allowed studio=forbidden legacy-classroom=410 reset=single-use-fragment

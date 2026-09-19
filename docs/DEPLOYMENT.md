@@ -163,3 +163,10 @@ P1 r6 已部署 `20260919T1537CST-p1-voxel-reuse-r6`（source `3a90216b7e1662756
 P1 r7 同样要求 `--module-history-root <r5 dist> --module-history-root <r6 dist>`，两版均按已发布内容摘要验证，防止新发布丢失历史链接。
 
 最终 P1 r7 已部署 `20260919T1551CST-p1-framing-r7`（source `5001fb4ec23321fe6aeb112c9c75a00823eb6dd2`）：默认相机完整取景 18 场景、线上交互与权限通过；486 个历史课件文件不变。P2 r1 未修改。
+
+
+### 2026-09-19｜T-133 P2 可视化 r2
+
+发布 `20260919T1617CST-p2-visual-r2`，代码 `dde4072`。P2 五组可视化嵌入原有 27 页 / 120 分钟，双视图讲稿和真实 A/B/B 演示一致；新增不可变 r2，原 528 个课件文件不改。P1 仍为 r7。
+
+完整构建、权限、浏览器及部署证据见 [T133_VISUAL_TEACHING_RECEIPT.md](T133_VISUAL_TEACHING_RECEIPT.md)。以后发布 P2 新版须携带 `--ligun-history-root`，缺历史包或 digest 不符将阻止发布。人工教学试讲未签署。
