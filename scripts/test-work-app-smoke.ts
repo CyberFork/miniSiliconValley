@@ -117,6 +117,7 @@ try {
   assert.equal(homeworkDetail.status, 200); assert.match(await homeworkDetail.text(), /迷路星球/);
   const homeworkDetailPage = await get(`/homework/first-game/submissions/${homeworkCreated.submission.id}/`);
   assert.equal(homeworkDetailPage.status, 200); assert.match(await homeworkDetailPage.text(), /迷路星球/);
+  assert.equal((await mutate(`/api/public/homework/first-game/submissions/${homeworkCreated.submission.id}`, "PATCH", { expectedRevision: 0, ...homeworkPayload }, undefined)).status, 401, "anonymous readers must not edit public homework");
   assert.equal((await post("/api/public/homework/first-game/submissions", { ...homeworkPayload, clientRequestId: "first-game.smoke.cross" }, undefined, "https://attacker.invalid")).status, 403);
 
   const wrong = await post("/api/auth/login", { username: "smoke-dm", password: "wrong password value", remember: false });
@@ -140,6 +141,37 @@ try {
   assert.equal(session.user.username, "smoke-dm");
   assert.equal(session.user.role, "admin");
   assert.equal(session.sessions.length, 1);
+  const editableHomeworkPage = await get(`/homework/first-game/submissions/${homeworkCreated.submission.id}/`, dmCookie);
+  assert.equal(editableHomeworkPage.status, 200);
+  assert.match(await editableHomeworkPage.text(), /导师编辑模式|点击修改/);
+  const homeworkEditedResponse = await mutate(`/api/public/homework/first-game/submissions/${homeworkCreated.submission.id}`, "PATCH", {
+    expectedRevision: 0,
+    respondentNickname: "冒烟作业修订",
+    respondentNote: "隔离测试数据修订",
+    answers: { ...homeworkPayload.answers, gameName: "迷路星球修订版" },
+  }, dmCookie);
+  assert.equal(homeworkEditedResponse.status, 200, await homeworkEditedResponse.clone().text());
+  const homeworkEdited = await homeworkEditedResponse.json() as Envelope<{ revision: number; respondentNickname: string; answers: { gameName: string } }>;
+  assert.equal(homeworkEdited.data?.revision, 1);
+  assert.equal(homeworkEdited.data?.respondentNickname, "冒烟作业修订");
+  assert.equal(homeworkEdited.data?.answers.gameName, "迷路星球修订版");
+  assert.equal((await mutate(`/api/public/homework/first-game/submissions/${homeworkCreated.submission.id}`, "PATCH", { expectedRevision: 0, respondentNickname: "过期页面", respondentNote: "过期页面", answers: homeworkPayload.answers }, dmCookie)).status, 409);
+  const revisedHomeworkDetail = await get(`/api/public/homework/first-game/submissions/${homeworkCreated.submission.id}`);
+  assert.equal(revisedHomeworkDetail.status, 200); assert.match(await revisedHomeworkDetail.text(), /迷路星球修订版/);
+  if (process.env.MSV_FIRST_GAME_BROWSER === "1") {
+    const browserTest = spawnSync("python3", ["scripts/test-first-game-edit-browser.py"], {
+      cwd: process.cwd(), encoding: "utf8", timeout: 60_000,
+      env: {
+        ...process.env,
+        MSV_FIRST_GAME_BROWSER_BASE: internalBase,
+        MSV_FIRST_GAME_BROWSER_SUBMISSION_ID: homeworkCreated.submission.id,
+        MSV_FIRST_GAME_BROWSER_USERNAME: accountFixture.dm.username,
+        MSV_FIRST_GAME_BROWSER_PASSWORD: accountFixture.dm.password,
+      },
+    });
+    assert.equal(browserTest.status, 0, `${browserTest.stdout}\n${browserTest.stderr}`);
+    process.stdout.write(browserTest.stdout);
+  }
   const initialManagedUsers = await getData<Array<{ username: string; role: string }>>("/api/auth/admin/users", dmCookie);
   assert.equal(initialManagedUsers.length, 5);
   assert.ok(initialManagedUsers.every((candidate) => candidate.role === "learner" || candidate.role === "observer"));
@@ -191,6 +223,7 @@ try {
   const learnerLogin = await post("/api/auth/login", { username: "smoke-1", password: `${password}1`, remember: false });
   assert.equal(learnerLogin.status, 200, await learnerLogin.clone().text());
   const learnerCookie = cookieFrom(learnerLogin);
+  assert.equal((await mutate(`/api/public/homework/first-game/submissions/${homeworkCreated.submission.id}`, "PATCH", { expectedRevision: 1, respondentNickname: "越权学员", respondentNote: "越权学员", answers: homeworkPayload.answers }, learnerCookie)).status, 403, "learner must not edit a public homework submission");
 
   assert.deepEqual(await getData<unknown[]>("/api/platform/classrooms", registrationCookie), [], "registration must not create a classroom Membership");
   assert.equal((await get("/api/studio/bootstrap", registrationCookie)).status, 403, "open registration must not grant Studio or Candidate access");
@@ -303,7 +336,7 @@ try {
   assert.equal(limited.status, 429);
   assert.match(limited.headers.get("retry-after") ?? "", /^\d+$/);
 
-  console.log(`${deployment.toUpperCase()}_APP_SMOKE_PASS auth=password registration=open-learner membership=required terminal=wallet+public-space homework=public-fixed-form+list+detail+idempotent console=role-gated released-courseware=allowed studio=forbidden legacy-classroom=410 reset=single-use-fragment`);
+  console.log(`${deployment.toUpperCase()}_APP_SMOKE_PASS auth=password registration=open-learner membership=required terminal=wallet+public-space homework=public-fixed-form+list+detail+staff-revision+idempotent console=role-gated released-courseware=allowed studio=forbidden legacy-classroom=410 reset=single-use-fragment`);
 } catch (error) {
   if (diagnostics.trim()) console.error(`WRANGLER_DIAGNOSTICS\n${diagnostics}`);
   throw error;
@@ -339,7 +372,7 @@ async function post(path: string, body: unknown, cookie?: string, origin = publi
   });
 }
 
-async function mutate(path: string, method: "POST" | "PATCH" | "DELETE", body: unknown, cookie: string): Promise<Response> {
+async function mutate(path: string, method: "POST" | "PATCH" | "DELETE", body: unknown, cookie?: string): Promise<Response> {
   return smokeFetch(`${internalBase}${path}`, {
     method,
     headers: { ...proxyHeaders(cookie), Origin: publicOrigin, ...(body === undefined ? {} : { "Content-Type": "application/json" }) },

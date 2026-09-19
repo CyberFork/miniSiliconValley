@@ -19,7 +19,7 @@ const tables = [
   "classroom_script_mutations", "classroom_reset_mutations", "classroom_finish_mutations",
   "classroom_archives", "classroom_deletions",
   "learner_terminal_wallets", "learner_terminal_transactions", "learner_terminal_inventory", "learner_terminal_equipment", "learner_public_spaces",
-  "homework_first_game_submissions", "homework_ai_quiz_submissions",
+  "homework_first_game_submissions", "homework_first_game_submission_revisions", "homework_ai_quiz_submissions",
   "homework_templates", "homework_template_versions", "homework_assignments", "homework_assignment_recipients", "homework_assignment_responses",
   "course_view_acceptance_receipts", "course_ui_acceptance_receipts", "course_acceptance_build_identities", "classroom_acceptance_bindings",
   "course_content_review_events",

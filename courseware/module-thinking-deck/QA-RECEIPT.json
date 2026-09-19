@@ -36,7 +36,12 @@
     "git diff --check"
   ],
   "deployment": {
-    "status": "pending",
+    "status": "deployed",
+    "releaseId": "20260919T1017CST-t130-voxel-r4",
+    "sourceCommit": "8688140183aff334b764f47fb1fa0344f17e83a9",
+    "healthcheck": "passed",
+    "publicSmoke": "passed",
+    "productionArtifact": "verified: revision 4, version 2026.09.19-r5, sha256 5d0e6d1dd92c10c99ad4767d33d92ef1039733996f9ec909d5a0910572787644",
     "audienceUrl": "https://minisv.vip/courseware/development-mentor-module-thinking/audience/",
     "teacherUrl": "https://minisv.vip/courseware/development-mentor-module-thinking/teacher/presenter.html"
   },

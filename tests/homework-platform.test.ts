@@ -4,7 +4,7 @@ import { DatabaseSync, type SQLInputValue } from "node:sqlite";
 import test from "node:test";
 import type { ClassroomD1 } from "../db";
 import type { FirstGameAnswers } from "../app/lib/first-game-homework";
-import { createFirstGameSubmission, getFirstGameSubmission, HomeworkError, listFirstGameSubmissions } from "../app/lib/homework-store";
+import { createFirstGameSubmission, getFirstGameSubmission, HomeworkError, listFirstGameSubmissions, updateFirstGameSubmission } from "../app/lib/homework-store";
 
 type LocalStatement = D1PreparedStatement & { execute(): D1Result };
 type LocalDatabase = ClassroomD1 & { raw: DatabaseSync };
@@ -24,6 +24,16 @@ function completeFirstPart(): FirstGameAnswers {
     gameGoal: "离开迷宫", victoryCondition: "找到出口", failureCondition: "时间用完", afterWin: "新的地图", afterLoss: ["重新开始"],
     worldLocation: "会变化的迷宫", worldPlayer: "小小探险家", worldReason: "找回丢失的地图",
   };
+}
+
+function insertEditor(db: LocalDatabase, id = "usr-homework-editor"): string {
+  const now = new Date().toISOString();
+  db.raw.prepare(`INSERT INTO auth_users
+    (id, username, display_name, role, status, password_hash, password_salt, password_iterations,
+     password_changed_at, must_change_password, created_at, updated_at)
+    VALUES (?, ?, ?, 'mentor', 'active', 'hash', 'salt', 1, ?, 0, ?, ?)`
+  ).run(id, id, "作业导师", now, now, now);
+  return id;
 }
 
 test("T-119 requires the complete first part, ignores retired image fields and keeps independent submissions", async () => {
@@ -58,5 +68,36 @@ test("T-119 submissions are append-only at the database boundary", async () => {
     const saved = await createFirstGameSubmission(db, { clientRequestId: "first-game.test.immutable", respondentNickname: "不可变测试", respondentNote: "不可变工作室", answers: completeFirstPart() });
     assert.throws(() => db.raw.prepare("UPDATE homework_first_game_submissions SET answers_json = '{}' WHERE id = ?").run(saved.submission.id), /HOMEWORK_SUBMISSION_IMMUTABLE/);
     assert.throws(() => db.raw.prepare("DELETE FROM homework_first_game_submissions WHERE id = ?").run(saved.submission.id), /HOMEWORK_SUBMISSION_IMMUTABLE/);
+  } finally { db.raw.close(); }
+});
+
+test("T-131 appends teacher revisions, exposes the latest snapshot and rejects stale saves", async () => {
+  const db = database();
+  try {
+    const editor = insertEditor(db);
+    const saved = await createFirstGameSubmission(db, { clientRequestId: "first-game.test.revision", respondentNickname: "小航", respondentNote: "迷路工作室", answers: completeFirstPart() });
+    const updated = await updateFirstGameSubmission(db, saved.submission.id, {
+      expectedRevision: 0,
+      respondentNickname: "小航同学",
+      respondentNote: "星图工作室",
+      answers: { ...completeFirstPart(), gameName: "星图迷宫", characterName: "寻路者", otherCharacters: [{ rowId: "1", name: "灯塔", who: "向导", action: "提示方向" }] },
+    }, editor);
+    assert.equal(updated.revision, 1);
+    assert.equal(updated.respondentNickname, "小航同学");
+    assert.equal(updated.respondentNote, "星图工作室");
+    assert.equal(updated.answers.gameName, "星图迷宫");
+    assert.equal(updated.answers.characterName, "寻路者");
+    assert.equal(updated.answeredCount, 22);
+    const base = db.raw.prepare("SELECT respondent_nickname, respondent_note, answers_json FROM homework_first_game_submissions WHERE id = ?").get(saved.submission.id) as { respondent_nickname: string; respondent_note: string; answers_json: string };
+    assert.equal(base.respondent_nickname, "小航");
+    assert.equal(base.respondent_note, "迷路工作室");
+    assert.equal((JSON.parse(base.answers_json) as FirstGameAnswers).gameName, "迷路星球");
+    const listing = await listFirstGameSubmissions(db, 1);
+    assert.equal(listing.submissions[0].respondentNickname, "小航同学");
+    assert.equal(listing.submissions[0].revision, 1);
+    await assert.rejects(updateFirstGameSubmission(db, saved.submission.id, { expectedRevision: 0, respondentNickname: "旧页面", respondentNote: "旧页面", answers: completeFirstPart() }, editor), (error: unknown) => error instanceof HomeworkError && error.code === "HOMEWORK_REVISION_CONFLICT" && error.status === 409);
+    await assert.rejects(updateFirstGameSubmission(db, saved.submission.id, { expectedRevision: 1, respondentNickname: "小航同学", respondentNote: "星图工作室", answers: { gameName: "缺少必填" } }, editor), (error: unknown) => error instanceof HomeworkError && error.code === "HOMEWORK_REQUIRED_MISSING");
+    assert.throws(() => db.raw.prepare("UPDATE homework_first_game_submission_revisions SET respondent_note = 'tampered' WHERE submission_id = ?").run(saved.submission.id), /HOMEWORK_SUBMISSION_REVISION_IMMUTABLE/);
+    assert.throws(() => db.raw.prepare("DELETE FROM homework_first_game_submission_revisions WHERE submission_id = ?").run(saved.submission.id), /HOMEWORK_SUBMISSION_REVISION_IMMUTABLE/);
   } finally { db.raw.close(); }
 });

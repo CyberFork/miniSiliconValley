@@ -36,3 +36,24 @@ test("T-119 explains the two-part homework and Silicon Valley coin rewards", () 
   assert.doesNotMatch(page, /兴趣扩展 6—11/);
   assert.doesNotMatch(page, /这不是作文，也不是比谁写得多/);
 });
+
+test("T-131 limits popup editing to real staff and preserves immutable revisions", () => {
+  const page = source("app/homework/first-game/submissions/[submissionId]/page.tsx");
+  const client = source("app/homework/first-game/submissions/[submissionId]/FirstGameSubmissionDetailClient.tsx");
+  const route = source("app/api/public/homework/first-game/submissions/[submissionId]/route.ts");
+  const store = source("app/lib/homework-store.ts");
+  const migration = source("drizzle/0021_first_game_submission_revisions.sql");
+  assert.match(page, /!user\.mustChangePassword && !user\.impersonation/);
+  assert.match(page, /user\.role === "admin" \|\| user\.role === "mentor"/);
+  assert.match(client, /role="dialog"/);
+  assert.match(client, /修改：\$\{field\.label\}/);
+  assert.match(client, /kind === "table"/);
+  assert.match(client, /method: "PATCH"/);
+  assert.match(client, /expectedRevision: submission\.revision/);
+  assert.match(route, /requireStudioRole\(user\)/);
+  assert.match(route, /updateFirstGameSubmission/);
+  assert.match(store, /HOMEWORK_REVISION_CONFLICT/);
+  assert.match(migration, /edited_by_user_id/);
+  assert.match(migration, /HOMEWORK_SUBMISSION_REVISION_IMMUTABLE:update/);
+  assert.match(migration, /HOMEWORK_SUBMISSION_REVISION_IMMUTABLE:delete/);
+});

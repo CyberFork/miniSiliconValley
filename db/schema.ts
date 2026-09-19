@@ -1403,6 +1403,34 @@ export const homeworkFirstGameSubmissions = sqliteTable(
   ],
 );
 
+/** A teacher correction never overwrites the submitted evidence.  Each save
+ * appends a complete, immutable snapshot and public reads resolve the latest
+ * revision. */
+export const homeworkFirstGameSubmissionRevisions = sqliteTable(
+  "homework_first_game_submission_revisions",
+  {
+    id: text("id").primaryKey(),
+    submissionId: text("submission_id").notNull().references(() => homeworkFirstGameSubmissions.id, { onDelete: "restrict" }),
+    revision: integer("revision").notNull(),
+    respondentNickname: text("respondent_nickname").notNull(),
+    respondentNote: text("respondent_note").notNull(),
+    answersJson: text("answers_json").notNull(),
+    answeredCount: integer("answered_count").notNull(),
+    imageCount: integer("image_count").notNull().default(0),
+    editedByUserId: text("edited_by_user_id").notNull().references(() => authUsers.id, { onDelete: "restrict" }),
+    editedAt: text("edited_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("uidx_homework_first_game_submission_revision").on(table.submissionId, table.revision),
+    index("idx_homework_first_game_revision_time").on(table.submissionId, table.editedAt),
+    check("chk_homework_first_game_revision", sql`${table.revision} >= 1`),
+    check("chk_homework_first_game_revision_nickname", sql`length(${table.respondentNickname}) between 1 and 80`),
+    check("chk_homework_first_game_revision_note", sql`length(${table.respondentNote}) between 1 and 120`),
+    check("chk_homework_first_game_revision_answered", sql`${table.answeredCount} >= 0`),
+    check("chk_homework_first_game_revision_images", sql`${table.imageCount} = 0`),
+  ],
+);
+
 /** Authenticated, reusable homework definitions.  Every edit appends an
  * immutable revision; assignments retain the exact revision they published. */
 export const homeworkTemplates = sqliteTable(
