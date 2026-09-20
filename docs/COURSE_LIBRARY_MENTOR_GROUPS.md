@@ -17,4 +17,14 @@
 - `tools/live-run/tests/verify_course_mentor_groups_browser.py`：隔离本地数据库和账号；导师/学员真实点击锚点、键盘操作、展开详情、平板触摸；1440/820/390px 无横向溢出，标题深色。
 - 226项平台测试、TypeScript、ESLint、应用构建、应用 smoke 通过。
 
-发布与线上复验在完成后追加；不签署人工课程验收。
+## 已发布并复验
+
+- 生产发布：`20260920T1603CST-course-mentor-groups`，源 `9a83efbdfba643f992b1e20e432bd428dc64b740`。
+- Hecate 健康检查与公开 smoke 通过；650个已有课件文件逐字节不变，不更新课件 revision。
+- 线上导师/学员两身份、4分区/数量、P1→P2顺序、空态、真实鼠标锚点、键盘/触摸、详情展开和三种宽度均通过；导师控制台实际弹出、4份课件真实链接均可打开，浏览器异常为0。
+- 226项平台测试、65项部署测试、类型/代码风格/构建/smoke 通过；线上截图由开发代理目视检查。
+- 首次线上测试遇到 CSP 禁止自动化字符串 eval，已将测试改为 Playwright 原生视口断言并重跑本地和线上通过；未放宽站点 CSP。
+- 实现、测试及发布证据：`docs/evidence/course-mentor-groups/`。
+- 独立开发工作区：`/private/tmp/minisv-course-groups-20260920`，基于最新 `origin/main`，不改动旧工作区的其他成果。
+
+验收入口：https://minisv.vip/course/ 。不签署人工课程 View/UI 或试讲验收。

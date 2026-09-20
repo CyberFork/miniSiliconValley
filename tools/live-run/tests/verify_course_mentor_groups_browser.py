@@ -60,7 +60,7 @@ def verify(base, states):
             nav = page.get_by_role('navigation', name='按导师查找课件')
             nav.get_by_role('link', name='D 开发导师 2 份课件').click()
             assert page.url.endswith('#mentor-D')
-            page.wait_for_function("Math.abs(document.querySelector('#mentor-D').getBoundingClientRect().top) < 80")
+            expect(page.locator("#mentor-D h2")).to_be_in_viewport(ratio=1)
             summary = cards.nth(0).locator('summary')
             summary.focus(); page.keyboard.press('Enter')
             expect(cards.nth(0).locator('details')).to_have_attribute('open', '')

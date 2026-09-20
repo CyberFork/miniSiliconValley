@@ -1,0 +1,30 @@
+[
+  {
+    "role": "mentor",
+    "groups": "P/D/M/O",
+    "order": "P1/P2",
+    "mouse": "PASS",
+    "keyboard": "PASS",
+    "touch": "PASS",
+    "widths": [
+      1440,
+      820,
+      390
+    ],
+    "errors": []
+  },
+  {
+    "role": "learner",
+    "groups": "P/D/M/O",
+    "order": "P1/P2",
+    "mouse": "PASS",
+    "keyboard": "PASS",
+    "touch": "PASS",
+    "widths": [
+      1440,
+      820,
+      390
+    ],
+    "errors": []
+  }
+]
