@@ -1,0 +1,14 @@
+{
+  "realBlockBuild": "PASS",
+  "moduleReuse": "PASS",
+  "importExportRefresh": "PASS",
+  "gravityDriveBrakeReset": "PASS",
+  "direction": "PASS",
+  "singleOwnerDualScreen": "PASS",
+  "sessionIsolation": "PASS",
+  "expandFullscreen": "PASS",
+  "touch": "PASS",
+  "fallback": "PASS",
+  "errors": [],
+  "manualUserTryout": "NOT_SIGNED"
+}

@@ -83,3 +83,8 @@ tags: [todo, development-mentor, module-thinking, html-ppt, presenter-view, voxe
 - 人工试讲和学生掌握情况不由自动化代签。
 
 - [x] 复习回顾已部署：`20260919T1710CST-course-recaps`（源 `049264f`），r8 末页 `module-review`；线上点击/键盘/触摸/双视图同步、权限和84文件哈希复验通过。保留所有历史课件，人工试讲不代签。
+
+
+### 2026-09-21 后续任务关联
+
+新增 [TASK-P1-MC-WORKSHOP](../tasks/p1-minecraft-modular-workshop.md)：MC风格方块编辑／保存模块／小车物理试驾。已交付阶段A/B本地样段，完整P1替换需先经用户试玩关卡。原T-132发布版本不覆盖，P2不变；不能将样段完成当作新Task全部完成。

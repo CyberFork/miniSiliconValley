@@ -1,0 +1,8 @@
+{
+  "touchDriveAndReset": "PASS",
+  "wholeInstanceMove": "PASS",
+  "embeddedKeyIsolation": "PASS",
+  "storageFailureExport": "PASS",
+  "webglContextLoss": "PASS",
+  "physicalDevice": "NOT_TESTED"
+}

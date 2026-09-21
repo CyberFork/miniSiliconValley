@@ -13,6 +13,7 @@ const eslintConfig = defineConfig([
     "dist/**",
     "**/dist/**",
     "courseware/module-thinking-deck/vendor/**",
+    "courseware/module-thinking-deck/workshop/vendor/**",
     "out/**",
     "build/**",
     "next-env.d.ts",

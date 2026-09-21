@@ -67,7 +67,11 @@
     "test:t125:browser": "npm run build:minisv-app && python3 tools/live-run/tests/verify_t125_managed_homework_browser.py",
     "build:t132-t133:courseware": "node courseware/module-thinking-deck/scripts/build.mjs && node courseware/ligun-deck/scripts/build.mjs",
     "test:t132-t133:courseware": "node courseware/shared/tests/verify.mjs && node courseware/module-thinking-deck/tests/verify.mjs && node courseware/module-thinking-deck/tests/verify-integration.mjs && node courseware/ligun-deck/tests/verify-visuals.mjs && node courseware/shared/tests/verify-recap.mjs",
-    "test:t132-t133:browser": "npm run build:t132-t133:courseware && python3 courseware/shared/tests/verify-browser.py"
+    "test:t132-t133:browser": "npm run build:t132-t133:courseware && python3 courseware/shared/tests/verify-browser.py",
+    "dev:mc-workshop": "python3 -m http.server 18135 --bind 127.0.0.1 --directory courseware/module-thinking-deck",
+    "build:mc-workshop": "node courseware/module-thinking-deck/workshop/build.mjs",
+    "test:mc-workshop": "node --test courseware/module-thinking-deck/workshop/tests/*.test.mjs",
+    "test:mc-workshop:browser": "python3 courseware/module-thinking-deck/workshop/tests/browser.py"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
