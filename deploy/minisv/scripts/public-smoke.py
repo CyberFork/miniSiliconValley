@@ -12,6 +12,8 @@ from urllib.parse import parse_qs, urlsplit
 
 
 EXPECTED = {
+    "/api/courseware/text-editions/module-thinking-p1?base=2026.09.21-p1-r10": 401,
+    "/api/courseware/text-editions/ligun-p2?base=2026.09.21-p2-r4": 401,
     "/": 200,
     "/world-preview.json": 200,
     "/world/": 200,
