@@ -2,7 +2,7 @@
   "use strict";
   window.MSV_MODULE_DECK = Object.freeze({
   "id": "ligun-p2",
-  "version": "2026.09.19-p2-r3",
+  "version": "2026.09.21-p2-r4",
   "title": "立棍｜把我的游戏交给 AI，一步步做对",
   "footer": "立棍 · 说清楚，做一轮，再验证",
   "slides": [

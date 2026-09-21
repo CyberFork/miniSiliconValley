@@ -11,7 +11,7 @@ SPEC=importlib.util.spec_from_file_location('release120', ROOT/'deploy/minisv/pa
 M=importlib.util.module_from_spec(SPEC);SPEC.loader.exec_module(M)
 class SplitReleaseTests(unittest.TestCase):
     def test_both_new_artifacts_and_teacher_boundaries_are_validated(self):
-        for folder,identity,revision in [('module-thinking-deck','module-thinking-p1',8),('ligun-deck','ligun-p2',3)]:
+        for folder,identity,revision in [('module-thinking-deck','module-thinking-p1',9),('ligun-deck','ligun-p2',4)]:
             source=ROOT/'courseware'/folder/'dist'
             with tempfile.TemporaryDirectory() as temp:
                 dest=Path(temp)/'dist';shutil.copytree(source,dest)

@@ -16,7 +16,7 @@ function loadGlobal(file, key) {
 
 const deck = loadGlobal('deck-data.js', 'MSV_MODULE_DECK');
 const notes = loadGlobal('presenter-notes.js', 'MSV_MODULE_PRESENTER_NOTES');
-assert.equal(deck.version, '2026.09.19-p2-r3');
+assert.equal(deck.version, '2026.09.21-p2-r4');
 assert.equal(deck.slides.length, 28);
 assert.equal(deck.slides.reduce((sum, slide) => sum + slide.minutes, 0), 120);
 assert.deepEqual(Array.from(deck.slides, (slide) => slide.id), [...Array.from({ length: 27 }, (_, i) => `ligun-${String(i + 1).padStart(2, '0')}`), 'ligun-review']);

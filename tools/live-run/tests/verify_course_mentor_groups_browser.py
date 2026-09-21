@@ -48,8 +48,8 @@ def verify(base, states):
                     response = context.request.get(base + href)
                     assert response.status == 200, (href, response.status)
             if role == 'mentor':
-                assert '/r8/teacher/' in presenters.nth(0).get_attribute('href')
-                assert '/r3/teacher/' in presenters.nth(1).get_attribute('href')
+                assert '/r9/teacher/' in presenters.nth(0).get_attribute('href')
+                assert '/r4/teacher/' in presenters.nth(1).get_attribute('href')
                 if os.environ.get('LIVE_ORIGIN'):
                     with page.expect_popup() as popup_info:
                         presenters.nth(0).click()

@@ -14,6 +14,7 @@
   let channel = null;
   let state = initialState();
   let renderVersion = 0;
+  const textEdits = window.MSVTextEditions?.create({model,teacher:false,getSession:()=>session,rerender:render});
 
   function sanitizeSession(value) {
     return value && /^[a-zA-Z0-9_-]{1,64}$/.test(value) ? value : "";
@@ -75,6 +76,7 @@
       </section>`;
     deck.querySelectorAll("[data-reveal]").forEach((node, index) => node.classList.toggle("revealed", index < state.reveal));
     wireSlideInteractions();
+    textEdits?.decorate(deck,state.slide);
     window.MSVLessonTools?.wireResources(deck);
     window.MSVLessonTools?.update(state.slide);
     document.title = `${slide.source} ${slide.title}｜${model.title}`;

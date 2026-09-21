@@ -1,0 +1,13 @@
+{
+  "p1": "PASS",
+  "p2": "PASS",
+  "persistAcrossDevices": "PASS",
+  "sameSessionSync": "PASS",
+  "otherSessionIsolation": "PASS",
+  "conflictRetainsInput": "PASS",
+  "history": "PASS",
+  "plainTextXss": "PASS",
+  "authCsrf": "PASS",
+  "threeScene": "PASS",
+  "errors": []
+}

@@ -68,9 +68,11 @@ const DEVELOPMENT_MODULE_THINKING_R5_CONTENT_TREE = "84ab82bcba6a34aab72284b3fc4
 const DEVELOPMENT_MODULE_THINKING_R6_CONTENT_TREE = "4d78573094e87726c45e8e8ffe13572a34ea19b042d5d7206c174b8ea0992b72";
 const DEVELOPMENT_MODULE_THINKING_R7_CONTENT_TREE = "dc678fb345cf938004f223e8a8c9f2faaf636fd481fa675ad3ea219199b70457";
 const DEVELOPMENT_MODULE_THINKING_R8_CONTENT_TREE = "971cc25ef8fba30f6377a2d5caa86841f29bbf8a56f227776bc9ab0909236c17";
+const DEVELOPMENT_MODULE_THINKING_R9_CONTENT_TREE = "a336543585d9b53d3bb1596f066bb4ccd8358d0df9d21152280130624d745f44";
 const DEVELOPMENT_LIGUN_R1_CONTENT_TREE = "6b48d7d9fac75f88180bc00c8caf2f8c2a533d611580493eb538e3eef73ad1d9";
 const DEVELOPMENT_LIGUN_R2_CONTENT_TREE = "2427551404eccf63e594b2a28654d5d06e76e0c6d6fec95b5f612cb69d954446";
 const DEVELOPMENT_LIGUN_R3_CONTENT_TREE = "dba0adb24b45d1942d36a06b9baa97fe833bffd53e0fd9a71f65956c90587396";
+const DEVELOPMENT_LIGUN_R4_CONTENT_TREE = "8e160cb6c9b57bf25dd485a591c59fbe5f20e4426f32c358070e326a9590a280";
 const MARKET_USER_SYSTEM_CONTENT_TREE = "48b01a256bd3d408a5d539f798470e6aad0058a19dcdeb8b5d212b0e64add862";
 const BUNDLED_VERSIONS = [
   {
@@ -236,10 +238,23 @@ const BUNDLED_VERSIONS = [
     role: "D" as const,
     revision: 8,
     releasedAt: "2026-09-19T09:10:00Z",
-    isCurrent: true,
+    isCurrent: false,
     kind: "static-bundle" as const,
     entryPath: "/courseware/development-mentor-module-thinking/r8/audience/",
     sourceIdentity: `t132:sha256:${DEVELOPMENT_MODULE_THINKING_R8_CONTENT_TREE}`,
+    html: null,
+  },
+  {
+    id: "cw-development-mentor-module-thinking",
+    slug: "development-mentor-module-thinking",
+    title: "开发导师｜模块思维：先拆块，再协作",
+    role: "D" as const,
+    revision: 9,
+    releasedAt: "2026-09-21T11:00:00Z",
+    isCurrent: true,
+    kind: "static-bundle" as const,
+    entryPath: "/courseware/development-mentor-module-thinking/r9/audience/",
+    sourceIdentity: `t132:sha256:${DEVELOPMENT_MODULE_THINKING_R9_CONTENT_TREE}`,
     html: null,
   },
   {
@@ -275,10 +290,23 @@ const BUNDLED_VERSIONS = [
     role: "D" as const,
     revision: 3,
     releasedAt: "2026-09-19T09:10:00Z",
-    isCurrent: true,
+    isCurrent: false,
     kind: "static-bundle" as const,
     entryPath: "/courseware/development-mentor-ligun/r3/audience/",
     sourceIdentity: `t133:sha256:${DEVELOPMENT_LIGUN_R3_CONTENT_TREE}`,
+    html: null,
+  },
+  {
+    id: "cw-development-mentor-ligun",
+    slug: "development-mentor-ligun",
+    title: "开发导师｜先立棍，再让 AI 跑",
+    role: "D" as const,
+    revision: 4,
+    releasedAt: "2026-09-21T11:00:00Z",
+    isCurrent: true,
+    kind: "static-bundle" as const,
+    entryPath: "/courseware/development-mentor-ligun/r4/audience/",
+    sourceIdentity: `t133:sha256:${DEVELOPMENT_LIGUN_R4_CONTENT_TREE}`,
     html: null,
   },
   {

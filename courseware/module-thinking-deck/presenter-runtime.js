@@ -13,6 +13,7 @@
   let channel = null;
   let audienceWindow = null;
   let lastAudienceSignal = 0;
+  const textEdits = window.MSVTextEditions?.create({model,teacher:true,getSession:()=>session,rerender:render});
 
   function sanitizeSession(value) { return value && /^[a-zA-Z0-9_-]{1,64}$/.test(value) ? value : ""; }
   function createSession() { return `run-${new Date().toISOString().slice(0,10).replaceAll("-","")}-${Math.random().toString(36).slice(2,8)}`; }
@@ -47,7 +48,7 @@
     if (!message || message.session !== session || message.source === "presenter") return;
     if (["ready","heartbeat","pong","state"].includes(message.type)) {
       lastAudienceSignal = Date.now();
-      if (message.type === "ready") send("state", { state });
+      if (message.type === "ready") { send("state", { state }); textEdits?.send(); }
       updateConnection();
     }
     if (message.type === "state" && message.state) {
@@ -164,6 +165,7 @@
     stage.innerHTML = slideMarkup(model.slides[index], index);
     stage.querySelectorAll("[data-reveal]").forEach((node, i) => node.classList.toggle("revealed", i < reveal));
     wirePreviewInteractions(stage, interactive);
+    textEdits?.decorate(stage,index,interactive);
     container.replaceChildren(stage);
     window.MSVLessonTools?.wireResources(stage);
     if (stage.querySelector("[data-module-3d]")) import("./module-3d.js")
@@ -203,6 +205,7 @@
       });
     }
     nav.querySelectorAll("button").forEach((button, index) => {
+      button.querySelector(".name").textContent = textEdits?.title(index) ?? model.slides[index].title;
       button.classList.toggle("active", index === state.slide);
       if (index === state.slide) button.scrollIntoView({ block: "nearest" });
     });
@@ -211,8 +214,8 @@
     const slide = model.slides[state.slide];
     renderPreview(document.getElementById("current-preview"), state.slide, state.reveal, true);
     renderPreview(document.getElementById("next-preview"), state.slide + 1, 0);
-    document.getElementById("current-title").textContent = `${slide.source} · ${slide.title} · 揭示 ${state.reveal}/${maxReveal(state.slide)}`;
-    document.getElementById("next-title").textContent = model.slides[state.slide + 1]?.title || "课程结束";
+    document.getElementById("current-title").textContent = `${slide.source} · ${textEdits?.title(state.slide) ?? slide.title} · 揭示 ${state.reveal}/${maxReveal(state.slide)}`;
+    document.getElementById("next-title").textContent = textEdits?.title(state.slide + 1) ?? model.slides[state.slide + 1]?.title ?? "课程结束";
     document.getElementById("rail-progress").textContent = `${String(state.slide + 1).padStart(2,"0")} / ${model.slides.length}`;
     renderList(); renderNotes(slide);
     window.MSVLessonTools?.update(state.slide);
@@ -232,7 +235,7 @@
     setTimeout(() => send("ping", {}), 350);
   }
   function newSession() {
-    session = createSession(); state = normalize(null); lastAudienceSignal = 0;
+    session = createSession(); state = normalize(null); lastAudienceSignal = 0; textEdits?.startSession();
     setUrl(); connectChannel(); persist(); render(); updateConnection();
     document.getElementById("open-audience").textContent = "打开投屏窗口";
   }

@@ -12,6 +12,13 @@ ROOT = Path(__file__).resolve().parents[2]
 OUT = Path(os.getenv('MSV_DECK_EVIDENCE', '/tmp/msv-p132-p133-evidence'))
 OUT.mkdir(parents=True, exist_ok=True)
 class QuietHandler(http.server.SimpleHTTPRequestHandler):
+    def do_GET(self):
+        # Layout regression uses the original edition; real API save tests live
+        # in verify_courseware_text_edits_browser.py (no API mocking there).
+        if self.path.startswith("/api/courseware/text-editions/"):
+            body=json.dumps({"ok":True,"data":{"edition":{"revision":0,"patches":{}},"latestRevision":0,"history":[]}}).encode()
+            self.send_response(200);self.send_header("Content-Type","application/json");self.end_headers();self.wfile.write(body);return
+        super().do_GET()
     def log_message(self, *args):
         pass
 server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), functools.partial(QuietHandler, directory=str(ROOT)))
