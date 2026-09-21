@@ -45,3 +45,6 @@ yarn-error.log*
 *.tsbuildinfo
 
 /courseware/ligun-deck/dist/
+
+# Generated playable workshop packages (source and manifests are reviewed separately)
+/courseware/module-thinking-deck/workshop/dist/
