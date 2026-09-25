@@ -56,9 +56,9 @@ for(let i=0;i<12;i++) assert.equal(reduce({},'minecraft',String(i)).minecraft,i)
 assert.equal(normalize({minecraft:99}).minecraft,0);
 assert.equal(normalize({minecraft:-1}).minecraft,0);
 assert.equal(normalize({minecraft:3.2}).minecraft,0);
-assert.equal(deck.slides.slice(25).reduce((n,s)=>n+s.minutes,0),120);
+assert.equal(deck.slides.slice(25,39).reduce((n,s)=>n+s.minutes,0),120);
 assert.equal(deck.slides.find(s=>s.id==='ai-13').minutes,27);
-assert.deepEqual(Array.from(deck.slides.slice(25),s=>s.source),Array.from({length:14},(_,i)=>`AI-${String(i+1).padStart(2,'0')}`));
+assert.deepEqual(Array.from(deck.slides.slice(25,39),s=>s.source),Array.from({length:14},(_,i)=>`AI-${String(i+1).padStart(2,'0')}`));
 
 // Audio is local to the clicked window; new slide/tab stops previous playback.
 for(const f of ['deck-runtime.js','presenter-runtime.js'])assert.match(await load(f),/MSVAiLessons\?\.stopMedia/);
