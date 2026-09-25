@@ -1,0 +1,51 @@
+{
+  "release": "20260925-course-map-r29",
+  "revision": 29,
+  "sourceCommit": "27799ea8986149e321cf57e08fc48ad5d89f3bc3",
+  "recordedAt": "2026-09-25T06:42:56.266896+00:00",
+  "sourceProvenance": {
+    "baseSourceCommit": "6af7b39666cbb5b124f9580fa67306a7ace5313c",
+    "baseTree": "8e0c16667f536963b130d0bc2c2e67cf2a9a6b7f",
+    "localSnapshotTree": "8e0c16667f536963b130d0bc2c2e67cf2a9a6b7f",
+    "reason": "Prior temporary repository lost HEAD/config and production source had an unavailable old ancestor. Archived current committed tree and verified exact tree identity; created isolated snapshot history without modifying prior repository.",
+    "durableMaintenanceSource": "/Users/hecate/.codex/worktrees/minisv-courseware-r29"
+  },
+  "sourceDelivery": "Audited small Git bundles over existing SSH; GitHub push not claimed",
+  "deckDigest": "327ade76863a2d29b7fadf585dc52066916eb64fa32dbfb0527ba9857d003cfd",
+  "archiveSha256": "cf999a02b6f52045cc021d4ab31ffa80be09af79044c24d47d98ab43393432a0",
+  "stableEntry": "https://minisv.vip/courseware/latest/p1/?slideId=course-map",
+  "teacherEntry": "https://minisv.vip/courseware/development-mentor-module-thinking/r29/teacher/presenter.html?slideId=course-map",
+  "changes": [
+    "Appended page 40 course-map: module map/module internals mapped to main/sub sticks, two distinct six-field sets, concrete car/backpack example and human/AI responsibilities.",
+    "Appended page 41 course-flow: six numbered connected steps, existing planning/UI, module design, one-question alignment/main-stick confirmation, individual sub-stick confirmation, development document then execution, module and end-to-end acceptance; design-change return path.",
+    "Both reference pages are real editable HTML, fully visible without reveals; matching teacher notes, stable text IDs and catalog registration.",
+    "Zero extra teaching minutes; original 39 slide objects byte-semantically unchanged, 120+120 minutes retained.",
+    "Preserved public r28 workbook hotfix and applied the same exact-file public scope to r29; all other deck/teacher routes retain access gates."
+  ],
+  "verified": [
+    "Local and isolated remote full builds and courseware regression checks PASS.",
+    "New reference test PASS, including SHA256 of original 39 slides; root reviewed delegated test, pinned immutable base instead of mutable HEAD.",
+    "80 route-game/workshop tests and 90 deployment Python tests PASS.",
+    "Local Safari audience screenshots for both reference pages and teacher navigation/notes verified.",
+    "Production authorized Safari audience opened page40, advanced to page41, showed complete layout and saved-text v43; no production text was edited.",
+    "All 161 r29 production courseware file hashes match manifest; 2835 previously published courseware files byte-identical.",
+    "Deploy health and external public-smoke PASS; anonymous r28/r29 workbook resources 200, other lesson and teacher paths remain gated."
+  ],
+  "notVerified": [
+    "Physical tablet/touch device and human classroom trial not signed.",
+    "Production teacher interaction not tested with mentor account; current authorized Safari session is learner-level.",
+    "No new game physics, real external AI dialogue, or student project acceptance was performed in this scope."
+  ],
+  "rollback": {
+    "release": "20260924-shared-game-r28",
+    "backup": "~/Services/minisv/backups/20260925T063712Z-20260925-course-map-r29",
+    "command": "zsh ~/Services/minisv/current/ops/scripts/rollback-hecate.sh 20260924-shared-game-r28",
+    "publicWorkbookNote": "After rollback restore gateway/default.conf from the above pre-r29 backup and nginx -t / reload to preserve the r28 public-workbook hotfix, which predates this release but is not in the original immutable r28 ops package.",
+    "executed": false
+  },
+  "unchanged": [
+    "Existing game ownership/physics unchanged.",
+    "No saved teacher text replacement.",
+    "IP migration remains paused."
+  ]
+}
