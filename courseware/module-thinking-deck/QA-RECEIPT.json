@@ -1,0 +1,49 @@
+{
+  "ok": true,
+  "todo": "T-130",
+  "verifiedAt": "2026-09-19T10:08:00+08:00",
+  "artifact": {
+    "id": "module-thinking-p1",
+    "version": "2026.09.19-r5",
+    "sourceXmindSha256": "a31489645adcfaf6b7afd3be734349175740c520120cda65552cfa0f3e833793",
+    "sourceUnits": 16,
+    "slideCount": 18,
+    "releaseRevision": 4,
+    "contentTreeSha256": "5d0e6d1dd92c10c99ad4767d33d92ef1039733996f9ec909d5a0910572787644"
+  },
+  "checks": {
+    "sourceMapping": "passed: S01-S16 semantic ids preserved; S02 split into S02-A/S02-B/S02-C with legacy module-s02 retained",
+    "teachingSequence": "passed: prebuilt components -> standard parts create components -> material voxels shape components -> functional object -> software reuse/build decision",
+    "accuracyBoundaries": "passed: editable granularity is distinguished from physical size; voxel materials differ; scene is not an official Minecraft recipe or real-weapon guide",
+    "presenterNotes": "passed: all 18 slides have goal, script, answers, misconception, rewards, acceptance and materials; total 60 minutes",
+    "interaction": "passed: local Three.js transform, automation and voxel scenes; voxel car/scope cases each expose blocks/components/object",
+    "interactionSync": "passed: presenter-to-audience and audience-to-presenter choices synchronize, survive audience refresh and remain session-isolated",
+    "offlineAndFallback": "passed: self-hosted Three.js 0.180.0 has no remote media dependency; original HTML/CSS fallback remains readable without WebGL, during print and with reduced motion",
+    "coursewareIcon": "passed: audience and teacher retain the approved course-specific yellow M pixel icon with a versioned URL",
+    "bundleSeparation": "passed: audience bundle contains no teacher notes or presenter scripts",
+    "desktopProjection": "passed: 1600x900 visual inspection and 1440x900 automated browser run",
+    "allSlideOverflowAndContrast": "passed: 18/18 slides in both audience and dark-shell teacher preview contexts",
+    "sessionIsolation": "passed",
+    "mobileTouch": "passed at 390x844 without page overflow",
+    "sceneDispatchRegression": "passed: scene factory now reads the literal data-module-3d attribute, so transform, automation and voxel mount their own factory",
+    "printables": "passed: module map and two interface cards",
+    "registry": "passed: immutable revision 4 registered as current without removing revisions 0/1/2/3"
+  },
+  "commands": [
+    "npm run test:t122:browser",
+    "npm run test:minisv-app",
+    "python3 -m unittest discover -s deploy/minisv/tests",
+    "git diff --check"
+  ],
+  "deployment": {
+    "status": "deployed",
+    "releaseId": "20260919T1017CST-t130-voxel-r4",
+    "sourceCommit": "8688140183aff334b764f47fb1fa0344f17e83a9",
+    "healthcheck": "passed",
+    "publicSmoke": "passed",
+    "productionArtifact": "verified: revision 4, version 2026.09.19-r5, sha256 5d0e6d1dd92c10c99ad4767d33d92ef1039733996f9ec909d5a0910572787644",
+    "audienceUrl": "https://minisv.vip/courseware/development-mentor-module-thinking/audience/",
+    "teacherUrl": "https://minisv.vip/courseware/development-mentor-module-thinking/teacher/presenter.html"
+  },
+  "manualAcceptance": "not-signed-by-user"
+}

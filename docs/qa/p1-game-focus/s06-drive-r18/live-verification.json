@@ -1,0 +1,18 @@
+{
+  "release": "20260923T1450CST-s06-drive-r18",
+  "p1Revision": 18,
+  "p1Digest": "7f88f44e1a55502bce80fc669d70b5609c60a3a8c32dd2712b41197997cca94c",
+  "p2Unchanged": true,
+  "publicLatestPointer": "/courseware/development-mentor-module-thinking/r18/teacher/presenter.html",
+  "historicalFilesUnchanged": 1502,
+  "physicsInputWorkshopTestsPassed": 52,
+  "navigationTextVersionRouteTestsPassed": 39,
+  "pythonTestsPassed": 82,
+  "gameFocusSuite": "PASS",
+  "nginxCandidate": "PASS",
+  "deploymentHealth": "MINISV_HECATE_HEALTHY",
+  "savedTextRowsBefore": 28,
+  "savedTextRowsAfter": 28,
+  "allSavedTextPreserved": true,
+  "visualQA": "Initial native Chrome layout and power slider loaded. Final modal visual capture blocked by ScreenCaptureKit -3811; actual modal logic validated by VM regression, user manual visual acceptance pending."
+}

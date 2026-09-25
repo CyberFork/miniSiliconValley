@@ -1,0 +1,91 @@
+> 当前政策（T-105）：公开注册始终创建 active learner；Released 课件可浏览但不授予 Classroom membership。正式课堂仅由 Admin DM 分配 membership。Studio、Candidate 预览与 Test 身份模拟权限不向公开注册用户开放。旧 `/api/classroom/*` 已退休并返回 410；当前课堂 API 仅为 `/api/platform/classrooms`。
+
+# Mini Silicon Valley 架构说明
+
+本文件描述当前统一平台架构。详细领域决策见 [COURSE_PLATFORM_ARCHITECTURE.md](COURSE_PLATFORM_ARCHITECTURE.md)，人工审核边界见 [T-104 实施说明](TODO_104_IMPLEMENTATION.md)，家长问答运行手册见 [PARENT_QA.md](PARENT_QA.md)。历史 Alpha、固定九弹窗和旧 Course Registry 文档仅供追溯，不再是运行规范。
+
+## 1. 三个产品面
+
+- **公开官网与 World `/`、`/world/`**：品牌介绍、地图、时间轴和史实节点；不暴露内部工具或私密学习数据。
+- **学员服务 `/terminal/`、`/classroom/`、`/course/`、`/account/`**：个人时空终端、参加课堂、查看课件与管理自己的账号。`/u/{studentId}/` 只输出学员主动公开的空间投影。
+- **内部工作台 `/console/`**：课程生产、课件管理、课堂工厂与中控、账号管理、QA 和历史归档。Course Studio 是 `/console/studio/` 下的课程生产模块，不再承担整个后台导航。
+
+导师课件库位于 `/course/`。P／D／M 已发布课件是其中三件不可变静态产物，分别位于 `/courseware/product-mentor-foundations/`、`/courseware/development-mentor-ligun/`、`/courseware/market-mentor-user-system/`；它们是角色可见的电子课件，不替代 CourseDefinition 课程真值。
+
+## 2. 单一真值与版本链
+
+```text
+CourseDefinition（D1 course_versions）
+  → Candidate pointer
+  → exact ViewAcceptanceReceipt
+  → exact Test Classroom + 当前导师课件审计快照
+  → exact UiAcceptanceReceipt
+  → Released pointer
+  → Production ClassroomInstance
+```
+
+- CourseDefinition 正文以 canonical JSON digest 标识，每次保存只新增或复用完全相同的不可变 revision。
+- ClassroomInstance 不复制可编辑课程正文，只锁定 exact course reference；创建时的 courseware refs 仅为审计快照，导师打开课件时重新解析本角色当前发布版。
+- Studio Preview 使用 `buildStudioProjection()`，不创建房间、不写账本、不伪造运行数据。
+- Test 与 Production 调用同一个 `createClassroomInstance()` 和 `controllerTransition()`；差别只在准入、reset 权限和环境标记。
+
+## 3. 领域对象
+
+- `CourseDefinition`：五步骤、13 个 Block、P/D/M/O 导师任务、学员视角、卡组、来源边界与 learnerPolicy。
+- `CourseRelease`：`courseId + revision + digest + candidate/released`。
+- `CoursewarePackage/Version`：导师拥有的单文件 HTML 或固定静态 bundle；版本不可变。
+- `ClassroomInstance`：环境、生命周期、课程引用、实际 N、独立 ControllerState。
+- `Membership`：账号与某个 Classroom 的导师席或学员席关联。
+- `ClassroomAdminDmGrant`：课堂级 `primary | delegated` 管理授权；只有 Primary 具有委派能力，不等同平台管理员或第五导师。
+- `AuthImpersonation`：真实平台管理员会话上的短时 Test 身份覆盖；始终锁定一个 Test Classroom，并同时保留 actor/effective identity。
+- `ViewAcceptanceReceipt`：对 exact Candidate 的全部 Block、支持人数与共享投影结果验收。
+- `UiAcceptanceReceipt`：完成真实 Test 后，对 exact course、课堂成员和运行版本的 UI 验收回执；其中的四件 courseware refs 仅记录验收当时的审计快照。
+- `CourseContentReviewEvent`：对 exact `courseId + revision + digest + itemId` 的追加式人工处置；作者在 `contentPackages.reviewQueue` 中的声明不被原地改写。
+- `ParentQaKnowledgeGapEvent`：独立于课程的脱敏 observation/review/reopen NDJSON 事件；从不自动进入检索或改写 CourseDefinition。
+- `LearnerWallet/LearnerWalletTransaction`：稳定账号维度的个人硅谷币余额与追加式账本；TEST 和 PRODUCTION 资产严格隔离，发放、消费与冲正均保留操作者、原因和幂等键。
+- `LearnerInventory/LearnerEquipment`：永久持有物与当前装备；购买不能改变课程权限、成绩或 Classroom 状态。
+- `LearnerPublicSpace`：学员主动维护的公开空间投影；匿名读取使用独立 allow-list，不包含钱包流水、私密卡、作业草稿、管理备注或凭据。
+
+## 4. 可见性与权限
+
+- 平台 `admin`／`mentor` 可按各自 RBAC 与资源范围进入 Console；Course Studio 位于 `/console/studio/`。
+- 导师创建课堂时必须把自己列为初始 Admin DM；平台 admin 可指定任一导师／管理员。
+- Classroom 访问必须来自导师 Membership、学员 Membership 或该课堂 Admin DM 权限；平台 admin 不自动穿透所有课堂。
+- Console 的跨课堂索引按上述关系过滤并只返回脱敏摘要；平台 admin 的全局摘要能力不等于课堂详情权限。
+- 学员仅收到自己的任务、自己持久化手牌、自己的提交和账户值；不会收到中控验收门或导师私密脚本。
+- `/screen` 使用专门的 allow-list API，不从浏览器端隐藏私密字段。
+- `/course/` 与 `/course/{slug}/` 对真实管理员、导师和学员开放；inline HTML 在无 `allow-same-origin` 的 sandbox iframe 中播放，静态 bundle 统一经 cookie-only 网关保护。
+- 所有写 API 使用第一方 HttpOnly Session、首次改密门禁、同源 Origin 校验和服务端 RBAC。
+- Console、Classroom、Terminal、导师 Courseware、Account 与静态官网共用同一账号契约；脱敏共同投屏和学员主动公开空间使用各自独立的公开投影。本浏览器账号集合可保存多个已验证身份的最小元数据，但任一时刻只有一个当前身份；切换会原子轮换服务端 Session。Test 模拟只替换当前请求的 effective identity，不进入真实账号列表，也不改 Cookie 中的真实 actor。
+- Admin DM 委派是非递归授权：Primary 可授予／撤销导师的 Delegated；Delegated 可运行课堂但无委派能力。旧的平面 `classroom_permissions` 仅作为迁移期回滚镜像，不参与授权判定。
+- Studio「人工审核工作台」并列展示课程审核项和家长 QA 缺口，但保持两个真值、两个生命周期。课程显式 `revision-required`／`reopen` 阻断对应 exact 版本发布；未处置的作者声明仅作醒目提示，不自动等同失败。家长 QA 的详细健康状态与重试只经带 server-only token 的 loopback 内部接口访问。
+
+## 5. 动态学员人数
+
+`learnerPolicy` 声明 `minCount/defaultCount/maxCount/cardsPerLearner/dealPolicy`。创建及发布时都会校验人数范围、卡组容量和第 5 名以后通用任务模板。N=2 不出现虚假空席；N=6 生成 6 份隔离私密视图；容量不足会显示具体缺口并阻止开课或发布。
+
+## 6. 生产拓扑
+
+```text
+Cloudflare Tunnel
+  → 127.0.0.1:18780  Nginx gateway
+      ├─ current/site                 静态世界、门户、P／D／M 导师课件
+      ├─ 127.0.0.1:18787             Vinext/Worker + D1-compatible data
+      └─ 127.0.0.1:18789             Parent Q&A
+127.0.0.1:18792                       cloudflared metrics
+```
+
+18790/18791 的全局 LIVE RUN/remote-console 已退休且必须关闭。应用 D1-compatible 数据保存在 `~/Services/msv-classroom/data`，不进入 release。
+
+## 7. 统一发布
+
+一个 release 同时包含 `site/`、`app/dist/`、`ops/`、根 manifest 和 `bundle.json`。`~/Services/minisv/current` 只指向这一份 release；Nginx 和课堂 worker 同时跟随该 symlink，避免静态 UI 与 API 跨版本。失败部署恢复之前捕获的 exact symlink 和配置。
+
+## 8. 退休入口
+
+- `/alpha`、`/alpha/*`：410
+- `/control`、`/control/*`：410
+- `/api/classroom/*`：410
+- `/api/internal/*`：公网 404
+
+现行入口为：公开 `/`、`/world/*`、`/u/*`；学员服务 `/terminal/*`、`/classroom/*`、`/course/*`、`/account/*`；内部 `/console/*`。旧 `/studio/*` 仅保留同源 `308` 迁移跳转，不再承载第二套 UI 或业务逻辑。

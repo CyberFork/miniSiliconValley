@@ -1,0 +1,362 @@
+from __future__ import annotations
+
+import importlib.util
+import hashlib
+import json
+import tempfile
+import unittest
+from pathlib import Path
+
+
+MODULE_PATH = Path(__file__).parents[1] / "package_release.py"
+SPEC = importlib.util.spec_from_file_location("package_release_t077", MODULE_PATH)
+assert SPEC and SPEC.loader
+MODULE = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(MODULE)
+
+
+class CourseReleaseTests(unittest.TestCase):
+    def test_workshop_snapshot_rejects_tampering_and_private_runtime_fields(self) -> None:
+        source = MODULE.WORKSHOP_OVERLAY / "confirmed-baseline.json"
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "snapshot.json"
+            value = json.loads(source.read_text())
+            value["courses"][0]["title"] = "tampered"
+            path.write_text(json.dumps(value))
+            with self.assertRaisesRegex(ValueError, "integrity digest"):
+                MODULE.validate_workshop_snapshot(path)
+
+            value = json.loads(source.read_text())
+            value["lease"] = "must-not-leak"
+            unsigned = {key: item for key, item in value.items() if key != "integrity"}
+            value["integrity"] = {"algorithm": "sha256", "digest": MODULE.canonical_digest(unsigned)}
+            path.write_text(json.dumps(value))
+            with self.assertRaisesRegex(ValueError, "private field"):
+                MODULE.validate_workshop_snapshot(path)
+
+    def test_release_rejects_untraceable_source_sha_before_writing_output(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            inputs = [root / name for name in ("legacy", "client", "static", "course-r0", "course-r1", "course-r2", "module-thinking", "portal")]
+            for directory in inputs:
+                directory.mkdir()
+            output = root / "release"
+            with self.assertRaisesRegex(ValueError, "invalid main SHA"):
+                MODULE.build(*inputs, output, "t077-test", main_sha="main")
+            self.assertFalse(output.exists())
+
+    def test_release_packages_current_world_and_opaque_product_mentor_courseware(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            legacy = root / "legacy"
+            client = root / "client"
+            static = root / "static"
+            course = root / "course"
+            course_r1 = root / "course-r1"
+            course_r2 = root / "course-r2"
+            module_thinking = root / "module-thinking"
+            portal = root / "portal"
+            output = root / "release"
+            for directory in (
+                legacy,
+                client / "_next",
+                client / "assets",
+                client / "fonts" / "terrarum-sans-bitmap",
+                client / "courseware" / "development-mentor-ligun" / "assets",
+                client / "courseware" / "market-mentor-user-system",
+                static / "world",
+                static / "parents",
+                course / "_next",
+                course / "assets",
+                course_r1 / "_next",
+                course_r1 / "assets",
+                course_r2 / "_next",
+                course_r2 / "assets",
+                module_thinking / "audience" / "assets",
+                module_thinking / "teacher" / "assets",
+                portal,
+                portal / "incubator" / "projects",
+            ):
+                directory.mkdir(parents=True, exist_ok=True)
+
+            (legacy / "demo.html").write_text("<html><head></head><body>retired world</body></html>")
+            (legacy / "123456.html").write_text('<html><head></head><body><a href="#top" aria-label="返回页面顶部"><b>MSV</b><span>COURSE SYSTEM</span></a><div class="_topActions_x_1"><a href="/world/">世界地图</a></div></body></html>')
+            (legacy / "qa.html").write_text('<html><head></head><body><header><div class="_onlineBadge_x_1">在线</div></header></body></html>')
+            for name, value in (
+                ("launch.html", """<html><head><meta http-equiv=\"Content-Security-Policy\" content=\"connect-src 'none'; img-src data:\"></head><body><header><div class=\"brand-lockup\" aria-label=\"Mini Silicon Valley 课程设计同步工坊\"><span class=\"brand-mark\" aria-hidden=\"true\">MSV</span><span><strong>Mini Silicon Valley</strong><small>COURSE SYSTEM</small></span></div><div class=\"session-health\"></div></header><nav><button class=\"nav-item\" type=\"button\" data-section=\"decisions\">决策</button></nav><main></main><script src=\"app.js\"></script></body></html>"""),
+                ("app.js", "void 0;"), ("styles.css", "body{}"),
+                ("public-deploy.js", "void 0;"), ("manifest.json", "{}"),
+            ):
+                (legacy / name).write_text(value)
+            expected_workshop_source = {
+                target_name: (legacy / source_name).read_bytes()
+                for source_name, target_name in (
+                    ("launch.html", "index.html"),
+                    ("app.js", "app.js"),
+                    ("styles.css", "styles.css"),
+                    ("public-deploy.js", "public-deploy.js"),
+                    ("manifest.json", "manifest.json"),
+                )
+            }
+            (client / "favicon.svg").write_text("<svg xmlns='http://www.w3.org/2000/svg'/>")
+            terminal_font = b"fixture-terrarum-woff2"
+            (client / "fonts" / "terrarum-sans-bitmap" / "TerrarumSansBitmap.woff2").write_bytes(terminal_font)
+            brand_source = Path(__file__).parents[3] / "public" / MODULE.BRAND_WORDMARK
+            (client / MODULE.BRAND_WORDMARK).write_bytes(brand_source.read_bytes())
+            development = client / "courseware" / "development-mentor-ligun"
+            (development / "index.html").write_text("<html><body><h1>先立棍，再让 AI 跑</h1></body></html>")
+            (development / "assets" / "diagram.png").write_bytes(b"\x89PNG\r\n\x1a\nD mentor")
+            development_files = []
+            for path in sorted(item for item in development.rglob("*") if item.is_file()):
+                relative = path.relative_to(development).as_posix()
+                content = path.read_bytes()
+                development_files.append({"path": relative, "sha256": hashlib.sha256(content).hexdigest(), "bytes": len(content)})
+            development_tree = hashlib.sha256("".join(
+                f"{item['path']}\0{item['sha256']}\n" for item in development_files
+            ).encode()).hexdigest()
+            (development / "SOURCE-MANIFEST.json").write_text(json.dumps({
+                "schemaVersion": 1, "slideCount": 18, "files": development_files,
+                "contentTreeSha256": development_tree,
+            }))
+            market = client / "courseware" / "market-mentor-user-system"
+            (market / "index.html").write_text("<html><body><h1>产品的用户体系</h1><b>USER SYSTEM</b></body></html>")
+            market_files = []
+            for path in sorted(item for item in market.rglob("*") if item.is_file()):
+                relative = path.relative_to(market).as_posix()
+                content = path.read_bytes()
+                market_files.append({"path": relative, "sha256": hashlib.sha256(content).hexdigest(), "bytes": len(content)})
+            market_tree = hashlib.sha256("".join(
+                f"{item['path']}\0{item['sha256']}\n" for item in market_files
+            ).encode()).hexdigest()
+            (market / "SOURCE-MANIFEST.json").write_text(json.dumps({
+                "schemaVersion": 1, "slideCount": 49, "files": market_files,
+                "contentTreeSha256": market_tree,
+            }))
+            module_files = {
+                "audience/index.html": '<html><body><h1>模块思维</h1><script src="deck-runtime.js"></script></body></html>',
+                "audience/deck-runtime.js": "window.deck = true;",
+                "teacher/presenter.html": '<html data-audience-url="../audience/index.html"><body><script src="presenter-notes.js"></script></body></html>',
+                "teacher/presenter-notes.js": "window.notes = { answer: '导师回答参考' };",
+            }
+            for relative, content in module_files.items():
+                path = module_thinking / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(content)
+            audience_records = []
+            teacher_records = []
+            for relative in module_files:
+                path = module_thinking / relative
+                record = {"path": relative, "sha256": hashlib.sha256(path.read_bytes()).hexdigest(), "bytes": path.stat().st_size}
+                (audience_records if relative.startswith("audience/") else teacher_records).append(record)
+            (module_thinking / "BUILD-MANIFEST.json").write_text(json.dumps({
+                "schemaVersion": 1,
+                "todoId": "T-122",
+                "coursewareId": "module-thinking-p1",
+                "releaseRevision": 3,
+                "version": "2026.09.14-test",
+                "sourceXmindSha256": "b" * 64,
+                "audience": audience_records,
+                "teacher": teacher_records,
+            }))
+            (static / "world" / "index.html").write_text('<html><head></head><body><a href="/course/">课程大纲</a>current world</body></html>')
+            (static / "world-preview.json").write_text('{"schemaVersion":1,"markers":["world"]}\n')
+            (static / "parents" / "index.html").write_text('<html><head></head><body><a class="msv-brand-home" href="/"><img src="/favicon.svg">current parents</a></body></html>')
+            course_html = (
+                '<html><head><link rel="stylesheet" href="/courseware/product-mentor-foundations/_next/chj.css"></head>'
+                '<body><h1>青少年AI创业营</h1><b>MINI硅谷</b>'
+                '<img src="/courseware/product-mentor-foundations/assets/home-workbench.png"></body></html>'
+            )
+            (course / "index.html").write_text(course_html)
+            (course / "_next" / "chj.css").write_bytes(b"/* colleague bytes */")
+            (course / "assets" / "home-workbench.png").write_bytes(b"\x89PNG\r\n\x1a\ncolleague")
+            course_r1_html = (
+                '<html><head><link rel="stylesheet" href="/courseware/product-mentor-foundations/r1/_next/chj.css"></head>'
+                '<body><h1>青少年AI创业营</h1><b>MINI硅谷</b>'
+                '<img src="/courseware/product-mentor-foundations/r1/assets/home-workbench.png"></body></html>'
+            )
+            (course_r1 / "index.html").write_text(course_r1_html)
+            (course_r1 / "_next" / "chj.css").write_bytes(b"/* colleague r1 bytes */")
+            (course_r1 / "assets" / "home-workbench.png").write_bytes(b"\x89PNG\r\n\x1a\ncolleague r1")
+            course_r2_html = (
+                '<html><head><link rel="stylesheet" href="/courseware/product-mentor-foundations/r2/_next/chj.css"></head>'
+                '<body><h1>青少年AI创业营</h1><b>MINI硅谷</b>'
+                '<img src="/courseware/product-mentor-foundations/r2/assets/course-outline-world-map-v2.webp"></body></html>'
+            )
+            (course_r2 / "index.html").write_text(course_r2_html)
+            (course_r2 / "_next" / "chj.css").write_bytes(b"/* colleague r2 bytes */")
+            (course_r2 / "assets" / "course-outline-world-map-v2.webp").write_bytes(b"RIFF-product-r2")
+            (portal / "index.html").write_text('<html><head></head><body><a href="/course/">课程大纲</a></body></html>')
+            (portal / "courseware-current.js").write_text("/* fixture navigation */")
+            (portal / "404.html").write_text('<html><head></head><body><a href="/">返回 MINI硅谷首页</a></body></html>')
+            (portal / "sitemap.xml").write_text('<urlset><url><loc>https://minisv.vip/</loc></url></urlset>\n')
+            incubator_links = (
+                '<a href="/incubator/projects/recitation/">背课文</a>'
+                '<a href="/incubator/projects/mistake-notebook/">错题集</a>'
+            )
+            (portal / "incubator" / "index.html").write_text(
+                f'<html><head></head><body><b>MINI硅谷</b>{incubator_links}</body></html>'
+            )
+            (portal / "incubator" / "projects" / "index.html").write_text(
+                f'<html><head></head><body><b>MINI硅谷</b>{incubator_links}</body></html>'
+            )
+            (portal / "incubator" / "incubator.css").write_text("body{}")
+            for name in ("portal.css", "portal.js", "ui-theme.css", "ui-theme.js", "robots.txt", "site.webmanifest"):
+                if name == "ui-theme.js":
+                    value = (
+                        'function mountPublicNavigator(){var id="msv-public-nav";'
+                        'var routes=["/framework/","/parents/","/course/"];return [id,routes];}'
+                    )
+                else:
+                    value = "{}" if name.endswith((".json", ".webmanifest")) else "ok"
+                (portal / name).write_text(value)
+
+            main_sha = "a" * 40
+            source_snapshot = {
+                path.relative_to(course).as_posix(): path.read_bytes()
+                for path in course.rglob("*") if path.is_file()
+            }
+            source_r1_snapshot = {
+                path.relative_to(course_r1).as_posix(): path.read_bytes()
+                for path in course_r1.rglob("*") if path.is_file()
+            }
+            source_r2_snapshot = {
+                path.relative_to(course_r2).as_posix(): path.read_bytes()
+                for path in course_r2.rglob("*") if path.is_file()
+            }
+            provenance = {
+                "verified": True,
+                "canonicalRepository": MODULE.CANONICAL_REPOSITORY,
+                "sourceCommit": main_sha,
+                "originMain": main_sha,
+                "branch": "main",
+                "workspaceDirty": False,
+                "exceptionReason": None,
+            }
+            MODULE.build(
+                legacy, client, static, course, course_r1, course_r2, module_thinking, portal, output, "t077-test",
+                main_sha=main_sha, workspace_provenance=provenance,
+            )
+
+            self.assertIn("current world", (output / "world" / "index.html").read_text())
+            self.assertIn("current parents", (output / "parents" / "index.html").read_text())
+            self.assertNotIn('msv-course-nav-link', (output / "framework" / "index.html").read_text())
+            self.assertNotIn('msv-course-nav-link', (output / "parents" / "index.html").read_text())
+            self.assertIn('href="#top" aria-label="返回页面顶部"><b>MSV</b><span>COURSE SYSTEM</span>', (output / "framework" / "index.html").read_text())
+            self.assertIn("mountPublicNavigator", (output / "ui-theme.js").read_text())
+            self.assertIn('"msv-public-nav"', (output / "ui-theme.js").read_text())
+            self.assertIn('"/course/"', (output / "ui-theme.js").read_text())
+            self.assertTrue((output / "courseware" / "product-mentor-foundations" / "index.html").is_file())
+            output_snapshot = {
+                path.relative_to(output / "courseware" / "product-mentor-foundations").as_posix(): path.read_bytes()
+                for path in (output / "courseware" / "product-mentor-foundations").rglob("*") if path.is_file()
+                and not ({"r1", "r2"} & set(path.relative_to(output / "courseware" / "product-mentor-foundations").parts))
+            }
+            self.assertEqual(output_snapshot, source_snapshot)
+            output_r1_snapshot = {
+                path.relative_to(output / "courseware" / "product-mentor-foundations" / "r1").as_posix(): path.read_bytes()
+                for path in (output / "courseware" / "product-mentor-foundations" / "r1").rglob("*") if path.is_file()
+            }
+            self.assertEqual(output_r1_snapshot, source_r1_snapshot)
+            output_r2_snapshot = {
+                path.relative_to(output / "courseware" / "product-mentor-foundations" / "r2").as_posix(): path.read_bytes()
+                for path in (output / "courseware" / "product-mentor-foundations" / "r2").rglob("*") if path.is_file()
+            }
+            self.assertEqual(output_r2_snapshot, source_r2_snapshot)
+            self.assertNotIn("/ui-theme.js", (output / "courseware" / "product-mentor-foundations" / "index.html").read_text())
+            self.assertEqual(
+                MODULE.validate_development_courseware(output / "courseware" / "development-mentor-ligun")["sha256"],
+                development_tree,
+            )
+            self.assertEqual(
+                MODULE.validate_market_courseware(output / "courseware" / "market-mentor-user-system")["sha256"],
+                market_tree,
+            )
+            module_release = output / "courseware" / "development-mentor-module-thinking"
+            self.assertEqual(
+                MODULE.tree_digest(module_release / "audience"),
+                MODULE.tree_digest(module_thinking / "audience"),
+            )
+            self.assertEqual(
+                MODULE.tree_digest(module_release / "teacher"),
+                MODULE.tree_digest(module_thinking / "teacher"),
+            )
+            self.assertFalse((module_release / "BUILD-MANIFEST.json").exists())
+            workshop_html = (output / "workshop" / "index.html").read_text()
+            self.assertIn("msv-workshop-archive", workshop_html)
+            self.assertIn('data-workshop-mode="archive-readonly"', workshop_html)
+            archive_js = (output / "workshop" / "archive.js").read_text()
+            for forbidden in ("setItem", "removeItem", "clear("):
+                self.assertNotIn(forbidden, archive_js)
+            self.assertTrue((output / "workshop").is_dir())
+            self.assertIn('href="/" aria-label="返回 Mini Silicon Valley 主页"', workshop_html)
+            self.assertIn(f'src="/{MODULE.BRAND_WORDMARK.as_posix()}"', workshop_html)
+            self.assertIn('data-msv-theme="adventure"', workshop_html)
+            self.assertNotIn("data-msv-theme-slot", workshop_html)
+            for name in ("archive.css", "archive.js", "confirmed-baseline.json", "workshop-snapshot.schema.json"):
+                self.assertTrue((output / "workshop" / name).is_file(), name)
+            exact_source = output / "workshop" / "_source"
+            self.assertTrue((exact_source / "SOURCE-MANIFEST.json").is_file())
+            self.assertEqual({
+                path.relative_to(exact_source).as_posix(): path.read_bytes()
+                for path in exact_source.rglob("*")
+                if path.is_file() and path.name != "SOURCE-MANIFEST.json"
+            }, expected_workshop_source)
+            snapshot = json.loads((output / "workshop" / "confirmed-baseline.json").read_text())
+            self.assertEqual(snapshot["source"]["channel"], "released")
+            self.assertEqual(snapshot["scope"], "public-redacted-summary")
+            self.assertEqual(json.loads((output / "sitemap.json").read_text())["routes"], [
+                "/", "/world/", "/framework/", "/parents/", "/incubator/",
+                "/incubator/projects/", "/incubator/projects/recitation/",
+                "/incubator/projects/mistake-notebook/",
+            ])
+            self.assertTrue((output / "world-preview.json").is_file())
+            self.assertEqual(
+                (output / "fonts" / "terrarum-sans-bitmap" / "TerrarumSansBitmap.woff2").read_bytes(),
+                terminal_font,
+            )
+            self.assertTrue((output / "sitemap.xml").is_file())
+            release = json.loads((output / "release.json").read_text())
+            self.assertEqual(release["sources"]["main"], main_sha)
+            self.assertEqual(release["workspaceProvenance"], provenance)
+            self.assertIn("canonical-workspace-provenance", release["features"])
+            self.assertEqual(release["moduleThinkingCoursewareArtifact"]["teacherAuthorization"], "server-side-admin-or-mentor")
+            self.assertEqual(release["moduleThinkingCoursewareArtifact"]["revision"], 3)
+            self.assertEqual(release["sources"]["chjCourseUi"], MODULE.CHJ_COURSE_UI_SHA)
+            self.assertEqual(release["sources"]["chjCourseTree"], MODULE.CHJ_COURSE_UI_TREE)
+            self.assertIn("verbatim-product-mentor-courseware", release["features"])
+            self.assertIn("versioned-product-manager-courseware", release["features"])
+            self.assertIn("shared-brand-home", release["features"])
+            self.assertIn("released-workshop-snapshot", release["features"])
+            self.assertIn("read-only-workshop-history-archive", release["features"])
+            self.assertIn("public-incubator-projects", release["features"])
+            self.assertEqual(release["incubatorProjectsArtifact"]["sha256"], MODULE.validate_incubator_projects(MODULE.INCUBATOR_PROJECTS_SOURCE)["sha256"])
+            self.assertFalse(release["incubatorProjectsArtifact"]["transformed"])
+            self.assertTrue((output / "incubator" / "projects" / "recitation" / "index.html").is_file())
+            self.assertTrue((output / "incubator" / "projects" / "mistake-notebook" / "index.html").is_file())
+            self.assertFalse(release["coursewareArtifact"]["transformed"])
+            self.assertEqual(release["coursewareArtifact"]["mentorRole"], "P")
+            self.assertEqual(release["coursewareArtifact"]["revision"], 2)
+            self.assertEqual(release["coursewareArtifact"]["route"], "/courseware/product-mentor-foundations/r2/")
+            self.assertEqual(release["coursewareArtifact"]["files"], len(source_r2_snapshot))
+            self.assertEqual(
+                [(item["revision"], item["route"], item["releaseStatus"]) for item in release["productCoursewareArtifacts"]],
+                [
+                    (0, "/courseware/product-mentor-foundations/", "historical"),
+                    (1, "/courseware/product-mentor-foundations/r1/", "historical"),
+                    (2, "/courseware/product-mentor-foundations/r2/", "current"),
+                ],
+            )
+            self.assertEqual(release["productCoursewareArtifacts"][0]["files"], len(source_snapshot))
+            self.assertEqual(release["productCoursewareArtifacts"][1]["files"], len(source_r1_snapshot))
+            self.assertEqual(release["productCoursewareArtifacts"][2]["files"], len(source_r2_snapshot))
+            self.assertEqual(release["developmentCoursewareArtifact"]["mentorRole"], "D")
+            self.assertEqual(release["developmentCoursewareArtifact"]["sha256"], development_tree)
+            self.assertFalse(release["developmentCoursewareArtifact"]["transformed"])
+            self.assertEqual(release["marketCoursewareArtifact"]["mentorRole"], "M")
+            self.assertEqual(release["marketCoursewareArtifact"]["sha256"], market_tree)
+            self.assertFalse(release["marketCoursewareArtifact"]["transformed"])
+            self.assertTrue((output / "MANIFEST.sha256").is_file())
+
+
+if __name__ == "__main__":
+    unittest.main()

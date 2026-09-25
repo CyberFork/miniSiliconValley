@@ -1,0 +1,237 @@
+from __future__ import annotations
+
+import re
+import unittest
+from pathlib import Path
+
+
+ROOT = Path(__file__).parents[1]
+
+
+class GatewayContractTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.gateway = (ROOT / "gateway" / "default.conf").read_text()
+        cls.proxy = (ROOT / "gateway" / "app-proxy.conf").read_text()
+        cls.tunnel = (ROOT / "cloudflared" / "config.yml.template").read_text()
+
+    def test_p1_module_mime_and_local_wasm_policy(self) -> None:
+        self.assertIn('include /etc/nginx/mime.types;', self.gateway)
+        self.assertIn('types { application/javascript mjs; }', self.gateway)
+        mapping=self.gateway.split('map $request_uri $minisv_csp {',1)[1].split('\n}',1)[0]
+        policy=next(line for line in mapping.splitlines() if line.strip().startswith('~^/courseware/development-mentor-module-thinking/ "'))
+        self.assertIn("'wasm-unsafe-eval'",policy)
+        self.assertNotIn("'unsafe-eval'",policy)
+        default=next(line for line in mapping.splitlines() if line.strip().startswith('default '))
+        self.assertNotIn('wasm-unsafe-eval',default)
+        self.assertIn("frame-ancestors 'none'",policy)
+        self.assertIn('auth_request /_minisv_mentor_courseware_auth;',self.gateway)
+
+    def test_every_public_route_has_an_explicit_owner(self) -> None:
+        for route in ("world", "alpha", "control", "framework", "parents", "incubator", "workshop"):
+            self.assertRegex(self.gateway, rf"location[^\n]* /{route}(?:[ /{{])")
+        self.assertIn("^/(studio|console|terminal|course|classroom|account|u|homework)", self.gateway)
+        self.assertIn("/courseware/product-mentor-foundations/", self.gateway)
+        self.assertIn("/courseware/development-mentor-ligun/", self.gateway)
+        self.assertIn("/courseware/development-mentor-module-thinking/", self.gateway)
+        self.assertIn("/courseware/market-mentor-user-system/", self.gateway)
+
+    def test_release_owned_fonts_are_served_as_immutable_static_assets(self) -> None:
+        route = re.search(r"location \^~ /fonts/ \{(.*?)\n    \}", self.gateway, re.DOTALL)
+        self.assertIsNotNone(route)
+        self.assertRegex(route.group(1), r"try_files (?:\$minisv_courseware_asset )?\$uri =404;")
+        self.assertIn("expires 1y;", route.group(1))
+
+    def test_all_origins_are_loopback_and_windows_is_not_a_dependency(self) -> None:
+        combined = self.gateway + self.tunnel
+        self.assertNotIn("192.168.", combined)
+        self.assertNotIn("18765", combined)
+        self.assertIn("127.0.0.1:18780", self.tunnel)
+        for port in (18787, 18789):
+            self.assertIn(f":{port}", self.gateway)
+        for retired in (18790, 18791):
+            self.assertNotIn(f":{retired}", self.gateway)
+
+    def test_classroom_launchd_follows_the_same_unified_release_symlink(self) -> None:
+        plist = (ROOT / "launchd" / "com.cyberforker.msv-classroom.plist").read_text()
+        self.assertIn("__HOME__/Services/minisv/current/app/dist/server/wrangler.json", plist)
+        self.assertIn("__HOME__/Services/minisv/current/app/dist/server", plist)
+        self.assertIn("__HOME__/Services/msv-classroom/data", plist)
+        self.assertNotIn("Services/msv-classroom/current", plist)
+        self.assertNotIn("192.168.", plist)
+
+    def test_parent_qa_launchd_follows_the_same_release_but_keeps_private_data_external(self) -> None:
+        plist = (ROOT / "launchd" / "com.cyberforker.msv-parent-qa.plist").read_text()
+        self.assertIn("__HOME__/Services/minisv/current/app/dist/parent-qa/server.mjs", plist)
+        self.assertIn("__HOME__/Services/msv-parent-qa/secrets/deepseek.env", plist)
+        self.assertIn("__HOME__/Services/msv-parent-qa/data/knowledge-gaps.ndjson", plist)
+        self.assertNotIn("Services/msv-parent-qa/current", plist)
+        self.assertNotIn("192.168.", plist)
+
+    def test_gateway_preserves_strict_security_boundary(self) -> None:
+        for header in (
+            "Strict-Transport-Security", "Content-Security-Policy",
+            "X-Content-Type-Options", "X-Frame-Options", "no-transform",
+        ):
+            self.assertIn(header, self.gateway)
+        self.assertIn('proxy_set_header Authorization ""', self.gateway)
+        self.assertNotIn("X-Live-Run-Service-Key", self.gateway)
+        self.assertIn('$http_x_forwarded_proto = "http"', self.gateway)
+        self.assertIn("return 308 https://minisv.vip$request_uri", self.gateway)
+        self.assertIn("location ^~ /internal/ { return 404; }", self.gateway)
+
+    def test_global_alpha_and_control_are_gone(self) -> None:
+        self.assertRegex(self.gateway, r"location = /alpha \{ return 410;")
+        self.assertRegex(self.gateway, r"location = /control \{ return 410;")
+        self.assertNotIn("minisv_alpha_backend", self.gateway)
+        self.assertNotIn("minisv_control_backend", self.gateway)
+        self.assertNotIn("location ^~ /alpha/", self.gateway)
+        self.assertNotIn("location ^~ /control/", self.gateway)
+
+    def test_classroom_adapter_is_native_to_the_public_origin(self) -> None:
+        self.assertNotIn("work.cyberforker.com", self.gateway)
+        self.assertNotIn("work.cyberforker.com", self.proxy)
+        self.assertNotIn("/msv/demo/app", self.proxy)
+        self.assertIn("proxy_set_header Host minisv.vip", self.proxy)
+        self.assertIn("proxy_set_header X-Forwarded-Host minisv.vip", self.proxy)
+        route = re.search(r"location ~ \^/\(studio\|console\|terminal\|course\|classroom\|account\|u\|homework\)\(/\.\*\)\?\$ \{(.*?)\n    \}", self.gateway, re.DOTALL)
+        self.assertIsNotNone(route)
+        self.assertIn("set $app_path $uri;", route.group(1))
+        self.assertNotIn("set $app_path /$1;", route.group(1))
+
+    def test_upstream_receives_the_real_browser_origin_for_csrf_validation(self) -> None:
+        self.assertIn("proxy_set_header Origin $http_origin;", self.proxy)
+        self.assertNotIn("proxy_set_header Origin https://minisv.vip;", self.proxy)
+
+    def test_public_homework_has_page_and_api_owners_without_auth_gate(self) -> None:
+        self.assertIn("|homework)(/.*)?$", self.gateway)
+        route = re.search(r"location \^~ /api/public/homework/ \{(.*?)\n    \}", self.gateway, re.DOTALL)
+        self.assertIsNotNone(route)
+        self.assertIn("client_max_body_size 1300k;", route.group(1))
+        self.assertIn("set $app_path $uri;", route.group(1))
+        self.assertIn("app-proxy.conf", route.group(1))
+        self.assertNotIn("auth_request", route.group(1))
+
+    def test_managed_homework_is_proxied_to_the_authenticated_app(self) -> None:
+        route = re.search(r"location \^~ /api/homework/ \{(.*?)\n    \}", self.gateway, re.DOTALL)
+        self.assertIsNotNone(route)
+        self.assertIn("limit_req zone=minisv_platform_write", route.group(1))
+        self.assertIn("client_max_body_size 96k;", route.group(1))
+        self.assertIn("set $app_path $uri;", route.group(1))
+        self.assertIn("app-proxy.conf", route.group(1))
+        self.assertNotIn("auth_request", route.group(1))
+        self.assertIn("(studio|platform|terminal|homework)", self.gateway)
+
+    def test_public_site_semantics_and_private_workshop_boundary(self) -> None:
+        site = ROOT / "site"
+        portal = (site / "index.html").read_text()
+        robots = (site / "robots.txt").read_text()
+        sitemap = (site / "sitemap.xml").read_text()
+        self.assertIn('href="/world/"', portal)
+        for route in ("/framework/", "/parents/", "/classroom/", "/course/"):
+            self.assertIn(route, portal)
+        for private in ("/studio/", "/workshop/", "Tunnel", "release.json"):
+            self.assertNotIn(private, portal)
+        self.assertIn("/workshop/_source/", self.gateway)
+        self.assertIn("auth_request /_minisv_studio_archive_auth;", self.gateway)
+        self.assertIn("/api/auth/studio-archive-access", self.gateway)
+        self.assertIn("location @minisv_workshop_login", self.gateway)
+        self.assertIn("return 307 /auth/login/?returnTo=%2Fworkshop%2F;", self.gateway)
+        self.assertIn("location = /api/public/courses", self.gateway)
+        self.assertIn("location = /world-preview.json { try_files $uri =404;", self.gateway)
+        self.assertIn('"/" "index, follow";', self.gateway)
+        self.assertIn('"/index.html" "index, follow";', self.gateway)
+        self.assertIn("world|framework|parents", self.gateway)
+        self.assertIn("incubator/projects/(?:recitation|mistake-notebook)", self.gateway)
+        self.assertIn("Disallow: /workshop/", robots)
+        self.assertIn("/world/", sitemap)
+        self.assertNotIn("/workshop/", sitemap)
+
+    def test_incubator_projects_are_public_exact_static_artifacts(self) -> None:
+        self.assertIn("location = /incubator { return 308 /incubator/", self.gateway)
+        route = "location ^~ /incubator/ { try_files $uri $uri/ =404; expires -1; }"
+        self.assertIn(route, self.gateway)
+        self.assertNotIn("auth_request", route)
+        self.assertIn("microphone=(self)", self.gateway)
+        self.assertIn("~^/incubator/projects/recitation", self.gateway)
+
+    def test_released_static_courseware_bytes_share_one_auth_gate(self) -> None:
+        self.assertIn("location = /_minisv_courseware_auth", self.gateway)
+        self.assertIn("internal;", self.gateway)
+        self.assertIn("/api/auth/courseware-access", self.gateway)
+        for slug in ("product-mentor-foundations", "development-mentor-ligun", "market-mentor-user-system"):
+            route = re.search(rf"location \^~ /courseware/{slug}/ \{{(.*?)\n    \}}", self.gateway, re.DOTALL)
+            self.assertIsNotNone(route)
+            self.assertIn("auth_request /_minisv_courseware_auth;", route.group(1))
+            self.assertIn(f"try_files $uri $uri/ /courseware/{slug}/index.html", route.group(1))
+            self.assertNotIn("add_header", route.group(1))
+            self.assertNotIn("expires", route.group(1), "courseware must emit only the shared private/no-store policy")
+        self.assertIn('~^/courseware/(product-mentor-foundations|development-mentor-ligun|development-mentor-module-thinking|market-mentor-user-system)/ "private, no-store, no-transform";', self.gateway)
+        self.assertIn("location = /_minisv_mentor_courseware_auth", self.gateway)
+        self.assertIn("/api/auth/mentor-courseware-access", self.gateway)
+        teacher = re.search(r"location \^~ /courseware/development-mentor-module-thinking/teacher/ \{(.*?)\n    \}", self.gateway, re.DOTALL)
+        self.assertIsNotNone(teacher)
+        self.assertIn("auth_request /_minisv_mentor_courseware_auth;", teacher.group(1))
+        audience = re.search(r"location = /courseware/development-mentor-module-thinking/audience/ \{(.*?)\n    \}", self.gateway, re.DOTALL)
+        self.assertIsNotNone(audience)
+        self.assertIn("auth_request /_minisv_courseware_auth;", audience.group(1))
+        self.assertIn("try_files /courseware/development-mentor-module-thinking/audience/index.html =404;", audience.group(1))
+        self.assertIn('add_header Cache-Control "$minisv_cache_control" always;', self.gateway)
+        smoke = (ROOT / "scripts" / "public-smoke.py").read_text()
+        self.assertIn("COURSEWARE_MARKERS", smoke)
+        self.assertIn("MAX_UNAUTHORIZED_BODY_BYTES", smoke)
+        self.assertNotIn("if body:\n                raise SystemExit", smoke)
+
+    def test_retired_numeric_entry_redirects_to_framework_with_both_slash_forms(self) -> None:
+        self.assertRegex(self.gateway, r"location = /123456 \{ return 308 /framework/")
+        self.assertRegex(self.gateway, r"location = /123456/ \{ return 308 /framework/")
+
+    def test_map_hotspot_interaction_lifts_active_tooltip(self) -> None:
+        css = (ROOT.parent.parent / "app" / "globals.css").read_text()
+        self.assertRegex(css, r"\.map-hotspot:hover,\s*\.map-hotspot:focus-visible,\s*\.map-hotspot:active")
+        self.assertIn("z-index: 30", css)
+
+    def test_canonical_adventure_assets_are_served_and_injected_without_switch(self) -> None:
+        site = ROOT / "site"
+        if not site.is_dir():
+            site = ROOT.parent / "site"
+        portal = (site / "index.html").read_text()
+        theme_css = (site / "ui-theme.css").read_text()
+        theme_js = (site / "ui-theme.js").read_text()
+
+        self.assertIn('href="/ui-theme.css?v=', portal)
+        self.assertIn('src="/ui-theme.js?v=', portal)
+        self.assertIn('data-msv-theme="adventure"', portal)
+        self.assertNotIn("data-msv-theme-slot", portal)
+        self.assertIn('location = /ui-theme.css', self.gateway)
+        self.assertIn('location = /ui-theme.js', self.gateway)
+        self.assertIn('sub_filter \'</head>\'', self.proxy)
+        self.assertIn('data-msv-theme="adventure"', theme_css)
+        self.assertIn('[class*="_authCard_"]', theme_css)
+        self.assertNotIn('overflow-x: clip', theme_css)
+        self.assertNotIn('msv-ui-switch', theme_css)
+        self.assertNotIn('mountSwitcher', theme_js)
+        self.assertIn('root.dataset.msvTheme = "adventure"', theme_js)
+        self.assertIn('window.localStorage.removeItem(LEGACY_STORAGE_KEY)', theme_js)
+        self.assertNotIn('window.localStorage.getItem', theme_js)
+        self.assertNotIn('window.localStorage.setItem', theme_js)
+        self.assertNotIn("work.cyberforker.com", theme_css + theme_js)
+
+        portal_version = re.search(r'/ui-theme\.js\?v=([A-Za-z0-9._-]+)', portal)
+        proxy_version = re.search(r'/ui-theme\.js\?v=([A-Za-z0-9._-]+)', self.proxy)
+        self.assertIsNotNone(portal_version)
+        self.assertIsNotNone(proxy_version)
+        self.assertEqual(portal_version.group(1), proxy_version.group(1), "静态页与 Classroom 必须命中同一套 UI runtime")
+
+    def test_120_minute_decks_protect_all_teacher_assets_at_new_revision_paths(self) -> None:
+        for path in ("development-mentor-module-thinking/r23", "development-mentor-module-thinking/r22", "development-mentor-module-thinking/r20", "development-mentor-module-thinking/r21", "development-mentor-module-thinking/r5", "development-mentor-module-thinking/r6", "development-mentor-module-thinking/r7", "development-mentor-module-thinking/r8", "development-mentor-ligun/r1", "development-mentor-ligun/r2", "development-mentor-ligun/r3"):
+            pattern = re.escape(f"location ^~ /courseware/{path}/teacher/ {{") + r"(.*?)\n    \}"
+            route = re.search(pattern, self.gateway, re.DOTALL)
+            self.assertIsNotNone(route)
+            self.assertIn("auth_request /_minisv_mentor_courseware_auth;", route.group(1))
+            self.assertRegex(route.group(1), r"try_files (?:\$minisv_courseware_asset )?\$uri =404;")
+            self.assertIn(f"location = /courseware/{path}/audience/", self.gateway)
+
+
+if __name__ == "__main__":
+    unittest.main()

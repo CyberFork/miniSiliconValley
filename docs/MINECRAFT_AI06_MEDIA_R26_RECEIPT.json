@@ -1,0 +1,52 @@
+{
+  "release": "20260924-minecraft-media-r26-csp",
+  "revision": 26,
+  "sourceCommit": "ab81bcc91f64ce2fd9db8cfa39f478b5ac8be068",
+  "sourceDelivery": "isolated Git bundle; not GitHub push",
+  "deckDigest": "0c723a3e00d7ddd1da54535eefd2e7a5ace1448e7326f46fc8cb0bb3f0b75ab8",
+  "archiveSha256": "3367745e8bdacd32fed48e53206cc3500e94b82127f7e8087734964db39e24ee",
+  "recordedAt": "2026-09-24T11:36:29.337271+00:00",
+  "url": "https://minisv.vip/courseware/development-mentor-module-thinking/r26/teacher/presenter.html?slideId=ai-minecraft-modules",
+  "stableEntry": "https://minisv.vip/courseware/latest/p1/?slideId=ai-minecraft-modules",
+  "changes": [
+    "AI-06 tab05: three local Minecraft Java 1.21.1 sound samples (hurt/cow/villager), MP3 + original Ogg, manual playback only.",
+    "Audio stays in the clicked window to avoid duplicate speakers; switching tab/slide stops playback and starting another sample pauses the previous one.",
+    "tab08 world-map.png and tab09 water-clutch.png are exact user-supplied image bytes; fall-water explanation follows module handoff."
+  ],
+  "sources": "courseware/module-thinking-deck/assets/minecraft-modules/sources.json",
+  "verified": [
+    "Mojang asset index SHA1/size verification of 3 original samples; 8 new media files SHA256 matched source records. MP3 ffprobe decoding/durations passed.",
+    "Local full courseware tests, game-focus regressions and new media/audio-lifecycle tests passed; root fixed/reviewed delegated test assertions.",
+    "Isolated remote courseware/app/static/parentQA build and deployment tests passed (89 Python tests after CSP regression coverage).",
+    "Native Safari local audience: all 3 native audio play controls activated and playback state/progress observed; sound tab and both supplied image tabs visually reviewed.",
+    "2356 prior courseware package files byte-identical; existing r24 prompt-maintenance metadata/files preserved.",
+    "Existing deploy-hecate health and public-smoke passed; production pointer, media file hashes and bundle SHA256 checked."
+  ],
+  "productionFix": "Initial production playback check found default CSP blocked media. Final same-revision ops release allows only same-origin media for r26; all other CSP/auth rules unchanged. All 2786 site assets stayed byte-identical during this ops-only fix.",
+  "notVerified": [
+    "Physical speaker listening quality and physical tablet interaction not manually signed off.",
+    "Human trial lesson not performed."
+  ],
+  "productionBrowser": {
+    "browser": "Safari, existing authorized session",
+    "url": "https://minisv.vip/courseware/development-mentor-module-thinking/r26/audience/index.html?session=qa-mc-media-production&slideId=ai-minecraft-modules",
+    "audio": [
+      "hurt",
+      "cow",
+      "villager"
+    ],
+    "observed": "Each native Play button entered Pause then returned to Play with progress slider=1 (completed), after same-origin CSP fix. Starting another clip reset prior clip progress=0.",
+    "images": "Both world map and water-clutch panels visually checked in production screenshots.",
+    "savedTextEdition": "v41 loaded; no text edits saved",
+    "manualSpeakerQualitySignedOff": false
+  },
+  "rollback": {
+    "release": "20260924-t138-materials-r24",
+    "backup": "~/Services/minisv/backups/20260924T113100Z-20260924-minecraft-media-r26-csp",
+    "executed": false
+  },
+  "unchanged": [
+    "39 pages; both stages remain 120 minutes; all slide IDs preserved.",
+    "Existing teacher saved text and permissions retained; no IP migration."
+  ]
+}

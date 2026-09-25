@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 2,
+  "receiptId": "t082-transparent-wordmark-production-20260914-r7",
+  "generatedAt": "2026-09-14T10:35:48+08:00",
+  "scope": [
+    "official transparent MINI硅谷 wordmark across public and protected shells",
+    "no synthetic white card on React, static or Studio Editor brand images",
+    "framework hydration-safe brand repair",
+    "classroom runtime, controller, members and shared screen",
+    "courseware viewer, Studio/editor, LIVE RUN and Workshop shells"
+  ],
+  "release": {
+    "id": "20260914T102054CST-transparent-wordmark-r7",
+    "origin": "hecate",
+    "canonicalOrigin": "https://minisv.vip",
+    "sourceCommit": "189e7f942d409d4417be38051ecf2985143d8b01",
+    "appBuildId": "acf6bf1d-3ed3-4c5c-bb65-dd742015b871",
+    "appSha256": "07edf21cbef7f12ad9a08e71cf50f0f0e1ae3d171a0a84efacc31364feb61912",
+    "siteManifestSha256": "7d71b608a02fc021bd4874a514a7c3497d8cd590c5437f2607e4559c7c263bce",
+    "bundleManifestSha256": "a5630f81b4b1c616d75e464192e24c78b80c1ebc61839e1fa00b527f57dbc4b9",
+    "remoteArchiveSha256": "4eec560c68df082a8a5b8802ee4c1ef767b8c41fd88bcbe344ff82cbef4e3c00",
+    "previousRelease": "20260914T100935CST-transparent-wordmark-r6"
+  },
+  "implementation": {
+    "asset": "/assets/mini-silicon-valley-logo-transparent.png",
+    "assetNaturalSize": "1650x420",
+    "assetSha256": "4dbbe4dea625fd372c6d760f2344fbf62b7b15f0d2d14e490cddd56e05ffbe87",
+    "faviconUse": "browser metadata only",
+    "rootHref": "/",
+    "accessibleName": "返回 Mini Silicon Valley 主页",
+    "currentTab": true,
+    "frameworkLateHydrationObserver": true,
+    "responsiveSizes": [
+      "112x34 compact mobile",
+      "126x34 mobile/compact",
+      "154x40 desktop"
+    ],
+    "classroomRuntimeHeader": true,
+    "classroomLoadingAndErrorStates": true,
+    "sharedProjection": true,
+    "coursewareViewerShell": true,
+    "studioAndEditorShells": true,
+    "workshopAndLiveRunShells": true,
+    "immutableCoursewareBundlesModified": false,
+    "courseOrClassroomTruthModified": false,
+    "releaseDigestGate": true,
+    "productionSmokeDigestGate": true,
+    "sharedThemeCacheVersion": "20260914-transparent-wordmark-r7",
+    "editorThemeCacheVersion": "transparent-wordmark-r7",
+    "portalCssCacheVersion": "20260914-transparent-wordmark-r7",
+    "staleSquareLogoCacheEvicted": true,
+    "nativePngAlphaChannel": true,
+    "syntheticImageBackground": false,
+    "syntheticImageBorder": false,
+    "syntheticImagePadding": false,
+    "reactSharedThemeFixed": true,
+    "staticSharedThemeFixed": true,
+    "studioEditorThemeFixed": true,
+    "staleWhiteCardCacheEvicted": true
+  },
+  "validation": {
+    "npmTest": "55/55 passed",
+    "coursePlatform": "163/163 passed",
+    "deploymentUnitTests": "53/53 passed",
+    "brandContract": "7/7 passed; React, static and Studio Editor theme copies covered",
+    "productionPublicBrowser": "8 routes × 4 viewports passed; transparent image background, zero border/padding, no overflow, r7 theme and keyboard current-tab navigation",
+    "productionAuthenticatedBrowser": "10 protected/application routes passed including Studio Editor; transparent image background, zero border/padding, 0 page errors, 0 request failures",
+    "productionStudioEditorScreenshot": "transparent wordmark header captured at 1440px",
+    "hecateHealth": "200; MINISV_HECATE_HEALTHY",
+    "publicSmoke": "MINISV_PUBLIC_SMOKE_OK",
+    "productionCacheBust": "homepage portal, shared UI CSS/JS and Studio Editor CSS/JS use immutable r7 keys",
+    "r6ProtectiveFinding": "authenticated production check caught the omitted Studio Editor theme copy; r7 fixed it before final delivery"
+  },
+  "evidence": [
+    "docs/qa/t082-shared-brand-home/production-public-browser.json",
+    "docs/qa/t082-shared-brand-home/production-authenticated-browser.json",
+    "docs/qa/t082-shared-brand-home/brand-home-390.png",
+    "docs/qa/t082-shared-brand-home/brand-home-1440.png",
+    "docs/qa/t082-shared-brand-home/brand-framework-390.png",
+    "docs/qa/t082-shared-brand-home/brand-register-390.png",
+    "docs/qa/t082-shared-brand-home/brand-404-390.png",
+    "docs/qa/t082-shared-brand-home/brand-studio-editor-header-1440.png"
+  ],
+  "safety": {
+    "productionAuthenticationSessionOnly": true,
+    "productionClassroomAdvanced": false,
+    "productionCourseOrCoursewareModified": false,
+    "credentialsRecorded": false,
+    "humanViewAcceptanceSignedByAutomation": false,
+    "humanUiAcceptanceSignedByAutomation": false
+  }
+}

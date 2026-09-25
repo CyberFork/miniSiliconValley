@@ -1,0 +1,315 @@
+import assert from "node:assert/strict";
+import { readFileSync, readdirSync } from "node:fs";
+import { DatabaseSync, type SQLInputValue } from "node:sqlite";
+import test from "node:test";
+
+import type { ClassroomD1 } from "../db";
+import type { AuthenticatedClassroomUser } from "../app/lib/classroom-api";
+import { ClassroomError } from "../app/lib/classroom-errors";
+import {
+  beginCoursewareBundleUpload,
+  finalizeCoursewareBundleUpload,
+  loadCoursewareBundleAsset,
+  saveCoursewareBundleChunk,
+} from "../app/lib/courseware-bundle-store";
+import {
+  isCoursewareLibraryVisible,
+  listCourseware,
+  loadCoursewareBySlug,
+  loadCoursewareExact,
+  releaseCoursewareVersion,
+  saveCoursewareVersion,
+} from "../app/lib/courseware-store";
+
+type LocalStatement = D1PreparedStatement & { execute(): D1Result };
+type LocalDatabase = ClassroomD1 & { raw: DatabaseSync };
+
+function database(maximum = Number.POSITIVE_INFINITY): LocalDatabase {
+  const raw = new DatabaseSync(":memory:");
+  raw.exec("PRAGMA foreign_keys = ON");
+  for (const name of readdirSync(new URL("../drizzle/", import.meta.url)).filter((item) => /^\d{4}_.*\.sql$/.test(item) && Number(item.slice(0, 4)) <= maximum).sort()) {
+    raw.exec(readFileSync(new URL(`../drizzle/${name}`, import.meta.url), "utf8"));
+  }
+  const api = {
+    raw,
+    prepare(sql: string) {
+      let values: SQLInputValue[] = [];
+      const statement = {
+        bind(...input: unknown[]) { values = input as SQLInputValue[]; return statement; },
+        async first<T>() { return (raw.prepare(sql).get(...values) as T | undefined) ?? null; },
+        async all<T>() { return { results: raw.prepare(sql).all(...values) as T[] }; },
+        async run() { return statement.execute(); },
+        execute() {
+          const result = raw.prepare(sql).run(...values);
+          return { success: true, meta: { changes: result.changes } } as unknown as D1Result;
+        },
+      };
+      return statement;
+    },
+    async batch(statements: LocalStatement[]) {
+      raw.exec("BEGIN IMMEDIATE");
+      try {
+        const results = statements.map((statement) => statement.execute());
+        raw.exec("COMMIT");
+        return results;
+      } catch (error) {
+        raw.exec("ROLLBACK");
+        throw error;
+      }
+    },
+  };
+  return api as unknown as LocalDatabase;
+}
+
+const author: AuthenticatedClassroomUser = { userId: "courseware-author", displayName: "Synthetic Author", platformRole: "mentor" };
+const admin: AuthenticatedClassroomUser = { userId: "platform-admin", displayName: "Synthetic Admin", platformRole: "admin" };
+
+function seedProfiles(db: LocalDatabase): void {
+  const now = "2026-09-10T00:00:00Z";
+  for (const [id, name] of [[author.userId, author.displayName], [admin.userId, admin.displayName]]) {
+    db.raw.prepare("INSERT INTO profiles (id,nickname,created_at,updated_at) VALUES (?,?,?,?)").run(id, name, now, now);
+  }
+}
+
+function html(label: string): string {
+  return `<!doctype html><html><body><h1>${label}</h1><p>synthetic fixture only</p></body></html>`;
+}
+
+async function digest(bytes: Uint8Array): Promise<string> {
+  const hash = await crypto.subtle.digest("SHA-256", bytes.slice().buffer);
+  return [...new Uint8Array(hash)].map((part) => part.toString(16).padStart(2, "0")).join("");
+}
+
+function base64(bytes: Uint8Array): string {
+  return btoa(String.fromCharCode(...bytes));
+}
+
+async function expectCode(promise: Promise<unknown>, code: string): Promise<void> {
+  await assert.rejects(promise, (error: unknown) => {
+    assert.ok(error instanceof ClassroomError);
+    assert.equal(error.code, code);
+    return true;
+  });
+}
+
+const bundledProductR0 = {
+  revision: 0,
+  digest: "b2852b39462bc05464582b3c36f773e68fa84775b9e7c7673a128fac97d7cda5",
+  entryPath: "/courseware/product-mentor-foundations/",
+} as const;
+const bundledProductR1 = {
+  revision: 1,
+  digest: "8ade4830d08f901aba7ed4abc3ae73fd39a0a5f4e16a96935ca38603ba395346",
+  entryPath: "/courseware/product-mentor-foundations/r1/",
+} as const;
+const bundledProductR2 = {
+  revision: 2,
+  digest: "d753bc84d40959639b45fd32c688135c425a5e1711a2a18b23bc75072c3b2e58",
+  entryPath: "/courseware/product-mentor-foundations/r2/?view=overview&slide=0",
+} as const;
+
+test("bundled product-mentor r2 is current while exact r0/r1 remain playable", async () => {
+  const db = database();
+  try {
+    const first = (await listCourseware(db)).find((item) => item.packageId === "cw-product-mentor-foundations");
+    assert.equal(first?.latestRevision, bundledProductR2.revision);
+    assert.equal(first?.latestDigest, bundledProductR2.digest);
+    assert.equal(first?.releasedRevision, bundledProductR2.revision);
+    assert.equal(first?.releasedDigest, bundledProductR2.digest);
+    assert.deepEqual(first?.versions.map((version) => [version.revision, version.digest, version.releaseStatus]), [
+      [bundledProductR2.revision, bundledProductR2.digest, "current"],
+      [bundledProductR1.revision, bundledProductR1.digest, "historical"],
+      [bundledProductR0.revision, bundledProductR0.digest, "historical"],
+    ]);
+
+    const current = await loadCoursewareBySlug(db, "product-mentor-foundations");
+    const historical = await loadCoursewareExact(db, current.packageId, bundledProductR0.revision, bundledProductR0.digest);
+    const historicalR1 = await loadCoursewareExact(db, current.packageId, bundledProductR1.revision, bundledProductR1.digest);
+    assert.equal(current.entryPath, bundledProductR2.entryPath);
+    assert.equal(current.releaseStatus, "current");
+    assert.equal(historical.entryPath, bundledProductR0.entryPath);
+    assert.equal(historicalR1.entryPath, bundledProductR1.entryPath);
+    assert.equal(historicalR1.releaseStatus, "historical");
+    assert.equal(historical.releaseStatus, "historical");
+    assert.equal(historical.released, true);
+
+    // Re-running the bootstrap is deliberately idempotent: no duplicate
+    // versions or release-history rows are created.
+    await listCourseware(db);
+    assert.equal((db.raw.prepare("SELECT COUNT(*) AS n FROM courseware_versions WHERE package_id = ?").get(current.packageId) as { n: number }).n, 3);
+    assert.equal((db.raw.prepare("SELECT COUNT(*) AS n FROM courseware_releases WHERE package_id = ?").get(current.packageId) as { n: number }).n, 3);
+  } finally { db.raw.close(); }
+});
+
+test("a production-style r0 registry upgrades to bundled r2 without rewriting r0", async () => {
+  const db = database();
+  try {
+    const now = "2026-09-08T00:00:00Z";
+    db.raw.prepare("INSERT INTO profiles (id,nickname,created_at,updated_at) VALUES (?,?,?,?)").run("system-courseware", "MiniSV 课程组", now, now);
+    db.raw.prepare("INSERT INTO courseware_packages (id,slug,title,mentor_role,owner_profile_id,status,created_at,updated_at) VALUES (?,?,?,?,?,'active',?,?)")
+      .run("cw-product-mentor-foundations", "product-mentor-foundations", "产品导师｜青少年 AI 创业营", "P", "system-courseware", now, now);
+    db.raw.prepare("INSERT INTO courseware_versions (package_id,revision,digest,content_kind,html_content,entry_path,byte_length,created_at,created_by_profile_id) VALUES (?,0,?,'static-bundle',NULL,?,?,?,?)")
+      .run("cw-product-mentor-foundations", bundledProductR0.digest, bundledProductR0.entryPath, 135, now, "system-courseware");
+    db.raw.prepare("INSERT INTO courseware_releases (package_id,revision,digest,released_at,released_by_profile_id) VALUES (?,0,?,?,?)")
+      .run("cw-product-mentor-foundations", bundledProductR0.digest, now, "system-courseware");
+    db.raw.prepare("INSERT INTO courseware_release_pointers (package_id,revision,digest,released_at,released_by_profile_id) VALUES (?,0,?,?,?)")
+      .run("cw-product-mentor-foundations", bundledProductR0.digest, now, "system-courseware");
+
+    const upgraded = await loadCoursewareBySlug(db, "product-mentor-foundations");
+    assert.equal(upgraded.revision, bundledProductR2.revision);
+    assert.equal(upgraded.digest, bundledProductR2.digest);
+    assert.equal(upgraded.entryPath, bundledProductR2.entryPath);
+    const untouched = await loadCoursewareExact(db, upgraded.packageId, bundledProductR0.revision, bundledProductR0.digest);
+    assert.equal(untouched.entryPath, bundledProductR0.entryPath);
+    assert.equal(untouched.releaseStatus, "historical");
+  } finally { db.raw.close(); }
+});
+
+test("publishing r1 retains historical r0 while the default pointer becomes r1", async () => {
+  const db = database();
+  try {
+    seedProfiles(db);
+    const r0 = await saveCoursewareVersion(db, author, { slug: "synthetic-course", title: "Synthetic Course", mentorRole: "D", html: html("r0") });
+    assert.equal(r0.releaseStatus, null);
+    await releaseCoursewareVersion(db, author, r0);
+    const r1 = await saveCoursewareVersion(db, author, { packageId: r0.packageId, slug: r0.slug, title: r0.title, mentorRole: "D", html: html("r1") });
+    await releaseCoursewareVersion(db, author, r1);
+
+    const historical = await loadCoursewareExact(db, r0.packageId, r0.revision, r0.digest);
+    const current = await loadCoursewareExact(db, r1.packageId, r1.revision, r1.digest);
+    const defaultVersion = await loadCoursewareBySlug(db, r0.slug);
+    assert.equal(historical.released, true);
+    assert.equal(historical.releaseStatus, "historical");
+    assert.equal(current.released, true);
+    assert.equal(current.releaseStatus, "current");
+    assert.equal(defaultVersion.revision, r1.revision);
+    assert.equal(defaultVersion.digest, r1.digest);
+    await expectCode(loadCoursewareBySlug(db, r0.slug, r0.revision, r1.digest), "COURSEWARE_VERSION_NOT_FOUND");
+
+    const summary = (await listCourseware(db)).find((item) => item.packageId === r0.packageId);
+    assert.deepEqual(summary?.versions.map((version) => [version.revision, version.releaseStatus]), [[1, "current"], [0, "historical"]]);
+  } finally { db.raw.close(); }
+});
+
+test("Candidate and system fallback visibility remain fail-closed", () => {
+  assert.equal(isCoursewareLibraryVisible({ ownerProfileId: author.userId, contentKind: "inline-html", availability: "playable", released: false }), false);
+  assert.equal(isCoursewareLibraryVisible({ ownerProfileId: "system-courseware", contentKind: "inline-html", availability: "placeholder", released: true }), false);
+  assert.equal(isCoursewareLibraryVisible({ ownerProfileId: "system-courseware", contentKind: "static-bundle", availability: "playable", released: true }), true);
+});
+
+test("a directory bundle round-trips exact bytes and finalization is idempotent", async () => {
+  const db = database();
+  try {
+    seedProfiles(db);
+    const source = [
+      { path: "index.html", mediaType: "text/html", bytes: new TextEncoder().encode("<!doctype html><html><body><img src=\"assets/pixel.txt\"></body></html>") },
+      { path: "assets/pixel.txt", mediaType: "text/plain", bytes: new TextEncoder().encode("unchanged original bytes\n") },
+    ];
+    const files = await Promise.all(source.map(async (file) => ({ path: file.path, mediaType: file.mediaType, byteLength: file.bytes.byteLength, digest: await digest(file.bytes) })));
+    const upload = await beginCoursewareBundleUpload(db, author, { slug: "synthetic-bundle", title: "Synthetic Bundle", mentorRole: "O", entryFile: "index.html", files });
+    for (const file of source) {
+      const chunkDigest = await digest(file.bytes);
+      const first = await saveCoursewareBundleChunk(db, author, upload.uploadId, { path: file.path, chunkIndex: 0, digest: chunkDigest, dataBase64: base64(file.bytes) });
+      assert.equal(first.accepted, true);
+      const retry = await saveCoursewareBundleChunk(db, author, upload.uploadId, { path: file.path, chunkIndex: 0, digest: chunkDigest, dataBase64: base64(file.bytes) });
+      assert.equal(retry.duplicate, true);
+    }
+    const exact = await finalizeCoursewareBundleUpload(db, author, upload.uploadId);
+    const retry = await finalizeCoursewareBundleUpload(db, author, upload.uploadId);
+    assert.deepEqual([retry.packageId, retry.revision, retry.digest, retry.treeDigest], [exact.packageId, exact.revision, exact.digest, exact.treeDigest]);
+    assert.match(exact.entryPath ?? "", new RegExp(`^/courseware-assets/${exact.packageId}/${exact.revision}/${exact.digest}/index\\.html$`));
+    for (const file of source) {
+      const asset = await loadCoursewareBundleAsset(db, { packageId: exact.packageId, revision: exact.revision, digest: exact.digest, path: file.path });
+      assert.deepEqual(asset.bytes, file.bytes);
+      assert.equal(asset.digest, await digest(file.bytes));
+    }
+    assert.equal((db.raw.prepare("SELECT COUNT(*) AS n FROM courseware_bundle_versions WHERE package_id = ?").get(exact.packageId) as { n: number }).n, 1);
+  } finally { db.raw.close(); }
+});
+
+test("bundle validation rejects traversal, archives, private keys, bad chunks and incomplete uploads", async () => {
+  const db = database();
+  try {
+    seedProfiles(db);
+    const bytes = new TextEncoder().encode("<!doctype html><html><body>fixture</body></html>");
+    const fileDigest = await digest(bytes);
+    const basic = { slug: "invalid-bundle", title: "Invalid Bundle", mentorRole: "P", entryFile: "index.html" };
+    await expectCode(beginCoursewareBundleUpload(db, author, { ...basic, files: [{ path: "../index.html", byteLength: bytes.byteLength, digest: fileDigest }] }), "COURSEWARE_BUNDLE_PATH_INVALID");
+    await expectCode(beginCoursewareBundleUpload(db, author, { ...basic, entryFile: "deck.zip", files: [{ path: "deck.zip", byteLength: bytes.byteLength, digest: fileDigest }] }), "COURSEWARE_BUNDLE_FILE_FORBIDDEN");
+    await expectCode(beginCoursewareBundleUpload(db, author, { ...basic, entryFile: "secret.key", files: [{ path: "secret.key", byteLength: bytes.byteLength, digest: fileDigest }] }), "COURSEWARE_BUNDLE_FILE_FORBIDDEN");
+
+    const upload = await beginCoursewareBundleUpload(db, author, { ...basic, files: [{ path: "index.html", mediaType: "text/html", byteLength: bytes.byteLength, digest: fileDigest }] });
+    await expectCode(saveCoursewareBundleChunk(db, author, upload.uploadId, { path: "index.html", chunkIndex: 0, digest: "0".repeat(64), dataBase64: base64(bytes) }), "COURSEWARE_BUNDLE_CHUNK_DIGEST_MISMATCH");
+    await expectCode(finalizeCoursewareBundleUpload(db, author, upload.uploadId), "COURSEWARE_BUNDLE_CHUNKS_INCOMPLETE");
+  } finally { db.raw.close(); }
+});
+
+test("migration fails closed on mismatched legacy refs and installs immutable exact guards", () => {
+  const db = database(8);
+  try {
+    const now = "2026-09-10T00:00:00Z";
+    db.raw.prepare("INSERT INTO profiles (id,nickname,created_at,updated_at) VALUES (?,?,?,?)").run(author.userId, author.displayName, now, now);
+    db.raw.prepare("INSERT INTO courseware_packages (id,slug,title,mentor_role,owner_profile_id,status,created_at,updated_at) VALUES (?,?,?,?,?,'active',?,?)").run("cw-mismatch", "mismatch", "Mismatch", "P", author.userId, now, now);
+    db.raw.prepare("INSERT INTO courseware_versions (package_id,revision,digest,content_kind,html_content,entry_path,byte_length,created_at,created_by_profile_id) VALUES (?,0,?,'inline-html',?,NULL,?,?,?)").run("cw-mismatch", "a".repeat(64), html("mismatch"), 100, now, author.userId);
+    db.raw.prepare("INSERT INTO courseware_release_pointers (package_id,revision,digest,released_at,released_by_profile_id) VALUES (?,0,?,?,?)").run("cw-mismatch", "b".repeat(64), now, author.userId);
+    const migration = readFileSync(new URL("../drizzle/0009_courseware_release_history_and_bundles.sql", import.meta.url), "utf8");
+    assert.throws(() => db.raw.exec(migration), /CHECK constraint failed/);
+    assert.equal((db.raw.prepare("SELECT digest FROM courseware_release_pointers WHERE package_id = ?").get("cw-mismatch") as { digest: string }).digest, "b".repeat(64));
+  } finally { db.raw.close(); }
+
+  const guarded = database();
+  try {
+    seedProfiles(guarded);
+    const now = "2026-09-10T00:00:00Z";
+    guarded.raw.prepare("INSERT INTO courseware_packages (id,slug,title,mentor_role,owner_profile_id,status,created_at,updated_at) VALUES (?,?,?,?,?,'active',?,?)").run("cw-guard", "guard", "Guard", "P", author.userId, now, now);
+    guarded.raw.prepare("INSERT INTO courseware_versions (package_id,revision,digest,content_kind,html_content,entry_path,byte_length,created_at,created_by_profile_id) VALUES (?,0,?,'inline-html',?,NULL,?,?,?)").run("cw-guard", "c".repeat(64), html("guard"), 100, now, author.userId);
+    assert.throws(() => guarded.raw.prepare("UPDATE courseware_versions SET digest = ? WHERE package_id = ? AND revision = 0").run("d".repeat(64), "cw-guard"), /COURSEWARE_VERSION_IMMUTABLE/);
+    assert.throws(() => guarded.raw.prepare("INSERT INTO courseware_releases (package_id,revision,digest,released_at,released_by_profile_id) VALUES (?,0,?,?,?)").run("cw-guard", "e".repeat(64), now, author.userId), /COURSEWARE_EXACT_REF_INVALID/);
+  } finally { guarded.raw.close(); }
+});
+
+test("120-minute P1/P2 upgrade adds new URLs without rewriting historical registry identities", async () => {
+  const db = database();
+  try {
+    for (const [slug, currentRevision, oldRevision, oldSource] of [
+      ["development-mentor-module-thinking", 24, 23, "t132:sha256:0a92141e058e8732d3d5dbc4c101efa27a7150198abc94cfafa7a54cf3bef4e8"],
+      ["development-mentor-module-thinking", 24, 22, "t132:sha256:f687f679e3353433dea312836fa076ec157334217000304d907434b9d4122706"],
+      ["development-mentor-module-thinking", 24, 21, "t132:sha256:ede982efb552a7934a7557665c94a8d0b34f70ca978ff03c85c1fbbad4b10c47"],
+      ["development-mentor-module-thinking", 24, 20, "t132:sha256:31d213e47e87bbee4e4a3a9330e216b9ea6e45e6a17b1124e86942f643fcd016"],
+      ["development-mentor-module-thinking", 24, 19, "t132:sha256:461f4b64e50661ce60e94108e4c20afe5f31681758dc1bef7acc08d88d340038"],
+      ["development-mentor-module-thinking", 24, 18, "t132:sha256:7f88f44e1a55502bce80fc669d70b5609c60a3a8c32dd2712b41197997cca94c"],
+      ["development-mentor-module-thinking", 24, 17, "t132:sha256:b968a1ef173e2995db4f45c2116c616a2b9f775b8cecca71dca872df7d89bd60"],
+      ["development-mentor-module-thinking", 24, 16, "t132:sha256:7e281c9c27e960a5412a797196c5db86d4ee9969d3edf57b10056f3060bc7b59"],
+      ["development-mentor-module-thinking", 24, 14, "t132:sha256:e7f736d1bdfb1b6d46a10421ecfcd542fc87dd0cfbf60d531dab096df8498050"],
+      ["development-mentor-module-thinking", 24, 13, "t132:sha256:43c7a9810369b91b5a06f7e740a49f3a32f9668ffd914c1b89f35bb71c3079b7"],
+      ["development-mentor-module-thinking", 24, 12, "t132:sha256:894b93cd9e5cdeff31a1d4b46f8884f3720605fe1822b80eb43bada4fe126f0b"],
+      ["development-mentor-module-thinking", 24, 11, "t132:sha256:3b02ebf6bbc8bbe1a30d724475420ae18bbeb6864bb9c31d2b0f4c34f3282022"],
+      ["development-mentor-module-thinking", 24, 10, "t132:sha256:ba950877d7d786e9d4ef0441d174b10dda9d3f9891f7afb29f1197b309658e2b"],
+      ["development-mentor-module-thinking", 24, 9, "t132:sha256:a336543585d9b53d3bb1596f066bb4ccd8358d0df9d21152280130624d745f44"],
+      ["development-mentor-ligun", 6, 5, "t133:sha256:85e007ea84325023133ec0b094fc8cabd7c9d1ea43ac505d5e741b622d6661fd"],
+      ["development-mentor-ligun", 6, 4, "t133:sha256:8e160cb6c9b57bf25dd485a591c59fbe5f20e4426f32c358070e326a9590a280"],
+      ["development-mentor-module-thinking", 24, 4, "t130:sha256:5d0e6d1dd92c10c99ad4767d33d92ef1039733996f9ec909d5a0910572787644"],
+      ["development-mentor-module-thinking", 24, 5, "t132:sha256:84ab82bcba6a34aab72284b3fc4f8d05b3f243bed4e8493c04fd9ab437b05412"],
+      ["development-mentor-module-thinking", 24, 6, "t132:sha256:4d78573094e87726c45e8e8ffe13572a34ea19b042d5d7206c174b8ea0992b72"],
+      ["development-mentor-ligun", 6, 0, "t093:sha256:ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234"],
+      ["development-mentor-ligun", 6, 1, "t133:sha256:6b48d7d9fac75f88180bc00c8caf2f8c2a533d611580493eb538e3eef73ad1d9"],
+      ["development-mentor-module-thinking", 24, 7, "t132:sha256:dc678fb345cf938004f223e8a8c9f2faaf636fd481fa675ad3ea219199b70457"],
+      ["development-mentor-ligun", 6, 2, "t133:sha256:2427551404eccf63e594b2a28654d5d06e76e0c6d6fec95b5f612cb69d954446"],
+      ["development-mentor-module-thinking", 24, 8, "t132:sha256:971cc25ef8fba30f6377a2d5caa86841f29bbf8a56f227776bc9ab0909236c17"],
+      ["development-mentor-ligun", 6, 3, "t133:sha256:dba0adb24b45d1942d36a06b9baa97fe833bffd53e0fd9a71f65956c90587396"],
+    ] as const) {
+      const oldPath = `/courseware/${slug}/${(oldRevision === 4 && slug === "development-mentor-module-thinking") ? "audience/" : (oldRevision >= 5 || (slug === "development-mentor-ligun" && oldRevision >= 1)) ? `r${oldRevision}/audience/` : ""}`;
+      const oldDigest = await digest(new TextEncoder().encode(`static-bundle:${oldPath}:${oldSource}`));
+      const current = await loadCoursewareBySlug(db, slug);
+      assert.equal(current.revision, currentRevision);
+      assert.equal(current.entryPath, `/courseware/${slug}/r${currentRevision}/audience/`);
+      const historical = await loadCoursewareExact(db, current.packageId, oldRevision, oldDigest);
+      assert.equal(historical.entryPath, oldPath);
+      assert.equal(historical.releaseStatus, "historical");
+      assert.notEqual(current.digest, oldDigest);
+      const snapshots = db.raw.prepare("SELECT * FROM courseware_versions WHERE package_id = ? ORDER BY revision").all(current.packageId);
+      await listCourseware(db);
+      assert.deepEqual(db.raw.prepare("SELECT * FROM courseware_versions WHERE package_id = ? ORDER BY revision").all(current.packageId), snapshots);
+    }
+  } finally { db.raw.close(); }
+});

@@ -1,0 +1,89 @@
+{
+  "ok": true,
+  "syntheticAccounts": true,
+  "api": {
+    "failedAddPreservedA": true,
+    "cancelPreservedA": true,
+    "directAtoB": true,
+    "directBtoA": true,
+    "roleSafeFallback": true,
+    "logoutCurrentKeptA": true,
+    "logoutAllRevoked": true,
+    "historyCannotRestore": true
+  },
+  "multiTab": {
+    "identityGuard": true,
+    "outsideContentInert": true,
+    "dirtyDraftPreservedAfterExplicitRestore": true,
+    "credentialsBroadcast": false
+  },
+  "protectedSurfaces": [
+    "/studio/",
+    "/classroom/",
+    "/course/",
+    "/account/"
+  ],
+  "homepage": {
+    "realStaticAssets": true,
+    "desktop": {
+      "initial": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgb(16, 35, 62)",
+        "fontSize": "16px",
+        "width": 160.5,
+        "height": 41.59375,
+        "left": 936,
+        "right": 1096.5,
+        "top": 209.875,
+        "bottom": 251.46875,
+        "contrast": 15.77
+      },
+      "hover": {
+        "color": "rgb(16, 35, 62)",
+        "background": "rgb(242, 191, 86)",
+        "fontSize": "16px",
+        "width": 160.5,
+        "height": 41.59375,
+        "left": 936,
+        "right": 1096.5,
+        "top": 209.875,
+        "bottom": 251.46875,
+        "contrast": 9.28
+      },
+      "focus": {
+        "color": "rgb(16, 35, 62)",
+        "background": "rgb(242, 191, 86)",
+        "fontSize": "16px",
+        "width": 160.5,
+        "height": 41.59375,
+        "left": 936,
+        "right": 1096.5,
+        "top": 209.875,
+        "bottom": 251.46875,
+        "contrast": 9.28
+      }
+    },
+    "mobileGeometry": {
+      "left": 6,
+      "right": 384,
+      "top": 66,
+      "bottom": 395.5625,
+      "width": 378,
+      "viewportWidth": 390,
+      "viewportHeight": 844,
+      "rootWidth": 390
+    },
+    "credentialStorage": false,
+    "screenshots": [
+      "docs/qa/t106-t107-accounts/homepage-account-menu-desktop.png",
+      "docs/qa/t106-t107-accounts/homepage-account-menu-mobile.png"
+    ],
+    "anonymousIsolation": true
+  },
+  "pageErrors": [],
+  "serverErrors": [],
+  "browser": {
+    "engine": "Chromium",
+    "version": "151.0.7922.176"
+  }
+}

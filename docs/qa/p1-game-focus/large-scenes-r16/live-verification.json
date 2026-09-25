@@ -1,0 +1,14 @@
+{
+  "release": "20260923T1405CST-large-scenes-r16",
+  "p1Revision": 16,
+  "p1Digest": "7e281c9c27e960a5412a797196c5db86d4ee9969d3edf57b10056f3060bc7b59",
+  "p2Unchanged": true,
+  "publicLatestPointer": "/courseware/development-mentor-module-thinking/r16/teacher/presenter.html",
+  "historicalFilesUnchanged": 1334,
+  "pythonTestsPassed": 82,
+  "navigationAndTextTestsPassed": 31,
+  "gameFocusSuite": "PASS",
+  "nginxCandidate": "PASS",
+  "deploymentHealth": "MINISV_HECATE_HEALTHY",
+  "visualQA": "Local Chrome audience: seven enlarged scenes + S05 action controls; teacher S02-A with revealed conclusion; human teaching acceptance not claimed"
+}

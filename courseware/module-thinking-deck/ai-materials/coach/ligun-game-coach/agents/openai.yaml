@@ -1,0 +1,4 @@
+interface:
+  display_name: "立棍方案生成器"
+  short_description: "从策划识别缺口并补全三层立棍，汇总可复制的开发提示词，只生成方案"
+  default_prompt: "使用 $ligun-game-coach，读取我的策划，问清关键缺口并确认主棍和子棍，再生成执行棍，汇总成②立棍方案提示词，不进入③开发。"

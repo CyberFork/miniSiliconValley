@@ -1,0 +1,18 @@
+{
+  "release": "20260923T1425CST-tradeoff-r17",
+  "p1Revision": 17,
+  "p1Digest": "b968a1ef173e2995db4f45c2116c616a2b9f775b8cecca71dca872df7d89bd60",
+  "p2Unchanged": true,
+  "publicLatestPointer": "/courseware/development-mentor-module-thinking/r17/teacher/presenter.html",
+  "historicalFilesUnchanged": 1418,
+  "pythonTestsPassed": 82,
+  "navigationTextVersionTestsPassed": 22,
+  "gameFocusSuite": "PASS",
+  "sceneReconciliationRegression": "all 12 cross-type transitions, same-type reuse, rapid switch and original-bug mutation PASS",
+  "savedTextRowsBefore": 28,
+  "savedTextRowsAfter": 28,
+  "allSavedTextPreserved": true,
+  "nginxCandidate": "PASS",
+  "deploymentHealth": "MINISV_HECATE_HEALTHY",
+  "visualQA": "Local native Chrome: all four audience tabs and primary actions; teacher Lego action and controlled audience launch. Not a signed teaching acceptance."
+}

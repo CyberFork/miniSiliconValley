@@ -1,0 +1,23 @@
+{
+  "release": "20260922T1744CST-p1-workshop-text-r10",
+  "sourceCommit": "8b30b3d628bc55844327b6e3e7d9ef5c493e31e0",
+  "workingOverlaySha256": "6f36dca590271df85d5a2167d52096887865a44c2ca154270da3f52681696ce4",
+  "workspaceDirty": true,
+  "localEditsIncluded": [
+    "module-my-start:body.0.0.0",
+    "module-my-start:body.0.1.0"
+  ],
+  "manualAcceptance": "not-signed-by-user",
+  "status": "deployed",
+  "previousRelease": "20260921T2205CST-courseware-text-edit-r2",
+  "activeArtifactFilesVerified": 128,
+  "historicalFilesUnchanged": 744,
+  "productionWritesForTesting": false,
+  "browserAuthenticatedVerification": "pending-user; Chrome not running / browser connector unavailable",
+  "p1Revision": 10,
+  "p2Revision": 5,
+  "p1Digest": "ba950877d7d786e9d4ef0441d174b10dda9d3f9891f7afb29f1197b309658e2b",
+  "p2Digest": "85e007ea84325023133ec0b094fc8cabd7c9d1ea43ac505d5e741b622d6661fd",
+  "healthcheck": "MINISV_HECATE_HEALTHY",
+  "publicSmoke": "MINISV_PUBLIC_SMOKE_OK"
+}

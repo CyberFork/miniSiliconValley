@@ -1,0 +1,57 @@
+✔ T-085 route surface exists and has no legacy navigation dependency (2.454834ms)
+✔ T-122 preserves historical D-mentor decks and selects the merged classroom default and protects teacher notes (0.771875ms)
+✔ T-086 navigation names the two acceptance gates and keeps UI preview on real Test Classroom routes (1.479292ms)
+✔ T-096 makes /course/ a registry-backed Released library for real learners and mentors (0.335375ms)
+✔ T-100 separates author Candidate preview, historical releases and latest classroom playback (0.582834ms)
+✔ exact Studio preview login preserves course, revision and digest (0.089667ms)
+✔ T-086 release and factory APIs enforce two exact acceptance receipts (0.324875ms)
+✔ T-111 exposes exact Test Classroom creation, archive, and dependency-gated deletion (0.735583ms)
+✔ T-099 Candidate API and editor require an exact base and expose a non-destructive conflict flow (0.406792ms)
+✔ gateway owns Console, Terminal, Studio compatibility, Course and per-classroom routes (0.185958ms)
+✔ the opaque P-mentor r0/r1/r2 identities are pinned consistently across build, runtime and package metadata (0.403542ms)
+✔ one-time managed credentials are blocked from platform data until password replacement (0.131042ms)
+✔ shared screen reads a dedicated allow-list projection instead of the private seat payload (0.351ms)
+✔ trusted mentors can bootstrap a classroom and become its scoped Admin DM (0.225625ms)
+✔ retired POST endpoints drain request bodies before returning tombstones (0.132791ms)
+✔ T-105 scopes Studio bootstrap data and permanently tombstones the legacy classroom API (0.648375ms)
+✔ T-104 keeps course review decisions exact and parent QA review behind a server-only proxy (0.350125ms)
+✔ groups courseware into the fixed mentor groups without changing item identity (0.642792ms)
+✔ keeps empty mentor groups for empty and partial input (0.06825ms)
+✔ preserves non-development relative order and does not mutate input (0.079417ms)
+✔ empty input and new D packages are retained, without guessing role from title (0.08525ms)
+✔ merged development course has one visible library entry without deleting historical P2 (0.3895ms)
+✔ old fixed P2 entry lands at AI stage of combined course, not an invalid old slide (3.513625ms)
+✔ static courseware hand-off preserves package launch mode and exact identity (0.45225ms)
+✔ explicit deep links overlay defaults without producing a second question mark (0.115292ms)
+✔ private presenter metadata is centralized and declared for both dual-screen D decks (0.120666ms)
+✔ course library exposes the protected presenter to mentors without mixing it into the audience artifact (0.189958ms)
+✔ all authenticated static entry routes redirect before rendering the old launch gate (0.283ms)
+(node:69026) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ server editions persist complete immutable snapshots and old editions remain readable (9.248917ms)
+✔ CAS concurrent and stale saves do not overwrite another mentor (6.783541ms)
+✔ learner can read public text but cannot write; impersonation and observers cannot access editions (7.732458ms)
+✔ base and field bounds reject invalid data, plain text is stored without executing HTML (6.546041ms)
+✔ restoring original text is a new edition; decks and bases are isolated (6.984917ms)
+✔ shared-v1 carries an edit across bases and reports changed or removed originals (7.16525ms)
+✔ shared-v1 CAS is global across bases while decks remain isolated (5.908417ms)
+✔ shared history supports explicit zero and immutable old reads (7.005041ms)
+✔ legacy bases are retired after a shared edition exists (6.75025ms)
+(node:69027) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ bundled product-mentor r2 is current while exact r0/r1 remain playable (26.763167ms)
+✔ a production-style r0 registry upgrades to bundled r2 without rewriting r0 (14.528167ms)
+✔ publishing r1 retains historical r0 while the default pointer becomes r1 (31.092042ms)
+✔ Candidate and system fallback visibility remain fail-closed (0.126958ms)
+✔ a directory bundle round-trips exact bytes and finalization is idempotent (19.569666ms)
+✔ bundle validation rejects traversal, archives, private keys, bad chunks and incomplete uploads (6.623333ms)
+✔ migration fails closed on mismatched legacy refs and installs immutable exact guards (9.326583ms)
+✔ 120-minute P1/P2 upgrade adds new URLs without rewriting historical registry identities (185.731916ms)
+ℹ tests 45
+ℹ suites 0
+ℹ pass 45
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 399.800708

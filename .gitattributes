@@ -1,0 +1,16 @@
+# T-098 preserves these pre-migration notes byte-for-byte. Their historical
+# Markdown spacing is intentional evidence and must not be normalized in place.
+.codex/inbox/todos/83-nine-pane-wysiwyg-course-studio.md -whitespace
+.codex/inbox/todos/91-consolidate-eleme-script-into-product-mentor-courseware.md -whitespace
+.codex/inbox/todos/92-deploy-development-mentor-courseware.md -whitespace
+.codex/inbox/todos/93-clickable-unlocked-courseware-progress.md -whitespace
+.codex/inbox/todos/94-b01-editor-test-classroom-controller-data-consistency.md -whitespace
+.codex/inbox/todos/95-isolate-course-editor-fields-by-role-and-seat.md -whitespace
+.codex/inbox/todos/96-authenticated-courseware-library-and-product-deployment.md -whitespace
+.codex/inbox/todos/99-candidate-save-concurrency-and-exact-integrity.md -whitespace
+.codex/inbox/todos/100-courseware-preview-release-history-and-bundles.md -whitespace
+.codex/inbox/todos/101-classroom-atomic-state-and-stale-response-protection.md -whitespace
+.codex/inbox/todos/102-acceptance-contract-identity-and-completion-semantics.md -whitespace
+.codex/inbox/todos/103-shared-projection-and-public-course-semantics.md -whitespace
+.codex/inbox/todos/104-human-review-queues-and-gap-recurrence.md -whitespace
+docs/archive/t098-legacy-dev-dd28a57/COURSE_PLATFORM_ARCHITECTURE.md -whitespace

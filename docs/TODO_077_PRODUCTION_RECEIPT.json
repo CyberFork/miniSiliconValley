@@ -1,0 +1,79 @@
+{
+  "receiptVersion": 2,
+  "completedAt": "2026-09-06T10:20:57Z",
+  "todo": "T-077",
+  "correction": "The colleague-owned chj site is deployed verbatim at /course/; the rejected main-authored projection was removed.",
+  "release": {
+    "host": "Hecate Mac mini",
+    "publicOrigin": "https://minisv.vip",
+    "releaseId": "20260906T100023Z-t077-chj-verbatim-r1",
+    "archiveSha256OnHecate": "6701b936267debba36a02555a35e0ddc12d27bde6001af345671cc3445ecea58",
+    "siteManifestSha256": "c11d99fb960cf9b278d8d09b74c79e63fab10edca3ec59fecb1848b860925c90",
+    "previousRelease": "20260906T085800Z-t077-course-outline-r2",
+    "rollbackCommand": "~/Services/minisv/current/ops/scripts/rollback-hecate.sh 20260906T085800Z-t077-course-outline-r2"
+  },
+  "sources": {
+    "main": "e4871ae25cc55f99efb985e2425070284587d369",
+    "chjRepository": "https://github.com/CyberFork/minisv.git",
+    "chjCourseUi": "679213a61b835335016eac7649213983a0e48489",
+    "chjCourseTree": "3a041c4714190cc026f6de8e06e15cec0e5f765d",
+    "sourceModified": false
+  },
+  "courseArtifact": {
+    "url": "https://minisv.vip/course/",
+    "canonical": "https://minisv.vip/course/",
+    "sha256": "e39ebedc1b4b68230e551deeab9860ba6ce1a608c7b400d21c12d87f8f17b8f9",
+    "files": 103,
+    "bytes": 114365669,
+    "htmlSha256": "737dbcedb7649d303f05a601236eb230b007cb75fa57fb1897a87db6e0c4a3b8",
+    "transformed": false,
+    "sharedThemeInjected": false,
+    "copyDigestEqual": true,
+    "remoteDigestEqual": true
+  },
+  "validation": {
+    "mainCoreWebTests": { "passed": 23, "failed": 0 },
+    "deploymentContractTests": { "passed": 17, "failed": 0 },
+    "liveRunPythonTests": { "passed": 33, "failed": 0 },
+    "uiThemeRuntime": true,
+    "chj": {
+      "typecheck": true,
+      "lint": true,
+      "productionBuild": true,
+      "fullUpstreamTests": { "passed": 26, "failed": 1 },
+      "knownUpstreamFailure": "The fixed source test expects the removed phrase 外卖平台 in CourseOverview; source and test were intentionally left unchanged."
+    },
+    "localBrowser": {
+      "courseViewports": [390, 430, 768, 1440],
+      "publicNavigationChecks": 8,
+      "homeStartOutlineAndReturn": true,
+      "outlineChapters": 9,
+      "outlinePhases": 4,
+      "assetLoads": true,
+      "pageErrors": 0
+    },
+    "productionSmoke": true,
+    "productionBrowser": {
+      "courseViewports": [390, 430, 768, 1440],
+      "publicNavigationChecks": 8,
+      "homeStartOutlineAndReturn": true,
+      "assetLoads": true,
+      "pageErrors": 0
+    }
+  },
+  "runState": {
+    "beforeGameplaySha256": "7a3e82be16826ddab31935a43e6b9fb83b643eb51f62931c6b71f9c68247cb18",
+    "afterGameplaySha256": "7a3e82be16826ddab31935a43e6b9fb83b643eb51f62931c6b71f9c68247cb18",
+    "gameplayStateEqual": true,
+    "auditEventsAdded": 1,
+    "versionBefore": 20,
+    "versionAfter": 21,
+    "explanation": "The controlled service restart appended one classroom snapshot audit event; course, progress, seats, cards, RP, wallets, and team funds stayed identical."
+  },
+  "security": {
+    "secretsInRepository": false,
+    "servicesBoundToLoopback": true,
+    "productionOrigin": "hecate",
+    "cyberforkerComTouched": false
+  }
+}

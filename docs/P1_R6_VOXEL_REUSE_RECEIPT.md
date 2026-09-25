@@ -1,0 +1,68 @@
+# P1 r6/r7｜方块颗粒度与案例复用
+
+当前线上：**P1 r7**；下面保留 r6 的首次发布与后续取景修正记录。
+
+## 用户需求与实现
+
+- S02-C 方块边长从 0.44 降为 0.22；X/Y/Z 各细分 2 倍，每个原方块变 8 块。小车 61 → 488 块，课堂道具 57 → 456 块。材料、组件归属和整体包围盒保持不变。
+- 几何生成抽到 `voxel-designs.js`，由同一函数驱动演示与测试。使用 5 个材料 InstancedMesh 批次，不把 8 倍方块变为 8 倍 draw calls；棋盘式轻微明暗帮助识别小方块。
+- S03：复看同一台积木搬运机，实际拆开／组装运行，讲输入、处理、输出与接口。
+- 六句模块描述：沿用传送带，不突然换到自动门；明确动画只演示正常搬运，故障处理是待验证设计要求。
+- S05：复看方块小车，在整体／组件／材料之间切换，区分产品、模块、功能；保留校园失物招领的迁移示例。
+- S04：复用同一套汽车／飞机／机器人组件，解释分工、替换、复用。
+- 取舍页、S09：继续用预制件、积木、方块与轮组接口解释边界，再迁移到软件。
+- S14：复看搬运机拆装，再回到原校园订餐的拔掉／替换走查。未模拟的故障不冒充已测试结果。
+- 仍为 25 页、120 分钟；原 ID、校园案例、黑箱活动、个人游戏实践保留。教师提示同步更新。
+
+## 版本边界
+
+- 新版 P1 registry r6；课件内容版本 `2026.09.19-p1-r7`。
+- P1 内容 digest：`4d78573094e87726c45e8e8ffe13572a34ea19b042d5d7206c174b8ea0992b72`。
+- P2 r1 内容 digest 保持 `6b48d7d9fac75f88180bc00c8caf2f8c2a533d611580493eb538e3eef73ad1d9`，未改其 CSS、runtime 或课程。
+- 课件部署新 r6 路径，不覆盖 r5/r4。打包必须提供 r4 baseline 与 r5 history；缺失、重复、digest 不符即拒绝发布。
+- 只新增课件版本，不改既有课堂、账户、钱包、作业或人工验收回执。
+
+## 本地验证
+
+- 平台 222/222、部署 62/62、类型检查、ESLint、应用构建通过。
+- `verify-voxel.mjs`：边长减半、8 倍数量、位置与材料/组件继承、确定性、原数据未修改、两案例包围盒不变。
+- `verify-reuse.py`：4 页 × 双视图真实 WebGL、按钮、XY 拖动 mouseup 后不回弹、滚轮缩放、页码保持；5 个材料 batch、渲染批次与几何数量上限；4 页教师→投屏真实点击同步。
+- `verify-orbit.py`：原三场景 × 双视图鼠标、键盘、双指缩放平移、缩放边界、复位与案例切换。
+- 52 页 × 双视图对比度/溢出检查、P2 模板复制下载与可玩示范、4 张 A4 PDF 通过。
+- 截图人工检查：文字与背景对比清楚；模型、解释与操作不重叠。
+- 既有 T-122 浏览器交互、App Smoke、Course Platform E2E、T-090/T-091 E2E 通过。
+- 现场试讲、真实 Pad 与投影设备仍由导师验收，未代签。
+
+## 生产发布
+
+已部署并在线复验：
+
+- Release：`20260919T1537CST-p1-voxel-reuse-r6`。
+- Source commit：`3a90216b7e16627565c6b6a99003558404b31546`。
+- Hecate 标准构建→备份→原子切换→健康检查流程完成，`MINISV_DEPLOYED` / `MINISV_HECATE_HEALTHY`。
+- 旧课件 444 个文件逐文件 SHA256 不变，包括 P1 r5/r4、P2 r1/r0、P/M 历史课件。
+- 线上匿名 401；学员可看 audience、teacher 403；导师可看双视图。新几何文件/CSS/讲稿等内容哈希与构建一致，`/course/` 指向 P1 r6、P2 r1。
+- 线上 8 个复用视图和 4 次教师→投屏模式切换通过；三组场景 × 双视图真实上下左右拖动、滚轮、键盘、双指缩放/平移、复位、缩放边界通过。
+- 原课堂、作业及钱包未用于测试数据写入，未签发人工 View/UI 验收。
+- 证据：`docs/evidence/p1-r6/{local-browser,local-reuse,local-orbit,live-access,live-reuse,live-orbit}.json`。
+
+教师直达：<https://minisv.vip/courseware/development-mentor-module-thinking/r6/teacher/presenter.html?slideId=module-s02-voxel>。
+旧 r5 链接保持旧版；使用新入口或从 `/course/` 打开当前课件。
+
+本地私有源码快照：`cowork/课件/development-courseware/p1-module-thinking-r6-20260919/`（含校验清单及同名 zip，不可整包公开）。
+
+
+## r7 后续：完整默认取景
+
+r6 线上目视复核发现拆开小车后局部超出 Three.js 画布，HTML 溢出检查无法识别画布内部裁切。因此将默认视场角调整为 40°（不改模型世界尺寸），并增加 `verify-framing.py`：根据实际方块坐标投影到相机空间，验证 S02-C 两案例三层级、S05 三层级在双视图中均完整入镜，共 18 个场景。
+
+该修正使用全新 P1 r7，内容版本 `2026.09.19-p1-r8`，digest `dc678fb345cf938004f223e8a8c9f2faaf636fd481fa675ad3ea219199b70457`；不覆盖已发布 r6。P2 r1 继续保持原字节。r7 已部署并在线复验：
+
+- Release：`20260919T1551CST-p1-framing-r7`。
+- Source：`5001fb4ec23321fe6aeb112c9c75a00823eb6dd2`。
+- 486 个既有课件文件完整保留，未覆盖 r6/r5/r4、P2 或其他导师课件。
+- 222 项平台、63 项部署测试通过；线上 18 个真实投影边界、8 个复用视图、4 次投屏模式同步、6 组三维手势回归通过。
+- 全站健康、公开冒烟、访问权限、最新课程目录和关键文件哈希复验通过。
+- `docs/evidence/p1-r7/` 保存本地和线上证据；View/UI 与现场试讲仍未代签。
+- 最新教师直达：<https://minisv.vip/courseware/development-mentor-module-thinking/r7/teacher/presenter.html?slideId=module-s02-voxel>。
+- 最新私有源码包：`cowork/课件/development-courseware/p1-module-thinking-r7-20260919/` 及同名 zip。

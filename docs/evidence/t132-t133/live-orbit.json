@@ -1,0 +1,56 @@
+[
+  {
+    "surface": "audience/index.html",
+    "scene": "transform",
+    "mouse": "PASS",
+    "keyboard": "PASS",
+    "pinchPan": "PASS",
+    "limits": "PASS",
+    "caseSwitch": "PASS"
+  },
+  {
+    "surface": "audience/index.html",
+    "scene": "automation",
+    "mouse": "PASS",
+    "keyboard": "PASS",
+    "pinchPan": "PASS",
+    "limits": "PASS",
+    "caseSwitch": "PASS"
+  },
+  {
+    "surface": "audience/index.html",
+    "scene": "voxel",
+    "mouse": "PASS",
+    "keyboard": "PASS",
+    "pinchPan": "PASS",
+    "limits": "PASS",
+    "caseSwitch": "PASS"
+  },
+  {
+    "surface": "teacher/presenter.html",
+    "scene": "transform",
+    "mouse": "PASS",
+    "keyboard": "PASS",
+    "pinchPan": "PASS",
+    "limits": "PASS",
+    "caseSwitch": "PASS"
+  },
+  {
+    "surface": "teacher/presenter.html",
+    "scene": "automation",
+    "mouse": "PASS",
+    "keyboard": "PASS",
+    "pinchPan": "PASS",
+    "limits": "PASS",
+    "caseSwitch": "PASS"
+  },
+  {
+    "surface": "teacher/presenter.html",
+    "scene": "voxel",
+    "mouse": "PASS",
+    "keyboard": "PASS",
+    "pinchPan": "PASS",
+    "limits": "PASS",
+    "caseSwitch": "PASS"
+  }
+]

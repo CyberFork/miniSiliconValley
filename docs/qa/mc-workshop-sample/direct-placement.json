@@ -1,0 +1,11 @@
+{
+  "gridCellCenter": "PASS",
+  "ghostEqualsPlaced": "PASS",
+  "attachToFace": "PASS",
+  "dragNeverPlaces": "PASS",
+  "orbitPanZoom": "PASS",
+  "deleteAndSelection": "PASS",
+  "touchTapHoldDragPinch": "PASS",
+  "noToolSelection": "PASS",
+  "errors": []
+}

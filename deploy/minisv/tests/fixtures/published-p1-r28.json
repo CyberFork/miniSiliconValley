@@ -1,0 +1,828 @@
+{
+  "schemaVersion": 1,
+  "todoId": "T-132",
+  "changeTodoIds": [
+    "T-122",
+    "T-128",
+    "T-130",
+    "T-132",
+    "T-138"
+  ],
+  "coursewareId": "module-thinking-p1",
+  "releaseRevision": 28,
+  "version": "2026.09.24-p1-r28",
+  "releaseStatus": "deployment-ready",
+  "manualAcceptance": "not-signed-by-user",
+  "sourceXmindSha256": "a31489645adcfaf6b7afd3be734349175740c520120cda65552cfa0f3e833793",
+  "audience": [
+    {
+      "path": "audience/ai-lessons.css",
+      "sha256": "21acc54e09082ac5262cf8f9b353d00a550b878439dc33dde6c44f17b78d4217",
+      "bytes": 10350
+    },
+    {
+      "path": "audience/ai-lessons.js",
+      "sha256": "bb5192564d0aa382a3585259204e417eb900c9c566e4f00a38351460120d6fea",
+      "bytes": 6396
+    },
+    {
+      "path": "audience/ai-materials/coach/CONTENT-MANIFEST.json",
+      "sha256": "3a49c34a6fc14b1d4fa375c5d0a87cbd12ba89ed0428452104ef3f8f7f03ccef",
+      "bytes": 1243
+    },
+    {
+      "path": "audience/ai-materials/coach/ligun-game-coach/agents/openai.yaml",
+      "sha256": "c460feecd799a16b22271a98e17b4b4dd96118f175364db25a20978cbaba2c76",
+      "bytes": 363
+    },
+    {
+      "path": "audience/ai-materials/coach/ligun-game-coach/assets/start-prompt.md",
+      "sha256": "0b28af2e4295623aec2469b2e86467a26980880520a20f28709d249c66dd4bc6",
+      "bytes": 925
+    },
+    {
+      "path": "audience/ai-materials/coach/ligun-game-coach/references/handoff-prompt.md",
+      "sha256": "1c49c8809096d55970b014087febd1d27b33de6752a98632ad861a52d19e824d",
+      "bytes": 4023
+    },
+    {
+      "path": "audience/ai-materials/coach/ligun-game-coach/references/rod-spec.md",
+      "sha256": "7cd008333a88e53554959a0a0cbc7515faa88712d0bd7be0d26a1e882a388ca9",
+      "bytes": 6383
+    },
+    {
+      "path": "audience/ai-materials/coach/ligun-game-coach/references/source-basis.md",
+      "sha256": "1347b9aeb28dfa6b83dd2c9507f88074ddb0bbfb92b2c383e39d4e15f9a19125",
+      "bytes": 1173
+    },
+    {
+      "path": "audience/ai-materials/coach/ligun-game-coach/SKILL.md",
+      "sha256": "266c46e012bee5443fabde84e2dbe5b2ec06cd852f18395eece71ecfab95c294",
+      "bytes": 11934
+    },
+    {
+      "path": "audience/ai-materials/coach/ligun-game-coach-plan-only.zip",
+      "sha256": "9a163d45013d48a8545efc8b2fc3ee1c9e835b17e2d7206943eee0e91ec3cd95",
+      "bytes": 14506
+    },
+    {
+      "path": "audience/ai-materials/templates/alignment-prompt.md",
+      "sha256": "d0cf0c3619ef5cb0f199ac6c0d2106411717036c4472904f61c69a5605667282",
+      "bytes": 1388
+    },
+    {
+      "path": "audience/ai-materials/templates/car-bag.md",
+      "sha256": "45b40b3c1c0f0d19fcbb1e8d833dd43fa3f02ca096cb47ca9495f0e9d46c25e9",
+      "bytes": 1555
+    },
+    {
+      "path": "audience/ai-materials/templates/car-feedback.md",
+      "sha256": "2b12a996adaec25f55cf64a9011c86952c650fabb9a28a2d1431ba43b2256d18",
+      "bytes": 1475
+    },
+    {
+      "path": "audience/ai-materials/templates/car-finish.md",
+      "sha256": "8a0f01a49e73300c93b168f6c02592b18cd3ea6f2a4088ac7cfbd797c950e45e",
+      "bytes": 1448
+    },
+    {
+      "path": "audience/ai-materials/templates/car-master.md",
+      "sha256": "ffdce90f826fcfebd45716b868c80761a95bd71438ad6e8cc3340ba1fa942755",
+      "bytes": 2119
+    },
+    {
+      "path": "audience/ai-materials/templates/car-module-map.md",
+      "sha256": "b0762d0bb9e13a433c3445df3e240de0b20e90bb1e7c9ae638358e8ee6d89a5a",
+      "bytes": 2687
+    },
+    {
+      "path": "audience/ai-materials/templates/car-move.md",
+      "sha256": "83fc5f4b79ec3e881dfe0606edac702b94191a396381cf8985b4a014f511e38c",
+      "bytes": 1489
+    },
+    {
+      "path": "audience/ai-materials/templates/car-pickup.md",
+      "sha256": "2385f1ce7d380af57ba26fbdccf29026bdbddf5d6f1f188e2b0bca4a0abf5d8e",
+      "bytes": 1467
+    },
+    {
+      "path": "audience/ai-materials/templates/car-planning.md",
+      "sha256": "9372e439bd27b19ea47bc1a08bbc9fccbbda37e131ed4f71a0c212481e021009",
+      "bytes": 1637
+    },
+    {
+      "path": "audience/ai-materials/templates/car-terrain.md",
+      "sha256": "b010798cfe4fb780299ab6fa61d9c502fa1c9b3e3d116e5fe7e1e2f6543c87ec",
+      "bytes": 1452
+    },
+    {
+      "path": "audience/ai-materials/templates/catalog.json",
+      "sha256": "9c0518fbad40b937aea8eb99a75fd17617aad0094fdc36856c84765db32e895e",
+      "bytes": 2139
+    },
+    {
+      "path": "audience/ai-materials/templates/feedback-rework.md",
+      "sha256": "526433250cfa6eb45e26ed706aa012b41f9cb1582a947366315f6036f84a5055",
+      "bytes": 877
+    },
+    {
+      "path": "audience/ai-materials/templates/master-rod.md",
+      "sha256": "360bce342ea47a79465985f7e84ea6824b13ff7ac1c00548416209328520c318",
+      "bytes": 1074
+    },
+    {
+      "path": "audience/ai-materials/templates/module-map.md",
+      "sha256": "ec08f4b880d9bae4bee456465718655fd7db493277a7e5ca870294d1a0e09cd2",
+      "bytes": 1266
+    },
+    {
+      "path": "audience/ai-materials/templates/plan-coach-compatible.md",
+      "sha256": "f0813900074a382193ddfe54702808f7182c16c86397b0e0b82833bd13605a4f",
+      "bytes": 24605
+    },
+    {
+      "path": "audience/ai-materials/templates/skill-start.md",
+      "sha256": "0b28af2e4295623aec2469b2e86467a26980880520a20f28709d249c66dd4bc6",
+      "bytes": 925
+    },
+    {
+      "path": "audience/ai-materials/templates/sub-rod.md",
+      "sha256": "b1cd465ffac7619f7d200b0585f2e43b50143006f1d0bc45d139d4da1eafa50e",
+      "bytes": 1104
+    },
+    {
+      "path": "audience/ai-materials/templates/templates.zip",
+      "sha256": "cc79e13ff22ef4c4a941958f8b2d60b8e52de31a3ef4327f999e1772f2f7f58f",
+      "bytes": 25486
+    },
+    {
+      "path": "audience/ai-materials/workbook/catalog.js",
+      "sha256": "3364089fc09a86a1eda4208e026bde108dcdbf88d4ee7666158dd63e8af4bddf",
+      "bytes": 74651
+    },
+    {
+      "path": "audience/ai-materials/workbook/index.html",
+      "sha256": "f0f0b2f6ae4b98bae3bd2fe15e9dfb1a258138e061e6bb090e3f0a4a246bf97b",
+      "bytes": 2357
+    },
+    {
+      "path": "audience/ai-materials/workbook/student-prompt.js",
+      "sha256": "f584f53cb3eb02ec9233bfca07554855fb25061c5a451ad8e747288c709d98a4",
+      "bytes": 15648
+    },
+    {
+      "path": "audience/ai-materials/workbook/student-prompt.txt",
+      "sha256": "0115cb417d432841867da325d8c822b461b14ad02030f48cb4d45abbdc8037bc",
+      "bytes": 15549
+    },
+    {
+      "path": "audience/ai-materials/workbook/workbook.css",
+      "sha256": "f2b5a34595f9092bfbc035e964e36d7ec012cca73e81723aa7b9166a49ddd073",
+      "bytes": 2398
+    },
+    {
+      "path": "audience/ai-materials/workbook/workbook.js",
+      "sha256": "675c169b156311bce64eb350b77c0459ff3e23467ba17a1aab53af63dd3cde86",
+      "bytes": 1525
+    },
+    {
+      "path": "audience/assets/minecraft-modules/controls.jpg",
+      "sha256": "2a686d2cb8f6c8b38dd26bb5d87a9bc3cc0c93e776f7a30af1b2820bf5f1f687",
+      "bytes": 43653
+    },
+    {
+      "path": "audience/assets/minecraft-modules/cow.jpg",
+      "sha256": "b6e95fd110e463208e387c83a0debe0570ecc30039b4311a0d459d821ad91dbf",
+      "bytes": 23934
+    },
+    {
+      "path": "audience/assets/minecraft-modules/cow.mp3",
+      "sha256": "72d922d1441049834c3f73168b705d1179ca64b2f118135971e2f2605137eca5",
+      "bytes": 9461
+    },
+    {
+      "path": "audience/assets/minecraft-modules/cow.ogg",
+      "sha256": "24acaae2e89ca52a913177222ad37b36385267e85e52f3e320dbd34d295efde8",
+      "bytes": 9714
+    },
+    {
+      "path": "audience/assets/minecraft-modules/craft.jpg",
+      "sha256": "7075700c360768996a253dccaa9792c5fe683bf72b742f7c1e154e0b95a3d3f2",
+      "bytes": 120365
+    },
+    {
+      "path": "audience/assets/minecraft-modules/dig.jpg",
+      "sha256": "27ff22ad12627a880af8af0b7a8ea4ea970108faeb6d8ecac8bd6ccd884b3571",
+      "bytes": 210316
+    },
+    {
+      "path": "audience/assets/minecraft-modules/drop.jpg",
+      "sha256": "ed56123d354e65cbfc186542a230f568761baef079189febbdb01706871225f0",
+      "bytes": 173333
+    },
+    {
+      "path": "audience/assets/minecraft-modules/hurt.mp3",
+      "sha256": "99cb2b90b25cc83b0202f931b68a81214ba415ada23c6d38fdf909798b850924",
+      "bytes": 4108
+    },
+    {
+      "path": "audience/assets/minecraft-modules/hurt.ogg",
+      "sha256": "5e190650c27cc38dce750ac7d5fb5044c3cf714bc116d0bdc3e9e93cdeffdc35",
+      "bytes": 6539
+    },
+    {
+      "path": "audience/assets/minecraft-modules/inventory.jpg",
+      "sha256": "b23d00991bdf110a1bdcad789e1d1721e51ce10a56cb73d97da131c27da17517",
+      "bytes": 207314
+    },
+    {
+      "path": "audience/assets/minecraft-modules/sources.json",
+      "sha256": "d9eee09150c31d0f308a517a4964cd954b64e5f3e244641f01c1c536850d86fe",
+      "bytes": 6672
+    },
+    {
+      "path": "audience/assets/minecraft-modules/start.jpg",
+      "sha256": "7038dffb3a88720d7768a4df0aaad4ad85cfe2e28ecec91d0ec0f1676f2ad6c1",
+      "bytes": 199633
+    },
+    {
+      "path": "audience/assets/minecraft-modules/villager.mp3",
+      "sha256": "b609d581e59b13d3525706599593d572f82c63d9d4d94a83dec7fb31fdad0750",
+      "bytes": 8966
+    },
+    {
+      "path": "audience/assets/minecraft-modules/villager.ogg",
+      "sha256": "0f9370a25d4d3a1a23c7837c458597c7c340cb87e7e43d5c13496d1fcc84845d",
+      "bytes": 8605
+    },
+    {
+      "path": "audience/assets/minecraft-modules/water-clutch.png",
+      "sha256": "7d264b5fd73a7198ee78eaa3237589efd5404fa0e8a18941fbbbbaaeff5c918c",
+      "bytes": 241607
+    },
+    {
+      "path": "audience/assets/minecraft-modules/world-map.png",
+      "sha256": "dee3048b19a355db002b4a5ba6834195ebe0e72207d0e121670543c99baa7409",
+      "bytes": 271861
+    },
+    {
+      "path": "audience/assets/minecraft-modules/zombie.jpg",
+      "sha256": "6c03024adfba1b8c1ee3b1715b2a43be7d7764148d13f71ed321515a5ec45744",
+      "bytes": 13975
+    },
+    {
+      "path": "audience/assets/mini-silicon-valley-logo-transparent.png",
+      "sha256": "4dbbe4dea625fd372c6d760f2344fbf62b7b15f0d2d14e490cddd56e05ffbe87",
+      "bytes": 542270
+    },
+    {
+      "path": "audience/bag-compare.js",
+      "sha256": "0a87cff37090f4350b1ab6884ec28a2de8d82d54e445333f4b18d538079a209a",
+      "bytes": 940
+    },
+    {
+      "path": "audience/deck-data.js",
+      "sha256": "4925968d1596d4f01befdad46fb0170d1581d4fdb622ff952d876f2ea58ac216",
+      "bytes": 128747
+    },
+    {
+      "path": "audience/deck-runtime.js",
+      "sha256": "13cadb73cced9a43f0ebf26e6ec228296e3b7efbfb04ea64b0e69eee56c31d39",
+      "bytes": 27617
+    },
+    {
+      "path": "audience/deck.css",
+      "sha256": "4d8a501f34341823b8443998b4c0229ef2c700356b54e54f3d90637e9778a205",
+      "bytes": 37507
+    },
+    {
+      "path": "audience/favicon.svg",
+      "sha256": "1f8f0a43980007cbc3000449803ce1503de17155f07ee69d2eea9e76a3d7f1f4",
+      "bytes": 241
+    },
+    {
+      "path": "audience/index.html",
+      "sha256": "0fbe02692af694526b25aa38401b8c96402440893526387137f063df094d496c",
+      "bytes": 1583
+    },
+    {
+      "path": "audience/lesson-tools.js",
+      "sha256": "0dcaf17eb49b1ad201683a0a0567085a2ef7482bb04c92bd0da3ec3c39e72069",
+      "bytes": 13708
+    },
+    {
+      "path": "audience/module-3d.js",
+      "sha256": "70592a84a0990d6eae29b6ee0bc3ad0d2999e2fb5677f08b770966e6c937d877",
+      "bytes": 41313
+    },
+    {
+      "path": "audience/module-assembly-layout.js",
+      "sha256": "8c2a4c29fb9ffe8a5d1ccee3e39a310e7ecd90805cb42d3905628ab1751104d2",
+      "bytes": 533
+    },
+    {
+      "path": "audience/p1-scenes.css",
+      "sha256": "226fac1a12f9eab2ab529d5134110314f512daca768f71c07d03f716c9e8d30d",
+      "bytes": 31000
+    },
+    {
+      "path": "audience/printables/index.html",
+      "sha256": "0bc3af3c9c43b38d06c00ea82c940b85b10cbe514a908d5ebae2590b4564605a",
+      "bytes": 2835
+    },
+    {
+      "path": "audience/printables/interface-card.html",
+      "sha256": "6e38fdd6a94e7d703ec709fa3c4925b1646f58858456741d4afddff8037d7ccb",
+      "bytes": 2733
+    },
+    {
+      "path": "audience/printables/interface-card.md",
+      "sha256": "06ce5a0ceee0bc99739abf1bb7133a47b3e458df5494d72ee23934fd8072cb2f",
+      "bytes": 683
+    },
+    {
+      "path": "audience/printables/materials.zip",
+      "sha256": "1d835ad959e3bb68d9bfa9421a8fd6c20e523a3881e253ca104a3c699093b052",
+      "bytes": 9804
+    },
+    {
+      "path": "audience/printables/module-map.html",
+      "sha256": "10ef892ecf906398518c65bdc0d52d3f4815486158d3aa213c183c303cbfe0ba",
+      "bytes": 2612
+    },
+    {
+      "path": "audience/printables/module-map.md",
+      "sha256": "f5f6d7f58e3921e35e281c26ada01557970a891d2f0270838c3412c04653e881",
+      "bytes": 721
+    },
+    {
+      "path": "audience/printables/quick-start.html",
+      "sha256": "1e74e2615d4a18cd3194cd27c5a006e66d1c9da1da5c05e53357c141c8f4abe0",
+      "bytes": 2480
+    },
+    {
+      "path": "audience/printables/quick-start.md",
+      "sha256": "f3e5f50bc75e95c6cdc21a6a612c897f08b307eac538f69fa22681e355349384",
+      "bytes": 498
+    },
+    {
+      "path": "audience/printables/validation-record.html",
+      "sha256": "47da075460bcfc3894cb6f46d8a55713792f1b6ca9c4adaf8a072d0947d97a2b",
+      "bytes": 2931
+    },
+    {
+      "path": "audience/printables/validation-record.md",
+      "sha256": "1d8477566cfcbd863edc65981dc5c8a003d92feadf5f5f8bace7d6843e8ae359",
+      "bytes": 878
+    },
+    {
+      "path": "audience/recap.css",
+      "sha256": "bad0860b563bcf766c879c416d261c4bcbe6f7f8806125cd077def8ee9de80cd",
+      "bytes": 4026
+    },
+    {
+      "path": "audience/route-game/app.mjs",
+      "sha256": "672f3b53ed8997775deda8dbd3a386ea8eaf095c84796cb7f9a98b24c14fa1e6",
+      "bytes": 15993
+    },
+    {
+      "path": "audience/route-game/controls.mjs",
+      "sha256": "f38290b755db557154fd4a4149949623ee6f08a39a3733cad2f3e2bc497df6f1",
+      "bytes": 1785
+    },
+    {
+      "path": "audience/route-game/effects.mjs",
+      "sha256": "e140a86e5afe4a256987820f0249a555a35a8ef06d6846f7273f14c45b17f592",
+      "bytes": 2867
+    },
+    {
+      "path": "audience/route-game/game.css",
+      "sha256": "7eca0527bc28a8c714390c04355d58119160924bfc02588695761a215da93ba3",
+      "bytes": 4028
+    },
+    {
+      "path": "audience/route-game/index.html",
+      "sha256": "dfd33497112d233d0b24bad9152461bdd3511e7aeb3ff77914ec21582139405c",
+      "bytes": 3614
+    },
+    {
+      "path": "audience/route-game/loading.js",
+      "sha256": "5817d637d68e71d143d1baee044f4558ef6abbf135e2bd6f56d4098b29773121",
+      "bytes": 1401
+    },
+    {
+      "path": "audience/route-game/state.mjs",
+      "sha256": "74c769c16bd71023a34d99d0d9316810bd0f9228935e8f57a2a008007e679abc",
+      "bytes": 3411
+    },
+    {
+      "path": "audience/route-preload.js",
+      "sha256": "4381ebd8e4ad2fec840e85a8453d58add095ff0dcf014e42da84cf7cc31133c8",
+      "bytes": 4811
+    },
+    {
+      "path": "audience/text-editions.js",
+      "sha256": "d359d13a63984c895f70a6fd3f9dfc4d558b02f77cbfe4180cdbda7c0d8c12c6",
+      "bytes": 13227
+    },
+    {
+      "path": "audience/text-editor.css",
+      "sha256": "959ac085d182d61894ebf2dca6b8c69ac1509402d2f9a77cf443b8714c6d028d",
+      "bytes": 3606
+    },
+    {
+      "path": "audience/transform-sequence.js",
+      "sha256": "08e68389ea43528bcb2ce863dd73ebc2e3603a3d44fa99bc58077131b6b89242",
+      "bytes": 524
+    },
+    {
+      "path": "audience/vendor/OrbitControls-SOURCE.md",
+      "sha256": "319b6871ca52f1e391615778b87e62b97dd9d351b530e3b6c06f8d111806d051",
+      "bytes": 314
+    },
+    {
+      "path": "audience/vendor/OrbitControls.js",
+      "sha256": "6c860c6b342200f8aef65493319c12bfb2d652107355b1d25eb2154371128391",
+      "bytes": 38719
+    },
+    {
+      "path": "audience/vendor/THREE-LICENSE.txt",
+      "sha256": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601",
+      "bytes": 1081
+    },
+    {
+      "path": "audience/vendor/three.core.min.js",
+      "sha256": "61ba0df005b05991361d040d8ff670e1aadfd0ce7aeebd1fdb0725957a8957de",
+      "bytes": 381124
+    },
+    {
+      "path": "audience/vendor/three.module.min.js",
+      "sha256": "e2b5ee6bccd38fd6d8a2428546b83c5f2426d84b152ef82be8055556e3b40eb6",
+      "bytes": 338908
+    },
+    {
+      "path": "audience/voxel-designs.js",
+      "sha256": "355f70d982d6367e4f21586dbf28620ab1ce854e95de8b54ceeed3085dfbd891",
+      "bytes": 3216
+    },
+    {
+      "path": "audience/workshop/drive-input.mjs",
+      "sha256": "40b904b1abe2bca12d181c43da719133bbfecff710a384b89c4e3d1de0a9d10c",
+      "bytes": 654
+    },
+    {
+      "path": "audience/workshop/model.mjs",
+      "sha256": "3a1deb4566edb44e62017c5f3e0363e9b7cf0c43455efbc455b3500d91a0829f",
+      "bytes": 12119
+    },
+    {
+      "path": "audience/workshop/physics.mjs",
+      "sha256": "349070aba1180675f440e8eb4005386a7145268c8a910459da1ae07496bcd87e",
+      "bytes": 9377
+    },
+    {
+      "path": "audience/workshop/render.mjs",
+      "sha256": "d03f59a9074bb1d2615b8cf266ba20a745e388cb52d3478ed07d6945f9a13b31",
+      "bytes": 15740
+    },
+    {
+      "path": "audience/workshop/vendor/NOTICE.md",
+      "sha256": "7189fac30c5fa2548912db511b8ad4bfc7f0f03e4d2a890aa54e3e640916618b",
+      "bytes": 484
+    },
+    {
+      "path": "audience/workshop/vendor/RAPIER-LICENSE.txt",
+      "sha256": "4c05555705e3efde601fb1252ae48f1d63992af8a8fb8947745b7fa834e8f519",
+      "bytes": 11343
+    },
+    {
+      "path": "audience/workshop/vendor/rapier.mjs",
+      "sha256": "09a000bee2ad827608780cf8821258cadc243aaeb8881ab3e769de73f945eee0",
+      "bytes": 2857590
+    }
+  ],
+  "teacher": [
+    {
+      "path": "teacher/ai-lessons.css",
+      "sha256": "21acc54e09082ac5262cf8f9b353d00a550b878439dc33dde6c44f17b78d4217",
+      "bytes": 10350
+    },
+    {
+      "path": "teacher/ai-lessons.js",
+      "sha256": "bb5192564d0aa382a3585259204e417eb900c9c566e4f00a38351460120d6fea",
+      "bytes": 6396
+    },
+    {
+      "path": "teacher/assets/minecraft-modules/controls.jpg",
+      "sha256": "2a686d2cb8f6c8b38dd26bb5d87a9bc3cc0c93e776f7a30af1b2820bf5f1f687",
+      "bytes": 43653
+    },
+    {
+      "path": "teacher/assets/minecraft-modules/cow.jpg",
+      "sha256": "b6e95fd110e463208e387c83a0debe0570ecc30039b4311a0d459d821ad91dbf",
+      "bytes": 23934
+    },
+    {
+      "path": "teacher/assets/minecraft-modules/cow.mp3",
+      "sha256": "72d922d1441049834c3f73168b705d1179ca64b2f118135971e2f2605137eca5",
+      "bytes": 9461
+    },
+    {
+      "path": "teacher/assets/minecraft-modules/cow.ogg",
+      "sha256": "24acaae2e89ca52a913177222ad37b36385267e85e52f3e320dbd34d295efde8",
+      "bytes": 9714
+    },
+    {
+      "path": "teacher/assets/minecraft-modules/craft.jpg",
+      "sha256": "7075700c360768996a253dccaa9792c5fe683bf72b742f7c1e154e0b95a3d3f2",
+      "bytes": 120365
+    },
+    {
+      "path": "teacher/assets/minecraft-modules/dig.jpg",
+      "sha256": "27ff22ad12627a880af8af0b7a8ea4ea970108faeb6d8ecac8bd6ccd884b3571",
+      "bytes": 210316
+    },
+    {
+      "path": "teacher/assets/minecraft-modules/drop.jpg",
+      "sha256": "ed56123d354e65cbfc186542a230f568761baef079189febbdb01706871225f0",
+      "bytes": 173333
+    },
+    {
+      "path": "teacher/assets/minecraft-modules/hurt.mp3",
+      "sha256": "99cb2b90b25cc83b0202f931b68a81214ba415ada23c6d38fdf909798b850924",
+      "bytes": 4108
+    },
+    {
+      "path": "teacher/assets/minecraft-modules/hurt.ogg",
+      "sha256": "5e190650c27cc38dce750ac7d5fb5044c3cf714bc116d0bdc3e9e93cdeffdc35",
+      "bytes": 6539
+    },
+    {
+      "path": "teacher/assets/minecraft-modules/inventory.jpg",
+      "sha256": "b23d00991bdf110a1bdcad789e1d1721e51ce10a56cb73d97da131c27da17517",
+      "bytes": 207314
+    },
+    {
+      "path": "teacher/assets/minecraft-modules/sources.json",
+      "sha256": "d9eee09150c31d0f308a517a4964cd954b64e5f3e244641f01c1c536850d86fe",
+      "bytes": 6672
+    },
+    {
+      "path": "teacher/assets/minecraft-modules/start.jpg",
+      "sha256": "7038dffb3a88720d7768a4df0aaad4ad85cfe2e28ecec91d0ec0f1676f2ad6c1",
+      "bytes": 199633
+    },
+    {
+      "path": "teacher/assets/minecraft-modules/villager.mp3",
+      "sha256": "b609d581e59b13d3525706599593d572f82c63d9d4d94a83dec7fb31fdad0750",
+      "bytes": 8966
+    },
+    {
+      "path": "teacher/assets/minecraft-modules/villager.ogg",
+      "sha256": "0f9370a25d4d3a1a23c7837c458597c7c340cb87e7e43d5c13496d1fcc84845d",
+      "bytes": 8605
+    },
+    {
+      "path": "teacher/assets/minecraft-modules/water-clutch.png",
+      "sha256": "7d264b5fd73a7198ee78eaa3237589efd5404fa0e8a18941fbbbbaaeff5c918c",
+      "bytes": 241607
+    },
+    {
+      "path": "teacher/assets/minecraft-modules/world-map.png",
+      "sha256": "dee3048b19a355db002b4a5ba6834195ebe0e72207d0e121670543c99baa7409",
+      "bytes": 271861
+    },
+    {
+      "path": "teacher/assets/minecraft-modules/zombie.jpg",
+      "sha256": "6c03024adfba1b8c1ee3b1715b2a43be7d7764148d13f71ed321515a5ec45744",
+      "bytes": 13975
+    },
+    {
+      "path": "teacher/assets/mini-silicon-valley-logo-transparent.png",
+      "sha256": "4dbbe4dea625fd372c6d760f2344fbf62b7b15f0d2d14e490cddd56e05ffbe87",
+      "bytes": 542270
+    },
+    {
+      "path": "teacher/bag-compare.js",
+      "sha256": "0a87cff37090f4350b1ab6884ec28a2de8d82d54e445333f4b18d538079a209a",
+      "bytes": 940
+    },
+    {
+      "path": "teacher/deck-data.js",
+      "sha256": "4925968d1596d4f01befdad46fb0170d1581d4fdb622ff952d876f2ea58ac216",
+      "bytes": 128747
+    },
+    {
+      "path": "teacher/deck.css",
+      "sha256": "4d8a501f34341823b8443998b4c0229ef2c700356b54e54f3d90637e9778a205",
+      "bytes": 37507
+    },
+    {
+      "path": "teacher/favicon.svg",
+      "sha256": "1f8f0a43980007cbc3000449803ce1503de17155f07ee69d2eea9e76a3d7f1f4",
+      "bytes": 241
+    },
+    {
+      "path": "teacher/lesson-tools.js",
+      "sha256": "0dcaf17eb49b1ad201683a0a0567085a2ef7482bb04c92bd0da3ec3c39e72069",
+      "bytes": 13708
+    },
+    {
+      "path": "teacher/module-3d.js",
+      "sha256": "70592a84a0990d6eae29b6ee0bc3ad0d2999e2fb5677f08b770966e6c937d877",
+      "bytes": 41313
+    },
+    {
+      "path": "teacher/module-assembly-layout.js",
+      "sha256": "8c2a4c29fb9ffe8a5d1ccee3e39a310e7ecd90805cb42d3905628ab1751104d2",
+      "bytes": 533
+    },
+    {
+      "path": "teacher/p1-scenes.css",
+      "sha256": "226fac1a12f9eab2ab529d5134110314f512daca768f71c07d03f716c9e8d30d",
+      "bytes": 31000
+    },
+    {
+      "path": "teacher/presenter-notes.js",
+      "sha256": "f46b713a0b8a2fffa0f8f6b94aafde6aec18e001a85e8b67c72522e7b90424e5",
+      "bytes": 56328
+    },
+    {
+      "path": "teacher/presenter-runtime.js",
+      "sha256": "829e965f3c99928c1fa90a0e43ddfcdc70f22d2891dcbcddea43aa52389a625b",
+      "bytes": 34944
+    },
+    {
+      "path": "teacher/presenter.css",
+      "sha256": "5ed742c2fa5b7f099c55b3d8a9051a8a0c9f53e81282836ce02f524249d86e5f",
+      "bytes": 6390
+    },
+    {
+      "path": "teacher/presenter.html",
+      "sha256": "c5b94aaab6f180348a8454f331eb7d4a5d76b61fe61a204290bca07051fd83e0",
+      "bytes": 4995
+    },
+    {
+      "path": "teacher/recap.css",
+      "sha256": "bad0860b563bcf766c879c416d261c4bcbe6f7f8806125cd077def8ee9de80cd",
+      "bytes": 4026
+    },
+    {
+      "path": "teacher/route-game/app.mjs",
+      "sha256": "672f3b53ed8997775deda8dbd3a386ea8eaf095c84796cb7f9a98b24c14fa1e6",
+      "bytes": 15993
+    },
+    {
+      "path": "teacher/route-game/controls.mjs",
+      "sha256": "f38290b755db557154fd4a4149949623ee6f08a39a3733cad2f3e2bc497df6f1",
+      "bytes": 1785
+    },
+    {
+      "path": "teacher/route-game/effects.mjs",
+      "sha256": "e140a86e5afe4a256987820f0249a555a35a8ef06d6846f7273f14c45b17f592",
+      "bytes": 2867
+    },
+    {
+      "path": "teacher/route-game/game.css",
+      "sha256": "7eca0527bc28a8c714390c04355d58119160924bfc02588695761a215da93ba3",
+      "bytes": 4028
+    },
+    {
+      "path": "teacher/route-game/index.html",
+      "sha256": "dfd33497112d233d0b24bad9152461bdd3511e7aeb3ff77914ec21582139405c",
+      "bytes": 3614
+    },
+    {
+      "path": "teacher/route-game/loading.js",
+      "sha256": "5817d637d68e71d143d1baee044f4558ef6abbf135e2bd6f56d4098b29773121",
+      "bytes": 1401
+    },
+    {
+      "path": "teacher/route-game/state.mjs",
+      "sha256": "74c769c16bd71023a34d99d0d9316810bd0f9228935e8f57a2a008007e679abc",
+      "bytes": 3411
+    },
+    {
+      "path": "teacher/route-preload.js",
+      "sha256": "4381ebd8e4ad2fec840e85a8453d58add095ff0dcf014e42da84cf7cc31133c8",
+      "bytes": 4811
+    },
+    {
+      "path": "teacher/text-editions.js",
+      "sha256": "d359d13a63984c895f70a6fd3f9dfc4d558b02f77cbfe4180cdbda7c0d8c12c6",
+      "bytes": 13227
+    },
+    {
+      "path": "teacher/text-editor-dialog.js",
+      "sha256": "8bc947b300d9d08652380cb2bd42838adfba0dc340a34f62e95a53a55b843a20",
+      "bytes": 6618
+    },
+    {
+      "path": "teacher/text-editor.css",
+      "sha256": "959ac085d182d61894ebf2dca6b8c69ac1509402d2f9a77cf443b8714c6d028d",
+      "bytes": 3606
+    },
+    {
+      "path": "teacher/transform-sequence.js",
+      "sha256": "08e68389ea43528bcb2ce863dd73ebc2e3603a3d44fa99bc58077131b6b89242",
+      "bytes": 524
+    },
+    {
+      "path": "teacher/vendor/OrbitControls-SOURCE.md",
+      "sha256": "319b6871ca52f1e391615778b87e62b97dd9d351b530e3b6c06f8d111806d051",
+      "bytes": 314
+    },
+    {
+      "path": "teacher/vendor/OrbitControls.js",
+      "sha256": "6c860c6b342200f8aef65493319c12bfb2d652107355b1d25eb2154371128391",
+      "bytes": 38719
+    },
+    {
+      "path": "teacher/vendor/THREE-LICENSE.txt",
+      "sha256": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601",
+      "bytes": 1081
+    },
+    {
+      "path": "teacher/vendor/three.core.min.js",
+      "sha256": "61ba0df005b05991361d040d8ff670e1aadfd0ce7aeebd1fdb0725957a8957de",
+      "bytes": 381124
+    },
+    {
+      "path": "teacher/vendor/three.module.min.js",
+      "sha256": "e2b5ee6bccd38fd6d8a2428546b83c5f2426d84b152ef82be8055556e3b40eb6",
+      "bytes": 338908
+    },
+    {
+      "path": "teacher/voxel-designs.js",
+      "sha256": "355f70d982d6367e4f21586dbf28620ab1ce854e95de8b54ceeed3085dfbd891",
+      "bytes": 3216
+    },
+    {
+      "path": "teacher/workshop/app.mjs",
+      "sha256": "0c2aaa874890071b047e113386bb7f415424075fd5527b26173b67cd8e6e1e22",
+      "bytes": 21288
+    },
+    {
+      "path": "teacher/workshop/audience/index.html",
+      "sha256": "c6afc71f542e1c8872af900dbaf4741d14e59991cad99804bcc8eaf51266c5fa",
+      "bytes": 7217
+    },
+    {
+      "path": "teacher/workshop/drive-input.mjs",
+      "sha256": "40b904b1abe2bca12d181c43da719133bbfecff710a384b89c4e3d1de0a9d10c",
+      "bytes": 654
+    },
+    {
+      "path": "teacher/workshop/gameplay.mjs",
+      "sha256": "4bfad5dab3c9d5f99b6ed58fbfddaa7041fb3d88da130d761efc51a179b0a0c1",
+      "bytes": 5025
+    },
+    {
+      "path": "teacher/workshop/loading.js",
+      "sha256": "44d4db2e97ff6359c76488066f21f723edb6943a2438490f9248a6b233a6fe74",
+      "bytes": 3589
+    },
+    {
+      "path": "teacher/workshop/model.mjs",
+      "sha256": "3a1deb4566edb44e62017c5f3e0363e9b7cf0c43455efbc455b3500d91a0829f",
+      "bytes": 12119
+    },
+    {
+      "path": "teacher/workshop/physics.mjs",
+      "sha256": "349070aba1180675f440e8eb4005386a7145268c8a910459da1ae07496bcd87e",
+      "bytes": 9377
+    },
+    {
+      "path": "teacher/workshop/render.mjs",
+      "sha256": "d03f59a9074bb1d2615b8cf266ba20a745e388cb52d3478ed07d6945f9a13b31",
+      "bytes": 15740
+    },
+    {
+      "path": "teacher/workshop/teacher/presenter.html",
+      "sha256": "3152788a8e432a83bdb7c5ed8ade267a7569891d503d7e5782c5c5e4b3e41f4d",
+      "bytes": 10642
+    },
+    {
+      "path": "teacher/workshop/vendor/NOTICE.md",
+      "sha256": "7189fac30c5fa2548912db511b8ad4bfc7f0f03e4d2a890aa54e3e640916618b",
+      "bytes": 484
+    },
+    {
+      "path": "teacher/workshop/vendor/RAPIER-LICENSE.txt",
+      "sha256": "4c05555705e3efde601fb1252ae48f1d63992af8a8fb8947745b7fa834e8f519",
+      "bytes": 11343
+    },
+    {
+      "path": "teacher/workshop/vendor/rapier.mjs",
+      "sha256": "09a000bee2ad827608780cf8821258cadc243aaeb8881ab3e769de73f945eee0",
+      "bytes": 2857590
+    },
+    {
+      "path": "teacher/workshop/workshop.css",
+      "sha256": "f58a9d9d95492e523541f149eed84737c414d33453339702e88b8cf1e0697285",
+      "bytes": 5452
+    }
+  ],
+  "securityBoundary": "audience 不含教师提示；teacher 必须沿用服务端导师权限保护。以新 revision URL 部署，不覆盖历史版本；人工试讲未签署。",
+  "digest": "86fcba6afe3d219efb9a9ca9678af4dc6732c10cc4d09ed1c6f876e6014c96cd"
+}

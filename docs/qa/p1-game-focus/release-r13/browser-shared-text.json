@@ -1,0 +1,13 @@
+{
+  "tool": "CUA native Google Chrome",
+  "isolation": "18137/18138, /tmp/minisv-shared-text-ui-qa/courseware-text.sqlite3, no production test writes",
+  "checks": [
+    "HOW01 actual text click opens edit dialog without enabling mode",
+    "setValue input confirmed in AX; Save created shared v2; reload shows saved text",
+    "same isolated DB, changed model version qa-next-package and wrapper changes every body numeric path: text inherited under stable field ID",
+    "changed original text: banner reports 1 pending conflict; edit retained in expanded panel",
+    "click 核对并沿用修改 opens dialog with retained edit; save creates shared v3, conflict cleared and text applied"
+  ],
+  "manualAcceptance": "not-signed",
+  "onlineAuthenticatedEditing": "pending user verification; production tests are read-only recovery and release/auth checks"
+}

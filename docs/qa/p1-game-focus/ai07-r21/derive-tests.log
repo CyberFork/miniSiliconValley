@@ -1,0 +1,33 @@
+
+> mini-silicon-valley-world@1.0.0 test:t132-t133:courseware
+> node courseware/shared/tests/verify.mjs && node courseware/module-thinking-deck/tests/verify.mjs && node courseware/module-thinking-deck/tests/verify-integration.mjs && node courseware/ligun-deck/tests/verify-visuals.mjs && node courseware/shared/tests/verify-recap.mjs && node courseware/module-thinking-deck/tests/verify-recap-fold.mjs
+
+module-thinking-p1: 38 slides; deployment-ready ee39ef47248d6f89b6b59b48952634ed368f410596ecba5e28db0fdd72065de0; physical teacher split
+module-thinking-p1: 38 slides; deployment-ready ee39ef47248d6f89b6b59b48952634ed368f410596ecba5e28db0fdd72065de0; physical teacher split
+ligun-p2: 28 slides; deployment-ready ebab83c20fad26b3df8152acf6d4c5f26115c1521557b2523f5a8eb9647e2cd4; physical teacher split
+ligun-p2: 28 slides; deployment-ready ebab83c20fad26b3df8152acf6d4c5f26115c1521557b2523f5a8eb9647e2cd4; physical teacher split
+T-132/T-133 structure, budgets, templates, physical split, local links, deterministic hashes and game checks PASS
+[
+  {
+    "name": "module-thinking-deck",
+    "count": 38,
+    "minutes": 240,
+    "digest": "ee39ef47248d6f89b6b59b48952634ed368f410596ecba5e28db0fdd72065de0"
+  },
+  {
+    "name": "ligun-deck",
+    "count": 28,
+    "minutes": 120,
+    "digest": "ebab83c20fad26b3df8152acf6d4c5f26115c1521557b2523f5a8eb9647e2cd4"
+  }
+]
+T-132 structural checks passed (T-128/T-130 preserved): 38 slides/S08 and S11 intentionally removed, 120+120 minutes, three local 3D scenes, complete notes, separated audience bundle, printable worksheets.
+verify-voxel: all checks passed
+T-132/T-133 immutable release integration passed (human acceptance unsigned): ee39ef47248d6f89b6b59b48952634ed368f410596ecba5e28db0fdd72065de0, audience 62, teacher 43.
+P2 visuals: six fields, six children, 28 slides/120 minutes, same-input repair and physical styles PASS
+module-thinking-p1: 38 slides; deployment-ready ee39ef47248d6f89b6b59b48952634ed368f410596ecba5e28db0fdd72065de0; physical teacher split
+ligun-p2: 28 slides; deployment-ready ebab83c20fad26b3df8152acf6d4c5f26115c1521557b2523f5a8eb9647e2cd4; physical teacher split
+recap structure, budgets, notes, reveals, terms, CSS references and build bytes PASS
+presenter-runtime.js: 8 masks, hydration, legacy states, next/back/reset, isolation PASS
+deck-runtime.js: 8 masks, hydration, legacy states, next/back/reset, isolation PASS
+P1 recap independent folds PASS

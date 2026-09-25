@@ -1,0 +1,13 @@
+{
+  "release": "20260923T1348CST-header-cache-r15",
+  "asset": "/courseware-current-db94b939b56ac308.js",
+  "sha256": "db94b939b56ac308e5316f3afe88af71c2e919480bf39d8cea48cb26e180ef16",
+  "headers": {
+    "content-type": "application/javascript",
+    "cache-control": "no-store, no-transform",
+    "cf-cache-status": "BYPASS"
+  },
+  "deployment": "MINISV_HECATE_HEALTHY",
+  "unchanged_historical_files": 1166,
+  "python_tests_passed": 82
+}

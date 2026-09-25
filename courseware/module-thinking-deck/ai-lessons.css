@@ -1,0 +1,117 @@
+/* Second teaching stage only: explicit surfaces/ink, no global header overrides. */
+.deck-slide[data-slide-id^="ai-"]{padding:34px 48px 72px}
+.deck-slide[data-slide-id^="ai-"] .slide-heading{margin-top:14px;max-width:none}
+.deck-slide[data-slide-id^="ai-"] .slide-heading h1{font-size:54px;line-height:1.16}
+.deck-slide[data-slide-id^="ai-"] .slide-heading p{font-size:25px;line-height:1.4;margin-top:12px}
+.deck-slide[data-slide-id^="ai-"] .slide-body{top:218px;bottom:74px;left:48px;right:48px}
+.ai-lesson{color:#172c3e;height:100%;font-size:25px;line-height:1.5}
+.ai-lesson [hidden]{display:none!important}
+.ai-lesson p{margin:10px 0;font-size:25px;line-height:1.45;color:#172c3e}
+.ai-lesson h3{font-size:28px;line-height:1.25;margin:0 0 10px;color:#172c3e}
+.ai-lesson button,.ai-link{font:700 24px/1.3 system-ui;color:#172c3e;background:#fffdf8;border:3px solid #172c3e;padding:12px 18px;cursor:pointer}
+.ai-lesson button[aria-pressed="true"]{background:#ebca63;box-shadow:4px 4px 0 #76ceb0}
+.ai-lesson button:focus-visible,.ai-link:focus-visible{outline:5px solid #284fd5;outline-offset:3px}
+.ai-lesson button:disabled{cursor:default}
+.ai-columns{display:grid;grid-template-columns:1fr 1fr;gap:24px;min-height:400px}
+.ai-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin:18px 0}
+.ai-card{background:#fffdf8;border:3px solid #20354b;padding:18px 22px;color:#172c3e;margin-bottom:12px}
+.ai-banner{padding:12px 18px;background:#fff1b1;border-left:8px solid #3e807b;margin:16px 0!important;font-size:24px!important}
+.ai-scene{position:relative;min-height:435px;overflow:hidden;border:3px solid #20354b;background:#e1eeee}
+.ai-tabs{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:18px}
+.ai-panel{animation:ai-appear .3s ease}
+.ai-big-quote{font-size:36px;font-weight:700;padding:30px;border:3px solid #20354b;background:#e2eaff;margin:12px 0 20px;color:#172c3e}
+.ai-six{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.ai-six button{min-height:70px;text-align:left}
+.ai-detail{background:#fffdf8;border:3px solid #20354b;padding:28px;margin-top:24px;min-height:175px}
+.ai-detail h3{font-size:32px;color:#284fd5}
+.ai-detail p{font-size:30px}
+.ai-link{display:inline-block;text-decoration:none;background:#ebca63;margin-top:8px}
+.ai-tree{text-align:center;margin-bottom:20px}
+.ai-tree>button{background:#dae7ff;min-width:450px}
+.ai-branches,.ai-leaves{display:flex;justify-content:center;gap:28px;padding-top:24px;position:relative}
+.ai-branches:before,.ai-leaves:before{content:'↓';position:absolute;left:50%;top:0;font-size:22px;line-height:24px}
+.ai-branches button{background:#dff3e9;min-width:240px}.ai-leaves button{background:#fff1b1}
+.ai-dialog{border:3px solid #20354b;padding:26px;background:#e2eaff}
+.ai-lesson output{display:block;white-space:pre-line;color:#172c3e;font:inherit}
+.ai-dialog output{min-height:135px;font-size:30px}
+.ai-choice-buttons{display:flex;gap:12px}
+.ai-lesson output[data-ai-decisions]{min-height:215px;line-height:1.8}
+.ai-change-controls{display:flex;gap:18px;margin-bottom:20px}
+.ai-change-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.ai-change-grid .ai-card{transition:background .35s,border-color .35s;min-height:120px}
+.ai-change-grid .ai-affected{background:#fff1b1;border-color:#b36d26}
+.ai-status{border:3px solid #20354b;background:#e1f2eb;padding:20px;margin:16px 0;min-height:98px;font-size:27px!important}
+.ai-pipeline{display:flex;justify-content:space-between;align-items:center;margin:26px 0}
+.ai-pipeline span{padding:24px 32px;border:3px solid #20354b;background:#fffdf8;transition:background .3s}
+.ai-pipeline .ai-active{background:#bde8d9}
+.ai-bag-demo{display:grid;grid-template-columns:1fr 440px;gap:35px;border:3px solid #20354b;background:#fffdf8;padding:30px;margin:24px 0}
+.ai-bag-slots{font-size:42px!important;padding:35px 0;letter-spacing:5px}
+.ai-bag-actions{display:flex;flex-direction:column;gap:15px}
+.ai-real-game{height:515px;border:3px solid #20354b;background:#dcebed}
+.ai-real-game iframe{border:0;width:100%;height:100%}
+@keyframes ai-appear{from{opacity:.3;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.ai-panel{animation:none}.ai-affected,.ai-pipeline span{transition:none}}
+.ai-scene[data-webgl-ready="true"]>.module-3d-fallback{display:none}
+.ai-scene .module-3d-fallback{padding:24px;font-size:25px}
+/* AI-07: compare scope, not a second tour of the same six headings. */
+.ai-derive .ai-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:18px}
+.ai-derive-grid{display:grid;grid-template-columns:1fr 54px 1fr;align-items:stretch;min-height:365px}
+.ai-derive-master,.ai-derive-child{padding:20px 24px;border:3px solid #20354b;background:#e2eaff}
+.ai-derive-child{background:#e1f2eb}
+.ai-derive-arrow{align-self:center;text-align:center;font-size:42px;color:#3e807b}
+.ai-derive h4{font-size:24px;line-height:1.3;margin:12px 0 5px;color:#284fd5}
+.ai-derive p{font-size:25px;margin:8px 0;line-height:1.4}
+.ai-derive .ai-derive-quote{font-size:30px;font-weight:700;margin:18px 0}
+.ai-derive .ai-derive-question{font-weight:700;margin-top:18px}
+.ai-derive-slots{display:flex;gap:12px;margin:18px 0}
+.ai-derive-slots output{background:#fffdf8;border:3px solid #20354b;padding:6px 25px}
+.ai-derive-check{border-top:2px dashed #3e807b;margin-top:18px}
+.ai-derive-mini-flow{background:#fff1b1;border-left:5px solid #3e807b;padding:10px 12px}
+.ai-derive .ai-banner{margin:12px 0 6px!important}
+.ai-derive .ai-link{font-size:23px;padding:8px 15px}
+.ai-derive-panel{opacity:1;animation:ai-derive-enter .25s ease-out}
+@keyframes ai-derive-enter{from{transform:translateY(6px)}to{transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.ai-derive-panel{animation:none}}
+/* One field, its meaning and its concrete example are taught together. */
+.ai-master-combined .ai-six{gap:12px}
+.ai-master-combined .ai-six button{min-height:58px;padding:10px 16px}
+.ai-master-detail{margin-top:18px;padding:18px 22px;background:#fffdf8;border:3px solid #20354b}
+.ai-master-detail h3{font-size:30px;color:#284fd5;margin-bottom:12px}
+.ai-master-pair{display:grid;grid-template-columns:1fr 1.2fr;gap:24px}
+.ai-master-pair>div{background:#e2eaff;border-left:5px solid #284fd5;padding:12px 16px}
+.ai-master-pair>div+div{background:#e1f2eb;border-left-color:#3e807b}
+.ai-master-pair h4{font-size:24px;margin:0 0 8px;color:#172c3e}
+.ai-master-combined .ai-master-try{margin:14px 0 0;font-size:24px;font-weight:700}
+.ai-master-combined .ai-banner{margin:12px 0 4px!important}
+.ai-master-combined .ai-link{font-size:23px;padding:8px 15px}
+.ai-master-panel{animation:ai-derive-enter .25s ease-out}
+@media(prefers-reduced-motion:reduce){.ai-master-panel{animation:none}}
+/* Minecraft architecture: one fixed-ratio classroom stage, no global selectors. */
+.mca-lesson{display:grid;grid-template-columns:270px minmax(0,1fr);grid-template-rows:minmax(0,1fr) 30px;gap:12px 24px}
+.mca-tabs{display:grid;grid-template-rows:repeat(12,minmax(0,1fr));gap:6px;min-height:0}
+.ai-lesson .mca-tabs button{padding:5px 12px;font-size:23px;text-align:left;line-height:1.15;min-height:0}
+.mca-tabs button:nth-child(n+7):nth-child(-n+11){border-left:9px solid #43857b}
+.mca-tabs button:nth-child(n+2):nth-child(-n+6){border-left:9px solid #3654ca}
+.mca-content{min-height:0;border:3px solid #20354b;background:#fffdf8;padding:18px 22px;overflow:hidden}
+.mca-panel{height:100%;min-height:0}
+.mca-detail-heading{display:flex;gap:18px;align-items:center;margin-bottom:10px}.mca-detail-heading span{padding:4px 12px;background:#e1f2eb;font-size:21px}.mca-detail-heading h3{margin:0;font-size:30px}
+.mca-image{margin:0;height:355px;text-align:center;background:#e7efec;display:flex;flex-direction:column;align-items:center}
+.mca-image img{width:100%;height:calc(100% - 28px);object-fit:contain;min-height:0}
+.mca-panel figcaption{font-size:16px;line-height:26px;color:#526576}.mca-panel figcaption a{color:#2446ac}
+.ai-lesson .mca-job{font-size:27px;margin:12px 0 8px}.ai-lesson .mca-handoff{font-size:24px;margin:0;padding:10px 14px;background:#fff1b1;border-left:6px solid #44867b}
+.ai-lesson .mca-disclaimer{grid-column:1/-1;font-size:18px;margin:0;line-height:26px;color:#526576}
+.mca-overview{display:grid;grid-template-columns:1fr 210px 1fr;align-items:center;gap:12px;margin-top:22px}
+.mca-overview article{border:3px solid #20354b;padding:18px 16px;min-height:265px}.mca-client{background:#e2eaff}.mca-server{background:#dff3e9}
+.mca-overview h4{font-size:27px;margin:0 0 12px}.ai-lesson .mca-overview p{font-size:23px;line-height:1.35;margin:0 0 16px}.mca-chips{display:flex;gap:8px;flex-wrap:wrap}.mca-chips span{background:#fffdf8;border:2px solid #6d898f;padding:5px 8px;font-size:21px}
+.mca-arrows{display:grid;gap:22px;text-align:center;font-size:22px;font-weight:bold;color:#2446ac}.mca-arrows span{border-block:2px solid #91a7b1;padding:10px 0}
+.mca-links{margin-top:16px;background:#fff1b1;padding:8px 16px}.ai-lesson .mca-links p{font-size:24px;margin:5px 0}.ai-lesson .mca-note{font-size:23px;margin:14px 0 0}
+.mca-dig-pictures{display:grid;grid-template-columns:1fr 40px 1fr;align-items:center;gap:10px;margin-top:10px}.mca-dig-pictures figure{margin:0;text-align:center}.mca-dig-pictures img{width:100%;height:210px;object-fit:contain;background:#e7efec}.mca-dig-pictures>div{text-align:center;font-size:36px}
+.mca-flow{display:grid;grid-template-columns:1fr 1fr;gap:10px;list-style:none;padding:0;margin:14px 0}.mca-flow li{font-size:23px;border:2px solid #6d898f;background:#e1f2eb;padding:8px 12px}
+
+/* Short local Minecraft audio samples: no external player or autoplay. */
+.mca-sound-demo{display:grid;grid-template-columns:32% minmax(0,1fr);gap:18px;height:305px}
+.mca-sound-demo .mca-image{height:100%}.mca-sound-list{display:grid;gap:8px}
+.mca-sound-card{border:2px solid #6d898f;background:#e1f2eb;padding:6px 12px;display:grid;grid-template-columns:135px 1fr;align-items:center;column-gap:10px}
+.mca-sound-card h4{font-size:25px;margin:0;color:#172c3e}.ai-lesson .mca-sound-card p{font-size:20px;margin:0}
+.mca-sound-card audio{grid-column:1/-1;width:100%;height:36px;min-width:0}
+.ai-lesson .mca-audio-tip{font-size:21px;margin:8px 0 0}.ai-lesson .mca-audio-credit{font-size:16px;margin:2px 0;color:#526576}.mca-audio-credit a{color:#2446ac}

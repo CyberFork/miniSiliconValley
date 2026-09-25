@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "scope": "authenticated GET-only production Classroom progress verification",
+  "release": "20260911T192157CST-t093-t111-r2",
+  "sourceCommit": "256ac17d8b4c2fb6757e8b9408eaffcb929ca417",
+  "credentialsLogged": false,
+  "activeRoomLinks": 1,
+  "progressSegments": 13,
+  "availableThrough": "B07",
+  "reached": [
+    "B01",
+    "B02",
+    "B03",
+    "B04",
+    "B05",
+    "B06",
+    "B07"
+  ],
+  "b08Locked": true,
+  "mutatingRequestsAfterLogin": [],
+  "consoleErrors": []
+}

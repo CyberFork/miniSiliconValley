@@ -1,0 +1,326 @@
+{
+  "schemaVersion": 1,
+  "todoId": "T-091",
+  "generatedAt": "2026-09-09",
+  "status": "candidate-local-development",
+  "scope": {
+    "description": "Repository-wide text inventory plus the external cowork P-courseware snapshot. Generated artifacts and reference-only copy are classified; only the Candidate is an editable CourseDefinition.",
+    "match": "case-insensitive: 饿了么|eleme",
+    "excludedDirectories": [
+      ".git",
+      ".next",
+      ".npm-cache",
+      ".wrangler",
+      "dist",
+      "node_modules"
+    ],
+    "referenceFileCount": 119,
+    "referenceFiles": [
+      "README.md",
+      "app/account/AccountClient.tsx",
+      "app/auth/AuthForms.tsx",
+      "app/classroom/ClassroomApp.tsx",
+      "app/classroom/ClassroomHub.tsx",
+      "app/classroom/ClassroomRuntime.tsx",
+      "app/components/MissionPlayer.tsx",
+      "app/components/Modal.tsx",
+      "app/components/WorldApp.tsx",
+      "app/data/classroom-campaigns.ts",
+      "app/data/eleme-classroom-campaign.ts",
+      "app/data/parent-qa-knowledge.ts",
+      "app/data/student-classroom-copy.ts",
+      "app/data/student-classroom-game-copy.ts",
+      "app/lib/course-package.ts",
+      "app/qa/QaClient.tsx",
+      "app/studio/StudioApp.tsx",
+      "app/studio/editor/workbench.html",
+      "deploy/minisv/docs/DEPLOYMENT-RECEIPT-2026-09-04.md",
+      "deploy/minisv/site/portal.js",
+      "deploy/minisv/site/ui-theme.js",
+      "deploy/minisv/tests/test_ui_theme_runtime.mjs",
+      "deploy/minisv/workshop/baseline.js",
+      "deploy/minisv/workshop/confirmed-baseline.json",
+      "docs/CLASSROOM_ARCHITECTURE.md",
+      "docs/CLASSROOM_RELEASE_RECEIPT.md",
+      "docs/COURSE_PACKAGE_SOP.md",
+      "docs/COURSE_PLATFORM_ARCHITECTURE.md",
+      "docs/COURSE_PLATFORM_SOP.md",
+      "docs/COURSE_STUDIO_EDITOR_GUARDRAILS.md",
+      "docs/COURSE_STUDIO_RELEASE.md",
+      "docs/DM_MENTOR_MANUAL.md",
+      "docs/ELEME_CASE_INTEGRATION.md",
+      "docs/ELEME_T091_CONTENT_INVENTORY.json",
+      "docs/TEAM_ACCEPTANCE_GUIDE.md",
+      "docs/TODO_071_072_IMPLEMENTATION.md",
+      "docs/TODO_073_084_PRODUCTION_RECEIPT.md",
+      "docs/TODO_074_IMPLEMENTATION.md",
+      "docs/TODO_083_IMPLEMENTATION.md",
+      "docs/TODO_083_PRODUCTION_RECEIPT.json",
+      "docs/TODO_087_PRODUCTION_RECEIPT.json",
+      "docs/TODO_091_IMPLEMENTATION.md",
+      "docs/TODO_091_LOCAL_TEST_RECEIPT.json",
+      "docs/qa/t091-product-mentor/browser-receipt.json",
+      "package-lock.json",
+      "package.json",
+      "public/studio/editor-assets/editor-loader.js",
+      "public/studio/editor-assets/editor.js",
+      "public/studio/editor-assets/ui-theme.js",
+      "scripts/test-classroom-e2e.ts",
+      "scripts/test-msv-portal-live.mjs",
+      "scripts/test-t091-product-mentor-e2e.ts",
+      "scripts/test-work-app-smoke.ts",
+      "tests/brand-contract.test.ts",
+      "tests/classroom-campaigns.test.ts",
+      "tests/classroom-course-package.test.ts",
+      "tests/classroom-student-copy.test.ts",
+      "tests/classroom-validation.test.ts",
+      "tests/course-submission.test.ts",
+      "tests/eleme-product-mentor-package.test.ts",
+      "tests/studio-editor-restoration.test.ts",
+      "tools/live-run/README.md",
+      "tools/live-run/classroom_api.py",
+      "tools/live-run/course.py",
+      "tools/live-run/courses/README.md",
+      "tools/live-run/courses/candidates/eleme-2008-product-mentor-t091.json",
+      "tools/live-run/courses/course.schema.json",
+      "tools/live-run/docs/ALPHA_BROWSER_ACCEPTANCE_RECEIPT.json",
+      "tools/live-run/docs/ALPHA_CARD_POPUP_BROWSER_RECEIPT.json",
+      "tools/live-run/docs/ALPHA_CONTROLLER_ENTRY_AUDIT.md",
+      "tools/live-run/docs/ALPHA_CONTROLLER_ENTRY_RELEASE_RECEIPT.json",
+      "tools/live-run/docs/ALPHA_DEPLOYMENT_RECEIPT.json",
+      "tools/live-run/docs/ALPHA_IDENTITY_UI_AUDIT.md",
+      "tools/live-run/docs/ALPHA_REMOTE_ACCEPTANCE_RECEIPT.json",
+      "tools/live-run/docs/ARCHITECTURE.md",
+      "tools/live-run/docs/BROWSER_ACCEPTANCE_ELEME_RECEIPT.json",
+      "tools/live-run/docs/COURSE_STUDIO_RELEASE_RECEIPT.json",
+      "tools/live-run/docs/DM_LIVE_RUN_MANUAL.md",
+      "tools/live-run/docs/REAL_ACCEPTANCE_ELEME_RECEIPT.json",
+      "tools/live-run/docs/REMOTE_CONSOLE_ACCEPTANCE_RECEIPT.json",
+      "tools/live-run/docs/REMOTE_CONSOLE_BROWSER_RECEIPT.json",
+      "tools/live-run/docs/REMOTE_CONSOLE_RELEASE_RECEIPT.json",
+      "tools/live-run/docs/TODO_071_072_PRODUCTION_RECEIPT.json",
+      "tools/live-run/docs/TODO_074_PRODUCTION_RECEIPT.json",
+      "tools/live-run/docs/UX_PRODUCT_TRUTH.md",
+      "tools/live-run/live-run-script-eleme.json",
+      "tools/live-run/remote-console/README.md",
+      "tools/live-run/remote-console/static/console.js",
+      "tools/live-run/static/editor.html",
+      "tools/live-run/static/editor.js",
+      "tools/live-run/static/seat.js",
+      "tools/live-run/tests/test_card_view.mjs",
+      "tools/live-run/tests/test_controller.py",
+      "tools/live-run/tests/test_course.py",
+      "tools/live-run/tests/test_course_editor.py",
+      "tools/live-run/tests/test_docs.py",
+      "tools/live-run/tests/test_http.py",
+      "tools/live-run/tests/test_remote_console.mjs",
+      "tools/live-run/tests/test_t074_card_editor.py",
+      "tools/live-run/tests/test_t083_course_preview.mjs",
+      "tools/live-run/tests/test_todos_071_072.py",
+      "tools/live-run/tests/test_workshop_snapshot.py",
+      "tools/live-run/tests/verify_alpha_ui_browser.py",
+      "tools/live-run/tests/verify_brand_browser.py",
+      "tools/live-run/tests/verify_controller_entry_browser.py",
+      "tools/live-run/tests/verify_course_outline_browser.py",
+      "tools/live-run/tests/verify_editor_layout_browser.py",
+      "tools/live-run/tests/verify_live_browser.py",
+      "tools/live-run/tests/verify_remote_console_browser.py",
+      "tools/live-run/tests/verify_studio_editor_restoration_browser.py",
+      "tools/live-run/tests/verify_t074_browser.py",
+      "tools/live-run/tests/verify_t074_production_readonly.py",
+      "tools/live-run/tests/verify_t083_browser.py",
+      "tools/live-run/tests/verify_t083_production_readonly.py",
+      "tools/live-run/tests/verify_t086_script_runtime_browser.py",
+      "tools/live-run/tests/verify_t087_browser.py",
+      "tools/live-run/tests/verify_t091_product_mentor_browser.py",
+      "tools/live-run/tests/verify_workshop_baseline_browser.py",
+      "tools/live-run/tests/verify_world_hotspot_browser.py"
+    ],
+    "excludedFiles": [
+      "tsconfig.tsbuildinfo"
+    ]
+  },
+  "courseTruth": {
+    "immutableBundledR0": {
+      "path": "tools/live-run/live-run-script-eleme.json",
+      "courseId": "eleme-2008-find-problem",
+      "revision": 0,
+      "digest": "407a24b43ead68ddccf0871fe7910ae21f1ca64ec4b7232a2bc0afeb2cfecb6c",
+      "action": "keep-byte-identical; never rewrite published history"
+    },
+    "candidate": {
+      "path": "tools/live-run/courses/candidates/eleme-2008-product-mentor-t091.json",
+      "courseId": "eleme-2008-find-problem",
+      "status": "importable Candidate, not Released",
+      "casePackageId": "case-eleme-2008-product-discovery",
+      "caseType": "historical",
+      "scriptPackageId": "script-eleme-2008-product-mentor",
+      "ownerMentorRole": "P",
+      "blocks": [
+        "B01",
+        "B02",
+        "B03",
+        "B04"
+      ],
+      "action": "edit/review here; persist through Studio Candidate workflow"
+    },
+    "legacyCompatibilityProjection": {
+      "path": "app/data/eleme-classroom-campaign.ts",
+      "consumers": [
+        "app/data/classroom-campaigns.ts",
+        "app/data/student-classroom-copy.ts",
+        "app/data/student-classroom-game-copy.ts"
+      ],
+      "action": "retained for legacy classroom compatibility; not read by CourseFactory as CourseDefinition and not modified by T-091"
+    }
+  },
+  "pCourseware": {
+    "runtimeExactRef": {
+      "mentorRole": "P",
+      "packageId": "cw-product-mentor-foundations",
+      "slug": "product-mentor-foundations",
+      "revision": 0,
+      "digest": "b2852b39462bc05464582b3c36f773e68fa84775b9e7c7673a128fac97d7cda5",
+      "sourceCommit": "679213a61b835335016eac7649213983a0e48489",
+      "sourceTree": "3a041c4714190cc026f6de8e06e15cec0e5f765d"
+    },
+    "externalCoworkSnapshot": {
+      "path": "/Users/hecate/Library/CloudStorage/OneDrive-个人/Work/CHJ、DL/AI教培-mini硅谷/cowork/课件/product-courseware/course/index.html",
+      "observedRevisionMarker": "1d6797… (later than runtime exact r0)",
+      "action": "read-only; owner review required before a new immutable revision is created"
+    },
+    "checkpoints": [
+      {
+        "id": "p-a-enter-2008",
+        "blocks": [
+          "B01"
+        ],
+        "slides": [
+          7,
+          15
+        ]
+      },
+      {
+        "id": "p-b-find-real-problem",
+        "blocks": [
+          "B02"
+        ],
+        "slides": [
+          16,
+          20
+        ]
+      },
+      {
+        "id": "p-c-rebuild-early-mvp",
+        "blocks": [
+          "B03"
+        ],
+        "slides": [
+          22,
+          33
+        ]
+      },
+      {
+        "id": "p-d-transfer-project",
+        "blocks": [
+          "B04"
+        ],
+        "slides": [
+          36,
+          62
+        ]
+      }
+    ],
+    "excludedSlide": {
+      "slide": 21,
+      "reason": "“2008 饿了么 App” is not supported by the four locked sources; explicitly skipped pending owner correction or evidence"
+    }
+  },
+  "evidence": {
+    "revision": "sha256:e09f556982eeb4a41cb7f2f86cc1ea5b2222f4ebecf09e89aada76060ddebe6d",
+    "sourceIds": [
+      "src-eleme-sjtu-youth-origin",
+      "src-eleme-sjtu-mba-origin",
+      "src-eleme-sjtu-youth-process",
+      "src-eleme-sjtu-news-2018"
+    ],
+    "cardCounts": {
+      "total": 60,
+      "F": 20,
+      "R": 16,
+      "G": 12,
+      "U": 12
+    },
+    "factCardIds": [
+      "e08-f-01",
+      "e08-f-02",
+      "e08-c-01",
+      "e08-c-02",
+      "e08-c-03",
+      "e08-c-04",
+      "e08-c-05",
+      "e08-c-06",
+      "e08-decide-f01",
+      "e08-decide-f02",
+      "e08-decide-f03",
+      "e08-build-f01",
+      "e08-build-f02",
+      "e08-build-f03",
+      "e08-market-f01",
+      "e08-market-f02",
+      "e08-market-f03",
+      "e08-operate-f01",
+      "e08-operate-f02",
+      "e08-operate-f03"
+    ],
+    "boundaryRules": {
+      "F": "sourceIds required and enumerated in CasePackage",
+      "R": "body begins 课堂模拟：",
+      "G": "body begins 团队推测：",
+      "U": "body begins 当前未知："
+    }
+  },
+  "productBrief": {
+    "schemaId": "product-brief-v1",
+    "kind": "product-brief",
+    "ownerMentorRole": "P",
+    "submitAtBlockId": "B04",
+    "fields": [
+      "target-user",
+      "user-task",
+      "observed-problem",
+      "facts-and-sources",
+      "assumptions",
+      "unknowns",
+      "value-hypothesis",
+      "core-journey",
+      "mvp-hypothesis",
+      "boundaries"
+    ],
+    "handoff": {
+      "from": "P/B04",
+      "to": "D/B05",
+      "condition": "latest accepted ProductBrief only"
+    }
+  },
+  "routing": {
+    "P": "B01–B04 owns historical CasePackage, ScriptPackage, checkpoint cues and ProductBrief review",
+    "D": "B05+ reads only accepted ProductBrief handoff and keeps its own development facilitation script",
+    "M": "does not receive P history or P→D handoff",
+    "O": "does not receive P history or P→D handoff",
+    "learner": "sees own random private cards and own ProductBrief; mentor rubric/prompts are server-redacted",
+    "adminDm": "can audit and Test-switch roles; no fifth mentor seat is created"
+  },
+  "openReviewQueue": [
+    "review-p-courseware-local-snapshot",
+    "review-p-courseware-slide-21-app"
+  ],
+  "tests": [
+    "tests/eleme-product-mentor-package.test.ts",
+    "tests/course-submission.test.ts",
+    "tools/live-run/tests/test_course.py",
+    "scripts/test-t091-product-mentor-e2e.ts",
+    "tools/live-run/tests/verify_t091_product_mentor_browser.py"
+  ],
+  "localAcceptanceReceipt": "docs/TODO_091_LOCAL_TEST_RECEIPT.json"
+}

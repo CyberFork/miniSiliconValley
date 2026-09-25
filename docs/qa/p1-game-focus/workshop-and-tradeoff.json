@@ -1,0 +1,29 @@
+{
+  "version": "2026.09.22-p1-games-draft1",
+  "digest": "c998b7c7c22603a6605cfbe7c8ed75fb246fbb7931ae6c4533a9723beffc4857",
+  "workshopAssetVersion": "mc-4d6f42d212db",
+  "changes": [
+    "module-save inline feedback and three-plane wheel recipe",
+    "Space thrust; opposite exhaust/force; independent left/right yaw assist",
+    "Rapier crash wall shared geometry, wheel contact verified",
+    "chassis surface click placements persisted, custom wheel anchors/axes and custom thruster force point",
+    "S05 relationships; S11 removed; 25 slides,120 minutes",
+    "WHY four tabs reuse existing 3D plus game cooperation scene"
+  ],
+  "tests": {
+    "workshopNode": "26/26 PASS",
+    "P1GameFocus": "PASS",
+    "sharedDeckBuild": "PASS deterministic",
+    "recap": "PASS",
+    "tradeoffStructure": "PASS",
+    "lint": "PASS",
+    "diffCheck": "PASS"
+  },
+  "browser": {
+    "observedOriginalFailure": "Existing games-review page showed wheel shape rejection in offscreen footer, fields populated, five blocks selected. No user blocks changed.",
+    "inlineRequiredField": "Empty isolated save-check-0922-b submit showed missing-name message next to save and focused name field.",
+    "finalNewInteractions": "NOT_FULLY_VERIFIED; user actively using browser; stopped UI automation after clipboard navigation error to Bing. No claim of successful final visual/free-placement/keyboard acceptance."
+  },
+  "productionDeployed": false,
+  "manualAcceptance": "NOT_SIGNED"
+}

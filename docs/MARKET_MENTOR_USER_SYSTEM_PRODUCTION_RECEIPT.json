@@ -1,0 +1,70 @@
+{
+  "receiptVersion": 1,
+  "completedAt": "2026-09-10T03:31:36+08:00",
+  "status": "deployed-and-verified",
+  "scope": [
+    "将 cowork/课件/user-system-slides.html 归集为 M 导师不可变 CoursewarePackage r0",
+    "统一 cowork/课件 的 product-courseware/development-courseware/market-courseware 同级命名",
+    "将 M 课件接入登录后的 /course/ 目录、播放器和 Test Classroom 默认课件选择",
+    "修复 49 页课件的快速首尾跳转、深链、密集页适配与外部字体依赖",
+    "将 exact M 静态包纳入 Hecate 统一发布、共享鉴权与生产冒烟"
+  ],
+  "canonicalProduction": {
+    "host": "hecate",
+    "origin": "https://minisv.vip",
+    "releaseId": "20260910T032647CST-market-mentor-user-system-r2",
+    "immediatePreviousReleaseId": "20260910T031544CST-market-mentor-user-system-r1",
+    "preMarketRollbackReleaseId": "20260910T020748CST-t095-t096-course-platform-r3",
+    "sourceCommit": "f1b063b56aa4800a5316103da94c09dcef870a78",
+    "archiveSha256OnHecate": "6c0192adb2b4acc93550e8ddf2226535e8d291bf4d2c7a6c385e7caf3bbb2487",
+    "siteDigest": "27b2827397d839c31ba7cff2dcfa38a210ef7de25f6e56f6c1f5d86541e794de",
+    "appDigest": "eb80963eb51566cb106e1986b29feb1a577d525cd7a47d834e6576272e31817c",
+    "appBuildId": "9c3aa8b9-b873-4068-9706-3a7f0c60a4c7",
+    "backup": "~/Services/minisv/backups/20260909T192927Z-20260910T032647CST-market-mentor-user-system-r2"
+  },
+  "marketCourseware": {
+    "mentorRole": "M",
+    "packageId": "cw-market-mentor-user-system",
+    "slug": "market-mentor-user-system",
+    "revision": 0,
+    "title": "市场导师｜产品的用户体系",
+    "slides": 49,
+    "sourceFile": "cowork/课件/market-courseware/course/index.html",
+    "sourceFileSha256": "aace20f86a717b965f0be1629f254ec3d58e4859850f0d20f0491999fcee1682",
+    "contentTreeSha256": "48b01a256bd3d408a5d539f798470e6aad0058a19dcdeb8b5d212b0e64add862",
+    "registryDigest": "c48010b29cf4e9319552cee7748b6a8126ddf2c00486390e967e5b40d10cdc20",
+    "files": 1,
+    "bytes": 87302,
+    "transformed": false,
+    "courseUrl": "https://minisv.vip/course/market-mentor-user-system/?revision=0",
+    "rawProtectedUrl": "https://minisv.vip/courseware/market-mentor-user-system/"
+  },
+  "preservedCourseware": {
+    "productTreeSha256": "347697696787065721fc66ac7d756e8c56338f646bc1a5aba51392133c835b04",
+    "developmentTreeSha256": "ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234"
+  },
+  "validation": {
+    "data": "203 events, 5 curriculum stages, 0 errors, 0 warnings",
+    "typecheck": true,
+    "lint": true,
+    "coursePlatformUnit": "83 passed",
+    "deploymentContract": "35 passed",
+    "classroomE2E": "Google and Ele.me five-step campaigns passed",
+    "coursePlatformE2E": "M package appears in the Released library, exact deep links and Test Classroom refs passed",
+    "marketBrowser": "49 slides across 1600x900, 1280x720, 1024x768 and 390x844; keyboard, mouse, Home/End, query retention and fit passed",
+    "hecateHealthcheck": true,
+    "publicSmoke": true,
+    "anonymousMarketCourseware": "401 with no courseware fingerprint",
+    "authenticatedMarketCourseware": "mentor and learner both opened library, player and exact raw artifact; 49 slides and source SHA-256 matched",
+    "staticCoursewareCache": "one Cache-Control value: private, no-store, no-transform"
+  },
+  "securityAndData": {
+    "productionDataReset": false,
+    "existingClassroomRefsMutated": false,
+    "existingPOrDArtifactMutated": false,
+    "humanAcceptanceForged": false,
+    "secretsInReceipt": false,
+    "cyberforkerComTouched": false,
+    "windowsDependency": false
+  }
+}

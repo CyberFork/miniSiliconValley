@@ -1,0 +1,94 @@
+[
+  {
+    "id": "plan-coach-compatible",
+    "title": "完整普通聊天兼容规范",
+    "filename": "plan-coach-compatible.md",
+    "kind": "instruction",
+    "generated": true
+  },
+  {
+    "id": "skill-start",
+    "title": "已加载 Skill 的短启动句",
+    "filename": "skill-start.md",
+    "kind": "instruction",
+    "generated": true
+  },
+  {
+    "id": "car-planning",
+    "title": "示例 · 一段小车策划怎样开始",
+    "filename": "car-planning.md",
+    "kind": "example"
+  },
+  {
+    "id": "module-map",
+    "title": "参考 · 模块地图｜空白模板",
+    "filename": "module-map.md",
+    "kind": "blank"
+  },
+  {
+    "id": "car-module-map",
+    "title": "参考 · 模块地图｜方块小车示例",
+    "filename": "car-module-map.md",
+    "kind": "example"
+  },
+  {
+    "id": "master-rod",
+    "title": "参考 · 主棍模板",
+    "filename": "master-rod.md",
+    "kind": "blank"
+  },
+  {
+    "id": "sub-rod",
+    "title": "参考 · 子棍模板",
+    "filename": "sub-rod.md",
+    "kind": "blank"
+  },
+  {
+    "id": "car-master",
+    "title": "参考 · 小车游戏主棍",
+    "filename": "car-master.md",
+    "kind": "example"
+  },
+  {
+    "id": "car-move",
+    "title": "参考 · 移动模块子棍",
+    "filename": "car-move.md",
+    "kind": "example"
+  },
+  {
+    "id": "car-terrain",
+    "title": "参考 · 地形模块子棍",
+    "filename": "car-terrain.md",
+    "kind": "example"
+  },
+  {
+    "id": "car-pickup",
+    "title": "参考 · 道具模块子棍",
+    "filename": "car-pickup.md",
+    "kind": "example"
+  },
+  {
+    "id": "car-bag",
+    "title": "参考 · 两格背包模块子棍",
+    "filename": "car-bag.md",
+    "kind": "example"
+  },
+  {
+    "id": "car-feedback",
+    "title": "参考 · 提示模块子棍",
+    "filename": "car-feedback.md",
+    "kind": "example"
+  },
+  {
+    "id": "car-finish",
+    "title": "参考 · 终点模块子棍",
+    "filename": "car-finish.md",
+    "kind": "example"
+  },
+  {
+    "id": "feedback-rework",
+    "title": "后续③参考 · 返工记录（本轮不执行）",
+    "filename": "feedback-rework.md",
+    "kind": "blank"
+  }
+]

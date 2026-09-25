@@ -1,0 +1,7 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { createRouteInput, ROUTE_KEY_ACTIONS } from '../controls.mjs';
+const idle={forward:false,thrust:false,reverse:false,steer:0,holding:false};
+test('forward and reverse cancel, while thrust remains independent',()=>{const input=createRouteInput();input.press('up','forward');assert.deepEqual(input.read(),{...idle,forward:true,holding:true});input.press('down','reverse');assert.deepEqual(input.read(),{...idle,holding:true});input.press('space','thrust');assert.deepEqual(input.read(),{...idle,thrust:true,holding:true});});
+test('releasing one source/action preserves other holds',()=>{const input=createRouteInput();input.press('up','forward');input.press('space','thrust');input.press('keyboard','left');input.release('keyboard','left');assert.deepEqual(input.read(),{...idle,forward:true,thrust:true,holding:true});input.release('up');assert.equal(input.read().thrust,true);input.release('space');assert.deepEqual(input.read(),idle);});
+test('clear removes every source and key map is stable',()=>{const input=createRouteInput();input.press('a','right');input.clear();assert.deepEqual(input.read(),idle);assert.equal(ROUTE_KEY_ACTIONS.Space,'thrust');assert.equal(ROUTE_KEY_ACTIONS[' '],'thrust');assert.equal(ROUTE_KEY_ACTIONS.Up,'forward');assert.equal(ROUTE_KEY_ACTIONS.ArrowUp,'forward');assert.equal(ROUTE_KEY_ACTIONS.Down,'reverse');});

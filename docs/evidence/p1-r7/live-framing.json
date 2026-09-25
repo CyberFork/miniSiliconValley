@@ -1,0 +1,308 @@
+[
+  {
+    "surface": "audience/index.html",
+    "slide": "module-s02-voxel",
+    "case": "car",
+    "step": "blocks",
+    "bounds": {
+      "min": [
+        -0.14776721217684707,
+        -0.8042952279076192
+      ],
+      "max": [
+        0.3678882790848153,
+        0.30485566882004284
+      ]
+    },
+    "status": "PASS"
+  },
+  {
+    "surface": "audience/index.html",
+    "slide": "module-s02-voxel",
+    "case": "car",
+    "step": "components",
+    "bounds": {
+      "min": [
+        -0.2659738884019791,
+        -0.8877150146813401
+      ],
+      "max": [
+        0.3275662559328126,
+        0.618315341015728
+      ]
+    },
+    "status": "PASS"
+  },
+  {
+    "surface": "audience/index.html",
+    "slide": "module-s02-voxel",
+    "case": "car",
+    "step": "object",
+    "bounds": {
+      "min": [
+        -0.20295464534178953,
+        -0.8681083303622527
+      ],
+      "max": [
+        0.23597360619757868,
+        0.29464007343994997
+      ]
+    },
+    "status": "PASS"
+  },
+  {
+    "surface": "audience/index.html",
+    "slide": "module-s02-voxel",
+    "case": "scope",
+    "step": "blocks",
+    "bounds": {
+      "min": [
+        -0.14075750730589343,
+        -0.837174822961539
+      ],
+      "max": [
+        0.3517859181065152,
+        0.2003647311578408
+      ]
+    },
+    "status": "PASS"
+  },
+  {
+    "surface": "audience/index.html",
+    "slide": "module-s02-voxel",
+    "case": "scope",
+    "step": "components",
+    "bounds": {
+      "min": [
+        -0.17451052885976148,
+        -0.5109723099257666
+      ],
+      "max": [
+        0.2537940488507189,
+        0.7495922252651984
+      ]
+    },
+    "status": "PASS"
+  },
+  {
+    "surface": "audience/index.html",
+    "slide": "module-s02-voxel",
+    "case": "scope",
+    "step": "object",
+    "bounds": {
+      "min": [
+        -0.15427633520989265,
+        -0.41448672300449635
+      ],
+      "max": [
+        0.1868624270057381,
+        0.4294657720644329
+      ]
+    },
+    "status": "PASS"
+  },
+  {
+    "surface": "audience/index.html",
+    "slide": "module-s05",
+    "case": "car",
+    "step": "blocks",
+    "bounds": {
+      "min": [
+        -0.23536701135230956,
+        -0.8042952279076192
+      ],
+      "max": [
+        0.5859809052640742,
+        0.30485566882004284
+      ]
+    },
+    "status": "PASS"
+  },
+  {
+    "surface": "audience/index.html",
+    "slide": "module-s05",
+    "case": "car",
+    "step": "components",
+    "bounds": {
+      "min": [
+        -0.4236493217183079,
+        -0.8877150146813401
+      ],
+      "max": [
+        0.5217550601584131,
+        0.618315341015728
+      ]
+    },
+    "status": "PASS"
+  },
+  {
+    "surface": "audience/index.html",
+    "slide": "module-s05",
+    "case": "car",
+    "step": "object",
+    "bounds": {
+      "min": [
+        -0.3232708231444162,
+        -0.8681083303622527
+      ],
+      "max": [
+        0.37586418279503336,
+        0.29464007343994997
+      ]
+    },
+    "status": "PASS"
+  },
+  {
+    "surface": "teacher/presenter.html",
+    "slide": "module-s02-voxel",
+    "case": "car",
+    "step": "blocks",
+    "bounds": {
+      "min": [
+        -0.14776721217684707,
+        -0.8042952279076192
+      ],
+      "max": [
+        0.3678882790848153,
+        0.30485566882004284
+      ]
+    },
+    "status": "PASS"
+  },
+  {
+    "surface": "teacher/presenter.html",
+    "slide": "module-s02-voxel",
+    "case": "car",
+    "step": "components",
+    "bounds": {
+      "min": [
+        -0.2659738884019791,
+        -0.8877150146813401
+      ],
+      "max": [
+        0.3275662559328126,
+        0.618315341015728
+      ]
+    },
+    "status": "PASS"
+  },
+  {
+    "surface": "teacher/presenter.html",
+    "slide": "module-s02-voxel",
+    "case": "car",
+    "step": "object",
+    "bounds": {
+      "min": [
+        -0.20295464534178953,
+        -0.8681083303622527
+      ],
+      "max": [
+        0.23597360619757868,
+        0.29464007343994997
+      ]
+    },
+    "status": "PASS"
+  },
+  {
+    "surface": "teacher/presenter.html",
+    "slide": "module-s02-voxel",
+    "case": "scope",
+    "step": "blocks",
+    "bounds": {
+      "min": [
+        -0.14075750730589343,
+        -0.837174822961539
+      ],
+      "max": [
+        0.3517859181065152,
+        0.2003647311578408
+      ]
+    },
+    "status": "PASS"
+  },
+  {
+    "surface": "teacher/presenter.html",
+    "slide": "module-s02-voxel",
+    "case": "scope",
+    "step": "components",
+    "bounds": {
+      "min": [
+        -0.17451052885976148,
+        -0.5109723099257666
+      ],
+      "max": [
+        0.2537940488507189,
+        0.7495922252651984
+      ]
+    },
+    "status": "PASS"
+  },
+  {
+    "surface": "teacher/presenter.html",
+    "slide": "module-s02-voxel",
+    "case": "scope",
+    "step": "object",
+    "bounds": {
+      "min": [
+        -0.15427633520989265,
+        -0.41448672300449635
+      ],
+      "max": [
+        0.1868624270057381,
+        0.4294657720644329
+      ]
+    },
+    "status": "PASS"
+  },
+  {
+    "surface": "teacher/presenter.html",
+    "slide": "module-s05",
+    "case": "car",
+    "step": "blocks",
+    "bounds": {
+      "min": [
+        -0.23536701135230956,
+        -0.8042952279076192
+      ],
+      "max": [
+        0.5859809052640742,
+        0.30485566882004284
+      ]
+    },
+    "status": "PASS"
+  },
+  {
+    "surface": "teacher/presenter.html",
+    "slide": "module-s05",
+    "case": "car",
+    "step": "components",
+    "bounds": {
+      "min": [
+        -0.4236493217183079,
+        -0.8877150146813401
+      ],
+      "max": [
+        0.5217550601584131,
+        0.618315341015728
+      ]
+    },
+    "status": "PASS"
+  },
+  {
+    "surface": "teacher/presenter.html",
+    "slide": "module-s05",
+    "case": "car",
+    "step": "object",
+    "bounds": {
+      "min": [
+        -0.3232708231444162,
+        -0.8681083303622527
+      ],
+      "max": [
+        0.37586418279503336,
+        0.29464007343994997
+      ]
+    },
+    "status": "PASS"
+  }
+]

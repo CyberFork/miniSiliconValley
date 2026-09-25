@@ -1,0 +1,296 @@
+{
+  "snapshotVersion": 1,
+  "capturedAt": "2026-09-10T15:10:59+08:00",
+  "migration": "T-098",
+  "legacyWorkspace": "/Users/hecate/Library/CloudStorage/OneDrive-个人/Work/CHJ、DL/AI教培-mini硅谷/dev-legacy-minisv-dd28a57-20260910",
+  "legacyRepository": "https://github.com/CyberFork/minisv.git",
+  "legacyHead": "dd28a57d4904a3fe47b08b37d1ab10085d593495",
+  "canonicalWorkspace": "/Users/hecate/Library/CloudStorage/OneDrive-个人/Work/CHJ、DL/AI教培-mini硅谷/dev",
+  "canonicalRepository": "https://github.com/CyberFork/miniSiliconValley.git",
+  "canonicalHeadBeforeT098": "6400928c90d6c2fd59ca5b8513cc91a3ada93956",
+  "legacyStatus": [
+    " M .codex/inbox/todos/70-remote-internal-eight-window-test-console.md",
+    " M .codex/inbox/todos/73-full-system-pdmo-five-step-consistency.md",
+    " M docs/ARCHITECTURE.md",
+    "?? .codex/inbox/audits/2026-09-10-design-consistency/audit-baseline.json",
+    "?? .codex/inbox/audits/2026-09-10-design-consistency/deployment-tests.log",
+    "?? .codex/inbox/audits/2026-09-10-design-consistency/extra-tests.log",
+    "?? .codex/inbox/audits/2026-09-10-design-consistency/platform-tests.log",
+    "?? .codex/inbox/audits/2026-09-10-design-consistency/probe-results.json",
+    "?? .codex/inbox/audits/2026-09-10-design-consistency/probe.mts",
+    "?? .codex/inbox/audits/2026-09-10-design-consistency/public-routes.json",
+    "?? .codex/inbox/todos/100-courseware-preview-release-history-and-bundles.md",
+    "?? .codex/inbox/todos/101-classroom-atomic-state-and-stale-response-protection.md",
+    "?? .codex/inbox/todos/102-acceptance-contract-identity-and-completion-semantics.md",
+    "?? .codex/inbox/todos/103-shared-projection-and-public-course-semantics.md",
+    "?? .codex/inbox/todos/104-human-review-queues-and-gap-recurrence.md",
+    "?? .codex/inbox/todos/105-studio-data-scope-and-account-admission-policy.md",
+    "?? .codex/inbox/todos/75-unified-course-source-editor-alpha-classroom.md",
+    "?? .codex/inbox/todos/76-alpha-ui-readability-and-responsive-adaptation.md",
+    "?? .codex/inbox/todos/77-topbar-course-outline-and-chj-integration.md",
+    "?? .codex/inbox/todos/78-replace-123456-links-with-framework.md",
+    "?? .codex/inbox/todos/79-collapsible-course-library-sidebar.md",
+    "?? .codex/inbox/todos/80-card-editor-visible-save-action.md",
+    "?? .codex/inbox/todos/81-reverse-sync-approved-course-baseline-to-workshop.md",
+    "?? .codex/inbox/todos/82-reuse-chj-ui-and-logo-assets-across-site.md",
+    "?? .codex/inbox/todos/83-nine-pane-wysiwyg-course-studio.md",
+    "?? .codex/inbox/todos/84-world-map-hotspot-tooltip-layering.md",
+    "?? .codex/inbox/todos/85-unified-course-factory-studio-classroom-platform.md",
+    "?? .codex/inbox/todos/86-two-stage-course-acceptance-and-navigation-flow.md",
+    "?? .codex/inbox/todos/87-studio-navigation-account-switching-delegated-dm.md",
+    "?? .codex/inbox/todos/88-tablet-mobile-classroom-experience.md",
+    "?? .codex/inbox/todos/89-development-mentor-deck-ligun-integration.md",
+    "?? .codex/inbox/todos/90-development-mentor-scripted-classroom-package.md",
+    "?? .codex/inbox/todos/91-consolidate-eleme-script-into-product-mentor-courseware.md",
+    "?? .codex/inbox/todos/92-deploy-development-mentor-courseware.md",
+    "?? .codex/inbox/todos/93-clickable-unlocked-courseware-progress.md",
+    "?? .codex/inbox/todos/94-b01-editor-test-classroom-controller-data-consistency.md",
+    "?? .codex/inbox/todos/95-isolate-course-editor-fields-by-role-and-seat.md",
+    "?? .codex/inbox/todos/96-authenticated-courseware-library-and-product-deployment.md",
+    "?? .codex/inbox/todos/97-project-design-consistency-audit-and-roadmap.md",
+    "?? .codex/inbox/todos/98-canonical-workspace-and-release-provenance.md",
+    "?? .codex/inbox/todos/99-candidate-save-concurrency-and-exact-integrity.md",
+    "?? docs/COURSE_PLATFORM_ARCHITECTURE.md"
+  ],
+  "preservedFiles": [
+    {
+      "path": ".codex/inbox/audits/2026-09-10-design-consistency/audit-baseline.json",
+      "bytes": 2843,
+      "sha256": "a985b4dfd8c09743cac120c9297d8e267acdc9b99141fe3262d9b8f4f709fed3"
+    },
+    {
+      "path": ".codex/inbox/audits/2026-09-10-design-consistency/deployment-tests.log",
+      "bytes": 134,
+      "sha256": "4c40235978b5ad33c7385bf8cbe76c8c5348e515014b06cc82e5269ddd007491"
+    },
+    {
+      "path": ".codex/inbox/audits/2026-09-10-design-consistency/extra-tests.log",
+      "bytes": 1541,
+      "sha256": "b15e069f3de3aea82d438adcebfba8b4147edb12ecb38b0c2811a1b5140dd140"
+    },
+    {
+      "path": ".codex/inbox/audits/2026-09-10-design-consistency/platform-tests.log",
+      "bytes": 8768,
+      "sha256": "f8453a5245251fd0d232288154d305b0386e0e5de647b14c7a180ef4bc4744ff"
+    },
+    {
+      "path": ".codex/inbox/audits/2026-09-10-design-consistency/probe-results.json",
+      "bytes": 1458,
+      "sha256": "3c535a225ef29c9631496eca6a935523bfd86054ca7cb5b3f2d0375c2916b4a7"
+    },
+    {
+      "path": ".codex/inbox/audits/2026-09-10-design-consistency/probe.mts",
+      "bytes": 8329,
+      "sha256": "59191fd4b42da3dd6a09ee89560517dcfd37d05552cb74b091c3f629e0908089"
+    },
+    {
+      "path": ".codex/inbox/audits/2026-09-10-design-consistency/public-routes.json",
+      "bytes": 2380,
+      "sha256": "9a7935a3f83b7050422865d203b69cf513d3dcb6f5c26e6516c14bd2e9d7cb48"
+    },
+    {
+      "path": ".codex/inbox/todos/100-courseware-preview-release-history-and-bundles.md",
+      "bytes": 3551,
+      "sha256": "29a0c802c4e6d8cb22094c831b13cea8d6e2309aebc430344f01702217360e8f"
+    },
+    {
+      "path": ".codex/inbox/todos/101-classroom-atomic-state-and-stale-response-protection.md",
+      "bytes": 2859,
+      "sha256": "65404a1866b22f837193d0254cc6e3bc921dcd029bb853a00464011e99b6b74c"
+    },
+    {
+      "path": ".codex/inbox/todos/102-acceptance-contract-identity-and-completion-semantics.md",
+      "bytes": 3212,
+      "sha256": "58fd95cdc9f8484f55d3ddc472908bc0dc190faa5e78d3d0aa01364056482d73"
+    },
+    {
+      "path": ".codex/inbox/todos/103-shared-projection-and-public-course-semantics.md",
+      "bytes": 3255,
+      "sha256": "948c9d500b3051cc694ebc104e241b7249cfc5988e96de8a3d273ffd221804cb"
+    },
+    {
+      "path": ".codex/inbox/todos/104-human-review-queues-and-gap-recurrence.md",
+      "bytes": 3566,
+      "sha256": "f24e63891601c1a9cb50019ee506b911ae447d7f3a862e5aa0d8568cbbe38228"
+    },
+    {
+      "path": ".codex/inbox/todos/105-studio-data-scope-and-account-admission-policy.md",
+      "bytes": 3589,
+      "sha256": "a7520daca8eb7b6d2a8fd9f0a1ab1682dba7da3af68b2ea20c3a166b55969e03"
+    },
+    {
+      "path": ".codex/inbox/todos/68-pdmo-mentor-role-and-123456-framework.md",
+      "bytes": 2543,
+      "sha256": "ea5e68a76f9f91576f0ff26f6b07f6a3ccc166dd3960c274e1a89b96518c2635"
+    },
+    {
+      "path": ".codex/inbox/todos/69-four-mentor-five-step-course-loop.md",
+      "bytes": 4052,
+      "sha256": "54b15d054e59ffcc7cc73505889925df05afc441825ab9fa9241f81cf62fbbd5"
+    },
+    {
+      "path": ".codex/inbox/todos/70-remote-internal-eight-window-test-console.md",
+      "bytes": 6457,
+      "sha256": "3598f9feed19032ac11c6aafab26210a12c67f175d20de499b9dcd09ece1c66f"
+    },
+    {
+      "path": ".codex/inbox/todos/71-course-json-stage-card-decks.md",
+      "bytes": 4981,
+      "sha256": "e9926259eb5488496cc8586bb9ad35180eccdcdcbdb78945f033956b745e8f14"
+    },
+    {
+      "path": ".codex/inbox/todos/72-course-editor-alpha-live-sync-controls.md",
+      "bytes": 7223,
+      "sha256": "df6ca4e2284ea6024346d6936a47fdbec0b3dab5f0cc85fe2fb5434295075ff9"
+    },
+    {
+      "path": ".codex/inbox/todos/73-full-system-pdmo-five-step-consistency.md",
+      "bytes": 13824,
+      "sha256": "ffa2ce0273d3e3e16c9bd52ca8702ef9786297f71d2bc8e05ce1840ef4c249fa"
+    },
+    {
+      "path": ".codex/inbox/todos/74-alpha-runtime-course-editor-card-completion.md",
+      "bytes": 18601,
+      "sha256": "15a16fc60b74baea23b27236b9255ea01d7c97e6dbe8b8135a6e17af57346b56"
+    },
+    {
+      "path": ".codex/inbox/todos/75-unified-course-source-editor-alpha-classroom.md",
+      "bytes": 14963,
+      "sha256": "eef6788c71e1fceec642dd220678a576515f142e25e5ca41ee9ed9bb735ff75d"
+    },
+    {
+      "path": ".codex/inbox/todos/76-alpha-ui-readability-and-responsive-adaptation.md",
+      "bytes": 13409,
+      "sha256": "18f45dc2083c7dca84bc20a7512c748cc710dcfa7dfe9bedb595b7f739fd9a19"
+    },
+    {
+      "path": ".codex/inbox/todos/77-topbar-course-outline-and-chj-integration.md",
+      "bytes": 14705,
+      "sha256": "101f75fbb02fbb2479796f803d22e0a0117db1e1ca62c527218c725d225e68bd"
+    },
+    {
+      "path": ".codex/inbox/todos/78-replace-123456-links-with-framework.md",
+      "bytes": 7738,
+      "sha256": "eacfc10d02b85ec9f94765068a6f120dbd2527fbfb312d4b7d11c004f2feef63"
+    },
+    {
+      "path": ".codex/inbox/todos/79-collapsible-course-library-sidebar.md",
+      "bytes": 8419,
+      "sha256": "a823748639d91b3a2dd084f06c17e207a7352ee95cdcd2c1620c9992d06123a2"
+    },
+    {
+      "path": ".codex/inbox/todos/80-card-editor-visible-save-action.md",
+      "bytes": 10296,
+      "sha256": "0e81179d14ad099c70bcb36c7d2bb56f673187d4ea6f24c9c50b210ac92c9ad3"
+    },
+    {
+      "path": ".codex/inbox/todos/81-reverse-sync-approved-course-baseline-to-workshop.md",
+      "bytes": 10288,
+      "sha256": "dc2c917bafc81db66a539c221cb015556f31de56979336cf6b7ef9e405a1aaf5"
+    },
+    {
+      "path": ".codex/inbox/todos/82-reuse-chj-ui-and-logo-assets-across-site.md",
+      "bytes": 6341,
+      "sha256": "a07055a94621bf2139e3f9aad937879f413e2272b98b35adaa4a4c846fc17e4a"
+    },
+    {
+      "path": ".codex/inbox/todos/83-nine-pane-wysiwyg-course-studio.md",
+      "bytes": 15461,
+      "sha256": "8f411d7618fb23f517d9e9a81ad5eaec814c3b9cdd14630a343de7c6f94b7f5b"
+    },
+    {
+      "path": ".codex/inbox/todos/84-world-map-hotspot-tooltip-layering.md",
+      "bytes": 2941,
+      "sha256": "d39e819c82d9cc4f6899db9825b7d9e30c128d2a62f0cbd5c914e50a7e763e91"
+    },
+    {
+      "path": ".codex/inbox/todos/85-unified-course-factory-studio-classroom-platform.md",
+      "bytes": 18057,
+      "sha256": "ebf133ec8c50ee6b2ea1af73e09d5b7df3495af6b50303bbedd85bf6f2a59e6f"
+    },
+    {
+      "path": ".codex/inbox/todos/86-two-stage-course-acceptance-and-navigation-flow.md",
+      "bytes": 22828,
+      "sha256": "f6650fa182b0871c94e0fde1a734d6be5c571efa54d6abd9f78acd49b3d0cb3c"
+    },
+    {
+      "path": ".codex/inbox/todos/87-studio-navigation-account-switching-delegated-dm.md",
+      "bytes": 16229,
+      "sha256": "71004a56102317a839635607110fa866ded0de2e638ac21f8a5011d2e5677ee8"
+    },
+    {
+      "path": ".codex/inbox/todos/88-tablet-mobile-classroom-experience.md",
+      "bytes": 15806,
+      "sha256": "9b4267ac2eae2f07d22b72a8cd0c20bce89e73eab2e5a613f52b9dc2ac92fc1f"
+    },
+    {
+      "path": ".codex/inbox/todos/89-development-mentor-deck-ligun-integration.md",
+      "bytes": 21459,
+      "sha256": "47c0de71e8ca8f317f5354485da60df2b8d5860204454c747fcfbcf3f960d47f"
+    },
+    {
+      "path": ".codex/inbox/todos/90-development-mentor-scripted-classroom-package.md",
+      "bytes": 13803,
+      "sha256": "91ac93f3d55b85acfbe1b574d7e00064a520322857db4f1af5b5b931952d3b7a"
+    },
+    {
+      "path": ".codex/inbox/todos/91-consolidate-eleme-script-into-product-mentor-courseware.md",
+      "bytes": 15022,
+      "sha256": "50cfbbcabdad4eab62c164de2738f96c54bb4c056419cef3b61cec788cda1e9a"
+    },
+    {
+      "path": ".codex/inbox/todos/92-deploy-development-mentor-courseware.md",
+      "bytes": 11358,
+      "sha256": "e0a04c94dd434f1aa1a15d22b5f12059c42ccd5338e04de40ff4a031bfbbf2a0"
+    },
+    {
+      "path": ".codex/inbox/todos/93-clickable-unlocked-courseware-progress.md",
+      "bytes": 5686,
+      "sha256": "cb773bc5700244a81db3ec35b1a8fb035bd0d0bae55c3115ac618233abd4bebc"
+    },
+    {
+      "path": ".codex/inbox/todos/94-b01-editor-test-classroom-controller-data-consistency.md",
+      "bytes": 14594,
+      "sha256": "9fd81ec5984d709b8969f8c846b1b819b4fb9499189f59a929f037e0da8e702f"
+    },
+    {
+      "path": ".codex/inbox/todos/95-isolate-course-editor-fields-by-role-and-seat.md",
+      "bytes": 13124,
+      "sha256": "05e83380c6a16feb6ac07e679550e83c9f6e79e95549a4ccff0191417ab38ba6"
+    },
+    {
+      "path": ".codex/inbox/todos/96-authenticated-courseware-library-and-product-deployment.md",
+      "bytes": 9742,
+      "sha256": "17b0068dcff44c917cce8a9d10b2f6a7292cfecd6a59584e7b7e0613f7a440c4"
+    },
+    {
+      "path": ".codex/inbox/todos/97-project-design-consistency-audit-and-roadmap.md",
+      "bytes": 8999,
+      "sha256": "a3030c090a2eff0ccfb57cf9a19ef27140751ebfb8af3395dc871cd14bd59a8b"
+    },
+    {
+      "path": ".codex/inbox/todos/98-canonical-workspace-and-release-provenance.md",
+      "bytes": 2235,
+      "sha256": "48c7f18dad96ea8616ed396829524f9f2f0ea427deb2d5944719b8acbd047453"
+    },
+    {
+      "path": ".codex/inbox/todos/99-candidate-save-concurrency-and-exact-integrity.md",
+      "bytes": 2630,
+      "sha256": "87d59be15d1d708dd51e3c2d3fe2b6e7ce5877e621943120a4ba90b2fac3d9a5"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "archivedAs": "docs/archive/t098-legacy-dev-dd28a57/ARCHITECTURE.md",
+      "bytes": 4438,
+      "sha256": "a078fabf997ddda6da3fc820fdff34d399a7f938060ae8e16e1777bb7175f00d"
+    },
+    {
+      "path": "docs/COURSE_PLATFORM_ARCHITECTURE.md",
+      "archivedAs": "docs/archive/t098-legacy-dev-dd28a57/COURSE_PLATFORM_ARCHITECTURE.md",
+      "bytes": 9749,
+      "sha256": "f3a5da9c4ac664c2314b877752c4ad6c94c8f2246b1c55b99b7857bfbbf85542"
+    }
+  ],
+  "preservedFileCount": 47,
+  "preservedBytes": 413486
+}

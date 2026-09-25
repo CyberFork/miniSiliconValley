@@ -1,0 +1,75 @@
+{
+  "release": "20260924-s06-preload-r27",
+  "revision": 27,
+  "sourceCommit": "b45e7185414c3b5f8d287bfee7201d5b315f4f52",
+  "sourceDelivery": "isolated audited Git bundle; not GitHub push",
+  "recordedAt": "2026-09-24T12:03:03.875245+00:00",
+  "url": "https://minisv.vip/courseware/development-mentor-module-thinking/r27/teacher/presenter.html?slideId=module-s06",
+  "stableEntry": "https://minisv.vip/courseware/latest/p1/?slideId=module-s06",
+  "deckDigest": "f20048b289661f8dc8d6135cedca81a6e6cce923c3cfff3669d6df676927376f",
+  "archiveSha256": "649ec64bb9540f26f35bf4d8cbdbbd171abbc4464b89c63fa1367f7070efa5be",
+  "changes": [
+    "Opening either P1 surface schedules one paused resident S06 iframe after initial page load; loads modules, initializes Rapier/WebGL and creates scene before slide entry.",
+    "S06 stage remains connected while parked: no iframe reparent/reload when returning. Inactive frame is inert/aria-hidden, cancels its render loop and releases physics ownership.",
+    "Warm boot does not claim control, run simulation, write game storage or advance classroom state. Existing single-owner locks and snapshot handoff retained.",
+    "Game frame now has real 0–3 loading stages, import/physics/render error feedback, 60-second stall notice and iframe-only retry preserving saved game/session.",
+    "Teacher resources show preload status; both teacher/audience retain the same protection and manual takeover behavior."
+  ],
+  "rootCause": "Old slide runtime created/reloaded iframe only on slide entry, downloading static module graph and initializing physics then. Production assets are authenticated private/no-store; naive fetch-prefetch is ineffective. Connected resident context avoids changing cache/auth policy.",
+  "verified": [
+    "Local and isolated remote full courseware build/regressions passed; same P1/P2 timing and text field IDs preserved.",
+    "78 route-game/workshop tests and 90 deployment Python tests passed, including loading/lifecycle, origin/source messages and ownership regressions.",
+    "Root reviewed delegated tests and replaced shallow trust-boundary checks with executable fake-DOM tests; real WebGL lifecycle QA also passed.",
+    "2513 previously published courseware files byte-identical; r24 prompt-maintenance metadata and files preserved.",
+    "Deploy health and external public-smoke passed; current manifest targets r27; 161 production r27 files SHA256 match candidate manifest.",
+    "No private QA harness was included in the production package."
+  ],
+  "browser": {
+    "browser": "Native Safari via CUA",
+    "local": {
+      "teacher": "S05 showed preload status; selecting S06 showed ready game and active controls",
+      "audience": "Controlled audience cold entry rendered scene; clicking take-control made it the active game window",
+      "instrumentedRealWebGL": [
+        "preload ready",
+        "no owner/no physics world during warm state",
+        "no saved game writes during warm state",
+        "activation acquires owner",
+        "leave pauses and releases",
+        "snapshot does not advance while parked",
+        "return retains same iframe and Document",
+        "return ready and operable"
+      ]
+    },
+    "production": {
+      "url": "https://minisv.vip/courseware/development-mentor-module-thinking/r27/audience/index.html?session=qa-s06-preload-production&controlled=1&slideId=module-tradeoff",
+      "authorizedAudience": true,
+      "savedText": "v41 loaded",
+      "steps": [
+        "opened preceding WHY tradeoff slide",
+        "clicked next to S06: rendered scene and enabled controls without loading panel",
+        "take-control successful",
+        "navigated S07 then back: ready scene, no new loading panel",
+        "visually checked scene and layout"
+      ],
+      "teacher": "Current Safari account returned 403 for mentor-only teacher URL; authorization was not bypassed. Teacher UI tested locally; production teacher authorized interaction not claimed.",
+      "timing": "No controlled network/device performance benchmark; no guaranteed millisecond claim."
+    },
+    "notVerified": [
+      "physical tablet",
+      "physical classroom trial",
+      "live two-display manual trial",
+      "artificial slow/offline network scenario in production"
+    ]
+  },
+  "rollback": {
+    "release": "20260924-minecraft-media-r26-csp",
+    "backup": "~/Services/minisv/backups/20260924T115555Z-20260924-s06-preload-r27",
+    "command": "zsh ~/Services/minisv/current/ops/scripts/rollback-hecate.sh 20260924-minecraft-media-r26-csp",
+    "executed": false
+  },
+  "unchanged": [
+    "39 slides; two 120-minute stages.",
+    "Saved text v41 retained; no edits made in production.",
+    "No r24/r26 immutable package overwrites, no IP migration, no game rule changes."
+  ]
+}

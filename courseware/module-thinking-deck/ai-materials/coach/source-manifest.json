@@ -1,0 +1,31 @@
+{
+  "skill_version": "2026.09.24-plan-only.1",
+  "source_package_sha256": "a3553c2cc9ace2b8b141704140ca8a59c34c24f0c27cc4aa938e8a53afd3d133",
+  "sourceFiles": [
+    {
+      "path": "SKILL.md",
+      "sha256": "266c46e012bee5443fabde84e2dbe5b2ec06cd852f18395eece71ecfab95c294"
+    },
+    {
+      "path": "agents/openai.yaml",
+      "sha256": "c460feecd799a16b22271a98e17b4b4dd96118f175364db25a20978cbaba2c76"
+    },
+    {
+      "path": "assets/start-prompt.md",
+      "sha256": "0b28af2e4295623aec2469b2e86467a26980880520a20f28709d249c66dd4bc6"
+    },
+    {
+      "path": "references/handoff-prompt.md",
+      "sha256": "1c49c8809096d55970b014087febd1d27b33de6752a98632ad861a52d19e824d"
+    },
+    {
+      "path": "references/rod-spec.md",
+      "sha256": "d5f33cccd2ce82012264d730acf02845166f7c7ff2a4b2109f0519e75dfd4daf"
+    },
+    {
+      "path": "references/source-basis.md",
+      "sha256": "7cb79ab434818e6076230acd89afe01b4f81c22f8b1e0088e8bd019ad1b2faac"
+    }
+  ],
+  "note": "原批准来源包的文件哈希；公开分发内容的当前哈希由构建生成 CONTENT-MANIFEST.json。"
+}

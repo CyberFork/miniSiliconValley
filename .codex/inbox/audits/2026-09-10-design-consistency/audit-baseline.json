@@ -1,0 +1,83 @@
+{
+  "auditedAt": "2026-09-09T20:23:40.487514+00:00",
+  "userWorkspace": "/Users/hecate/Library/CloudStorage/OneDrive-个人/Work/CHJ、DL/AI教培-mini硅谷/dev",
+  "userWorkspaceHead": "dd28a57d4904a3fe47b08b37d1ab10085d593495",
+  "auditedSourceRoot": "/private/tmp/minisv-sequence-work.axC0Th/repo",
+  "auditedSourceHead": "6400928c90d6c2fd59ca5b8513cc91a3ada93956",
+  "remoteMain": "6400928c90d6c2fd59ca5b8513cc91a3ada93956",
+  "productionRelease": {
+    "service": "minisv",
+    "release": "20260910T032647CST-market-mentor-user-system-r2",
+    "builtAt": "2026-09-09T19:26:47.799677Z",
+    "origin": "hecate",
+    "canonicalOrigin": "https://minisv.vip",
+    "features": [
+      "unified-course-factory",
+      "dynamic-courseware-library",
+      "verbatim-product-mentor-courseware",
+      "exact-development-mentor-courseware",
+      "exact-market-mentor-courseware",
+      "opaque-courseware-bundle",
+      "course-studio",
+      "per-classroom-controller",
+      "shared-brand-home",
+      "released-workshop-snapshot"
+    ],
+    "sources": {
+      "main": "f1b063b56aa4800a5316103da94c09dcef870a78",
+      "chjCourseUi": "679213a61b835335016eac7649213983a0e48489",
+      "chjCourseTree": "3a041c4714190cc026f6de8e06e15cec0e5f765d"
+    },
+    "coursewareArtifact": {
+      "route": "/courseware/product-mentor-foundations/",
+      "mentorRole": "P",
+      "sha256": "347697696787065721fc66ac7d756e8c56338f646bc1a5aba51392133c835b04",
+      "files": 103,
+      "bytes": 114367157,
+      "transformed": false
+    },
+    "developmentCoursewareArtifact": {
+      "route": "/courseware/development-mentor-ligun/",
+      "mentorRole": "D",
+      "sha256": "ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234",
+      "files": 5,
+      "bytes": 8005223,
+      "transformed": false
+    },
+    "marketCoursewareArtifact": {
+      "route": "/courseware/market-mentor-user-system/",
+      "mentorRole": "M",
+      "sha256": "48b01a256bd3d408a5d539f798470e6aad0058a19dcdeb8b5d212b0e64add862",
+      "files": 1,
+      "bytes": 87302,
+      "transformed": false
+    }
+  },
+  "scope": "read-only source review, anonymous HTTP GET, in-memory synthetic-data probes; no business changes/deployment/authenticated production writes",
+  "checks": {
+    "typecheck": "passed",
+    "validateData": "203 events / 5 stages / 0 errors / 0 warnings",
+    "platformTests": {
+      "passed": 83,
+      "failed": 0
+    },
+    "additionalUnitTests": {
+      "passed": 16,
+      "failed": 0
+    },
+    "deploymentTests": {
+      "passed": 35,
+      "failed": 0
+    },
+    "projectionScenarios": 195
+  },
+  "notPerformed": [
+    "full release build",
+    "authenticated live E2E",
+    "live account creation",
+    "human View/UI acceptance",
+    "iPad/Android hardware tests",
+    "external paid model calls",
+    "production database inspection"
+  ]
+}

@@ -1,0 +1,163 @@
+import {
+  CURRICULUM_SCHEMA_VERSION,
+  type CurriculumCatalog,
+  type ProjectStageId,
+} from "../lib/model";
+
+/**
+ * The public 0→1 curriculum has exactly five learning steps. Demo Day is a
+ * separate six-minute finale. P/D/M/O are mentor specialties, never learner
+ * identities. Historical examples remain evidence anchors, not claims that a
+ * company literally used our teaching vocabulary.
+ */
+export const PROJECT_STAGE_IDS = ["find", "decide", "build", "market", "operate"] as const satisfies readonly ProjectStageId[];
+
+export const curriculumCatalog: CurriculumCatalog = {
+  schemaVersion: CURRICULUM_SCHEMA_VERSION,
+  stages: [
+    {
+      id: "find",
+      order: 1,
+      title: "找真问题",
+      englishTitle: "FIND THE REAL PROBLEM",
+      promise: "先进入现场，再用证据把抱怨收窄成值得解决的问题。",
+      coreQuestion: "谁在什么情境里做什么事，卡在哪里，造成了什么可观察的损失？",
+      leadMentor: "P",
+      supportMentors: ["M"],
+      learningGoals: ["区分问题、方案和后见之明", "用一手行为与来源判断问题强度", "保留反例和未知，不把推测说成事实"],
+      actions: ["观察具体场景", "访谈真实人物", "随机线索互讲", "建立证据与反例墙", "写五句话问题陈述"],
+      artifacts: ["场景观察记录", "访谈纪要", "F/R/G/U 证据墙", "真问题陈述"],
+      completionGate: ["写清人物、任务、断点和损失", "至少两条有来源证据并保留一个未知", "能说出什么新证据会推翻判断"],
+      examples: [
+        { id: "example-google-quality", organization: "Google", label: "从信息难找收窄为搜索结果质量", yearLabel: "1997—1998", eventIds: ["evt-1997-google-domain", "evt-1998-google-founded"], missionId: "m5-search-engine", mappingKind: "direct", teachingUse: "比较搜索任务是否完成、结果是否相关，而不是直接从“做搜索引擎”开始。" },
+        { id: "example-airbnb-shortage", organization: "Airbnb", label: "从会议期间住宿供给断点切入", yearLabel: "2008", eventIds: ["evt-2008-airbnb"], mappingKind: "direct", teachingUse: "找到特定时间、地点和人物的真实损失，再判断它是否值得继续。" },
+        { id: "example-dropbox-sync", organization: "Dropbox", label: "把跨设备文件同步困难说具体", yearLabel: "2007", eventIds: ["evt-2007-dropbox"], mappingKind: "direct", teachingUse: "先说清文件何时没有可靠出现，再讨论技术。" },
+      ],
+    },
+    {
+      id: "decide",
+      order: 2,
+      title: "定真方案",
+      englishTitle: "CHOOSE A REAL SOLUTION",
+      promise: "同时比较多条路径，用价值与可行性做一次有依据的取舍。",
+      coreQuestion: "哪条最小路径能改变关键行为，又能最便宜地验证最大风险？",
+      leadMentor: "P",
+      supportMentors: ["D"],
+      learningGoals: ["从问题证据推导价值主张", "比较至少三条路径", "同时判断用户价值与技术可行性"],
+      actions: ["三方案速写", "价值主张比较", "关键旅程走查", "技术限制清单", "反证与停止条件"],
+      artifacts: ["三方案对比卡", "价值主张", "关键用户旅程", "最高风险假设卡"],
+      completionGate: ["至少比较三条方案并写下淘汰理由", "选定方案直接回应第一步证据", "写清最便宜验证办法和停止条件"],
+      examples: [
+        { id: "example-mosaic-interface", organization: "NCSA Mosaic", label: "用图文整合降低 Web 使用门槛", yearLabel: "1993", eventIds: ["evt-1993-mosaic-released"], missionId: "m4-web-browser", mappingKind: "direct", teachingUse: "把开放网络能力组合成普通人能理解和操作的入口。" },
+        { id: "example-gmail-constraints", organization: "Gmail", label: "围绕容量与搜索重构邮箱体验", yearLabel: "2004", eventIds: ["evt-2004-gmail"], mappingKind: "direct", teachingUse: "选择真正改变任务的关键约束，而不是给旧产品换皮。" },
+        { id: "example-slack-pivot", organization: "Slack", label: "把内部协作工具定为独立产品", yearLabel: "2013", eventIds: ["evt-2013-slack"], mappingKind: "direct", teachingUse: "从已发生的使用行为重新定义产品边界。" },
+      ],
+    },
+    {
+      id: "build",
+      order: 3,
+      title: "做真产品",
+      englishTitle: "BUILD A REAL PRODUCT",
+      promise: "切出端到端最小闭环，让真实用户完成一次任务并根据失败改一版。",
+      coreQuestion: "最小作品怎样让用户从开始走到结果，并暴露最关键的失败？",
+      leadMentor: "D",
+      supportMentors: ["P"],
+      learningGoals: ["区分演示图、可用原型和 MVP", "用 AI/Web Coding 快速搭建但保留验证责任", "根据测试证据迭代"],
+      actions: ["切分 MVP 范围", "制作纸面或数字原型", "无代操作测试", "记录断点", "只改一个关键问题"],
+      artifacts: ["MVP 范围表", "可运行原型", "真实测试记录", "V1→V2 修改证据"],
+      completionGate: ["一个核心任务可从头到尾真实完成", "至少一位目标用户在无提示下测试", "第二版修改能指向明确测试证据"],
+      examples: [
+        { id: "example-youtube-loop", organization: "YouTube", label: "用第一支真实视频验证完整链路", yearLabel: "2005", eventIds: ["evt-2005-youtube-first-video"], mappingKind: "direct", teachingUse: "真实上传与播放比宏大功能清单更快暴露链路问题。" },
+        { id: "example-google-prototype", organization: "Google", label: "让研究原型成为可重复使用的搜索入口", yearLabel: "1997—1998", eventIds: ["evt-1997-google-domain", "evt-1998-google-founded"], missionId: "m5-search-engine", mappingKind: "course-analogy", teachingUse: "把排序效果、入口和运行限制放进同一轮真实验证。" },
+        { id: "example-yc-resource-loop", organization: "Y Combinator", label: "资源必须对应验证周期与里程碑", yearLabel: "2005", eventIds: ["evt-2005-yc-first-batch"], mappingKind: "direct", teachingUse: "VC 是贯穿式资源机制，不是课程步骤或创业终点。" },
+      ],
+    },
+    {
+      id: "market",
+      order: 4,
+      title: "进真市场",
+      englishTitle: "ENTER A REAL MARKET",
+      promise: "把产品交给陌生用户，用品牌表达和渠道实验换来第一批真实使用。",
+      coreQuestion: "谁为什么愿意第一次来、从哪里来、能否理解并相信我们的承诺？",
+      leadMentor: "M",
+      supportMentors: ["P", "O"],
+      learningGoals: ["定义最先服务的人群", "用可验证承诺表达品牌", "区分触达、激活、使用和付费"],
+      actions: ["写一条可验证承诺", "选择两个触达渠道", "邀请陌生用户", "记录进入与使用漏斗", "比较渠道结果"],
+      artifacts: ["目标用户与非用户边界", "发布页和品牌承诺", "渠道实验表", "首批用户证据"],
+      completionGate: ["有真实目标用户完成第一次使用", "至少比较两个渠道而非只报曝光", "品牌承诺可由产品体验验证"],
+      examples: [
+        { id: "example-facebook-density", organization: "Facebook", label: "先进入边界清晰的大学网络", yearLabel: "2004", eventIds: ["evt-2004-facebook"], mappingKind: "course-analogy", teachingUse: "先找到身份明确、关系密集的早期市场，再讨论扩张。" },
+        { id: "example-airbnb-market", organization: "Airbnb", label: "同时触达供给与需求两侧", yearLabel: "2008", eventIds: ["evt-2008-airbnb"], mappingKind: "direct", teachingUse: "市场进入不只是发广告，还要建立两侧信任与可理解的承诺。" },
+        { id: "example-google-distribution", organization: "Google", label: "产品质量与分发入口共同带来使用", yearLabel: "1998—2000", eventIds: ["evt-1998-google-founded", "evt-2000-adwords"], mappingKind: "course-analogy", teachingUse: "分开观察用户为何来、为何留下和商业合作是否改变信任。" },
+      ],
+    },
+    {
+      id: "operate",
+      order: 5,
+      title: "跑真运营",
+      englishTitle: "RUN REAL OPERATIONS",
+      promise: "把承诺变成每天可重复的交付，用账本、SOP 与反馈让团队持续运行。",
+      coreQuestion: "用户进入后如何稳定完成任务、获得支持并愿意回来；团队怎样承担成本与风险？",
+      leadMentor: "O",
+      supportMentors: ["D", "M"],
+      learningGoals: ["设计进入、交付、反馈和留存闭环", "分清收入、成本、现金和声望", "用 SOP、质量门和风险边界兑现承诺"],
+      actions: ["走查完整服务流程", "记录收入与成本", "写交付和异常 SOP", "观察反馈与留存", "安排下一轮迭代"],
+      artifacts: ["用户运营漏斗", "团队账本", "交付／异常 SOP", "反馈与留存记录", "下一轮迭代清单"],
+      completionGate: ["陌生用户可按流程完成任务并获得支持", "收入、成本和团队资金可对账", "至少一条反馈进入下一版且有人负责"],
+      examples: [
+        { id: "example-google-adwords", organization: "Google", label: "广告收入与搜索质量必须同时守住", yearLabel: "2000", eventIds: ["evt-2000-adwords"], mappingKind: "direct", teachingUse: "运营账本不能遮住产品信任；收入机制必须有质量边界。" },
+        { id: "example-facebook-expansion", organization: "Facebook", label: "扩张同时改变安全与社区规则", yearLabel: "2004—2006", eventIds: ["evt-2004-facebook", "evt-2006-facebook-expands"], mappingKind: "direct", teachingUse: "增长带来持续交付、治理与风险责任，而不只是注册数量。" },
+        { id: "example-waymo-ride", organization: "Google / Waymo", label: "把技术放进真实乘客与道路运营", yearLabel: "2015", eventIds: ["evt-2015-waymo-driverless-ride"], mappingKind: "course-analogy", teachingUse: "长期运行要同时处理安全、异常、反馈和责任边界。" },
+      ],
+    },
+  ],
+  finale: {
+    id: "demo-day",
+    title: "六分钟 Demo Day",
+    englishTitle: "PROVE + COMMIT",
+    durationSeconds: 360,
+    promise: "五步完成后，用真实产品和证据链证明团队学会了什么，并提出下一步请求。",
+    requirements: ["六段各 60 秒：问题证据、方案取舍、MVP 演示、市场证据、运营账本、下一步请求", "展示真实可用产品，不用概念图代替", "说清一次失败、一次修改和一项仍未知", "接受追问并明确继续、转向或停止的判断标准"],
+    examples: [
+      { id: "example-yc-demo-day", organization: "Y Combinator", label: "固定周期后的公开展示与连接", yearLabel: "2005", eventIds: ["evt-2005-yc-first-batch"], mappingKind: "direct", teachingUse: "把阶段性成果放进真实反馈，而不是把发布会当考试。" },
+      { id: "example-iphone-proof", organization: "Apple iPhone", label: "舞台发布之后仍要完成真实交付", yearLabel: "2007", eventIds: ["evt-2007-iphone-announced", "evt-2007-iphone-ships"], missionId: "m6-mobile-platform", mappingKind: "course-analogy", teachingUse: "Demo 建立预期，交付与运营才能验证承诺。" },
+    ],
+  },
+  companyJourneys: [
+    {
+      id: "journey-google-search",
+      organization: "Google",
+      product: "搜索",
+      period: "1997—2000",
+      title: "从研究原型到产品、市场与运营闭环",
+      summary: "同一组 Google 史实按五步课程重新编排；五步是教学映射，不伪装成公司的历史原话。",
+      missionId: "m5-search-engine",
+      steps: [
+        { stageId: "find", period: "1997—1998", title: "把信息难找收窄为搜索质量问题", eventIds: ["evt-1997-google-domain", "evt-1998-google-founded"], mappingKind: "direct", teachingUse: "用任务完成、相关性和信任证据描述真问题。" },
+        { stageId: "decide", period: "1998", title: "比较后选择链接分析路径", eventIds: ["evt-1998-google-founded"], mappingKind: "direct", teachingUse: "说明为何先押注结果质量和简洁入口，而不是堆门户功能。" },
+        { stageId: "build", period: "1997—1998", title: "让排序原型成为可重复使用的产品", eventIds: ["evt-1997-google-domain", "evt-1998-google-founded"], mappingKind: "course-analogy", teachingUse: "把能工作、能进入、能测试和能恢复连成闭环。" },
+        { stageId: "market", period: "1998—2000", title: "让第一批用户理解并持续使用", eventIds: ["evt-1998-google-founded", "evt-2000-adwords"], mappingKind: "course-analogy", teachingUse: "分开观察入口、使用价值与商业合作的影响。" },
+        { stageId: "operate", period: "2000 起", title: "用收入支持运行，同时守住结果信任", eventIds: ["evt-2000-adwords"], mappingKind: "direct", teachingUse: "把收入、成本、质量与长期承诺放进同一张运营账本。" },
+      ],
+      finale: { period: "课程终局", title: "六分钟展示问题、产品、市场和运营证据", eventIds: ["evt-1998-google-founded", "evt-2000-adwords"], mappingKind: "course-analogy", teachingUse: "Google 没有举行课程式 Demo Day；学员只借史实整理自己的发布证据链。" },
+    },
+  ],
+  contributionProtocol: [
+    { key: "stageId", label: "归属步骤", requirement: "五步必选其一；Demo Day 单列 finale；跨步内容拆开归集。" },
+    { key: "mentor", label: "导师主责", requirement: "标明 P/D/M/O 中的主导师和协作导师，不给学员贴专业角色。" },
+    { key: "claimType", label: "内容性质", requirement: "标明直接案例或课程映射；教学类比不得写成历史事实。" },
+    { key: "eventIds", label: "史实锚点", requirement: "至少关联一个已有事件；新史实先补来源再进入课程。" },
+    { key: "learningGoal", label: "学习目标", requirement: "写成学员完成后可观察的能力变化。" },
+    { key: "action", label: "学员行动", requirement: "必须调查、制作、测试、协商或演示，不能只有观看。" },
+    { key: "artifact", label: "交付物", requirement: "产物可保存、可复核，并能进入最终 Demo Day 证据链。" },
+    { key: "completionGate", label: "完成门槛", requirement: "使用数量、行为或质量标准，不写“理解了”。" },
+    { key: "dmPrompt", label: "DM 追问", requirement: "准备一个逼近证据、取舍或边界的问题，不替学员给答案。" },
+  ],
+  nonNegotiables: [
+    "课程主线永远是找真问题→定真方案→做真产品→进真市场→跑真运营；Demo Day 是终局。",
+    "P/D/M/O 只表示四类导师专业分工；每位 Young Builder 都完整参与五步。",
+    "史实、课堂模拟、团队推测与当前未知分层显示，教学重组不能改写 Original Timeline。",
+    "每一步都形成学习→练习→实操→反馈闭环，并留下可复核产物。",
+    "VC 是贯穿式人才、时间、算力、渠道与资金资源机制，不是独立步骤或创业终点。",
+  ],
+};

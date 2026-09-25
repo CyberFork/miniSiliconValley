@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "kind": "automated-production-browser-evidence",
+  "humanAcceptance": false,
+  "recordedAt": "2026-09-11T12:41:59+08:00",
+  "origin": "https://minisv.vip",
+  "release": "20260911T120044CST-t088-privacy-r1",
+  "mainSha": "7244ead4fcca36d7d5b5c52c352bf1bbaaafc3e0",
+  "appBuildId": "ff9a3525-ed80-4d65-b7a3-c2395ef4b6e4",
+  "browser": {
+    "engine": "Chromium",
+    "mode": "headless",
+    "desktopViewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  "routes": {
+    "/": {
+      "status": 200,
+      "url": "https://minisv.vip/",
+      "title": "MINI硅谷｜把真实科技史玩成一次创业",
+      "pageErrors": [],
+      "unexpectedConsoleErrors": [],
+      "requestFailures": [],
+      "expectedAnonymousAuthProbe": [
+        {
+          "status": 401,
+          "url": "https://minisv.vip/api/auth/session"
+        }
+      ],
+      "unexpectedHttpErrors": []
+    },
+    "/world/": {
+      "status": 200,
+      "url": "https://minisv.vip/world/",
+      "title": "MINI硅谷历史世界｜真实科技史创业 RPG",
+      "pageErrors": [],
+      "unexpectedConsoleErrors": [],
+      "requestFailures": [],
+      "expectedAnonymousAuthProbe": [],
+      "unexpectedHttpErrors": []
+    },
+    "/framework/": {
+      "status": 200,
+      "url": "https://minisv.vip/framework/",
+      "title": "Mini Silicon Valley｜课程游戏系统 1·2·3·4·5·6",
+      "pageErrors": [],
+      "unexpectedConsoleErrors": [],
+      "requestFailures": [],
+      "expectedAnonymousAuthProbe": [],
+      "unexpectedHttpErrors": [],
+      "react418": false,
+      "publicNav": true,
+      "homeLink": true
+    },
+    "/parents/": {
+      "status": 200,
+      "url": "https://minisv.vip/parents/",
+      "title": "家长问答 | Mini Silicon Valley",
+      "pageErrors": [],
+      "unexpectedConsoleErrors": [],
+      "requestFailures": [],
+      "expectedAnonymousAuthProbe": [],
+      "unexpectedHttpErrors": []
+    },
+    "/auth/login/": {
+      "status": 200,
+      "url": "https://minisv.vip/auth/login/",
+      "title": "登录 | Mini Silicon Valley",
+      "pageErrors": [],
+      "unexpectedConsoleErrors": [],
+      "requestFailures": [],
+      "expectedAnonymousAuthProbe": [],
+      "unexpectedHttpErrors": []
+    }
+  },
+  "mobilePublicHome": {
+    "status": 200,
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "geometry": {
+      "innerWidth": 390,
+      "body": 390,
+      "root": 390
+    },
+    "pageErrors": []
+  },
+  "worldPreview": {
+    "status": 200,
+    "schemaVersion": 1,
+    "source": "historyCatalog",
+    "layers": 4,
+    "events": 7
+  },
+  "classroomPrivacy": {
+    "productionBundleContainsShield": true,
+    "authenticatedProductionClassroomMutationOrLoginPerformed": false,
+    "isolatedBrowserReceipt": "docs/qa/t088-tablet-mobile/browser-receipt.json"
+  },
+  "assertions": {
+    "releaseIdentityMatches": true,
+    "allPublicDocuments200": true,
+    "noPageErrors": true,
+    "noUnexpectedConsoleErrors": true,
+    "noRequestFailures": true,
+    "noUnexpectedHttpErrors": true,
+    "mobileHomeHasNoHorizontalOverflow": true,
+    "privacyShieldShippedInProductionBundle": true
+  },
+  "remainingHumanGate": "T-088 real iPad Safari and Android touch-device acceptance; T-110 Safari/Windows native-input acceptance"
+}

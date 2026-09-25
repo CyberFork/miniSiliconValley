@@ -1,0 +1,42 @@
+
+> mini-silicon-valley-world@1.0.0 test:mc-workshop
+> node --test courseware/module-thinking-deck/workshop/tests/*.test.mjs
+
+✔ HTML and complete first-party module graph share a content version; stamping is stable (12.352375ms)
+✔ Space thrust and left/right sources remain independent (1.012084ms)
+✔ two independent thrust sources require both releases, and clear resets all state (0.129625ms)
+✔ free wheels auto-assign sockets while preserving one definition (1.321458ms)
+✔ moving one wheel leaves other instances and definitions unchanged (0.35925ms)
+✔ JSON restore preserves explicitly selected mounts (0.231625ms)
+✔ invalid or off-surface mounts are rejected without mutating the source (0.769ms)
+✔ legacy fixed-socket instances remain compatible (31.605417ms)
+✔ DriveWorld wheel starts at chassis offset and cylinder axis follows mount normal (1.239834ms)
+✔ progression and done (1.283291ms)
+✔ timeout and retry preserve storage (0.592083ms)
+✔ ignores ethereum and catches script errors (1.326292ms)
+✔ same module reused, instance changes isolated, JSON roundtrip (3.0815ms)
+✔ strict validation rejects unknown fields, shapes, materials, duplicate IDs/sockets (2.837875ms)
+✔ undo/redo protects history on invalid update; save selection normalizes blocks (0.334334ms)
+DRIVE_SAMPLE { x: 90.41386413574219, y: -30.922481536865234, z: 11.695178985595703 } -30.922481536865234 2.4925332069396973
+✔ gravity, contact, propulsion, real rough course and repeatable reset (117.529292ms)
+✔ release coasts, brake differs, reverse direction uses same project, bounded timestep (74.970916ms)
+✔ engine rotation 180 pushes forward while exhaust points backward; rotation 0 reverses (47.54825ms)
+✔ left and right steering produce opposite lateral trajectories, then releasing steer stops input (141.384416ms)
+✔ straight drive hits the physical wall, including wheel contact (105.153334ms)
+✔ 保存合法五块橡胶十字，且不改变工作台方块 (0.995333ms)
+✔ 空选择和不合法配方失败，并保留原作品不变 (0.604833ms)
+✔ 三种平面、含偏移的标准五格橡胶十字均可保存并保留方向 (0.203958ms)
+✔ L形、折叠三维形状和五块不同 z 的伪十字均被拒绝 (0.136291ms)
+✔ 中文名称与职责可保存，刷新 JSON 后定义可恢复 (0.154166ms)
+✔ 同一定义可复用并装到两个轮接口 (0.228041ms)
+✔ 保存表单 UI 契约包含反馈区域、描述关联和 novalidate (3.725291ms)
+✔ KSP resource stays teacher-only, explicitly opens externally, never auto-embeds (3.725333ms)
+✔ Minecraft reference is placed before the hands-on script and also stays external (1.009916ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 575.135833

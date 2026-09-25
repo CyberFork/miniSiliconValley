@@ -1,0 +1,15 @@
+{
+  "release": "20260922T1853CST-p1-concrete-bag-r12",
+  "previousRelease": "20260922T1844CST-p1-six-fields-r11",
+  "status": "deployed",
+  "p1Revision": 12,
+  "p2Revision": 5,
+  "p2Changed": false,
+  "digest": "894b93cd9e5cdeff31a1d4b46f8884f3720605fe1822b80eb43bada4fe126f0b",
+  "historicalFilesUnchanged": 955,
+  "manualAcceptance": "not-signed-by-user",
+  "workspaceOverlaySha256": "f9514e466bc8a5a1d330c73322d442347776c192b8dd398fcdf78d2509dc410d",
+  "browserLocalReview": "Native Chrome: actual HOW-04 selection, four before/after bag diagrams, reveal 1/1 and screenshot inspected; no overlap observed",
+  "productionTextWrites": false,
+  "healthcheck": "MINISV_HECATE_HEALTHY"
+}

@@ -1,0 +1,6 @@
+PASS /healthz 200
+PASS /courseware-maintenance/p1-ai-text/workshop/app.mjs 404
+PASS /courseware/development-mentor-module-thinking/r22/teacher/workshop/app.mjs 401
+PASS /courseware/development-mentor-module-thinking/r23/teacher/workshop/teacher/presenter.html 401
+RELEASE_OK 20260924-workshop-open-assembly
+P1 {'route': '/courseware/development-mentor-module-thinking/r23/audience/', 'teacherRoute': '/courseware/development-mentor-module-thinking/r23/teacher/presenter.html', 'mentorRole': 'D', 'sha256': '0a92141e058e8732d3d5dbc4c101efa27a7150198abc94cfafa7a54cf3bef4e8', 'files': 109, 'bytes': 9295014, 'revision': 23, 'version': '2026.09.24-p1-r23', 'sourceXmindSha256': 'a31489645adcfaf6b7afd3be734349175740c520120cda65552cfa0f3e833793', 'audienceSha256': 'c79906e047d8e78a74775cf21254e2bf5c4612f2233785ebf05c155c02f5a32e', 'audienceFiles': 66, 'teacherSha256': 'efa700379a7557bad29be7ee1b1b9e60317f475b1cdc4cf6e0b256d6039368d8', 'teacherFiles': 43, 'transformed': False, 'teacherAuthorization': 'server-side-admin-or-mentor'}

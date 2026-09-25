@@ -1,0 +1,63 @@
+{
+  "ok": true,
+  "scope": "production read-only browser verification; no production mutation",
+  "checks": {
+    "t112StudioReadOnly": {
+      "ok": true,
+      "courseNameVisible": true,
+      "courseId": "google-1995-2004",
+      "defaultCaseIdVisible": true
+    },
+    "t116DirectCourseware": {
+      "ok": true,
+      "path": "/courseware/product-mentor-foundations/r2/",
+      "view": "overview",
+      "slide": "0",
+      "revision": "2",
+      "exactDigestPresent": true,
+      "interstitialAbsent": true
+    },
+    "t117ProductOutline": {
+      "ok": true,
+      "webpRequested": true,
+      "legacyPngRequested": false,
+      "fourModulesVisible": true,
+      "screenshot": "docs/qa/t112-118-production/product-r2-outline-production.png"
+    },
+    "t118AuthResponsive": {
+      "ok": true,
+      "viewports": {
+        "login": {
+          "inner": 320,
+          "body": 320,
+          "root": 320,
+          "cardPadding": 16
+        },
+        "register": {
+          "inner": 320,
+          "body": 320,
+          "root": 320,
+          "cardPadding": 16
+        },
+        "recover": {
+          "inner": 320,
+          "body": 320,
+          "root": 320,
+          "cardPadding": 16
+        },
+        "invalidReset": {
+          "inner": 320,
+          "body": 320,
+          "root": 320,
+          "cardPadding": 16
+        }
+      },
+      "pageErrors": [],
+      "screenshot": "docs/qa/t112-118-production/auth-login-320-production.png"
+    }
+  },
+  "browser": {
+    "engine": "Chromium",
+    "version": "145.0.7632.6"
+  }
+}

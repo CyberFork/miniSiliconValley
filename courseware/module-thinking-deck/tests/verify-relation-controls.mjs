@@ -1,0 +1,45 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import vm from 'node:vm';
+import * as THREE from '../vendor/three.module.min.js';
+import {createVoxelDesigns,VOXEL_EDGE} from '../voxel-designs.js';
+const read=n=>readFile(new URL('../'+n,import.meta.url),'utf8');
+const ctx={window:{}};vm.runInNewContext(await read('deck-data.js'),ctx);const model=ctx.window.MSV_MODULE_DECK;
+const s=model.slides.find(s=>s.id==='module-s05');
+assert.doesNotMatch(s.content,/voxel-toolbar|data-voxel-step|data-voxel-case=/);
+for(const mode of ['product','modules','functions'])assert(s.content.includes(`data-relation-view="${mode}"`));
+for(const action of ['drive','jump','turn','river'])assert(s.content.includes(`data-car-action="${action}"`));
+assert.match(s.content,/过桥渡河/);assert.match(s.content,/不能.*浮在水上/);
+for(const name of ['deck-runtime.js','presenter-runtime.js']){
+ const source=await read(name),start=source.indexOf('  function normalize('),end=source.indexOf('\n  function ',start+10);
+ const box={model,Date:{now:()=>0},maxReveal:()=>0,isRecap:()=>false,recapMask:v=>v};vm.createContext(box);vm.runInContext(source.slice(start,end)+';this.normalize=normalize;',box);
+ const slide=model.slides.indexOf(s);
+ for(const carAction of ['drive','jump','turn','river'])assert.equal(box.normalize({slide,activity:{relationView:'functions',carAction}}).activity.carAction,carAction);
+ assert.equal(box.normalize({slide,activity:{relationView:'wrong'}}).activity.relationView,'product');
+ assert.equal(box.normalize({slide:0,activity:{relationView:'functions',carAction:'jump'}}).activity.carAction,'drive');
+ assert.match(source,/restoreScenes/);
+}
+let now=0;const source=await read('module-3d.js'),host={dataset:{},hasAttribute:n=>n==='data-car-functions',getAttribute:()=> 'car:object'};
+const b={THREE,createVoxelDesigns,VOXEL_EDGE,Date:{now:()=>now},matchMedia:()=>({matches:false}),PALETTE:{orange:0xef7657,mint:0x63d7b0},material:color=>new THREE.MeshStandardMaterial({color}),box:(name,color,size)=>{const mesh=new THREE.Mesh(new THREE.BoxGeometry(...size),new THREE.MeshStandardMaterial({color}));mesh.name=name;return mesh;},createCommonScene:()=>{const camera=new THREE.PerspectiveCamera(40,2,.1,100);camera.position.set(8.4,5.4,10.5);camera.lookAt(0,0,0);return {scene:new THREE.Scene(),camera};}};
+vm.createContext(b);vm.runInContext(source.slice(source.indexOf('function setTransform('),source.indexOf('function createCommonScene(')),b);
+vm.runInContext(source.slice(source.indexOf('function createVoxelForge('),source.indexOf('// A small game scene')),b);
+const instance=b.createVoxelForge(host),root=instance.scene.children[0],beforeCamera=instance.camera.position.clone();
+instance.update();const before=root.position.clone();instance.setMode('car:jump');
+assert(root.position.equals(before),'selecting animation does not teleport');
+for(let i=0;i<100;i++)instance.update();assert(root.position.y>0,'jump shows visible height over terrain');
+const lifted=root.position.clone();instance.setMode('car:river');assert(root.position.equals(lifted),'switching actions keeps current pose');
+for(let i=0;i<100;i++)instance.update();assert(instance.scene.getObjectByName('桥面').material.opacity>.99);assert(instance.scene.getObjectByName('河流').material.opacity>.99);assert(instance.scene.getObjectByName('起跳坡').material.opacity<.01);
+instance.setMode('car:turn');now=2500;for(let i=0;i<150;i++)instance.update();assert(root.position.z>2.9,'turn follows an actual curved route');
+instance.setMode('car:components');for(let i=0;i<150;i++)instance.update();assert(root.position.length()<.01);assert(Math.abs(root.scale.x-1.45)<.001);
+assert(instance.camera.position.equals(beforeCamera));
+for(const file of ['deck-data.js','module-3d.js','lesson-tools.js','p1-scenes.css'])for(const surface of ['teacher','audience'])assert.equal(await read(`dist/${surface}/${file}`),await read(file));
+console.log('S05 cards/actions, state isolation, real 3D trajectories, smooth switching, terrain fade and build parity PASS');
+// Actual shared DOM reconciliation retains the WebGL host, rather than rebuilding it.
+const helpers=await read('lesson-tools.js'),helpersBox={};vm.createContext(helpersBox);
+vm.runInContext(helpers.slice(helpers.indexOf(' function takeScenes('),helpers.indexOf(' function paintRelation(')),helpersBox);
+const existing={dataset:{'module-3d':'voxel',webglReady:'true'},getAttribute:k=>k==='data-module-3d'?'voxel':null,attrs:{},setAttribute(k,v){this.attrs[k]=v;}};
+let replacement;
+const placeholder={dataset:{'module-3d':'voxel'},getAttribute:k=>k==='data-module-3d'?'voxel':null,attributes:[{name:'data-module-3d-mode',value:'car:components'}],replaceWith(node){replacement=node;}};
+const container={querySelectorAll:()=>[placeholder]};
+helpersBox.restoreScenes(container,[existing]);assert.equal(replacement,existing);assert.equal(existing.attrs['data-module-3d-mode'],'car:components');
+console.log('Shared WebGL node reuse retains the same scene identity PASS');

@@ -1,0 +1,10 @@
+{
+  "version": "2026.09.22-p1-games-draft1",
+  "digest": "ee618276add4d195ad52bc9304aabbc04c0da79fa2eba6530105cd7b51eb25f8",
+  "unitTests": "PASS: teacher/audience eight masks, legacy reveal, refresh roundtrip, next/back/reset, other-slide isolation",
+  "structure": "PASS: 26 slides, 120 minutes, three answers, original three learning outputs",
+  "browser": "Native Edge: individual WHAT and HOW open with WHY collapsed; Enter collapses focused HOW; all-expand; refresh retains all three; new audience window inherits all-open; audience WHY collapses independently",
+  "visual": "Teacher all-open and audience partial-open inspected; initial bottom overflow corrected before final screenshot",
+  "limitation": "After closing only the created audience popup, native app API timed out: return-to-teacher reverse-sync was not visually rechecked. No physical projector or user teaching acceptance.",
+  "productionDeployed": false
+}

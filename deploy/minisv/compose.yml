@@ -1,0 +1,17 @@
+services:
+  gateway:
+    image: nginx:1.28.0-alpine@sha256:30f1c0d78e0ad60901648be663a710bdadf19e4c10ac6782c235200619158284
+    container_name: minisv-gateway
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:18780:8080"
+    volumes:
+      - ./gateway/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./gateway/app-proxy.conf:/etc/nginx/minisv/app-proxy.conf:ro
+      - ./current/site:/srv/minisv/site:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider --header='Host: minisv.vip' http://127.0.0.1:8080/healthz || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 5s

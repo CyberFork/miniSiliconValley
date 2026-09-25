@@ -1,0 +1,14 @@
+{
+  "release": "20260922T1844CST-p1-six-fields-r11",
+  "previousRelease": "20260922T1744CST-p1-workshop-text-r10",
+  "status": "deployed",
+  "p1Revision": 11,
+  "p2Revision": 5,
+  "p2Changed": false,
+  "digest": "3b02ebf6bbc8bbe1a30d724475420ae18bbeb6864bb9c31d2b0f4c34f3282022",
+  "historicalFilesUnchanged": 872,
+  "manualAcceptance": "not-signed-by-user",
+  "workspaceOverlaySha256": "800da818ce7a7c3f1f96cff12d04ae971e1c8990cec6aee76922532e682c0cc2",
+  "change": "HOW-03六项与六张编号卡一一对应，统一小车背包案例；不负责归入职责边界",
+  "visualReview": "not-performed; no connected browser"
+}

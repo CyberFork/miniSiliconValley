@@ -1,0 +1,27 @@
+{
+  "feature": "S06 interactive car route and inventory",
+  "digest": "71d7e2579fc4ea81647a9d06648cc80df21869515b3d38181cfa0dfc1ea5c0f2",
+  "status": "local-draft",
+  "deployed": false,
+  "manualAcceptance": "not-signed",
+  "automated": [
+    "11 route-game tests including actual Rapier driving and package isolation",
+    "26 workshop regression tests",
+    "P1/shared/recap/tradeoff checks",
+    "ESLint and git diff --check"
+  ],
+  "nativeChromeObserved": [
+    "S06 embedded iframe running",
+    "parent iframe fullscreen works",
+    "coin and tool picked up",
+    "full bag rejects key",
+    "finish without key rejected",
+    "discard button changes 2/2 to 1/2",
+    "audience receives same bag and disables driving"
+  ],
+  "pending": [
+    "human teaching tryout",
+    "touchscreen physical device",
+    "full browser victory run (covered by actual physics integration, not claimed as UI test)"
+  ]
+}

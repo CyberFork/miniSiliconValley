@@ -1,0 +1,316 @@
+/* P1-only teaching compositions. Shared engine/P2 revision remains immutable. */
+.case-reuse-grid { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:22px; align-items:stretch; }
+.case-reuse-grid > div { min-width:0; }
+.case-reuse-scene { height:290px; min-width:0; }
+.case-reuse-scene .module-3d-fallback { padding:24px; color:#10293f; text-align:center; }
+.case-reuse-cards { display:grid; gap:12px; }
+.case-reuse-cards article { padding:14px 18px; color:#152a36; background:#fff8e7; border:3px solid #10293f; box-shadow:4px 4px 0 #c9c3b3; }
+.case-reuse-cards h3 { margin:0 0 7px; font-size:25px; color:#10293f; }
+.case-reuse-cards p { margin:0; font-size:22px; line-height:1.35; color:#334b58; }
+.case-reuse-cards.two-column { grid-template-columns:1fr 1fr; }
+.case-reuse-transform .transformer-switch { display:flex; flex-direction:row; margin-bottom:16px; gap:12px; }
+.case-reuse-transform .transformer-switch button { flex:1; }
+.case-reuse-toolbar { grid-template-columns:1fr 1.3fr; }
+.case-reuse-grid + .lesson-banner { margin-top:20px; }
+@media print { .case-reuse-scene { height:230px; } }
+
+/* Same conveyor, six fields: paper cards carry explicit foreground colors. */
+.conveyor-lesson{display:grid;grid-template-columns:1.1fr 1fr;gap:24px;align-items:start}
+.conveyor-scene{height:415px;position:relative;border:3px solid #173047;background:#e4f0f2}
+.conveyor-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.conveyor-cards button{display:grid;gap:7px;min-height:148px;padding:14px;text-align:left;background:#fffdf5;color:#173047;border:3px solid #173047;cursor:pointer;font:inherit}
+.conveyor-cards button[aria-pressed=true]{background:#fff0b0;border-color:#b9512e;box-shadow:4px 4px 0 #80d7b8}
+.conveyor-cards b{font-size:26px;color:#173047}.conveyor-cards strong{font-size:21px;color:#346a68}.conveyor-cards span{font-size:22px;line-height:1.35;color:#173047}
+.conveyor-cards button:focus-visible{outline:4px solid #285ae0;outline-offset:2px}
+.conveyor-caption{margin:12px 0;padding:12px;background:#193443;color:#fff8df;font-size:25px;font-weight:700}
+.conveyor-boundary{font-size:19px;color:#465b65;line-height:1.4}
+.conveyor-pin{position:absolute;z-index:2;pointer-events:none;transform:translate(-50%,-110%);padding:3px 8px;border:2px solid #173047;background:#fffdf5;color:#173047;font-size:20px;font-weight:700;white-space:nowrap}
+.conveyor-pin.active{background:#f3cd62;border-color:#a64125;box-shadow:0 0 0 3px #fffdf5}
+
+/* WHY comparison: one large live scene, four synchronized choices. */
+.tradeoff-demo{display:grid;grid-template-columns:320px minmax(0,1fr);gap:24px;height:450px;color:#173047}
+.tradeoff-tabs{display:grid;grid-template-rows:repeat(4,1fr);gap:10px}
+.tradeoff-tabs button{background:#fffdf5;color:#173047;border:3px solid #173047;padding:12px 16px;text-align:left;font-family:inherit;font-weight:800;font-size:27px;line-height:1.3;cursor:pointer}
+.tradeoff-tabs small{display:block;font-size:21px;line-height:1.35;font-weight:400;margin-top:5px}
+.tradeoff-tabs button[aria-selected="true"]{background:#f3cd62;box-shadow:5px 5px 0 #347b76}
+.tradeoff-demo button:focus-visible{outline:4px solid #2154d7;outline-offset:3px}
+.tradeoff-panel{min-width:0;display:grid;grid-template-rows:335px 1fr;border:3px solid #173047;background:#e5f0f3}
+.tradeoff-panel .module-3d-host{height:335px;border:0}
+.tradeoff-caption{display:flex;align-items:center;gap:16px;padding:12px;background:#fffdf5;color:#173047;border-top:2px solid #173047}
+.tradeoff-caption p{font-size:22px;line-height:1.35;margin:0;flex:1}
+.tradeoff-caption button{max-width:230px;border:2px solid #173047;background:#f3cd62;color:#173047;padding:8px;font-size:22px;cursor:pointer}
+.tradeoff-judgement{margin-top:15px;padding:12px;background:#173047;color:#fff9e9;font-size:24px;line-height:1.4}.tradeoff-judgement b{color:#f3cd62;margin-right:20px}
+
+.s06-game{height:495px;position:relative;border:3px solid #173047;background:#e5f0f3;overflow:hidden}.s06-game iframe{width:100%;height:100%;border:0;display:block}.s06-game-preview{display:none;padding:28px;color:#173047;background:#fff8e7;font-size:28px;line-height:1.5}.s06-game[data-preview] iframe{display:none}.s06-game[data-preview] .s06-game-preview{display:block}.s06-handoff{margin:10px 0 0;font-size:23px;color:#173047;line-height:1.35}
+
+.s06-game iframe:fullscreen{width:100vw!important;height:100dvh!important;max-width:none;max-height:none;transform:none;background:#fff8e7}
+
+/* Public cases use the same paper stage as S06/S07/S12. Explicit surface/ink
+   pairs prevent the dark teacher shell from leaking white text into cards. */
+.deck-slide[data-slide-id="module-s09"] .interface-demo{grid-template-columns:minmax(0,1fr) 150px minmax(0,1fr);gap:24px}
+.deck-slide[data-slide-id="module-s09"] .interface-demo article{padding:22px 26px;border:3px solid var(--navy);border-left:8px solid var(--mint-dark);background:var(--paper);color:var(--ink);box-shadow:6px 6px 0 rgba(16,41,63,.15)}
+.deck-slide[data-slide-id="module-s09"] .interface-demo article small{color:var(--mint-dark);font-size:20px;line-height:1.2}
+.deck-slide[data-slide-id="module-s09"] .interface-demo h3{color:var(--navy)}
+.deck-slide[data-slide-id="module-s09"] .interface-demo article p{color:var(--muted);font-size:24px;line-height:1.5}
+.deck-slide[data-slide-id="module-s09"] .data-chip{margin:8px 0;padding:8px 12px;border-left:5px solid var(--mint-dark);background:#e1f2e9;color:var(--ink);font-size:23px;line-height:1.3}
+.deck-slide[data-slide-id="module-s09"] .data-chip.missing{background:#fff0ad;color:#803b21;border-color:#b9512e}
+.deck-slide[data-slide-id="module-s09"] .plug{color:var(--mint-dark)}
+.deck-slide[data-slide-id="module-s09"] .plug span{color:var(--navy);padding:10px 18px;background:var(--yellow);border:3px solid var(--navy)}
+.deck-slide[data-slide-id="module-s09"] .interface-demo + .mission-question{margin-top:24px}
+.deck-slide[data-slide-id="module-s10"] .blackbox-lab{width:1240px;grid-template-columns:minmax(0,1fr) 440px minmax(0,1fr);gap:32px}
+.deck-slide[data-slide-id="module-s10"] .input-stack button,
+.deck-slide[data-slide-id="module-s10"] .output-stack span{min-height:90px;border-width:3px;background:var(--paper);color:var(--ink);box-shadow:5px 5px 0 rgba(16,41,63,.15)}
+.deck-slide[data-slide-id="module-s10"] .input-stack b,
+.deck-slide[data-slide-id="module-s10"] .output-stack b{color:var(--navy);font-size:32px}
+.deck-slide[data-slide-id="module-s10"] .input-stack small,
+.deck-slide[data-slide-id="module-s10"] .output-stack small{color:var(--muted);font-size:20px}
+.deck-slide[data-slide-id="module-s10"] .input-stack button:hover{background:#fff0ad}
+.deck-slide[data-slide-id="module-s10"] .input-stack button:focus-visible{outline:4px solid var(--blue);outline-offset:4px}
+.deck-slide[data-slide-id="module-s10"] .input-stack button[aria-pressed="true"],
+.deck-slide[data-slide-id="module-s10"] .output-stack span[data-active="true"]{background:#d9f2e7;color:var(--ink);box-shadow:6px 6px 0 var(--mint-dark)}
+.deck-slide[data-slide-id="module-s10"] .blackbox{min-height:300px;border:3px solid var(--navy);background:var(--navy);color:var(--cream);box-shadow:8px 8px 0 var(--mint)}
+.deck-slide[data-slide-id="module-s10"] .blackbox b{color:var(--cream)}
+.deck-slide[data-slide-id="module-s10"] .blackbox small{max-width:380px;padding:0 14px;color:#d8f4e8;font-size:21px;line-height:1.4;text-align:center}
+.deck-slide[data-slide-id="module-s10"] .three-questions{margin-top:24px}
+.deck-slide[data-slide-id="module-s10"] .three-questions span{color:var(--navy);background:var(--yellow);font-size:24px}
+
+/* S13: one filled interface card at a time, matching the WHY left-tab layout. */
+.interface-examples{display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px;height:424px;color:var(--ink)}
+.interface-case-tabs{display:grid;grid-template-rows:repeat(5,1fr);gap:9px}
+.interface-case-tabs button{display:block;text-align:left;border:3px solid var(--navy);background:var(--paper);color:var(--ink);padding:10px 16px;font-family:inherit;cursor:pointer}
+.interface-case-tabs b{display:block;color:var(--navy);font-size:26px;line-height:1.15}
+.interface-case-tabs small{display:block;margin-top:5px;color:var(--muted);font-size:19px;line-height:1.2}
+.interface-case-tabs button[aria-selected="true"]{background:var(--yellow);box-shadow:5px 5px 0 var(--mint-dark)}
+.interface-case-tabs button[aria-selected="true"] small{color:var(--navy)}
+.interface-case-tabs button:focus-visible{outline:4px solid var(--blue);outline-offset:3px}
+.interface-case-panels{min-width:0;min-height:0}
+.interface-example-card{height:100%;padding:18px 24px;border:3px solid var(--navy);border-left:8px solid var(--mint-dark);background:var(--paper);color:var(--ink);box-shadow:6px 6px 0 rgba(16,41,63,.15)}
+.interface-example-card[hidden]{display:none}
+.interface-example-card header{display:flex;align-items:center;gap:24px;padding-bottom:12px;border-bottom:3px solid var(--navy)}
+.interface-example-card header small{font-size:21px;font-weight:800;color:var(--mint-dark)}
+.interface-example-card h3{margin:0;font-size:31px;color:var(--navy);line-height:1.2}
+.interface-example-duty{display:flex;align-items:center;gap:24px;padding:12px 0;border-bottom:2px solid #c5cfca}
+.interface-example-duty b{flex:none;font-size:22px;color:var(--blue)}
+.interface-example-duty p{margin:0;color:var(--ink);font-size:25px;line-height:1.3}
+.interface-example-pair{display:grid;grid-template-columns:1fr 1fr;border-bottom:2px solid #c5cfca}
+.interface-example-pair section{min-width:0;padding:12px 18px 12px 0}
+.interface-example-pair section+section{padding-left:20px;border-left:2px solid #c5cfca}
+.interface-example-pair h4{margin:0 0 7px;font-size:22px;color:var(--blue)}
+.interface-example-pair p{margin:0;font-size:23px;color:var(--ink);line-height:1.35}
+.interface-example-note{margin:12px 0 0;color:var(--muted);font-size:18px;line-height:1.3}
+
+/* S14 exploded responsibility groups, matching S13's side controls. */
+.assembly-lesson{display:grid;grid-template-columns:300px minmax(0,1fr);gap:24px;height:370px;color:var(--ink)}
+.assembly-controls{display:flex;flex-direction:column;gap:12px}
+.assembly-controls button{padding:14px 16px;background:var(--paper);color:var(--ink);border:3px solid var(--navy);text-align:left;font:inherit;cursor:pointer}
+.assembly-controls button b{display:block;font-size:26px;color:var(--navy)}
+.assembly-controls button small{display:block;margin-top:6px;font-size:19px;line-height:1.3;color:var(--muted)}
+.assembly-controls button[aria-pressed="true"]{background:var(--yellow);box-shadow:5px 5px 0 var(--mint-dark)}
+.assembly-controls button:focus-visible{outline:4px solid var(--blue);outline-offset:3px}
+.assembly-context{padding:10px;background:var(--paper);border-left:6px solid var(--mint-dark);font-size:19px;color:var(--ink);line-height:1.35}
+.assembly-context p{margin:6px 0}.assembly-context small{font-size:17px;color:var(--muted)}
+.assembly-scene{height:370px;border:3px solid var(--navy);background:#e3eef0;position:relative}
+.assembly-pin{position:absolute;z-index:2;pointer-events:none;transform:translate(-50%,-110%);padding:4px 8px;background:var(--paper);color:var(--ink);border:2px solid var(--navy);font-size:23px;font-weight:800;white-space:nowrap}
+.assembly-pin[data-module="move"]{border-bottom:5px solid var(--blue)}.assembly-pin[data-module="pickup"]{border-bottom:5px solid #b88117}.assembly-pin[data-module="bag"]{border-bottom:5px solid var(--mint-dark)}.assembly-pin[data-module="finish"]{border-bottom:5px solid #b9512e}
+.assembly-feedback{margin:14px 0 0;color:var(--ink);font-size:22px;line-height:1.35}
+
+/* S12: worked answers follow S14, before independent game practice. */
+.worked-example{display:grid;grid-template-columns:235px minmax(0,1fr) 490px;gap:18px;height:450px;color:var(--ink)}
+.worked-tabs{display:grid;grid-template-rows:repeat(6,1fr);gap:8px}
+.worked-tabs button{padding:8px 12px;border:3px solid var(--navy);background:var(--paper);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.worked-tabs b{display:block;color:var(--navy);font-size:24px;line-height:1.2}
+.worked-tabs small{display:block;color:var(--muted);font-size:18px;margin-top:3px}
+.worked-tabs button[aria-selected="true"]{background:var(--yellow);box-shadow:4px 4px 0 var(--mint-dark)}
+.worked-tabs button:focus-visible{outline:4px solid var(--blue);outline-offset:2px}
+.worked-visual{min-width:0}.worked-scene{height:403px;border:3px solid var(--navy);background:#e3eef0;position:relative}
+.worked-visual>p{font-size:18px;line-height:1.3;color:var(--muted);margin:10px 0 0}
+.worked-scene .assembly-pin{font-size:19px;padding:3px 5px}
+.worked-panels{min-width:0;background:var(--paper);border:3px solid var(--navy);border-left:7px solid var(--mint-dark);padding:18px}
+.worked-panels article[hidden]{display:none}
+.worked-panels h3{font-size:27px;line-height:1.3;color:var(--navy);margin:0 0 10px}
+.worked-panels section{padding:10px 0;border-top:2px solid #c5cfca}
+.worked-panels h4{color:var(--blue);font-size:21px;line-height:1.2;margin:0 0 6px}
+.worked-panels p{color:var(--ink);font-size:23px;line-height:1.4;margin:0}
+
+/* S05: the teaching cards are the controls; no duplicated toolbar. */
+.relation-demo{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px;height:450px;color:var(--ink)}
+.relation-scene{height:338px;position:relative;background:#e3eef0;border:3px solid var(--navy)}
+.relation-cards{display:grid;grid-template-rows:repeat(3,1fr);gap:14px}
+.relation-cards button{background:var(--paper);border:3px solid var(--navy);padding:14px 18px;text-align:left;font:inherit;cursor:pointer;color:var(--ink)}
+.relation-cards b{display:block;font-size:26px;color:var(--navy);margin-bottom:10px}
+.relation-cards span{font-size:22px;line-height:1.35;color:var(--ink)}
+.relation-cards button[aria-pressed="true"]{background:#fff0b0;box-shadow:5px 5px 0 var(--mint-dark)}
+.car-action-tabs{display:flex;gap:8px;margin-top:10px}.car-action-tabs[hidden]{display:none}
+.car-action-tabs button{flex:1;padding:9px 5px;background:var(--paper);color:var(--navy);border:2px solid var(--navy);font-family:inherit;font-size:20px;font-weight:700;cursor:pointer}
+.car-action-tabs button[aria-pressed="true"]{background:var(--yellow)}
+.relation-demo button:focus-visible{outline:4px solid var(--blue);outline-offset:3px}
+.relation-caption{font-size:21px;line-height:1.35;color:var(--ink);margin:10px 0 0}
+
+.module-3d-canvas{animation:scene-arrive .4s ease-out both}@keyframes scene-arrive{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.module-3d-canvas{animation:none}}
+
+.automation-phase{position:absolute;left:12px;top:12px;z-index:2;background:#fff8e7;color:#173047;border-left:5px solid #347b76;padding:6px 10px;font-size:20px;font-weight:700;pointer-events:none}
+
+/* HOW-04: concrete two-slot bag walkthrough; P1-only, no P2 theme changes. */
+.bag-walkthrough{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
+.bag-walkthrough article{min-width:0;padding:16px 22px;border:4px solid var(--navy);border-left:8px solid var(--mint-dark);background:var(--paper);color:var(--ink);box-shadow:5px 5px 0 #d7d7c7;}
+.bag-walkthrough h3{margin:0 0 12px;color:var(--navy);font-size:28px;line-height:1.3;}
+.bag-walkthrough p{margin:10px 0 0;color:var(--ink);font-size:23px;line-height:1.4;}
+.bag-example-flow{display:grid;grid-template-columns:minmax(0,1fr) 32px minmax(0,1fr);gap:12px;align-items:center;}
+.bag-example-flow>b{color:var(--navy);font-size:30px;text-align:center;}
+.bag-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+.bag-slot{display:block;border:3px solid var(--navy);padding:7px 4px;background:#f7dc79;color:var(--navy);font-size:24px;line-height:1.2;text-align:center;}
+.bag-slot.is-empty{border-style:dashed;background:var(--paper);color:var(--ink);}
+.bag-error-example{border-left-color:#ac392e!important;}
+.bag-error-example h3{color:#982d24;}
+.bag-error-example .bag-pair:last-child .bag-slot:first-child{background:#f9d8d3;border-color:#982d24;color:#76241d;}
+.bag-walkthrough + .lesson-banner{margin-top:14px;padding:12px 18px;gap:16px;font-size:22px;line-height:1.4;}
+
+/* r16: WHAT demonstrations own a larger stage, rather than enlarging a canvas
+   inside the old 545px body and clipping the teaching notes. P1-only selectors
+   keep unrelated lessons and the immutable P2 package unchanged. */
+.deck-slide:is([data-slide-id="module-s02"],[data-slide-id="module-s02-build"],[data-slide-id="module-s02-voxel"],[data-slide-id="module-s03"],[data-slide-id="module-description"],[data-slide-id="module-s04"],[data-slide-id="module-s05"]) {
+  padding:34px 48px 72px;
+}
+.deck-slide:is([data-slide-id="module-s02"],[data-slide-id="module-s02-build"],[data-slide-id="module-s02-voxel"],[data-slide-id="module-s03"],[data-slide-id="module-description"],[data-slide-id="module-s04"],[data-slide-id="module-s05"]) .slide-heading { margin-top:14px; max-width:none; }
+.deck-slide:is([data-slide-id="module-s02"],[data-slide-id="module-s02-build"],[data-slide-id="module-s02-voxel"],[data-slide-id="module-s03"],[data-slide-id="module-description"],[data-slide-id="module-s04"],[data-slide-id="module-s05"]) .slide-heading h1 { font-size:56px; line-height:1.12; }
+.deck-slide:is([data-slide-id="module-s02"],[data-slide-id="module-s02-build"],[data-slide-id="module-s02-voxel"],[data-slide-id="module-s03"],[data-slide-id="module-description"],[data-slide-id="module-s04"],[data-slide-id="module-s05"]) .slide-heading p { margin-top:10px; font-size:23px; }
+.deck-slide:is([data-slide-id="module-s02"],[data-slide-id="module-s02-build"],[data-slide-id="module-s02-voxel"],[data-slide-id="module-s03"],[data-slide-id="module-description"],[data-slide-id="module-s04"],[data-slide-id="module-s05"]) .slide-body { left:48px; right:48px; top:210px; bottom:72px; }
+.deck-slide:is([data-slide-id="module-s02"],[data-slide-id="module-s02-build"],[data-slide-id="module-s02-voxel"]) .reveal-card { min-height:64px; padding:12px 18px; gap:16px; font-size:21px; }
+
+.deck-slide[data-slide-id="module-s02"] .transformer-demo { grid-template-columns:150px minmax(0,1fr) 430px; gap:16px; height:464px; }
+.deck-slide[data-slide-id="module-s02"] .transformer-stage { min-width:0; padding:10px; grid-template-rows:minmax(0,1fr) auto auto; align-content:stretch; }
+.deck-slide[data-slide-id="module-s02"] .transform-3d { height:100%; min-height:0; }
+.deck-slide[data-slide-id="module-s02"] .component-ledger article { grid-template-columns:30px minmax(0,1fr) 130px; gap:8px; padding:10px; }
+.deck-slide[data-slide-id="module-s02"] .reuse-boundary { margin-top:12px; }
+
+.deck-slide[data-slide-id="module-s02-build"] .build-observer,
+.deck-slide[data-slide-id="module-s03"] .build-observer { margin-bottom:12px; }
+.deck-slide[data-slide-id="module-s02-build"] .lego-automation-demo { height:410px; grid-template-columns:minmax(0,1.9fr) minmax(360px,1fr); }
+.deck-slide[data-slide-id="module-s02-build"] .lego-automation-3d { height:410px; }
+.deck-slide[data-slide-id="module-s02-build"] .build-feedback { margin-top:10px; }
+
+.deck-slide[data-slide-id="module-s02-voxel"] .voxel-lab { height:365px; }
+.deck-slide[data-slide-id="module-s02-voxel"] .voxel-forge-3d { height:365px; }
+
+.deck-slide:is([data-slide-id="module-s03"],[data-slide-id="module-s04"]) .case-reuse-grid { grid-template-columns:minmax(0,1.4fr) minmax(0,1fr); }
+.deck-slide:is([data-slide-id="module-s03"],[data-slide-id="module-s04"]) .case-reuse-scene { height:410px; }
+.deck-slide:is([data-slide-id="module-s03"],[data-slide-id="module-s04"]) .build-feedback { margin-top:10px; }
+.deck-slide[data-slide-id="module-s04"] .transformer-switch { margin-bottom:12px; }
+.deck-slide[data-slide-id="module-s04"] .transformer-switch button { min-height:50px; padding:8px 12px; }
+.deck-slide:is([data-slide-id="module-s03"],[data-slide-id="module-s04"],[data-slide-id="module-s05"]) .lesson-banner { margin-top:12px; padding:12px 18px; gap:16px; font-size:21px; }
+
+.deck-slide[data-slide-id="module-description"] .conveyor-lesson { grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); }
+.deck-slide[data-slide-id="module-description"] .conveyor-scene { height:470px; }
+.deck-slide[data-slide-id="module-description"] .conveyor-caption { margin:10px 0; padding:10px 12px; }
+.deck-slide[data-slide-id="module-description"] .conveyor-boundary { margin:10px 0 0; }
+
+.deck-slide[data-slide-id="module-s05"] .relation-demo { grid-template-columns:minmax(0,1.45fr) minmax(0,1fr); height:536px; }
+.deck-slide[data-slide-id="module-s05"] .relation-scene { height:425px; }
+
+/* Hand-drawable bridge from the same car game to each learner's project. */
+.deck-slide:is([data-slide-id="module-my-start"],[data-slide-id="module-my-map"]){padding:34px 48px 72px}
+.deck-slide:is([data-slide-id="module-my-start"],[data-slide-id="module-my-map"]) .slide-heading{margin-top:14px;max-width:none}
+.deck-slide:is([data-slide-id="module-my-start"],[data-slide-id="module-my-map"]) .slide-heading h1{font-size:56px;line-height:1.12}
+.deck-slide:is([data-slide-id="module-my-start"],[data-slide-id="module-my-map"]) .slide-heading p{font-size:23px;margin-top:10px}
+.deck-slide:is([data-slide-id="module-my-start"],[data-slide-id="module-my-map"]) .slide-body{left:48px;right:48px;top:210px;bottom:72px}
+.how-example-pair{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.how-sketch{border:3px solid var(--navy);padding:18px 20px;background:var(--paper);color:var(--ink);box-shadow:5px 5px 0 #d7d7c7}
+.how-sketch h3,.how-map-layout h3{font-size:26px;line-height:1.3;margin:0 0 12px;color:var(--navy)}
+.how-sketch p{font-size:21px;line-height:1.45;margin:10px 0 0;color:var(--ink)}
+.how-layer-strip,.how-inside-flow{display:grid;grid-template-columns:1fr 20px 1fr 20px 1fr;gap:5px;align-items:center;margin:14px 0}
+.how-layer-strip>div,.how-inside-flow>div{border:2px solid var(--navy);background:#e3f2e9;padding:10px;min-height:103px;display:flex;flex-direction:column;justify-content:center;gap:6px;color:var(--ink)}
+.how-layer-strip b,.how-inside-flow b{font-size:24px;color:var(--navy)}
+.how-layer-strip span,.how-inside-flow span{font-size:20px;line-height:1.35;color:var(--ink)}
+.how-layer-strip i,.how-inside-flow i{font-style:normal;font-size:26px;color:var(--navy)}
+.how-sketch .how-example-hint{border-top:2px dashed #6d847e;padding-top:10px;color:#334d60}
+.how-prep-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px}
+.how-prep-grid article{border-left:6px solid var(--mint-dark);padding:12px 14px;background:#ede8d2;color:var(--ink)}
+.how-prep-grid h3{font-size:23px;margin:0 0 8px;color:var(--navy)}
+.how-prep-grid p{font-size:20px;line-height:1.4;margin:0;color:var(--ink)}
+.how-materials{margin-top:14px;padding:10px 16px;font-size:20px;gap:15px}
+.how-map-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px;color:var(--ink)}
+.how-map-sample{border:3px solid var(--navy);background:var(--paper);padding:18px;color:var(--ink)}
+.how-module-map{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) 174px;grid-template-rows:30px repeat(4,74px);column-gap:32px;row-gap:10px;align-items:stretch}
+.how-map-label{font-size:20px;color:var(--navy);align-self:center}
+.how-map-module,.how-map-function,.how-map-product{position:relative;border:3px solid var(--navy);padding:9px 12px;background:#e3f2e9;color:var(--ink);display:flex;flex-direction:column;justify-content:center;gap:4px}
+.how-map-module{padding:6px 10px}
+.how-map-module span{font-size:22px;line-height:1.3;color:var(--ink)}
+.how-map-function{background:#fff0ad}
+.how-map-function b,.how-map-product b{font-size:25px;color:var(--navy)}
+.how-map-function span,.how-map-product span{font-size:19px;line-height:1.3;color:var(--ink)}
+.how-map-product{grid-row:2/6;grid-column:3;background:#dfe9fb;text-align:center;padding:16px;gap:20px}
+.how-map-product b{line-height:1.5;font-size:29px}
+.how-map-module::after,.how-map-function::after{content:'→';position:absolute;left:100%;top:50%;transform:translateY(-50%);width:32px;text-align:center;font-size:27px;color:var(--navy)}
+.how-map-reuse{font-size:21px;line-height:1.4;margin:14px 0 10px;color:var(--ink)}
+.how-map-handoff{border-top:2px dashed #68867d;padding-top:10px;display:flex;flex-direction:column;gap:6px;color:var(--ink);font-size:20px;line-height:1.4}
+.how-map-handoff b{color:var(--blue-2)}
+.how-map-prompts{display:grid;gap:8px}
+.how-map-prompts article{padding:8px 12px;border:2px solid var(--navy);border-left:6px solid var(--mint-dark);background:#ede8d2;color:var(--ink)}
+.how-map-prompts h3{font-size:22px;margin:0 0 6px;color:var(--navy)}
+.how-map-prompts p{font-size:18px;line-height:1.3;margin:0;color:var(--ink)}
+.how-peer-prompt{display:block;margin-top:12px;padding:10px 14px;font-size:20px;line-height:1.4}
+.how-peer-prompt b{display:block;margin-bottom:5px}
+/* Keep the reusable worksheet hints above the footer even when all are revealed. */
+.deck-slide[data-slide-id="module-my-map"] .how-map-layout{grid-template-columns:minmax(0,1fr) 400px;gap:20px;align-items:start}
+.deck-slide[data-slide-id="module-my-map"] .how-map-own>h3{font-size:24px;margin-bottom:8px}
+.deck-slide[data-slide-id="module-my-map"] .how-map-prompts article{padding:6px 10px}
+.deck-slide[data-slide-id="module-my-map"] .how-map-prompts h3{font-size:21px;line-height:1.2;margin-bottom:4px}
+.deck-slide[data-slide-id="module-my-map"] .how-map-prompts p{font-size:18px;line-height:1.25}
+.deck-slide[data-slide-id="module-my-map"] .how-peer-prompt{margin-top:8px;padding:8px 10px;font-size:18px;line-height:1.3}
+
+/* Whole-game maps: each module appears once; edges show cooperation, not time. */
+.game-map{color:var(--ink);border:3px solid var(--navy);background:#fffdf6;padding:12px 16px;position:relative}
+.game-map-head{position:absolute;inset:14px 16px auto;display:grid;grid-template-columns:46.5% 36.5% 17%;font-size:23px;color:var(--blue);z-index:1;pointer-events:none}
+.game-map-head>b{color:var(--blue)}
+.game-map-board{height:440px;position:relative}
+.game-map-board svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.game-map-board path{fill:none;stroke:#31598c;stroke-width:2;opacity:.10;transition:opacity .25s,stroke-width .25s}
+.game-map-board path.map-edge-active{opacity:.6;stroke-width:2.8}
+.game-map-board path.game-map-product-edge{opacity:.5;stroke:#437e76}
+.game-map-board button{position:absolute;transform:translateY(-50%);border:2px solid var(--navy);background:var(--paper);color:var(--ink);font:inherit;font-size:23px;line-height:1.2;cursor:pointer;transition:background .25s,opacity .25s,box-shadow .25s;padding:8px 9px;text-align:left}
+.game-map-board button b{color:var(--ink);font-size:inherit;display:block}
+.game-map-board button small{display:block;font-size:17px;color:var(--muted);margin-top:5px}
+.game-map-board [data-map-module]{left:0;width:24.5%;min-height:39px}
+.game-map-board [data-map-path]{left:46.5%;width:27%;min-height:65px}
+.game-map-board button.map-related{background:#edf7ee}
+.game-map-board button[aria-pressed="true"]{background:var(--yellow);box-shadow:4px 4px 0 var(--mint-dark)}
+.game-map-board button.map-muted{opacity:.45}
+.game-map button:focus-visible{outline:4px solid var(--blue);outline-offset:2px}
+.game-map-product{position:absolute;left:83%;width:17%;top:50%;transform:translateY(-50%);background:#e0eaff;border:3px solid var(--navy);padding:18px 10px;box-sizing:border-box;color:var(--ink)}
+.game-map-product b{display:block;color:var(--ink);font-size:25px;line-height:1.35}.game-map-product span{display:block;font-size:19px;line-height:1.4;margin-top:12px;color:var(--muted)}
+.game-map-bottom{display:flex;align-items:center;gap:12px;border-top:2px solid #d4dccf;padding-top:9px}
+.game-map-bottom p{font-size:21px;line-height:1.3;margin:0;flex:1;color:var(--ink)}
+.game-map-bottom button{flex:none;font:inherit;font-size:20px;padding:8px;border:2px solid var(--navy);background:var(--yellow);color:var(--ink);cursor:pointer}
+.game-map-scope{font-size:19px!important;line-height:1.3;color:var(--muted);margin:12px 0 0!important}
+.worked-map-overview{display:none;position:relative;grid-column:2/4;grid-row:1;min-width:0}
+.worked-show-map>.worked-map-overview{display:block}
+.worked-show-map>.worked-visual,.worked-show-map>.worked-panels{display:none}
+.worked-map-overview .game-map-board{height:340px}
+.worked-map-overview .game-map-head{font-size:20px}
+.worked-map-overview .game-map-board button{font-size:22px}
+.worked-map-overview .game-map-board button small{font-size:17px}
+.worked-map-overview .game-map-product b{font-size:23px}
+.worked-map-overview .game-map-bottom p{font-size:20px}
+.worked-map-answer{position:absolute;left:0;right:0;top:calc(100% - 24px);z-index:8;background:var(--paper);color:var(--ink);font-size:20px;border:2px solid var(--navy);padding:6px 12px}
+.worked-map-answer summary{cursor:pointer;color:var(--blue)}
+.worked-map-answer[open]{top:0;bottom:0;overflow:auto;background:#fffdf6;box-shadow:6px 6px 0 #34594f60;padding:20px}
+.worked-map-answer h3{font-size:28px;color:var(--navy)}.worked-map-answer h4{font-size:24px;color:var(--blue);margin:18px 0 4px}.worked-map-answer p{font-size:24px;color:var(--ink);margin:4px 0}
+
+.bag-demo-launch{font:inherit;font-size:22px;font-weight:700;color:var(--navy);background:var(--yellow);border:3px solid var(--navy);padding:8px 12px;margin-top:9px;cursor:pointer}
+.bag-demo-overlay{position:absolute;inset:-10px -18px -8px;z-index:40;background:var(--paper);border:4px solid var(--navy);box-shadow:10px 10px 0 #30534266;display:flex;flex-direction:column;padding:14px;gap:12px}
+.bag-demo-overlay[hidden]{display:none!important}
+.bag-demo-controls{display:flex;gap:10px;flex-wrap:wrap;flex:none}
+.bag-demo-controls button{font:inherit;font-size:22px;border:3px solid var(--navy);color:var(--ink);background:var(--paper);padding:9px 12px;cursor:pointer}
+.bag-demo-controls button[aria-pressed=true]{background:var(--yellow);box-shadow:4px 4px 0 var(--mint-dark)}
+.bag-demo-controls button:last-child{margin-left:auto}
+.bag-demo-launch:focus-visible,.bag-demo-controls button:focus-visible{outline:4px solid var(--blue);outline-offset:2px}
+.bag-demo-scene{position:relative;min-height:0;flex:1;border:3px solid var(--navy);background:linear-gradient(120deg,#e3eef9,#e0f2eb)}
+.bag-demo-status{position:absolute;z-index:3;bottom:8px;left:10px;right:10px;padding:10px 14px;background:#fff9e9ed;border:2px solid #182e43;color:#182e43;font-size:24px;line-height:1.35;pointer-events:none}
+.bag-demo-status[data-rule=wrong]{border-left:7px solid #a33928}
+.bag-demo-status[data-rule=correct]{border-left:7px solid var(--mint-dark)}
+
+/* Resource panel uses an explicit foreground/background pair in every theme. */
+.presenter-shell .teaching-resources{background:#fffdf8;color:#182e43;border-color:#748983}
+.presenter-shell .teaching-resources > b{color:#182e43}
+.presenter-shell .teaching-resources small{color:#39776f}

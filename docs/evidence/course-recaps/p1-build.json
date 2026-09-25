@@ -1,0 +1,242 @@
+{
+  "schemaVersion": 1,
+  "todoId": "T-132",
+  "changeTodoIds": [
+    "T-122",
+    "T-128",
+    "T-130",
+    "T-132"
+  ],
+  "coursewareId": "module-thinking-p1",
+  "releaseRevision": 8,
+  "version": "2026.09.19-p1-r9",
+  "releaseStatus": "deployment-ready",
+  "manualAcceptance": "not-signed-by-user",
+  "sourceXmindSha256": "a31489645adcfaf6b7afd3be734349175740c520120cda65552cfa0f3e833793",
+  "audience": [
+    {
+      "path": "audience/assets/mini-silicon-valley-logo-transparent.png",
+      "sha256": "4dbbe4dea625fd372c6d760f2344fbf62b7b15f0d2d14e490cddd56e05ffbe87",
+      "bytes": 542270
+    },
+    {
+      "path": "audience/deck-data.js",
+      "sha256": "7a1ecc9f23bfdd1f2f5b674c25fa1147e9f7bde6ebb88bae252a8ab7140a90d4",
+      "bytes": 43603
+    },
+    {
+      "path": "audience/deck-runtime.js",
+      "sha256": "aa75e8f3e5c1f1283cb05e9b3ec5040f45ac413672e758e944176abd4b8ffc30",
+      "bytes": 14046
+    },
+    {
+      "path": "audience/deck.css",
+      "sha256": "4d8a501f34341823b8443998b4c0229ef2c700356b54e54f3d90637e9778a205",
+      "bytes": 37507
+    },
+    {
+      "path": "audience/favicon.svg",
+      "sha256": "1f8f0a43980007cbc3000449803ce1503de17155f07ee69d2eea9e76a3d7f1f4",
+      "bytes": 241
+    },
+    {
+      "path": "audience/index.html",
+      "sha256": "185878b131f4bcb54a6672101b12aaad2d5d7eb0916d0387d05353650cd12233",
+      "bytes": 1346
+    },
+    {
+      "path": "audience/lesson-tools.js",
+      "sha256": "6c15edd6b4b5f8c439daeeb465799ce2b92111064a2245466ee202d829b90345",
+      "bytes": 2198
+    },
+    {
+      "path": "audience/module-3d.js",
+      "sha256": "2bfd4dce795e38aa67fa8982fe52dca93e141de371f2a85b9f0a8d5d7d85f6cd",
+      "bytes": 24120
+    },
+    {
+      "path": "audience/p1-scenes.css",
+      "sha256": "9256cfc4550f029277118691e5e5736ce68e907c8a9f744a5c5b3094a490dfab",
+      "bytes": 1121
+    },
+    {
+      "path": "audience/printables/index.html",
+      "sha256": "145991e16ae91f65b24f3a961739b8ed5850191396b01fa4578f79e5d53f9c1f",
+      "bytes": 2729
+    },
+    {
+      "path": "audience/printables/interface-card.html",
+      "sha256": "6e38fdd6a94e7d703ec709fa3c4925b1646f58858456741d4afddff8037d7ccb",
+      "bytes": 2733
+    },
+    {
+      "path": "audience/printables/interface-card.md",
+      "sha256": "06ce5a0ceee0bc99739abf1bb7133a47b3e458df5494d72ee23934fd8072cb2f",
+      "bytes": 683
+    },
+    {
+      "path": "audience/printables/materials.zip",
+      "sha256": "4c6007d88df9b2d84a4ebcb2d2eee89563d0cca02df44c70813123b98b26e258",
+      "bytes": 9800
+    },
+    {
+      "path": "audience/printables/module-map.html",
+      "sha256": "c470a2995763d5ad25daa31f68b460e2dd62885f5a9a1488ab4ce738377ebfb4",
+      "bytes": 2709
+    },
+    {
+      "path": "audience/printables/module-map.md",
+      "sha256": "f5f6d7f58e3921e35e281c26ada01557970a891d2f0270838c3412c04653e881",
+      "bytes": 721
+    },
+    {
+      "path": "audience/printables/quick-start.html",
+      "sha256": "1e74e2615d4a18cd3194cd27c5a006e66d1c9da1da5c05e53357c141c8f4abe0",
+      "bytes": 2480
+    },
+    {
+      "path": "audience/printables/quick-start.md",
+      "sha256": "f3e5f50bc75e95c6cdc21a6a612c897f08b307eac538f69fa22681e355349384",
+      "bytes": 498
+    },
+    {
+      "path": "audience/printables/validation-record.html",
+      "sha256": "47da075460bcfc3894cb6f46d8a55713792f1b6ca9c4adaf8a072d0947d97a2b",
+      "bytes": 2931
+    },
+    {
+      "path": "audience/printables/validation-record.md",
+      "sha256": "1d8477566cfcbd863edc65981dc5c8a003d92feadf5f5f8bace7d6843e8ae359",
+      "bytes": 878
+    },
+    {
+      "path": "audience/recap.css",
+      "sha256": "0d8ae3d786669069837a7caa05d4bdd774cb120156bc63ce2282c45d9efff1f6",
+      "bytes": 2088
+    },
+    {
+      "path": "audience/vendor/OrbitControls-SOURCE.md",
+      "sha256": "319b6871ca52f1e391615778b87e62b97dd9d351b530e3b6c06f8d111806d051",
+      "bytes": 314
+    },
+    {
+      "path": "audience/vendor/OrbitControls.js",
+      "sha256": "6c860c6b342200f8aef65493319c12bfb2d652107355b1d25eb2154371128391",
+      "bytes": 38719
+    },
+    {
+      "path": "audience/vendor/THREE-LICENSE.txt",
+      "sha256": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601",
+      "bytes": 1081
+    },
+    {
+      "path": "audience/vendor/three.core.min.js",
+      "sha256": "61ba0df005b05991361d040d8ff670e1aadfd0ce7aeebd1fdb0725957a8957de",
+      "bytes": 381124
+    },
+    {
+      "path": "audience/vendor/three.module.min.js",
+      "sha256": "e2b5ee6bccd38fd6d8a2428546b83c5f2426d84b152ef82be8055556e3b40eb6",
+      "bytes": 338908
+    },
+    {
+      "path": "audience/voxel-designs.js",
+      "sha256": "355f70d982d6367e4f21586dbf28620ab1ce854e95de8b54ceeed3085dfbd891",
+      "bytes": 3216
+    }
+  ],
+  "teacher": [
+    {
+      "path": "teacher/assets/mini-silicon-valley-logo-transparent.png",
+      "sha256": "4dbbe4dea625fd372c6d760f2344fbf62b7b15f0d2d14e490cddd56e05ffbe87",
+      "bytes": 542270
+    },
+    {
+      "path": "teacher/deck-data.js",
+      "sha256": "7a1ecc9f23bfdd1f2f5b674c25fa1147e9f7bde6ebb88bae252a8ab7140a90d4",
+      "bytes": 43603
+    },
+    {
+      "path": "teacher/deck.css",
+      "sha256": "4d8a501f34341823b8443998b4c0229ef2c700356b54e54f3d90637e9778a205",
+      "bytes": 37507
+    },
+    {
+      "path": "teacher/favicon.svg",
+      "sha256": "1f8f0a43980007cbc3000449803ce1503de17155f07ee69d2eea9e76a3d7f1f4",
+      "bytes": 241
+    },
+    {
+      "path": "teacher/lesson-tools.js",
+      "sha256": "6c15edd6b4b5f8c439daeeb465799ce2b92111064a2245466ee202d829b90345",
+      "bytes": 2198
+    },
+    {
+      "path": "teacher/module-3d.js",
+      "sha256": "2bfd4dce795e38aa67fa8982fe52dca93e141de371f2a85b9f0a8d5d7d85f6cd",
+      "bytes": 24120
+    },
+    {
+      "path": "teacher/p1-scenes.css",
+      "sha256": "9256cfc4550f029277118691e5e5736ce68e907c8a9f744a5c5b3094a490dfab",
+      "bytes": 1121
+    },
+    {
+      "path": "teacher/presenter-notes.js",
+      "sha256": "1f0c728d0c1812d71889b7800ac2982174de3d5baa670817df0d5d0ab765f12a",
+      "bytes": 30697
+    },
+    {
+      "path": "teacher/presenter-runtime.js",
+      "sha256": "c491fa8d931cb7d38479b411ac77a9502788d6fe9babcdfcaa899eed8f880f7e",
+      "bytes": 17511
+    },
+    {
+      "path": "teacher/presenter.css",
+      "sha256": "3dcee98b03b35a1eec9ff99d74ad79f053a1a753cb5028ef4fec935c10d0fab0",
+      "bytes": 6031
+    },
+    {
+      "path": "teacher/presenter.html",
+      "sha256": "780a35bd20a431b5ca02c18b979271738b34facef2a886746ff2c5e2fa21a496",
+      "bytes": 3992
+    },
+    {
+      "path": "teacher/recap.css",
+      "sha256": "0d8ae3d786669069837a7caa05d4bdd774cb120156bc63ce2282c45d9efff1f6",
+      "bytes": 2088
+    },
+    {
+      "path": "teacher/vendor/OrbitControls-SOURCE.md",
+      "sha256": "319b6871ca52f1e391615778b87e62b97dd9d351b530e3b6c06f8d111806d051",
+      "bytes": 314
+    },
+    {
+      "path": "teacher/vendor/OrbitControls.js",
+      "sha256": "6c860c6b342200f8aef65493319c12bfb2d652107355b1d25eb2154371128391",
+      "bytes": 38719
+    },
+    {
+      "path": "teacher/vendor/THREE-LICENSE.txt",
+      "sha256": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601",
+      "bytes": 1081
+    },
+    {
+      "path": "teacher/vendor/three.core.min.js",
+      "sha256": "61ba0df005b05991361d040d8ff670e1aadfd0ce7aeebd1fdb0725957a8957de",
+      "bytes": 381124
+    },
+    {
+      "path": "teacher/vendor/three.module.min.js",
+      "sha256": "e2b5ee6bccd38fd6d8a2428546b83c5f2426d84b152ef82be8055556e3b40eb6",
+      "bytes": 338908
+    },
+    {
+      "path": "teacher/voxel-designs.js",
+      "sha256": "355f70d982d6367e4f21586dbf28620ab1ce854e95de8b54ceeed3085dfbd891",
+      "bytes": 3216
+    }
+  ],
+  "securityBoundary": "audience 不含教师提示；teacher 必须沿用服务端导师权限保护。以新 revision URL 部署，不覆盖历史版本；人工试讲未签署。",
+  "digest": "971cc25ef8fba30f6377a2d5caa86841f29bbf8a56f227776bc9ab0909236c17"
+}

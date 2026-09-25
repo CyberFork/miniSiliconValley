@@ -1,0 +1,52 @@
+{
+  "date": "2026-09-24",
+  "task": "AI-05 后新增 Minecraft 粗粒度模块示例，编号 AI-06，后续显示编号顺延",
+  "release": "20260924-minecraft-ai06-r25",
+  "revision": "r25",
+  "sourceCommit": "77dcfd75de7786c36345fd533f45c84d1ecaa7cb",
+  "sourceDelivery": "Audited Git bundle to isolated server build; not a GitHub push",
+  "deckDigest": "61836c2daf7975515367f75de24894c9b41513172c636651e9febcdfc7ee717d",
+  "archiveSha256": "18b69ef0df9d49408a66c309f1acad2d6a12a6f1889bd785c8f5c345a9ee6c88",
+  "url": "https://minisv.vip/courseware/development-mentor-module-thinking/r25/teacher/presenter.html?slideId=ai-minecraft-modules",
+  "stableEntry": "https://minisv.vip/courseware/latest/p1/",
+  "content": {
+    "slideId": "ai-minecraft-modules",
+    "display": "AI-06",
+    "tabs": 12,
+    "localOfficialImages": 8,
+    "slides": 39,
+    "stageMinutes": [
+      120,
+      120
+    ],
+    "imageProvenance": "courseware/module-thinking-deck/assets/minecraft-modules/sources.json"
+  },
+  "preserved": [
+    "Existing stable slide IDs and original editable field identities remain unchanged.",
+    "Previous 2215 packaged courseware files byte-identical, including immutable r24.",
+    "Existing simplified workbook maintenance retained; no student planning/private test files published.",
+    "Existing auth/teacher isolation and saved text edition v30 retained. One existing cross-version text conflict still needs teacher review; content was not discarded."
+  ],
+  "verified": [
+    "Actual local and isolated server builds and courseware verification passed.",
+    "Minecraft architecture, AI merge, prompt and workbook regressions passed.",
+    "Route-game/workshop: 73 tests passed; deploy: 88 tests passed.",
+    "Existing deployment health and public-smoke: MINISV_HECATE_HEALTHY / MINISV_PUBLIC_SMOKE_OK.",
+    "Production current pointer and archive SHA256 checked over authorized SSH.",
+    "Local native browser: overview, backpack and digging visual layout checked; 12 tabs exercised; controlled audience interaction synchronized.",
+    "Authorized production teacher browser: AI-05/AI-06/AI-07 order, latest status, saved v30 and title edit modal verified; edit cancelled without saving.",
+    "Authorized production controlled audience: backpack tab click delivered state back to teacher, which showed only backpack selected."
+  ],
+  "limitations": [
+    "Production audience screenshot capture was unreliable (native capture followed another foreground user window); full production audience visual screenshot acceptance is not claimed.",
+    "Physical tablet and human trial lesson not performed.",
+    "Real external AI prompt validation remains user-owned and was not performed by this task."
+  ],
+  "rollback": {
+    "release": "20260924-t138-basics-r24",
+    "backup": "~/Services/minisv/backups/20260924T104307Z-20260924-minecraft-ai06-r25",
+    "script": "deploy/minisv/scripts/rollback-hecate.sh",
+    "executed": false
+  },
+  "migration": "43.142.42.244 migration remains paused; not touched."
+}

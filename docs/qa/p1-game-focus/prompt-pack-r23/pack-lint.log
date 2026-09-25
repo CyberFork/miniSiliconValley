@@ -1,0 +1,4 @@
+
+> mini-silicon-valley-world@1.0.0 lint
+> eslint . --ignore-pattern dist --ignore-pattern .next --max-warnings=0
+

@@ -1,0 +1,21 @@
+{
+  "buildDigest": "1dc547fc8a0d17765935328aedf065cd11fb59a2c70d2ceed6c55d3edb169de1",
+  "routeTests": 17,
+  "workshopRegressionTests": 26,
+  "verified": [
+    "actual Rapier differential left/right pivot",
+    "actual reverse travel",
+    "glass stable before collision",
+    "actual impact scatters glass",
+    "complete inventory/key/win regression",
+    "Three.js flame direction/thrust visibility/time flicker",
+    "snapshot glass rendering",
+    "keyboard multi-source input",
+    "build parity",
+    "eslint",
+    "diff-check"
+  ],
+  "manualDrivingReview": "pending: Native Chrome timeoutReached",
+  "deployed": false,
+  "manualAcceptanceSigned": false
+}

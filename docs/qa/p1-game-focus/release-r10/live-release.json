@@ -1,0 +1,177 @@
+{
+  "service": "minisv",
+  "release": "20260922T1744CST-p1-workshop-text-r10",
+  "builtAt": "2026-09-22T09:52:16.054875Z",
+  "origin": "hecate",
+  "canonicalOrigin": "https://minisv.vip",
+  "features": [
+    "unified-course-factory",
+    "dynamic-courseware-library",
+    "verbatim-product-mentor-courseware",
+    "versioned-product-manager-courseware",
+    "latest-role-courseware-resolution",
+    "exact-development-mentor-courseware",
+    "split-module-thinking-courseware",
+    "mentor-protected-teacher-courseware",
+    "exact-market-mentor-courseware",
+    "opaque-courseware-bundle",
+    "course-studio",
+    "human-review-workbench",
+    "parent-qa-review-bridge",
+    "per-classroom-controller",
+    "shared-brand-home",
+    "official-brand-wordmark",
+    "released-workshop-snapshot",
+    "read-only-workshop-history-archive",
+    "canonical-workspace-provenance",
+    "public-incubator-projects"
+  ],
+  "sources": {
+    "main": "8b30b3d628bc55844327b6e3e7d9ef5c493e31e0",
+    "chjCourseUi": "806d804932e4cd4ae2796d84578d39197d7ea4ce",
+    "chjCourseTree": "bde3426ee770272dc3263064a16d60659fffff9b",
+    "chjCourseUiR0": "679213a61b835335016eac7649213983a0e48489",
+    "chjCourseTreeR0": "3a041c4714190cc026f6de8e06e15cec0e5f765d"
+  },
+  "workspaceProvenance": {
+    "verified": true,
+    "canonicalRepository": "https://github.com/CyberFork/miniSiliconValley.git",
+    "sourceCommit": "8b30b3d628bc55844327b6e3e7d9ef5c493e31e0",
+    "originMain": "8b30b3d628bc55844327b6e3e7d9ef5c493e31e0",
+    "branch": "main",
+    "workspaceDirty": true,
+    "exceptionReason": "用户要求整体部署当前整合成果；保留尚未提交的协作工作，以逐文件校验的源码快照发布P1r10和P2r5，不代签人工验收"
+  },
+  "coursewareArtifact": {
+    "route": "/courseware/product-mentor-foundations/r2/",
+    "mentorRole": "P",
+    "revision": 2,
+    "sourceCommit": "806d804932e4cd4ae2796d84578d39197d7ea4ce",
+    "sourceTree": "bde3426ee770272dc3263064a16d60659fffff9b",
+    "sha256": "283c8669006b36b7bd6f0649431b7b6c671e14bd4311544c3cf579b289a2a955",
+    "files": 118,
+    "bytes": 151636738,
+    "transformed": false
+  },
+  "productCoursewareArtifacts": [
+    {
+      "route": "/courseware/product-mentor-foundations/",
+      "mentorRole": "P",
+      "revision": 0,
+      "releaseStatus": "historical",
+      "sourceCommit": "679213a61b835335016eac7649213983a0e48489",
+      "sourceTree": "3a041c4714190cc026f6de8e06e15cec0e5f765d",
+      "sha256": "15bf2e2c133f08318ef1b2c8a6ce0766d9045fb38b9d3baa54bac71b96a74907",
+      "files": 103,
+      "bytes": 114367157,
+      "transformed": false
+    },
+    {
+      "route": "/courseware/product-mentor-foundations/r1/",
+      "mentorRole": "P",
+      "revision": 1,
+      "releaseStatus": "historical",
+      "sourceCommit": "d9d45f1396b54a7ac6b41715b31122d8ffc597ff",
+      "sourceTree": "d26045a3eb1c249629092dcddeb82e7812ff0ff5",
+      "sha256": "adb7c133e5c8d8cb8eafc7aa230aff6f6a73818661430e96b68725bc7d17058e",
+      "files": 117,
+      "bytes": 151203148,
+      "transformed": false
+    },
+    {
+      "route": "/courseware/product-mentor-foundations/r2/",
+      "mentorRole": "P",
+      "revision": 2,
+      "releaseStatus": "current",
+      "sourceCommit": "806d804932e4cd4ae2796d84578d39197d7ea4ce",
+      "sourceTree": "bde3426ee770272dc3263064a16d60659fffff9b",
+      "sha256": "283c8669006b36b7bd6f0649431b7b6c671e14bd4311544c3cf579b289a2a955",
+      "files": 118,
+      "bytes": 151636738,
+      "transformed": false
+    }
+  ],
+  "developmentCoursewareArtifact": {
+    "route": "/courseware/development-mentor-ligun/",
+    "mentorRole": "D",
+    "sha256": "ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234",
+    "files": 5,
+    "bytes": 8005223,
+    "transformed": false
+  },
+  "moduleThinkingCoursewareArtifact": {
+    "route": "/courseware/development-mentor-module-thinking/r10/audience/",
+    "teacherRoute": "/courseware/development-mentor-module-thinking/r10/teacher/presenter.html",
+    "mentorRole": "D",
+    "sha256": "ba950877d7d786e9d4ef0441d174b10dda9d3f9891f7afb29f1197b309658e2b",
+    "files": 83,
+    "bytes": 8980331,
+    "revision": 10,
+    "version": "2026.09.22-p1-r10",
+    "sourceXmindSha256": "a31489645adcfaf6b7afd3be734349175740c520120cda65552cfa0f3e833793",
+    "audienceSha256": "76111b175cea6dd6f71b0363f45fe9915be79ea16eda59f521d87d72729c9cfd",
+    "audienceFiles": 43,
+    "teacherSha256": "c5056b807b7814c93d9fc600a900d061eae2e910951d21bdf89320857f4b26a2",
+    "teacherFiles": 40,
+    "transformed": false,
+    "teacherAuthorization": "server-side-admin-or-mentor"
+  },
+  "ligun120CoursewareArtifact": {
+    "sha256": "85e007ea84325023133ec0b094fc8cabd7c9d1ea43ac505d5e741b622d6661fd",
+    "files": 45,
+    "bytes": 1461091,
+    "revision": 5,
+    "version": "2026.09.22-p2-r5",
+    "sourceXmindSha256": null,
+    "audienceSha256": "6830e381483de9419651062904a7082431a5454098b72324c52174d7c0f1c002",
+    "audienceFiles": 31,
+    "teacherSha256": "201bb19553bd30f17d23207782a7e5e70195ce2db019bd7ef6a78c4bffdfd702",
+    "teacherFiles": 14,
+    "route": "/courseware/development-mentor-ligun/r5/audience/",
+    "teacherRoute": "/courseware/development-mentor-ligun/r5/teacher/presenter.html",
+    "teacherAuthorization": "server-side-admin-or-mentor"
+  },
+  "marketCoursewareArtifact": {
+    "route": "/courseware/market-mentor-user-system/",
+    "mentorRole": "M",
+    "sha256": "48b01a256bd3d408a5d539f798470e6aad0058a19dcdeb8b5d212b0e64add862",
+    "files": 1,
+    "bytes": 87302,
+    "transformed": false
+  },
+  "incubatorProjectsArtifact": {
+    "root": "/incubator/projects/",
+    "transformed": false,
+    "sha256": "fd546d65991e0d60061be8ca7202a33e2f29907bba49d9d5b172a5b298719fad",
+    "files": 32,
+    "bytes": 14408740,
+    "projects": [
+      {
+        "id": "recitation",
+        "title": "背课文",
+        "route": "/incubator/projects/recitation/",
+        "sourceFile": "背课文.html",
+        "sourceSha256": "ed5e352c8197dc0264fdfde5db1fa186f7a43ca1fa4778275dd3a2e145e6294b",
+        "runtime": "browser-only-demo",
+        "persistence": "none"
+      },
+      {
+        "id": "mistake-notebook",
+        "title": "错题集",
+        "route": "/incubator/projects/mistake-notebook/",
+        "sourceFile": "index.html",
+        "sourceSha256": "bac7960dd09c0fd298fd194ebd440ca2b1d24541f02b53d7656b2c6385e02af8",
+        "runtime": "browser-only-demo",
+        "persistence": "none"
+      }
+    ],
+    "transforms": [
+      "vendor-phosphor-icons-2.1.1",
+      "remove-blocked-google-fonts",
+      "add-hidden-official-brand-navigation",
+      "hide-project-shell-on-project-pages",
+      "normalize-line-trailing-whitespace",
+      "declare-browser-only-demo-boundary"
+    ]
+  }
+}

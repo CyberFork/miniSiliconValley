@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "todo": "T-086",
+  "implementation": "role-visible-script-runtime-v2",
+  "status": "deployed",
+  "deployedAt": "2026-09-09T07:06:46Z",
+  "canonicalOrigin": "https://minisv.vip",
+  "host": "Hecate",
+  "source": {
+    "repository": "https://github.com/CyberFork/miniSiliconValley.git",
+    "branch": "main",
+    "commit": "583a81d099a2e5209b112cdbaec21d3b166f00b5"
+  },
+  "release": {
+    "id": "20260909T150600CST-t086-script-runtime-r2",
+    "previous": "20260909T143301CST-t086-script-runtime-r1",
+    "rollbackTarget": "20260909T040321CST-t087-account-delegation-r1",
+    "archiveSha256": "462130bd28886b74e72adff46feba248cc4573aa60bad5ec9bc33fabcbf50224",
+    "archiveBytes": 121311323,
+    "siteSha256": "bac2d72c41baedabe76ebd295862b9571c9e5c710a6068c8dbc0736a8b6ebfae",
+    "siteFiles": 259,
+    "appSha256": "34baa59c0f1721822529ad37a7b36ab149d85261c3b703772610b18e52ce4c1a",
+    "appFiles": 235,
+    "appBuildId": "7c5ce67f-a337-434c-b03a-c8423a50d1f8"
+  },
+  "contracts": {
+    "sharedState": "monotonic unlocked-through boundary only",
+    "browserState": "independent URL-backed cursor over unlocked pages",
+    "historicalReturn": "one-click return to latest unlocked page on seat, control and screen",
+    "unlocking": "sequential optimistic-concurrency confirmation without forced navigation",
+    "testViews": "controller + P/D/M/O + N learners + screen on the real runtime",
+    "productionViews": "authenticated role only; viewAs rejected server-side",
+    "activity": "block-scoped and independent from script navigation",
+    "economy": "RP, wallet and team treasury preserved and independent"
+  },
+  "verification": {
+    "dataValidation": {
+      "passed": true,
+      "events": 203,
+      "curriculumStages": 5
+    },
+    "coursePlatformTests": {
+      "passed": 48,
+      "failed": 0
+    },
+    "typecheck": true,
+    "lint": true,
+    "productionBuild": true,
+    "coursePlatformE2e": {
+      "passed": true,
+      "coverage": [
+        "sequential and stale unlocks",
+        "independent B01/B02 clients",
+        "all Test role projections",
+        "real role-scoped activity submission",
+        "Production viewAs rejection",
+        "learner unlock rejection",
+        "mentor unlock permission",
+        "screen redaction",
+        "Test reset isolation",
+        "two exact acceptance receipts"
+      ]
+    },
+    "browser": {
+      "receipt": "docs/qa/t086-script-runtime/browser-receipt.json",
+      "receiptSha256": "70f066818047e29f6c08de12afcfd917707448e42b5b2a0fedc2d0805e0aa86f",
+      "engine": "Chromium 151.0.7922.176",
+      "independentClients": true,
+      "unlockNotificationWithoutForcedJump": true,
+      "oneClickReturnToLatest": true,
+      "keyboard": [
+        "ArrowLeft",
+        "ArrowRight",
+        "Home",
+        "End"
+      ],
+      "roleTabs": 10,
+      "realRoleSubmission": true,
+      "mobileViewport": 390,
+      "pageErrors": 0,
+      "requestFailures": 0,
+      "screenshots": [
+        {
+          "path": "docs/qa/t086-script-runtime/historical-and-role-tabs.png",
+          "sha256": "a87f6b6d1531b1a79cde83b0e3f26042f6abeaa37eedfaa083a094d6e802025b"
+        },
+        {
+          "path": "docs/qa/t086-script-runtime/mobile-control.png",
+          "sha256": "fff98a4fdbf96353838e27b35de3d0daa806630ea7bdaeeb8b05a1687752f809"
+        }
+      ]
+    },
+    "productionMigration": {
+      "passed": true,
+      "classrooms": 1,
+      "scriptProgressRows": 1,
+      "missingProgressRows": 0,
+      "invalidProgressRows": 0,
+      "runtimeVersions": [
+        2
+      ]
+    },
+    "deployment": {
+      "atomicSwitch": true,
+      "cloudflaredPreservedHealthy": true,
+      "publicSmoke": "MINISV_PUBLIC_SMOKE_OK",
+      "hostHealth": "MINISV_HECATE_HEALTHY",
+      "retiredPortsClosed": [
+        18790,
+        18791
+      ]
+    }
+  },
+  "security": {
+    "secretsPackaged": false,
+    "productionDataPackaged": false,
+    "cyberforkerComTouched": false,
+    "sharedScreenUsesAllowListProjection": true
+  }
+}

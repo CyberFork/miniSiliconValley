@@ -1,0 +1,30 @@
+{
+  "release": {
+    "release": "20260921T2205CST-courseware-text-edit-r2",
+    "source": "30b2f83b68ecc8836ea3669778069096930d731b"
+  },
+  "checks": [
+    {
+      "deck": "module-thinking-p1",
+      "packageRevision": 9,
+      "page": 200,
+      "readApi": 200,
+      "dialog": "opened/cancelled",
+      "productionWrite": false,
+      "textRevision": 0
+    },
+    {
+      "deck": "ligun-p2",
+      "packageRevision": 4,
+      "page": 200,
+      "readApi": 200,
+      "dialog": "opened/cancelled",
+      "productionWrite": false,
+      "textRevision": 0
+    }
+  ],
+  "learnerTeacherAccess": 403,
+  "learnerAudienceAccess": 200,
+  "historicalPages": 200,
+  "errors": []
+}

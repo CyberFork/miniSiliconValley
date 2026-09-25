@@ -1,0 +1,119 @@
+{
+  "ok": true,
+  "scope": "isolated local D1; no production writes",
+  "browser": {
+    "engine": "Chromium",
+    "version": "151.0.7922.176"
+  },
+  "viewportChecks": {
+    "desktop": {
+      "login": {
+        "inner": 1440,
+        "body": 1440,
+        "root": 1440
+      },
+      "register": {
+        "inner": 1440,
+        "body": 1440,
+        "root": 1440
+      },
+      "recover": {
+        "inner": 1440,
+        "body": 1440,
+        "root": 1440
+      },
+      "resetInvalid": {
+        "inner": 1440,
+        "body": 1440,
+        "root": 1440
+      }
+    },
+    "ipad": {
+      "login": {
+        "inner": 768,
+        "body": 768,
+        "root": 768
+      },
+      "register": {
+        "inner": 768,
+        "body": 768,
+        "root": 768
+      },
+      "recover": {
+        "inner": 768,
+        "body": 768,
+        "root": 768
+      },
+      "resetInvalid": {
+        "inner": 768,
+        "body": 768,
+        "root": 768
+      }
+    },
+    "phone390": {
+      "login": {
+        "inner": 390,
+        "body": 390,
+        "root": 390
+      },
+      "register": {
+        "inner": 390,
+        "body": 390,
+        "root": 390
+      },
+      "recover": {
+        "inner": 390,
+        "body": 390,
+        "root": 390
+      },
+      "resetInvalid": {
+        "inner": 390,
+        "body": 390,
+        "root": 390
+      }
+    },
+    "phone320": {
+      "login": {
+        "inner": 320,
+        "body": 320,
+        "root": 320
+      },
+      "register": {
+        "inner": 320,
+        "body": 320,
+        "root": 320
+      },
+      "recover": {
+        "inner": 320,
+        "body": 320,
+        "root": 320
+      },
+      "resetInvalid": {
+        "inner": 320,
+        "body": 320,
+        "root": 320
+      }
+    }
+  },
+  "flows": {
+    "loginAddFlow": true,
+    "accountPickerSwitch": true,
+    "passwordShowHide": true,
+    "registerFlow": true,
+    "recoverGuide": true,
+    "resetInvalidHandled": true,
+    "resetValidHandled": true,
+    "firstLoginUpdate": true,
+    "accountCenter": true,
+    "adminLearnerCreate": true,
+    "responsiveNoOverflow": true,
+    "touchTargets": true,
+    "tabKeyboard": true
+  },
+  "screenshots": [
+    "docs/qa/t118-auth-account-form-layout/account-learners-desktop.png",
+    "docs/qa/t118-auth-account-form-layout/auth-pages-phone390.png",
+    "docs/qa/t118-auth-account-form-layout/auth-pages-phone320.png"
+  ],
+  "uncovered": []
+}

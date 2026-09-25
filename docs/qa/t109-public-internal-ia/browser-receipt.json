@@ -1,0 +1,44 @@
+{
+  "ok": true,
+  "browser": {
+    "engine": "Chromium",
+    "version": "145.0.7632.6"
+  },
+  "public": {
+    "desktopNoOverflow": {
+      "innerWidth": 1440,
+      "body": 1440,
+      "root": 1440
+    },
+    "mobileNoOverflow": {
+      "innerWidth": 390,
+      "body": 390,
+      "root": 390
+    },
+    "historyCatalogPreview": true,
+    "ordinaryNavigation": [
+      "world",
+      "framework",
+      "parents",
+      "classroom",
+      "course"
+    ],
+    "internalLinksAbsent": true
+  },
+  "archive": {
+    "keysRead": 10,
+    "exportComplete": true,
+    "valuesUnchangedAfterReload": true,
+    "releasedBaselineVisible": true,
+    "desktopNoOverflow": {
+      "innerWidth": 1440,
+      "body": 1440,
+      "root": 1440
+    }
+  },
+  "screenshots": [
+    "docs/qa/t109-public-internal-ia/public-home-desktop.png",
+    "docs/qa/t109-public-internal-ia/public-home-mobile.png",
+    "docs/qa/t109-public-internal-ia/workshop-readonly-archive.png"
+  ]
+}

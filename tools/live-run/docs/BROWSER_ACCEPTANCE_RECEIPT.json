@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "kind": "msv-live-run-browser-wall-acceptance",
+  "verifiedAt": "2026-09-02T10:37:17.785425Z",
+  "pageTargets": 9,
+  "seatWindows": 8,
+  "controllerWindows": 1,
+  "layout": {
+    "rows": 2,
+    "columns": 4,
+    "noOverlap": true,
+    "edgeToEdge": true
+  },
+  "learners": {
+    "learner04": {
+      "identity": "时间和设备管理员",
+      "privateCardCount": 3,
+      "growthHud": true
+    },
+    "learner03": {
+      "identity": "找同学来试的人",
+      "privateCardCount": 3,
+      "growthHud": true
+    },
+    "learner02": {
+      "identity": "网页链接试验员",
+      "privateCardCount": 3,
+      "growthHud": true
+    },
+    "learner01": {
+      "identity": "同学找资料观察员",
+      "privateCardCount": 3,
+      "growthHud": true
+    }
+  },
+  "controllerManualGate": true
+}

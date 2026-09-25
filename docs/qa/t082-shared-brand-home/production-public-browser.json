@@ -1,0 +1,728 @@
+{
+  "ok": true,
+  "base": "https://minisv.vip/",
+  "release": "20260914T102054CST-transparent-wordmark-r7",
+  "themeVersion": "20260914-transparent-wordmark-r7",
+  "routes": {
+    "/": {
+      "320": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 126,
+          "height": 34,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "390": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 126,
+          "height": 34,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "768": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 154,
+          "height": 40,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "1440": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 154,
+          "height": 40,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      }
+    },
+    "/world/": {
+      "320": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 126,
+          "height": 34,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "390": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 126,
+          "height": 34,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "768": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 154,
+          "height": 40,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "1440": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 154,
+          "height": 40,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      }
+    },
+    "/framework/": {
+      "320": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 126,
+          "height": 34,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "390": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 126,
+          "height": 34,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "768": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 154,
+          "height": 40,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "1440": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 154,
+          "height": 40,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      }
+    },
+    "/auth/login/": {
+      "320": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 126,
+          "height": 34,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "390": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 126,
+          "height": 34,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "768": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 154,
+          "height": 40,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "1440": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 154,
+          "height": 40,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      }
+    },
+    "/auth/register/": {
+      "320": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 126,
+          "height": 34,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "390": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 126,
+          "height": 34,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "768": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 154,
+          "height": 40,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "1440": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 154,
+          "height": 40,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      }
+    },
+    "/auth/recover/": {
+      "320": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 126,
+          "height": 34,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "390": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 126,
+          "height": 34,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "768": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 154,
+          "height": 40,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "1440": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 154,
+          "height": 40,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      }
+    },
+    "/parents/": {
+      "320": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 126,
+          "height": 34,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "390": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 126,
+          "height": 34,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "768": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 154,
+          "height": 40,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "1440": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 154,
+          "height": 40,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      }
+    },
+    "/brand-contract-missing/": {
+      "320": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 126,
+          "height": 34,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "390": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 126,
+          "height": 34,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "768": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 154,
+          "height": 40,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      },
+      "1440": {
+        "noOverflow": true,
+        "mark": {
+          "src": "/assets/mini-silicon-valley-logo-transparent.png",
+          "width": 154,
+          "height": 40,
+          "naturalWidth": 1650,
+          "naturalHeight": 420,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "borderTopWidth": "0px",
+          "borderRightWidth": "0px",
+          "borderBottomWidth": "0px",
+          "borderLeftWidth": "0px",
+          "paddingTop": "0px",
+          "paddingRight": "0px",
+          "paddingBottom": "0px",
+          "paddingLeft": "0px"
+        },
+        "theme": [
+          "/ui-theme.css?v=20260914-transparent-wordmark-r7"
+        ]
+      }
+    }
+  }
+}

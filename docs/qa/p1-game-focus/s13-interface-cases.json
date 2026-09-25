@@ -1,0 +1,23 @@
+{
+  "digest": "88931551f43448c46d2e2aa1eba9afef20bc66daeaf0b2ea7fb6b18e4cd3d72d",
+  "status": "local-draft",
+  "deployed": false,
+  "cases": [
+    "move",
+    "pickup",
+    "bag",
+    "finish",
+    "template"
+  ],
+  "browserObserved": [
+    "teacher click",
+    "ArrowDown changes tab not slide",
+    "audience inherits selection and reveal",
+    "audience End selects template",
+    "reverse sync",
+    "refresh retains selection",
+    "full text visible"
+  ],
+  "test": "node courseware/module-thinking-deck/tests/verify-interface-cases.mjs",
+  "manualAcceptance": "not-signed"
+}

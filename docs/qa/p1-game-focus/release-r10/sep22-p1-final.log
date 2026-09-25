@@ -1,0 +1,28 @@
+
+> mini-silicon-valley-world@1.0.0 test:p1:game-focus
+> npm run test:t122:courseware && node courseware/module-thinking-deck/tests/verify-game-focus.mjs && node courseware/module-thinking-deck/tests/verify-public-case-style.mjs && node courseware/module-thinking-deck/tests/verify-interface-cases.mjs && node courseware/module-thinking-deck/tests/verify-module-assembly.mjs && node courseware/module-thinking-deck/tests/verify-worked-example.mjs && node courseware/module-thinking-deck/tests/verify-transform-sequence.mjs && node courseware/module-thinking-deck/tests/verify-relation-controls.mjs && node courseware/module-thinking-deck/tests/verify-automation-explode.mjs && node courseware/shared/tests/verify-text-editor-local.mjs
+
+
+> mini-silicon-valley-world@1.0.0 test:t122:courseware
+> npm run build:t122:courseware && node courseware/module-thinking-deck/tests/verify.mjs && node courseware/module-thinking-deck/tests/verify-integration.mjs
+
+
+> mini-silicon-valley-world@1.0.0 build:t122:courseware
+> node courseware/module-thinking-deck/scripts/build.mjs
+
+module-thinking-p1: 24 slides; deployment-ready ba950877d7d786e9d4ef0441d174b10dda9d3f9891f7afb29f1197b309658e2b; physical teacher split
+T-132 structural checks passed (T-128/T-130 preserved): 24 slides/S08 and S11 intentionally removed, 120 minutes, three local 3D scenes, complete notes, separated audience bundle, printable worksheets.
+verify-voxel: all checks passed
+T-132/T-133 immutable release integration passed (human acceptance unsigned): ba950877d7d786e9d4ef0441d174b10dda9d3f9891f7afb29f1197b309658e2b, audience 43, teacher 40.
+P1_GAME_FOCUS_PASS: 24 slides, 120 minutes, game-only active examples, own-project interaction, draft isolation.
+CONVEYOR_SIX_AND_TEACHER_RESOURCES_PASS
+Public S09/S10 style and deck contract PASS
+S13 interface cases structure, normalization, keyboard wiring and build parity PASS
+S14 module assembly layout, deck controls, normalization and build parity PASS
+S12 worked example structure, answers, normalization, helper behavior and build parity PASS
+Transform sequence timing, build parity, and module-3d wiring passed.
+Actual Three.js 5-second explosion/reassembly, intermediate positions and interrupted reversal PASS
+S05 cards/actions, state isolation, real 3D trajectories, smooth switching, terrain fade and build parity PASS
+Shared WebGL node reuse retains the same scene identity PASS
+Automation actual multi-axis explosion, continuous 2.5s assembly, motion gate, framing, interruption and camera PASS
+Actual text editor apply/field: direct edit, saved mode, original/preview restore, listener dedupe, pause/history/audience isolation PASS

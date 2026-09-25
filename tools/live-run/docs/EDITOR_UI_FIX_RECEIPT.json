@@ -1,0 +1,44 @@
+{
+  "receiptVersion": 1,
+  "completedAt": "2026-09-06T12:56:00+08:00",
+  "issue": "course-editor-layout-overflow",
+  "release": {
+    "publicOrigin": "https://minisv.vip",
+    "releaseId": "20260906T045316Z-editor-layout-r1",
+    "host": "hecate-work",
+    "themeAssetVersion": "20260906-6"
+  },
+  "fixes": [
+    "remove full-width theme rail",
+    "mount editor switch in explicit header slot",
+    "hide stale empty state",
+    "container-responsive nested forms",
+    "remove overflow masking"
+  ],
+  "validation": {
+    "pythonDeployTests": "14/14",
+    "nodeThemeTests": "1/1",
+    "pythonLiveRunTests": "28/28",
+    "nodeRemoteConsoleTests": "6/6",
+    "localBrowserViewports": [
+      1660,
+      1366,
+      1100,
+      900,
+      768,
+      430
+    ],
+    "productionBrowserViewports": [
+      1660,
+      1366,
+      1100,
+      768,
+      430
+    ],
+    "noHorizontalOverflow": true,
+    "sameClassicAdventureGeometry": true,
+    "noThemeRail": true,
+    "emptyStateRemoved": true,
+    "publicHealthcheck": "passed"
+  }
+}

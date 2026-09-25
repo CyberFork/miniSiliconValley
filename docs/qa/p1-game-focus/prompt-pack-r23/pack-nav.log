@@ -1,0 +1,11 @@
+✔ merged development course has one visible library entry without deleting historical P2 (0.393875ms)
+✔ old fixed P2 entry lands at AI stage of combined course, not an invalid old slide (3.972208ms)
+✔ permanent workbook entry resolves latest audience workbook and keeps template selection only (1.261292ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 139.247917

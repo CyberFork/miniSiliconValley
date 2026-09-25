@@ -1,0 +1,52 @@
+{
+  "release": "20260924-t138-materials-r24",
+  "promptRevision": "r24-simple-5",
+  "currentDeckRevision": "r25 (unchanged)",
+  "targetWorkbookRevision": 24,
+  "sourceCommit": "17f7449885a669119d99e5d415e7bf4cb5a5b257",
+  "sourceBaselineCommit": "73e6d3c382e4e59012451ff4752662324f4a9671",
+  "recordedAt": "2026-09-24T11:01:09.744563+00:00",
+  "sourceDelivery": "Audited Git bundle, existing isolated maintenance build; not pushed to GitHub",
+  "archiveSha256": "6f0ac43015a663ede8ccef19f460dc0cbf4b036785cb83f197e622d496f63b41",
+  "manifest": {
+    "version": "r24-simple-5",
+    "promptSha256": "0115cb417d432841867da325d8c822b461b14ad02030f48cb4d45abbdc8037bc",
+    "files": {
+      "index.html": "f0f0b2f6ae4b98bae3bd2fe15e9dfb1a258138e061e6bb090e3f0a4a246bf97b",
+      "workbook.js": "675c169b156311bce64eb350b77c0459ff3e23467ba17a1aab53af63dd3cde86",
+      "workbook.css": "f2b5a34595f9092bfbc035e964e36d7ec012cca73e81723aa7b9166a49ddd073",
+      "student-prompt.js": "f584f53cb3eb02ec9233bfca07554855fb25061c5a451ad8e747288c709d98a4"
+    },
+    "revision": 24,
+    "reason": "用户授权直接简化 r24 提示词中心：策划输入＋一次复制；AI 问答确认宏观主棍与微观子棍，交付开发文档，不开发游戏。"
+  },
+  "url": "https://minisv.vip/courseware/development-mentor-module-thinking/r24/audience/ai-materials/workbook/index.html",
+  "scope": "Only existing r24 workbook maintenance: accept product planning/UI, invite missing materials but allow deferral, keep UI/functional ownership and self-contained handoff. New HTML hint only; no upload/backend/Skill changes or IP migration.",
+  "verified": [
+    "Three supplied source hashes matched baseline; git apply --check and incremental application passed. Root read complete prompt and reviewed narrow diff; independent read-only review PASS.",
+    "Actual local source and isolated remote source: verify-student-prompt.mjs, verify-workbook.mjs, five maintenance tests passed.",
+    "2626 unrelated site files byte-identical, including r24/r25 immutable courseware; only r24 workbook index.html, student-prompt.js and maintenance manifest plus release/packaging metadata changed.",
+    "Existing deploy-hecate flow: MINISV_HECATE_HEALTHY; public-smoke: MINISV_PUBLIC_SMOKE_OK.",
+    "Authorized production browser displayed attachment hint, actual copy button succeeded; native paste into QA-only planning field matched complete expected content hash.",
+    "Authorized in-browser fetched student-prompt.js HTTP 200 and resource SHA matched; runtime canonical prompt SHA matched candidate.",
+    "Desktop screenshot reviewed; browser 390px device-emulation screenshot reviewed, document scrollWidth=390 and copy button within viewport. No horizontal overflow.",
+    "Rollback target bundle/site/app/parentQA validation passed; rollback not executed."
+  ],
+  "clipboardRoundtrip": {
+    "characters": 5475,
+    "sha256": "0687cbaeb10b81690c7bdaac64e732fb5287044ff22286c6185121875d6533a3",
+    "publicTestPlanning": "测试案例：方块小车闯关，背包两格；UI 稍后提供。",
+    "privateStudentDataUsed": false,
+    "qaDraftCleared": true
+  },
+  "productionResourceSha256": "f584f53cb3eb02ec9233bfca07554855fb25061c5a451ad8e747288c709d98a4",
+  "notVerified": [
+    "Actual external AI multi-turn behavior remains user-owned.",
+    "Human trial lesson and physical tablet/touch-device interaction not performed."
+  ],
+  "rollback": "20260924-minecraft-ai06-r25",
+  "backup": "~/Services/minisv/backups/20260924T105416Z-20260924-t138-materials-r24",
+  "runtimeCacheBackup": "~/Services/minisv/backups/20260924-t138-materials-rollback-runtime-cache",
+  "unchanged": "Existing Skill, r25 slides and r25 packaged workbook, authorization, teacher saved text; IP migration remains paused.",
+  "stableEntryNote": "This request explicitly maintains r24. Current latest/p1 remains r25 and is not remapped by this maintenance patch; use the explicit r24 workbook URL above."
+}

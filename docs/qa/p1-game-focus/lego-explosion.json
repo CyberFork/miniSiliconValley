@@ -1,0 +1,21 @@
+{
+  "buildDigest": "fbaa62c012ee1014847e1d10b1f5dea10910c34317174d0e5c479072429397c5",
+  "localDraft": true,
+  "transitionMs": 2500,
+  "checks": [
+    "multi-axis actual Three.js geometry",
+    "mid-transition positions",
+    "assemble-before-running",
+    "rapid reversal continuity",
+    "default exploded framing",
+    "camera preservation",
+    "reduced motion",
+    "build parity",
+    "P1 shared regression",
+    "eslint",
+    "diff-check"
+  ],
+  "browserBlocker": "Native Chrome timeoutReached",
+  "manualAcceptanceSigned": false,
+  "deployed": false
+}

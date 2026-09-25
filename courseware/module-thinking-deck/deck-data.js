@@ -1,0 +1,564 @@
+(function () {
+ "use strict";
+ window.MSV_MODULE_DECK = Object.freeze({
+  "id": "module-thinking-p1",
+  "version": "2026.09.24-p1-r28",
+  "legacySlideIds": [
+    "module-s01",
+    "module-s02",
+    "module-s02-build",
+    "module-s02-voxel",
+    "module-s03",
+    "module-s04",
+    "module-s05",
+    "module-s06",
+    "module-s07",
+    "module-s08",
+    "module-s09",
+    "module-s10",
+    "module-s12",
+    "module-s13",
+    "module-s14",
+    "module-s15",
+    "module-s16"
+  ],
+  "title": "开发导师｜模块思维与 AI 可控开发",
+  "sourceHash": "a31489645adcfaf6b7afd3be734349175740c520120cda65552cfa0f3e833793",
+  "slides": [
+    {
+      "id": "module-s01",
+      "source": "S01",
+      "section": "任务开场",
+      "title": "一口吞不下的大象，怎么做？",
+      "subtitle": "四个人，要在一小时内做出“方块小车闯关游戏”。",
+      "theme": "mission",
+      "content": "\n        <div class=\"scene-grid\">\n          <div class=\"pixel-people\" aria-label=\"四名团队成员同时工作\">\n            <span data-msv-field=\"f0001\">🧑‍💻</span><span data-msv-field=\"f0002\">🧑‍🎨</span><span data-msv-field=\"f0003\">🧑‍🔧</span><span data-msv-field=\"f0004\">🧑‍🚀</span>\n            <b data-msv-field=\"f0005\" class=\"chaos-label\">所有人同时改同一份东西！</b>\n          </div>\n          <div class=\"question-panel\">\n            <div data-msv-field=\"f0006\" class=\"question-mark\">?</div>\n            <h3 data-msv-field=\"f0007\">最可能先发生什么？</h3>\n            <div class=\"choice-grid\">\n              <span data-msv-field=\"f0008\">A 内容重复</span><span data-msv-field=\"f0009\">B 互相覆盖</span>\n              <span data-msv-field=\"f0010\">C 彼此等待</span><span data-msv-field=\"f0011\">D 都可能</span>\n            </div>\n            <p data-msv-field=\"f0012\" class=\"action-call\">全员手势投票，再说一句“因为……”</p>\n          </div>\n        </div>\n        <div class=\"reveal-card conclusion\" data-reveal>\n          <b data-msv-field=\"f0013\">第一条通关线索</b>\n          <span data-msv-field=\"f0014\">先拆块 → 再分工 → 按接口拼回来</span>\n        </div>",
+      "phase": "混乱挑战",
+      "minutes": 5,
+      "textFieldSequence": 14
+    },
+    {
+      "id": "module-s02",
+      "source": "S02-A",
+      "section": "预制组件",
+      "title": "同一个构件，为什么换了角色？",
+      "subtitle": "先玩一个拼装游戏：组件已经做好，我们按连接规则重新组合。",
+      "theme": "paper",
+      "content": "\n        <div class=\"transformer-demo\">\n          <div class=\"transformer-switch\" role=\"group\" aria-label=\"切换课堂示意形态\">\n            <button type=\"button\" aria-pressed=\"true\" data-transform-case=\"car\" data-wheel=\"行驶轮\" data-glass=\"车窗\" data-joint=\"车门铰链\" data-feedback=\"汽车：构件进入道路行驶场景。\">汽车</button>\n            <button type=\"button\" aria-pressed=\"false\" data-transform-case=\"plane\" data-wheel=\"起落架轮\" data-glass=\"座舱透明罩\" data-joint=\"折叠机翼转轴\" data-feedback=\"飞机：同类构件换了位置与角色，接口仍要匹配。\">飞机</button>\n            <button type=\"button\" aria-pressed=\"false\" data-transform-case=\"robot\" data-wheel=\"脚部滚轮\" data-glass=\"胸口观察罩\" data-joint=\"手肘关节\" data-feedback=\"机器人：名称与位置变化，基础能力没有随便改变。\">机器人</button>\n          </div>\n          <div class=\"transformer-stage\" data-transform-stage=\"car\" aria-live=\"polite\">\n            <div class=\"module-3d-host transform-3d\" data-module-3d=\"transform\" data-module-3d-mode=\"car\" aria-label=\"可拖动观察的预制组件三维课堂示意\">\n              <div class=\"module-3d-fallback\" aria-hidden=\"true\">\n                <div class=\"toy-shape\">\n                  <span class=\"toy-part toy-wheel one\"></span><span class=\"toy-part toy-wheel two\"></span>\n                  <span class=\"toy-part toy-glass\"></span><span class=\"toy-part toy-joint\"></span>\n                  <span class=\"toy-shell\"></span><span class=\"toy-wing\"></span>\n                </div>\n              </div>\n              <span class=\"module-3d-hint\">拖动旋转 · 按按钮变形</span>\n            </div>\n            <b data-transform-feedback>汽车：构件进入道路行驶场景。</b>\n            <small data-msv-field=\"f0001\">同色标记始终代表同一个构件</small>\n          </div>\n          <div class=\"component-ledger\">\n            <article><i class=\"part-dot wheel\"></i><span><b data-msv-field=\"f0002\">轮子</b><em data-msv-field=\"f0003\">核心能力：支撑、滚动</em></span><strong data-transform-role=\"wheel\">行驶轮</strong></article>\n            <article><i class=\"part-dot glass\"></i><span><b data-msv-field=\"f0004\">透明件</b><em data-msv-field=\"f0005\">核心能力：透视、隔离</em></span><strong data-transform-role=\"glass\">车窗</strong></article>\n            <article><i class=\"part-dot joint\"></i><span><b data-msv-field=\"f0006\">铰链／转轴</b><em data-msv-field=\"f0007\">核心能力：受约束转动</em></span><strong data-transform-role=\"joint\">车门铰链</strong></article>\n          </div>\n        </div>\n        <div class=\"reuse-boundary\">\n          <b data-msv-field=\"f0008\">复用失败示例</b><span data-msv-field=\"f0009\" class=\"bad-plug\">小接口</span><i>≠</i><span data-msv-field=\"f0010\" class=\"large-plug\">大接口</span><strong data-msv-field=\"f0011\">尺寸、方向、空间或强度不匹配，长得像也不能直接用。</strong>\n        </div>\n        <div class=\"reveal-card\" data-reveal><b data-msv-field=\"f0012\">第一层：使用预制组件</b><span data-msv-field=\"f0013\">位置和场景角色可以改变；基础能力没乱变，接口与约束仍要检查。</span></div>",
+      "phase": "WHAT · 认识模块",
+      "minutes": 8,
+      "textFieldSequence": 13
+    },
+    {
+      "id": "module-s02-build",
+      "source": "S02-B",
+      "section": "创造组件",
+      "title": "乐高多给了我们哪一层设计权？",
+      "subtitle": "积木拼装游戏里，玩家可以先创造组件，再组合完整作品。",
+      "theme": "blueprint",
+      "content": "\n        <div class=\"build-observer\" role=\"group\" aria-label=\"观察三层组合关系\">\n          <button type=\"button\" aria-pressed=\"true\" data-build-step=\"parts\" data-feedback=\"先选任务，再挑合适零件；不是随便堆完才起名字。\"><b>01</b>看基础零件</button>\n          <button type=\"button\" aria-pressed=\"false\" data-build-step=\"components\" data-feedback=\"轮胎、轴和连接件组成可滚动轮组；透明件、框架和铰链组成可开合座舱。\"><b>02</b>创造组件</button>\n          <button type=\"button\" aria-pressed=\"false\" data-build-step=\"works\" data-feedback=\"自制组件有明确连接点后，就能像预制组件一样进入汽车、飞机和更大场景。\"><b>03</b>组合整体</button>\n        </div>\n        <div class=\"lego-automation-demo\" data-build-stage=\"parts\">\n          <div class=\"module-3d-host lego-automation-3d\" data-module-3d=\"automation\" data-module-3d-mode=\"parts\" aria-label=\"可拖动观察的积木自动化三维课堂示意\">\n            <div class=\"module-3d-fallback\" aria-hidden=\"true\">\n              <div class=\"brick-bin\">\n                <i class=\"brick b1\"></i><i class=\"brick b2\"></i><i class=\"brick b3\"></i><i class=\"brick wheel\"></i><i class=\"brick axle\"></i><i class=\"brick glass\"></i>\n              </div>\n            </div>\n            <span class=\"module-3d-hint\">拖动旋转 · 第 3 步启动传送带</span>\n          </div>\n          <div class=\"build-layer-rail\">\n            <article data-build-layer=\"parts\" data-active><b data-msv-field=\"f0001\">基础零件</b><span data-msv-field=\"f0002\">积木、轮胎、轴、透明件、齿轮和连接件</span></article>\n            <i>↓</i>\n            <article data-build-layer=\"components\"><b data-msv-field=\"f0003\">功能组件</b><span data-msv-field=\"f0004\">轮组、齿轮传动、传送带、感应门</span></article>\n            <i>↓</i>\n            <article data-build-layer=\"works\"><b data-msv-field=\"f0005\">自动化整体</b><span data-msv-field=\"f0006\">动力输入 → 传动 → 搬运 → 感应</span></article>\n          </div>\n        </div>\n        <div class=\"build-feedback\" data-build-feedback aria-live=\"polite\">先选任务，再挑合适零件；不是随便堆完才起名字。</div>\n        <div class=\"reveal-card conclusion\" data-reveal><b data-msv-field=\"f0007\">第二层：先创造，再组合</b><span data-msv-field=\"f0008\">自建不一定更好；按需求选择复用或自建，并为结果承担测试和维护。</span></div>",
+      "phase": "WHAT · 认识模块",
+      "minutes": 8,
+      "textFieldSequence": 8
+    },
+    {
+      "id": "module-s02-voxel",
+      "source": "S02-C",
+      "section": "方块造物",
+      "title": "从方块造组件，再由组件造对象",
+      "subtitle": "同一件作品，用更小的方块塑形：每边细分 2 倍，方块数量变成 8 倍。",
+      "theme": "blueprint",
+      "content": "\n        <div class=\"voxel-toolbar\">\n          <div class=\"voxel-case-switch\" role=\"group\" aria-label=\"选择方块造物案例\">\n            <b data-msv-field=\"f0001\">选择案例</b>\n            <button type=\"button\" aria-pressed=\"true\" data-voxel-case=\"car\"\n              data-object-name=\"可滚动小车\"\n              data-material-one=\"橡胶方块 → 四个轮组\"\n              data-material-two=\"铁方块 → 车架\"\n              data-material-three=\"塑料方块 → 方向盘与座椅\"\n              data-blocks-feedback=\"先按材料能力选方块：橡胶、铁和塑料承担不同任务。\"\n              data-components-feedback=\"橡胶块塑成轮组，铁块塑成车架，塑料块塑成驾驶组件。\"\n              data-object-feedback=\"把轮组、车架和驾驶组件按接口对齐，组合成可滚动小车。\">案例一 · 小车</button>\n            <button type=\"button\" aria-pressed=\"false\" data-voxel-case=\"scope\"\n              data-object-name=\"瞄准观察道具（课堂模型）\"\n              data-material-one=\"玻璃方块 + 金属方块 → 瞄准镜\"\n              data-material-two=\"铁方块 → 枪托与主体\"\n              data-material-three=\"标准网格 → 组件对齐接口\"\n              data-blocks-feedback=\"先分清玻璃、金属和铁方块的能力，不把相同外形当成相同材料。\"\n              data-components-feedback=\"玻璃与金属块塑成瞄准镜，铁块塑成枪托与主体。\"\n              data-object-feedback=\"将瞄准镜与枪托主体按网格接口组合成课堂道具模型；不讨论真实武器结构。\">案例二 · 瞄准镜与枪托</button>\n          </div>\n          <div class=\"voxel-step-switch\" role=\"group\" aria-label=\"选择方块组合层级\">\n            <button type=\"button\" aria-pressed=\"true\" data-voxel-step=\"blocks\"><b>01</b>材料方块</button>\n            <button type=\"button\" aria-pressed=\"false\" data-voxel-step=\"components\"><b>02</b>塑形组件</button>\n            <button type=\"button\" aria-pressed=\"false\" data-voxel-step=\"object\"><b>03</b>组合对象</button>\n          </div>\n        </div>\n        <div class=\"voxel-lab\" data-voxel-stage data-voxel-case=\"car\" data-voxel-step=\"blocks\">\n          <div class=\"module-3d-host voxel-forge-3d\" data-module-3d=\"voxel\" data-module-3d-mode=\"car:blocks\" aria-label=\"可拖动观察的方块塑形与组件组合三维课堂示意\">\n            <div class=\"module-3d-fallback voxel-fallback\" aria-hidden=\"true\">\n              <span class=\"voxel-cluster rubber\"></span><span class=\"voxel-cluster iron\"></span><span class=\"voxel-cluster plastic\"></span>\n              <i>→</i><strong>组件</strong><i>→</i><strong>对象</strong>\n            </div>\n            <span class=\"module-3d-hint\">拖动旋转 · 依次观察三层</span>\n          </div>\n          <aside class=\"voxel-ledger\" aria-live=\"polite\">\n            <header><small data-msv-field=\"f0002\">当前目标</small><b data-voxel-object-name>可滚动小车</b></header>\n            <article><i class=\"voxel-swatch material-one\"></i><span data-voxel-material=\"one\">橡胶方块 → 四个轮组</span></article>\n            <article><i class=\"voxel-swatch material-two\"></i><span data-voxel-material=\"two\">铁方块 → 车架</span></article>\n            <article><i class=\"voxel-swatch material-three\"></i><span data-voxel-material=\"three\">塑料方块 → 方向盘与座椅</span></article>\n          </aside>\n        </div>\n        <div class=\"voxel-layer-rail\" aria-label=\"方块到对象的三层关系\">\n          <article data-voxel-layer=\"blocks\" data-active><b data-msv-field=\"f0003\">材料方块</b><span data-msv-field=\"f0004\">小方块，共享网格接口</span></article><i>→</i>\n          <article data-voxel-layer=\"components\"><b data-msv-field=\"f0005\">功能组件</b><span data-msv-field=\"f0006\">先为任务塑形与命名</span></article><i>→</i>\n          <article data-voxel-layer=\"object\"><b data-msv-field=\"f0007\">功能对象</b><span data-msv-field=\"f0008\">按接口组合并验证用途</span></article>\n        </div>\n        <div class=\"voxel-feedback\" data-voxel-feedback aria-live=\"polite\">先按材料能力选方块：橡胶、铁和塑料承担不同任务。</div>\n        <div class=\"reveal-card conclusion\" data-reveal><b data-msv-field=\"f0009\">第三层：从更细粒度开始设计</b><span data-msv-field=\"f0010\">自由度更高，也要承担更多塑形、接口、测试与维护工作；并不是越细越好。</span></div>",
+      "phase": "WHAT · 认识模块",
+      "minutes": 8,
+      "textFieldSequence": 10
+    },
+    {
+      "id": "module-s03",
+      "source": "S03",
+      "section": "核心工具",
+      "title": "收到什么？怎样做？交回什么？",
+      "subtitle": "再看刚才拼装的搬运装置：如果它是游戏里的机关，方块怎样进、怎样出？",
+      "theme": "blueprint",
+      "content": "<div class=\"build-observer\" role=\"group\" aria-label=\"复看同一台积木搬运机\"><button type=\"button\" data-build-step=\"components\" data-feedback=\"拆开看：动力、齿轮、传送带、感应门分别负责一件事。\">拆开看组件</button><button type=\"button\" data-build-step=\"works\" data-feedback=\"接回去：动力经过齿轮传到带子，方块被送到另一端。\">接回并运行</button></div><div class=\"case-reuse-grid\"><div data-build-stage=\"components\"><div class=\"module-3d-host case-reuse-scene\" data-module-3d=\"automation\" data-module-3d-mode=\"components\" aria-label=\"同一台积木搬运机：拆开和运行\"><div class=\"module-3d-fallback\"><strong>同一台积木搬运机：拆开和运行</strong></div><span class=\"module-3d-hint\">拖动观察 · 用按钮比较</span></div><div class=\"build-feedback\" data-build-feedback></div></div><div class=\"case-reuse-cards\"><article><h3 data-msv-field=\"f0001\">输入｜收到什么</h3><p data-msv-field=\"f0002\">把待搬的方块放上带子；动力组件带动它。</p></article><article><h3 data-msv-field=\"f0003\">处理｜怎样做</h3><p data-msv-field=\"f0004\">齿轮传动，带子把方块送向另一端。</p></article><article><h3 data-msv-field=\"f0005\">输出｜交回什么</h3><p data-msv-field=\"f0006\">方块到达接收区，下一块才能接着处理。</p></article></div></div><div class=\"lesson-banner\" data-reveal><b data-msv-field=\"f0007\">接口是合作约定</b><span data-msv-field=\"f0008\">方块多大？从哪里接、向哪里送？软件里也要说清交什么、谁来接。</span></div>",
+      "phase": "WHAT · 认识模块",
+      "minutes": 5,
+      "textFieldSequence": 8
+    },
+    {
+      "id": "module-description",
+      "source": "P1-六句",
+      "section": "马上用到我的游戏",
+      "title": "用六句话，说清一个模块",
+      "subtitle": "还是前一页的传送带。点一句，找到它对应的位置和合作组件。",
+      "theme": "paper",
+      "content": "<div class=\"conveyor-lesson\"><div class=\"conveyor-visual\"><div class=\"module-3d-host conveyor-scene\" data-module-3d=\"automation\" data-module-3d-mode=\"works\" data-conveyor-focus=\"duty\" aria-label=\"同一传送带的入口、动力、齿轮与出口\"><div class=\"module-3d-fallback\"><strong>入口 → 传送带 → 出口</strong><p>动力组件 → 齿轮 → 带子</p></div></div><p class=\"conveyor-caption\" data-conveyor-caption>职责：看整段传送带</p><p data-msv-field=\"f0001\" class=\"conveyor-boundary\">演示正常搬运；堵住后停机是要讨论和验证的设计，不是已演示的检测功能。</p></div><div class=\"conveyor-cards\"><button type=\"button\" data-conveyor-select=\"duty\" data-caption=\"职责：整段传送带\" aria-pressed=\"true\"><b>1 · 职责</b><strong>整段传送带</strong><span>只把入口方块送到出口，不负责识别它。</span></button><button type=\"button\" data-conveyor-select=\"input\" data-caption=\"输入：入口＋黄色动力块\" aria-pressed=\"false\"><b>2 · 输入</b><strong>入口＋黄色动力块</strong><span>收到待搬方块，也收到动力组件的转动。</span></button><button type=\"button\" data-conveyor-select=\"rule\" data-caption=\"处理规则：齿轮＋中间带子\" aria-pressed=\"false\"><b>3 · 处理规则</b><strong>齿轮＋中间带子</strong><span>齿轮带动带子，按约定方向搬运。</span></button><button type=\"button\" data-conveyor-select=\"output\" data-caption=\"输出：出口接收区\" aria-pressed=\"false\"><b>4 · 输出</b><strong>出口接收区</strong><span>交出送达的方块；没到出口就不算完成。</span></button><button type=\"button\" data-conveyor-select=\"interface\" data-caption=\"接口：动力连接＋两端交接\" aria-pressed=\"false\"><b>5 · 接口</b><strong>动力连接＋两端交接</strong><span>和动力、前后组件约定尺寸、方向与位置。</span></button><button type=\"button\" data-conveyor-select=\"exception\" data-caption=\"正常／异常：出口与通道\" aria-pressed=\"false\"><b>6 · 正常／异常</b><strong>出口与通道</strong><span>顺利送达；堵住时应停下并告诉合作方。</span></button></div></div>",
+      "phase": "WHAT · 认识模块",
+      "minutes": 5,
+      "textFieldSequence": 1
+    },
+    {
+      "id": "module-s05",
+      "source": "S05",
+      "section": "概念辨认",
+      "title": "模块组合实现功能，多个功能构成产品",
+      "subtitle": "点右侧：看完整产品、拆开模块，再看这些模块怎样一起完成不同功能。",
+      "theme": "archive",
+      "content": "<div class=\"relation-demo\"><div><div class=\"module-3d-host relation-scene\" data-module-3d=\"voxel\" data-module-3d-mode=\"car:object\" data-car-functions=\"true\" aria-label=\"同一辆方块小车的产品、模块和功能演示\"><div class=\"module-3d-fallback\"><strong>同一辆方块小车：整体 → 模块 → 功能</strong></div><span class=\"module-3d-hint\">上下左右拖动 · 滚轮缩放</span></div><div class=\"car-action-tabs\" data-car-actions hidden role=\"group\" aria-label=\"选择小车功能\"><button type=\"button\" data-car-action=\"drive\">道路移动</button><button type=\"button\" data-car-action=\"jump\">飞跃坡道</button><button type=\"button\" data-car-action=\"turn\">转向绕行</button><button type=\"button\" data-car-action=\"river\">过桥渡河</button></div><p class=\"relation-caption\" data-relation-caption aria-live=\"polite\">产品：模块接起来，形成一辆完整的小车。</p></div><div class=\"relation-cards\" role=\"group\" aria-label=\"产品模块功能\"><button type=\"button\" data-relation-view=\"product\"><b>产品｜看完整小车</b><span>这些部分接起来，才是能完成任务的整体。</span></button><button type=\"button\" data-relation-view=\"modules\"><b>模块｜拆开看组件</b><span>轮组、车架、方向盘与座椅，各有责任，又能合作。</span></button><button type=\"button\" data-relation-view=\"functions\"><b>功能｜看它能做什么</b><span>移动、飞跃、转向、过河；同一组模块配合完成不同任务。</span></button></div></div><div class=\"lesson-banner\" data-reveal><b data-msv-field=\"f0001\">模块 ≠ 功能</b><span data-msv-field=\"f0002\">轮组是模块；转向是功能。过河还需要桥，不能因为有轮子就能浮在水上。</span></div>",
+      "phase": "WHAT · 认识模块",
+      "minutes": 6,
+      "textFieldSequence": 2
+    },
+    {
+      "id": "module-s04",
+      "source": "S04",
+      "section": "为什么拆块",
+      "title": "拆成模块，会得到四种超能力",
+      "subtitle": "再让预制玩具变一次形：这回解释，拆成组件到底帮了什么忙。",
+      "theme": "paper",
+      "content": "<div class=\"case-reuse-transform\"><div class=\"transformer-switch\" role=\"group\" aria-label=\"切换课堂示意形态\">\n            <button type=\"button\" aria-pressed=\"true\" data-transform-case=\"car\" data-wheel=\"行驶轮\" data-glass=\"车窗\" data-joint=\"车门铰链\" data-feedback=\"汽车：构件进入道路行驶场景。\">汽车</button>\n            <button type=\"button\" aria-pressed=\"false\" data-transform-case=\"plane\" data-wheel=\"起落架轮\" data-glass=\"座舱透明罩\" data-joint=\"折叠机翼转轴\" data-feedback=\"飞机：同类构件换了位置与角色，接口仍要匹配。\">飞机</button>\n            <button type=\"button\" aria-pressed=\"false\" data-transform-case=\"robot\" data-wheel=\"脚部滚轮\" data-glass=\"胸口观察罩\" data-joint=\"手肘关节\" data-feedback=\"机器人：名称与位置变化，基础能力没有随便改变。\">机器人</button>\n          </div><div class=\"case-reuse-grid\"><div data-transform-stage=\"car\"><div class=\"module-3d-host case-reuse-scene\" data-module-3d=\"transform\" data-module-3d-mode=\"car\" aria-label=\"同一组预制组件：汽车、飞机与机器人\"><div class=\"module-3d-fallback\"><strong>同一组预制组件：汽车、飞机与机器人</strong></div><span class=\"module-3d-hint\">拖动观察 · 用按钮比较</span></div><div class=\"build-feedback\" data-transform-feedback></div></div><div class=\"case-reuse-cards two-column\"><article><h3 data-msv-field=\"f0001\">看得懂</h3><p data-msv-field=\"f0002\">指着轮子、透明件、铰链，就能说出分工。</p></article><article><h3 data-msv-field=\"f0003\">能分工</h3><p data-msv-field=\"f0004\">一人管轮组，一人管车架；先约好连接处。</p></article><article><h3 data-msv-field=\"f0005\">能替换</h3><p data-msv-field=\"f0006\">轮子坏了换轮组，不必重造整辆车。</p></article><article><h3 data-msv-field=\"f0007\">能复用</h3><p data-msv-field=\"f0008\">行驶轮换成起落架轮，仍要检查接口与承重。</p></article></div></div></div><div class=\"lesson-banner\" data-reveal><b data-msv-field=\"f0009\">别只说“它变了”</b><span data-msv-field=\"f0010\">选同一个构件，说明：任务换了什么？能力保留什么？哪些接口要再检查？</span></div>",
+      "phase": "WHY · 为什么要用",
+      "minutes": 6,
+      "textFieldSequence": 10
+    },
+    {
+      "id": "module-tradeoff",
+      "source": "WHY-取舍",
+      "section": "马上用到我的游戏",
+      "title": "拆得越碎，就一定越好吗？",
+      "subtitle": "把刚才三种做法放在一起：不是越细越好，而是合适就好。",
+      "theme": "paper",
+      "content": "<div class=\"tradeoff-demo\"><div class=\"tradeoff-tabs\" role=\"tablist\" aria-label=\"四种模块拆分方式\"><button role=\"tab\" data-tradeoff-tab=\"0\" aria-controls=\"tradeoff-scene\" aria-selected=\"true\">预制玩具<br><small>合适的轮组，直接复用</small></button><button role=\"tab\" data-tradeoff-tab=\"1\" aria-controls=\"tradeoff-scene\" aria-selected=\"false\">乐高<br><small>组合零件，创造组件</small></button><button role=\"tab\" data-tradeoff-tab=\"2\" aria-controls=\"tradeoff-scene\" aria-selected=\"false\">方块小车<br><small>细到材料，也有成本</small></button><button role=\"tab\" data-tradeoff-tab=\"3\" aria-controls=\"tradeoff-scene\" aria-selected=\"false\">我的游戏<br><small>按任务拆，不按按钮拆</small></button></div><div id=\"tradeoff-scene\" role=\"tabpanel\" class=\"tradeoff-panel\"><div class=\"module-3d-host\" data-module-3d=\"transform\" data-module-3d-mode=\"car\" aria-label=\"模块拆分方式互动演示\"><div class=\"module-3d-fallback\">预制轮组 → 检查接口 → 复用到整体</div><span class=\"module-3d-hint\">拖动旋转 · 滚轮缩放</span></div><div class=\"tradeoff-caption\"><p data-tradeoff-description>已经合适的轮组可以复用，先检查接口，不必从材料重新造。</p><button type=\"button\" data-tradeoff-action>换成飞机，看看轮组</button></div></div></div><div class=\"tradeoff-judgement\" data-reveal><b data-msv-field=\"f0001\">判断问题</b>这样拆，是让合作更清楚，还是只是让格子更多？</div>",
+      "phase": "WHY · 为什么要用",
+      "minutes": 4,
+      "textFieldSequence": 1
+    },
+    {
+      "id": "module-s06",
+      "source": "S06",
+      "section": "用户路径",
+      "title": "先走一遍玩家的路线",
+      "subtitle": "还是方块小车闯关：玩家做了什么，游戏要接着做什么？",
+      "theme": "route",
+      "content": "<div class=\"s06-game\"><iframe data-car-game title=\"小车闯关：移动、拾取、背包与过关检查\" allow=\"fullscreen\" allowfullscreen></iframe><div data-msv-field=\"f0001\" class=\"s06-game-preview\">现场试玩：驾驶同一辆小车 → 碰道具 → 存背包 → 检查过关条件 → 显示结果</div></div><p data-msv-field=\"f0002\" class=\"s06-handoff\">先玩一遍，再说清：谁收到什么？交给下一块什么？背包满了，谁负责告诉玩家？</p>",
+      "phase": "HOW · 公共案例",
+      "minutes": 3,
+      "textFieldSequence": 2
+    },
+    {
+      "id": "module-s07",
+      "source": "S07",
+      "section": "归纳模块",
+      "title": "从需求，走到功能，再归纳模块",
+      "subtitle": "大家说法很乱没关系，先找重复动作和共同任务。",
+      "theme": "lab",
+      "content": "\n        <div class=\"funnel-board\">\n          <div class=\"sticky-row\"><span data-msv-field=\"f0001\">“我要转弯”</span><span data-msv-field=\"f0002\">“我要刹车”</span><span data-msv-field=\"f0003\">“让我收下道具”</span><span data-msv-field=\"f0004\">“到终点算过关吗”</span></div>\n          <div data-msv-field=\"f0005\" class=\"funnel\">↓ 找共同任务与重复动作 ↓</div>\n          <div class=\"module-row\"><span data-msv-field=\"f0006\">移动模块</span><span data-msv-field=\"f0007\">道具模块</span><span data-msv-field=\"f0008\">背包模块</span><span data-msv-field=\"f0009\">关卡模块</span></div>\n        </div>\n        <div class=\"mission-question\"><b data-msv-field=\"f0010\">便利贴归队</b><span data-msv-field=\"f0011\">把“转弯、刹车、识别道具、存入背包、检查过关”贴到你认为合适的模块。</span></div>\n        <div class=\"reveal-card\" data-reveal><b data-msv-field=\"f0012\">允许不同拆法</b><span data-msv-field=\"f0013\">只要能说清归类依据，并沿玩家路线接得回来。</span></div>",
+      "phase": "HOW · 公共案例",
+      "minutes": 2,
+      "textFieldSequence": 13
+    },
+    {
+      "id": "module-s09",
+      "source": "S09",
+      "section": "按约定合作 · 低耦合",
+      "title": "接口像插头：只按约定合作",
+      "subtitle": "记得轮组与车架吗？轴太粗就接不上；交给背包的道具信息不全，也会卡住。",
+      "theme": "paper",
+      "content": "\n        <div class=\"interface-demo\">\n          <article><small data-msv-field=\"f0001\">道具模块</small><h3 data-msv-field=\"f0002\">我交出道具信息</h3><div data-msv-field=\"f0003\" class=\"data-chip\">道具：星星</div><div data-msv-field=\"f0004\" class=\"data-chip missing\">数量：？？？</div><div data-msv-field=\"f0005\" class=\"data-chip\">来自：本关拾取</div></article>\n          <div class=\"plug\">⇄<span data-msv-field=\"f0006\">接口</span></div>\n          <article><small data-msv-field=\"f0007\">背包模块</small><h3 data-msv-field=\"f0008\">我把道具存起来</h3><p data-msv-field=\"f0009\">我不需要知道你内部怎么画出道具。</p></article>\n        </div>\n        <div class=\"mission-question\"><b data-msv-field=\"f0010\">接口传话</b><span data-msv-field=\"f0011\">背包为什么不能直接入账？约定里缺了什么？</span></div>\n        <div class=\"reveal-card\" data-reveal><b data-msv-field=\"f0012\">低耦合</b><span data-msv-field=\"f0013\">约定输入、输出和异常；内部升级时，别人不用跟着重做。</span></div>",
+      "phase": "HOW · 公共案例",
+      "minutes": 2,
+      "textFieldSequence": 13
+    },
+    {
+      "id": "module-s10",
+      "source": "S10",
+      "section": "黑箱测试",
+      "title": "看不见里面，也能先测试它",
+      "subtitle": "把它当作游戏里的奖励盒：放入星星数量，观察交回多少奖励。",
+      "theme": "paper",
+      "content": "\n        <div class=\"blackbox-lab\">\n          <div class=\"input-stack\" aria-label=\"测试输入\">\n            <button type=\"button\" data-blackbox-case=\"0\" data-feedback=\"输入 2 → 返回 4：基础样例通过\" aria-pressed=\"false\"><b>2</b><small>测试输入</small></button>\n            <button type=\"button\" data-blackbox-case=\"1\" data-feedback=\"输入 5 → 返回 10：重复样例通过\" aria-pressed=\"false\"><b>5</b><small>测试输入</small></button>\n            <button type=\"button\" data-blackbox-case=\"2\" data-feedback=\"输入“文字” → 拒绝：发现失败行为\" aria-pressed=\"false\"><b>文字</b><small>故意给错</small></button>\n          </div>\n          <div class=\"blackbox\"><i>?</i><b data-msv-field=\"f0001\">神秘奖励盒</b><small data-blackbox-status aria-live=\"polite\">选择一个输入，观察返回</small></div>\n          <div class=\"output-stack\" aria-label=\"模块返回\">\n            <span data-blackbox-output><b>4</b><small>正常返回</small></span>\n            <span data-blackbox-output><b>10</b><small>正常返回</small></span>\n            <span data-blackbox-output data-result=\"拒绝\"><b>?</b><small>异常返回</small></span>\n          </div>\n        </div>\n        <div class=\"three-questions\">\n          <span data-msv-field=\"f0002\">给它什么？</span><span data-msv-field=\"f0003\">它返回什么？</span><span data-msv-field=\"f0004\">失败时怎样？</span>\n        </div>\n        <div class=\"reveal-card\" data-reveal><b data-msv-field=\"f0005\">有效测试</b><span data-msv-field=\"f0006\">不要只猜规则；还要试边界、异常和“故意给错”的输入。</span></div>",
+      "phase": "HOW · 公共案例",
+      "minutes": 2,
+      "textFieldSequence": 6
+    },
+    {
+      "id": "module-s13",
+      "source": "S13",
+      "section": "接口卡",
+      "title": "让每个模块拿到一张“工作证”",
+      "subtitle": "还记得刚才的小车吗？点左侧案例，看看一张完整的模块接口卡。",
+      "theme": "paper",
+      "content": "<div class=\"interface-examples\"><div class=\"interface-case-tabs\" role=\"tablist\" aria-label=\"小车游戏模块案例\" aria-orientation=\"vertical\"><button type=\"button\" role=\"tab\" id=\"s13-tab-move\" aria-controls=\"s13-panel-move\" aria-selected=\"true\" tabindex=\"0\" data-interface-case=\"move\"><b>小车移动</b><small>按键 → 车的位置</small></button><button type=\"button\" role=\"tab\" id=\"s13-tab-pickup\" aria-controls=\"s13-panel-pickup\" aria-selected=\"false\" tabindex=\"-1\" data-interface-case=\"pickup\"><b>拾取道具</b><small>碰到 → 问背包</small></button><button type=\"button\" role=\"tab\" id=\"s13-tab-bag\" aria-controls=\"s13-panel-bag\" aria-selected=\"false\" tabindex=\"-1\" data-interface-case=\"bag\"><b>两格背包</b><small>收下 / 丢弃道具</small></button><button type=\"button\" role=\"tab\" id=\"s13-tab-finish\" aria-controls=\"s13-panel-finish\" aria-selected=\"false\" tabindex=\"-1\" data-interface-case=\"finish\"><b>终点检查</b><small>到终点 ＋ 有钥匙</small></button><button type=\"button\" role=\"tab\" id=\"s13-tab-template\" aria-controls=\"s13-panel-template\" aria-selected=\"false\" tabindex=\"-1\" data-interface-case=\"template\"><b>我的游戏</b><small>照着例子填一张</small></button></div><div class=\"interface-case-panels\"><article class=\"interface-example-card\" role=\"tabpanel\" id=\"s13-panel-move\" aria-labelledby=\"s13-tab-move\" data-interface-panel=\"move\"><header><small data-msv-field=\"f0001\">模块名称</small><h3 data-msv-field=\"f0002\">移动模块</h3></header><div class=\"interface-example-duty\"><b data-msv-field=\"f0003\">唯一责任</b><p data-msv-field=\"f0004\">只负责小车移动、转向和刹车。</p></div><div class=\"interface-example-pair\"><section><h4 data-msv-field=\"f0005\">输入 · 收到什么</h4><p data-msv-field=\"f0006\">Space / 方向键；现在的位置。</p></section><section><h4 data-msv-field=\"f0007\">输出 · 交回什么</h4><p data-msv-field=\"f0008\">交出新的位置；撞墙就不能继续穿过去。</p></section></div><div class=\"interface-example-pair\"><section><h4 data-msv-field=\"f0009\">依赖 · 找谁帮忙</h4><p data-msv-field=\"f0010\">地形与碰撞计算；不负责收道具。</p></section><section><h4 data-msv-field=\"f0011\">负责人 · 谁来做</h4><p data-msv-field=\"f0012\">负责移动模块的同学</p></section></div><p data-msv-field=\"f0013\" class=\"interface-example-note\">这是一种教学拆法；负责人是课堂分工，不是游戏里的角色。</p></article><article class=\"interface-example-card\" role=\"tabpanel\" id=\"s13-panel-pickup\" aria-labelledby=\"s13-tab-pickup\" data-interface-panel=\"pickup\" hidden><header><small data-msv-field=\"f0014\">模块名称</small><h3 data-msv-field=\"f0015\">拾取模块</h3></header><div class=\"interface-example-duty\"><b data-msv-field=\"f0016\">唯一责任</b><p data-msv-field=\"f0017\">发现碰到的道具，问背包能不能收。</p></div><div class=\"interface-example-pair\"><section><h4 data-msv-field=\"f0018\">输入 · 收到什么</h4><p data-msv-field=\"f0019\">小车的位置；道具的编号和位置。</p></section><section><h4 data-msv-field=\"f0020\">输出 · 交回什么</h4><p data-msv-field=\"f0021\">背包收下才移走道具；拒绝时道具留在路上。</p></section></div><div class=\"interface-example-pair\"><section><h4 data-msv-field=\"f0022\">依赖 · 找谁帮忙</h4><p data-msv-field=\"f0023\">移动模块给位置；背包回复收下或拒绝。</p></section><section><h4 data-msv-field=\"f0024\">负责人 · 谁来做</h4><p data-msv-field=\"f0025\">负责拾取模块的同学</p></section></div><p data-msv-field=\"f0026\" class=\"interface-example-note\">这是一种教学拆法；负责人是课堂分工，不是游戏里的角色。</p></article><article class=\"interface-example-card\" role=\"tabpanel\" id=\"s13-panel-bag\" aria-labelledby=\"s13-tab-bag\" data-interface-panel=\"bag\" hidden><header><small data-msv-field=\"f0027\">模块名称</small><h3 data-msv-field=\"f0028\">背包模块</h3></header><div class=\"interface-example-duty\"><b data-msv-field=\"f0029\">唯一责任</b><p data-msv-field=\"f0030\">保管已经收下的道具，最多两件。</p></div><div class=\"interface-example-pair\"><section><h4 data-msv-field=\"f0031\">输入 · 收到什么</h4><p data-msv-field=\"f0032\">要收下哪件道具；或要丢下哪件。</p></section><section><h4 data-msv-field=\"f0033\">输出 · 交回什么</h4><p data-msv-field=\"f0034\">返回道具清单；满两格就回复“装不下”。</p></section></div><div class=\"interface-example-pair\"><section><h4 data-msv-field=\"f0035\">依赖 · 找谁帮忙</h4><p data-msv-field=\"f0036\">拾取模块交入道具；把清单交给终点检查。</p></section><section><h4 data-msv-field=\"f0037\">负责人 · 谁来做</h4><p data-msv-field=\"f0038\">负责背包模块的同学</p></section></div><p data-msv-field=\"f0039\" class=\"interface-example-note\">这是一种教学拆法；负责人是课堂分工，不是游戏里的角色。</p></article><article class=\"interface-example-card\" role=\"tabpanel\" id=\"s13-panel-finish\" aria-labelledby=\"s13-tab-finish\" data-interface-panel=\"finish\" hidden><header><small data-msv-field=\"f0040\">模块名称</small><h3 data-msv-field=\"f0041\">关卡检查模块</h3></header><div class=\"interface-example-duty\"><b data-msv-field=\"f0042\">唯一责任</b><p data-msv-field=\"f0043\">判断现在能不能过关。</p></div><div class=\"interface-example-pair\"><section><h4 data-msv-field=\"f0044\">输入 · 收到什么</h4><p data-msv-field=\"f0045\">小车是否到终点；背包里有没有钥匙。</p></section><section><h4 data-msv-field=\"f0046\">输出 · 交回什么</h4><p data-msv-field=\"f0047\">两项都满足才成功；没钥匙就提示还不能过关。</p></section></div><div class=\"interface-example-pair\"><section><h4 data-msv-field=\"f0048\">依赖 · 找谁帮忙</h4><p data-msv-field=\"f0049\">移动模块给位置；背包模块给道具清单。</p></section><section><h4 data-msv-field=\"f0050\">负责人 · 谁来做</h4><p data-msv-field=\"f0051\">负责关卡检查的同学</p></section></div><p data-msv-field=\"f0052\" class=\"interface-example-note\">这是一种教学拆法；负责人是课堂分工，不是游戏里的角色。</p></article><article class=\"interface-example-card\" role=\"tabpanel\" id=\"s13-panel-template\" aria-labelledby=\"s13-tab-template\" data-interface-panel=\"template\" hidden><header><small data-msv-field=\"f0053\">模块名称</small><h3 data-msv-field=\"f0054\">________ 模块</h3></header><div class=\"interface-example-duty\"><b data-msv-field=\"f0055\">唯一责任</b><p data-msv-field=\"f0056\">我只负责 ________。</p></div><div class=\"interface-example-pair\"><section><h4 data-msv-field=\"f0057\">输入 · 收到什么</h4><p data-msv-field=\"f0058\">谁交给我什么？请写具体。</p></section><section><h4 data-msv-field=\"f0059\">输出 · 交回什么</h4><p data-msv-field=\"f0060\">成功交回什么？失败告诉别人什么？</p></section></div><div class=\"interface-example-pair\"><section><h4 data-msv-field=\"f0061\">依赖 · 找谁帮忙</h4><p data-msv-field=\"f0062\">需要哪一个模块帮忙？拿什么来帮忙？</p></section><section><h4 data-msv-field=\"f0063\">负责人 · 谁来做</h4><p data-msv-field=\"f0064\">填写负责这块的同学姓名</p></section></div><p data-msv-field=\"f0065\" class=\"interface-example-note\">这是一种教学拆法；负责人是课堂分工，不是游戏里的角色。</p></article></div></div><div class=\"reveal-card\" data-reveal><b data-msv-field=\"f0066\">换成我的游戏</b><span data-msv-field=\"f0067\">给你什么？你还我什么？失败怎么办？再看下一块接不接得住。</span></div>",
+      "phase": "HOW · 公共案例",
+      "minutes": 2,
+      "textFieldSequence": 67
+    },
+    {
+      "id": "module-s14",
+      "source": "S14",
+      "section": "拼装测试",
+      "title": "拆得开，还要接得回",
+      "subtitle": "沿用 S13 的四张卡：移动、拾取、背包、终点检查。拆开看职责，接回看交接。",
+      "theme": "lab",
+      "content": "<div class=\"assembly-lesson\"><div class=\"assembly-controls\" role=\"group\" aria-label=\"模块拆开与接回\"><button type=\"button\" data-assembly-mode=\"split\" aria-pressed=\"true\"><b>① 拆开看模块</b><small>四块分开放，职责不混在一起</small></button><button type=\"button\" data-assembly-mode=\"joined\" aria-pressed=\"false\"><b>② 接回看合作</b><small>位置 → 道具 → 清单 → 过关</small></button><div class=\"assembly-context\"><b data-msv-field=\"f0001\">对应 S13 的接口卡</b><p data-msv-field=\"f0002\">位置 → 道具 → 背包清单 → 过关检查。</p><small data-msv-field=\"f0003\">软件职责的 3D 示意，不是实体零件。</small></div></div><div class=\"module-3d-host assembly-scene\" data-module-3d=\"car-modules\" data-module-3d-mode=\"split\" aria-label=\"S13 小车四模块爆炸分解与合作示意\"><div class=\"module-3d-fallback\"><strong>移动 / 拾取 / 背包 / 终点检查</strong><p>拆开看四项职责；接回看输入和输出怎样传递。</p></div><span class=\"module-3d-hint\">上下左右拖动 · 滚轮缩放</span></div></div><p class=\"assembly-feedback\" data-assembly-feedback aria-live=\"polite\">四个模块已分开：名字、职责不同，但都来自同一款小车游戏。</p><div class=\"reveal-card\" data-reveal><b data-msv-field=\"f0004\">接回不等于通过</b><span data-msv-field=\"f0005\">还要实测：背包满了会拒绝吗？没有钥匙，终点会拦住吗？</span></div>",
+      "phase": "HOW · 公共案例",
+      "minutes": 2,
+      "textFieldSequence": 5
+    },
+    {
+      "id": "module-s12",
+      "source": "S12",
+      "section": "完整拆分示范",
+      "title": "老师打个样：拆清楚小车闯关游戏",
+      "subtitle": "先看整款游戏的模块地图，再点左侧进入模块内部；用同一张图给手绘打样。",
+      "theme": "paper",
+      "content": "<div class=\"worked-example\"><nav class=\"worked-tabs\" role=\"tablist\" aria-label=\"小车完整拆分答案\" aria-orientation=\"vertical\"><button type=\"button\" role=\"tab\" id=\"s12-tab-route\" aria-controls=\"s12-panel-route\" aria-selected=\"true\" tabindex=\"0\" data-worked-case=\"route\"><b>① 整体模块地图</b><small>多种功能，共用模块</small></button><button type=\"button\" role=\"tab\" id=\"s12-tab-move\" aria-controls=\"s12-panel-move\" aria-selected=\"false\" tabindex=\"-1\" data-worked-case=\"move\"><b>② 移动模块</b><small>按键 → 新位置</small></button><button type=\"button\" role=\"tab\" id=\"s12-tab-pickup\" aria-controls=\"s12-panel-pickup\" aria-selected=\"false\" tabindex=\"-1\" data-worked-case=\"pickup\"><b>③ 拾取模块</b><small>碰到 → 问背包</small></button><button type=\"button\" role=\"tab\" id=\"s12-tab-bag\" aria-controls=\"s12-panel-bag\" aria-selected=\"false\" tabindex=\"-1\" data-worked-case=\"bag\"><b>④ 背包模块</b><small>收下 / 拒绝 / 丢弃</small></button><button type=\"button\" role=\"tab\" id=\"s12-tab-finish\" aria-controls=\"s12-panel-finish\" aria-selected=\"false\" tabindex=\"-1\" data-worked-case=\"finish\"><b>⑤ 终点检查</b><small>到终点 ＋ 有钥匙</small></button><button type=\"button\" role=\"tab\" id=\"s12-tab-check\" aria-controls=\"s12-panel-check\" aria-selected=\"false\" tabindex=\"-1\" data-worked-case=\"check\"><b>⑥ 异常走查</b><small>用答案反查拆法</small></button></nav><div class=\"worked-map-overview\"><section class=\"game-map\" data-game-map=\"car\" aria-label=\"方块小车闯关：多种玩法共同使用游戏模块\"><div class=\"game-map-head\"><b data-msv-field=\"f0046\">模块：谁一起工作</b><b data-msv-field=\"f0047\">玩法／功能：玩家能做什么</b><b data-msv-field=\"f0048\">产品</b></div><div class=\"game-map-board\"><svg viewBox=\"0 0 1000 420\" preserveAspectRatio=\"none\" aria-hidden=\"true\"><path data-map-edge=\"move:move\" d=\"M 245 68.33333333333333 C 360 68.33333333333333, 345 82.5, 465 82.5\" /><path data-map-edge=\"terrain:move\" d=\"M 245 125.0 C 360 125.0, 345 82.5, 465 82.5\" /><path data-map-edge=\"move:pickup\" d=\"M 245 68.33333333333333 C 360 68.33333333333333, 345 167.5, 465 167.5\" /><path data-map-edge=\"pickup:pickup\" d=\"M 245 181.66666666666666 C 360 181.66666666666666, 345 167.5, 465 167.5\" /><path data-map-edge=\"bag:pickup\" d=\"M 245 238.33333333333334 C 360 238.33333333333334, 345 167.5, 465 167.5\" /><path data-map-edge=\"bag:carry\" d=\"M 245 238.33333333333334 C 360 238.33333333333334, 345 252.5, 465 252.5\" /><path data-map-edge=\"hint:carry\" d=\"M 245 295.0 C 360 295.0, 345 252.5, 465 252.5\" /><path data-map-edge=\"move:finish\" d=\"M 245 68.33333333333333 C 360 68.33333333333333, 345 337.5, 465 337.5\" /><path data-map-edge=\"bag:finish\" d=\"M 245 238.33333333333334 C 360 238.33333333333334, 345 337.5, 465 337.5\" /><path data-map-edge=\"finish:finish\" d=\"M 245 351.6666666666667 C 360 351.6666666666667, 345 337.5, 465 337.5\" /><path data-map-edge=\"hint:finish\" d=\"M 245 295.0 C 360 295.0, 345 337.5, 465 337.5\" /><path class=\"game-map-product-edge\" d=\"M 735 82.5 C 790 82.5, 795 210, 830 210\" /><path class=\"game-map-product-edge\" d=\"M 735 167.5 C 790 167.5, 795 210, 830 210\" /><path class=\"game-map-product-edge\" d=\"M 735 252.5 C 790 252.5, 795 210, 830 210\" /><path class=\"game-map-product-edge\" d=\"M 735 337.5 C 790 337.5, 795 210, 830 210\" /></svg><button type=\"button\" data-map-module=\"move\" style=\"top:16.2698%\"><b>移动</b></button><button type=\"button\" data-map-module=\"terrain\" style=\"top:29.7619%\"><b>地形</b></button><button type=\"button\" data-map-module=\"pickup\" style=\"top:43.2540%\"><b>道具／拾取</b></button><button type=\"button\" data-map-module=\"bag\" style=\"top:56.7460%\"><b>背包</b></button><button type=\"button\" data-map-module=\"hint\" style=\"top:70.2381%\"><b>提示</b></button><button type=\"button\" data-map-module=\"finish\" style=\"top:83.7302%\"><b>终点判断</b></button><button type=\"button\" data-map-path=\"move\" data-modules=\"move terrain\" style=\"top:19.6429%\"><b>移动</b><small>前进、转向、过坡</small></button><button type=\"button\" data-map-path=\"pickup\" data-modules=\"move pickup bag\" style=\"top:39.8810%\"><b>拾取</b><small>碰到道具，尝试收下</small></button><button type=\"button\" data-map-path=\"carry\" data-modules=\"bag hint\" style=\"top:60.1190%\"><b>携带物品</b><small>保存并显示背包清单</small></button><button type=\"button\" data-map-path=\"finish\" data-modules=\"move bag finish hint\" style=\"top:80.3571%\"><b>关卡判断</b><small>到终点＋带钥匙，显示结果</small></button><div class=\"game-map-product\"><b data-msv-field=\"f0049\">方块小车闯关</b><span data-msv-field=\"f0050\">多种玩法组成完整游戏</span></div></div><div class=\"game-map-bottom\"><p data-msv-field=\"f0051\">背包同时参与拾取、携带和过关。共享的是同一个模块，不是复制三份。</p><button type=\"button\" data-map-reset>查看全图</button></div></section><details class=\"worked-map-answer\"><summary>展开一条具体交接：带钥匙到终点</summary><article role=\"tabpanel\" id=\"s12-panel-route\" aria-labelledby=\"s12-tab-route\" data-worked-panel=\"route\"><h3 data-msv-field=\"f0002\">从整张地图挑一次交接</h3><section><h4 data-msv-field=\"f0003\">玩家做什么</h4><p data-msv-field=\"f0004\">前进用 ↑，喷射用 Space；碰到钥匙后，拾取请求背包收下。</p></section><section><h4 data-msv-field=\"f0005\">箭头交什么</h4><p data-msv-field=\"f0006\">移动交位置；拾取交道具编号；背包交清单；终点交结果。</p></section><section><h4 data-msv-field=\"f0007\">本轮目标</h4><p data-msv-field=\"f0008\">带钥匙到终点。捡到金币不等于已经过关。</p></section></article></details></div><div class=\"worked-visual\"><div class=\"module-3d-host worked-scene\" data-module-3d=\"car-modules\" data-module-3d-mode=\"joined\" aria-label=\"当前答案对应的小车模块3D示意\"><div class=\"module-3d-fallback\"><strong>移动 → 拾取 → 背包 → 终点检查</strong><p>左侧逐项查看完整答案。</p></div><span class=\"module-3d-hint\">拖动旋转 · 滚轮缩放</span></div><p data-msv-field=\"f0001\">这是职责与交接的示意；真实试驾在 S06。</p></div><div class=\"worked-panels\"><article role=\"tabpanel\" id=\"s12-panel-move\" aria-labelledby=\"s12-tab-move\" data-worked-panel=\"move\" hidden><h3 data-msv-field=\"f0009\">我只管车怎么走</h3><section><h4 data-msv-field=\"f0010\">输入 → 处理</h4><p data-msv-field=\"f0011\">Space / 方向键 + 当前位置 → 计算移动、转向和碰撞。</p></section><section><h4 data-msv-field=\"f0012\">输出 → 交给谁</h4><p data-msv-field=\"f0013\">新位置 → 拾取模块和终点检查。</p></section><section><h4 data-msv-field=\"f0014\">检验答案</h4><p data-msv-field=\"f0015\">按前进，位置改变；撞墙不能穿过去。不替背包收道具。</p></section></article><article role=\"tabpanel\" id=\"s12-panel-pickup\" aria-labelledby=\"s12-tab-pickup\" data-worked-panel=\"pickup\" hidden><h3 data-msv-field=\"f0016\">我只管发现并交接道具</h3><section><h4 data-msv-field=\"f0017\">输入 → 处理</h4><p data-msv-field=\"f0018\">车的位置 + 道具编号、位置 → 检查是否碰到。</p></section><section><h4 data-msv-field=\"f0019\">交接约定</h4><p data-msv-field=\"f0020\">向背包问“能收钥匙吗？”收下才让路上的钥匙消失。</p></section><section><h4 data-msv-field=\"f0021\">检验答案</h4><p data-msv-field=\"f0022\">背包拒绝 → 道具留在路上；不是一碰到就删除。</p></section></article><article role=\"tabpanel\" id=\"s12-panel-bag\" aria-labelledby=\"s12-tab-bag\" data-worked-panel=\"bag\" hidden><h3 data-msv-field=\"f0023\">我只管两格背包</h3><section><h4 data-msv-field=\"f0024\">输入 → 处理</h4><p data-msv-field=\"f0025\">收到道具编号 → 有空格就收下；满两格就拒绝。</p></section><section><h4 data-msv-field=\"f0026\">输出 → 交给谁</h4><p data-msv-field=\"f0027\">收下 / 拒绝 → 拾取；道具清单 → 终点检查。</p></section><section><h4 data-msv-field=\"f0028\">检验答案</h4><p data-msv-field=\"f0029\">金币 + 工具占满 → 钥匙装不下。丢掉工具，才有空格收钥匙。</p></section></article><article role=\"tabpanel\" id=\"s12-panel-finish\" aria-labelledby=\"s12-tab-finish\" data-worked-panel=\"finish\" hidden><h3 data-msv-field=\"f0030\">我只管现在能不能过关</h3><section><h4 data-msv-field=\"f0031\">输入 → 处理</h4><p data-msv-field=\"f0032\">车的位置 + 背包清单 → 同时检查到达终点、有钥匙。</p></section><section><h4 data-msv-field=\"f0033\">输出 → 玩家</h4><p data-msv-field=\"f0034\">两项都满足 → 成功；到终点但没钥匙 → 提示缺钥匙。</p></section><section><h4 data-msv-field=\"f0035\">检验答案</h4><p data-msv-field=\"f0036\">只有钥匙、没到终点：不成功。不能只检查其中一项。</p></section></article><article role=\"tabpanel\" id=\"s12-panel-check\" aria-labelledby=\"s12-tab-check\" data-worked-panel=\"check\" hidden><h3 data-msv-field=\"f0037\">背包满了，谁来处理？</h3><section><h4 data-msv-field=\"f0038\">准备条件</h4><p data-msv-field=\"f0039\">两格已放金币、工具；小车碰到钥匙。</p></section><section><h4 data-msv-field=\"f0040\">预期答案</h4><p data-msv-field=\"f0041\">背包拒绝 → 拾取保留路上的钥匙 → 终点不能判成功。</p></section><section><h4 data-msv-field=\"f0042\">恢复路线</h4><p data-msv-field=\"f0043\">丢掉工具 → 离开再碰钥匙 → 收下 → 到终点才成功。</p></section></article></div></div><div class=\"reveal-card\" data-reveal><b data-msv-field=\"f0044\">换成我的游戏</b><span data-msv-field=\"f0045\">列出多种玩法 → 找共同职责 → 模块连到功能 → 补上交接内容，再走查。</span></div>",
+      "phase": "HOW · 公共案例",
+      "minutes": 4,
+      "textFieldSequence": 51
+    },
+    {
+      "id": "module-minecraft-map",
+      "source": "HOW-00",
+      "section": "整体模块地图",
+      "title": "我的世界：不同玩法，共用哪些模块？",
+      "subtitle": "不是只拆一条路线。把整款游戏的多种玩法放在同一张地图里。",
+      "theme": "paper",
+      "content": "<section class=\"game-map\" data-game-map=\"minecraft\" aria-label=\"我的世界 Minecraft：多种玩法共同使用游戏模块\"><div class=\"game-map-head\"><b data-msv-field=\"f0001\">模块：谁一起工作</b><b data-msv-field=\"f0002\">玩法／功能：玩家能做什么</b><b data-msv-field=\"f0003\">产品</b></div><div class=\"game-map-board\"><svg viewBox=\"0 0 1000 420\" preserveAspectRatio=\"none\" aria-hidden=\"true\"><path data-map-edge=\"move:explore\" d=\"M 245 61.25 C 360 61.25, 345 82.5, 465 82.5\" /><path data-map-edge=\"world:explore\" d=\"M 245 103.75 C 360 103.75, 345 82.5, 465 82.5\" /><path data-map-edge=\"interact:explore\" d=\"M 245 146.25 C 360 146.25, 345 82.5, 465 82.5\" /><path data-map-edge=\"bag:explore\" d=\"M 245 188.75 C 360 188.75, 345 82.5, 465 82.5\" /><path data-map-edge=\"craft:explore\" d=\"M 245 231.25 C 360 231.25, 345 82.5, 465 82.5\" /><path data-map-edge=\"move:build\" d=\"M 245 61.25 C 360 61.25, 345 167.5, 465 167.5\" /><path data-map-edge=\"world:build\" d=\"M 245 103.75 C 360 103.75, 345 167.5, 465 167.5\" /><path data-map-edge=\"interact:build\" d=\"M 245 146.25 C 360 146.25, 345 167.5, 465 167.5\" /><path data-map-edge=\"bag:build\" d=\"M 245 188.75 C 360 188.75, 345 167.5, 465 167.5\" /><path data-map-edge=\"world:farm\" d=\"M 245 103.75 C 360 103.75, 345 252.5, 465 252.5\" /><path data-map-edge=\"interact:farm\" d=\"M 245 146.25 C 360 146.25, 345 252.5, 465 252.5\" /><path data-map-edge=\"bag:farm\" d=\"M 245 188.75 C 360 188.75, 345 252.5, 465 252.5\" /><path data-map-edge=\"grow:farm\" d=\"M 245 273.75 C 360 273.75, 345 252.5, 465 252.5\" /><path data-map-edge=\"craft:farm\" d=\"M 245 231.25 C 360 231.25, 345 252.5, 465 252.5\" /><path data-map-edge=\"move:survive\" d=\"M 245 61.25 C 360 61.25, 345 337.5, 465 337.5\" /><path data-map-edge=\"fight:survive\" d=\"M 245 316.25 C 360 316.25, 345 337.5, 465 337.5\" /><path data-map-edge=\"health:survive\" d=\"M 245 358.75 C 360 358.75, 345 337.5, 465 337.5\" /><path data-map-edge=\"bag:survive\" d=\"M 245 188.75 C 360 188.75, 345 337.5, 465 337.5\" /><path class=\"game-map-product-edge\" d=\"M 735 82.5 C 790 82.5, 795 210, 830 210\" /><path class=\"game-map-product-edge\" d=\"M 735 167.5 C 790 167.5, 795 210, 830 210\" /><path class=\"game-map-product-edge\" d=\"M 735 252.5 C 790 252.5, 795 210, 830 210\" /><path class=\"game-map-product-edge\" d=\"M 735 337.5 C 790 337.5, 795 210, 830 210\" /></svg><button type=\"button\" data-map-module=\"move\" style=\"top:14.5833%\"><b>移动与碰撞</b></button><button type=\"button\" data-map-module=\"world\" style=\"top:24.7024%\"><b>世界与方块</b></button><button type=\"button\" data-map-module=\"interact\" style=\"top:34.8214%\"><b>挖掘与放置</b></button><button type=\"button\" data-map-module=\"bag\" style=\"top:44.9405%\"><b>物品与背包</b></button><button type=\"button\" data-map-module=\"craft\" style=\"top:55.0595%\"><b>合成配方</b></button><button type=\"button\" data-map-module=\"grow\" style=\"top:65.1786%\"><b>作物生长</b></button><button type=\"button\" data-map-module=\"fight\" style=\"top:75.2976%\"><b>生物与战斗</b></button><button type=\"button\" data-map-module=\"health\" style=\"top:85.4167%\"><b>生命与饥饿</b></button><button type=\"button\" data-map-path=\"explore\" data-modules=\"move world interact bag craft\" style=\"top:19.6429%\"><b>探索采集</b><small>走进森林 → 砍树 → 做工具</small></button><button type=\"button\" data-map-path=\"build\" data-modules=\"move world interact bag\" style=\"top:39.8810%\"><b>建造房屋</b><small>选地方 → 取材料 → 搭房子</small></button><button type=\"button\" data-map-path=\"farm\" data-modules=\"world interact bag grow craft\" style=\"top:60.1190%\"><b>种田收获</b><small>播种 → 等待生长 → 收粮做食物</small></button><button type=\"button\" data-map-path=\"survive\" data-modules=\"move fight health bag\" style=\"top:80.3571%\"><b>打怪生存</b><small>找怪 → 战斗 → 收战利品／补给</small></button><div class=\"game-map-product\"><b data-msv-field=\"f0004\">我的世界 Minecraft</b><span data-msv-field=\"f0005\">多种玩法组成完整游戏</span></div></div><div class=\"game-map-bottom\"><p data-msv-field=\"f0006\">点一种玩法，看哪些模块合作；点“物品与背包”，看它被哪些玩法共用。</p><button type=\"button\" data-map-reset>查看全图</button></div></section><p data-msv-field=\"f0007\" class=\"game-map-scope\">课堂简化拆法，不是 Minecraft 源码架构。存档、声音、联机等模块本页先不展开。</p>",
+      "phase": "HOW · 公共案例",
+      "minutes": 3,
+      "textFieldSequence": 7
+    },
+    {
+      "id": "module-my-start",
+      "source": "HOW-01",
+      "section": "马上用到我的游戏",
+      "title": "马上用到我的游戏",
+      "subtitle": "拿出 Day 2“我的第一款游戏”作业，不用重写整份。",
+      "theme": "paper",
+      "content": "<div class=\"how-example-pair\"><article class=\"how-sketch\"><h3 data-msv-field=\"f0011\">① 先看整体：这款小车游戏怎样合作？</h3><p data-msv-field=\"f0012\" class=\"how-case-name\">同一个产品：带着钥匙到终点的小车闯关游戏。</p><div class=\"how-layer-strip\"><div><b data-msv-field=\"f0013\">模块</b><span data-msv-field=\"f0014\">移动、道具、背包、终点……</span></div><i aria-hidden=\"true\">→</i><div><b data-msv-field=\"f0015\">功能</b><span data-msv-field=\"f0016\">移动、拾取、携带、判断过关</span></div><i aria-hidden=\"true\">→</i><div><b data-msv-field=\"f0017\">产品</b><span data-msv-field=\"f0018\">完整的小车闯关游戏</span></div></div><p data-msv-field=\"f0019\" class=\"how-example-hint\">先画谁和谁合作。下一页给你一张可以照着手绘的地图。</p></article><article class=\"how-sketch\"><h3 data-msv-field=\"f0020\">② 再看内部：打开“背包模块”</h3><div class=\"how-inside-flow\"><div><b data-msv-field=\"f0021\">收到</b><span data-msv-field=\"f0022\">“请收下钥匙”</span></div><i aria-hidden=\"true\">→</i><div><b data-msv-field=\"f0023\">检查</b><span data-msv-field=\"f0024\">已有吗？两格满了吗？</span></div><i aria-hidden=\"true\">→</i><div><b data-msv-field=\"f0025\">回答</b><span data-msv-field=\"f0026\">已收下／已拥有／背包满</span></div></div><p data-msv-field=\"f0027\" class=\"how-example-rule\">有空位：钥匙入包。两格都满：拒收，原来的东西不动。</p><p data-msv-field=\"f0028\" class=\"how-example-hint\">你也选一个关键模块：收到什么？按什么规则做？交回什么？随后用六件事写完整。</p></article></div><div class=\"how-prep-grid\"><article><h3 data-msv-field=\"f0001\">已经准备好了的同学</h3><p data-msv-field=\"f0002\">圈出：谁来玩、做什么、目标、胜负、主要障碍。</p></article><article><h3 data-msv-field=\"f0003\">还没有写完的同学</h3><p data-msv-field=\"f0004\">用 5 分钟速填卡补齐这五点，一样能参加。</p></article><article><h3 data-msv-field=\"f0005\">今天先不写代码</h3><p data-msv-field=\"f0006\">纸上画、开口解释、两人演一遍，也能发现设计问题。</p></article><article><h3 data-msv-field=\"f0007\">每人都带走</h3><p data-msv-field=\"f0008\">我的模块地图＋一个关键模块卡＋正常／异常走查记录。</p></article></div><div class=\"lesson-banner how-materials\" data-reveal><b data-msv-field=\"f0009\">材料下载</b><span data-msv-field=\"f0010\">四份内容初稿在“材料”入口，可下载交同事继续制作。</span></div>",
+      "phase": "HOW · 马上用到我的游戏",
+      "minutes": 5,
+      "textFieldSequence": 28
+    },
+    {
+      "id": "module-my-map",
+      "source": "HOW-02",
+      "section": "马上用到我的游戏",
+      "title": "画出我的游戏模块",
+      "subtitle": "沿用刚才的全图：列出多种玩法，找出它们共同需要的模块。",
+      "theme": "paper",
+      "content": "<div class=\"how-map-layout\"><section class=\"how-map-sample\"><h3 data-msv-field=\"f0011\">小车示范：方框＋箭头就够了</h3><div class=\"how-module-map\" aria-label=\"模块合作实现四项功能，四项功能组成方块小车闯关游戏\"><b data-msv-field=\"f0012\" class=\"how-map-label\">模块：谁来一起做</b><b data-msv-field=\"f0013\" class=\"how-map-label\">功能：玩家能做什么</b><b data-msv-field=\"f0014\" class=\"how-map-label\">产品：完整游戏</b><div class=\"how-map-module\" style=\"grid-row:2;grid-column:1\"><span data-msv-field=\"f0015\">移动模块（轮组／推进器）＋地形模块</span></div><div class=\"how-map-function\" style=\"grid-row:2;grid-column:2\"><b data-msv-field=\"f0016\">移动</b><span data-msv-field=\"f0017\">前进／转向／过坡</span></div><div class=\"how-map-module\" style=\"grid-row:3;grid-column:1\"><span data-msv-field=\"f0018\">移动模块＋道具模块＋背包模块</span></div><div class=\"how-map-function\" style=\"grid-row:3;grid-column:2\"><b data-msv-field=\"f0019\">拾取</b><span data-msv-field=\"f0020\">靠近 → 请求收下</span></div><div class=\"how-map-module\" style=\"grid-row:4;grid-column:1\"><span data-msv-field=\"f0021\">背包模块＋提示模块</span></div><div class=\"how-map-function\" style=\"grid-row:4;grid-column:2\"><b data-msv-field=\"f0022\">携带物品</b><span data-msv-field=\"f0023\">保存／显示物品</span></div><div class=\"how-map-module\" style=\"grid-row:5;grid-column:1\"><span data-msv-field=\"f0024\">移动模块＋背包模块＋终点模块</span></div><div class=\"how-map-function\" style=\"grid-row:5;grid-column:2\"><b data-msv-field=\"f0025\">关卡判断</b><span data-msv-field=\"f0026\">到终点＋有钥匙</span></div><div class=\"how-map-product\"><b data-msv-field=\"f0032\">方块小车闯关游戏</b><span data-msv-field=\"f0027\">让玩家开车、拿钥匙、带到终点</span></div></div><p data-msv-field=\"f0028\" class=\"how-map-reuse\">同一个背包模块，参与拾取、携带和过关。模块与功能不是一对一。</p><div class=\"how-map-handoff\"><b data-msv-field=\"f0029\">再补一条交接线</b><span data-msv-field=\"f0030\">道具模块 ─“收下钥匙”→ 背包模块 ─“已有钥匙”→ 终点模块</span></div></section><aside class=\"how-map-own\"><h3 data-msv-field=\"f0031\">轮到你的游戏</h3><div class=\"how-map-prompts\"><article><h3 data-msv-field=\"f0001\">先列多种玩法</h3><p data-msv-field=\"f0002\">例如探索、收集、建造、闯关。不要只画从开始到结束的一条线。</p></article><article><h3 data-msv-field=\"f0003\">再标责任</h3><p data-msv-field=\"f0004\">几种玩法都要移动吗？哪些都要背包？共同职责只画一个模块。</p></article><article><h3 data-msv-field=\"f0005\">箭头写内容</h3><p data-msv-field=\"f0006\">不只画箭头：写“玩家位置”“获得的线索”“胜负结果”。</p></article><article><h3 data-msv-field=\"f0007\">保留完整愿景</h3><p data-msv-field=\"f0008\">列出想做的全部模块；圈出本轮优先做的，其余标“稍后”。</p></article></div><div class=\"lesson-banner how-peer-prompt\" data-reveal><b data-msv-field=\"f0009\">同伴追问</b><span data-msv-field=\"f0010\">你交给下一块的，到底是什么？</span></div></aside></div>",
+      "phase": "HOW · 马上用到我的游戏",
+      "minutes": 8,
+      "textFieldSequence": 32
+    },
+    {
+      "id": "module-my-card",
+      "source": "HOW-03",
+      "section": "马上用到我的游戏",
+      "title": "选一个关键模块，说清六件事",
+      "subtitle": "先看小车游戏的背包模块：一张卡对应一件事，再换成自己的模块。",
+      "theme": "paper",
+      "content": "<div class=\"lesson-grid cols-3\"><article><h3 data-msv-field=\"f0001\">01 职责</h3><p data-msv-field=\"f0002\">保管已拾取的道具；不负责开车，也不决定输赢。</p></article><article><h3 data-msv-field=\"f0003\">02 输入</h3><p data-msv-field=\"f0004\">道具模块发来“收下钥匙”的请求，附上道具编号。</p></article><article><h3 data-msv-field=\"f0005\">03 处理规则</h3><p data-msv-field=\"f0006\">先查是否重复，再查两格背包是否有空位；有空位才放入。</p></article><article><h3 data-msv-field=\"f0007\">04 输出</h3><p data-msv-field=\"f0008\">返回“已收下”“已拥有”或“背包满”，并给出当前清单。</p></article><article><h3 data-msv-field=\"f0009\">05 接口</h3><p data-msv-field=\"f0010\">接道具模块的收纳请求；向终点模块回答“有没有钥匙”。</p></article><article><h3 data-msv-field=\"f0011\">06 正常／异常表现</h3><p data-msv-field=\"f0012\">正常：钥匙入包。异常：背包满时拒收，提示先丢一件。</p></article></div><div class=\"lesson-banner\" data-reveal><b data-msv-field=\"f0013\">轮到你的游戏</b><span data-msv-field=\"f0014\">照这六张卡，描述自己的一个关键模块；再请同伴模拟一次正常和异常情况。</span></div>",
+      "phase": "HOW · 马上用到我的游戏",
+      "minutes": 9,
+      "textFieldSequence": 14
+    },
+    {
+      "id": "module-my-check",
+      "source": "HOW-04",
+      "section": "马上用到我的游戏",
+      "title": "拿钥匙试一试：背包满了怎么办？",
+      "subtitle": "还是前面的小车游戏，背包只有两格。先看“应该怎样”，再核对“实际怎样”。",
+      "theme": "paper",
+      "content": "<div class=\"bag-walkthrough\"><article><h3 data-msv-field=\"f0001\">01 空背包，捡起钥匙</h3><div class=\"bag-example-flow\"><div class=\"bag-pair\"><span data-msv-field=\"f0002\" class=\"bag-slot is-empty\">空</span><span data-msv-field=\"f0003\" class=\"bag-slot is-empty\">空</span></div><b data-msv-field=\"f0004\" aria-label=\"操作后的结果\">→</b><div class=\"bag-pair\"><span data-msv-field=\"f0005\" class=\"bag-slot\">钥匙</span><span data-msv-field=\"f0006\" class=\"bag-slot is-empty\">空</span></div></div><p data-msv-field=\"f0007\">应该：收下钥匙，占一格。请同伴按卡片摆出来，看结果是否一样。</p></article><article><h3 data-msv-field=\"f0008\">02 背包满了，还要捡钥匙</h3><div class=\"bag-example-flow\"><div class=\"bag-pair\"><span data-msv-field=\"f0009\" class=\"bag-slot\">金币</span><span data-msv-field=\"f0010\" class=\"bag-slot\">工具</span></div><b data-msv-field=\"f0011\" aria-label=\"操作后的结果\">→</b><div class=\"bag-pair\"><span data-msv-field=\"f0012\" class=\"bag-slot\">金币</span><span data-msv-field=\"f0013\" class=\"bag-slot\">工具</span></div></div><p data-msv-field=\"f0014\">应该：提示“背包满”。原来的东西不动，钥匙仍留在地上。</p></article><article class=\"bag-error-example\"><h3 data-msv-field=\"f0015\">03 错误示范：金币被挤掉了</h3><div class=\"bag-example-flow\"><div class=\"bag-pair\"><span data-msv-field=\"f0016\" class=\"bag-slot\">金币</span><span data-msv-field=\"f0017\" class=\"bag-slot\">工具</span></div><b data-msv-field=\"f0018\" aria-label=\"操作后的结果\">→</b><div class=\"bag-pair\"><span data-msv-field=\"f0019\" class=\"bag-slot\">钥匙</span><span data-msv-field=\"f0020\" class=\"bag-slot\">工具</span></div></div><p data-msv-field=\"f0021\">这就不对了！补上规则：背包满了就拒收，不自动替换原有道具。</p><button type=\"button\" class=\"bag-demo-launch\" data-bag-demo-action=\"open\">▶ 3D 看看：金币怎样被挤掉？</button></article><article><h3 data-msv-field=\"f0022\">04 改好规则，再试一次</h3><div class=\"bag-example-flow\"><div class=\"bag-pair\"><span data-msv-field=\"f0023\" class=\"bag-slot\">金币</span><span data-msv-field=\"f0024\" class=\"bag-slot\">工具</span></div><b data-msv-field=\"f0025\" aria-label=\"操作后的结果\">→</b><div class=\"bag-pair\"><span data-msv-field=\"f0026\" class=\"bag-slot\">金币</span><span data-msv-field=\"f0027\" class=\"bag-slot\">钥匙</span></div></div><p data-msv-field=\"f0028\">先重试满包捡钥匙，确认会拒收；再丢下工具、捡钥匙，确认能收下。</p></article></div><div class=\"lesson-banner\" data-reveal><b data-msv-field=\"f0029\">轮到你的游戏</b><span data-msv-field=\"f0030\">挑一个操作：顺利时会怎样？卡住时该怎么办？先说答案，再请同伴按卡片演一遍。</span></div><div class=\"bag-demo-overlay\" data-bag-demo-panel hidden role=\"region\" aria-label=\"背包错误与正确规则三维对比\"><nav class=\"bag-demo-controls\" aria-label=\"演示控制\"><button type=\"button\" data-bag-demo-action=\"wrong\">故意错误：自动替换</button><button type=\"button\" data-bag-demo-action=\"correct\">正确规则：满包拒收</button><button type=\"button\" data-bag-demo-action=\"replay\">↻ 重播</button><button type=\"button\" data-bag-demo-action=\"close\">关闭，回到卡片 ×</button></nav><div class=\"module-3d-host bag-demo-scene\" data-module-3d=\"bag-compare\" data-module-3d-mode=\"wrong\"><div class=\"module-3d-fallback\"><strong>教学对比，不是正式游戏规则</strong><p>故意错误：金币＋工具 → 钥匙＋工具。正确：背包不变，钥匙留地上。</p></div></div></div>",
+      "phase": "HOW · 马上用到我的游戏",
+      "minutes": 8,
+      "textFieldSequence": 30
+    },
+    {
+      "id": "module-my-peer",
+      "source": "HOW-05",
+      "section": "马上用到我的游戏",
+      "title": "交换看看：不用你解释，能懂吗？",
+      "subtitle": "对方先读，你先听；再交换角色。",
+      "theme": "paper",
+      "content": "<div class=\"lesson-grid cols-2\"><article><h3 data-msv-field=\"f0001\">看职责</h3><p data-msv-field=\"f0002\">同一件事是不是被两个模块重复负责？</p></article><article><h3 data-msv-field=\"f0003\">看接口</h3><p data-msv-field=\"f0004\">前一块的输出，后一块真的接得住吗？</p></article><article><h3 data-msv-field=\"f0005\">看失败</h3><p data-msv-field=\"f0006\">少一个输入或拿掉一块，游戏怎样给出反馈？</p></article><article><h3 data-msv-field=\"f0007\">改一个具体地方</h3><p data-msv-field=\"f0008\">指出一句说不清的话，改成能检查的规则；记录原因。</p></article></div><div class=\"lesson-banner\" data-reveal><b data-msv-field=\"f0009\">反馈句式</b><span data-msv-field=\"f0010\">“我收到____，但不知道____。你能把这句补清楚吗？”</span></div>",
+      "phase": "HOW · 马上用到我的游戏",
+      "minutes": 6,
+      "textFieldSequence": 10
+    },
+    {
+      "id": "module-s15",
+      "source": "S15",
+      "section": "本课验收",
+      "title": "用四句话，介绍我的模块地图",
+      "subtitle": "每人说一分钟，同伴听完复述；时间够再全班分享。",
+      "theme": "showcase",
+      "content": "\n        <div class=\"sentence-grid\">\n          <article><b data-msv-field=\"f0001\">1</b><span data-msv-field=\"f0002\">我服务的用户是……</span></article>\n          <article><b data-msv-field=\"f0003\">2</b><span data-msv-field=\"f0004\">用户要走的关键路径是……</span></article>\n          <article><b data-msv-field=\"f0005\">3</b><span data-msv-field=\"f0006\">我拆成了……模块，因为……</span></article>\n          <article><b data-msv-field=\"f0007\">4</b><span data-msv-field=\"f0008\">模块通过……输入／输出连接</span></article>\n        </div>\n        <div class=\"delivery-box\"><small data-msv-field=\"f0009\">本课交付</small><b data-msv-field=\"f0010\">我的游戏模块地图</b><b data-msv-field=\"f0011\">关键模块设计卡</b><b data-msv-field=\"f0012\">正常／异常走查记录</b></div>\n        <div class=\"reveal-card\" data-reveal><b data-msv-field=\"f0013\">听众任务</b><span data-msv-field=\"f0014\">交一张票：“最清楚的接口”或“我还想追问”。</span></div>",
+      "phase": "HOW · 马上用到我的游戏",
+      "minutes": 4,
+      "textFieldSequence": 14
+    },
+    {
+      "id": "module-s16",
+      "source": "S16",
+      "section": "下一关",
+      "title": "模块有了，怎样防止 AI 做偏？",
+      "subtitle": "同一句“帮我做移动模块”，每个人和 AI 都可能理解不同。",
+      "theme": "finale",
+      "content": "\n        <div class=\"forking-paths\">\n          <div data-msv-field=\"f0001\" class=\"prompt-chip\">帮我做移动模块</div>\n          <i>↙</i><i>↓</i><i>↘</i>\n          <article><b data-msv-field=\"f0002\">目标不同</b><span data-msv-field=\"f0003\">给谁使用？解决什么？</span></article>\n          <article><b data-msv-field=\"f0004\">边界不同</b><span data-msv-field=\"f0005\">做什么？不做什么？</span></article>\n          <article><b data-msv-field=\"f0006\">完成不同</b><span data-msv-field=\"f0007\">怎样才算真的可用？</span></article>\n        </div>\n        <div class=\"mission-question\"><b data-msv-field=\"f0008\">最后一问</b><span data-msv-field=\"f0009\">不说清哪件事，AI 最容易做偏？</span></div>\n        <div class=\"reveal-card conclusion\" data-reveal><b data-msv-field=\"f0010\">下一课：立棍</b><span data-msv-field=\"f0011\">把完整游戏写成主棍，把每个模块写成子棍，再交给 AI 实践。</span></div>",
+      "phase": "总结与下一课",
+      "minutes": 2,
+      "textFieldSequence": 11
+    },
+    {
+      "id": "module-review",
+      "source": "P1 · 回顾",
+      "phase": "总结与下一课",
+      "section": "复习回顾",
+      "minutes": 3,
+      "title": "复习回顾：模块怎样合作？",
+      "subtitle": "先用自己的话回答，再揭示重点。把例子和自己的游戏连起来。",
+      "theme": "paper",
+      "content": "<div class=\"course-recap\" data-recap=\"p1\" data-recap-fold><div class=\"recap-examples\"><span><b data-msv-field=\"f0001\">变形玩具</b> · 重组预制组件</span><i>→</i><span><b data-msv-field=\"f0002\">乐高</b> · 从零件造组件</span><i>→</i><span><b data-msv-field=\"f0003\">方块</b> · 更细颗粒度来组合</span></div><div class=\"recap-toolbar\"><span data-msv-field=\"f0004\">先试着回答，再展开核对</span><button type=\"button\" data-recap-all>全部展开</button></div><div class=\"recap-cards\"><article><h3><button type=\"button\" data-recap-toggle=\"0\" aria-expanded=\"false\" aria-controls=\"recap-panel-0\"><span>WHAT · 模块是什么？</span><span class=\"recap-question\">随便切小就算模块吗？</span><span class=\"recap-toggle-label\">展开要点 ▾</span></button></h3><div data-reveal data-recap-panel=\"0\" id=\"recap-panel-0\" hidden class=\"recap-answer\"><ul><li data-msv-field=\"f0005\">一块负责一件明确的事。</li><li data-msv-field=\"f0006\">通过约定好的接口，和其他块合作。</li><li data-msv-field=\"f0007\">可以复用，也可以自己造。</li></ul><p class=\"recap-example\"><b data-msv-field=\"f0008\">传送带：</b>负责搬运；齿轮给它动力，它把物品送到出口。</p></div></article><article><h3><button type=\"button\" data-recap-toggle=\"1\" aria-expanded=\"false\" aria-controls=\"recap-panel-1\"><span>WHY · 为什么要拆？</span><span class=\"recap-question\">换轮子为什么不用全重做？</span><span class=\"recap-toggle-label\">展开要点 ▾</span></button></h3><div data-reveal data-recap-panel=\"1\" id=\"recap-panel-1\" hidden class=\"recap-answer\"><ul><li data-msv-field=\"f0009\">分清责任，方便一起做。</li><li data-msv-field=\"f0010\">单独替换、复用和检查。</li><li data-msv-field=\"f0011\">不是越小越好，连接也有成本。</li></ul><p class=\"recap-example\"><b data-msv-field=\"f0012\">方块小车：</b>换一组轮子，不必把车架、座椅全部重搭。</p></div></article><article><h3><button type=\"button\" data-recap-toggle=\"2\" aria-expanded=\"false\" aria-controls=\"recap-panel-2\"><span>HOW · 怎样讲清？</span><span class=\"recap-question\">别人不听解释也能接上吗？</span><span class=\"recap-toggle-label\">展开要点 ▾</span></button></h3><div data-reveal data-recap-panel=\"2\" id=\"recap-panel-2\" hidden class=\"recap-answer\"><div class=\"recap-fields\"><span data-msv-field=\"f0013\">职责</span><span data-msv-field=\"f0014\">输入</span><span data-msv-field=\"f0015\">处理规则</span><span data-msv-field=\"f0016\">输出</span><span data-msv-field=\"f0017\">接口</span><span data-msv-field=\"f0018\">正常／异常</span></div><p class=\"recap-example\"><b data-msv-field=\"f0019\">游戏背包：</b>收到道具后存入空格；满了就提示。先纸面走查，再两人互查。</p></div></article></div><div class=\"recap-takeaway\"><b data-msv-field=\"f0020\">我能带走</b><span data-msv-field=\"f0021\">模块地图</span><span data-msv-field=\"f0022\">详细设计卡</span><span data-msv-field=\"f0023\">正常／异常走查记录</span></div><p data-msv-field=\"f0024\" class=\"recap-exit\">用自己的游戏说一句：这块负责____，收到____，交出____；失败时____。</p></div>",
+      "textFieldSequence": 24
+    },
+    {
+      "id": "ai-01",
+      "source": "AI-01",
+      "phase": "AI · 用立棍控制开发",
+      "section": "第二阶段 · AI 可控开发",
+      "minutes": 4,
+      "title": "接着做这辆小车：这次请 AI 帮忙",
+      "subtitle": "前半段弄清模块；后半段学会让 AI 按要求制作。",
+      "theme": "paper",
+      "content": "<div class=\"ai-lesson\"><div class=\"ai-columns\"><div class=\"ai-scene\" data-module-3d=\"car-modules\" data-module-3d-mode=\"joined\"><p class=\"module-3d-fallback\">小车的移动、道具、背包、终点四组模块；拖动旋转，滚轮缩放。</p></div><div><article class=\"ai-card\"><h3 data-msv-field=\"f0001\">还是同一款游戏</h3><p data-msv-field=\"f0002\">开小车 → 拾取钥匙 → 放进背包 → 带到终点。</p></article><article class=\"ai-card\"><h3 data-msv-field=\"f0003\">带上你的三份材料</h3><p data-msv-field=\"f0004\">模块地图、一个模块的详细说明、正常／异常验证记录。</p></article><article class=\"ai-card\"><h3 data-msv-field=\"f0005\">接下来要掌握</h3><p data-msv-field=\"f0006\">用主棍控制整体，用子棍分配模块，用证据验收结果。</p></article></div></div></div>",
+      "textFieldSequence": 6
+    },
+    {
+      "id": "ai-02",
+      "source": "AI-02",
+      "phase": "AI · 用立棍控制开发",
+      "section": "第二阶段 · AI 可控开发",
+      "minutes": 4,
+      "title": "立棍：方向和检查标准，都由我说清",
+      "subtitle": "同样一句“帮我做小车”，AI 不应该替我决定玩法。",
+      "theme": "paper",
+      "content": "<div class=\"ai-lesson\"><nav class=\"ai-tabs\" aria-label=\"切换示范\"><button type=\"button\" data-ai-key=\"tab\" data-ai-value=\"0\">只说一句话</button><button type=\"button\" data-ai-key=\"tab\" data-ai-value=\"1\">说清楚再做</button></nav><section class=\"ai-panel\" data-ai-panel=\"tab\" data-ai-is=\"0\" ><div data-msv-field=\"f0001\" class=\"ai-big-quote\">“帮我做一款好玩的小车游戏。”</div><div class=\"ai-cards\"><article class=\"ai-card\"><h3 data-msv-field=\"f0002\">背包多大？</h3><p data-msv-field=\"f0003\">不知道。AI 可能做成无限大。</p></article><article class=\"ai-card\"><h3 data-msv-field=\"f0004\">怎么过关？</h3><p data-msv-field=\"f0005\">不知道。碰到终点就赢，还是要带钥匙？</p></article><article class=\"ai-card\"><h3 data-msv-field=\"f0006\">谁做决定？</h3><p data-msv-field=\"f0007\">如果不说清，就把选择交给了猜测。</p></article></div></section><section class=\"ai-panel\" data-ai-panel=\"tab\" data-ai-is=\"1\" hidden><div data-msv-field=\"f0008\" class=\"ai-big-quote\">“背包两格，满了拒收；带钥匙到终点才成功。”</div><div class=\"ai-cards\"><article class=\"ai-card\"><h3 data-msv-field=\"f0009\">目标</h3><p data-msv-field=\"f0010\">保留我设计的玩家体验。</p></article><article class=\"ai-card\"><h3 data-msv-field=\"f0011\">边界</h3><p data-msv-field=\"f0012\">不能悄悄换规则。</p></article><article class=\"ai-card\"><h3 data-msv-field=\"f0013\">验证</h3><p data-msv-field=\"f0014\">满包时拿钥匙，原来两件不能消失。</p></article></div></section><p data-msv-field=\"f0015\" class=\"ai-banner\">立棍不是把提示词写长，而是把方向、边界、验收立清楚。</p></div>",
+      "textFieldSequence": 15
+    },
+    {
+      "id": "ai-03",
+      "source": "AI-03",
+      "phase": "AI · 用立棍控制开发",
+      "section": "第二阶段 · AI 可控开发",
+      "minutes": 6,
+      "title": "一棵任务树，三层控制权",
+      "subtitle": "点击层级，看谁写、谁验；再看 AI 能自动做到哪里。",
+      "theme": "paper",
+      "content": "<div class=\"ai-lesson\"><div class=\"ai-tree\"><button type=\"button\" data-ai-key=\"level\" data-ai-value=\"0\">主棍 · 完整小车游戏</button><div class=\"ai-branches\"><button type=\"button\" data-ai-key=\"level\" data-ai-value=\"1\">移动子棍</button><button type=\"button\" data-ai-key=\"level\" data-ai-value=\"1\">背包子棍</button><button type=\"button\" data-ai-key=\"level\" data-ai-value=\"1\">终点子棍</button></div><div class=\"ai-leaves\"><button type=\"button\" data-ai-key=\"level\" data-ai-value=\"2\">执行棍：实现收纳</button><button type=\"button\" data-ai-key=\"level\" data-ai-value=\"2\">执行棍：测试满包</button><button type=\"button\" data-ai-key=\"level\" data-ai-value=\"2\">执行棍：修正并复测</button></div></div><section class=\"ai-panel\" data-ai-panel=\"level\" data-ai-is=\"0\" ><article class=\"ai-card\"><h3 data-msv-field=\"f0001\">人类编写＋人类验证</h3><p data-msv-field=\"f0002\">完整玩法、模块地图、共同约束和验收；AI 不得自行改主棍。</p></article></section><section class=\"ai-panel\" data-ai-panel=\"level\" data-ai-is=\"1\" hidden><article class=\"ai-card\"><h3 data-msv-field=\"f0003\">AI 基于主棍编写＋人类验收</h3><p data-msv-field=\"f0004\">按模块派生；继承主棍，不偷偷扩大范围。人类认可后才能执行。</p></article></section><section class=\"ai-panel\" data-ai-panel=\"level\" data-ai-is=\"2\" hidden><article class=\"ai-card\"><h3 data-msv-field=\"f0005\">AI 自动编写＋执行＋自动验收</h3><p data-msv-field=\"f0006\">在已批准边界内拆小、实现、检查、修正。无法验证或需要改规则，停下报告。</p></article></section><p data-msv-field=\"f0007\" class=\"ai-banner\">上层管方向，下层做细节。执行棍学生知道即可，不必手写或逐根操作。</p></div>",
+      "textFieldSequence": 7
+    },
+    {
+      "id": "ai-05",
+      "source": "AI-04",
+      "phase": "AI · 用立棍控制开发",
+      "section": "第二阶段 · AI 可控开发",
+      "minutes": 13,
+      "title": "用小车写主棍：六项一次说清",
+      "subtitle": "每点一项，同时看“什么意思”和“小车怎么写”，再换成你自己的游戏。",
+      "theme": "paper",
+      "content": "<div class=\"ai-lesson ai-master-combined\"><div class=\"ai-six\"><button type=\"button\" data-ai-key=\"field\" data-ai-value=\"0\">执行者 · 谁来做</button><button type=\"button\" data-ai-key=\"field\" data-ai-value=\"1\">上下文 · 已有什么</button><button type=\"button\" data-ai-key=\"field\" data-ai-value=\"2\">目标 · 要做成什么</button><button type=\"button\" data-ai-key=\"field\" data-ai-value=\"3\">约束 · 必须遵守</button><button type=\"button\" data-ai-key=\"field\" data-ai-value=\"4\">避免 · 不要怎么做</button><button type=\"button\" data-ai-key=\"field\" data-ai-value=\"5\">验收 · 怎样算做好</button></div><div class=\"ai-master-detail\"><section class=\"ai-master-panel\" data-ai-panel=\"field\" data-ai-is=\"0\" ><h3 data-msv-field=\"f0001\">执行者</h3><div class=\"ai-master-pair\"><div><h4 data-msv-field=\"f0014\">白话解释</h4><p data-msv-field=\"f0015\">谁负责写要求、制作、确认？别只写“你是高手”。</p></div><div><h4 data-msv-field=\"f0016\">小车主棍这样写</h4><p data-msv-field=\"f0002\">人类写清要求并验证；AI 只在批准范围内制作。</p></div></div><p data-msv-field=\"f0017\" class=\"ai-master-try\">换成你的游戏：在你的项目中，哪些决定必须由你确认？</p></section><section class=\"ai-master-panel\" data-ai-panel=\"field\" data-ai-is=\"1\" hidden><h3 data-msv-field=\"f0003\">上下文与项目设计</h3><div class=\"ai-master-pair\"><div><h4 data-msv-field=\"f0018\">白话解释</h4><p data-msv-field=\"f0019\">已有游戏、模块地图、接口、已实现与待决定分别是什么？</p></div><div><h4 data-msv-field=\"f0020\">小车主棍这样写</h4><p data-msv-field=\"f0004\">方块小车闯关：移动、地形、道具、背包、提示、终点一起合作。</p></div></div><p data-msv-field=\"f0021\" class=\"ai-master-try\">换成你的游戏：你的游戏已有哪张模块地图、哪些规则？</p></section><section class=\"ai-master-panel\" data-ai-panel=\"field\" data-ai-is=\"2\" hidden><h3 data-msv-field=\"f0005\">目标</h3><div class=\"ai-master-pair\"><div><h4 data-msv-field=\"f0022\">白话解释</h4><p data-msv-field=\"f0023\">完整要做成什么？本轮先交付什么？</p></div><div><h4 data-msv-field=\"f0024\">小车主棍这样写</h4><p data-msv-field=\"f0006\">完整目标：带钥匙到终点。本轮先跑通拾取与背包，再接入整车。</p></div></div><p data-msv-field=\"f0025\" class=\"ai-master-try\">换成你的游戏：完整游戏是什么？这一次先做哪一块？</p></section><section class=\"ai-master-panel\" data-ai-panel=\"field\" data-ai-is=\"3\" hidden><h3 data-msv-field=\"f0007\">约束</h3><div class=\"ai-master-pair\"><div><h4 data-msv-field=\"f0026\">白话解释</h4><p data-msv-field=\"f0027\">必须守住的规则，例如背包两格。</p></div><div><h4 data-msv-field=\"f0028\">小车主棍这样写</h4><p data-msv-field=\"f0008\">背包两格；重复不增加；↑普通前进，Space 才喷射。</p></div></div><p data-msv-field=\"f0029\" class=\"ai-master-try\">换成你的游戏：写一条不能被 AI 偷偷改变的规则。</p></section><section class=\"ai-master-panel\" data-ai-panel=\"field\" data-ai-is=\"4\" hidden><h3 data-msv-field=\"f0009\">避免</h3><div class=\"ai-master-pair\"><div><h4 data-msv-field=\"f0030\">白话解释</h4><p data-msv-field=\"f0031\">禁止的做法，例如满包时偷偷顶掉金币。</p></div><div><h4 data-msv-field=\"f0032\">小车主棍这样写</h4><p data-msv-field=\"f0010\">不加商城，不偷偷扩容，不为通过测试修改规则。</p></div></div><p data-msv-field=\"f0033\" class=\"ai-master-try\">换成你的游戏：举一个“看似省事，实际上不能这么做”的例子。</p></section><section class=\"ai-master-panel\" data-ai-panel=\"field\" data-ai-is=\"5\" hidden><h3 data-msv-field=\"f0011\">验收</h3><div class=\"ai-master-pair\"><div><h4 data-msv-field=\"f0034\">白话解释</h4><p data-msv-field=\"f0035\">给出初始状态、操作、预期结果；运行后记录证据。</p></div><div><h4 data-msv-field=\"f0036\">小车主棍这样写</h4><p data-msv-field=\"f0012\">空包收钥匙；满包拒收；丢工具后能收钥匙；有钥匙到终点才成功。</p></div></div><p data-msv-field=\"f0037\" class=\"ai-master-try\">换成你的游戏：说清楚：从什么状态开始，怎么操作，应该看到什么。</p></section></div><p class=\"ai-banner\" data-msv-field=\"f0013\">主棍 v1 · 整体规则的唯一依据。绿色通过测试，也不能代替你确认玩法。</p><a class=\"ai-link\" data-resource=\"ai-workbook\" href=\"ai-materials/workbook/index.html\" target=\"_blank\" rel=\"noopener\">完整主棍模板 · 复制／下载 ↗</a></div>",
+      "textFieldSequence": 37
+    },
+    {
+      "id": "ai-06",
+      "source": "AI-05",
+      "phase": "AI · 用立棍控制开发",
+      "section": "第二阶段 · AI 可控开发",
+      "minutes": 7,
+      "title": "模块地图，长成一组子棍",
+      "subtitle": "一个模块一份子棍；功能由多份子棍一起实现。",
+      "theme": "paper",
+      "content": "<div class=\"ai-lesson\"><div class=\"ai-columns\"><div><nav class=\"ai-tabs\" aria-label=\"切换示范\"><button type=\"button\" data-ai-key=\"module\" data-ai-value=\"0\">移动</button><button type=\"button\" data-ai-key=\"module\" data-ai-value=\"1\">地形</button><button type=\"button\" data-ai-key=\"module\" data-ai-value=\"2\">道具</button><button type=\"button\" data-ai-key=\"module\" data-ai-value=\"3\">背包</button><button type=\"button\" data-ai-key=\"module\" data-ai-value=\"4\">提示</button><button type=\"button\" data-ai-key=\"module\" data-ai-value=\"5\">终点</button></nav><section class=\"ai-panel\" data-ai-panel=\"module\" data-ai-is=\"0\" ><article class=\"ai-card\"><h3 data-msv-field=\"f0001\">移动子棍</h3><p data-msv-field=\"f0002\">↑前进、↓后退、左右转向；Space独立喷射；交出小车位置。</p></article><p data-msv-field=\"f0003\" class=\"ai-banner\">继承：小车主棍 v1；AI 起草 → 人类核对 → 才能执行。</p></section><section class=\"ai-panel\" data-ai-panel=\"module\" data-ai-is=\"1\" hidden><article class=\"ai-card\"><h3 data-msv-field=\"f0004\">地形子棍</h3><p data-msv-field=\"f0005\">提供地面、坡道和碰撞；不能让方块堆无底座直接塌。</p></article><p data-msv-field=\"f0006\" class=\"ai-banner\">继承：小车主棍 v1；AI 起草 → 人类核对 → 才能执行。</p></section><section class=\"ai-panel\" data-ai-panel=\"module\" data-ai-is=\"2\" hidden><article class=\"ai-card\"><h3 data-msv-field=\"f0007\">道具子棍</h3><p data-msv-field=\"f0008\">发现小车碰到物品，向背包请求收下；拒收时物品留在路上。</p></article><p data-msv-field=\"f0009\" class=\"ai-banner\">继承：小车主棍 v1；AI 起草 → 人类核对 → 才能执行。</p></section><section class=\"ai-panel\" data-ai-panel=\"module\" data-ai-is=\"3\" hidden><article class=\"ai-card\"><h3 data-msv-field=\"f0010\">背包子棍</h3><p data-msv-field=\"f0011\">保存最多两件不同物品；提供收下、丢弃、查询结果。</p></article><p data-msv-field=\"f0012\" class=\"ai-banner\">继承：小车主棍 v1；AI 起草 → 人类核对 → 才能执行。</p></section><section class=\"ai-panel\" data-ai-panel=\"module\" data-ai-is=\"4\" hidden><article class=\"ai-card\"><h3 data-msv-field=\"f0013\">提示子棍</h3><p data-msv-field=\"f0014\">根据真实结果显示满包、缺钥匙、成功；不自己伪造状态。</p></article><p data-msv-field=\"f0015\" class=\"ai-banner\">继承：小车主棍 v1；AI 起草 → 人类核对 → 才能执行。</p></section><section class=\"ai-panel\" data-ai-panel=\"module\" data-ai-is=\"5\" hidden><article class=\"ai-card\"><h3 data-msv-field=\"f0016\">终点子棍</h3><p data-msv-field=\"f0017\">读取位置和背包：到达终点＋有钥匙才判成功。</p></article><p data-msv-field=\"f0018\" class=\"ai-banner\">继承：小车主棍 v1；AI 起草 → 人类核对 → 才能执行。</p></section></div><div class=\"ai-scene\" data-module-3d=\"car-modules\" data-module-3d-mode=\"split\"><p class=\"module-3d-fallback\">小车的移动、道具、背包、终点四组模块；拖动旋转，滚轮缩放。</p></div></div><p data-msv-field=\"f0019\" class=\"ai-banner\">这辆车用了六个模块作示范。你的模块数量由自己的游戏决定，不固定六个。</p></div>",
+      "textFieldSequence": 19
+    },
+    {
+      "id": "ai-minecraft-modules",
+      "source": "AI-06",
+      "phase": "AI · 用立棍控制开发",
+      "section": "第二阶段 · AI 可控开发",
+      "minutes": 5,
+      "title": "Minecraft：模块怎样一起工作？",
+      "subtitle": "先看关系总图，再点一个模块。只说清“它管什么、和谁合作”。",
+      "theme": "paper",
+      "content": "<div class=\"ai-lesson mca-lesson\"><nav class=\"mca-tabs\" aria-label=\"Minecraft 模块索引\"><button type=\"button\" data-ai-key=\"minecraft\" data-ai-value=\"0\">00 · 模块关系总图</button><button type=\"button\" data-ai-key=\"minecraft\" data-ai-value=\"1\">01 · 开始与进入游戏</button><button type=\"button\" data-ai-key=\"minecraft\" data-ai-value=\"2\">02 · 画面与界面</button><button type=\"button\" data-ai-key=\"minecraft\" data-ai-value=\"3\">03 · 人物操作</button><button type=\"button\" data-ai-key=\"minecraft\" data-ai-value=\"4\">04 · 背包界面</button><button type=\"button\" data-ai-key=\"minecraft\" data-ai-value=\"5\">05 · 声音播放</button><button type=\"button\" data-ai-key=\"minecraft\" data-ai-value=\"6\">06 · 方块管理</button><button type=\"button\" data-ai-key=\"minecraft\" data-ai-value=\"7\">07 · 生物与怪物</button><button type=\"button\" data-ai-key=\"minecraft\" data-ai-value=\"8\">08 · 世界地图</button><button type=\"button\" data-ai-key=\"minecraft\" data-ai-value=\"9\">09 · 世界规则</button><button type=\"button\" data-ai-key=\"minecraft\" data-ai-value=\"10\">10 · 玩家数据</button><button type=\"button\" data-ai-key=\"minecraft\" data-ai-value=\"11\">11 · 挖一块，谁合作？</button></nav><div class=\"mca-content\"><section class=\"mca-panel ai-panel\" data-ai-panel=\"minecraft\" data-ai-is=\"0\"><h3 data-msv-field=\"f0001\">Minecraft：两大部分，一起完成游戏</h3><div class=\"mca-overview\"><article class=\"mca-client\"><h4 data-msv-field=\"f0002\">客户端 · 我的操作台</h4><p data-msv-field=\"f0003\">接收操作，显示画面，播放声音。</p><div class=\"mca-chips\"><span data-msv-field=\"f0004\">开始与进入游戏</span><span data-msv-field=\"f0005\">画面与界面</span><span data-msv-field=\"f0006\">人物操作</span><span data-msv-field=\"f0007\">背包界面</span><span data-msv-field=\"f0008\">声音播放</span></div></article><div class=\"mca-arrows\"><span data-msv-field=\"f0009\">操作请求 →</span><span data-msv-field=\"f0010\">← 确认后的结果</span></div><article class=\"mca-server\"><h4 data-msv-field=\"f0011\">服务器端 · 世界管理员</h4><p data-msv-field=\"f0012\">检查规则，更新世界，记住数据。</p><div class=\"mca-chips\"><span data-msv-field=\"f0013\">方块管理</span><span data-msv-field=\"f0014\">生物与怪物</span><span data-msv-field=\"f0015\">世界地图</span><span data-msv-field=\"f0016\">世界规则</span><span data-msv-field=\"f0017\">玩家数据</span></div></article></div><div class=\"mca-links\"><p data-msv-field=\"f0018\">人物操作 → 世界规则 → 方块管理 → 画面与声音</p><p data-msv-field=\"f0019\">背包界面 ⇄ 玩家数据；世界地图 ⇄ 方块、生物、规则</p></div><p data-msv-field=\"f0020\" class=\"mca-note\">单人玩：同一台设备也会同时承担客户端和服务器端的工作，不必另买服务器。</p></section><section class=\"mca-panel ai-panel\" data-ai-panel=\"minecraft\" data-ai-is=\"1\" hidden><div class=\"mca-detail-heading\"><span data-msv-field=\"f0021\">客户端</span><h3 data-msv-field=\"f0022\">开始与进入游戏</h3></div><figure class=\"mca-image\"><img src=\"assets/minecraft-modules/start.jpg\" alt=\"Minecraft Java 版开始菜单，包含单人和多人入口\" data-image-source=\"https://www.minecraft.net/en-us/article/how-play-minecraft-server\" decoding=\"async\"><figcaption>配图：<a href=\"https://www.minecraft.net/en-us/article/how-play-minecraft-server\" target=\"_blank\" rel=\"noopener\">Minecraft 官方 ↗</a> · 版本画面可能不同</figcaption></figure><p data-msv-field=\"f0023\" class=\"mca-job\">从开始菜单选单人世界或服务器；账号与皮肤也从相应入口管理。</p><p data-msv-field=\"f0024\" class=\"mca-handoff\">谁和它合作：把“我要进入哪个世界”交给世界加载／连接部分。</p></section><section class=\"mca-panel ai-panel\" data-ai-panel=\"minecraft\" data-ai-is=\"2\" hidden><div class=\"mca-detail-heading\"><span data-msv-field=\"f0025\">客户端</span><h3 data-msv-field=\"f0026\">画面与界面</h3></div><figure class=\"mca-image\"><img src=\"assets/minecraft-modules/dig.jpg\" alt=\"Minecraft 第一人称挖树画面，地形、准星与快捷栏可见\" data-image-source=\"https://www.minecraft.net/en-us/article/how-craft\" decoding=\"async\"><figcaption>配图：<a href=\"https://www.minecraft.net/en-us/article/how-craft\" target=\"_blank\" rel=\"noopener\">Minecraft 官方 ↗</a> · 版本画面可能不同</figcaption></figure><p data-msv-field=\"f0027\" class=\"mca-job\">把天空、地面、准星、血条、背包格子画到屏幕上。</p><p data-msv-field=\"f0028\" class=\"mca-handoff\">谁和它合作：后台告诉它世界变了；它负责让你看见，不自己决定物品数量。</p></section><section class=\"mca-panel ai-panel\" data-ai-panel=\"minecraft\" data-ai-is=\"3\" hidden><div class=\"mca-detail-heading\"><span data-msv-field=\"f0029\">客户端</span><h3 data-msv-field=\"f0030\">人物操作</h3></div><figure class=\"mca-image\"><img src=\"assets/minecraft-modules/controls.jpg\" alt=\"Minecraft 官方键盘鼠标操作示意\" data-image-source=\"https://www.minecraft.net/en-us/article/minecraft-controls\" decoding=\"async\"><figcaption>配图：<a href=\"https://www.minecraft.net/en-us/article/minecraft-controls\" target=\"_blank\" rel=\"noopener\">Minecraft 官方 ↗</a> · 版本画面可能不同</figcaption></figure><p data-msv-field=\"f0031\" class=\"mca-job\">把走路、跳跃、转头、挖和放方块，变成游戏能收到的操作。</p><p data-msv-field=\"f0032\" class=\"mca-handoff\">谁和它合作：例如按下挖掘键：发出“挖这个位置”的请求，交给规则检查。</p></section><section class=\"mca-panel ai-panel\" data-ai-panel=\"minecraft\" data-ai-is=\"4\" hidden><div class=\"mca-detail-heading\"><span data-msv-field=\"f0033\">客户端</span><h3 data-msv-field=\"f0034\">背包界面</h3></div><figure class=\"mca-image\"><img src=\"assets/minecraft-modules/inventory.jpg\" alt=\"Minecraft 背包与合成界面，物品格子及角色预览\" data-image-source=\"https://www.minecraft.net/en-us/article/how-craft\" decoding=\"async\"><figcaption>配图：<a href=\"https://www.minecraft.net/en-us/article/how-craft\" target=\"_blank\" rel=\"noopener\">Minecraft 官方 ↗</a> · 版本画面可能不同</figcaption></figure><p data-msv-field=\"f0035\" class=\"mca-job\">显示你带了什么，让你选择、拖动和请求合成。</p><p data-msv-field=\"f0036\" class=\"mca-handoff\">谁和它合作：界面显示格子；玩家数据记数量；合成是否成功要按规则判断。</p></section><section class=\"mca-panel ai-panel\" data-ai-panel=\"minecraft\" data-ai-is=\"5\" hidden><div class=\"mca-detail-heading\"><span data-msv-field=\"f0037\">客户端</span><h3 data-msv-field=\"f0038\">声音播放</h3></div><div class=\"mca-sound-demo\"><figure class=\"mca-image\"><img src=\"assets/minecraft-modules/cow.jpg\" alt=\"Minecraft 牛的官方配图，用于牛叫音效的事件示例\" data-image-source=\"https://www.minecraft.net/en-us/article/minecraft-mobs\" decoding=\"async\"><figcaption>配图：<a href=\"https://www.minecraft.net/en-us/article/minecraft-mobs\" target=\"_blank\" rel=\"noopener\">Minecraft 官方 ↗</a> · 版本画面可能不同</figcaption></figure><div class=\"mca-sound-list\"><article class=\"mca-sound-card\"><h4 data-msv-field=\"f0069\">💥 受击</h4><p data-msv-field=\"f0070\">受到伤害 → 播放受击声</p><audio controls preload=\"none\" aria-label=\"试听受击音效\" data-mca-audio><source src=\"assets/minecraft-modules/hurt.mp3\" type=\"audio/mpeg\"><source src=\"assets/minecraft-modules/hurt.ogg\" type=\"audio/ogg\">当前浏览器不能播放音频。</audio></article><article class=\"mca-sound-card\"><h4 data-msv-field=\"f0071\">🐄 牛叫</h4><p data-msv-field=\"f0072\">牛发出叫声 → 播放牛叫</p><audio controls preload=\"none\" aria-label=\"试听牛叫音效\" data-mca-audio><source src=\"assets/minecraft-modules/cow.mp3\" type=\"audio/mpeg\"><source src=\"assets/minecraft-modules/cow.ogg\" type=\"audio/ogg\">当前浏览器不能播放音频。</audio></article><article class=\"mca-sound-card\"><h4 data-msv-field=\"f0073\">🧑 村民</h4><p data-msv-field=\"f0074\">村民发声 → 播放村民声</p><audio controls preload=\"none\" aria-label=\"试听村民音效\" data-mca-audio><source src=\"assets/minecraft-modules/villager.mp3\" type=\"audio/mpeg\"><source src=\"assets/minecraft-modules/villager.ogg\" type=\"audio/ogg\">当前浏览器不能播放音频。</audio></article></div></div><p class=\"mca-audio-tip\" data-msv-field=\"f0075\">点 ▶ 试听；只在当前窗口出声。投屏时请在投屏窗口点击。</p><p class=\"mca-audio-credit\" data-msv-field=\"f0076\">音效：Minecraft Java 1.21.1 · Mojang / Microsoft · <a href=\"assets/minecraft-modules/sources.json\" target=\"_blank\" rel=\"noopener\">来源记录 ↗</a></p><p data-msv-field=\"f0039\" class=\"mca-job\">把挖方块、脚步、牛叫和音乐播放出来。</p><p data-msv-field=\"f0040\" class=\"mca-handoff\">谁和它合作：挖掘或生物发生事件 → 声音部分收到消息 → 播放对应音效。</p></section><section class=\"mca-panel ai-panel\" data-ai-panel=\"minecraft\" data-ai-is=\"6\" hidden><div class=\"mca-detail-heading\"><span data-msv-field=\"f0041\">服务器端</span><h3 data-msv-field=\"f0042\">方块管理</h3></div><figure class=\"mca-image\"><img src=\"assets/minecraft-modules/drop.jpg\" alt=\"挖掉木块后出现掉落物的 Minecraft 游戏画面\" data-image-source=\"https://www.minecraft.net/en-us/article/how-craft\" decoding=\"async\"><figcaption>配图：<a href=\"https://www.minecraft.net/en-us/article/how-craft\" target=\"_blank\" rel=\"noopener\">Minecraft 官方 ↗</a> · 版本画面可能不同</figcaption></figure><p data-msv-field=\"f0043\" class=\"mca-job\">记住每个位置放着什么方块；挖掉、放上都要更新记录。</p><p data-msv-field=\"f0044\" class=\"mca-handoff\">谁和它合作：规则说“可以挖” → 把该位置改成空气 → 通知画面刷新。</p></section><section class=\"mca-panel ai-panel\" data-ai-panel=\"minecraft\" data-ai-is=\"7\" hidden><div class=\"mca-detail-heading\"><span data-msv-field=\"f0045\">服务器端</span><h3 data-msv-field=\"f0046\">生物与怪物</h3></div><figure class=\"mca-image\"><img src=\"assets/minecraft-modules/zombie.jpg\" alt=\"Minecraft 僵尸官方配图，用于生物行为示例\" data-image-source=\"https://www.minecraft.net/en-us/article/minecraft-mobs\" decoding=\"async\"><figcaption>配图：<a href=\"https://www.minecraft.net/en-us/article/minecraft-mobs\" target=\"_blank\" rel=\"noopener\">Minecraft 官方 ↗</a> · 版本画面可能不同</figcaption></figure><p data-msv-field=\"f0047\" class=\"mca-job\">让牛、羊、僵尸等按各自行为活动：走动、追逐、攻击。</p><p data-msv-field=\"f0048\" class=\"mca-handoff\">谁和它合作：读取附近玩家和地形；行动后把新位置与状态交给画面显示。</p></section><section class=\"mca-panel ai-panel\" data-ai-panel=\"minecraft\" data-ai-is=\"8\" hidden><div class=\"mca-detail-heading\"><span data-msv-field=\"f0049\">服务器端</span><h3 data-msv-field=\"f0050\">世界地图</h3></div><figure class=\"mca-image\"><img src=\"assets/minecraft-modules/world-map.png\" alt=\"Minecraft 俯视世界地图，可见河流、森林和建筑区域\" data-image-source=\"user-provided:2026-09-24\" decoding=\"async\"><figcaption data-msv-field=\"f0077\">配图：用户提供 · 课堂示意，非真实后台界面</figcaption></figure><p data-msv-field=\"f0051\" class=\"mca-job\">生成山地、洞穴等地形，加载世界，并保存地图变化。</p><p data-msv-field=\"f0052\" class=\"mca-handoff\">谁和它合作：与方块管理合作：这里是什么地形？哪些方块被玩家改过？</p></section><section class=\"mca-panel ai-panel\" data-ai-panel=\"minecraft\" data-ai-is=\"9\" hidden><div class=\"mca-detail-heading\"><span data-msv-field=\"f0053\">服务器端</span><h3 data-msv-field=\"f0054\">世界规则</h3></div><figure class=\"mca-image\"><img src=\"assets/minecraft-modules/water-clutch.png\" alt=\"Minecraft 落地水示意：角色落向提前放置的水\" data-image-source=\"user-provided:2026-09-24\" decoding=\"async\"><figcaption data-msv-field=\"f0078\">配图：用户提供 · 课堂示意，非真实后台界面</figcaption></figure><p data-msv-field=\"f0055\" class=\"mca-job\">判断行为会产生什么结果：例如落地时碰到水，还是地面。</p><p data-msv-field=\"f0056\" class=\"mca-handoff\">落地水：操作模块请求放水 → 方块管理更新水的位置 → 规则判断落点与摔落伤害 → 玩家数据更新血量。</p></section><section class=\"mca-panel ai-panel\" data-ai-panel=\"minecraft\" data-ai-is=\"10\" hidden><div class=\"mca-detail-heading\"><span data-msv-field=\"f0057\">服务器端</span><h3 data-msv-field=\"f0058\">玩家数据</h3></div><figure class=\"mca-image\"><img src=\"assets/minecraft-modules/inventory.jpg\" alt=\"Minecraft 背包画面；后台玩家数据为物品显示提供数量\" data-image-source=\"https://www.minecraft.net/en-us/article/how-craft\" decoding=\"async\"><figcaption>配图：<a href=\"https://www.minecraft.net/en-us/article/how-craft\" target=\"_blank\" rel=\"noopener\">Minecraft 官方 ↗</a> · 版本画面可能不同</figcaption></figure><p data-msv-field=\"f0059\" class=\"mca-job\">记住每位玩家的位置、血量、物品和经验等状态。</p><p data-msv-field=\"f0060\" class=\"mca-handoff\">谁和它合作：收到已通过检查的变化后更新记录，再告诉界面显示新数量。</p></section><section class=\"mca-panel ai-panel\" data-ai-panel=\"minecraft\" data-ai-is=\"11\" hidden><h3 data-msv-field=\"f0061\">挖一块木头：不是一个模块包办</h3><div class=\"mca-dig-pictures\"><figure><img src=\"assets/minecraft-modules/dig.jpg\" alt=\"玩家正在挖树\" data-image-source=\"https://www.minecraft.net/en-us/article/how-craft\" decoding=\"async\"><figcaption>配图：<a href=\"https://www.minecraft.net/en-us/article/how-craft\" target=\"_blank\" rel=\"noopener\">Minecraft 官方 ↗</a> · 版本画面可能不同</figcaption></figure><div data-msv-field=\"f0062\" aria-hidden=\"true\">→</div><figure><img src=\"assets/minecraft-modules/drop.jpg\" alt=\"木块被挖掉后，出现可拾取的掉落物\" data-image-source=\"https://www.minecraft.net/en-us/article/how-craft\" decoding=\"async\"><figcaption>配图：<a href=\"https://www.minecraft.net/en-us/article/how-craft\" target=\"_blank\" rel=\"noopener\">Minecraft 官方 ↗</a> · 版本画面可能不同</figcaption></figure></div><ol class=\"mca-flow\"><li data-msv-field=\"f0063\">人物操作：我要挖这里</li><li data-msv-field=\"f0064\">世界规则：检查能不能挖</li><li data-msv-field=\"f0065\">方块管理：更新这个位置</li><li data-msv-field=\"f0066\">画面／声音：显示并播放结果</li></ol><p data-msv-field=\"f0067\" class=\"mca-handoff\">接着捡起木头：玩家数据记下物品 → 背包界面显示数量。多个模块组合，才完成一个功能。</p></section></div><p data-msv-field=\"f0068\" class=\"mca-disclaimer\">课堂粗粒度拆分，不是 Minecraft 源码目录；配图展示游戏现象，后台职责用文字说明。</p></div>",
+      "textFieldSequence": 68
+    },
+    {
+      "id": "ai-07",
+      "source": "AI-07",
+      "phase": "AI · 用立棍控制开发",
+      "section": "第二阶段 · AI 可控开发",
+      "minutes": 10,
+      "title": "AI 怎样从主棍拆出背包子棍？",
+      "subtitle": "前面的主棍定整款游戏；这一页把整体要求变成一个模块能执行的任务。",
+      "theme": "paper",
+      "content": "<div class=\"ai-lesson ai-derive\"><div class=\"ai-tabs\" aria-label=\"从主棍派生子棍的三步\"><button type=\"button\" data-ai-key=\"derive\" data-ai-value=\"0\">① 继承：规则不能改</button><button type=\"button\" data-ai-key=\"derive\" data-ai-value=\"1\">② 细化：补上怎么做</button><button type=\"button\" data-ai-key=\"derive\" data-ai-value=\"2\">③ 边界：别替别人做</button></div><section class=\"ai-derive-panel ai-panel\" data-ai-panel=\"derive\" data-ai-is=\"0\" ><div class=\"ai-derive-grid\"><div class=\"ai-derive-master\"><h3 data-msv-field=\"f0014\">人写主棍 · 整款游戏</h3><p data-msv-field=\"f0015\" class=\"ai-derive-quote\">“背包两格；重复不增加。”</p><p data-msv-field=\"f0016\">整款游戏已经定好的规则，交给背包时不能偷偷变。</p><div class=\"ai-derive-slots\" aria-label=\"两格背包示意\"><output>金币</output><output>工具</output></div><p data-msv-field=\"f0017\" class=\"ai-derive-question\">又碰到钥匙，能自己加第三格吗？</p></div><div data-msv-field=\"f0018\" class=\"ai-derive-arrow\" aria-hidden=\"true\">→</div><div class=\"ai-derive-child\"><h3 data-msv-field=\"f0019\">AI 写子棍 · 只管背包</h3><h4 data-msv-field=\"f0007\">约束</h4><p data-msv-field=\"f0008\">继承主棍：两格、重复不加、满包原物品不变；背包是物品清单唯一来源。</p><div class=\"ai-derive-check\"><h4 data-msv-field=\"f0011\">验收</h4><p data-msv-field=\"f0012\">钥匙→钥匙一份；金币＋工具满包拒收钥匙；丢工具再收钥匙→金币＋钥匙。</p></div></div></div></section><section class=\"ai-derive-panel ai-panel\" data-ai-panel=\"derive\" data-ai-is=\"1\" hidden><div class=\"ai-derive-grid\"><div class=\"ai-derive-master\"><h3 data-msv-field=\"f0020\">人写主棍 · 整款游戏</h3><p data-msv-field=\"f0021\" class=\"ai-derive-quote\">“拾取道具，放进背包，带钥匙到终点。”</p><p data-msv-field=\"f0022\">主棍讲游戏要发生什么；子棍把背包收到请求后怎么做写清楚。</p><p data-msv-field=\"f0023\" class=\"ai-derive-question\">“放进背包”，要补上哪些步骤？</p></div><div data-msv-field=\"f0024\" class=\"ai-derive-arrow\" aria-hidden=\"true\">→</div><div class=\"ai-derive-child\"><h3 data-msv-field=\"f0025\">AI 写子棍 · 只管背包</h3><h4 data-msv-field=\"f0003\">上下文与项目设计</h4><p data-msv-field=\"f0004\">只管背包：收道具编号，检查重复与容量，交回清单及反馈；不管开车。</p><h4 data-msv-field=\"f0005\">目标</h4><p data-msv-field=\"f0006\">保存最多两件不同物品；支持收下、丢弃、查询。</p><p data-msv-field=\"f0026\" class=\"ai-derive-mini-flow\">收道具编号 → 查重复／容量 → 回清单和结果</p></div></div></section><section class=\"ai-derive-panel ai-panel\" data-ai-panel=\"derive\" data-ai-is=\"2\" hidden><div class=\"ai-derive-grid\"><div class=\"ai-derive-master\"><h3 data-msv-field=\"f0027\">人写主棍 · 整款游戏</h3><p data-msv-field=\"f0028\" class=\"ai-derive-quote\">“背包两格；带钥匙到终点才成功。”</p><p data-msv-field=\"f0029\">AI 提议：“满了就自动加一格，拿到钥匙就直接宣布成功。”</p><p data-msv-field=\"f0030\" class=\"ai-derive-question\">这是细化，还是擅自改游戏？</p></div><div data-msv-field=\"f0031\" class=\"ai-derive-arrow\" aria-hidden=\"true\">→</div><div class=\"ai-derive-child\"><h3 data-msv-field=\"f0032\">AI 写子棍 · 只管背包</h3><h4 data-msv-field=\"f0009\">避免</h4><p data-msv-field=\"f0010\">不接管移动或过关判断；不擅自改接口或替换已有物品。</p><h4 data-msv-field=\"f0001\">执行者</h4><p data-msv-field=\"f0002\">AI 根据小车主棍 v1 编写；人类验收这份子棍后才执行。</p><p data-msv-field=\"f0033\" class=\"ai-derive-mini-flow\">背包报告“有钥匙” ≠ 背包决定“已过关”</p></div></div></section><p class=\"ai-banner\" data-msv-field=\"f0013\">道具交来“收下钥匙” → 背包回复“已收下／已拥有／已满” → 终点读取有没有钥匙。</p><a class=\"ai-link\" data-resource=\"ai-workbook\" href=\"ai-materials/workbook/index.html\" target=\"_blank\" rel=\"noopener\">查看完整六项模板 · 复制／下载 ↗</a></div>",
+      "textFieldSequence": 33
+    },
+    {
+      "id": "ai-08",
+      "source": "AI-08",
+      "phase": "AI · 用立棍控制开发",
+      "section": "第二阶段 · AI 可控开发",
+      "minutes": 10,
+      "title": "一次只问一个，决定要留下来",
+      "subtitle": "这是离线课堂对话示范；真正使用时复制启动词到自选 AI。",
+      "theme": "paper",
+      "content": "<div class=\"ai-lesson\"><div class=\"ai-columns\"><div class=\"ai-dialog\"><h3 data-msv-field=\"f0001\">AI 正在问</h3><output data-ai-question></output><div class=\"ai-choice-buttons\"><button type=\"button\" data-ai-key=\"answer\" data-ai-value=\"first\">采用第一个选项</button><button type=\"button\" data-ai-key=\"answer\" data-ai-value=\"later\">暂不决定</button></div><p data-msv-field=\"f0002\">示范依次问：容量、满包怎么办、过关条件。真实对齐优先问 5–8 个关键缺项。</p></div><div class=\"ai-card\"><h3 data-msv-field=\"f0003\">决定清单</h3><output data-ai-decisions></output><button type=\"button\" data-ai-key=\"dialogReset\" data-ai-value=\"yes\">重来一轮</button></div></div><p data-msv-field=\"f0004\" class=\"ai-banner\">不要重复问已写清的事；影响当前执行的未知项先停下，不能猜。确认主棍后，再派生子棍。</p><a class=\"ai-link\" data-resource=\"ai-workbook\" href=\"ai-materials/workbook/index.html\" target=\"_blank\" rel=\"noopener\">打开可编辑模板 · 一键复制／下载 ↗</a></div>",
+      "textFieldSequence": 4
+    },
+    {
+      "id": "ai-09",
+      "source": "AI-09",
+      "phase": "AI · 用立棍控制开发",
+      "section": "第二阶段 · AI 可控开发",
+      "minutes": 6,
+      "title": "主棍变了，哪些子棍要跟着改？",
+      "subtitle": "演示把容量从两格改成三格；只演示变更，不修改前面游戏。",
+      "theme": "paper",
+      "content": "<div class=\"ai-lesson\"><div class=\"ai-change-controls\"><button type=\"button\" data-ai-key=\"change\" data-ai-value=\"propose\">① 人类提出三格</button><button type=\"button\" data-ai-key=\"change\" data-ai-value=\"sync\">② AI 同步影响</button><button type=\"button\" data-ai-key=\"change\" data-ai-value=\"approve\">③ 人类验收</button></div><div class=\"ai-change-grid\"><article class=\"ai-card\" data-ai-affected=\"no\"><h3 data-msv-field=\"f0001\">移动子棍</h3><p data-msv-field=\"f0002\">移动按键不变</p></article><article class=\"ai-card\" data-ai-affected=\"no\"><h3 data-msv-field=\"f0003\">地形子棍</h3><p data-msv-field=\"f0004\">地形规则不变</p></article><article class=\"ai-card\" data-ai-affected=\"yes\"><h3 data-msv-field=\"f0005\">道具子棍</h3><p data-msv-field=\"f0006\">复查满包交接用例</p></article><article class=\"ai-card\" data-ai-affected=\"yes\"><h3 data-msv-field=\"f0007\">背包子棍</h3><p data-msv-field=\"f0008\">容量与边界用例更新</p></article><article class=\"ai-card\" data-ai-affected=\"yes\"><h3 data-msv-field=\"f0009\">提示子棍</h3><p data-msv-field=\"f0010\">格子数量与满包文案更新</p></article><article class=\"ai-card\" data-ai-affected=\"no\"><h3 data-msv-field=\"f0011\">终点子棍</h3><p data-msv-field=\"f0012\">有钥匙到终点条件不变</p></article></div><output class=\"ai-status\" data-ai-change-status></output><p data-msv-field=\"f0013\" class=\"ai-banner\">主动同步不是擅自改要求：AI 先列影响与差异，人类确认新版主棍并验收子棍。</p></div>",
+      "textFieldSequence": 13
+    },
+    {
+      "id": "ai-10",
+      "source": "AI-10",
+      "phase": "AI · 用立棍控制开发",
+      "section": "第二阶段 · AI 可控开发",
+      "minutes": 5,
+      "title": "执行棍：AI 自己拆小、自己检查",
+      "subtitle": "以下是可点击的流程示范，不是在浏览器里调用 AI。",
+      "theme": "paper",
+      "content": "<div class=\"ai-lesson\"><nav class=\"ai-tabs\" aria-label=\"切换示范\"><button type=\"button\" data-ai-key=\"pipeline\" data-ai-value=\"0\">批准的子棍</button><button type=\"button\" data-ai-key=\"pipeline\" data-ai-value=\"1\">拆执行棍</button><button type=\"button\" data-ai-key=\"pipeline\" data-ai-value=\"2\">制作＋检查</button><button type=\"button\" data-ai-key=\"pipeline\" data-ai-value=\"3\">发现问题</button><button type=\"button\" data-ai-key=\"pipeline\" data-ai-value=\"4\">修正＋复测</button></nav><div class=\"ai-pipeline\"><span data-msv-field=\"f0001\" data-ai-pipe=\"0\">主棍方向</span><b data-msv-field=\"f0002\">→</b><span data-msv-field=\"f0003\" data-ai-pipe=\"1\">子棍边界</span><b data-msv-field=\"f0004\">→</b><span data-msv-field=\"f0005\" data-ai-pipe=\"2\">执行棍</span><b data-msv-field=\"f0006\">→</b><span data-msv-field=\"f0007\" data-ai-pipe=\"3\">检查证据</span></div><section class=\"ai-panel\" data-ai-panel=\"pipeline\" data-ai-is=\"0\" ><article class=\"ai-card\"><h3 data-msv-field=\"f0008\">当前这一步</h3><p data-msv-field=\"f0009\">人已经批准：背包两格，满包拒收。</p></article></section><section class=\"ai-panel\" data-ai-panel=\"pipeline\" data-ai-is=\"1\" hidden><article class=\"ai-card\"><h3 data-msv-field=\"f0010\">当前这一步</h3><p data-msv-field=\"f0011\">AI 自动拆：实现收纳、检查去重、检查满包、接入提示。学生不必写这些执行棍。</p></article></section><section class=\"ai-panel\" data-ai-panel=\"pipeline\" data-ai-is=\"2\" hidden><article class=\"ai-card\"><h3 data-msv-field=\"f0012\">当前这一步</h3><p data-msv-field=\"f0013\">先执行测试，再记录实际结果；不能只输出“应该没问题”。</p></article></section><section class=\"ai-panel\" data-ai-panel=\"pipeline\" data-ai-is=\"3\" hidden><article class=\"ai-card\"><h3 data-msv-field=\"f0014\">当前这一步</h3><p data-msv-field=\"f0015\">例：满包时钥匙顶掉金币。测试失败，不得把规则改成允许替换。</p></article></section><section class=\"ai-panel\" data-ai-panel=\"pipeline\" data-ai-is=\"4\" hidden><article class=\"ai-card\"><h3 data-msv-field=\"f0016\">当前这一步</h3><p data-msv-field=\"f0017\">AI 在已批准范围内修复，并重跑原用例；若需修改容量或接口，返回上层确认。</p></article></section><p data-msv-field=\"f0018\" class=\"ai-banner\">AI 自动验收执行细节；人类仍验收子棍成果与整款游戏。</p></div>",
+      "textFieldSequence": 18
+    },
+    {
+      "id": "ai-11",
+      "source": "AI-11",
+      "phase": "AI · 用立棍控制开发",
+      "section": "第二阶段 · AI 可控开发",
+      "minutes": 8,
+      "title": "先预测：满包时，钥匙会去哪？",
+      "subtitle": "直接使用前面小车游戏的真实背包规则，不另造一套游戏。",
+      "theme": "paper",
+      "content": "<div class=\"ai-lesson\"><nav class=\"ai-tabs\" aria-label=\"切换示范\"><button type=\"button\" data-ai-key=\"bagCase\" data-ai-value=\"0\">空包</button><button type=\"button\" data-ai-key=\"bagCase\" data-ai-value=\"1\">已有钥匙</button><button type=\"button\" data-ai-key=\"bagCase\" data-ai-value=\"2\">金币＋工具已满</button></nav><div class=\"ai-bag-demo\"><div><h3 data-msv-field=\"f0001\">两格背包</h3><output class=\"ai-bag-slots\" data-ai-bag-slots></output></div><div class=\"ai-bag-actions\"><button type=\"button\" data-ai-key=\"bag\" data-ai-value=\"collect\">靠近钥匙，试着收下</button><button type=\"button\" data-ai-key=\"bag\" data-ai-value=\"discard\">丢下工具</button><button type=\"button\" data-ai-key=\"bag\" data-ai-value=\"reset\">重置本例</button></div></div><output class=\"ai-status\" data-ai-bag-status></output><p data-msv-field=\"f0002\" class=\"ai-banner\">验收要说“原来有什么 → 做了什么 → 实际变成什么”，不能只说“好像好了”。</p></div>",
+      "textFieldSequence": 2
+    },
+    {
+      "id": "ai-12",
+      "source": "AI-12",
+      "phase": "AI · 用立棍控制开发",
+      "section": "第二阶段 · AI 可控开发",
+      "minutes": 10,
+      "title": "模块接起来，再走到终点",
+      "subtitle": "还是前面的可玩小车。按住 Space 喷射；方向键移动与转向。",
+      "theme": "paper",
+      "content": "<div class=\"ai-lesson\"><div class=\"ai-real-game\"><iframe data-car-game title=\"小车整体验收：带钥匙到终点\" allow=\"fullscreen\" allowfullscreen></iframe></div><p data-msv-field=\"f0001\" class=\"ai-banner\">先试：没有钥匙到终点。再试：丢掉工具腾位，拿钥匙再到终点。局部通过 ≠ 整体通过。</p></div>",
+      "textFieldSequence": 1
+    },
+    {
+      "id": "ai-13",
+      "source": "AI-13",
+      "phase": "AI · 用立棍控制开发",
+      "section": "第二阶段 · AI 可控开发",
+      "minutes": 27,
+      "title": "现在，轮到你的游戏",
+      "subtitle": "主棍自己写清；AI 派生全部子棍；先批准一条优先路径。",
+      "theme": "paper",
+      "content": "<div class=\"ai-lesson\"><div class=\"ai-cards\"><article class=\"ai-card\"><h3 data-msv-field=\"f0001\">① 10 分钟 · 主棍</h3><p data-msv-field=\"f0002\">把自己的模块地图放进六项；写完整愿景，圈出本轮范围。</p></article><article class=\"ai-card\"><h3 data-msv-field=\"f0003\">② 12 分钟 · 全部子棍</h3><p data-msv-field=\"f0004\">让 AI 逐问补关键缺项、生成全部模块子棍；逐份核对继承和接口。</p></article><article class=\"ai-card\"><h3 data-msv-field=\"f0005\">③ 10 分钟 · 开始执行</h3><p data-msv-field=\"f0006\">批准优先子棍，取得能打开的首版；按约定试一次，指出具体问题并修正。</p></article></div><p data-msv-field=\"f0007\" class=\"ai-banner\">没有跑通就如实标“未完成”，课后继续。未批准的子棍不能偷偷执行。</p><a class=\"ai-link\" data-resource=\"ai-workbook\" href=\"ai-materials/workbook/index.html\" target=\"_blank\" rel=\"noopener\">打开可编辑模板 · 一键复制／下载 ↗</a></div>",
+      "textFieldSequence": 7
+    },
+    {
+      "id": "ai-14",
+      "source": "AI-14",
+      "phase": "AI · 用立棍控制开发",
+      "section": "第二阶段 · AI 可控开发",
+      "minutes": 5,
+      "title": "回顾：方向在我，细节交给 AI",
+      "subtitle": "点开三张复习卡，把这套方法带回自己的项目。",
+      "theme": "paper",
+      "content": "<div class=\"ai-lesson\"><nav class=\"ai-tabs\" aria-label=\"切换示范\"><button type=\"button\" data-ai-key=\"recap\" data-ai-value=\"0\">层级：谁控制？</button><button type=\"button\" data-ai-key=\"recap\" data-ai-value=\"1\">格式：怎么写？</button><button type=\"button\" data-ai-key=\"recap\" data-ai-value=\"2\">闭环：怎么验？</button></nav><section class=\"ai-panel\" data-ai-panel=\"recap\" data-ai-is=\"0\" ><div class=\"ai-cards\"><article class=\"ai-card\"><h3 data-msv-field=\"f0001\">主棍</h3><p data-msv-field=\"f0002\">人类编写和验证，管理完整游戏。</p></article><article class=\"ai-card\"><h3 data-msv-field=\"f0003\">子棍</h3><p data-msv-field=\"f0004\">AI 根据主棍派生，人类验收。</p></article><article class=\"ai-card\"><h3 data-msv-field=\"f0005\">执行棍</h3><p data-msv-field=\"f0006\">AI 自动写、执行、检查；越界问题返回上层。</p></article></div></section><section class=\"ai-panel\" data-ai-panel=\"recap\" data-ai-is=\"1\" hidden><div class=\"ai-cards\"><article class=\"ai-card\"><h3 data-msv-field=\"f0007\">1 · 执行者</h3><p data-msv-field=\"f0008\">谁来做</p></article><article class=\"ai-card\"><h3 data-msv-field=\"f0009\">2 · 上下文与项目设计</h3><p data-msv-field=\"f0010\">已有设计与交接</p></article><article class=\"ai-card\"><h3 data-msv-field=\"f0011\">3 · 目标</h3><p data-msv-field=\"f0012\">完整目标＋本轮范围</p></article><article class=\"ai-card\"><h3 data-msv-field=\"f0013\">4 · 约束</h3><p data-msv-field=\"f0014\">必须遵守</p></article><article class=\"ai-card\"><h3 data-msv-field=\"f0015\">5 · 避免</h3><p data-msv-field=\"f0016\">不能这样做</p></article><article class=\"ai-card\"><h3 data-msv-field=\"f0017\">6 · 验收</h3><p data-msv-field=\"f0018\">实际如何证明</p></article></div></section><section class=\"ai-panel\" data-ai-panel=\"recap\" data-ai-is=\"2\" hidden><div data-msv-field=\"f0019\" class=\"ai-big-quote\">逐问对齐 → 人类确认 → 派生子棍 → 批准执行 → 实测 → 修正</div><article class=\"ai-card\"><h3 data-msv-field=\"f0020\">主棍变化时</h3><p data-msv-field=\"f0021\">AI 列出影响，同步相关子棍，再请人验收；不要各改各的。</p></article></section><p data-msv-field=\"f0022\" class=\"ai-banner\">前半段：模块组合实现功能，功能构成产品。后半段：按同一张地图，让 AI 可控地制作。</p></div>",
+      "textFieldSequence": 22
+    }
+  ],
+  "footer": "模块思维 → 立棍开发 · 方向在我，细节交给 AI",
+  "timeline": [
+    {
+      "name": "混乱挑战",
+      "minutes": 5,
+      "start": 0,
+      "end": 5
+    },
+    {
+      "name": "WHAT · 认识模块",
+      "minutes": 40,
+      "start": 5,
+      "end": 45
+    },
+    {
+      "name": "WHY · 为什么要用",
+      "minutes": 10,
+      "start": 45,
+      "end": 55
+    },
+    {
+      "name": "HOW · 公共案例",
+      "minutes": 20,
+      "start": 55,
+      "end": 75
+    },
+    {
+      "name": "HOW · 马上用到我的游戏",
+      "minutes": 40,
+      "start": 75,
+      "end": 115
+    },
+    {
+      "name": "总结与下一课",
+      "minutes": 5,
+      "start": 115,
+      "end": 120
+    },
+    {
+      "name": "AI 可控开发",
+      "minutes": 120,
+      "start": 120,
+      "end": 240
+    }
+  ],
+  "releaseStatus": "deployment-ready",
+  "textSchema": "shared-v1",
+  "teachingStages": [
+    {
+      "id": "modules",
+      "title": "认识模块",
+      "minutes": 120,
+      "start": 0,
+      "count": 25
+    },
+    {
+      "id": "ai",
+      "title": "用立棍控制 AI 开发",
+      "minutes": 120,
+      "start": 25,
+      "count": 14
+    }
+  ],
+  "slideAliases": {
+    "ai-04": "ai-05"
+  }
+});
+})();

@@ -1,0 +1,64 @@
+/* P2 diagrams own foreground/background in both shells. No inherited white text.
+   The shared deck/reveal engine stays unchanged, including P1 historical bytes. */
+.deck-slide .p2-visual {color:#162b3a;font-size:24px;line-height:1.35;}
+.p2-visual h3 {margin:0 0 10px;color:#10293f;font-size:27px;line-height:1.25;}
+.p2-visual p {margin:0;color:#162b3a;}
+.p2-visual b,.p2-visual strong {color:#10293f;}
+.p2-six {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;}
+.p2-six article {min-height:164px;padding:16px 20px;border:3px solid #35576b;border-top:7px solid #2154d7;background:#fffdf7;box-shadow:5px 5px 0 #d7d7c7;}
+.p2-six article:nth-child(4) {border-top-color:#297c73;background:#e0f3ea;}
+.p2-six article:nth-child(5) {border-top-color:#9b322b;}
+.p2-six h3 {display:flex;align-items:center;gap:10px;}
+.p2-six i {font:900 24px/1 monospace;font-style:normal;color:#2154d7;}
+.p2-six em {padding:2px 5px;color:#174f43;background:#c5e9da;font-size:22px;font-style:normal;font-weight:800;}
+.p2-six mark {padding:0 3px;color:#10293f;background:#f2c84b;}
+.p2-strip {display:flex;align-items:center;gap:20px;padding:15px 20px;margin-top:20px;border:3px solid #35576b;background:#fff0ad;}
+.p2-strip b {flex:none;}
+.p2-root {display:flex;justify-content:center;align-items:center;gap:30px;padding:20px;background:#dfe9ff;border:4px solid #10293f;}
+.p2-root b {font-size:31px;}
+.p2-branches {display:block;width:100%;height:36px;color:#297c73;}
+.p2-roles {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;}
+.p2-roles article {padding:15px 20px;background:#fffdf7;border:3px solid #35576b;border-left:8px solid #297c73;}
+.p2-roles article p {font-size:23px;line-height:1.4;}
+.p2-legend {display:flex;gap:18px;align-items:center;margin-bottom:15px;font-size:22px;}
+.p2-legend span {padding:6px 12px;border:2px solid #35576b;background:#fffdf7;}
+.p2-legend .p2-inherit {background:#e0f3ea;}
+.p2-legend .p2-own {background:#dfe9ff;}
+.p2-visual[data-p2-visual="child"] .p2-six article {min-height:155px;}
+.p2-visual[data-p2-visual="child"] .p2-six p {font-size:23px;}
+.p2-handoff {display:flex;align-items:center;justify-content:center;gap:25px;margin-top:20px;padding:13px;background:#dfe9ff;border:3px solid #35576b;}
+.p2-link {display:block;position:absolute;right:0;bottom:0;padding:9px 17px;color:#10293f;background:#63d7b0;border:3px solid #10293f;text-decoration:none;font-weight:800;font-size:23px;}
+.p2-link:focus-visible {outline:5px solid #2154d7;outline-offset:3px;}
+.p2-repair {display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:22px;}
+.p2-repair-steps {display:grid;gap:13px;}
+.p2-repair-row {display:grid;grid-template-columns:155px minmax(0,1fr);gap:10px;align-items:center;border:3px solid #35576b;background:#fffdf7;min-height:65px;padding:10px 16px;}
+.p2-repair-row:nth-child(3) {background:#ffe8e2;}
+.p2-repair-row:last-child {background:#e0f3ea;}
+.p2-repair aside {padding:22px;background:#dfe9ff;border:3px solid #35576b;}
+.p2-repair aside p {font-size:26px;line-height:1.6;}
+.p2-repair aside strong {display:block;padding:15px;margin-top:20px;background:#fff0ad;text-align:center;font-size:27px;}
+.p2-visual[data-p2-visual="repair"] .p2-strip {font-size:22px;margin-top:15px;padding:12px 18px;}
+.p2-flow-row {display:grid;grid-template-columns:1fr 310px 1.5fr;gap:18px;align-items:center;}
+.p2-flow-row article,.p2-chain article {padding:17px 22px;border:3px solid #35576b;background:#fffdf7;}
+.p2-arrow {text-align:center;font-size:25px;}
+.p2-chain {display:grid;grid-template-columns:1fr 50px 1fr 50px 1fr;gap:10px;align-items:center;margin-top:22px;}
+.p2-chain>b {text-align:center;font-size:34px;}
+.p2-chain article {background:#e0f3ea;}
+.p2-checks {display:grid;grid-template-columns:1fr;gap:5px;padding:15px 22px;margin-top:20px;border:3px solid #35576b;background:#dfe9ff;}
+.p2-transfer {display:grid;grid-template-columns:1fr 135px 1fr;gap:20px;align-items:center;}
+.p2-transfer>article {padding:24px;border:4px solid #35576b;background:#fffdf7;min-height:345px;}
+.p2-transfer>article:last-child {border-color:#2154d7;background:#dfe9ff;}
+.p2-transfer-arrow {text-align:center;font-size:28px;}
+.p2-game-root {padding:13px;margin:15px 0;background:#fff0ad;border:3px solid #35576b;font-size:24px;font-weight:800;}
+.p2-chip-grid {display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+.p2-chip-grid span {padding:9px;background:#e0f3ea;border:2px solid #35576b;text-align:center;font-size:23px;}
+/* Reveal is meaningful chunks and uses the existing synchronized transport. */
+.p2-visual [data-reveal]:not(.revealed) {pointer-events:none;}
+.p2-visual[data-p2-visual="integration"] .p2-flow-row article,
+.p2-visual[data-p2-visual="integration"] .p2-chain article {padding:12px 18px;}
+.p2-visual[data-p2-visual="integration"] .p2-chain {margin-top:15px;}
+.p2-visual[data-p2-visual="integration"] .p2-checks {margin-top:15px;padding:10px 18px;font-size:23px;}
+.p2-visual[data-p2-visual="integration"] .p2-strip {margin-top:15px;padding:12px 18px;font-size:23px;}
+
+/* A single connector points at the whole sibling group, not three parents. */
+.p2-roles {padding:10px;border:3px dashed #297c73;}

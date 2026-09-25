@@ -1,0 +1,205 @@
+---
+type: todo
+id: T-097
+title: "新模型全项目设计一致性审计与优化总单"
+status: completed
+completed: 2026-09-15
+created: 2026-09-10
+updated: 2026-09-11
+captured_by: project-inbox
+audit_status: completed
+implementation_status: completed-with-external-human-gates
+priority: P0
+priority_basis: audit-recommendation
+related: [T-085, T-086, T-088, T-090, T-091, T-094, T-095, T-096, T-109, T-110, T-111]
+children: [T-098, T-099, T-100, T-101, T-102, T-103, T-104, T-105, T-109, T-110, T-111]
+tags: [todo, audit, architecture, single-source-of-truth]
+---
+
+# 新模型全项目设计一致性审计与优化总单
+
+## 原始需求与本轮边界
+
+> 当前已经切换到新模型，使用该模型审计本项目，检查各项设计的一致性，以及进行相关优化等，写出todo。
+
+本轮已完成只读审计和隔离复现，未实施业务优化。只记录项目 TODO 与脱敏审计证据；未改业务代码、未部署、未签署人工验收、未操作生产账号/课堂/数据库、未调用计费模型。不是知识库入库任务。
+
+优先级和执行顺序是审计建议，不代表已排期；无预设负责人、工期或截止日期。
+
+## 1. 先确认审计的究竟是哪份代码
+
+- 用户工作目录：`AI教培-mini硅谷/dev`，HEAD `dd28a57`（2026-09-06 初始化版本），仍有用户已有未提交/未跟踪 TODO 和架构文档。
+- 找到较新源码：`/private/tmp/minisv-sequence-work.axC0Th/repo`，HEAD `6400928c90d6c2fd59ca5b8513cc91a3ada93956`。
+- 只读 `git ls-remote origin refs/heads/main` 返回同一 `6400928`。
+- 线上 `/release.json`：`20260910T032647CST-market-mentor-user-system-r2`，源码 `f1b063b56aa4800a5316103da94c09dcef870a78`。
+- `f1b063b..6400928` 仅增加市场课件回执、说明和 goal 记录，无业务源码变化。因此本轮使用较新源码审计，而不是把 dev 中旧 Alpha 架构误报为线上现状。
+- **代码基线分裂本身是问题**：T-098 先收口。没有执行 fetch/pull/reset 或把临时目录覆盖到用户目录。
+
+下列源码路径和行号均以 `6400928` 为准，不保证可在当前旧 dev 树直接找到。
+
+## 2. 已确认合理、不要推倒重做的设计
+
+- CourseDefinition / CourseRelease / ClassroomInstance 分离；课程原型不等于课堂实例。
+- Test 与 Production 共用工厂和真实 Runtime；不能恢复两套独立 Alpha/Classroom 状态机。
+- Course revision 与 Courseware revision 分属不同对象，不能直接比较 r0/r9。
+- PDMO 是导师分工，学员人数由 policy 决定；稳定 seatId、fieldId、cardId 与 cardAssignmentId 各负其责。
+- 已开始课堂锁定 exact 课程与课件；编辑器保存不应直接热更新正式课堂。
+- 学员只读课件库是已确认需求，不应退回“只有导师能看”。
+- 自动化通过不能替代人工 View/UI 验收，更不能由 AI 自动将待审内容入库。
+
+## 3. 验证结果与边界
+
+本轮实际执行：
+- TypeScript typecheck：通过。
+- 数据校验：203 个历史事件、5 步、0 error / 0 warning。
+- 平台契约测试：83/83。
+- QA / auth-crypto / evidence-boundary 定向单元：16/16。
+- 部署 Python 契约：35/35。
+- 额外投影正向检查：13 Block × 2/3/4/5/6 人 × 3 seed，共 195 场景；学员任务和 cardId 顺序前后端一致，包括中文/emoji seed。
+- 匿名只读 HTTP：Studio、Classroom、课件目录/深链跳登录；课件深链保留 revision/slide/step；D 静态课件为 401 且 private/no-store；Alpha、control、旧 classroom API 为 410。
+- QA 健康响应显示 ready、20 条知识、knowledgeGapRecording=true；这只证明配置启用，不证明每次写盘一定成功。
+- 当前线上已有 P、D、M 静态课件；O 仍有内部 fallback，不能宣称已有真实 O 导师 PPT。
+
+本轮未做：完整 release build、登录后线上 E2E、生产数据库状态核对、真人 View/UI 签署、iPad/Android 实机课堂。不得把“代码可通过”写成“已正式验收可开课”。
+
+特别说明：T-094/T-095 的旧 B01 发牌问题本轮没有复现；195 场景通过。后续建议是防再次分叉，不是宣称它们没修好。
+
+## 4. 新增 TODO 与证据等级
+
+### P0：先稳定源头与数据写入
+- [T-098 收口唯一工程与发布基线](98-canonical-workspace-and-release-provenance.md)：**已完成**；`dev` 已切换到 canonical 远端，旧树、Todo 与审计证据已保全，发布来源默认失败关闭。
+- [T-099 课程保存的并发和 exact 指针一致性](99-candidate-save-concurrency-and-exact-integrity.md)：**已完成**；exact Candidate CAS、数据库不可变/引用守卫、发布竞态保护、部署只读 preflight 和浏览器显式冲突处理均已通过验证。
+
+### P1：再完成可持续运行的版本与课堂链
+- [T-100 课件预览、历史发布与资源更新闭环](100-courseware-preview-release-history-and-bundles.md)：**已完成**；Candidate 使用受控 Studio exact 预览，发布历史与默认 pointer 分离，旧 Released/旧课堂 exact 入口持续可读，并新增经服务端逐文件校验的不可变多文件资源包上传与播放链路。
+- [T-101 课堂状态原子性及弱网响应一致性](101-classroom-atomic-state-and-stale-response-protection.md)：**已完成**；课堂推进、结束、重置、提交、审核与归档均使用服务端 CAS、事务和幂等键，故障注入与迟到响应保护通过。
+- [T-102 验收身份、完成语义和回归矩阵](102-acceptance-contract-identity-and-completion-semantics.md)：**已完成**；构建身份、16 项验收清单、显式完成语义和真实矩阵已统一。
+
+### P1/P2：内容与权限收口，避免下一轮漂移
+- [T-103 共享投影器及对外课程语义同步](103-shared-projection-and-public-course-semantics.md)：**已完成**；生成式共享投影核心和 P/D/M/O 对外语义已收口。
+- [T-104 两类人工审核清单与缺口复发规则](104-human-review-queues-and-gap-recurrence.md)：**已完成**；课程内容审核与家长 QA 缺口分离、追加式审计和复发规则已实现，仍只允许人作出终态判断。
+- [T-105 Studio 数据范围与账号准入一致性](105-studio-data-scope-and-account-admission-policy.md)：**已完成**；Studio 数据按授权范围裁剪，公开自注册只产生学员账号，显式课堂加入与角色授权保持服务端控制。
+
+## 实施收口进度（2026-09-11）
+
+- T-098～T-109 与 T-111 已完成并部署至 Hecate；当前统一平台发布为 `20260911T120044CST-t088-privacy-r1`（源码 `7244ead4fcca36d7d5b5c52c352bf1bbaaafc3e0`），在 T-109 r4 基线上补入课堂后台／bfcache 隐私屏。健康检查、双端 public smoke、匿名生产浏览器、历史预览数据路由与生产 bundle 标记均通过，未操作生产课堂数据。
+- T-110 已在 T-109 后通过 Chromium 总回归，仍等待 T-088 的 Safari／真实触摸设备行，因此保持 `in-progress`。
+- T-088 已用真实隔离 Candidate、Test Classroom 和学员账号完成 10 组 Chromium 响应式／粗指针工程验收：无横向溢出、关键控件不小于 44×44、编辑字段不小于 16px、私卡隔离、触摸翻页、结构化提交、导师退回／重交／通过、离线恢复和完整 viewport 隐私遮挡均通过。
+- 真实 iPad Safari 与 Android 触摸设备仍必须由人执行；标准记录模板为 `docs/qa/t088-tablet-mobile/REAL_DEVICE_ACCEPTANCE_TEMPLATE.md`。本总单不会用模拟器结果代签 ViewAcceptanceReceipt 或 UiAcceptanceReceipt。工程发布完成后，唯一剩余关闭条件是两类设备的可追溯人工验收记录。
+
+## 2026-09-12 课程剧本与导师课件解耦更新
+
+- 用户重新确认：Classroom Factory 只选择一份 exact `CourseDefinition` 剧本版本；下拉框中的 r12、r9 和 Google r0 是互斥备选项，不是同时绑定的多个版本。
+- 导师课件不再参与课程剧本版本核对或建课门禁。P／D／M／O 每次打开课堂课件入口时，服务端独立解析该角色当前最新 Released 课件；建课时保存的课件引用以及 UI 回执中的课件引用只作为审计快照。
+- 产品导师最新课件已从同事仓库 `chj9-11` 的 commit `d9d45f1396b54a7ac6b41715b31122d8ffc597ff` 原样构建为 r1，同事源码未被修改；历史 r0 继续保留，仅用于审计或显式历史预览。
+- 已发布 Hecate release `20260912T131901CST-courseware-decoupled-r1`（runtime source `cb128d17aa04a52f5161e91de47b2813ba81a713`）。生产登录后已选择饿了么 r12 创建一场隔离 TEST，HTTP 请求未提交课件版本，服务端解析 P r1；随后通过 T-111 链路物理删除，旧链接返回 410。未创建 Production，也未删除用户现有课堂。
+- 机器发布回执：`docs/PRODUCT_COURSEWARE_DECOUPLING_PRODUCTION_RECEIPT.json`。人工 View／UI 与真实 iPad／Android 设备验收仍未代签，因此 T-088、T-097、T-110 状态保持 `in-progress`。
+
+## 5. 推荐依赖与执行顺序
+
+```text
+T-098  唯一代码/发布基线
+  ├─ T-099  课程保存与数据库约束（优先修复）
+  ├─ T-100  课件预览与旧版本可用性
+  └─ T-101  课堂事务与弱网一致性
+       ↓
+T-102  验收契约标识与完整回归
+  ├─ T-103  收口投影实现与课程语义
+  ├─ T-104  人工待审清单
+  └─ T-105  权限范围与准入策略
+       ↓
+T-088  学员 Pad 无键盘真实流程验收（沿用原任务）
+       ↓
+人工 View → Test 真实 UI → Released → Production
+```
+
+- T-099/T-100/T-101 可按模块独立实现，但都要从 T-098 确认的同一代码基线出发。
+- T-105 涉及权限边界，应在扩大导师/团队试用前完成；不要因排列靠后理解为可忽略。
+- T-103 的基础语义修订与 T-104 人工复核可提前进行，不必等待所有技术任务。
+- T-088 不重复建单；T-101 的弱网恢复、T-100 的课件入口和 T-102 的真实设备矩阵并入其验收前提。
+- 已完成 T-085～T-096 不整体改回未完成；这些是新增边界修复与持续验收。T-090/T-091 中早期“仅本地”描述须参考后续部署回执，不当成当前未部署结论。
+- 最近代码回执仍把 r11 记为 Candidate、人工 View/UI 未签；本轮没有查询生产数据库，实际当前签署状态需由有权限的人在 Studio 确认。
+
+## 6. 证据与复现
+
+证据目录：[`../audits/2026-09-10-design-consistency/`](../audits/2026-09-10-design-consistency/)
+
+- `audit-baseline.json`：目录/commit/线上发布身份、测试范围。
+- `probe.mts` + `probe-results.json`：真实库函数 + SQLite 内存库，合成数据，无网络、无生产写入。
+- `public-routes.json`：匿名只读路由状态。
+- `platform-tests.log`、`extra-tests.log`、`deployment-tests.log`：本轮实际测试输出。
+
+复现（在有依赖的较新源码目录执行，第二个参数显式指向源码根）：
+
+```bash
+node --import tsx "/项目dev/.codex/inbox/audits/2026-09-10-design-consistency/probe.mts" "$PWD"
+```
+
+该脚本是**缺陷现状证据**：部分断言期待旧缺陷存在；修复后应改写为“不再发生”的产品回归测试，不能把“缺陷复现成功”当发布成功。
+
+## 7. 2026-09-11 原始需求细项与交付覆盖复核（进行中）
+
+### 用户反馈与本轮已确认项
+
+- **T-093：范围漏项且曾提前关闭。** 旧回执只验证 D 导师 PPT；现已补齐 Classroom 真实进度条，并完成隔离浏览器验证、生产发布及登录后只读真实控件复验。人工 View/UI 验收未代签。
+- **T-111：删除曾被弱化为可选。** 现已恢复为必交付项；活跃/历史 TEST 的删除 UI、API、权限、原子数据库删除和证据阻断已完成，隔离临时 D1 中已真实删除并验证旧链接 410，生产已发布且完成非破坏性权限/Schema/构建复验。归档、重置没有被当作删除证据，也没有拿用户真实课堂做破坏性冒烟。
+- **T-110：代码与部署状态继续分开。** 本地或 Chromium 通过不替代真实 Safari/触摸设备与用户人工验收。
+- 以上不是对“全部历史需求丢失”的证明，也不能凭两项推算漏项数量。全量复核仍需区分未记录、记录失真、实现遗漏、未部署、已部署未验收及后续需求变更。
+
+### 复核方法与产物
+
+- [x] 覆盖导航/账号、验收发布、TEST 生命周期、课程数据与角色字段、学员 Pad 交互，再逐项复核其余历史 TODO。
+- [x] 每项拆为可观察行为，记录原话/截图入口 → TODO → 实现位置 → 测试 → 发布构建 → 实际验收。
+- [x] 对 T-093 区分 PPT 与 Classroom；使用真实 Classroom 进度条测试，不用下拉框或 PPT 替代。
+- [x] 对 T-111 区分 C/R/U/D；使用临时 D1 实际物理删除，不用归档或重置替代。
+- [x] 对其余 completed/done 条目逐项查漏；确有遗漏则重开原单并保留已完成子范围。
+- [x] 已记录生产发布身份、点击验收路径和剩余人工项，并在本次最终交付中同步；代码或局部测试未被当作上线。
+
+本总单保持 `in-progress`；T-093/T-111 的本轮工程交付不会被用来把整个 T-097 标记完成。
+
+## 总体验收
+
+- [x] 子任务逐项给出代码、自动化测试和部署证据；人工设备验收继续单列，未被机器证据替代。
+- [x] 实现前已按用户确认收口准入/完成语义，没有擅自重构产品规则。
+- [x] 保留旧课程、旧课件、课堂状态和人工审核历史。
+- [x] 最终对用户回报本轮发现如何解决、哪些仍待人工验收；不把 TODO 已写等同于功能已完成。
+
+## 2026-09-12 Todo 真值复核纠正
+
+用户指出“完成状态”与线上可见行为不一致后，已停止按 YAML `status` 汇报完成度，并开始按“原始验收项 → 源码 → 浏览器 → 生产”复核：
+
+- 已确认 T-082 存在真实遗漏：`/framework/`、Classroom 运行页、共享投屏、课件外壳及部分加载／错误态没有完成统一主页 Logo 契约，T-082 已重新打开。
+- 已确认 T-109 自身仍保留一个未完成备份项，T-109 已重新打开。
+- 其余 `completed/done` 条目继续逐项查漏；没有实际证据前不再用状态字段推导“已经完成”。
+
+## 2026-09-12 首轮可见交付复核结果
+
+- T-082 已从假完成重开，补齐 Framework、Classroom、共享投屏和课件外壳后，通过真实浏览器、Hecate 部署与生产点击复验；最终发布为 `20260912T173416CST-brand-home-t082-r3`。
+- r2 生产复验曾真实捕获 Framework 迟到水合回退，因此继续修复到 r3，证明本轮没有用“源码中有 Logo”代替线上行为。
+- 44 个项目 Todo 中当前 40 个为关闭状态，关闭条目中已无未勾选的 Markdown 验收项；这只是结构性筛查，不被当作生产完成证据。
+- 当前仍开放 4 项：T-088（真实 iPad/Android 触摸验收）、T-109（真实 Workshop 资料所有者覆盖备份）、T-110（Safari/Windows/硬件输入组合验收）、T-097（本全量复核总单）。
+- 前 3 项均已有工程实现和可执行的人工记录模板，但不能由自动化伪造硬件、异浏览器或私有历史资料的验收证据，因此保持 `in-progress`。
+
+
+## 2026-09-12 T-082 正式字标复核补充
+
+用户再次指出线上仍显示方形 W 后，确认 r3 只完成了主页链接契约、没有使用正式字标。T-082 再次重开并已在 `20260912T190236CST-official-wordmark-r4` 完成纠正：公开 8 类路由 × 4 视窗、登录后 10 个应用路由均显示同一个蓝绿 `MINI硅谷` 字标，favicon 只作浏览器元数据；生产无溢出、无页面错误、无资源失败。该复核不改变 T-097 其余人工硬件验收边界。
+
+## 2026-09-12 T-082 r5 缓存纠正
+
+r4 正式字标生产复验后继续发现一个只影响已访问浏览器的缓存风险：旧 CSS 可缓存 4 小时，使正确的横向 PNG 仍按旧方形规则渲染。现已在 `20260912T194735CST-official-wordmark-r5` 对主页、全站共享主题、动态应用代理、Workshop、LIVE RUN 与 Studio Editor 的已变更 CSS/JS 全部换用新缓存键，并以公网 8×4 与登录后 10 路由证明实际加载 r5。该纠正补强 T-082，不改变 T-097 仍待真实设备／私有资料所有者完成的人工验收边界。
+
+## 2026-09-14 T-082 透明字标复核
+
+用户截图暴露了 r5 的真实样式遗漏：官方 PNG 有透明通道，但共享主题人为增加了白色卡片。现已在 `20260914T102054CST-transparent-wordmark-r7` 移除 React、静态页和 Studio Editor 三处白底／边框／内边距，并推进所有相关缓存键。r6 上线后的登录态复验曾捕获 Studio Editor 独立主题遗漏，修复后才发布 r7。生产公开 8×4 与登录态 10 路由的计算样式、无溢出和主页导航均通过。
+
+该纠正补强 T-082，不改变本总单仍待真实 iPad／Android、Safari／Windows 和 Workshop 私有资料所有者完成的人工验收边界；T-097 保持 `in-progress`。
+
+## 2026-09-15 全量查漏闭环
+
+- 将 canonical 与损坏旧 `dev` 的 Todo ID／文件名／引用进行双向集合比对，找回仅存在旧树的 T-115，并把撞号的“孵化器项目”保留原文迁为 T-126；T-121／T-124 的历史重编号关系也已复核。
+- 完成 T-125 受控课堂作业，不再留下可自动化开发的 backlog／in-progress。
+- 新增 `scripts/audit-todos.ts` 和 `tests/todo-registry.test.ts`，强制 ID 格式、文件名前缀、全局唯一性和统一状态枚举；`test:course-platform` 现在先执行队列审计。
+- 逐项复核 59 份 canonical Todo，并纠正 T-122／T-123／T-124 已部署但文档仍写“未部署”的陈旧状态。
+- T-088／T-109／T-110 已明确转为 `blocked`：分别等待真实设备、真实资料所有者导出、异浏览器／原生输入人工验收；不再混在开发队列中，也不伪造通过。
+- 完整结果与逐项清单写入 `docs/TODO_COMPLETION_AUDIT_20260915.md` 和同名 JSON；最终回复同步发布版本与人工门槛。

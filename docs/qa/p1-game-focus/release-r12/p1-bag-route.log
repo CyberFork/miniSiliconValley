@@ -1,0 +1,25 @@
+✔ route input combines holds and cancels opposing controls (0.566166ms)
+✔ releasing one source/action preserves other holds (0.082292ms)
+✔ clear removes every source and key map is stable (0.064666ms)
+✔ flame points out of the fuel end and is driven by the shared thrust snapshot (3.970125ms)
+✔ P1 packages the same game and physics for both screens, never teacher notes in audience (5.56175ms)
+✔ real four-wheel DriveWorld reaches route items, capacity, discard, and finish (202.924958ms)
+✔ differential wheels pivot left/right, reverse travels backwards, no chassis yaw assist (122.4665ms)
+✔ glass stack rests until impact then real car scatters its dynamic colliders (154.239375ms)
+✔ exports the three world items and finish constants (1.001417ms)
+✔ createGameState starts empty and reset-like (0.082334ms)
+✔ stepGame picks nearby items once, respects height tolerance, and is immutable (0.186959ms)
+✔ full bag rejects an item without consuming it, then discard respawns it (0.364375ms)
+✔ discarding absent item preserves state; winning requires key at finish (0.11975ms)
+✔ state updates are immutable and event history is capped at six (0.128542ms)
+✔ game frame statically sources the state module and has no teacher notes (0.225584ms)
+✔ dropping an item while in its pickup radius requires leaving before recollection (0.083ms)
+✔ overlapping key and finish checks do not flood the teaching event log (0.776333ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 569.633417

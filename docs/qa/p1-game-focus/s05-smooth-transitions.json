@@ -1,0 +1,19 @@
+{
+  "buildDigest": "775709677899772204ceb2f55bb16f764d528b4a63c58e26f8b69ea7a4e9f1e3",
+  "status": "local-draft-browser-review-pending",
+  "checks": [
+    "S05 three card controls and four functional scenarios",
+    "5000ms 2s-explode/3s-assemble",
+    "actual Three.js sampled positions and mid-animation reversal",
+    "actual voxel movement/jump/turn/river terrain",
+    "WebGL host identity reuse",
+    "24 slides/120 minutes",
+    "shared build regression",
+    "route-game 11 tests",
+    "eslint",
+    "diff-check"
+  ],
+  "browserBlocker": "Native Chrome timeoutReached; no browser click/visual/two-window acceptance claimed",
+  "deployed": false,
+  "manualAcceptanceSigned": false
+}

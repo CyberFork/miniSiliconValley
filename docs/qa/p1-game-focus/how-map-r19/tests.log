@@ -1,0 +1,66 @@
+
+> mini-silicon-valley-world@1.0.0 test:t132-t133:courseware
+> node courseware/shared/tests/verify.mjs && node courseware/module-thinking-deck/tests/verify.mjs && node courseware/module-thinking-deck/tests/verify-integration.mjs && node courseware/ligun-deck/tests/verify-visuals.mjs && node courseware/shared/tests/verify-recap.mjs && node courseware/module-thinking-deck/tests/verify-recap-fold.mjs
+
+module-thinking-p1: 24 slides; deployment-ready 461f4b64e50661ce60e94108e4c20afe5f31681758dc1bef7acc08d88d340038; physical teacher split
+module-thinking-p1: 24 slides; deployment-ready 461f4b64e50661ce60e94108e4c20afe5f31681758dc1bef7acc08d88d340038; physical teacher split
+ligun-p2: 28 slides; deployment-ready ebab83c20fad26b3df8152acf6d4c5f26115c1521557b2523f5a8eb9647e2cd4; physical teacher split
+ligun-p2: 28 slides; deployment-ready ebab83c20fad26b3df8152acf6d4c5f26115c1521557b2523f5a8eb9647e2cd4; physical teacher split
+T-132/T-133 structure, budgets, templates, physical split, local links, deterministic hashes and game checks PASS
+[
+  {
+    "name": "module-thinking-deck",
+    "count": 24,
+    "minutes": 120,
+    "digest": "461f4b64e50661ce60e94108e4c20afe5f31681758dc1bef7acc08d88d340038"
+  },
+  {
+    "name": "ligun-deck",
+    "count": 28,
+    "minutes": 120,
+    "digest": "ebab83c20fad26b3df8152acf6d4c5f26115c1521557b2523f5a8eb9647e2cd4"
+  }
+]
+T-132 structural checks passed (T-128/T-130 preserved): 24 slides/S08 and S11 intentionally removed, 120 minutes, three local 3D scenes, complete notes, separated audience bundle, printable worksheets.
+verify-voxel: all checks passed
+T-132/T-133 immutable release integration passed (human acceptance unsigned): 461f4b64e50661ce60e94108e4c20afe5f31681758dc1bef7acc08d88d340038, audience 43, teacher 41.
+P2 visuals: six fields, six children, 28 slides/120 minutes, same-input repair and physical styles PASS
+module-thinking-p1: 24 slides; deployment-ready 461f4b64e50661ce60e94108e4c20afe5f31681758dc1bef7acc08d88d340038; physical teacher split
+ligun-p2: 28 slides; deployment-ready ebab83c20fad26b3df8152acf6d4c5f26115c1521557b2523f5a8eb9647e2cd4; physical teacher split
+recap structure, budgets, notes, reveals, terms, CSS references and build bytes PASS
+presenter-runtime.js: 8 masks, hydration, legacy states, next/back/reset, isolation PASS
+deck-runtime.js: 8 masks, hydration, legacy states, next/back/reset, isolation PASS
+P1 recap independent folds PASS
+
+> mini-silicon-valley-world@1.0.0 test:p1:game-focus
+> npm run test:t122:courseware && node courseware/module-thinking-deck/tests/verify-game-focus.mjs && node courseware/module-thinking-deck/tests/verify-public-case-style.mjs && node courseware/module-thinking-deck/tests/verify-interface-cases.mjs && node courseware/module-thinking-deck/tests/verify-module-assembly.mjs && node courseware/module-thinking-deck/tests/verify-worked-example.mjs && node courseware/module-thinking-deck/tests/verify-transform-sequence.mjs && node courseware/module-thinking-deck/tests/verify-relation-controls.mjs && node courseware/module-thinking-deck/tests/verify-automation-explode.mjs && node courseware/shared/tests/verify-text-editor-local.mjs && node courseware/module-thinking-deck/tests/verify-six-field-card.mjs && node courseware/module-thinking-deck/tests/verify-bag-walkthrough.mjs && node courseware/module-thinking-deck/tests/verify-large-scenes.mjs && node courseware/module-thinking-deck/tests/verify-scene-reconciliation.mjs && node courseware/module-thinking-deck/tests/verify-how-map.mjs
+
+
+> mini-silicon-valley-world@1.0.0 test:t122:courseware
+> npm run build:t122:courseware && node courseware/module-thinking-deck/tests/verify.mjs && node courseware/module-thinking-deck/tests/verify-integration.mjs
+
+
+> mini-silicon-valley-world@1.0.0 build:t122:courseware
+> node courseware/module-thinking-deck/scripts/build.mjs
+
+module-thinking-p1: 24 slides; deployment-ready 461f4b64e50661ce60e94108e4c20afe5f31681758dc1bef7acc08d88d340038; physical teacher split
+T-132 structural checks passed (T-128/T-130 preserved): 24 slides/S08 and S11 intentionally removed, 120 minutes, three local 3D scenes, complete notes, separated audience bundle, printable worksheets.
+verify-voxel: all checks passed
+T-132/T-133 immutable release integration passed (human acceptance unsigned): 461f4b64e50661ce60e94108e4c20afe5f31681758dc1bef7acc08d88d340038, audience 43, teacher 41.
+P1_GAME_FOCUS_PASS: 24 slides, 120 minutes, game-only active examples, own-project interaction, draft isolation.
+CONVEYOR_SIX_AND_TEACHER_RESOURCES_PASS
+Public S09/S10 style and deck contract PASS
+S13 interface cases structure, normalization, keyboard wiring and build parity PASS
+S14 module assembly layout, deck controls, normalization and build parity PASS
+S12 worked example structure, answers, normalization, helper behavior and build parity PASS
+Transform sequence timing, build parity, and module-3d wiring passed.
+Actual Three.js 5-second explosion/reassembly, intermediate positions and interrupted reversal PASS
+S05 cards/actions, state isolation, real 3D trajectories, smooth switching, terrain fade and build parity PASS
+Shared WebGL node reuse retains the same scene identity PASS
+Automation actual multi-axis explosion, continuous 2.5s assembly, motion gate, framing, interruption and camera PASS
+Actual text editor apply/field: direct edit, saved mode, original/preview restore, listener dedupe, pause/history/audience isolation PASS
+verify-six-field-card: PASS
+HOW04_CONCRETE_BAG_PASS: normal/full/error/retest diagrams, bounded game rules and notes
+verify-large-scenes PASS: 7 P1 scenes, scoped enlarged dimensions, compact 618px body, P2 isolation
+Scene reconciliation PASS: real dataset mapping, all 12 cross-type pairs, same-type camera retention, rapid switch, original-bug mutation; DOM logic only
+verify-how-map: PASS

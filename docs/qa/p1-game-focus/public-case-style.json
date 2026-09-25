@@ -1,0 +1,18 @@
+{
+  "digest": "c47d91eece3a7f024c4b9e61f89c1262f076be66583d78e139d34764cac6bc33",
+  "slides": [
+    "module-s09",
+    "module-s10"
+  ],
+  "status": "local-draft",
+  "deployed": false,
+  "manualAcceptance": "not-signed",
+  "observed": [
+    "S09 paper cards and revealed answer readable",
+    "S10 normal input 2 returns 4",
+    "S10 invalid text returns rejection",
+    "audience inherits selection/output/reveal",
+    "no overlap in observed teacher/audience layouts"
+  ],
+  "test": "node courseware/module-thinking-deck/tests/verify-public-case-style.mjs"
+}

@@ -1,0 +1,321 @@
+
+> mini-silicon-valley-world@1.0.0 test:p1:game-focus
+> npm run test:t122:courseware && node courseware/module-thinking-deck/tests/verify-game-focus.mjs && node courseware/module-thinking-deck/tests/verify-public-case-style.mjs && node courseware/module-thinking-deck/tests/verify-interface-cases.mjs && node courseware/module-thinking-deck/tests/verify-module-assembly.mjs && node courseware/module-thinking-deck/tests/verify-worked-example.mjs && node courseware/module-thinking-deck/tests/verify-transform-sequence.mjs && node courseware/module-thinking-deck/tests/verify-relation-controls.mjs && node courseware/module-thinking-deck/tests/verify-automation-explode.mjs && node courseware/shared/tests/verify-text-editor-local.mjs
+
+
+> mini-silicon-valley-world@1.0.0 test:t122:courseware
+> npm run build:t122:courseware && node courseware/module-thinking-deck/tests/verify.mjs && node courseware/module-thinking-deck/tests/verify-integration.mjs
+
+
+> mini-silicon-valley-world@1.0.0 build:t122:courseware
+> node courseware/module-thinking-deck/scripts/build.mjs
+
+module-thinking-p1: 24 slides; deployment-ready 3b02ebf6bbc8bbe1a30d724475420ae18bbeb6864bb9c31d2b0f4c34f3282022; physical teacher split
+T-132 structural checks passed (T-128/T-130 preserved): 24 slides/S08 and S11 intentionally removed, 120 minutes, three local 3D scenes, complete notes, separated audience bundle, printable worksheets.
+verify-voxel: all checks passed
+T-132/T-133 immutable release integration passed (human acceptance unsigned): 3b02ebf6bbc8bbe1a30d724475420ae18bbeb6864bb9c31d2b0f4c34f3282022, audience 43, teacher 40.
+P1_GAME_FOCUS_PASS: 24 slides, 120 minutes, game-only active examples, own-project interaction, draft isolation.
+CONVEYOR_SIX_AND_TEACHER_RESOURCES_PASS
+Public S09/S10 style and deck contract PASS
+S13 interface cases structure, normalization, keyboard wiring and build parity PASS
+S14 module assembly layout, deck controls, normalization and build parity PASS
+S12 worked example structure, answers, normalization, helper behavior and build parity PASS
+Transform sequence timing, build parity, and module-3d wiring passed.
+Actual Three.js 5-second explosion/reassembly, intermediate positions and interrupted reversal PASS
+S05 cards/actions, state isolation, real 3D trajectories, smooth switching, terrain fade and build parity PASS
+Shared WebGL node reuse retains the same scene identity PASS
+Automation actual multi-axis explosion, continuous 2.5s assembly, motion gate, framing, interruption and camera PASS
+Actual text editor apply/field: direct edit, saved mode, original/preview restore, listener dedupe, pause/history/audience isolation PASS
+
+> mini-silicon-valley-world@1.0.0 test:course-platform
+> npm run audit:todos && npm run check:course-projector && node --import tsx --test tests/course-content-review.test.ts tests/classroom-atomicity.test.ts tests/course-platform.test.ts tests/course-platform-routes.test.ts tests/course-registry-concurrency.test.ts tests/classroom-factory.test.ts tests/classroom-factory-readiness.test.ts tests/classroom-schema.test.ts tests/admin-dm-migration.test.ts tests/script-progress-migration.test.ts tests/account-switching-rbac.test.ts tests/browser-account-switching.test.ts tests/studio-data-scope.test.ts tests/admin-learner-management.test.ts tests/studio-editor-restoration.test.ts tests/studio-startup.test.ts tests/course-field-isolation.test.ts tests/course-multi-case.test.ts tests/course-projection-consistency.test.ts tests/public-course-projection.test.ts tests/classroom-script-runtime.test.ts tests/courseware-navigation.test.ts tests/courseware-groups.test.ts tests/courseware-text-editions.test.ts tests/courseware-versioning.test.ts tests/eleme-product-mentor-package.test.ts tests/development-mentor-package.test.ts tests/market-mentor-package.test.ts tests/course-submission.test.ts tests/course-acceptance-contract.test.ts tests/site-navigation-contract.test.ts tests/terminal-platform.test.ts tests/terminal-interface-contract.test.ts tests/homework-platform.test.ts tests/homework-interface-contract.test.ts tests/ai-daily-quiz-platform.test.ts tests/ai-daily-quiz-interface-contract.test.ts tests/managed-homework-platform.test.ts tests/incubator-projects.test.ts tests/console-information-architecture.test.ts tests/todo-registry.test.ts
+
+
+> mini-silicon-valley-world@1.0.0 audit:todos
+> tsx scripts/audit-todos.ts
+
+Todo registry: 66 files
+- T-109 [blocked] 重组官网、教学与内部入口，整合 World 并深层归档 Workshop
+- T-110 [blocked] 全站排查普通点击不跳转，并优化 Studio 首屏课程加载
+- T-129 [backlog] 全站统一网页图标：使用模块思维教师视图的黄色 M favicon
+- T-132 [in-progress] 开发导师模块思维课件扩展：120 分钟 WHAT／WHY／HOW 与学生游戏模块设计
+- T-133 [in-progress] 开发导师 P2：把模块描述组织进完整项目的立棍提示词
+- T-088 [blocked] 将无实体键盘的 iPad／平板作为学员课堂一等设备
+warning: 119-team-targeted-questionnaires-and-reusable-templates.md has 1 unchecked checkbox(es)
+warning: 122-p1-module-thinking-html-deck-and-presenter-view.md has 1 unchecked checkbox(es)
+warning: 123-public-portal-and-console-information-architecture.md has 2 unchecked checkbox(es)
+warning: 124-learner-time-terminal-space-wallet-and-shop.md has 2 unchecked checkbox(es)
+warning: 127-ai-quiz-homework-deployment-and-teacher-access.md has 9 unchecked checkbox(es)
+
+> mini-silicon-valley-world@1.0.0 check:course-projector
+> tsx scripts/generate-course-projector.ts --check
+
+Generated course projector is current.
+✔ Console-hosted Studio navigation is a real-link, route-derived and recoverable surface (3.59ms)
+✔ unified account menu uses the server-side browser set and never stores credentials (2.089416ms)
+✔ homepage and protected shells share readable account semantics (2.506708ms)
+✔ Test impersonation is server-scoped, short-lived and actor/effective audited (0.996ms)
+✔ Admin DM authority is primary/delegated and cannot recurse (0.518834ms)
+✔ account recovery for test identities remains exact-room and one-time (1.195959ms)
+(node:94739) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ T-087 backfill creates one Primary, converts legacy peers and never resurrects a revoked grant (10.45775ms)
+(node:94740) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ T-114 Admin creates, searches and safely edits one stable learner identity (613.286875ms)
+✔ T-114 password reset revokes sessions and old credentials (544.857458ms)
+✔ T-114 deletion is real only without history and numbered usernames are never recycled (390.249958ms)
+✔ T-121 Admin batch deletion removes only safe selected learners and reports retained history (432.911ms)
+✔ T-121 deletion refuses to erase T-124 terminal assets, public space or ledger history (338.84025ms)
+✔ T-114 learner CRUD is platform-Admin only, never inherited from mentor or classroom DM identity (290.094167ms)
+✔ AI quiz is public to answer but staff-only to review (3.280208ms)
+✔ AI quiz keeps real mouse, keyboard and touch controls with server results (0.854459ms)
+(node:94742) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ AI daily quiz preserves the audited 7-day, 35-question source (0.640417ms)
+✔ AI daily quiz scores on the server, replays idempotently and lists independent submissions (44.159917ms)
+✔ AI daily quiz rejects missing identity, incomplete answers and invalid days (27.86275ms)
+✔ AI daily quiz submissions are append-only at the database boundary (11.761208ms)
+(node:94743) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ T-106 keeps two verified accounts server-side and switches without either password (372.028167ms)
+✔ T-106 rejects stale, expired and password-invalidated switches without losing the current account (260.284ms)
+✔ T-106 removes one account independently and logout-all revokes the whole browser set (207.973792ms)
+✔ T-106 password change keeps the current set credential and invalidates other browser sets (295.416375ms)
+✔ T-106 retains expired account metadata for targeted reauthentication (199.443292ms)
+✔ T-106 revokes an empty browser set inside the final-account mutation (150.506958ms)
+(node:94744) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ T-105 scopes Studio classroom indexes to assigned mentors and redacts acceptance summaries (537.628292ms)
+✔ applyScriptAction couples progress, lifecycle, and audit writes atomically (231.852416ms)
+✔ two mentors racing one script version produce exactly one complete mutation (186.1215ms)
+✔ v3 final unlock stays running and explicit finish is atomic and idempotent (273.257792ms)
+✔ completion evidence is optional unless the exact CourseDefinition explicitly requires it (257.3235ms)
+✔ submission CAS is idempotent, rejects a reused key, and rolls back every failed write prefix (299.377833ms)
+✔ review CAS rolls back payload, status, revision and audit at every write node (348.647292ms)
+✔ reset rolls back at every write node and invalidates old-run unlocks and submissions (922.3995ms)
+✔ multiple Test Classrooms coexist across the same exact version and a later Candidate (366.940417ms)
+✔ dependency-free Test Classroom deletion is atomic, physical, idempotent and globally isolated (231.382958ms)
+✔ an unreferenced archived Test Classroom can be deleted without weakening the archive guard (185.65525ms)
+✔ Test Classroom archive is atomic, idempotent, immutable, isolated and read-only (216.068334ms)
+✔ Production Classroom cannot enter the Test archive lifecycle (174.384625ms)
+✔ archiving retains a UI receipt as historical evidence but invalidates future release use (266.679542ms)
+✔ runtime source discards stale requests and keeps drafts scoped outside URLs and logs (0.427958ms)
+✔ delayed B01, old role, and old-run responses cannot replace the current UI (0.063125ms)
+✔ device drafts are isolated by actor, role view, classroom, run, seat, block and schema (0.083083ms)
+✔ no course and requested exact preview are reported (0.59175ms)
+✔ missing or invalid View receipt exposes concrete reasons (0.118208ms)
+✔ production requires Released course and UI receipt (0.106959ms)
+✔ current mentor courseware availability is independent from the selected script version and UI receipt (0.082459ms)
+✔ mentor and learner omissions or duplicates are blocked (2.1195ms)
+✔ Admin lock, and fully ready Test/Production checklists (0.107083ms)
+✔ exactPreviewHref preserves exact encoded query (0.054917ms)
+✔ Test and Production use one factory plan and the same state-machine version (5.867209ms)
+✔ Production refuses Candidate and Test accepts Candidate (0.286958ms)
+✔ every classroom requires an exact ViewAcceptanceReceipt (0.056833ms)
+✔ factory requires exact four distinct mentor roles and exact learner count (0.07375ms)
+✔ external factory validation does not bind or compare mentor courseware versions (0.086708ms)
+✔ courseware bundle digest is canonical across API and DB property order (7.232916ms)
+✔ Admin DM is a permission and can overlap a mentor without creating a fifth role (0.738ms)
+✔ script unlock frontier is versioned, sequential and classroom-local (0.994666ms)
+✔ an explicit Test reset is the only operation that advances run identity and deal seed (0.131958ms)
+✔ initial D1 migration contains the complete classroom domain (2.660875ms)
+✔ runtime schema bootstrap is idempotent and exactly mirrors the migration (4.159333ms)
+✔ unified course factory keeps release, courseware, permissions and script progress exact (1.82725ms)
+✔ simplified account and team migration retires old credentials without deleting audit history (0.285667ms)
+✔ hosting and worker expose the logical DB binding (0.060417ms)
+✔ store enforces server-side membership, DM gates, atomic ledger and privacy projection (0.152375ms)
+✔ runtime treats unlock frontier and each browser cursor as separate systems (14.636459ms)
+✔ T-093 Classroom progress segments invoke only existing personal navigation (0.768375ms)
+✔ keyboard navigation never steals arrows from editable controls (0.499125ms)
+✔ Test role tabs are exhaustive while Production rejects the viewAs contract (0.917958ms)
+✔ T-094 exposes one exact runtime identity and preserves projector card order (1.982125ms)
+✔ the Classroom Center uses native browser link semantics (0.88525ms)
+✔ T-113 runtime member replacement searches server-side without widening account scope (1.681084ms)
+✔ Stage 1 exposes complete private fields by hover or an explicit pinned expansion (0.397584ms)
+✔ T-123 provides the public, learner-service and internal Console route families (0.434875ms)
+✔ T-123 enforces Console RBAC on the server and leaves personal surfaces separate (2.886708ms)
+✔ portable account controls keep their color tokens and readable foregrounds inside Console (0.590625ms)
+✔ T-123 keeps public navigation cache-safe and reveals Workbench only from account projection (2.722291ms)
+✔ T-123 legacy Studio pages are redirects, not a second maintained UI (2.870791ms)
+✔ T-123 deployment gateway and internal deep links use the same route split (0.563041ms)
+✔ UI acceptance checklist is a stable, canonical sixteen-item contract (0.375458ms)
+✔ acceptance checklist documentation matches the canonical renderer (6.994541ms)
+✔ ClassroomRuntime consumes the shared checklist contract (2.172709ms)
+✔ build identity and projector/runtime contracts are present (1.643667ms)
+(node:94751) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ course review workbench lists authored open items without mutating the CourseDefinition (95.940625ms)
+✔ explicit revision-required and reopen decisions block release while exclusion never masquerades as fixed (356.883542ms)
+✔ source-added requires a traceable reference and terminal decisions require explicit reopen (66.273ms)
+✔ course review writes are CAS-safe, idempotent, exact-version scoped and append-only (72.300458ms)
+✔ T-095 migration creates six stable, independent seat fields (6.2505ms)
+✔ seat, mentor, card and explicit global aliases update in isolation (13.73125ms)
+✔ legacy course-period alias remains readable but normalization removes the old single-case coupling (6.188459ms)
+✔ six-to-four migration retains inactive seats and rejects malformed models (6.103208ms)
+✔ 2/4/6 projections and unique dealing satisfy learner policy (14.306917ms)
+✔ one neutral course validates two historical cases and one source-free simulation (7.716375ms)
+✔ multi-case ownership rejects duplicate identities, crossed facts and unknown default case (10.1705ms)
+✔ renaming the course does not rewrite case, cards, sources or stable course id (5.273041ms)
+✔ Studio names courses by teaching theme and does not re-couple cloned cases (4.726292ms)
+✔ T-085 route surface exists and has no legacy navigation dependency (14.22825ms)
+✔ T-122 publishes a second D-mentor deck without replacing the classroom default and protects teacher notes (0.618333ms)
+✔ T-086 navigation names the two acceptance gates and keeps UI preview on real Test Classroom routes (5.371875ms)
+✔ T-096 makes /course/ a registry-backed Released library for real learners and mentors (2.1895ms)
+✔ T-100 separates author Candidate preview, historical releases and latest classroom playback (2.208125ms)
+✔ exact Studio preview login preserves course, revision and digest (0.362709ms)
+✔ T-086 release and factory APIs enforce two exact acceptance receipts (2.052625ms)
+✔ T-111 exposes exact Test Classroom creation, archive, and dependency-gated deletion (2.385375ms)
+✔ T-099 Candidate API and editor require an exact base and expose a non-destructive conflict flow (0.459125ms)
+✔ gateway owns Console, Terminal, Studio compatibility, Course and per-classroom routes (0.148375ms)
+✔ the opaque P-mentor r0/r1/r2 identities are pinned consistently across build, runtime and package metadata (3.356125ms)
+✔ one-time managed credentials are blocked from platform data until password replacement (0.491875ms)
+✔ shared screen reads a dedicated allow-list projection instead of the private seat payload (3.262167ms)
+✔ trusted mentors can bootstrap a classroom and become its scoped Admin DM (0.965ms)
+✔ retired POST endpoints drain request bodies before returning tombstones (1.810916ms)
+✔ T-105 scopes Studio bootstrap data and permanently tombstones the legacy classroom API (6.345875ms)
+✔ T-104 keeps course review decisions exact and parent QA review behind a server-only proxy (1.096917ms)
+✔ legacy course definitions receive a bounded learner policy without mutating their exact JSON (3.684833ms)
+✔ one projector renders 4 mentors + N learners + one controller for N=2,4,6 (5.498042ms)
+✔ learner private-card views are deterministic and isolated (3.718708ms)
+✔ capacity and range failures explain the exact gap and fail closed (4.124416ms)
+✔ learner tasks beyond learner04 come from the generic template, never fake fixed seats (1.706833ms)
+✔ course identity and default case identity are independent (1.994ms)
+✔ repeat-when-needed deals intentionally repeat a non-empty small deck (1.243583ms)
+✔ generated browser projector is the same source contract across all 195 T-095 role scenarios (614.965084ms)
+✔ checkpoint-owned deck selection remains exact when the macro step points elsewhere (5.599375ms)
+✔ invalid authoring scenarios are explicit on both sides rather than silently clipped (8.060167ms)
+✔ unknown blocks fail identically and never fall back to a macro-step deck (5.171417ms)
+✔ repeat policy is deterministic while an empty repeat deck fails capacity explicitly (5.009416ms)
+✔ browser preview fails closed when its generated core dependency is absent (1.32725ms)
+(node:94757) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Studio startup reads current exact snapshots; history bodies are loaded only on demand (611.43025ms)
+ℹ {"fullVersions":14,"currentVersions":3,"fullBytes":2923204,"currentBytes":531743,"fullMs":110.61945800000007,"currentMs":17.847749999999905}
+✔ current-only Studio reads still verify each returned exact body digest (15.468541ms)
+✔ sequential stale editors cannot overwrite a newer exact Candidate (43.641917ms)
+✔ two writers racing from one base produce one success and no orphan pointer (43.486ms)
+✔ same body retry is idempotent even when the caller did not receive the first response (47.059875ms)
+✔ restoring an identical historical body creates a new immutable revision (45.569084ms)
+✔ field-model normalization is written and immediately readable through the exact ref (25.416666ms)
+✔ database exact guards reject digest mismatches without changing immutable history (19.556ms)
+✔ migration preflight aborts instead of repairing a legacy mismatched pointer (3.839125ms)
+✔ Candidate save winning before release commit makes the checked release fail closed (57.000625ms)
+✔ learner ProductBrief projection omits mentor-only rubric and prompts (0.431875ms)
+✔ P mentor ProductBrief projection keeps the exact review rubric (0.383375ms)
+✔ structured values reject unknown, missing, short and oversized fields (0.42625ms)
+✔ stored payload parsing fails closed and renders a deterministic plain-text fallback (0.197ms)
+✔ DevelopmentStick projection and item counts remain enforceable on touch-friendly list fields (0.308625ms)
+✔ groups courseware into the fixed mentor groups without changing item identity (2.516375ms)
+✔ keeps empty mentor groups for empty and partial input (0.120041ms)
+✔ preserves non-development relative order and does not mutate input (0.103125ms)
+✔ empty input and new D packages are retained, without guessing role from title (0.093916ms)
+✔ static courseware hand-off preserves package launch mode and exact identity (1.812833ms)
+✔ explicit deep links overlay defaults without producing a second question mark (0.339833ms)
+✔ private presenter metadata is centralized and declared for both dual-screen D decks (0.271084ms)
+✔ course library exposes the protected presenter to mentors without mixing it into the audience artifact (0.560375ms)
+✔ all authenticated static entry routes redirect before rendering the old launch gate (0.8545ms)
+(node:94764) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ server editions persist complete immutable snapshots and old editions remain readable (15.266708ms)
+✔ CAS concurrent and stale saves do not overwrite another mentor (13.603833ms)
+✔ learner can read public text but cannot write; impersonation and observers cannot access editions (8.796875ms)
+✔ base and field bounds reject invalid data, plain text is stored without executing HTML (7.392084ms)
+✔ restoring original text is a new edition; decks and bases are isolated (6.759625ms)
+(node:94765) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ bundled product-mentor r2 is current while exact r0/r1 remain playable (138.560417ms)
+✔ a production-style r0 registry upgrades to bundled r2 without rewriting r0 (79.53125ms)
+✔ publishing r1 retains historical r0 while the default pointer becomes r1 (58.02875ms)
+✔ Candidate and system fallback visibility remain fail-closed (0.127791ms)
+✔ a directory bundle round-trips exact bytes and finalization is idempotent (30.133542ms)
+✔ bundle validation rejects traversal, archives, private keys, bad chunks and incomplete uploads (7.712125ms)
+✔ migration fails closed on mismatched legacy refs and installs immutable exact guards (9.425583ms)
+✔ 120-minute P1/P2 upgrade adds new URLs without rewriting historical registry identities (93.409875ms)
+✔ T-090 composes P history with a source-free D simulation without rewriting T-091 (6.287166ms)
+✔ the D incident deck has twelve short R cards in the required 3/3/2/2/2 categories (1.22025ms)
+✔ D owns four stable checkpoints and an exact 18-slide courseware binding (1.312708ms)
+✔ the frozen D courseware manifest binds the exact local 18-slide bytes (32.613625ms)
+✔ DevelopmentStick is a concrete ten-field D artifact handed to M at B09 (2.704084ms)
+✔ 2, 4 and 6 learners receive persistent identity-free two-card views (9.732041ms)
+✔ T-090 validation fails closed across source, ownership, schema and exact-courseware boundaries (9.91275ms)
+✔ T-091 keeps immutable bundled r0 intact and adds an importable Candidate (21.306459ms)
+✔ Ele.me CasePackage and historical ScriptPackage have one explicit P owner (1.263375ms)
+✔ all F cards are enumerated by the evidence revision and R/G/U copy keeps its boundary (1.220833ms)
+✔ T-091 validator rejects incomplete or mis-owned content packages (3.753958ms)
+✔ T-091 validator rejects invalid handoffs and duplicate schema kinds (3.550667ms)
+✔ ProductBrief is a concrete 10-field P-owned artifact handed to D at B05 (1.637792ms)
+✔ only the active mentor receives the current private script; D/M/O do not inherit P history (1.908375ms)
+✔ declared P courseware exact ref fails closed without affecting other mentor toolkits (1.065667ms)
+✔ T-091 machine inventory remains aligned with the auditable Candidate (1.278334ms)
+✔ T-091 revalidation keeps P ownership and evidence boundaries in the T-095 unified Candidate (10.644667ms)
+✔ T-119 keeps the form public while showing its archive entry only to staff (1.371458ms)
+✔ T-119 keeps ten topics, gates part two, requires part one and removes image uploads (2.258166ms)
+✔ T-119 explains the two-part homework and Silicon Valley coin rewards (0.5695ms)
+✔ T-131 limits popup editing to real staff and preserves immutable revisions (2.292584ms)
+(node:94770) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ T-119 requires the complete first part, ignores retired image fields and keeps independent submissions (11.447375ms)
+✔ T-119 validates required identity, choices and input limits while preserving literal text (8.918458ms)
+✔ T-119 submissions are append-only at the database boundary (6.500458ms)
+✔ T-131 appends teacher revisions, exposes the latest snapshot and rejects stale saves (6.8555ms)
+✔ T-124 publishes an incubator introduction and a direct two-project library (1.158917ms)
+✔ T-124 exact runtime manifest admits every and only declared browser file (25.19525ms)
+✔ T-124 projects are self-contained, branded, navigable and explicit about prototype scope (5.545ms)
+(node:94774) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ T-125 versions templates, freezes recipients and exact fields at delivery (24.184417ms)
+✔ T-125 enforces learner/staff scope, required answers, feedback and closure (15.151292ms)
+✔ T-125 blocks non-owner template edits while allowing admin override (6.912333ms)
+✔ T-125 idempotency keys replay identical writes and reject altered payloads (9.995083ms)
+✔ M user-system courseware is bound to its exact immutable bytes (1.916334ms)
+✔ M user-system courseware contains 49 usable browser slides (2.781042ms)
+✔ public summary accepts only a Released exact version and is an explicit allow-list (6.925041ms)
+✔ public projection has no mutation path into CourseDefinition or the historical world (5.397125ms)
+✔ anonymous catalog route reads only released public summaries (0.4415ms)
+(node:94777) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ T-086 backfills the unlock frontier without touching activity or economy records (3.397667ms)
+✔ T-086 migration is additive and contains no destructive data statement (0.154833ms)
+✔ navigation baseline pages exist (0.413542ms)
+✔ core navigation uses real href-capable anchors (1.374084ms)
+✔ Console, Studio, editor and classroom return loops retain real hrefs (0.6925ms)
+✔ course exact preview links and auth/account return paths are source-backed (0.46875ms)
+✔ retired routes are not reintroduced as navigation hrefs (1.104541ms)
+✔ T-109 separates the public website, teaching services and internal history (1.002083ms)
+(node:94779) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ T-113 mentor partial search stays scoped while exact admission and Admin search remain available (9.280625ms)
+✔ T-105 open registration creates only an active learner and no classroom membership (83.494542ms)
+✔ the full direct-edit Course Studio replaces the regressed summary-card editor (1.122ms)
+✔ editor-loader script ordering and failure surface are explicit and deterministic (1.074125ms)
+✔ the restored editor speaks only to the versioned Studio API (0.98475ms)
+✔ T-094 editor surfaces immutable data identity and does not fabricate it for a Working Copy (0.2655ms)
+✔ the browser projector renders the same full editor for 4 mentors plus dynamic N learners (4.701958ms)
+✔ desktop editor CSS preserves the old three-column workbench and responsive no-overlap fallbacks (1.106083ms)
+✔ editor loader preloads all assets, executes in order, and is failure/duplicate safe (1.863375ms)
+✔ editor init does not block catalog/course opening on release-info loading (0.620291ms)
+✔ NavigationLink emits a native anchor and preserves exact identity query (2.914125ms)
+✔ T-124 exposes a refreshable terminal shell and every agreed app route (1.696292ms)
+✔ terminal clock uses the requested local YYYY.MM.DD HH:mm format (1.373125ms)
+✔ T-124 implements real APIs, public-space privacy, wallet isolation and designed confirmations (1.23675ms)
+(node:94783) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ T-124 distinguishes uninitialized and zero wallets, isolates TEST assets (51.017083ms)
+✔ T-124 purchase is atomic, retry-safe and cannot double-own one decoration (9.4535ms)
+✔ T-124 grants enforce classroom scope, idempotency and append-only reversal (8.96075ms)
+✔ T-124 public space contains only explicit public copy (7.405167ms)
+✔ duplicate id is reported (1.820417ms)
+✔ bad filename and status (0.922958ms)
+✔ missing numeric filename prefix (0.453541ms)
+✔ dangling references and missing sequential ids are reported (0.576583ms)
+✔ blocked items require an explicit reason (0.69025ms)
+✔ open summary (0.914208ms)
+ℹ tests 231
+ℹ suites 0
+ℹ pass 231
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4720.268084

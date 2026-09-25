@@ -1,0 +1,25 @@
+{
+  "ok": true,
+  "scope": "compiled app + actual UI/API + temporary local D1; no production writes",
+  "browser": {
+    "engine": "Chromium",
+    "version": "151.0.7922.176"
+  },
+  "actualDeleteRequests": 5,
+  "cancelWasNoop": true,
+  "activeTestPhysicallyDeleted": true,
+  "archivedTestPhysicallyDeletedFromHistory": true,
+  "oldLinks": {
+    "active": 410,
+    "archived": 410
+  },
+  "idempotentRetry": true,
+  "differentKeyRejected": true,
+  "evidenceBlocker": "95c10625-a838-42cc-94a5-348d43ce643c",
+  "networkFailurePreservedTarget": true,
+  "learnerPreviewStatus": 403,
+  "learnerDeleteStatus": 403,
+  "padNoHorizontalOverflow": true,
+  "syntheticFixtureReceiptCreated": true,
+  "humanAcceptanceReceiptCreated": false
+}

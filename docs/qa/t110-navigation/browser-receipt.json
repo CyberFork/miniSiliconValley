@@ -1,0 +1,114 @@
+{
+  "ok": true,
+  "scope": "isolated local D1; no production writes",
+  "public": {
+    "worldToCourseOrdinaryClick": true,
+    "protectedReturnTo": "/course/"
+  },
+  "auth": {
+    "invalidLoginFeedback": true,
+    "recoveryClick": true,
+    "recoveryEnter": true,
+    "brandHomeClick": true,
+    "safeReturnTo": "/studio/releases/",
+    "foreignReturnToRejected": true
+  },
+  "studio": {
+    "ordinaryWorkflowLinks": true,
+    "keyboardEnter": true,
+    "exactPreviewHref": "/studio/preview/?course=eleme-2008-find-problem&revision=0&digest=407a24b43ead68ddccf0871fe7910ae21f1ca64ec4b7232a2bc0afeb2cfecb6c",
+    "metaNewTabPreserved": true,
+    "backForwardRefresh": true,
+    "diagnosticFailureNonBlocking": true,
+    "historyArchiveDiscoverable": true,
+    "startupCold": {
+      "phasesMs": {
+        "navigationStart": 0,
+        "loaderStart": 42.2,
+        "preloadsStarted": 42.5,
+        "bootstrapStarted": 71.7,
+        "scriptsReady": 71.8,
+        "bootstrapFinished": 101.9,
+        "courseListVisible": 108,
+        "firstCourseEditable": 116.7
+      },
+      "navigationMs": {
+        "responseStart": 10.700000047683716,
+        "responseEnd": 13.200000047683716,
+        "domContentLoaded": 35.40000009536743,
+        "load": 40.10000014305115
+      },
+      "bootstrapResource": {
+        "start": 71.70000004768372,
+        "responseEnd": 101.29999995231628,
+        "duration": 29.59999990463257,
+        "transferSize": 47267,
+        "encodedBodySize": 46967,
+        "decodedBodySize": 147112
+      }
+    },
+    "startupWarm": {
+      "phasesMs": {
+        "navigationStart": 0,
+        "loaderStart": 54.1,
+        "preloadsStarted": 54.3,
+        "bootstrapStarted": 87.7,
+        "scriptsReady": 87.7,
+        "bootstrapFinished": 117.1,
+        "courseListVisible": 117.3,
+        "firstCourseEditable": 121.9
+      },
+      "navigationMs": {
+        "responseStart": 20.09999990463257,
+        "responseEnd": 22.799999952316284,
+        "domContentLoaded": 39.09999990463257,
+        "load": 51
+      },
+      "bootstrapResource": {
+        "start": 87.69999980926514,
+        "responseEnd": 116.39999985694885,
+        "duration": 28.700000047683716,
+        "transferSize": 47267,
+        "encodedBodySize": 46967,
+        "decodedBodySize": 147112
+      }
+    },
+    "testClassroomCreateOrdinaryClick": true
+  },
+  "course": {
+    "accountCenterOrdinaryClick": true,
+    "exactHref": "/course/product-mentor-foundations/?revision=0&digest=b2852b39462bc05464582b3c36f773e68fa84775b9e7c7673a128fac97d7cda5",
+    "ordinaryClick": true,
+    "reload": true,
+    "backForward": true,
+    "metaNewTab": true,
+    "expiredSessionExactReturnTo": true
+  },
+  "touch": {
+    "chromiumEmulationSingleTap": true,
+    "viewport": {
+      "innerWidth": 390,
+      "body": 390,
+      "root": 390
+    },
+    "realDeviceGate": "T-088 pending"
+  },
+  "deferredToT088": [
+    "desktop Safari",
+    "real iPad Safari",
+    "system back gesture",
+    "hardware context-menu behavior"
+  ],
+  "browser": {
+    "engine": "Chromium",
+    "version": "151.0.7922.176"
+  },
+  "pageErrors": 0,
+  "requestFailures": 0,
+  "serverErrors": 0,
+  "expectedInjectedDiagnostic503": true,
+  "screenshots": [
+    "docs/qa/t110-navigation/releases-exact-navigation.png",
+    "docs/qa/t110-navigation/chromium-touch-preview.png"
+  ]
+}

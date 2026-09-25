@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "status": "deployed",
+  "target": "https://work.cyberforker.com/msv/demo.html",
+  "deployedAt": "2026-08-17T04:32:56Z",
+  "verifiedAt": "2026-08-17T04:33:11Z",
+  "release": {
+    "id": "20260817T043208Z-msv-curriculum-ddf3185e",
+    "manifestSha256": "ddf3185e0ab4740742351b1eb5c1caabd7bbccd865ce1688b1d059dbc731befa",
+    "files": 25,
+    "payloadBytes": 3083959
+  },
+  "gateway": {
+    "configSha256": "f40358bd1126e954f97c6969518a5603366fadb07be37245d4d53bdc6d9a17c1",
+    "health": "healthy",
+    "exactRoute": "/msv/demo.html"
+  },
+  "curriculum": {
+    "stages": 6,
+    "verticalExamples": 18,
+    "companyJourneys": 1,
+    "journeySteps": 6
+  },
+  "verification": {
+    "dataErrors": 0,
+    "dataWarnings": 0,
+    "testsPassed": 25,
+    "testsTotal": 25,
+    "publicFilesVerified": 25,
+    "publicFilesTotal": 25,
+    "curriculumNavigationRegression": "PASS",
+    "dualAxisRegression": "PASS",
+    "historyAndMissionLinkRegression": "PASS",
+    "workshopPreserved": true,
+    "golfNinePreserved": true,
+    "sftpgoFallbackHealthy": true
+  },
+  "rollback": {
+    "previousRelease": "releases/20260817T042645Z-msv-curriculum-961baf1a",
+    "gatewayConfigChanged": false,
+    "preflightAttemptRollbackVerified": true
+  },
+  "secretsRecorded": false
+}

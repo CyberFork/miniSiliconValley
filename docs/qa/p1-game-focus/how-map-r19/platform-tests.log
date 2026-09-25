@@ -1,0 +1,51 @@
+✔ T-085 route surface exists and has no legacy navigation dependency (8.183875ms)
+✔ T-122 publishes a second D-mentor deck without replacing the classroom default and protects teacher notes (2.866459ms)
+✔ T-086 navigation names the two acceptance gates and keeps UI preview on real Test Classroom routes (3.259583ms)
+✔ T-096 makes /course/ a registry-backed Released library for real learners and mentors (0.913417ms)
+✔ T-100 separates author Candidate preview, historical releases and latest classroom playback (2.326875ms)
+✔ exact Studio preview login preserves course, revision and digest (0.255959ms)
+✔ T-086 release and factory APIs enforce two exact acceptance receipts (1.182834ms)
+✔ T-111 exposes exact Test Classroom creation, archive, and dependency-gated deletion (1.1495ms)
+✔ T-099 Candidate API and editor require an exact base and expose a non-destructive conflict flow (0.868167ms)
+✔ gateway owns Console, Terminal, Studio compatibility, Course and per-classroom routes (0.183584ms)
+✔ the opaque P-mentor r0/r1/r2 identities are pinned consistently across build, runtime and package metadata (1.681417ms)
+✔ one-time managed credentials are blocked from platform data until password replacement (0.750459ms)
+✔ shared screen reads a dedicated allow-list projection instead of the private seat payload (0.565709ms)
+✔ trusted mentors can bootstrap a classroom and become its scoped Admin DM (0.43575ms)
+✔ retired POST endpoints drain request bodies before returning tombstones (0.941416ms)
+✔ T-105 scopes Studio bootstrap data and permanently tombstones the legacy classroom API (4.521958ms)
+✔ T-104 keeps course review decisions exact and parent QA review behind a server-only proxy (0.938458ms)
+✔ static courseware hand-off preserves package launch mode and exact identity (0.625917ms)
+✔ explicit deep links overlay defaults without producing a second question mark (0.122375ms)
+✔ private presenter metadata is centralized and declared for both dual-screen D decks (0.126916ms)
+✔ course library exposes the protected presenter to mentors without mixing it into the audience artifact (0.529791ms)
+✔ all authenticated static entry routes redirect before rendering the old launch gate (0.967625ms)
+(node:63293) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ server editions persist complete immutable snapshots and old editions remain readable (14.08075ms)
+✔ CAS concurrent and stale saves do not overwrite another mentor (6.948584ms)
+✔ learner can read public text but cannot write; impersonation and observers cannot access editions (7.047291ms)
+✔ base and field bounds reject invalid data, plain text is stored without executing HTML (7.298167ms)
+✔ restoring original text is a new edition; decks and bases are isolated (6.764625ms)
+✔ shared-v1 carries an edit across bases and reports changed or removed originals (6.596ms)
+✔ shared-v1 CAS is global across bases while decks remain isolated (6.794041ms)
+✔ shared history supports explicit zero and immutable old reads (7.430416ms)
+✔ legacy bases are retired after a shared edition exists (6.072875ms)
+(node:63294) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ bundled product-mentor r2 is current while exact r0/r1 remain playable (37.176417ms)
+✔ a production-style r0 registry upgrades to bundled r2 without rewriting r0 (14.264708ms)
+✔ publishing r1 retains historical r0 while the default pointer becomes r1 (32.146875ms)
+✔ Candidate and system fallback visibility remain fail-closed (0.124542ms)
+✔ a directory bundle round-trips exact bytes and finalization is idempotent (19.319459ms)
+✔ bundle validation rejects traversal, archives, private keys, bad chunks and incomplete uploads (6.866625ms)
+✔ migration fails closed on mismatched legacy refs and installs immutable exact guards (8.890958ms)
+✔ 120-minute P1/P2 upgrade adds new URLs without rewriting historical registry identities (176.040625ms)
+ℹ tests 39
+ℹ suites 0
+ℹ pass 39
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 453.687958

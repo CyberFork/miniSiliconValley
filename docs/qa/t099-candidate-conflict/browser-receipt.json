@@ -1,0 +1,21 @@
+{
+  "ok": true,
+  "courseId": "google-1995-2004",
+  "browser": {
+    "engine": "Chromium",
+    "version": "151.0.7922.176"
+  },
+  "checks": [
+    "A 的 exact Candidate 保存成功",
+    "冲突显示基线、最新作者/时间与双方字段差异",
+    "同路径合并二次确认，且合并后手动保存为新 revision",
+    "破坏性重载二次确认，确认前 Working Copy 不丢失"
+  ],
+  "firstRevision": 1,
+  "finalRevision": 2,
+  "workingCopyPreserved": true,
+  "explicitMerge": true,
+  "destructiveReloadConfirmation": true,
+  "authorDisplayName": true,
+  "screenshot": "docs/qa/t099-candidate-conflict/candidate-conflict.png"
+}

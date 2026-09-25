@@ -1,0 +1,39 @@
+{
+  "publicChecks": "PASS",
+  "checks": [
+    {
+      "path": "/release.json",
+      "status": 200
+    },
+    {
+      "path": "/healthz",
+      "status": 200
+    },
+    {
+      "path": "/course/",
+      "status": 307
+    },
+    {
+      "path": "/courseware/development-mentor-module-thinking/r12/teacher/presenter.html",
+      "status": 401
+    },
+    {
+      "path": "/courseware/development-mentor-module-thinking/r12/audience/",
+      "status": 401
+    },
+    {
+      "path": "/api/courseware/text-editions/module-thinking-p1?base=2026.09.22-p1-r12",
+      "status": 401
+    },
+    {
+      "path": "/courseware/development-mentor-module-thinking/r11/teacher/presenter.html",
+      "status": 401
+    },
+    {
+      "path": "/courseware/development-mentor-ligun/r5/teacher/presenter.html",
+      "status": 401
+    }
+  ],
+  "activeFilesVerified": 83,
+  "authenticatedBrowserOnline": "not-performed"
+}

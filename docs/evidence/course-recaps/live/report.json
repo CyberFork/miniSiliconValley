@@ -1,0 +1,32 @@
+{
+  "decks": [
+    {
+      "deck": "p1",
+      "url": "https://minisv.vip/courseware/development-mentor-module-thinking/r8",
+      "count": 26,
+      "finalPage": "module-review",
+      "recapMinutes": 3,
+      "teacherAudienceSync": "PASS",
+      "reveals": 3,
+      "keyboardBack": "PASS",
+      "refresh": "PASS",
+      "touch": "PASS",
+      "layout": "PASS"
+    },
+    {
+      "deck": "p2",
+      "url": "https://minisv.vip/courseware/development-mentor-ligun/r3",
+      "count": 28,
+      "finalPage": "ligun-review",
+      "recapMinutes": 2,
+      "teacherAudienceSync": "PASS",
+      "reveals": 3,
+      "keyboardBack": "PASS",
+      "refresh": "PASS",
+      "touch": "PASS",
+      "layout": "PASS"
+    }
+  ],
+  "errors": [],
+  "browser": "153.0.8010.48"
+}

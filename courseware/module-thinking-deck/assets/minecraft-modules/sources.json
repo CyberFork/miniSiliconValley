@@ -1,0 +1,121 @@
+[
+  {
+    "file": "inventory.jpg",
+    "image": "https://www.minecraft.net/content/dam/minecraftnet/games/minecraft/screenshots/craft_inventory.jpg",
+    "source": "https://www.minecraft.net/en-us/article/how-craft",
+    "sha256": "b23d00991bdf110a1bdcad789e1d1721e51ce10a56cb73d97da131c27da17517",
+    "credit": "Minecraft © Mojang Studios / Microsoft. 官方文章配图，课堂讲解引用；非本站制作。"
+  },
+  {
+    "file": "dig.jpg",
+    "image": "https://www.minecraft.net/content/dam/minecraftnet/games/minecraft/screenshots/craft_punch.jpg",
+    "source": "https://www.minecraft.net/en-us/article/how-craft",
+    "sha256": "27ff22ad12627a880af8af0b7a8ea4ea970108faeb6d8ecac8bd6ccd884b3571",
+    "credit": "Minecraft © Mojang Studios / Microsoft. 官方文章配图，课堂讲解引用；非本站制作。"
+  },
+  {
+    "file": "drop.jpg",
+    "image": "https://www.minecraft.net/content/dam/minecraftnet/games/minecraft/screenshots/craft_floatingwood.jpg",
+    "source": "https://www.minecraft.net/en-us/article/how-craft",
+    "sha256": "ed56123d354e65cbfc186542a230f568761baef079189febbdb01706871225f0",
+    "credit": "Minecraft © Mojang Studios / Microsoft. 官方文章配图，课堂讲解引用；非本站制作。"
+  },
+  {
+    "file": "craft.jpg",
+    "image": "https://www.minecraft.net/content/dam/minecraftnet/games/minecraft/screenshots/craft_plankrecipe.jpg",
+    "source": "https://www.minecraft.net/en-us/article/how-craft",
+    "sha256": "7075700c360768996a253dccaa9792c5fe683bf72b742f7c1e154e0b95a3d3f2",
+    "credit": "Minecraft © Mojang Studios / Microsoft. 官方文章配图，课堂讲解引用；非本站制作。"
+  },
+  {
+    "file": "controls.jpg",
+    "image": "https://www.minecraft.net/content/dam/minecraftnet/games/minecraft/screenshots/keybmouse.jpg",
+    "source": "https://www.minecraft.net/en-us/article/minecraft-controls",
+    "sha256": "2a686d2cb8f6c8b38dd26bb5d87a9bc3cc0c93e776f7a30af1b2820bf5f1f687",
+    "credit": "Minecraft © Mojang Studios / Microsoft. 官方文章配图，课堂讲解引用；非本站制作。"
+  },
+  {
+    "file": "start.jpg",
+    "image": "https://www.minecraft.net/content/dam/minecraftnet/games/minecraft/screenshots/joinserver-java0.jpg",
+    "source": "https://www.minecraft.net/en-us/article/how-play-minecraft-server",
+    "sha256": "7038dffb3a88720d7768a4df0aaad4ad85cfe2e28ecec91d0ec0f1676f2ad6c1",
+    "credit": "Minecraft © Mojang Studios / Microsoft. 官方文章配图，课堂讲解引用；非本站制作。"
+  },
+  {
+    "file": "cow.jpg",
+    "image": "https://www.minecraft.net/content/dam/minecraftnet/games/minecraft/game-characters/mob-cow.jpg",
+    "source": "https://www.minecraft.net/en-us/article/minecraft-mobs",
+    "sha256": "b6e95fd110e463208e387c83a0debe0570ecc30039b4311a0d459d821ad91dbf",
+    "credit": "Minecraft © Mojang Studios / Microsoft. 官方文章配图，课堂讲解引用；非本站制作。"
+  },
+  {
+    "file": "zombie.jpg",
+    "image": "https://www.minecraft.net/content/dam/minecraftnet/games/minecraft/game-characters/mob-zombie.jpg",
+    "source": "https://www.minecraft.net/en-us/article/minecraft-mobs",
+    "sha256": "6c03024adfba1b8c1ee3b1715b2a43be7d7764148d13f71ed321515a5ec45744",
+    "credit": "Minecraft © Mojang Studios / Microsoft. 官方文章配图，课堂讲解引用；非本站制作。"
+  },
+  {
+    "file": "hurt.ogg",
+    "source": "https://resources.download.minecraft.net/87/8760ebb9d4b1fe9457ef272324ecd6b4329a593e",
+    "assetPath": "minecraft/sounds/damage/hit1.ogg",
+    "assetIndex": "https://piston-meta.mojang.com/v1/packages/de573f83da62843433ec9951c66feec7ed0a60a1/17.json",
+    "gameVersion": "Java 1.21.1",
+    "sha1": "8760ebb9d4b1fe9457ef272324ecd6b4329a593e",
+    "sha256": "5e190650c27cc38dce750ac7d5fb5044c3cf714bc116d0bdc3e9e93cdeffdc35",
+    "credit": "Minecraft © Mojang Studios / Microsoft. 原游戏短音效，课堂模块讲解引用；非本站制作。"
+  },
+  {
+    "file": "cow.ogg",
+    "source": "https://resources.download.minecraft.net/e0/e07a2da49011ef4cf9d6b1c80a91a06f808c1243",
+    "assetPath": "minecraft/sounds/mob/cow/say1.ogg",
+    "assetIndex": "https://piston-meta.mojang.com/v1/packages/de573f83da62843433ec9951c66feec7ed0a60a1/17.json",
+    "gameVersion": "Java 1.21.1",
+    "sha1": "e07a2da49011ef4cf9d6b1c80a91a06f808c1243",
+    "sha256": "24acaae2e89ca52a913177222ad37b36385267e85e52f3e320dbd34d295efde8",
+    "credit": "Minecraft © Mojang Studios / Microsoft. 原游戏短音效，课堂模块讲解引用；非本站制作。"
+  },
+  {
+    "file": "villager.ogg",
+    "source": "https://resources.download.minecraft.net/a7/a772db3c8ac37dfeb3a761854fb96297257930ab",
+    "assetPath": "minecraft/sounds/mob/villager/idle1.ogg",
+    "assetIndex": "https://piston-meta.mojang.com/v1/packages/de573f83da62843433ec9951c66feec7ed0a60a1/17.json",
+    "gameVersion": "Java 1.21.1",
+    "sha1": "a772db3c8ac37dfeb3a761854fb96297257930ab",
+    "sha256": "0f9370a25d4d3a1a23c7837c458597c7c340cb87e7e43d5c13496d1fcc84845d",
+    "credit": "Minecraft © Mojang Studios / Microsoft. 原游戏短音效，课堂模块讲解引用；非本站制作。"
+  },
+  {
+    "file": "world-map.png",
+    "source": "user-provided:2026-09-24",
+    "sha256": "dee3048b19a355db002b4a5ba6834195ebe0e72207d0e121670543c99baa7409",
+    "credit": "用户提供的课堂示意图；原作者未注明，非本站制作。"
+  },
+  {
+    "file": "water-clutch.png",
+    "source": "user-provided:2026-09-24",
+    "sha256": "7d264b5fd73a7198ee78eaa3237589efd5404fa0e8a18941fbbbbaaeff5c918c",
+    "credit": "用户提供的课堂示意图；原作者未注明，非本站制作。"
+  },
+  {
+    "file": "hurt.mp3",
+    "derivedFrom": "hurt.ogg",
+    "conversion": "ffmpeg libmp3lame q=3 (format compatibility only)",
+    "sha256": "99cb2b90b25cc83b0202f931b68a81214ba415ada23c6d38fdf909798b850924",
+    "credit": "Minecraft © Mojang Studios / Microsoft. Same short game sample; original source recorded with Ogg."
+  },
+  {
+    "file": "cow.mp3",
+    "derivedFrom": "cow.ogg",
+    "conversion": "ffmpeg libmp3lame q=3 (format compatibility only)",
+    "sha256": "72d922d1441049834c3f73168b705d1179ca64b2f118135971e2f2605137eca5",
+    "credit": "Minecraft © Mojang Studios / Microsoft. Same short game sample; original source recorded with Ogg."
+  },
+  {
+    "file": "villager.mp3",
+    "derivedFrom": "villager.ogg",
+    "conversion": "ffmpeg libmp3lame q=3 (format compatibility only)",
+    "sha256": "b609d581e59b13d3525706599593d572f82c63d9d4d94a83dec7fb31fdad0750",
+    "credit": "Minecraft © Mojang Studios / Microsoft. Same short game sample; original source recorded with Ogg."
+  }
+]

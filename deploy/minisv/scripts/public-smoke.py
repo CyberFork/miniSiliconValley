@@ -1,0 +1,453 @@
+#!/usr/bin/env python3
+"""Secret-free end-to-end checks for the public MiniSV routing contract."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import http.client
+import json
+import ssl
+import time
+from urllib.parse import parse_qs, urlsplit
+
+
+EXPECTED = {
+    "/api/courseware/text-editions/module-thinking-p1?base=2026.09.23-p1-r15": 401,
+    "/api/courseware/text-editions/ligun-p2?base=2026.09.22-p2-r6": 401,
+    "/": 200,
+    "/world-preview.json": 200,
+    "/world/": 200,
+    "/course/": 307,
+    "/studio/": 308,
+    "/console/": 307,
+    "/terminal/": 307,
+    "/homework/first-game/": 200,
+    "/homework/first-game/submissions/": 200,
+    "/homework/ai-daily-quiz/": 200,
+    "/homework/ai-daily-quiz/submissions/": 307,
+    "/courseware/product-mentor-foundations/": 401,
+    "/courseware/product-mentor-foundations/r1/": 401,
+    "/courseware/development-mentor-ligun/": 401,
+    "/courseware/development-mentor-module-thinking/audience/": 401,
+    "/courseware/development-mentor-module-thinking/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r5/audience/": 401,
+    "/courseware/development-mentor-module-thinking/r6/audience/": 401,
+    "/courseware/development-mentor-module-thinking/r7/audience/": 401,
+    "/courseware/development-mentor-module-thinking/r8/audience/": 401,
+    "/courseware/development-mentor-module-thinking/r9/audience/": 401,
+    "/courseware/development-mentor-module-thinking/r10/audience/": 401,
+    "/courseware/development-mentor-module-thinking/r11/audience/": 401,
+    "/courseware/development-mentor-module-thinking/r12/audience/": 401,
+    "/courseware/development-mentor-module-thinking/r13/audience/": 401,
+    "/courseware/development-mentor-module-thinking/r14/audience/": 401,
+    "/courseware/development-mentor-module-thinking/r20/audience/": 401,
+    "/courseware/development-mentor-module-thinking/r21/audience/": 401,
+    "/courseware/development-mentor-module-thinking/r22/audience/": 401,
+    "/courseware/development-mentor-module-thinking/r23/audience/": 401,
+    "/courseware/development-mentor-module-thinking/r24/audience/": 401,
+    "/courseware/development-mentor-module-thinking/r25/audience/": 401,
+    "/courseware/development-mentor-module-thinking/r26/audience/": 401,
+    "/courseware/development-mentor-module-thinking/r27/audience/": 401,
+    "/courseware/development-mentor-module-thinking/r28/audience/": 401,
+    "/courseware/development-mentor-module-thinking/r5/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r6/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r7/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r8/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r9/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r10/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r11/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r12/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r13/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r14/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r20/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r21/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r22/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r23/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r24/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r25/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r26/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r27/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r28/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r5/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-module-thinking/r6/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-module-thinking/r7/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-module-thinking/r8/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-module-thinking/r9/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-module-thinking/r10/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-module-thinking/r11/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-module-thinking/r12/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-module-thinking/r13/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-module-thinking/r14/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-module-thinking/r20/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-module-thinking/r21/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-module-thinking/r22/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-module-thinking/r23/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-module-thinking/r24/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-module-thinking/r25/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-module-thinking/r26/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-module-thinking/r27/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-module-thinking/r28/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-ligun/r1/audience/": 401,
+    "/courseware/development-mentor-ligun/r2/audience/": 401,
+    "/courseware/development-mentor-ligun/r3/audience/": 401,
+    "/courseware/development-mentor-ligun/r4/audience/": 401,
+    "/courseware/development-mentor-ligun/r5/audience/": 401,
+    "/courseware/development-mentor-ligun/r6/audience/": 401,
+    "/courseware/development-mentor-ligun/r1/teacher/presenter.html": 401,
+    "/courseware/development-mentor-ligun/r2/teacher/presenter.html": 401,
+    "/courseware/development-mentor-ligun/r3/teacher/presenter.html": 401,
+    "/courseware/development-mentor-ligun/r4/teacher/presenter.html": 401,
+    "/courseware/development-mentor-ligun/r5/teacher/presenter.html": 401,
+    "/courseware/development-mentor-ligun/r6/teacher/presenter.html": 401,
+    "/courseware/development-mentor-ligun/r1/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-ligun/r2/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-ligun/r3/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-ligun/r4/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-ligun/r5/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-ligun/r6/teacher/presenter-notes.js": 401,
+    "/courseware/market-mentor-user-system/": 401,
+    "/course/development-mentor-ligun/?revision=0&slide=6&step=2": 307,
+    "/framework/": 200,
+    "/parents/": 200,
+    "/incubator": 308,
+    "/incubator/": 200,
+    "/incubator/projects/": 200,
+    "/incubator/projects/recitation/": 200,
+    "/incubator/projects/mistake-notebook/": 200,
+    "/incubator/projects/_shared/project-shell.css": 200,
+    "/incubator/projects/_shared/phosphor/regular/Phosphor.woff2": 200,
+    "/incubator/projects/recitation/assets/yueyanglou-pavilion.png": 200,
+    "/incubator/projects/not-a-project/": 404,
+    "/workshop/": 307,
+    "/workshop/_source/index.html": 404,
+    "/classroom/": 307,
+    "/auth/login": 308,
+    "/auth/login/": 200,
+    "/auth/register/": 200,
+    "/auth/recover/": 200,
+    "/alpha/": 410,
+    "/control/": 410,
+    "/healthz": 200,
+    "/release.json": 200,
+    "/api/public/courses": 200,
+    "/api/public/homework/first-game/submissions": 200,
+    "/api/homework/ai-daily-quiz/submissions": 401,
+    "/robots.txt": 200,
+    "/sitemap.xml": 200,
+    "/favicon.svg": 200,
+    "/assets/mini-silicon-valley-logo-transparent.png": 200,
+    "/og.png": 200,
+    "/workshop/confirmed-baseline.json": 307,
+    "/this-worldline-does-not-exist": 404,
+}
+
+# A denied Nginx auth_request may legitimately emit its tiny generic 401
+# document.  Security depends on the protected artifact not being served, not
+# on every gateway implementation returning a zero-byte error body.  These
+# fingerprints and the size ceiling distinguish that generic response from a
+# leaked courseware document without coupling the smoke test to Nginx wording.
+COURSEWARE_MARKERS = {
+    "/courseware/development-mentor-module-thinking/r5/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r6/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r7/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r8/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r9/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r10/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r11/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r12/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r13/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r14/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r20/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r21/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r22/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r23/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r24/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r25/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r26/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r27/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r28/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r5/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r6/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r7/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r8/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r9/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r10/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r11/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r12/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r13/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r14/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r20/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r21/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r22/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r23/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r24/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r25/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r26/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r27/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r28/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r5/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r6/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r7/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r8/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r9/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r10/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r11/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r12/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r13/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r14/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r20/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r21/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r22/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r23/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r24/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r25/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r26/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r27/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r28/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r1/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r2/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r3/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r4/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r5/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r6/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r1/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r2/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r3/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r4/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r5/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r6/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r1/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r2/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r3/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r4/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r5/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/r6/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/product-mentor-foundations/": ("青少年AI创业营", "MINI硅谷"),
+    "/courseware/product-mentor-foundations/r1/": ("青少年AI创业营", "MINI硅谷"),
+    "/courseware/development-mentor-ligun/": ("先立棍，再让 AI 跑", "DEVELOPMENT MENTOR"),
+    "/courseware/development-mentor-module-thinking/audience/": ("模块思维", "先拆块，再协作"),
+    "/courseware/development-mentor-module-thinking/teacher/presenter.html": ("教师控制", "硅谷币"),
+    "/courseware/market-mentor-user-system/": ("产品的用户体系", "USER SYSTEM"),
+}
+MAX_UNAUTHORIZED_BODY_BYTES = 1024
+
+def request(base: str, path: str) -> tuple[int, bytes, dict[str, str]]:
+    target = urlsplit(base)
+    if target.scheme != "https" or not target.hostname:
+        raise ValueError("base URL must be HTTPS")
+    for attempt in range(3):
+        connection = http.client.HTTPSConnection(
+            target.hostname, target.port or 443, timeout=15, context=ssl.create_default_context()
+        )
+        try:
+            connection.request("GET", path, headers={"User-Agent": "MiniSV-Public-Smoke/1.0"})
+            response = connection.getresponse()
+            body = response.read()
+            headers = {name.lower(): value for name, value in response.getheaders()}
+            return response.status, body, headers
+        except (TimeoutError, ConnectionError, http.client.HTTPException):
+            if attempt == 2:
+                raise
+            time.sleep(0.5 * (attempt + 1))
+        finally:
+            connection.close()
+    raise AssertionError("unreachable")
+
+
+def verify_cleartext_redirect(hostname: str) -> None:
+    connection = http.client.HTTPConnection(hostname, 80, timeout=15)
+    connection.request("GET", "/", headers={"User-Agent": "MiniSV-Public-Smoke/1.0"})
+    response = connection.getresponse()
+    response.read()
+    location = response.getheader("Location")
+    status = response.status
+    connection.close()
+    if status not in (301, 308) or location != f"https://{hostname}/":
+        raise SystemExit(f"FAIL http redirect: status={status}, location={location!r}")
+    print(f"OK http://{hostname}/ {status} -> {location}")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--base", default="https://minisv.vip")
+    args = parser.parse_args()
+    verify_cleartext_redirect(urlsplit(args.base).hostname or "")
+    for path, expected in EXPECTED.items():
+        status, body, headers = request(args.base, path)
+        if status != expected:
+            raise SystemExit(f"FAIL {path}: expected {expected}, got {status}")
+        if headers.get("x-minisv-origin") != "hecate":
+            raise SystemExit(f"FAIL {path}: response did not originate at Hecate")
+        if path == "/auth/login" and headers.get("location") != "/auth/login/":
+            raise SystemExit("FAIL /auth/login: canonical trailing-slash redirect is invalid")
+        if path == "/studio/" and headers.get("location") != "/console/studio/":
+            raise SystemExit("FAIL /studio/: legacy Studio must migrate to /console/studio/")
+        if path in {"/workshop/", "/workshop/confirmed-baseline.json"}:
+            location = headers.get("location", "")
+            target = urlsplit(location)
+            returned = parse_qs(target.query).get("returnTo", [""])[0]
+            if target.path.rstrip("/") != "/auth/login" or returned != "/workshop/":
+                raise SystemExit(f"FAIL {path}: internal archive auth returnTo is invalid: {location!r}")
+        if path == "/homework/ai-daily-quiz/submissions/":
+            location = headers.get("location", "")
+            target = urlsplit(location)
+            returned = parse_qs(target.query).get("returnTo", [""])[0]
+            if target.path.rstrip("/") != "/auth/login" or returned != path:
+                raise SystemExit(f"FAIL {path}: teacher-review auth returnTo is invalid: {location!r}")
+        if path.startswith("/course/development-mentor-ligun/"):
+            location = headers.get("location", "")
+            target = urlsplit(location)
+            returned = parse_qs(target.query).get("returnTo", [""])[0]
+            if target.path.rstrip("/") != "/auth/login" or returned != path:
+                raise SystemExit(f"FAIL D-mentor login returnTo lost exact progress: {location!r}")
+        if path == "/release.json":
+            release = json.loads(body)
+            if release.get("origin") != "hecate" or release.get("canonicalOrigin") != args.base:
+                raise SystemExit("FAIL release.json: invalid production identity")
+            if release.get("sources", {}).get("chjCourseUi") != "806d804932e4cd4ae2796d84578d39197d7ea4ce":
+                raise SystemExit("FAIL release.json: current product-manager courseware is not pinned to approved chj9-11")
+            if release.get("sources", {}).get("chjCourseUiR0") != "679213a61b835335016eac7649213983a0e48489":
+                raise SystemExit("FAIL release.json: historical product-manager r0 source identity was lost")
+            artifact = release.get("coursewareArtifact", {})
+            if (
+                artifact.get("transformed") is not False
+                or artifact.get("mentorRole") != "P"
+                or artifact.get("revision") != 2
+                or artifact.get("route") != "/courseware/product-mentor-foundations/r2/"
+            ):
+                raise SystemExit("FAIL release.json: P-mentor courseware artifact was transformed or misclassified")
+            product_versions = release.get("productCoursewareArtifacts", [])
+            if [item.get("revision") for item in product_versions] != [0, 1, 2]:
+                raise SystemExit("FAIL release.json: product-manager r0/r1/r2 history is incomplete")
+            if (
+                product_versions[0].get("route") != "/courseware/product-mentor-foundations/"
+                or product_versions[0].get("releaseStatus") != "historical"
+                or product_versions[0].get("sourceCommit") != "679213a61b835335016eac7649213983a0e48489"
+                or product_versions[1].get("route") != "/courseware/product-mentor-foundations/r1/"
+                or product_versions[1].get("releaseStatus") != "historical"
+                or product_versions[1].get("sourceCommit") != "d9d45f1396b54a7ac6b41715b31122d8ffc597ff"
+                or product_versions[2].get("route") != "/courseware/product-mentor-foundations/r2/"
+                or product_versions[2].get("releaseStatus") != "current"
+                or product_versions[2].get("sourceCommit") != "806d804932e4cd4ae2796d84578d39197d7ea4ce"
+            ):
+                raise SystemExit("FAIL release.json: product-manager exact version metadata is invalid")
+            development = release.get("developmentCoursewareArtifact", {})
+            if development.get("transformed") is not False or development.get("mentorRole") != "D":
+                raise SystemExit("FAIL release.json: D-mentor courseware artifact was transformed or misclassified")
+            if development.get("sha256") != "ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234":
+                raise SystemExit("FAIL release.json: D-mentor courseware digest is not the accepted T-093 tree")
+            for key, slug, revision, digest, audience_files, teacher_files in (
+                ("moduleThinkingCoursewareArtifact", "development-mentor-module-thinking", 28, "86fcba6afe3d219efb9a9ca9678af4dc6732c10cc4d09ed1c6f876e6014c96cd", 97, 64),
+                ("ligun120CoursewareArtifact", "development-mentor-ligun", 6, "ebab83c20fad26b3df8152acf6d4c5f26115c1521557b2523f5a8eb9647e2cd4", 31, 14),
+            ):
+                deck = release.get(key, {})
+                if (
+                    deck.get("route") != f"/courseware/{slug}/r{revision}/audience/"
+                    or deck.get("teacherRoute") != f"/courseware/{slug}/r{revision}/teacher/presenter.html"
+                    or deck.get("teacherAuthorization") != "server-side-admin-or-mentor"
+                    or deck.get("revision") != revision or deck.get("sha256") != digest
+                    or deck.get("audienceFiles") != audience_files or deck.get("teacherFiles") != teacher_files
+                ):
+                    raise SystemExit(f"FAIL release.json: {key} exact split identity or authorization is invalid")
+            module_thinking = release["moduleThinkingCoursewareArtifact"]
+            if module_thinking.get("transformed") is not False or module_thinking.get("mentorRole") != "D":
+                raise SystemExit("FAIL release.json: P1 artifact was transformed or misclassified")
+            market = release.get("marketCoursewareArtifact", {})
+            if market.get("transformed") is not False or market.get("mentorRole") != "M":
+                raise SystemExit("FAIL release.json: M-mentor courseware artifact was transformed or misclassified")
+            if market.get("sha256") != "48b01a256bd3d408a5d539f798470e6aad0058a19dcdeb8b5d212b0e64add862":
+                raise SystemExit("FAIL release.json: M-mentor courseware digest is not the accepted user-system tree")
+            for feature in ("shared-brand-home", "official-brand-wordmark", "released-workshop-snapshot", "read-only-workshop-history-archive", "unified-course-factory", "course-studio", "versioned-product-manager-courseware", "split-module-thinking-courseware", "mentor-protected-teacher-courseware"):
+                if feature not in release.get("features", []):
+                    raise SystemExit(f"FAIL release.json: missing {feature}")
+            incubator = release.get("incubatorProjectsArtifact", {})
+            if (
+                incubator.get("root") != "/incubator/projects/"
+                or incubator.get("transformed") is not False
+                or incubator.get("files", 0) < 20
+                or {item.get("id") for item in incubator.get("projects", [])} != {"recitation", "mistake-notebook"}
+            ):
+                raise SystemExit("FAIL release.json: T-124 incubator project identity is invalid")
+        if path == "/world-preview.json":
+            preview = json.loads(body)
+            if (
+                preview.get("schemaVersion") != 1
+                or preview.get("source") != "historyCatalog"
+                or not isinstance(preview.get("layers"), list)
+                or not preview["layers"]
+                or not isinstance(preview.get("events"), list)
+                or not preview["events"]
+            ):
+                raise SystemExit("FAIL world-preview.json: homepage history catalog is incomplete")
+        if path in COURSEWARE_MARKERS:
+            text = body.decode("utf-8", "replace")
+            if len(body) > MAX_UNAUTHORIZED_BODY_BYTES or any(marker in text for marker in COURSEWARE_MARKERS[path]):
+                raise SystemExit(f"FAIL {path}: anonymous auth gate leaked courseware bytes")
+            if headers.get("cache-control") != "private, no-store, no-transform":
+                raise SystemExit(f"FAIL {path}: authenticated static courseware cache policy is unsafe")
+        if path == "/assets/mini-silicon-valley-logo-transparent.png":
+            if hashlib.sha256(body).hexdigest() != "4dbbe4dea625fd372c6d760f2344fbf62b7b15f0d2d14e490cddd56e05ffbe87":
+                raise SystemExit("FAIL official brand wordmark: unapproved bytes")
+        if path in {"/", "/auth/login/", "/auth/register/", "/auth/recover/"}:
+            text = body.decode("utf-8", "replace")
+            if 'href="/"' not in text or '/favicon.svg' not in text or '/assets/mini-silicon-valley-logo-transparent.png' not in text:
+                raise SystemExit(f"FAIL {path}: shared brand/home contract is missing")
+        if path == "/framework/":
+            text = body.decode("utf-8", "replace")
+            if "COURSE SYSTEM" not in text or "/ui-theme.js" not in text:
+                raise SystemExit("FAIL /framework/: native hydrated shell or public navigation runtime is missing")
+        if path == "/homework/ai-daily-quiz/":
+            text = body.decode("utf-8", "replace")
+            for marker in ("AI 每日一题", "7 DAYS", "每天五题"):
+                if marker not in text:
+                    raise SystemExit(f"FAIL AI daily quiz: missing {marker!r}")
+        if path in {"/incubator/", "/incubator/projects/"}:
+            text = body.decode("utf-8", "replace")
+            for marker in ("MINI硅谷", "/incubator/projects/recitation/", "/incubator/projects/mistake-notebook/"):
+                if marker not in text:
+                    raise SystemExit(f"FAIL {path}: missing incubator marker {marker!r}")
+        if path == "/incubator/projects/recitation/":
+            text = body.decode("utf-8", "replace")
+            for marker in ("背课文", "开始背诵", "../_shared/phosphor/regular/style.css", "/incubator/projects/"):
+                if marker not in text:
+                    raise SystemExit(f"FAIL recitation project: missing {marker!r}")
+            if "unpkg.com" in text or "fonts.googleapis.com" in text:
+                raise SystemExit("FAIL recitation project: external runtime dependency leaked")
+            if "microphone=(self)" not in headers.get("permissions-policy", ""):
+                raise SystemExit("FAIL recitation project: voice practice permission is not route-scoped")
+        if path == "/incubator/projects/mistake-notebook/":
+            text = body.decode("utf-8", "replace")
+            for marker in ("错题本", "错题集", "../_shared/phosphor/regular/style.css", "/incubator/projects/"):
+                if marker not in text:
+                    raise SystemExit(f"FAIL mistake notebook project: missing {marker!r}")
+            if "unpkg.com" in text or "fonts.googleapis.com" in text:
+                raise SystemExit("FAIL mistake notebook project: external runtime dependency leaked")
+        if path == "/api/public/courses":
+            envelope = json.loads(body)
+            courses = envelope.get("data", {}).get("courses") if envelope.get("ok") is True else None
+            if not isinstance(courses, list):
+                raise SystemExit("FAIL public course catalog: invalid response envelope")
+            serialized = json.dumps(courses, ensure_ascii=False)
+            for forbidden in ('"mentorScript"', '"privateCards"', '"decks"', '"reviewQueue"', '"contentPackages"', '"sources"', '"fieldModel"'):
+                if forbidden in serialized:
+                    raise SystemExit(f"FAIL public course catalog: leaked {forbidden}")
+        if path == "/api/public/homework/first-game/submissions":
+            envelope = json.loads(body)
+            data = envelope.get("data") if envelope.get("ok") is True else None
+            if not isinstance(data, dict) or not isinstance(data.get("submissions"), list):
+                raise SystemExit("FAIL public homework list: invalid response envelope")
+        if path in {"/", "/world/", "/framework/", "/parents/", "/incubator", "/incubator/", "/incubator/projects/", "/incubator/projects/recitation/", "/incubator/projects/mistake-notebook/"}:
+            if headers.get("x-robots-tag") != "index, follow":
+                raise SystemExit(f"FAIL {path}: public page is not indexable")
+        elif headers.get("x-robots-tag") != "noindex, nofollow, noarchive":
+            raise SystemExit(f"FAIL {path}: protected or operational route is indexable")
+        if path == "/this-worldline-does-not-exist":
+            text = body.decode("utf-8", "replace")
+            if "WORLDLINE NOT FOUND" not in text or 'href="/"' not in text or "/favicon.svg" not in text or "/assets/mini-silicon-valley-logo-transparent.png" not in text:
+                raise SystemExit("FAIL custom 404: branded recovery path is missing")
+        print(f"OK {path} {status}")
+    print("MINISV_PUBLIC_SMOKE_OK")
+
+
+if __name__ == "__main__":
+    main()

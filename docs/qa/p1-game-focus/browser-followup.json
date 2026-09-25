@@ -1,0 +1,11 @@
+{
+  "workshopOriginalBrowserReload": "PASS",
+  "originalProjectBlocks": 16,
+  "projectNotModified": true,
+  "teacherResourceClickToWorkshop": "PASS",
+  "returnPreservedSlide": "module-description",
+  "conveyorInputCardClick": "PASS",
+  "sixFieldsBoundToExistingConveyor": "PASS",
+  "physicalProjection": "NOT_TESTED",
+  "productionDeployed": false
+}

@@ -1,0 +1,23 @@
+✔ merged development course has one visible library entry without deleting historical P2 (0.474417ms)
+✔ old fixed P2 entry lands at AI stage of combined course, not an invalid old slide (2.407375ms)
+✔ permanent workbook entry resolves latest audience workbook and keeps template selection only (1.9215ms)
+(node:30760) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ server editions persist complete immutable snapshots and old editions remain readable (12.702791ms)
+✔ CAS concurrent and stale saves do not overwrite another mentor (7.148ms)
+✔ learner can read public text but cannot write; impersonation and observers cannot access editions (6.137167ms)
+✔ base and field bounds reject invalid data, plain text is stored without executing HTML (6.510458ms)
+✔ restoring original text is a new edition; decks and bases are isolated (6.108625ms)
+✔ shared-v1 carries an edit across bases and reports changed or removed originals (7.372667ms)
+✔ shared-v1 CAS is global across bases while decks remain isolated (6.635291ms)
+✔ shared history supports explicit zero and immutable old reads (5.842375ms)
+✔ legacy bases are retired after a shared edition exists (6.751625ms)
+✔ AI-08 runtime fields are editable in r22 and shared with r23, with state isolation (7.496917ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 156.851625

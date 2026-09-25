@@ -1,0 +1,4 @@
+{"savedTextBefore": 33, "savedTextAfter": 33, "allSavedTextPreserved": true, "backup": "20260924T033019Z-20260924-ai08-edit-maintenance"}
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+MINISV_DEPLOYED release=20260924-ai08-edit-maintenance-2 previous=20260924-ai08-edit-maintenance backup=/Users/hecate/Services/minisv/backups/20260924T033532Z-20260924-ai08-edit-maintenance-2 app=unified

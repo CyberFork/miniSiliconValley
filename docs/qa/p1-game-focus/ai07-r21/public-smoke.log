@@ -1,0 +1,14 @@
+OK http://minisv.vip/ 308 -> https://minisv.vip/
+OK /course/ 307
+OK /courseware/development-mentor-module-thinking/r20/audience/ 401
+OK /courseware/development-mentor-module-thinking/r21/audience/ 401
+OK /courseware/development-mentor-module-thinking/r20/teacher/presenter.html 401
+OK /courseware/development-mentor-module-thinking/r21/teacher/presenter.html 401
+OK /courseware/development-mentor-module-thinking/r20/teacher/presenter-notes.js 401
+OK /courseware/development-mentor-module-thinking/r21/teacher/presenter-notes.js 401
+OK /healthz 200
+OK /release.json 200
+MINISV_PUBLIC_SMOKE_OK
+LATEST_POINTER_R21_OK
+LATEST_ENTRY_OK p1
+LATEST_ENTRY_OK p2

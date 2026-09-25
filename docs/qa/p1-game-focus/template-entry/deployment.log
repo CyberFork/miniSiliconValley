@@ -1,0 +1,23 @@
+ALL_COURSEWARE_PACKAGE_BYTES_UNCHANGED 2098
+MINISV_BUNDLE_READY 20260924-template-entry /Users/hecate/Services/minisv/builds/20260924-template-entry/bundle archive=/Users/hecate/Services/minisv/uploads/20260924-template-entry.tar.gz
+BAG_COMPARE_BUILD_READY
+OK /parents/ 200
+OK /robots.txt 200
+OK /sitemap.xml 200
+OK /api/public/courses 200
+OK /api/public/homework/first-game/submissions 200
+OK /api/qa 200
+OK /internal/knowledge-gaps 404
+OK /workshop/ 307
+OK /workshop/confirmed-baseline.json 307
+OK /workshop/_source/index.html 404
+OK /favicon.svg 200
+OK /this-worldline-does-not-exist 404
+OK /classroom/ 307
+OK /alpha/ 410
+OK /control/ 410
+OK /api/internal/course-registry/release 404
+OK retired-port 18790 closed
+OK retired-port 18791 closed
+MINISV_HECATE_HEALTHY
+MINISV_DEPLOYED release=20260924-template-entry previous=20260924-bag-compare backup=/Users/hecate/Services/minisv/backups/20260924T054759Z-20260924-template-entry app=unified

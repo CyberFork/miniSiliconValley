@@ -1,0 +1,47 @@
+{
+  "ok": true,
+  "todos": ["T-113", "T-114"],
+  "deployedAt": "2026-09-14T12:15:00+08:00",
+  "release": {
+    "id": "20260914T120648CST-t113-t114-r1",
+    "sourceCommit": "582db459a1bb47bdfbd873fddd2c6cf88f4b3b2b",
+    "previousRelease": "20260914T102054CST-transparent-wordmark-r7",
+    "archiveSha256": "d9b4cc9e8ae92b62cc102b98666c48abf6e670846b3e6b093ae5a526d8f25993",
+    "canonicalOrigin": "https://minisv.vip"
+  },
+  "validation": {
+    "typecheck": "passed",
+    "lint": "passed",
+    "coursePlatformTests": "168/168 passed",
+    "deploymentUnitTests": "53/53 passed",
+    "dataValidation": "203 events, 5 stages, 0 errors, 0 warnings",
+    "applicationBuild": "passed",
+    "applicationSmoke": "passed",
+    "browserRuns": "3 consecutive runs passed",
+    "publicSmoke": "passed",
+    "productionHealth": "passed"
+  },
+  "browserReceipt": "docs/qa/t113-t114-learner-accounts/browser-receipt.json",
+  "productionVerification": {
+    "releaseIdentity": "passed",
+    "schemaTables": [
+      "auth_learner_admin_profiles",
+      "auth_admin_learner_requests",
+      "auth_learner_username_allocations"
+    ],
+    "authenticatedReadOnly": {
+      "adminLogin": 200,
+      "accountPage": 200,
+      "learnerDirectory": 200,
+      "logout": 200
+    }
+  },
+  "safety": {
+    "isolatedD1UsedForDestructiveCrud": true,
+    "productionDestructiveCrudPerformed": false,
+    "productionClassroomMembersChanged": false,
+    "credentialsRecordedInReceipt": false,
+    "humanViewAcceptanceSignedByAutomation": false,
+    "humanUiAcceptanceSignedByAutomation": false
+  }
+}

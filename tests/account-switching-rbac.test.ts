@@ -1,0 +1,113 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+
+const root = new URL("../", import.meta.url);
+const source = (path: string) => readFileSync(new URL(path, root), "utf8");
+
+test("Console-hosted Studio navigation is a real-link, route-derived and recoverable surface", () => {
+  const studio = source("app/studio/StudioApp.tsx");
+  const navigation = source("app/components/NavigationLink.tsx");
+  for (const href of ["/console/studio/", "/console/studio/editor/", "/console/studio/preview/", "/console/studio/reviews/", "/console/studio/releases/", "/console/courseware/"]) {
+    assert.match(studio, new RegExp(href.replaceAll("/", "\\/")));
+  }
+  assert.match(studio, /<Link[\s\S]*href=\{item\.href\}/);
+  assert.match(studio, /components\/NavigationLink/);
+  assert.match(studio, /aria-current=\{item\.id === section \? "page"/);
+  assert.match(navigation, /return <a/);
+  assert.match(navigation, /正在打开…/);
+  assert.match(navigation, /8_000/);
+  assert.doesNotMatch(navigation, /preventDefault\s*\(/);
+  assert.match(studio, /onClick=\{\(\) => void load\(\)\}>重试/);
+  assert.doesNotMatch(studio, /href="#"/);
+});
+
+test("unified account menu uses the server-side browser set and never stores credentials", () => {
+  const menu = source("app/components/AccountMenu.tsx");
+  const client = source("app/components/browser-account-client.ts");
+  const accounts = source("app/api/auth/accounts/route.ts");
+  const logout = source("app/api/auth/logout/route.ts");
+  for (const label of ["账户中心", "添加账号", "退出当前账号", "退出本设备全部账号", "返回管理员身份"]) assert.match(menu, new RegExp(label));
+  assert.match(menu, /mutateBrowserAccount\("switch"/);
+  assert.match(menu, /IdentityChangedGuard/);
+  assert.match(menu, /msv-account-identity-guard/);
+  assert.match(client, /\/api\/auth\/accounts/);
+  assert.match(client, /BroadcastChannel/);
+  assert.match(client, /safeAccountReturnTo/);
+  assert.match(client, /accountDestination/);
+  assert.match(client, /internal-role/);
+  assert.match(client, /pathname\.startsWith\("\/console"\)/);
+  assert.match(menu, /MINI硅谷工作台/);
+  assert.doesNotMatch(`${menu}\n${client}`, /localStorage|sessionStorage/i);
+  assert.match(accounts, /expectedVersion/);
+  assert.match(accounts, /idempotencyKey/);
+  assert.match(accounts, /sessionCookie\(result\.sessionToken/);
+  assert.match(logout, /revokeCurrentSession/);
+  assert.match(logout, /Clear-Site-Data/);
+});
+
+test("homepage and protected shells share readable account semantics", () => {
+  const html = source("deploy/minisv/site/index.html");
+  const portal = source("deploy/minisv/site/portal.js");
+  const portalCss = source("deploy/minisv/site/portal.css");
+  const menuCss = source("app/components/account-menu.module.css");
+  assert.match(html, /data-portal-account/);
+  assert.doesNotMatch(html, /displayName|currentUserId|accountSet/);
+  assert.match(portal, /\/api\/auth\/accounts/);
+  assert.match(portal, /cache:\s*"no-store"/);
+  assert.match(portal, /credentials:\s*"same-origin"/);
+  assert.match(portal, /账号服务没有完成这次操作/);
+  assert.doesNotMatch(portal, /localStorage|sessionStorage/);
+  for (const css of [portalCss, menuCss]) {
+    assert.match(css, /:focus-visible/);
+    assert.match(css, /visited/);
+  }
+  assert.doesNotMatch(source("app/classroom/platform.module.css"), /\.top nav a/);
+  assert.doesNotMatch(source("app/studio/studio.module.css"), /\.user a/);
+  assert.doesNotMatch(source("app/course/course.module.css"), /\.top a/);
+});
+
+test("Test impersonation is server-scoped, short-lived and actor/effective audited", () => {
+  const auth = source("app/lib/auth-store.ts");
+  const shared = source("app/api/platform/_shared.ts");
+  const route = source("app/api/auth/impersonation/route.ts");
+  assert.match(auth, /const IMPERSONATION_MS = 30 \* 60 \* 1_000/);
+  assert.match(auth, /target\.environment !== "test"/);
+  assert.match(auth, /target\.role === "admin"/);
+  assert.match(auth, /classroom_admin_dm_grants actor_grant/);
+  assert.match(auth, /actor_has_scope/);
+  assert.match(auth, /actor-grant-revoked/);
+  assert.match(auth, /auth\.impersonation\.started/);
+  assert.match(auth, /auth\.impersonation\.stopped/);
+  assert.match(shared, /session\.impersonation\?\.actor\.userId \?\? session\.userId/);
+  assert.match(shared, /auth\.impersonation\.request-denied/);
+  assert.match(shared, /auth\.authorization\.request-denied/);
+  assert.match(shared, /expiresAt: session\.impersonation\?\.expiresAt \?\? null/);
+  assert.match(route, /Clear-Site-Data/);
+});
+
+test("Admin DM authority is primary/delegated and cannot recurse", () => {
+  const migration = source("drizzle/0006_account_switching_and_admin_dm_delegation.sql");
+  const store = source("app/lib/classroom-platform-store.ts");
+  assert.match(migration, /delegation_mode[\s\S]*primary[\s\S]*delegated/);
+  assert.match(migration, /chk_classroom_admin_dm_can_delegate/);
+  assert.match(migration, /admin-dm-primary:/);
+  assert.match(store, /requireAdminDmDelegator/);
+  assert.match(store, /grant\.mode !== "primary" \|\| !grant\.canDelegate/);
+  assert.match(store, /account\.role !== "mentor"/);
+  assert.match(store, /PRIMARY_ADMIN_DM_PROTECTED/);
+  assert.match(store, /membership\.admin-dm\.denied/);
+  assert.match(store, /relinquish-admin-dm/);
+});
+
+test("account recovery for test identities remains exact-room and one-time", () => {
+  const auth = source("app/lib/auth-store.ts");
+  const route = source("app/api/platform/classrooms/[classroomId]/test-identities/route.ts");
+  assert.match(auth, /manageTestClassroomIdentity/);
+  assert.match(auth, /target\.role !== "admin"/);
+  assert.match(auth, /must_change_password = 1/);
+  assert.match(auth, /auth\.test-credential\.regenerated/);
+  assert.doesNotMatch(auth.match(/auth\.test-credential\.regenerated[\s\S]{0,220}/)?.[0] ?? "", /initialPassword/);
+  assert.match(route, /reset-credential/);
+  assert.match(route, /requirePlatformAdmin\(user\)/);
+});

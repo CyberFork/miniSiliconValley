@@ -1,0 +1,149 @@
+{
+  "sourcePngBytes": 3181933,
+  "optimizedWebpBytes": 433544,
+  "pixelSize": [
+    1671,
+    941
+  ],
+  "reductionPercent": 86.37,
+  "responsive": [
+    {
+      "name": "desktop",
+      "viewport": [
+        1440,
+        900
+      ],
+      "title": "MINI硅谷 · 青少年AI创业营",
+      "heading": "课程大纲",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "phaseBoxes": [
+        {
+          "cls": "pixel-outline-phase pixel-outline-phase--spark",
+          "x": 193,
+          "y": 185,
+          "w": 436,
+          "h": 241
+        },
+        {
+          "cls": "pixel-outline-phase pixel-outline-phase--make",
+          "x": 692,
+          "y": 199,
+          "w": 534,
+          "h": 241
+        },
+        {
+          "cls": "pixel-outline-phase pixel-outline-phase--scale",
+          "x": 818,
+          "y": 478,
+          "w": 534,
+          "h": 241
+        },
+        {
+          "cls": "pixel-outline-phase pixel-outline-phase--launch",
+          "x": 186,
+          "y": 465,
+          "w": 352,
+          "h": 241
+        }
+      ],
+      "requestedWebp": true,
+      "requestedPng": false,
+      "consoleErrors": []
+    },
+    {
+      "name": "pad-landscape",
+      "viewport": [
+        1180,
+        820
+      ],
+      "title": "MINI硅谷 · 青少年AI创业营",
+      "heading": "课程大纲",
+      "scrollWidth": 1180,
+      "clientWidth": 1180,
+      "phaseBoxes": [
+        {
+          "cls": "pixel-outline-phase pixel-outline-phase--spark",
+          "x": 159,
+          "y": 200,
+          "w": 357,
+          "h": 197
+        },
+        {
+          "cls": "pixel-outline-phase pixel-outline-phase--make",
+          "x": 567,
+          "y": 212,
+          "w": 437,
+          "h": 197
+        },
+        {
+          "cls": "pixel-outline-phase pixel-outline-phase--scale",
+          "x": 671,
+          "y": 439,
+          "w": 437,
+          "h": 197
+        },
+        {
+          "cls": "pixel-outline-phase pixel-outline-phase--launch",
+          "x": 153,
+          "y": 429,
+          "w": 288,
+          "h": 197
+        }
+      ],
+      "requestedWebp": true,
+      "requestedPng": false,
+      "consoleErrors": []
+    },
+    {
+      "name": "pad-portrait",
+      "viewport": [
+        820,
+        1180
+      ],
+      "title": "MINI硅谷 · 青少年AI创业营",
+      "heading": "课程大纲",
+      "scrollWidth": 820,
+      "clientWidth": 820,
+      "phaseBoxes": [
+        {
+          "cls": "pixel-outline-phase pixel-outline-phase--spark",
+          "x": 116,
+          "y": 459,
+          "w": 243,
+          "h": 134
+        },
+        {
+          "cls": "pixel-outline-phase pixel-outline-phase--make",
+          "x": 394,
+          "y": 467,
+          "w": 298,
+          "h": 134
+        },
+        {
+          "cls": "pixel-outline-phase pixel-outline-phase--scale",
+          "x": 465,
+          "y": 622,
+          "w": 298,
+          "h": 134
+        },
+        {
+          "cls": "pixel-outline-phase pixel-outline-phase--launch",
+          "x": 112,
+          "y": 615,
+          "w": 196,
+          "h": 134
+        }
+      ],
+      "requestedWebp": true,
+      "requestedPng": false,
+      "consoleErrors": []
+    }
+  ],
+  "interaction": {
+    "chapter1ClickTarget": "overview",
+    "worldBriefingVisible": false,
+    "url": "http://127.0.0.1:18777/courseware/product-mentor-foundations/r2/?view=outline",
+    "slideText": "04\n\nCHOOSE YOUR SIDE · ENTREPRENEUR OR NOT\n\n04 / 34\nSTAND WITH YOUR CHOICE\n站队游戏：谁才是真正的创业者？\n01\n?\nWHO IS IT\nLEMON STAND\n\n在"
+  }
+}

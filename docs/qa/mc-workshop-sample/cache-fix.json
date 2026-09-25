@@ -1,0 +1,9 @@
+{
+  "rootCause": "New HTML removed layer control; cached pre-change app.mjs line21 still appended options to #layer",
+  "contentVersionGraph": "PASS",
+  "stampIdempotence": "PASS",
+  "httpNoStoreConditionalRequest": 200,
+  "realEdgeReload": "PASS",
+  "preservedBlocks": 16,
+  "walletExtensionNotModified": true
+}

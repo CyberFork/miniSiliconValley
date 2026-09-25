@@ -1,0 +1,5 @@
+PASS /healthz 200
+PASS /courseware-maintenance/p1-ai-text/ai-lessons.js 404
+PASS /courseware/development-mentor-module-thinking/r22/teacher/ai-lessons.js 401
+PASS /courseware/development-mentor-module-thinking/r23/audience/text-editions.js 401
+DEPLOYMENT_POINTER_OK

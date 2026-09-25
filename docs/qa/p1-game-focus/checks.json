@@ -1,0 +1,13 @@
+{
+  "version": "2026.09.22-p1-games-draft1",
+  "digest": "c998b7c7c22603a6605cfbe7c8ed75fb246fbb7931ae6c4533a9723beffc4857",
+  "structuralAndVoxel": "PASS",
+  "gameFocusAndOwnProject": "PASS",
+  "historicalReleaseIsolation": "PASS",
+  "recap": "PASS: structure and fold state tests",
+  "targetedLint": "PASS",
+  "localTeacherHTTP": 200,
+  "browserVisual": "PARTIAL: recap earlier verified; new interactions require review, see workshop-and-tradeoff.json",
+  "manualAcceptance": "NOT_SIGNED",
+  "productionDeployed": false
+}

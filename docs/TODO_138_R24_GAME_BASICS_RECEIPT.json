@@ -1,0 +1,49 @@
+{
+  "release": "20260924-t138-basics-r24",
+  "revision": 24,
+  "recordedAt": "2026-09-24T09:57:06.812562+00:00",
+  "sourceCommit": "53a20f16e9ba96b8d179d29608e58df58dee10c9",
+  "sourceBaselineCommit": "34a39c46011bf0ea295165d536d2a456c4cb3eb1",
+  "archiveSha256": "15502c13dd16b316d6a79500c5a5ed012876371c46ac051f38c6b6a35f8e98ac",
+  "manifest": {
+    "version": "r24-simple-4",
+    "promptSha256": "ea0054375e9d9b861eaa712b8eedfa4f82bf8ac1ee7a78cf3f64400c73cf1313",
+    "files": {
+      "index.html": "c2c9852beecd1f5838833b71bacb69a6f6e1d1f0a60048dbecb2ff02cb6c27c0",
+      "workbook.js": "675c169b156311bce64eb350b77c0459ff3e23467ba17a1aab53af63dd3cde86",
+      "workbook.css": "f2b5a34595f9092bfbc035e964e36d7ec012cca73e81723aa7b9166a49ddd073",
+      "student-prompt.js": "8cea88f88c5675ad6a6f992ac6d3691c1df710382967fca7b5d7cdd5531d3d74"
+    },
+    "revision": 24,
+    "reason": "用户授权直接简化 r24 提示词中心：策划输入＋一次复制；AI 问答确认宏观主棍与微观子棍，交付开发文档，不开发游戏。"
+  },
+  "url": "https://minisv.vip/courseware/development-mentor-module-thinking/r24/audience/ai-materials/workbook/index.html",
+  "stableUrl": "https://minisv.vip/courseware/latest/p1/workbook/",
+  "scope": "Game-basics interview rules in the simplified student prompt; existing r24 maintenance layer only. No IP-server migration, page redesign, new form, site AI backend or game implementation.",
+  "verified": [
+    "Two source hashes matched supplied baseline; reviewed and applied the two-file patch; maintenance version advanced in generator.",
+    "Read-only second review passed; root independently reviewed flow and confirmation gates.",
+    "Actual local and isolated remote source: verify-student-prompt, verify-workbook, five courseware maintenance tests passed.",
+    "Generated prompt matches canonical candidate bytes; HTML/CSS/workbook.js unchanged; 2486 unrelated prior site files byte-identical.",
+    "Existing deploy-hecate flow completed; MINISV_HECATE_HEALTHY; public-smoke ended MINISV_PUBLIC_SMOKE_OK.",
+    "Existing authorized Edge browser loaded production r24; actual copy button and OS paste roundtrip succeeded.",
+    "Authorized student-prompt.js HTTP 200 and exact SHA256; in-page canonical prompt SHA256 matched the candidate.",
+    "Actual copied full prompt plus public test planning exactly matched expected SHA256, not just page copy.",
+    "Stable workbook entry opened the same r24 prompt center.",
+    "Rollback target bundle/site/app/parentQA passed validation; rollback not executed."
+  ],
+  "clipboardRoundtrip": {
+    "characters": 4096,
+    "sha256": "68ce74490b5abeba64bf9f14e2094ca1f21f9d9584d4873b8cec81e9f96622d7",
+    "containsPrivateStudentContent": false
+  },
+  "notVerified": [
+    "Real external AI multi-turn behavior; user will verify.",
+    "Human trial lesson; no approval fabricated.",
+    "No new physical tablet test this round; page layout and UI code unchanged."
+  ],
+  "rollback": "20260924-t138-options-r24",
+  "backup": "~/Services/minisv/backups/20260924T094956Z-20260924-t138-basics-r24",
+  "runtimeCacheBackup": "~/Services/minisv/backups/20260924-t138-basics-rollback-runtime-cache/cf.json",
+  "oldSkill": "Not changed; historical Skill files did not overwrite the simplified student entry."
+}

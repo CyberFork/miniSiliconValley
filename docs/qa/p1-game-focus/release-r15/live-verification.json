@@ -1,0 +1,15 @@
+{
+  "release": "20260923T1255CST-workshop-latest-r15",
+  "p1Revision": 15,
+  "p1Digest": "2a6950171f08b4d21af1553a100fbb06f761a0022770ece24fbd956ad45398cc",
+  "p2Revision": 6,
+  "deploymentHealth": "MINISV_HECATE_HEALTHY",
+  "latestMetadata": "verified publicly: P1 r15, P2 r6",
+  "workshopLatestLanding": 200,
+  "savedTextRowsPreserved": 10,
+  "sharedTextRevision": 5,
+  "unauthenticatedLatestTeacher": "Chrome follows latest pointer to r15; teacher target correctly returns 401",
+  "browserQA": "isolated Chrome: slow-module 1/4 progress and actual rendered 3D grid; no workshop runtime errors",
+  "authenticatedFinalBrowserQA": "not repeated in Edge because user actively using it; do not touch existing unsaved editor",
+  "manualTeachingAcceptance": "not signed"
+}

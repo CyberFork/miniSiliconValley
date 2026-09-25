@@ -1,0 +1,20 @@
+(node:29158) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ server editions persist complete immutable snapshots and old editions remain readable (11.970459ms)
+✔ CAS concurrent and stale saves do not overwrite another mentor (7.326125ms)
+✔ learner can read public text but cannot write; impersonation and observers cannot access editions (6.741958ms)
+✔ base and field bounds reject invalid data, plain text is stored without executing HTML (7.087917ms)
+✔ restoring original text is a new edition; decks and bases are isolated (6.66525ms)
+✔ shared-v1 carries an edit across bases and reports changed or removed originals (6.676875ms)
+✔ shared-v1 CAS is global across bases while decks remain isolated (6.478459ms)
+✔ shared history supports explicit zero and immutable old reads (6.624917ms)
+✔ legacy bases are retired after a shared edition exists (6.191667ms)
+✔ AI-08 runtime fields are editable in r22 and shared with r23, with state isolation (7.136542ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 219.805625

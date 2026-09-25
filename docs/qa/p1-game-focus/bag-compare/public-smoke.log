@@ -1,0 +1,4 @@
+PASS healthz=200; release=20260924-bag-compare; r23 unchanged; live manifest matches local bag animation, 3D runtime, styling, both screen adapters and AI lessons.
+/courseware-maintenance/p1-ai-text/bag-compare.js 404
+/courseware/development-mentor-module-thinking/r23/audience/bag-compare.js 401
+/courseware/development-mentor-module-thinking/r22/teacher/module-3d.js 401

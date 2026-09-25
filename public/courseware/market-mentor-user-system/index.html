@@ -1,0 +1,1659 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="4mFJFhtWEG9DmlX5awYUBj">
+<head data-page-node-id="HRnBScNgLhVjMrkdVyAm4x">
+<meta charset="UTF-8" data-page-node-id="lgd6TsJQaI4G1dfaUqwNHb">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="Q5rRUZCjhHpoLGb4QnqCni">
+<title>产品的用户体系 · MINI硅谷</title>
+<style>
+/* === THEME: MINI硅谷 === */
+:root {
+  --brand-blue: #2556CC;
+  --brand-blue-deep: #153C99;
+  --mint: #2A9458;
+  --mint-light: #7ED6A5;
+  --cream: #F7F1E3;
+  --cream-card: #FFFDF6;
+  --paper-blue: #EEF3FB;
+  --navy: #16233D;
+  --ink: #1B2B4D;
+  --ink-soft: #3D4D66;
+  --yellow: #FFD54F;
+  --red: #C23D3D;
+  --font-heading: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-body: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  /* 像素边框（阶梯式 box-shadow） */
+  --pixel-border: 0 -4px 0 0 var(--ink), 0 4px 0 0 var(--ink), -4px 0 0 0 var(--ink), 4px 0 0 0 var(--ink);
+}
+
+/* === VIEWPORT BASE === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; scroll-behavior: auto; -webkit-font-smoothing: antialiased; }
+body {
+  overflow-x: hidden;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-body);
+  line-height: 1.5;
+}
+.slide {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: clamp(1.5rem, 4vw, 4rem);
+}
+.slide-content {
+  width: 100%;
+  max-width: min(92vw, 1280px);
+  max-height: none;
+  overflow: visible;
+  flex-shrink: 0;
+  transform: scale(var(--slide-fit, 1));
+  transform-origin: center center;
+  position: relative;
+  z-index: 2;
+}
+.slide-title {
+  font-family: var(--font-heading);
+  font-size: clamp(2.2rem, 6vw, 5rem);
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  margin-bottom: clamp(0.5rem, 2vw, 1.5rem);
+}
+.slide-subtitle {
+  font-size: clamp(1rem, 2.2vw, 1.6rem);
+  font-weight: 500;
+  color: var(--ink-soft);
+  line-height: 1.4;
+  margin-bottom: clamp(0.5rem, 1.5vw, 1rem);
+}
+.slide-caption {
+  font-size: clamp(0.7rem, 1.2vw, 0.95rem);
+  color: var(--ink-soft);
+}
+
+/* === 网格纸背景 === */
+.grid-bg {
+  position: absolute; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(37, 86, 204, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37, 86, 204, 0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* === 像素装饰 === */
+.pixel-block { position: absolute; z-index: 1; opacity: 0.9; }
+
+/* === 品牌徽章 === */
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--brand-blue);
+  color: #fff;
+  font-weight: 900;
+  font-size: clamp(1.1rem, 2.4vw, 1.8rem);
+  padding: 0.55em 1.1em;
+  border-radius: 6px;
+  box-shadow: var(--pixel-border);
+  letter-spacing: 0.05em;
+}
+.brand-badge .logo-dot {
+  width: 0.85em; height: 0.85em;
+  background: var(--yellow);
+  border-radius: 2px;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.35);
+}
+
+/* === 英文小标签（装饰） === */
+.mono-tag {
+  font-family: var(--font-mono);
+  font-size: clamp(0.6rem, 1vw, 0.8rem);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--brand-blue);
+  text-transform: uppercase;
+}
+.mono-tag.light { color: var(--mint-light); }
+
+/* === 卡片 === */
+.mission-card {
+  background: var(--cream-card);
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  box-shadow: 8px 8px 0 rgba(27, 43, 77, 0.15);
+  padding: clamp(1.2rem, 3vw, 2.4rem);
+}
+
+/* === 按钮 === */
+.game-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--mint);
+  color: #fff;
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: clamp(1rem, 2vw, 1.4rem);
+  padding: 0.7em 1.6em;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  box-shadow: 0 6px 0 var(--ink);
+  cursor: pointer;
+  transition: transform 0.15s var(--ease-out-expo), box-shadow 0.15s var(--ease-out-expo);
+}
+.game-btn:hover { transform: translateY(2px); box-shadow: 0 4px 0 var(--ink); }
+.game-btn:active { transform: translateY(6px); box-shadow: 0 0 0 var(--ink); }
+
+/* === 进度条 & 导航 === */
+.progress-bar {
+  position: fixed; top: 0; left: 0; height: 4px;
+  background: linear-gradient(90deg, var(--brand-blue), var(--mint));
+  transition: width 0.3s ease; z-index: 100;
+}
+.nav {
+  position: fixed; bottom: 1rem; left: 50%;
+  transform: translateX(-50%);
+  display: flex; gap: 0.5rem; z-index: 100;
+}
+.nav-dot {
+  width: 10px; height: 10px;
+  border-radius: 2px;
+  background: rgba(27, 43, 77, 0.25);
+  border: none; cursor: pointer; padding: 0;
+  transition: all 0.3s ease;
+}
+.nav-dot.active { background: var(--brand-blue); transform: scale(1.35) rotate(45deg); }
+
+/* === 页码 === */
+.page-num {
+  position: fixed; right: 1.2rem; bottom: 1rem; z-index: 100;
+  font-family: var(--font-mono);
+  font-size: 0.75rem; font-weight: 700;
+  color: var(--ink-soft);
+  letter-spacing: 0.1em;
+}
+
+/* === 动画 === */
+.reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s var(--ease-out-expo), transform 0.6s var(--ease-out-expo); }
+.reveal-scale { opacity: 0; transform: scale(0.94); transition: opacity 0.6s var(--ease-out-expo), transform 0.6s var(--ease-out-expo); }
+.reveal-left { opacity: 0; transform: translateX(-30px); transition: opacity 0.6s var(--ease-out-expo), transform 0.6s var(--ease-out-expo); }
+.reveal.visible, .reveal-scale.visible, .reveal-left.visible { opacity: 1; transform: none; }
+.reveal:nth-child(1) { transition-delay: 0s; }
+.reveal:nth-child(2) { transition-delay: 0.1s; }
+.reveal:nth-child(3) { transition-delay: 0.2s; }
+.reveal:nth-child(4) { transition-delay: 0.3s; }
+.reveal:nth-child(5) { transition-delay: 0.4s; }
+.reveal:nth-child(6) { transition-delay: 0.5s; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .reveal-scale, .reveal-left { opacity: 1; transform: none; transition: none; }
+}
+
+/* === 章节页（深蓝面板） === */
+.slide[data-theme="navy"] {
+  background: var(--navy);
+  color: #fff;
+}
+.slide[data-theme="navy"] .grid-bg {
+  background-image:
+    linear-gradient(rgba(126, 214, 165, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(126, 214, 165, 0.07) 1px, transparent 1px);
+}
+.chapter-num {
+  font-family: var(--font-mono);
+  font-size: clamp(4rem, 14vw, 11rem);
+  font-weight: 700;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 2px var(--mint-light);
+  opacity: 0.9;
+}
+.chapter-title {
+  font-size: clamp(2.4rem, 7vw, 5.5rem);
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.15;
+}
+.chapter-bar {
+  width: clamp(80px, 12vw, 160px);
+  height: 8px;
+  background: var(--yellow);
+  border-radius: 2px;
+}
+
+/* === 数据表格 === */
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--cream-card);
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: clamp(0.8rem, 1.5vw, 1.05rem);
+}
+.data-table th {
+  background: var(--brand-blue);
+  color: #fff; font-weight: 900;
+  padding: 0.55em 0.9em; text-align: left;
+}
+.data-table td {
+  padding: 0.5em 0.9em;
+  border-top: 2px solid rgba(27, 43, 77, 0.1);
+  color: var(--ink); line-height: 1.5;
+}
+.data-table tr:nth-child(even) td { background: var(--paper-blue); }
+
+/* === 提示条 === */
+.hint-strip {
+  display: inline-block;
+  background: var(--paper-blue);
+  border: 2px dashed var(--brand-blue);
+  border-radius: 8px;
+  padding: 0.6em 1.3em;
+  color: var(--brand-blue-deep);
+  font-weight: 700;
+  font-size: clamp(0.95rem, 1.8vw, 1.3rem);
+}
+
+/* === 知识点徽章 === */
+.know-badge {
+  display: inline-block;
+  background: var(--yellow);
+  color: var(--ink);
+  font-weight: 900;
+  padding: 0.4em 1.1em;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  box-shadow: 5px 5px 0 var(--ink);
+  font-size: clamp(1rem, 2vw, 1.4rem);
+}
+
+/* === 定义蓝条 === */
+.def-bar {
+  background: var(--brand-blue);
+  color: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  padding: 0.7em 1.3em;
+  font-weight: 900;
+  font-size: clamp(1rem, 2vw, 1.4rem);
+  box-shadow: 6px 6px 0 rgba(27, 43, 77, 0.15);
+}
+
+/* === 生命周期卡 === */
+.life-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: clamp(0.5rem, 1.4vw, 1.1rem);
+  width: 100%;
+}
+.life-card {
+  background: var(--paper-blue);
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  padding: clamp(0.6rem, 1.5vw, 1.1rem);
+  box-shadow: 5px 5px 0 rgba(27, 43, 77, 0.12);
+}
+.life-card .stage-no {
+  font-family: var(--font-mono);
+  font-size: clamp(0.55rem, 1vw, 0.7rem);
+  font-weight: 700; color: var(--brand-blue);
+  letter-spacing: 0.12em;
+}
+.life-card h3 { font-size: clamp(1rem, 2.1vw, 1.5rem); font-weight: 900; margin: 0.2em 0; }
+.life-card p { font-size: clamp(0.7rem, 1.3vw, 0.95rem); color: var(--ink-soft); line-height: 1.6; }
+.life-card.danger { background: #FBEDED; border-color: var(--red); }
+.life-card.danger .stage-no { color: var(--red); }
+
+/* === 标签芯片 === */
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  background: var(--cream-card);
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  padding: 0.45em 1em;
+  font-weight: 700;
+  font-size: clamp(0.9rem, 1.8vw, 1.3rem);
+  box-shadow: 4px 4px 0 rgba(27, 43, 77, 0.15);
+}
+.tag-chip.blue { background: var(--paper-blue); color: var(--brand-blue-deep); }
+.tag-chip.yellow { background: #FFF6DC; }
+
+/* === 对比卡 === */
+.vs-card {
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  padding: clamp(0.8rem, 2vw, 1.5rem);
+  background: var(--cream-card);
+  box-shadow: 6px 6px 0 rgba(27, 43, 77, 0.12);
+}
+.vs-card.bad { border-color: var(--red); background: #FBEDED; }
+.vs-card.good { border-color: var(--mint); background: #EDF7F0; }
+.vs-card h3 { font-size: clamp(1rem, 2vw, 1.4rem); font-weight: 900; margin-bottom: 0.4em; }
+.vs-card p { font-size: clamp(0.8rem, 1.5vw, 1.05rem); color: var(--ink-soft); line-height: 1.65; }
+
+/* === 大数字 === */
+.big-num {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: clamp(2rem, 5.5vw, 4rem);
+  line-height: 1;
+  color: var(--brand-blue);
+}
+.big-num.red { color: var(--red); }
+.big-num.green { color: var(--mint); }
+
+/* === 金句条（深色） === */
+.quote-strip {
+  background: var(--navy);
+  color: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  padding: clamp(0.7rem, 1.8vw, 1.2rem) clamp(1rem, 2.5vw, 1.8rem);
+  font-weight: 700;
+  font-size: clamp(0.85rem, 1.7vw, 1.2rem);
+  line-height: 1.7;
+}
+.quote-strip .hl { color: var(--yellow); }
+
+/* === 终端面板（导师雷达） === */
+.terminal-panel {
+  background: var(--navy);
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  padding: clamp(0.8rem, 2vw, 1.4rem);
+  color: #D9E4F5;
+  font-size: clamp(0.75rem, 1.4vw, 1rem);
+  line-height: 1.8;
+}
+.terminal-panel .term-head {
+  font-family: var(--font-mono);
+  font-size: clamp(0.6rem, 1.1vw, 0.75rem);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--mint-light);
+  margin-bottom: 0.5em;
+}
+.terminal-panel ul { display: grid; gap: 0.3em; }
+.terminal-panel li { list-style: none; padding-left: 1.2em; position: relative; }
+.terminal-panel li::before { content: '>'; position: absolute; left: 0; color: var(--yellow); font-family: var(--font-mono); }
+
+/* === 流程步骤 === */
+.flow-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(0.5rem, 1.2vw, 0.9rem);
+  justify-content: center;
+}
+.flow-step {
+  background: var(--cream-card);
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  padding: clamp(0.5rem, 1.2vw, 0.9rem);
+  width: clamp(130px, 17vw, 180px);
+  box-shadow: 4px 4px 0 rgba(27, 43, 77, 0.12);
+}
+.flow-step .no { font-family: var(--font-mono); font-weight: 700; color: var(--brand-blue); font-size: clamp(1rem, 2vw, 1.5rem); }
+.flow-step h4 { font-size: clamp(0.85rem, 1.6vw, 1.1rem); font-weight: 900; margin: 0.15em 0; }
+.flow-step p { font-size: clamp(0.6rem, 1.15vw, 0.78rem); color: var(--ink-soft); line-height: 1.55; }
+
+/* === 四列指标卡 === */
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(0.5rem, 1.4vw, 1.1rem);
+  width: 100%;
+}
+.metric-card {
+  background: var(--cream-card);
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  padding: clamp(0.6rem, 1.5vw, 1.1rem);
+  text-align: center;
+  box-shadow: 5px 5px 0 rgba(27, 43, 77, 0.12);
+}
+.metric-card h3 { font-size: clamp(1rem, 2vw, 1.4rem); font-weight: 900; color: var(--brand-blue); }
+.metric-card p { font-size: clamp(0.7rem, 1.3vw, 0.95rem); color: var(--ink-soft); margin-top: 0.3em; }
+
+/* === 列表 === */
+.mini-list { list-style: none; display: grid; gap: 0.45em; }
+.mini-list li {
+  font-size: clamp(0.75rem, 1.4vw, 1rem);
+  color: var(--ink-soft);
+  padding-left: 1.3em;
+  position: relative;
+  line-height: 1.55;
+}
+.mini-list li::before {
+  content: '';
+  position: absolute; left: 0; top: 0.5em;
+  width: 0.55em; height: 0.55em;
+  background: var(--brand-blue);
+  border-radius: 2px;
+}
+.mini-list.green li::before { background: var(--mint); }
+.mini-list.red li::before { background: var(--red); }
+.mini-list.yellow li::before { background: var(--yellow); }
+
+/* === 组件响应式 === */
+@media (max-width: 900px) {
+  .life-row { grid-template-columns: repeat(2, 1fr); }
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* === 响应式 === */
+@media (max-height: 700px) {
+  .slide { padding: clamp(1rem, 2vw, 2rem); }
+  .slide-title { font-size: clamp(1.6rem, 5vw, 3.2rem); }
+}
+@media (max-height: 600px) {
+  .slide-subtitle { display: none; }
+  .nav { display: none; }
+}
+@media (max-width: 600px) {
+  .nav { display: none; }
+}
+
+/* === 打印 === */
+@media print {
+  .slide { page-break-after: always; height: 100vh; }
+  .nav, .progress-bar, .page-num { display: none; }
+  .reveal, .reveal-scale, .reveal-left { opacity: 1; transform: none; }
+}
+</style>
+</head>
+<body data-page-node-id="9OtPdXSS7ABlhvlv4CAE5M">
+
+<div class="progress-bar" id="progress" data-page-node-id="9abARUEycK0sLJGfDfnEkv"></div>
+
+<!-- ================= SLIDE 1: 封面 ================= -->
+<section class="slide" id="slide-1" data-page-node-id="KHWHWm8okR0ZHAaISNwaE9">
+  <div class="grid-bg" data-page-node-id="1QiyGeYmxGvjPNY0KfCdG5"></div>
+
+  <!-- 像素装饰 -->
+  <div class="pixel-block" style="top:8%; left:6%; width:28px; height:28px; background:var(--yellow); border-radius:4px;" data-page-node-id="FWyLJBUxKbHSKls45DZGHG"></div>
+  <div class="pixel-block" style="top:14%; left:11%; width:14px; height:14px; background:var(--brand-blue); border-radius:3px;" data-page-node-id="kXyCbone52F2l9Od7bXv5l"></div>
+  <div class="pixel-block" style="bottom:12%; right:8%; width:24px; height:24px; background:var(--mint); border-radius:4px;" data-page-node-id="iWMQQVQ2QWvHe5iXTRkXYW"></div>
+  <div class="pixel-block" style="bottom:20%; right:14%; width:12px; height:12px; background:var(--yellow); border-radius:2px;" data-page-node-id="GJZJmt7vMIyQ2ffW7Vus93"></div>
+  <div class="pixel-block" style="top:18%; right:10%; width:18px; height:18px; background:var(--brand-blue); border-radius:3px; opacity:0.5;" data-page-node-id="snkyTfWxzAGEo5IOV0BmhR"></div>
+
+  <div class="slide-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(1rem,3vh,2rem);" data-page-node-id="Rhx2DJ9fxsWGh3TBpU2xVV">
+    <p class="mono-tag reveal" data-page-node-id="mQbJuiHDEfhpuvJ0WVPYgA">MINI SILICON VALLEY · PRODUCT COURSE</p>
+
+    <div class="brand-badge reveal-scale" data-page-node-id="EPkMuHgi8J8LfoXCI9b72i">
+      <span class="logo-dot" data-page-node-id="YwtVnhwjdJnhES4KQJ3ZA3"></span>
+      MINI硅谷
+    </div>
+
+    <h1 class="slide-title reveal" style="font-size:clamp(2.6rem,8vw,6.5rem); margin:0;" data-page-node-id="LAxQFp4UMoQ5vf528VzZcv">
+      产品的<span style="color:var(--brand-blue);" data-page-node-id="YdiuAFjHN59wGkOD0gezKR">用户体系</span>
+    </h1>
+
+    <p class="slide-subtitle reveal" data-page-node-id="q1th5ME7Nw7jQwxBhdLfe4">青少年AI创业营 · 产品思维课</p>
+
+    <button class="game-btn reveal" onclick="goToSlide(1)" data-page-node-id="UEPqCXU1r3sRHTisXAO170">
+      开始任务
+      <span style="font-family:var(--font-mono);" data-page-node-id="0mdzvMezCCZ7R3zOvDQl9i">▶</span>
+    </button>
+
+    <p class="slide-caption reveal" style="margin-top:0.5rem;" data-page-node-id="0hUniaOZ45qJIArqbfA5S5">← → 方向键翻页 · 共 49 页</p>
+  </div>
+</section>
+
+<!-- ================= SLIDE 2: 产品因用户而存在 ================= -->
+<section class="slide" id="slide-2" data-page-node-id="8j2fIBtfKRoqF8ZgG2vKqL">
+  <div class="grid-bg" data-page-node-id="YfrUDIXSRc6bPuUWNca4fL"></div>
+
+  <div class="pixel-block" style="top:10%; right:7%; width:22px; height:22px; background:var(--mint); border-radius:4px;" data-page-node-id="bGT0UcIc0zE0CVjimlPy8U"></div>
+  <div class="pixel-block" style="bottom:14%; left:8%; width:16px; height:16px; background:var(--yellow); border-radius:3px;" data-page-node-id="6db5nP1siovsSydTPDMU77"></div>
+
+  <div class="slide-content" style="display:flex; flex-direction:column; align-items:center; gap:clamp(1.2rem,3.5vh,2.4rem);" data-page-node-id="XOzBApSEZF6x11qiGEd9AF">
+    <p class="mono-tag reveal" data-page-node-id="9ZNgedNBGELIP7UPzCFKcE">MISSION 00 · WHY USERS MATTER</p>
+
+    <h2 class="slide-title reveal" style="text-align:center;" data-page-node-id="3sxluIUyIZFoZVtCoudSUY">
+      产品因<span style="color:var(--brand-blue);" data-page-node-id="77jdWIjgHiNHPBs2eDqdLi">用户</span>而存在
+    </h2>
+
+    <div class="mission-card reveal-scale" style="max-width:min(88vw,860px); text-align:center;" data-page-node-id="DQ6ZMTfQbCEN5YJJ3gwCeq">
+      <p style="font-size:clamp(1.1rem,2.6vw,1.9rem); font-weight:700; line-height:1.7; color:var(--ink);" data-page-node-id="GEwVViZrYYyduyHm3rSTIQ">
+        产品是<span style="color:var(--brand-blue);" data-page-node-id="cru4czzVj4DZSsVTQVdgcs">身体</span>、
+        功能是<span style="color:var(--mint);" data-page-node-id="sXgzJKdTr0Nd1b5E0xNAB5">机能</span>、
+        用户才是<span style="color:var(--red);" data-page-node-id="8f1FjrqVRyJXjTurmIAGb5">灵魂</span>。
+      </p>
+      <div style="width:60px; height:4px; background:var(--yellow); margin:clamp(0.8rem,2vh,1.4rem) auto; border-radius:2px;" data-page-node-id="XH5RamHupYKxWXo3mREBMD"></div>
+      <p style="font-size:clamp(0.95rem,1.8vw,1.25rem); line-height:1.8; color:var(--ink-soft);" data-page-node-id="Hvzc6Moc128nfpKaOJosxK">
+        没有用户的产品只是一个空壳，没有商业价值。<br data-page-node-id="GPQ9BKa6JywdAd3wBZy6y4">
+        不懂用户，永远成为不了一个优秀的产品人。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 3: 章节页 01 ================= -->
+<section class="slide" id="slide-3" data-theme="navy" data-page-node-id="OtHZZxlIcaTLHDIbEOYJTh">
+  <div class="grid-bg" data-page-node-id="bknorbNivJdrIUtO2z9Sn0"></div>
+
+  <div class="pixel-block" style="top:12%; left:8%; width:20px; height:20px; background:var(--mint-light); border-radius:3px;" data-page-node-id="vxVdnm8Eg4MVxkAArPCcM3"></div>
+  <div class="pixel-block" style="top:20%; left:13%; width:10px; height:10px; background:var(--yellow); border-radius:2px;" data-page-node-id="VJrXEy60Fx4FLldApEmt0J"></div>
+  <div class="pixel-block" style="bottom:16%; right:9%; width:26px; height:26px; background:var(--brand-blue); border-radius:4px;" data-page-node-id="7O88cnsHY5ygtdsIUceNcO"></div>
+
+  <div class="slide-content" style="display:flex; flex-direction:column; align-items:flex-start; gap:clamp(0.8rem,2.5vh,1.6rem);" data-page-node-id="3mewifZBEcdE4rULYY5Qeh">
+    <p class="mono-tag light reveal" data-page-node-id="mWj5JnDsyvDmRilXlMREVO">CHAPTER UNLOCKED</p>
+
+    <div class="chapter-num reveal-scale" data-page-node-id="CfWLAaxRATVWFZzcLTmXsi">01</div>
+
+    <div class="chapter-bar reveal-left" data-page-node-id="K0Avec9rEUfVHlEFDwi7mZ"></div>
+
+    <h2 class="chapter-title reveal" data-page-node-id="LxcZe5QDoNd5mYiXOlW4Ts">认识你的用户</h2>
+
+    <p class="reveal" style="font-family:var(--font-mono); font-size:clamp(0.7rem,1.4vw,0.95rem); color:rgba(255,255,255,0.55); letter-spacing:0.12em;" data-page-node-id="DwnFmnDyAzfzp7EVotvrS5">
+      KNOW YOUR USER · LEVEL 01 / 04
+    </p>
+  </div>
+</section>
+
+<!-- ================= SLIDE 4: 提问 · 你的用户是谁 ================= -->
+<section class="slide" id="slide-4">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:12%; left:9%; width:18px; height:18px; background:var(--brand-blue); border-radius:3px;"></div>
+  <div class="pixel-block" style="bottom:14%; right:10%; width:22px; height:22px; background:var(--yellow); border-radius:4px;"></div>
+  <div class="slide-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(1rem,3vh,2rem);">
+    <p class="mono-tag reveal">CHAPTER 01 · 认识你的用户</p>
+    <h2 class="slide-title reveal">你的用户是谁</h2>
+    <div class="hint-strip reveal">用一句话，讲清楚你的用户是谁</div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 5: 提问 · 不能是所有人 ================= -->
+<section class="slide" id="slide-5">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:14%; right:8%; width:20px; height:20px; background:var(--red); border-radius:3px;"></div>
+  <div class="pixel-block" style="bottom:12%; left:10%; width:14px; height:14px; background:var(--mint); border-radius:3px;"></div>
+  <div class="slide-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(1rem,3vh,2rem);">
+    <p class="mono-tag reveal">CHAPTER 01 · 认识你的用户</p>
+    <h2 class="slide-title reveal" style="max-width:16em;">为什么你的用户<span style="color:var(--red);">不能是所有人</span></h2>
+    <div class="hint-strip reveal">设想一下：你的产品目标用户是所有人，会发生什么？</div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 6: 章节页 02 ================= -->
+<section class="slide" id="slide-6" data-theme="navy">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:12%; left:8%; width:20px; height:20px; background:var(--mint-light); border-radius:3px;"></div>
+  <div class="pixel-block" style="bottom:16%; right:9%; width:26px; height:26px; background:var(--brand-blue); border-radius:4px;"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; align-items:flex-start; gap:clamp(0.8rem,2.5vh,1.6rem);">
+    <p class="mono-tag light reveal">CHAPTER UNLOCKED</p>
+    <div class="chapter-num reveal-scale">02</div>
+    <div class="chapter-bar reveal-left"></div>
+    <h2 class="chapter-title reveal">用户的一生</h2>
+    <p class="reveal" style="font-family:var(--font-mono); font-size:clamp(0.7rem,1.4vw,0.95rem); color:rgba(255,255,255,0.55); letter-spacing:0.12em;">USER LIFE CYCLE · LEVEL 02 / 04</p>
+  </div>
+</section>
+
+<!-- ================= SLIDE 7: 提问 · 人生阶段 ================= -->
+<section class="slide" id="slide-7">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:10%; right:9%; width:18px; height:18px; background:var(--yellow); border-radius:3px;"></div>
+  <div class="pixel-block" style="bottom:16%; left:8%; width:20px; height:20px; background:var(--brand-blue); border-radius:4px;"></div>
+  <div class="slide-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(1rem,3vh,2rem);">
+    <p class="mono-tag reveal">CHAPTER 02 · 用户的一生</p>
+    <h2 class="slide-title reveal">人的一生有几个阶段</h2>
+    <div class="hint-strip reveal">写出人的一生有哪些阶段，每个阶段的特点是什么</div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 8: 用户的一生 · 五阶段 ================= -->
+<section class="slide" id="slide-8">
+  <div class="grid-bg"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; gap:clamp(0.8rem,2.5vh,1.6rem);">
+    <div style="text-align:center;">
+      <p class="mono-tag reveal">USER LIFE CYCLE</p>
+      <h2 class="slide-title reveal" style="margin-bottom:0;">用户的一生</h2>
+    </div>
+    <div class="life-row">
+      <div class="life-card reveal">
+        <p class="stage-no">第一阶段</p>
+        <h3>新人期</h3>
+        <p>刚下载注册，什么都不懂<br>像刚认识世界的宝宝</p>
+      </div>
+      <div class="life-card reveal">
+        <p class="stage-no">第二阶段</p>
+        <h3>成长期</h3>
+        <p>慢慢会用，开始探索功能<br>像每天学新东西的学生</p>
+      </div>
+      <div class="life-card reveal">
+        <p class="stage-no">第三阶段</p>
+        <h3>成熟期</h3>
+        <p>用得很溜、离不开、愿意花钱<br>像能创造价值的大人</p>
+      </div>
+      <div class="life-card reveal">
+        <p class="stage-no">第四阶段</p>
+        <h3>沉默期</h3>
+        <p>用得少了，需要新鲜感的刺激<br>创造价值的能力下降</p>
+      </div>
+      <div class="life-card danger reveal">
+        <p class="stage-no">第五阶段</p>
+        <h3>流失期</h3>
+        <p>彻底不用了，卸载<br>不再存在</p>
+      </div>
+    </div>
+    <div class="quote-strip reveal" style="font-size:clamp(0.75rem,1.4vw,1rem);">
+      用户的涌入-成长-活跃-沉默-消亡，就像生命的生老病死，是客观存在的必然规律。不要怀有不切实际的幻想，也不要因为数据波动而仓皇——<span class="hl">认识它、接受它、面对它、战胜它</span>，就像未来每一次你战胜困难那样。
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 9: 课题任务 1 ================= -->
+<section class="slide" id="slide-9">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:10%; left:8%; width:20px; height:20px; background:var(--yellow); border-radius:4px;"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; align-items:center; gap:clamp(1rem,3vh,1.8rem); max-width:900px;">
+    <span class="know-badge reveal-scale" style="background:var(--brand-blue); color:#fff;">课题任务 1</span>
+    <h2 class="slide-title reveal" style="text-align:center; margin-bottom:0;">模拟你的产品用户的一生</h2>
+    <div class="mission-card reveal" style="width:100%;">
+      <p style="font-weight:900; margin-bottom:0.6em; font-size:clamp(1rem,2vw,1.3rem);">写清楚这 5 件事：</p>
+      <ul class="mini-list">
+        <li>时期怎么划分</li>
+        <li>用户的主要特点</li>
+        <li>用户在产品中干什么</li>
+        <li>用户进入下一阶段的原因</li>
+        <li>用户回到上一阶段的原因</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 10: 知识点 1 标题 ================= -->
+<section class="slide" id="slide-10">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:14%; right:10%; width:22px; height:22px; background:var(--yellow); border-radius:4px;"></div>
+  <div class="pixel-block" style="bottom:14%; left:9%; width:16px; height:16px; background:var(--mint); border-radius:3px;"></div>
+  <div class="slide-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(1rem,3vh,2rem);">
+    <span class="know-badge reveal-scale">知识点 1</span>
+    <h2 class="slide-title reveal" style="margin-bottom:0;">北极星指标</h2>
+    <div class="hint-strip reveal">补充知识点的同时优化答案，注意用不同颜色的笔区分</div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 11: 北极星指引核心价值 ================= -->
+<section class="slide" id="slide-11">
+  <div class="grid-bg"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; gap:clamp(0.6rem,1.8vh,1.1rem);">
+    <div>
+      <p class="mono-tag reveal">KNOWLEDGE 01 · NORTH STAR</p>
+      <h2 class="slide-title reveal" style="font-size:clamp(1.8rem,4.5vw,3.2rem); margin-bottom:0.15em;">北极星指引核心价值</h2>
+    </div>
+    <div class="def-bar reveal">北极星指标 = 产品最终想带给用户核心价值的数字化体现</div>
+    <div class="split-layout" style="align-items:start;">
+      <div style="display:grid; gap:clamp(0.5rem,1.5vh,0.9rem);">
+        <div class="vs-card reveal">
+          <h3>限选思考</h3>
+          <p>如果产品只能看一个数据，你最想看什么？总数、今天使用、还是赚钱？</p>
+        </div>
+        <div class="vs-card reveal">
+          <h3>互动磕点</h3>
+          <p>看营收 = 都是老用户在花钱，新用户没有；看新用户数量 = 来了就走也没用</p>
+        </div>
+      </div>
+      <table class="data-table reveal">
+        <tr><th>产品</th><th>北极星指标</th><th>核心价值</th></tr>
+        <tr><td><strong>抖音</strong></td><td>每日使用时长</td><td>杀时间、给你快乐</td></tr>
+        <tr><td><strong>微信</strong></td><td>日发送消息数</td><td>连接人</td></tr>
+        <tr><td><strong>B站</strong></td><td>每日观看视频数</td><td>看内容</td></tr>
+      </table>
+    </div>
+    <div class="quote-strip reveal">北极星不是“赚了多少钱”，而是<span class="hl">“用户有没有真正感受到价值”</span>。感受到价值，钱自然会来。</div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 12: 知识点 2 标题 ================= -->
+<section class="slide" id="slide-12">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:12%; left:10%; width:20px; height:20px; background:var(--brand-blue); border-radius:4px;"></div>
+  <div class="slide-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(1rem,3vh,2rem);">
+    <span class="know-badge reveal-scale">知识点 2</span>
+    <h2 class="slide-title reveal" style="margin-bottom:0;">活跃用户的数字谜题</h2>
+  </div>
+</section>
+
+<!-- ================= SLIDE 13: 活跃用户的数字谜题 ================= -->
+<section class="slide" id="slide-13">
+  <div class="grid-bg"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; gap:clamp(0.6rem,1.8vh,1.1rem);">
+    <div>
+      <p class="mono-tag reveal">KNOWLEDGE 02 · METRICS</p>
+      <h2 class="slide-title reveal" style="font-size:clamp(1.8rem,4.5vw,3.2rem); margin-bottom:0.15em;">活跃用户的数字谜题</h2>
+    </div>
+    <div class="hint-strip reveal" style="align-self:flex-start;">“光看 DAU 不够，四个指标缺一不可”</div>
+    <div class="grid-4">
+      <div class="metric-card reveal"><h3>DAU</h3><p>告诉你有多少人来</p></div>
+      <div class="metric-card reveal"><h3>留存率</h3><p>告诉你来不来第二次</p></div>
+      <div class="metric-card reveal"><h3>转化率</h3><p>告诉你会不会掏钱</p></div>
+      <div class="metric-card reveal"><h3>ROI</h3><p>告诉你生意赚不赚钱</p></div>
+    </div>
+    <div class="split-layout" style="align-items:start;">
+      <div class="vs-card reveal">
+        <h3>DAU / MAU</h3>
+        <p>DAU 是日活跃用户（今天多少人用了产品）<br>MAU 是月活跃用户（这个月多少人用了）</p>
+        <p style="margin-top:0.5em; color:var(--red); font-weight:700;">互动陷阱：DAU 高就一定好吗？如果 DAU 是 1000 人，但每天都是同一批人呢？</p>
+      </div>
+      <div class="quote-strip reveal">
+        <span class="hl">真相：</span>光看 DAU 不够。可能是没有新用户，也可能是老用户走了一批、又来一批新的——总量没变，但人一直在换。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 14: 知识点 3 标题 ================= -->
+<section class="slide" id="slide-14">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:12%; right:9%; width:20px; height:20px; background:var(--mint); border-radius:4px;"></div>
+  <div class="slide-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(1rem,3vh,2rem);">
+    <span class="know-badge reveal-scale">知识点 3</span>
+    <h2 class="slide-title reveal" style="margin-bottom:0;">关键行为标记用户升级</h2>
+  </div>
+</section>
+
+<!-- ================= SLIDE 15: 关键行为标记升级 ================= -->
+<section class="slide" id="slide-15">
+  <div class="grid-bg"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; gap:clamp(0.7rem,2vh,1.3rem); max-width:960px;">
+    <div style="text-align:center;">
+      <p class="mono-tag reveal">KNOWLEDGE 03 · KEY ACTIONS</p>
+      <h2 class="slide-title reveal" style="font-size:clamp(1.8rem,4.5vw,3.2rem); margin-bottom:0.1em;">关键行为标记升级</h2>
+      <p class="slide-subtitle reveal" style="margin-bottom:0;">判断用户升级，不是看<span style="color:var(--red); font-weight:700;">时间</span>，而是看<span style="color:var(--brand-blue); font-weight:700;">行为</span></p>
+    </div>
+    <table class="data-table reveal">
+      <tr><th>阶段跨越</th><th>关键行为</th></tr>
+      <tr><td>新人 → 成长</td><td>⚔️ 完成<strong>第一场对战</strong></td></tr>
+      <tr><td>成长 → 成熟</td><td>🏆 打上<strong>黄金段位</strong> + 加了 <strong>5 个好友</strong></td></tr>
+      <tr><td>成熟 → 沉默</td><td>📵 连续 <strong>7 天</strong>没登录</td></tr>
+      <tr><td>沉默 → 流失</td><td>🚪 连续 <strong>30 天</strong>没登录</td></tr>
+    </table>
+    <div class="quote-strip reveal">每个阶段跨越都是<span class="hl">具体的、可衡量的动作</span>——不是“感觉他挺活跃的”，而是“他做了 X 件事”。</div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 16: 知识点 4 标题 ================= -->
+<section class="slide" id="slide-16">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:14%; left:9%; width:22px; height:22px; background:var(--yellow); border-radius:4px;"></div>
+  <div class="slide-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(1rem,3vh,2rem);">
+    <span class="know-badge reveal-scale">知识点 4</span>
+    <h2 class="slide-title reveal" style="margin-bottom:0;">做产品得会算</h2>
+  </div>
+</section>
+
+<!-- ================= SLIDE 17: 转化率是及格线 ================= -->
+<section class="slide" id="slide-17">
+  <div class="grid-bg"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; gap:clamp(0.6rem,1.8vh,1.1rem);">
+    <div>
+      <p class="mono-tag reveal">KNOWLEDGE 04 · CONVERSION</p>
+      <h2 class="slide-title reveal" style="font-size:clamp(1.8rem,4.5vw,3.2rem); margin-bottom:0.15em;">转化率是及格线</h2>
+    </div>
+    <div class="def-bar reveal">转化率 = 从 A 动作到 B 动作，有多少人成功过去</div>
+    <div class="split-layout" style="align-items:start;">
+      <table class="data-table reveal">
+        <tr><th>场景</th><th>转化率</th></tr>
+        <tr><td>100 人看到注册按钮，50 人点击</td><td><strong style="color:var(--brand-blue);">50%</strong></td></tr>
+        <tr><td>100 人完成新手任务，20 人买会员</td><td><strong style="color:var(--brand-blue);">20%</strong></td></tr>
+      </table>
+      <div style="display:grid; gap:clamp(0.5rem,1.5vh,0.8rem);">
+        <div class="vs-card reveal"><h3>类比理解 · 考试及格率</h3><p>100 个人考试，多少人及格了？</p></div>
+        <div class="vs-card reveal"><h3>诊断价值 · 环节修补</h3><p>转化率低，说明中间哪个环节有问题，需要去修补</p></div>
+        <div class="vs-card reveal"><h3>指标定位 · 会不会掏钱</h3><p>转化率告诉你用户会不会掏钱</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 18: ROI 判断生意盈亏 ================= -->
+<section class="slide" id="slide-18">
+  <div class="grid-bg"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; gap:clamp(0.6rem,1.8vh,1.1rem);">
+    <div>
+      <p class="mono-tag reveal">KNOWLEDGE 04 · ROI</p>
+      <h2 class="slide-title reveal" style="font-size:clamp(1.8rem,4.5vw,3.2rem); margin-bottom:0.15em;">ROI 判断生意盈亏</h2>
+    </div>
+    <div class="split-layout" style="align-items:start;">
+      <div style="display:grid; gap:clamp(0.5rem,1.5vh,0.9rem);">
+        <div class="vs-card reveal">
+          <h3>传单案例</h3>
+          <p>花 100 元带来 300 元消费，毛利 50% 赚 150 元<br><strong style="color:var(--brand-blue);">ROI = 150 ÷ 100 = 1.5</strong></p>
+        </div>
+        <div class="vs-card reveal">
+          <h3>广告案例</h3>
+          <p>花 1000 元拉来 200 人，人均消费 30 元 = 6000 元营收，利润率 40% 赚 2400 元<br><strong style="color:var(--brand-blue);">ROI = 2400 ÷ 1000 = 2.4</strong></p>
+        </div>
+        <div class="vs-card good reveal">
+          <h3>判定标准</h3>
+          <p><strong>ROI &lt; 1 就是亏钱，ROI &gt; 1 就是赚钱</strong>，越高越好</p>
+        </div>
+      </div>
+      <div class="mission-card reveal" style="text-align:center; display:flex; flex-direction:column; justify-content:center; gap:0.6rem;">
+        <p style="font-family:var(--font-mono); font-size:clamp(0.6rem,1.1vw,0.75rem); letter-spacing:0.15em; color:var(--brand-blue); font-weight:700;">RETURN ON INVESTMENT</p>
+        <p style="font-size:clamp(1.5rem,3.5vw,2.6rem); font-weight:900; line-height:1.3;">ROI = 赚的钱 ÷ 花的钱</p>
+        <p style="color:var(--ink-soft); font-size:clamp(0.85rem,1.6vw,1.1rem);">投资回报率：花了 1 块钱，赚回来几块钱</p>
+        <div style="width:60px; height:4px; background:var(--yellow); margin:0.4rem auto; border-radius:2px;"></div>
+        <p style="color:var(--ink-soft); font-size:clamp(0.75rem,1.4vw,0.95rem);">为什么电商天天盯 ROI？拉新要花钱，得知道花的每一块钱到底值不值</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 19: 留存如漏水的桶 ================= -->
+<section class="slide" id="slide-19">
+  <div class="grid-bg"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; gap:clamp(0.7rem,2vh,1.3rem);">
+    <div>
+      <p class="mono-tag reveal">KNOWLEDGE 04 · RETENTION</p>
+      <h2 class="slide-title reveal" style="font-size:clamp(1.8rem,4.5vw,3.2rem); margin-bottom:0.15em;">留存如漏水的桶</h2>
+      <p class="slide-subtitle reveal" style="margin-bottom:0;">留存 = 用户来了之后，有没有留下来</p>
+    </div>
+    <div class="grid-4">
+      <div class="metric-card reveal">
+        <p class="big-num">100</p>
+        <p>个新用户（周一）下载产品</p>
+      </div>
+      <div class="metric-card reveal">
+        <p class="big-num">40<span style="font-size:0.45em;">%</span></p>
+        <p>次日留存 · 40 人</p>
+      </div>
+      <div class="metric-card reveal">
+        <p class="big-num">20<span style="font-size:0.45em;">%</span></p>
+        <p>第 7 日留存 · 20 人</p>
+      </div>
+      <div class="metric-card reveal">
+        <p class="big-num red">10<span style="font-size:0.45em;">%</span></p>
+        <p>第 30 日留存 · 10 人</p>
+      </div>
+    </div>
+    <div class="vs-card reveal">
+      <p>像漏水的桶，水倒进去一直在漏。<strong>留存率高 = 桶漏得少，留存率低 = 到处是洞</strong>——新用户留存率递减是必然趋势。</p>
+    </div>
+    <div class="quote-strip reveal">“<span class="hl">留存是 1，增长是后面的 0。</span>留存没做好，拉新越多，浪费的钱越多。”</div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 20: 小组分享 ================= -->
+<section class="slide" id="slide-20" data-theme="navy">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:14%; left:10%; width:20px; height:20px; background:var(--yellow); border-radius:4px;"></div>
+  <div class="pixel-block" style="bottom:14%; right:10%; width:24px; height:24px; background:var(--mint-light); border-radius:4px;"></div>
+  <div class="slide-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(1rem,3vh,2rem);">
+    <p class="mono-tag light reveal">SHARE &amp; REVIEW</p>
+    <h2 class="chapter-title reveal">小组分享</h2>
+    <div class="chapter-bar reveal" style="margin:0 auto;"></div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 21: 首段实操 · 画路径选指标 ================= -->
+<section class="slide" id="slide-21">
+  <div class="grid-bg"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; gap:clamp(0.6rem,1.8vh,1.1rem);">
+    <div>
+      <p class="mono-tag reveal">PRACTICE · 8 MIN</p>
+      <h2 class="slide-title reveal" style="font-size:clamp(1.8rem,4.5vw,3.2rem); margin-bottom:0.1em;">首段实操：画路径选指标</h2>
+      <p class="slide-subtitle reveal" style="margin-bottom:0;">8 分钟 · 三合一实操任务</p>
+    </div>
+    <div class="grid-3" style="display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(0.5rem,1.4vw,1.1rem);">
+      <div class="vs-card reveal">
+        <h3><span style="color:var(--brand-blue); font-family:var(--font-mono);">01</span> 画路径</h3>
+        <p>从第一次打开到超级铁粉，经历哪几个阶段？每阶段叫什么、做什么事？跨越的关键行为是什么？</p>
+      </div>
+      <div class="vs-card reveal">
+        <h3><span style="color:var(--brand-blue); font-family:var(--font-mono);">02</span> 选北极星</h3>
+        <p>只能选 <strong>1 个</strong>。回答为什么是它，它怎么代表核心价值。</p>
+      </div>
+      <div class="vs-card reveal">
+        <h3><span style="color:var(--brand-blue); font-family:var(--font-mono);">03</span> 列指标</h3>
+        <p>从 DAU、留存率、转化率、ROI 中选 <strong>3 个</strong>最关心的基础数据指标，并说理由。</p>
+      </div>
+    </div>
+    <div class="terminal-panel reveal">
+      <p class="term-head">MENTOR RADAR · 走动指导 · 诊断式提问</p>
+      <ul>
+        <li>“注册”是关键行为吗？注册完就走，也算成长吗？</li>
+        <li>北极星选“用户总数”有意义吗？1 万人下载后全删，总数还是涨的</li>
+        <li>如果产品明天要关门，你最后看一眼数据，最想看哪个数字？那大概就是北极星</li>
+      </ul>
+    </div>
+    <p class="slide-caption reveal">先休息 10 分钟，回来快速过两组路径图，进入下一个话题——你对用户，到底了解多少？</p>
+  </div>
+</section>
+
+<!-- ================= SLIDE 22: 章节页 03 ================= -->
+<section class="slide" id="slide-22" data-theme="navy">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:12%; left:8%; width:20px; height:20px; background:var(--mint-light); border-radius:3px;"></div>
+  <div class="pixel-block" style="bottom:16%; right:9%; width:26px; height:26px; background:var(--brand-blue); border-radius:4px;"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; align-items:flex-start; gap:clamp(0.8rem,2.5vh,1.6rem);">
+    <p class="mono-tag light reveal">CHAPTER UNLOCKED</p>
+    <div class="chapter-num reveal-scale">03</div>
+    <div class="chapter-bar reveal-left"></div>
+    <h2 class="chapter-title reveal">了解你的用户</h2>
+    <p class="reveal" style="font-family:var(--font-mono); font-size:clamp(0.7rem,1.4vw,0.95rem); color:rgba(255,255,255,0.55); letter-spacing:0.12em;">UNDERSTAND YOUR USER · LEVEL 03 / 04</p>
+  </div>
+</section>
+
+<!-- ================= SLIDE 23: APP 比你更懂你 ================= -->
+<section class="slide" id="slide-23">
+  <div class="grid-bg"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; gap:clamp(0.6rem,1.8vh,1.1rem);">
+    <div>
+      <p class="mono-tag reveal">CHAPTER 03 · USER TAGS</p>
+      <h2 class="slide-title reveal" style="font-size:clamp(1.8rem,4.5vw,3.2rem); margin-bottom:0.15em;">APP 比你更懂你</h2>
+    </div>
+    <p class="reveal" style="font-size:clamp(0.85rem,1.6vw,1.1rem); color:var(--ink-soft); font-weight:500;">
+      抖音知道你喜欢看什么视频吗？它怎么知道的？你告诉它的吗？——它靠这些信息判断：
+    </p>
+    <div class="reveal" style="display:flex; flex-wrap:wrap; gap:clamp(0.4rem,1vw,0.8rem); align-items:center;">
+      <span class="tag-chip">性别</span><span style="color:var(--brand-blue); font-weight:900;">›</span>
+      <span class="tag-chip">年龄</span><span style="color:var(--brand-blue); font-weight:900;">›</span>
+      <span class="tag-chip">消费能力</span><span style="color:var(--brand-blue); font-weight:900;">›</span>
+      <span class="tag-chip yellow">情绪状态</span>
+    </div>
+    <div class="split-layout" style="align-items:start;">
+      <div class="vs-card reveal">
+        <p>它知道你是男生女生（注册填的），知道你多大（注册生日），知道你有没有钱（看买没买过）——它还知道你最近开不开心吗？</p>
+      </div>
+      <div class="vs-card reveal">
+        <p><strong>抖音可能比你妈还了解你。</strong>你妈只看到你在家的样子，抖音看到你所有行为——看什么、点赞什么、评论什么、哪条视频停下来看 3 遍、哪条划得飞快。</p>
+      </div>
+    </div>
+    <div class="def-bar reveal" style="display:flex; flex-wrap:wrap; align-items:center; gap:0.6em;">
+      用户标签 = 给用户身上贴的各种小名片
+      <span class="tag-chip blue" style="font-size:0.75em;">已知·性别</span>
+      <span class="tag-chip blue" style="font-size:0.75em;">已知·年龄</span>
+      <span class="tag-chip blue" style="font-size:0.75em;">已知·消费力</span>
+      <span class="tag-chip yellow" style="font-size:0.75em;">待挖掘·情绪状态</span>
+    </div>
+    <div class="hint-strip reveal" style="align-self:flex-start;">本节问题：怎么贴标签？贴了之后能干嘛？</div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 24: 用户标签三大家族 ================= -->
+<section class="slide" id="slide-24">
+  <div class="grid-bg"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; gap:clamp(0.6rem,1.8vh,1.1rem);">
+    <div>
+      <p class="mono-tag reveal">CHAPTER 03 · TAG FAMILIES</p>
+      <h2 class="slide-title reveal" style="font-size:clamp(1.8rem,4.5vw,3.2rem); margin-bottom:0.1em;">用户标签三大家族</h2>
+      <p class="slide-subtitle reveal" style="margin-bottom:0;">用户标签分三大家族，就像三个家庭</p>
+    </div>
+    <div class="split-layout" style="align-items:start;">
+      <table class="data-table reveal">
+        <tr><th>家族</th><th>例子</th><th>特点</th></tr>
+        <tr><td><strong>属性标签</strong></td><td>性别、年龄、城市、手机型号</td><td>稳定、不怎么变</td></tr>
+        <tr><td><strong>行为标签</strong></td><td>浏览、点赞、评论、购买、登录</td><td>一直在变、动态</td></tr>
+        <tr><td><strong>价值标签</strong></td><td>付费金额、会员等级、推荐人数</td><td>值多少钱、多重要</td></tr>
+      </table>
+      <div style="display:grid; gap:clamp(0.5rem,1.5vh,0.9rem);">
+        <div class="vs-card reveal" style="display:flex; align-items:center; justify-content:space-between; gap:0.6rem;">
+          <h3 style="margin:0;">年级</h3><span class="tag-chip blue" style="font-size:0.85em;">属性</span>
+        </div>
+        <div class="vs-card reveal" style="display:flex; align-items:center; justify-content:space-between; gap:0.6rem;">
+          <h3 style="margin:0;">上周登录 5 天</h3><span class="tag-chip blue" style="font-size:0.85em;">行为</span>
+        </div>
+        <div class="vs-card reveal" style="display:flex; align-items:center; justify-content:space-between; gap:0.6rem;">
+          <h3 style="margin:0;">VIP 会员</h3><span class="tag-chip blue" style="font-size:0.85em;">价值</span>
+        </div>
+      </div>
+    </div>
+    <div class="vs-card reveal" style="border-color:var(--yellow); background:#FFF6DC;">
+      <p><strong>争议题：</strong>“喜欢打篮球”——自己填的兴趣爱好算<strong>属性</strong>，系统观察推断出来算<strong>行为标签</strong>的延伸。标签不是绝对的，关键是你怎么用。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 25: 提问 · 需要哪些标签 ================= -->
+<section class="slide" id="slide-25">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:12%; left:9%; width:18px; height:18px; background:var(--brand-blue); border-radius:3px;"></div>
+  <div class="pixel-block" style="bottom:14%; right:10%; width:22px; height:22px; background:var(--yellow); border-radius:4px;"></div>
+  <div class="slide-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(1rem,3vh,2rem);">
+    <p class="mono-tag reveal">CHAPTER 03 · 了解你的用户</p>
+    <h2 class="slide-title reveal" style="max-width:14em;">你的产品需要哪些用户标签</h2>
+  </div>
+</section>
+
+<!-- ================= SLIDE 26: 提问 · 真的需要吗 ================= -->
+<section class="slide" id="slide-26">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:14%; right:8%; width:20px; height:20px; background:var(--red); border-radius:3px;"></div>
+  <div class="slide-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(1rem,3vh,2rem);">
+    <p class="mono-tag reveal">CHAPTER 03 · 了解你的用户</p>
+    <h2 class="slide-title reveal" style="max-width:14em;">你的产品<span style="color:var(--red);">真的需要</span>这些标签吗</h2>
+  </div>
+</section>
+
+<!-- ================= SLIDE 27: 有用的标签才保留 ================= -->
+<section class="slide" id="slide-27">
+  <div class="grid-bg"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; gap:clamp(0.6rem,1.8vh,1.1rem);">
+    <div>
+      <p class="mono-tag reveal">CHAPTER 03 · TAG FILTER</p>
+      <h2 class="slide-title reveal" style="font-size:clamp(1.8rem,4.5vw,3.2rem); margin-bottom:0.1em;">有用的标签才保留</h2>
+      <p class="slide-subtitle reveal" style="margin-bottom:0;">标签不在多，有用才行</p>
+    </div>
+    <div class="def-bar reveal">决策问一问：这个标签能让我做什么不一样的决定？</div>
+    <div class="split-layout" style="align-items:stretch;">
+      <div class="vs-card bad reveal">
+        <h3>垃圾标签</h3>
+        <p>贴「星座：狮子座」→ 能给狮子座专门做一款奶茶吗？<strong>没用的标签。</strong></p>
+      </div>
+      <div class="vs-card good reveal">
+        <h3>有用标签</h3>
+        <p>贴「最近 7 天没来过」→ 给他发一张优惠券喊他回来，<strong>有用！</strong></p>
+      </div>
+    </div>
+    <div class="vs-card reveal">
+      <p>每加一个标签都问自己——有了这个标签，我能做什么不一样的决定？答案是“好像也不能怎么样”，就是垃圾标签，赶紧删。</p>
+    </div>
+    <div class="quote-strip reveal">没有行动指导意义的标签，<span class="hl">一个都不要</span>。不是来搞大数据展览的。</div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 28: 课题任务二 · 打标签搭看板 ================= -->
+<section class="slide" id="slide-28">
+  <div class="grid-bg"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; gap:clamp(0.6rem,1.8vh,1.1rem);">
+    <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+      <span class="know-badge reveal-scale" style="background:var(--brand-blue); color:#fff;">课题任务 2</span>
+      <h2 class="slide-title reveal" style="font-size:clamp(1.8rem,4.5vw,3.2rem); margin-bottom:0;">打标签 · 搭看板</h2>
+    </div>
+    <div class="split-layout" style="align-items:stretch;">
+      <div class="mission-card reveal" style="display:flex; flex-direction:column; gap:0.5rem;">
+        <h3 style="font-size:clamp(1.1rem,2.2vw,1.5rem); font-weight:900;">任务一 · 设计用户标签</h3>
+        <p class="slide-caption" style="color:var(--brand-blue); font-weight:700;">3 项要求</p>
+        <ul class="mini-list">
+          <li>设计 <strong>10 个</strong>用户标签，多一个都不行</li>
+          <li><strong>三大家族</strong>都要有，比例自己定</li>
+          <li>每个标签旁写一句话：这个标签有什么用？有了它，我能做什么不一样的决定？</li>
+        </ul>
+      </div>
+      <div class="mission-card reveal" style="display:flex; flex-direction:column; gap:0.5rem;">
+        <h3 style="font-size:clamp(1.1rem,2.2vw,1.5rem); font-weight:900;">任务二 · 搭数据看板框架</h3>
+        <p class="slide-caption" style="color:var(--brand-blue); font-weight:700;">2 项要求</p>
+        <ul class="mini-list green">
+          <li>在大白纸旁画一块区域，看板最上面放 <strong>5 个</strong>核心大盘指标——每天起来最想先看的 5 个数字</li>
+          <li>必须有<strong>北极星指标</strong>，剩下 4 个自己选</li>
+        </ul>
+      </div>
+    </div>
+    <p class="slide-caption reveal">时间：5 分钟讨论 + 记录，然后休息 5 分钟 · 物料：每组再发一张大白纸</p>
+  </div>
+</section>
+
+<!-- ================= SLIDE 29: 章节页 · 分层运营 ================= -->
+<section class="slide" id="slide-29" data-theme="navy">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:12%; left:8%; width:20px; height:20px; background:var(--mint-light); border-radius:3px;"></div>
+  <div class="pixel-block" style="bottom:16%; right:9%; width:26px; height:26px; background:var(--brand-blue); border-radius:4px;"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; align-items:flex-start; gap:clamp(0.8rem,2.5vh,1.6rem);">
+    <p class="mono-tag light reveal">CHAPTER UNLOCKED</p>
+    <div class="chapter-num reveal-scale">03</div>
+    <div class="chapter-bar reveal-left"></div>
+    <h2 class="chapter-title reveal">分层运营</h2>
+    <p class="reveal" style="font-family:var(--font-mono); font-size:clamp(0.7rem,1.4vw,0.95rem); color:rgba(255,255,255,0.55); letter-spacing:0.12em;">USER SEGMENTATION</p>
+  </div>
+</section>
+
+<!-- ================= SLIDE 30: 实操演练 · 奶茶店困境 ================= -->
+<section class="slide" id="slide-30">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:12%; left:9%; width:20px; height:20px; background:var(--yellow); border-radius:4px;"></div>
+  <div class="slide-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(1rem,3vh,2rem);">
+    <p class="mono-tag reveal">PRACTICE · CASE STUDY</p>
+    <h2 class="slide-title reveal">实操演练：奶茶店困境</h2>
+    <div style="display:grid; gap:0.8rem; max-width:760px; width:100%;">
+      <div class="hint-strip reveal" style="display:block;">情境 1：有一家奶茶店刚开业，想要生意好一些</div>
+      <div class="hint-strip reveal" style="display:block;">情境 2：有一家奶茶店火了一段时间后生意平淡了，想想办法</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 31: 拉新与维系成本之差 ================= -->
+<section class="slide" id="slide-31">
+  <div class="grid-bg"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; gap:clamp(0.6rem,1.8vh,1.1rem);">
+    <div>
+      <p class="mono-tag reveal">CASE · COST GAP</p>
+      <h2 class="slide-title reveal" style="font-size:clamp(1.8rem,4.5vw,3.2rem); margin-bottom:0.1em;">拉新与维系成本之差</h2>
+      <p class="slide-subtitle reveal" style="margin-bottom:0;">奶茶店困境：每天约 <strong>100 个</strong>顾客，想多赚钱怎么办？</p>
+    </div>
+    <div class="split-layout" style="align-items:stretch;">
+      <div class="vs-card bad reveal" style="text-align:center;">
+        <h3>办法 A</h3>
+        <p>发传单搞活动，吸引更多新顾客</p>
+        <p class="big-num red" style="margin:0.3em 0 0.1em;">15 元</p>
+        <p>吸引一个新顾客的成本</p>
+      </div>
+      <div class="vs-card good reveal" style="text-align:center;">
+        <h3>办法 B</h3>
+        <p>让老顾客来得更勤、每次多买一点</p>
+        <p class="big-num green" style="margin:0.3em 0 0.1em;">2 元</p>
+        <p>召回一个老顾客的成本</p>
+      </div>
+    </div>
+    <div class="vs-card reveal" style="display:flex; align-items:center; gap:1.2rem; flex-wrap:wrap;">
+      <p class="big-num" style="margin:0;">3 倍</p>
+      <p style="margin:0; flex:1; min-width:200px;">老顾客花的钱平均是新顾客的 3 倍——<strong>大部分人会转向 B：维护老用户比拉新便宜得多，效果也更好。</strong></p>
+    </div>
+    <div class="hint-strip reveal" style="align-self:flex-start;">新问题：是否所有老用户都一样重要？→ 用户分层</div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 32: 提问 · 区别对待 ================= -->
+<section class="slide" id="slide-32">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:14%; right:9%; width:20px; height:20px; background:var(--mint); border-radius:3px;"></div>
+  <div class="slide-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(1rem,3vh,2rem);">
+    <p class="mono-tag reveal">CHAPTER 03 · 分层运营</p>
+    <h2 class="slide-title reveal">用户需要区别对待</h2>
+    <div class="hint-strip reveal">列举你能想到的不同用户，你会怎么对待他们？</div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 33: 知识点 1 · RFM 标题 ================= -->
+<section class="slide" id="slide-33">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:12%; left:10%; width:20px; height:20px; background:var(--yellow); border-radius:4px;"></div>
+  <div class="slide-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(1rem,3vh,2rem);">
+    <span class="know-badge reveal-scale">知识点 1</span>
+    <h2 class="slide-title reveal" style="margin-bottom:0; max-width:14em;">RFM 模型——用户价值分层的经典工具</h2>
+  </div>
+</section>
+
+<!-- ================= SLIDE 34: RFM 为价值分三档 ================= -->
+<section class="slide" id="slide-34">
+  <div class="grid-bg"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; gap:clamp(0.7rem,2vh,1.3rem);">
+    <div>
+      <p class="mono-tag reveal">KNOWLEDGE · RFM MODEL</p>
+      <h2 class="slide-title reveal" style="font-size:clamp(1.8rem,4.5vw,3.2rem); margin-bottom:0.1em;">RFM 为价值分三档</h2>
+      <p class="slide-subtitle reveal" style="margin-bottom:0;">怎么知道谁在第几层？有数据，不凭感觉。打分方法：每个指标 <strong>1–5 分</strong>，5 分最好，算总分判断层</p>
+    </div>
+    <div class="split-layout" style="align-items:stretch;">
+      <div class="vs-card good reveal" style="display:flex; flex-direction:column; gap:0.5rem;">
+        <h3>示例一 · 核心用户</h3>
+        <p>昨天刚用过 · 每天都用 · 花了很多钱</p>
+        <ul class="mini-list green">
+          <li><strong>R = 5</strong>　昨天刚用过</li>
+          <li><strong>F = 5</strong>　每天都用</li>
+          <li><strong>M = 5</strong>　花了很多钱</li>
+        </ul>
+        <p style="font-weight:900; color:var(--mint); font-size:clamp(1rem,2vw,1.4rem);">总分 15 → 核心用户</p>
+      </div>
+      <div class="vs-card bad reveal" style="display:flex; flex-direction:column; gap:0.5rem;">
+        <h3>示例二 · 沉默用户</h3>
+        <p>上个月用过一次 · 一月一次 · 没花过钱</p>
+        <ul class="mini-list red">
+          <li><strong>R = 2</strong>　上个月用过一次</li>
+          <li><strong>F = 1</strong>　一个月才用一次</li>
+          <li><strong>M = 1</strong>　一分钱没花</li>
+        </ul>
+        <p style="font-weight:900; color:var(--red); font-size:clamp(1rem,2vw,1.4rem);">总分 4 → 沉默用户</p>
+      </div>
+    </div>
+    <div class="quote-strip reveal">R = 最近一次使用（Recency）· F = 使用频率（Frequency）· M = 消费金额（Monetary）</div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 35: RFM 怎么用 ================= -->
+<section class="slide" id="slide-35">
+  <div class="grid-bg"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; gap:clamp(0.6rem,1.8vh,1.1rem);">
+    <div>
+      <p class="mono-tag reveal">KNOWLEDGE · RFM IN ACTION</p>
+      <h2 class="slide-title reveal" style="font-size:clamp(1.8rem,4.5vw,3.2rem); margin-bottom:0.1em;">RFM 怎么用：8 类用户</h2>
+      <p class="slide-subtitle reveal" style="margin-bottom:0;">每个维度按高低分两档，组合出 8 类用户</p>
+    </div>
+    <div class="grid-4">
+      <div class="vs-card good reveal"><h3>重要价值用户</h3><p>R高 F高 M高<br>重点维护，VIP 待遇</p></div>
+      <div class="vs-card reveal"><h3>重要发展用户</h3><p>R高 F低 M高<br>想办法提高复购频次</p></div>
+      <div class="vs-card reveal"><h3>重要保持用户</h3><p>R低 F高 M高<br>流失预警，赶紧召回</p></div>
+      <div class="vs-card bad reveal"><h3>重要挽留用户</h3><p>R低 F低 M高<br>高价值流失，最后努力一把</p></div>
+    </div>
+    <div class="vs-card reveal">
+      <p><strong>M 低的四种（一般价值 / 发展 / 保持 / 挽留）</strong>→ 按需投入，不要花太多精力。</p>
+    </div>
+    <div class="vs-card reveal" style="border-color:var(--yellow); background:#FFF6DC;">
+      <p><strong>验证案例 · B站 UP 主分层同理：</strong>百大 UP 主 = 核心 · 十万粉 = 成长 · 普通 UP 主 = 普通 · 注册从不发视频 = 沉默</p>
+    </div>
+    <div class="quote-strip reveal">所有用户分层都是<span class="hl">找出谁最有价值，然后对他们好一点</span>。</div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 36: 知识点 2 · 金字塔标题 ================= -->
+<section class="slide" id="slide-36">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:14%; right:10%; width:22px; height:22px; background:var(--yellow); border-radius:4px;"></div>
+  <div class="slide-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(1rem,3vh,2rem);">
+    <span class="know-badge reveal-scale">知识点 2</span>
+    <h2 class="slide-title reveal" style="margin-bottom:0;">金字塔四层用户</h2>
+  </div>
+</section>
+
+<!-- ================= SLIDE 37: 实操三 · 定分层策略 ================= -->
+<section class="slide" id="slide-37">
+  <div class="grid-bg"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; gap:clamp(0.6rem,1.8vh,1.1rem);">
+    <div>
+      <p class="mono-tag reveal">PRACTICE · PYRAMID</p>
+      <h2 class="slide-title reveal" style="font-size:clamp(1.8rem,4.5vw,3.2rem); margin-bottom:0;">实操三：定分层策略</h2>
+    </div>
+    <table class="data-table reveal" style="font-size:clamp(0.7rem,1.3vw,0.95rem);">
+      <tr><th>层级</th><th>占比</th><th>特征</th><th>运营策略</th></tr>
+      <tr><td><strong>塔顶 · 核心 KOC / 种子用户</strong></td><td>1%</td><td>主动传播、深度参与、帮你说话的人</td><td>私人关系、专属权益、共创感</td></tr>
+      <tr><td><strong>上层 · 高价值付费用户</strong></td><td>5–10%</td><td>复购多、客单价高、决策快</td><td>VIP 服务、优先体验、阶梯权益</td></tr>
+      <tr><td><strong>中层 · 普通付费用户</strong></td><td>20–30%</td><td>买过但频次一般，需要持续激活</td><td>标准化运营、活动唤醒、往上引导</td></tr>
+      <tr><td><strong>底层 · 潜在用户 / 围观者</strong></td><td>60–70%</td><td>关注但没买，或只买过低客单价</td><td>内容种草、低门槛产品、筛选转化</td></tr>
+    </table>
+    <div class="quote-strip reveal">
+      <span class="hl">核心原则：</span>资源向上倾斜——20% 的人贡献 80% 的收入，把 80% 的精力花在上面 20%。每一层的目标都是往上一层输送用户，不是往下兜底。
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 38: 小组分享 ================= -->
+<section class="slide" id="slide-38" data-theme="navy">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:14%; left:10%; width:20px; height:20px; background:var(--yellow); border-radius:4px;"></div>
+  <div class="pixel-block" style="bottom:14%; right:10%; width:24px; height:24px; background:var(--mint-light); border-radius:4px;"></div>
+  <div class="slide-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(1rem,3vh,2rem);">
+    <p class="mono-tag light reveal">SHARE &amp; REVIEW</p>
+    <h2 class="chapter-title reveal">小组分享</h2>
+    <div class="chapter-bar reveal" style="margin:0 auto;"></div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 39: 章节页 04 ================= -->
+<section class="slide" id="slide-39" data-theme="navy">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:12%; left:8%; width:20px; height:20px; background:var(--mint-light); border-radius:3px;"></div>
+  <div class="pixel-block" style="bottom:16%; right:9%; width:26px; height:26px; background:var(--brand-blue); border-radius:4px;"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; align-items:flex-start; gap:clamp(0.8rem,2.5vh,1.6rem);">
+    <p class="mono-tag light reveal">CHAPTER UNLOCKED</p>
+    <div class="chapter-num reveal-scale">04</div>
+    <div class="chapter-bar reveal-left"></div>
+    <h2 class="chapter-title reveal">你的用户要走啦</h2>
+    <p class="reveal" style="font-family:var(--font-mono); font-size:clamp(0.7rem,1.4vw,0.95rem); color:rgba(255,255,255,0.55); letter-spacing:0.12em;">RETENTION &amp; CHURN · LEVEL 04 / 04</p>
+  </div>
+</section>
+
+<!-- ================= SLIDE 40: 提问 · 留住用户 ================= -->
+<section class="slide" id="slide-40">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:12%; left:9%; width:18px; height:18px; background:var(--red); border-radius:3px;"></div>
+  <div class="slide-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(1rem,3vh,2rem);">
+    <p class="mono-tag reveal">CHAPTER 04 · 你的用户要走啦</p>
+    <h2 class="slide-title reveal">现在，留住你的用户</h2>
+    <div class="hint-strip reveal">你的用户要走了，你要怎么留住他？列举三条你觉得最有用的方法</div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 41: 四种钩子留用户 ================= -->
+<section class="slide" id="slide-41">
+  <div class="grid-bg"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; gap:clamp(0.6rem,1.8vh,1.1rem);">
+    <div>
+      <p class="mono-tag reveal">CHAPTER 04 · RETENTION HOOKS</p>
+      <h2 class="slide-title reveal" style="font-size:clamp(1.8rem,4.5vw,3.2rem); margin-bottom:0.1em;">四种钩子留用户</h2>
+    </div>
+    <div class="def-bar reveal">做产品至少得有一两个钩子，不然用户来了就走，留不住</div>
+    <div class="split-layout" style="align-items:start;">
+      <div style="display:grid; gap:clamp(0.5rem,1.5vh,0.8rem);">
+        <div class="vs-card reveal"><h3>签到打卡</h3><p>不想中断——连签 6 天，第 7 天不舍得断</p></div>
+        <div class="vs-card reveal"><h3>成长等级</h3><p>往上爬——钻石想上星耀</p></div>
+        <div class="vs-card reveal"><h3>沉没成本</h3><p>投入越多越舍不得走</p></div>
+      </div>
+      <table class="data-table reveal" style="font-size:clamp(0.7rem,1.3vw,0.95rem);">
+        <tr><th>钩子类型</th><th>原理</th><th>例子</th></tr>
+        <tr><td><strong>签到打卡</strong></td><td>沉没成本 + 习惯养成</td><td>连签 6 天，第 7 天不舍得断</td></tr>
+        <tr><td><strong>成长等级</strong></td><td>目标驱动 + 荣誉感</td><td>王者段位、QQ 等级、B站 LV</td></tr>
+        <tr><td><strong>内容更新</strong></td><td>新鲜感 + 价值持续</td><td>抖音新视频、王者新皮肤</td></tr>
+        <tr><td><strong>沉没成本</strong></td><td>投入越多越舍不得走</td><td>充皮肤的钱、追番记录</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 42: 好触达要三对原则 ================= -->
+<section class="slide" id="slide-42">
+  <div class="grid-bg"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; gap:clamp(0.6rem,1.8vh,1rem);">
+    <div>
+      <p class="mono-tag reveal">CHAPTER 04 · REACH OUT</p>
+      <h2 class="slide-title reveal" style="font-size:clamp(1.8rem,4.5vw,3.2rem); margin-bottom:0.1em;">好触达要三对原则</h2>
+      <p class="slide-subtitle reveal" style="margin-bottom:0;">产品外触达像<strong>核武器</strong>——威力大，但不能乱用，用多了用户就跑了</p>
+    </div>
+    <div class="split-layout" style="align-items:start;">
+      <div style="display:grid; gap:clamp(0.5rem,1.5vh,0.8rem);">
+        <div class="vs-card reveal">
+          <h3>产品内触达</h3>
+          <p>用户正在用时告诉他：弹窗、Banner 横幅、小红点、站内私信<br><span style="color:var(--mint);">√ 好处：不打扰</span>　<span style="color:var(--red);">× 坏处：只有打开 APP 的人能看到</span></p>
+        </div>
+        <div class="vs-card reveal">
+          <h3>产品外触达</h3>
+          <p>用户不用时也能找到他：推送、短信、微信、邮件<br><span style="color:var(--mint);">√ 好处：能喊回不活跃用户</span>　<span style="color:var(--red);">× 坏处：容易反感，搞不好直接被删</span></p>
+        </div>
+        <div class="vs-card reveal" style="border-color:var(--brand-blue); background:var(--paper-blue);">
+          <h3>触达三原则</h3>
+          <p><strong>对的人</strong>：不是所有人都发，只发给该发的人<br><strong>对的内容</strong>：发他感兴趣的，不是垃圾广告<br><strong>对的时机</strong>：在他可能有空的时候发，不要半夜发</p>
+        </div>
+      </div>
+      <div style="display:grid; gap:clamp(0.5rem,1.5vh,0.8rem);">
+        <div class="vs-card bad reveal">
+          <h3>反面例子</h3>
+          <p>半夜 12 点群发“新皮肤上线”——人不对、内容不对、时机不对，很多人直接关推送甚至卸载。</p>
+        </div>
+        <div class="vs-card good reveal">
+          <h3>正面例子</h3>
+          <p>周五下午 6 点，给最近 7 天没登录的玩家发“好友喊你回来开黑 + 双倍经验卡”——人对、内容对、时机对。</p>
+        </div>
+        <div class="quote-strip reveal">好的触达，用户觉得你懂他；烂的触达，用户觉得你是神经病。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 43: 提问 · 生活中的触达 ================= -->
+<section class="slide" id="slide-43">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:14%; right:9%; width:20px; height:20px; background:var(--yellow); border-radius:3px;"></div>
+  <div class="slide-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(1rem,3vh,2rem);">
+    <p class="mono-tag reveal">CHAPTER 04 · 你的用户要走啦</p>
+    <h2 class="slide-title reveal">想想生活中的触达</h2>
+    <div class="hint-strip reveal">好触达和坏触达，谁最烦？</div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 44: 不用等彻底失去再挽留 ================= -->
+<section class="slide" id="slide-44" data-theme="navy">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:14%; left:10%; width:20px; height:20px; background:var(--yellow); border-radius:4px;"></div>
+  <div class="slide-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(1rem,3vh,2rem);">
+    <p class="mono-tag light reveal">CHAPTER 04 · EARLY WARNING</p>
+    <h2 class="chapter-title reveal" style="max-width:14em;">不用等彻底失去再挽留</h2>
+    <div class="chapter-bar reveal" style="margin:0 auto;"></div>
+    <p class="reveal" style="font-size:clamp(1rem,2.2vw,1.6rem); color:rgba(255,255,255,0.75); font-weight:500;">早一点努力，效果更好</p>
+  </div>
+</section>
+
+<!-- ================= SLIDE 45: 预防流失先于召回 ================= -->
+<section class="slide" id="slide-45">
+  <div class="grid-bg"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; gap:clamp(0.6rem,1.8vh,1rem);">
+    <div>
+      <p class="mono-tag reveal">CHAPTER 04 · PREVENT &gt; RECALL</p>
+      <h2 class="slide-title reveal" style="font-size:clamp(1.8rem,4.5vw,3.2rem); margin-bottom:0.1em;">预防流失先于召回</h2>
+      <p class="slide-subtitle reveal" style="margin-bottom:0;">预防永远比治疗重要——在用户还没走时提前干预</p>
+    </div>
+    <div class="split-layout" style="align-items:start;">
+      <div class="vs-card reveal" style="display:flex; flex-direction:column; gap:0.5rem;">
+        <h3>流失预警：在用户还没走时提前干预</h3>
+        <p style="color:var(--brand-blue); font-weight:700;">类比：像医生不等人生病才治，而是体检时提前预防</p>
+        <p style="font-weight:900; margin-bottom:-0.2em;">预警信号</p>
+        <ul class="mini-list yellow">
+          <li>以前每天都来，突然 3 天没来了</li>
+          <li>以前每次用半小时，现在每次只用 5 分钟</li>
+          <li>以前每周都发帖，最近两周没发过</li>
+        </ul>
+        <p style="font-weight:900; margin-bottom:-0.2em;">提前干预</p>
+        <ul class="mini-list green">
+          <li>发推送：好久不见，送你个大礼包</li>
+          <li>私信：你关注的 XXX 更新啦</li>
+        </ul>
+      </div>
+      <div class="vs-card bad reveal" style="display:flex; flex-direction:column; gap:0.5rem;">
+        <h3>流失召回：已经卸载的想办法喊回来</h3>
+        <p style="font-weight:900; margin-bottom:-0.2em;">召回手段</p>
+        <ul class="mini-list red">
+          <li>短信、推送、好友召回（如王者荣耀喊朋友回来，两人都有奖励）</li>
+        </ul>
+        <p style="font-weight:900; margin-bottom:-0.2em;">残酷真相</p>
+        <p>召回成功率非常低——100 个走了的用户，能喊回 <strong>5 个</strong>就不错了。</p>
+      </div>
+    </div>
+    <div class="quote-strip reveal"><span class="hl">最优策略：</span>别让用户走到流失那一步——在沉默时就拉一把，在新人时就留住。</div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 46: 终极任务 · 整合看板 ================= -->
+<section class="slide" id="slide-46">
+  <div class="grid-bg"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; gap:clamp(0.6rem,1.6vh,1rem);">
+    <div>
+      <p class="mono-tag reveal">FINAL MISSION · DASHBOARD</p>
+      <h2 class="slide-title reveal" style="font-size:clamp(1.8rem,4.5vw,3.2rem); margin-bottom:0.1em;">终极任务：整合看板</h2>
+    </div>
+    <div class="def-bar reveal">每组完成一份「完整用户体系 + 数据看板」，清单如下：</div>
+    <div style="display:grid; grid-template-columns:5fr 3fr 3fr; gap:clamp(0.5rem,1.4vw,1rem); align-items:start;">
+      <div class="mission-card reveal" style="padding:clamp(0.8rem,1.8vw,1.3rem);">
+        <h3 style="font-size:clamp(1rem,2vw,1.3rem); font-weight:900; margin-bottom:0.5em;">交付物清单</h3>
+        <ul class="mini-list" style="gap:0.35em;">
+          <li><strong>① 用户成长路径图</strong>　5 个阶段 + 每阶段关键行为</li>
+          <li><strong>② 北极星指标</strong>　1 个 + 为什么选它</li>
+          <li><strong>③ 用户标签（10 个）</strong>　三大家族都要有 + 每个标签用途</li>
+          <li><strong>④ 用户金字塔</strong>　4 层定义 + 每层运营策略</li>
+          <li><strong>⑤ 留存钩子</strong>　至少 2 个 + 运作机制</li>
+          <li><strong>⑥ 新用户 7 天触达计划</strong>　第 1/3/7 天：发什么 &amp; 为什么</li>
+          <li><strong>⑦ 完整数据看板</strong>　大盘 5 个核心数字 + 金字塔分层图 + 流动指标</li>
+        </ul>
+      </div>
+      <div class="vs-card reveal" style="display:flex; flex-direction:column; gap:0.5rem;">
+        <h3>时间与 PK 规则</h3>
+        <p>整理完善 <strong>15 分钟</strong><br>展示 <strong>5 分钟</strong> + 答辩 <strong>3 分钟</strong></p>
+        <p>对方小组当<strong>投资人</strong>可提问<br>导师评「<strong>最佳增长体系奖</strong>」</p>
+      </div>
+      <div class="vs-card reveal" style="display:flex; flex-direction:column; gap:0.5rem;">
+        <h3>评价标准</h3>
+        <ul class="mini-list green">
+          <li>逻辑清不清晰</li>
+          <li>指标合不合理</li>
+          <li>策略能不能落地</li>
+          <li>能不能答上来问题</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 47: 九步走通用户体系 ================= -->
+<section class="slide" id="slide-47">
+  <div class="grid-bg"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; gap:clamp(0.8rem,2.5vh,1.6rem);">
+    <div style="text-align:center;">
+      <p class="mono-tag reveal">FULL MAP · 9 STEPS</p>
+      <h2 class="slide-title reveal" style="font-size:clamp(1.8rem,4.5vw,3.4rem); margin-bottom:0;">九步走通用户体系</h2>
+    </div>
+    <div class="flow-row">
+      <div class="flow-step reveal"><p class="no">1</p><h4>用户生命周期</h4><p>新人、成长、成熟、沉默、流失，像一座山</p></div>
+      <div class="flow-step reveal"><p class="no">2</p><h4>关键行为</h4><p>你得知道用户怎么升级的</p></div>
+      <div class="flow-step reveal"><p class="no">3</p><h4>北极星指标</h4><p>指引方向，还有 DAU、留存率、转化率基础指标</p></div>
+      <div class="flow-step reveal"><p class="no">4</p><h4>用户标签</h4><p>但标签不在多，有用才行</p></div>
+      <div class="flow-step reveal"><p class="no">5</p><h4>数据看板</h4><p>像汽车仪表盘，随时知道产品状态</p></div>
+      <div class="flow-step reveal"><p class="no">6</p><h4>用户分层</h4><p>金字塔模型，不同层用不同策略</p></div>
+      <div class="flow-step reveal"><p class="no">7</p><h4>触达体系</h4><p>把用户喊回来，但不能骚扰</p></div>
+      <div class="flow-step reveal"><p class="no">8</p><h4>留存钩子</h4><p>让用户自己就想回来</p></div>
+      <div class="flow-step reveal"><p class="no">9</p><h4>流失预警</h4><p>别等用户走了才后悔</p></div>
+    </div>
+    <div class="quote-strip reveal" style="text-align:center;">这一整套就是产品增长团队每天在干的事——<span class="hl">你们用 4 小时，走完了别人 4 个月才能摸清的路。</span></div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 48: PK 展示与点评 ================= -->
+<section class="slide" id="slide-48">
+  <div class="grid-bg"></div>
+  <div class="slide-content" style="display:flex; flex-direction:column; gap:clamp(0.7rem,2vh,1.3rem);">
+    <div>
+      <p class="mono-tag reveal">FINAL PK · FEEDBACK</p>
+      <h2 class="slide-title reveal" style="font-size:clamp(1.8rem,4.5vw,3.2rem); margin-bottom:0;">PK 展示与点评</h2>
+    </div>
+    <div class="split-layout" style="align-items:stretch;">
+      <div class="vs-card reveal" style="display:flex; flex-direction:column; gap:0.6rem;">
+        <h3 style="font-size:clamp(1.2rem,2.4vw,1.7rem);">Team A</h3>
+        <p class="slide-caption" style="font-weight:700; color:var(--brand-blue);">现场点评 · 优缺并陈</p>
+        <div>
+          <p style="font-weight:900; color:var(--mint);">优点</p>
+          <ul class="mini-list green">
+            <li>用户成长路径画得非常清晰，每个阶段关键行为具体</li>
+            <li>北极星指标选得不错，能代表核心价值</li>
+          </ul>
+        </div>
+        <div>
+          <p style="font-weight:900; color:var(--red);">扣分项</p>
+          <ul class="mini-list red">
+            <li>标签里有好几个“没用的标签”——有两三个回答不上“有了它能做什么不一样的决定”</li>
+          </ul>
+        </div>
+      </div>
+      <div class="vs-card reveal" style="display:flex; flex-direction:column; gap:0.6rem;">
+        <h3 style="font-size:clamp(1.2rem,2.4vw,1.7rem);">Team B</h3>
+        <p class="slide-caption" style="font-weight:700; color:var(--brand-blue);">现场点评 · 优缺并陈</p>
+        <div>
+          <p style="font-weight:900; color:var(--mint);">优点</p>
+          <ul class="mini-list green">
+            <li>金字塔分层策略做得特别好，每层干什么都想清楚了，是能落地的动作</li>
+            <li>留存钩子很有创意</li>
+          </ul>
+        </div>
+        <div>
+          <p style="font-weight:900; color:var(--red);">扣分项</p>
+          <ul class="mini-list red">
+            <li>7 天触达计划有几天的内容太像广告，不够“对”，太硬，用户会反感</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 49: THE END ================= -->
+<section class="slide" id="slide-49" data-theme="navy">
+  <div class="grid-bg"></div>
+  <div class="pixel-block" style="top:12%; left:9%; width:22px; height:22px; background:var(--yellow); border-radius:4px;"></div>
+  <div class="pixel-block" style="top:20%; left:14%; width:12px; height:12px; background:var(--mint-light); border-radius:2px;"></div>
+  <div class="pixel-block" style="bottom:14%; right:10%; width:26px; height:26px; background:var(--brand-blue); border-radius:4px;"></div>
+  <div class="slide-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(1rem,3vh,2.2rem);">
+    <p class="mono-tag light reveal">THE END</p>
+    <h2 class="chapter-title reveal" style="max-width:14em;">把用户的话听进去<br>产品自然会长起来</h2>
+    <div class="chapter-bar reveal" style="margin:0 auto;"></div>
+    <p class="reveal" style="font-family:var(--font-mono); font-size:clamp(0.7rem,1.4vw,0.95rem); color:rgba(255,255,255,0.55); letter-spacing:0.12em;">MINI SILICON VALLEY · USER SYSTEM · MISSION COMPLETE</p>
+  </div>
+</section>
+
+<nav class="nav" id="nav" data-page-node-id="plZSrlAzv6DS1PvdkeJdJa"></nav>
+<div class="page-num" id="pagenum" data-page-node-id="EwIovTjYib6UxsQ3pjAGaZ">1 / 49</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const nav = document.getElementById('nav');
+const progress = document.getElementById('progress');
+const pagenum = document.getElementById('pagenum');
+const requestedSlide = Number(new URL(window.location.href).searchParams.get('slide'));
+let currentSlide = Number.isInteger(requestedSlide) && requestedSlide >= 1 && requestedSlide <= slides.length
+  ? requestedSlide - 1
+  : 0;
+
+slides.forEach((_, i) => {
+  const dot = document.createElement('button');
+  dot.className = 'nav-dot' + (i === currentSlide ? ' active' : '');
+  dot.setAttribute('aria-label', `第 ${i + 1} 页`);
+  dot.onclick = () => goToSlide(i);
+  nav.appendChild(dot);
+});
+
+function goToSlide(index) {
+  if (index < 0 || index >= slides.length) return;
+  currentSlide = index;
+  slides[index].scrollIntoView({ behavior: 'auto', block: 'start' });
+  updateNav();
+  triggerAnimations(index);
+}
+
+function updateNav() {
+  document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+    dot.classList.toggle('active', i === currentSlide);
+  });
+  progress.style.width = ((currentSlide + 1) / slides.length * 100) + '%';
+  pagenum.textContent = `${currentSlide + 1} / ${slides.length}`;
+  const url = new URL(window.location.href);
+  url.searchParams.set('slide', String(currentSlide + 1));
+  window.history.replaceState(null, '', url);
+}
+
+function fitSlideContent(slide) {
+  const content = slide.querySelector('.slide-content');
+  if (!content) return;
+  content.style.setProperty('--slide-fit', '1');
+  const style = window.getComputedStyle(slide);
+  const availableWidth = slide.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+  const availableHeight = slide.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+  const scale = Math.min(1, availableWidth / content.scrollWidth, availableHeight / content.scrollHeight);
+  content.style.setProperty('--slide-fit', String(Math.max(0.5, scale)));
+}
+
+function fitAllSlides() {
+  slides.forEach(fitSlideContent);
+}
+
+window.addEventListener('resize', fitAllSlides);
+if (document.fonts?.ready) document.fonts.ready.then(fitAllSlides);
+
+document.addEventListener('keydown', (e) => {
+  if (['ArrowRight', 'ArrowDown', ' ', 'PageDown'].includes(e.key)) {
+    e.preventDefault(); goToSlide(currentSlide + 1);
+  } else if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) {
+    e.preventDefault(); goToSlide(currentSlide - 1);
+  } else if (e.key === 'Home') { e.preventDefault(); goToSlide(0); }
+  else if (e.key === 'End') { e.preventDefault(); goToSlide(slides.length - 1); }
+});
+
+let touchStartY = 0;
+document.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; });
+document.addEventListener('touchend', (e) => {
+  const diff = touchStartY - e.changedTouches[0].clientY;
+  if (Math.abs(diff) > 50) goToSlide(currentSlide + (diff > 0 ? 1 : -1));
+});
+
+function triggerAnimations(slideIndex) {
+  const slide = slides[slideIndex];
+  slide.querySelectorAll('.reveal, .reveal-scale, .reveal-left').forEach((el, i) => {
+    el.classList.remove('visible');
+    setTimeout(() => el.classList.add('visible'), 80 + i * 100);
+  });
+}
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const index = Array.from(slides).indexOf(entry.target);
+      currentSlide = index;
+      updateNav();
+      triggerAnimations(index);
+    }
+  });
+}, { threshold: 0.5 });
+slides.forEach(slide => observer.observe(slide));
+
+requestAnimationFrame(() => {
+  fitAllSlides();
+  goToSlide(currentSlide);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "digest": "49dee9869819d74fc399d74b63df7029b6b8af2d31351d97d35080a5ea47204d",
+  "status": "local-draft",
+  "deployed": false,
+  "modules": [
+    "move",
+    "pickup",
+    "bag",
+    "finish"
+  ],
+  "automated": "actual Three.js scene factory transforms, camera preservation, layout separation, normalization and build parity",
+  "browserObserved": [
+    "split groups visibly separate",
+    "joined positions change with links and animation",
+    "teacher-to-audience state inheritance",
+    "rotated camera remains after split",
+    "reveal layout readable"
+  ],
+  "browserLimitations": [
+    "old QA tab blank; new dedicated tab succeeded",
+    "native noWindowsAvailable on popup close; final reverse-sync check not claimed"
+  ],
+  "manualAcceptance": "not-signed"
+}

@@ -1,0 +1,13 @@
+{
+  "teacherResourceLink": "PASS",
+  "audienceExcluded": "PASS",
+  "noAutomaticEmbed": "PASS",
+  "localHttpEntry": "PASS",
+  "zipContentHashes": "PASS",
+  "videoPlayback": "NOT_VERIFIED",
+  "metadata": "Title and author verified via YouTube oEmbed",
+  "productionDeployed": false,
+  "minecraftResource": "PASS",
+  "nodeTests": 7,
+  "videoHandling": "External links only; teacher opens and plays manually"
+}

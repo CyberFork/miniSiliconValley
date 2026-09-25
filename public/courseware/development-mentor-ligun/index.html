@@ -1,0 +1,1662 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>软件产品开发：先立棍，再让 AI 跑</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23082b4c'/%3E%3Cpath d='M14 4h4v24h-4z' fill='%23ffd65a'/%3E%3C/svg%3E" />
+  <style>
+    :root {
+      --blue: #1263c7;
+      --blue-2: #2e83e9;
+      --navy: #082b4c;
+      --navy-2: #0f416e;
+      --mint: #46d39e;
+      --mint-dark: #168b6d;
+      --cream: #fff8e8;
+      --paper: #fffdf6;
+      --yellow: #ffd65a;
+      --red: #e84f54;
+      --ink: #15314c;
+      --muted: #5a7184;
+      --shadow: 0 18px 45px rgba(4, 35, 65, .18);
+      --pixel-shadow: 8px 8px 0 rgba(8, 43, 76, .13);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #061b30;
+      color: var(--ink);
+      font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif;
+    }
+
+    button { font: inherit; }
+
+    #viewport {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    #deck {
+      width: 1600px;
+      height: 900px;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform-origin: center center;
+      background: var(--cream);
+      box-shadow: 0 40px 120px rgba(0, 0, 0, .45);
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: none;
+      overflow: hidden;
+      padding: 72px 86px 74px;
+      background:
+        linear-gradient(rgba(18, 99, 199, .048) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(18, 99, 199, .048) 1px, transparent 1px),
+        var(--cream);
+      background-size: 32px 32px;
+    }
+
+    .slide.active { display: block; }
+
+    .slide::before {
+      content: attr(data-code);
+      position: absolute;
+      top: 28px;
+      left: 86px;
+      font: 700 15px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .16em;
+      color: var(--blue);
+      text-transform: uppercase;
+    }
+
+    .slide::after {
+      content: "MINI 硅谷 · 导师工具箱";
+      position: absolute;
+      right: 86px;
+      top: 28px;
+      color: rgba(21, 49, 76, .55);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .08em;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: 76px; line-height: 1.08; letter-spacing: -.04em; }
+    h2 { font-size: 48px; line-height: 1.15; letter-spacing: -.025em; color: var(--navy); }
+    h3 { font-size: 26px; line-height: 1.25; }
+    p { font-size: 25px; line-height: 1.55; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      color: var(--blue);
+      font: 800 17px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 16px;
+      height: 16px;
+      background: var(--mint);
+      border: 3px solid var(--navy);
+      box-shadow: 4px 4px 0 rgba(8, 43, 76, .18);
+    }
+
+    .subtitle {
+      margin-top: 18px;
+      max-width: 920px;
+      color: var(--muted);
+      font-size: 27px;
+      line-height: 1.5;
+    }
+
+    .pixel-box {
+      border: 4px solid var(--navy);
+      background: rgba(255, 253, 246, .96);
+      box-shadow: var(--pixel-shadow);
+    }
+
+    .dark-panel {
+      background: var(--navy);
+      color: #fff;
+      border: 4px solid #061b30;
+      box-shadow: 8px 8px 0 rgba(70, 211, 158, .45);
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 8px 13px 7px;
+      border: 3px solid var(--navy);
+      background: #fff;
+      color: var(--navy);
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1;
+      box-shadow: 4px 4px 0 rgba(8, 43, 76, .12);
+    }
+    .tag.blue { background: #dcecff; }
+    .tag.yellow { background: #fff0a9; }
+    .tag.green { background: #cdf5e3; }
+    .tag.red { background: #ffd8d9; }
+
+    .mission-strip {
+      position: absolute;
+      left: 86px;
+      right: 86px;
+      bottom: 54px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 16px 20px;
+      border: 3px solid var(--navy);
+      background: rgba(255, 255, 255, .88);
+      color: var(--navy);
+      font-size: 21px;
+      font-weight: 750;
+      box-shadow: 6px 6px 0 rgba(8, 43, 76, .12);
+    }
+
+    .mission-strip strong { color: var(--blue); }
+
+    [data-reveal] {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity .32s ease, transform .32s ease;
+    }
+    [data-reveal].revealed { opacity: 1; transform: none; }
+
+    /* 01 cover */
+    .cover {
+      padding: 0;
+      background: var(--cream);
+    }
+    .cover::before, .cover::after { display: none; }
+    .cover-art {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .cover-shade {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(255, 248, 232, 1) 0%, rgba(255, 248, 232, .98) 25%, rgba(255, 248, 232, .68) 46%, rgba(255, 248, 232, .08) 70%);
+    }
+    .cover-content {
+      position: absolute;
+      left: 86px;
+      top: 120px;
+      width: 650px;
+    }
+    .cover-kicker {
+      display: inline-block;
+      padding: 10px 16px;
+      margin-bottom: 28px;
+      border: 4px solid var(--navy);
+      background: var(--yellow);
+      color: var(--navy);
+      font: 900 18px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .12em;
+      box-shadow: 6px 6px 0 rgba(8, 43, 76, .18);
+    }
+    .cover h1 { color: var(--navy); text-shadow: 3px 3px 0 #fff; }
+    .cover .subtitle { color: #34516b; font-size: 30px; max-width: 560px; }
+    .cover-route {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 44px;
+    }
+    .cover-foot {
+      position: absolute;
+      left: 86px;
+      bottom: 58px;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      color: var(--navy);
+      font-size: 19px;
+      font-weight: 800;
+    }
+    .start-key {
+      padding: 12px 16px;
+      color: white;
+      background: var(--blue);
+      border: 4px solid var(--navy);
+      box-shadow: 5px 5px 0 var(--mint);
+    }
+
+    /* 02 route */
+    .route-board {
+      position: relative;
+      width: 1360px;
+      height: 500px;
+      margin: 36px auto 0;
+    }
+    .route-line {
+      position: absolute;
+      left: 120px;
+      right: 120px;
+      top: 228px;
+      height: 16px;
+      background: var(--blue);
+      border: 4px solid var(--navy);
+      box-shadow: 0 9px 0 rgba(8, 43, 76, .11);
+    }
+    .route-node {
+      position: absolute;
+      top: 142px;
+      width: 200px;
+      height: 190px;
+      padding: 28px 18px 18px;
+      text-align: center;
+      background: var(--paper);
+      border: 4px solid var(--navy);
+      box-shadow: 8px 8px 0 rgba(8, 43, 76, .15);
+    }
+    .route-node:nth-of-type(1) { left: 30px; }
+    .route-node:nth-of-type(2) { left: 385px; }
+    .route-node:nth-of-type(3) { left: 740px; }
+    .route-node:nth-of-type(4) { left: 1095px; }
+    .route-icon {
+      display: grid;
+      place-items: center;
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 18px;
+      border: 4px solid var(--navy);
+      background: var(--mint);
+      font-size: 38px;
+    }
+    .route-node:nth-of-type(2) .route-icon { background: #dcecff; }
+    .route-node:nth-of-type(3) .route-icon { background: #fff0a9; }
+    .route-node:nth-of-type(4) .route-icon { background: #cdf5e3; }
+    .route-node h3 { color: var(--navy); margin-bottom: 8px; }
+    .route-node p { font-size: 18px; line-height: 1.3; color: var(--muted); }
+
+    /* 03 development definition */
+    .big-idea {
+      margin-top: 34px;
+      padding: 34px 44px;
+      font-size: 42px;
+      line-height: 1.38;
+      font-weight: 850;
+      color: white;
+    }
+    .big-idea mark {
+      background: var(--yellow);
+      color: var(--navy);
+      padding: 0 .18em;
+    }
+    .four-layers {
+      margin-top: 34px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 22px;
+    }
+    .layer {
+      min-height: 245px;
+      padding: 28px 24px;
+      position: relative;
+      background: var(--paper);
+      border-top: 10px solid var(--blue);
+    }
+    .layer:nth-child(2) { border-top-color: var(--mint-dark); }
+    .layer:nth-child(3) { border-top-color: #e4a900; }
+    .layer:nth-child(4) { border-top-color: var(--red); }
+    .layer .num {
+      color: rgba(8, 43, 76, .18);
+      font: 900 44px/1 ui-monospace, monospace;
+      margin-bottom: 14px;
+    }
+    .layer h3 { margin-bottom: 14px; color: var(--navy); }
+    .layer p { font-size: 20px; line-height: 1.42; color: var(--muted); }
+
+    /* image split */
+    .image-split {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 58%;
+      object-fit: cover;
+    }
+    .image-split.right { right: 0; object-position: center; }
+    .image-split.left { left: 0; object-position: center; }
+    .image-overlay-right {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, var(--cream) 0%, rgba(255, 248, 232, .96) 37%, rgba(255, 248, 232, .2) 65%, rgba(255, 248, 232, 0) 78%);
+    }
+    .image-overlay-left {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(255, 248, 232, 0) 25%, rgba(255, 248, 232, .16) 48%, rgba(255, 248, 232, .96) 65%, var(--cream) 78%);
+    }
+    .split-copy-left {
+      position: relative;
+      z-index: 2;
+      width: 640px;
+      margin-top: 88px;
+    }
+    .split-copy-right {
+      position: absolute;
+      z-index: 2;
+      width: 610px;
+      right: 84px;
+      top: 136px;
+    }
+    .split-copy-left .statement,
+    .split-copy-right .statement {
+      margin-top: 28px;
+      font-size: 34px;
+      line-height: 1.4;
+      font-weight: 820;
+      color: var(--navy);
+    }
+    .role-lines { margin-top: 30px; display: grid; gap: 15px; }
+    .role-line {
+      display: flex;
+      align-items: flex-start;
+      gap: 15px;
+      padding: 15px 18px;
+      border-left: 8px solid var(--blue);
+      background: rgba(255,255,255,.86);
+      font-size: 22px;
+      line-height: 1.4;
+      box-shadow: 5px 5px 0 rgba(8, 43, 76, .09);
+    }
+    .role-line.ai { border-left-color: var(--mint-dark); }
+    .role-line strong { min-width: 110px; color: var(--navy); }
+
+    /* 05 evidence */
+    .evidence-list {
+      margin-top: 28px;
+      display: grid;
+      gap: 17px;
+    }
+    .evidence-row {
+      display: grid;
+      grid-template-columns: 96px 1fr;
+      gap: 18px;
+      align-items: center;
+      font-size: 22px;
+      line-height: 1.4;
+    }
+    .evidence-label {
+      padding: 13px 10px;
+      border: 3px solid var(--navy);
+      text-align: center;
+      font-weight: 900;
+      background: #dcecff;
+    }
+    .evidence-row:nth-child(2) .evidence-label,
+    .evidence-row:nth-child(3) .evidence-label { background: #fff0a9; }
+
+    /* 06 user value */
+    .question-hero {
+      position: relative;
+      margin-top: 38px;
+      padding: 46px 54px 50px;
+      background: var(--navy);
+      color: white;
+      border: 5px solid #061b30;
+      box-shadow: 10px 10px 0 var(--mint);
+    }
+    .question-hero .q {
+      font-size: 52px;
+      line-height: 1.35;
+      font-weight: 880;
+    }
+    .question-hero .q em {
+      color: var(--yellow);
+      font-style: normal;
+    }
+    .user-checks {
+      margin-top: 34px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .user-check {
+      padding: 24px 26px;
+      min-height: 160px;
+      background: var(--paper);
+      border: 4px solid var(--navy);
+      box-shadow: 7px 7px 0 rgba(8, 43, 76, .12);
+    }
+    .user-check .small { color: var(--blue); font: 850 15px/1 ui-monospace, monospace; letter-spacing: .12em; }
+    .user-check strong { display: block; margin-top: 15px; font-size: 26px; line-height: 1.35; }
+
+    /* 07 vertical slice */
+    .slice-board {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 34px;
+      margin-top: 42px;
+    }
+    .slice-side {
+      min-height: 470px;
+      padding: 28px 30px;
+      position: relative;
+    }
+    .slice-side.bad { border-color: #8a2e31; background: #fff2ef; box-shadow: 8px 8px 0 rgba(232, 79, 84, .25); }
+    .slice-side.good { border-color: #0b6d54; background: #effbf6; box-shadow: 8px 8px 0 rgba(70, 211, 158, .35); }
+    .slice-side h3 { font-size: 28px; margin-bottom: 8px; }
+    .slice-side .desc { font-size: 20px; color: var(--muted); }
+    .islands {
+      height: 305px;
+      position: relative;
+      margin-top: 24px;
+    }
+    .island {
+      position: absolute;
+      padding: 18px 24px;
+      border: 4px solid #8a2e31;
+      background: white;
+      font-size: 23px;
+      font-weight: 850;
+      box-shadow: 6px 6px 0 rgba(138, 46, 49, .14);
+    }
+    .island:nth-child(1) { left: 14px; top: 18px; }
+    .island:nth-child(2) { right: 20px; top: 95px; }
+    .island:nth-child(3) { left: 112px; bottom: 20px; }
+    .slice-track {
+      display: grid;
+      grid-template-columns: 1fr 45px 1fr 45px 1fr;
+      gap: 8px;
+      align-items: center;
+      margin-top: 52px;
+    }
+    .slice-step {
+      min-height: 140px;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+      border: 4px solid #0b6d54;
+      background: white;
+      color: var(--navy);
+      font-size: 23px;
+      font-weight: 850;
+      text-align: center;
+    }
+    .slice-arrow { text-align: center; font-size: 38px; color: var(--mint-dark); font-weight: 900; }
+    .slice-result {
+      margin-top: 30px;
+      padding: 16px 20px;
+      background: var(--mint);
+      border: 4px solid #0b6d54;
+      color: var(--navy);
+      font-size: 23px;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    /* 08 roles */
+    .roles-stage {
+      position: relative;
+      width: 1290px;
+      height: 525px;
+      margin: 26px auto 0;
+    }
+    .center-role {
+      position: absolute;
+      left: 490px;
+      top: 145px;
+      width: 310px;
+      height: 220px;
+      padding: 36px 28px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      background: var(--navy);
+      color: white;
+      border: 5px solid #061b30;
+      box-shadow: 9px 9px 0 var(--yellow);
+      z-index: 3;
+    }
+    .center-role .big { font-size: 34px; font-weight: 900; line-height: 1.2; }
+    .center-role .small { margin-top: 12px; font-size: 19px; color: #c8e0f4; line-height: 1.4; }
+    .role-node {
+      position: absolute;
+      width: 245px;
+      min-height: 138px;
+      padding: 22px 20px;
+      border: 4px solid var(--navy);
+      background: var(--paper);
+      box-shadow: 7px 7px 0 rgba(8, 43, 76, .13);
+      z-index: 2;
+    }
+    .role-node h3 { color: var(--blue); margin-bottom: 8px; }
+    .role-node p { font-size: 18px; line-height: 1.35; color: var(--muted); }
+    .role-node.n1 { left: 20px; top: 35px; }
+    .role-node.n2 { left: 20px; top: 320px; }
+    .role-node.n3 { right: 20px; top: 35px; }
+    .role-node.n4 { right: 20px; top: 320px; }
+    .role-node.n5 { left: 524px; top: 0; width: 245px; }
+    .role-node.n6 { left: 524px; bottom: 0; width: 245px; }
+    .connector {
+      position: absolute;
+      height: 8px;
+      background: var(--blue);
+      border: 2px solid var(--navy);
+      transform-origin: left center;
+      z-index: 1;
+    }
+    .c1 { left: 250px; top: 138px; width: 300px; transform: rotate(15deg); }
+    .c2 { left: 250px; top: 385px; width: 300px; transform: rotate(-12deg); }
+    .c3 { left: 747px; top: 220px; width: 300px; transform: rotate(-15deg); }
+    .c4 { left: 747px; top: 292px; width: 300px; transform: rotate(14deg); }
+
+    /* 09 allocation */
+    .allocation-wrap {
+      margin-top: 54px;
+      padding: 34px 38px 38px;
+    }
+    .allocation-bar {
+      display: flex;
+      width: 100%;
+      height: 166px;
+      border: 5px solid var(--navy);
+      overflow: hidden;
+    }
+    .alloc {
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--navy);
+      font-weight: 900;
+      border-right: 4px solid var(--navy);
+    }
+    .alloc:last-child { border-right: 0; }
+    .alloc strong { display: block; font: 950 47px/1 ui-monospace, monospace; }
+    .alloc span { display: block; margin-top: 8px; font-size: 23px; }
+    .alloc.design { width: 40%; background: #a9d2ff; }
+    .alloc.build { width: 30%; background: #9fe9cd; }
+    .alloc.test { width: 20%; background: #ffe58e; }
+    .alloc.accept { width: 10%; background: #ffc0c2; }
+    .continuum {
+      margin-top: 38px;
+      padding: 28px 34px;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 30px;
+      align-items: center;
+      background: var(--navy);
+      color: white;
+      border: 4px solid #061b30;
+      box-shadow: 8px 8px 0 var(--mint);
+    }
+    .continuum strong { font-size: 29px; color: var(--yellow); }
+    .continuum p { font-size: 23px; color: #dcecf8; }
+
+    /* 10 testing */
+    .test-levels { margin-top: 30px; display: grid; gap: 13px; }
+    .test-level {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      gap: 15px;
+      align-items: center;
+      padding: 14px 18px;
+      background: rgba(255,255,255,.92);
+      border-left: 8px solid var(--mint-dark);
+      box-shadow: 5px 5px 0 rgba(8,43,76,.09);
+    }
+    .test-level strong { font-size: 21px; color: var(--navy); }
+    .test-level span { font-size: 19px; line-height: 1.35; color: var(--muted); }
+
+    /* 11 methods */
+    .method-route {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 78px;
+      margin-top: 68px;
+    }
+    .method-route::before {
+      content: "";
+      position: absolute;
+      top: 96px;
+      left: 140px;
+      right: 140px;
+      height: 12px;
+      background: var(--blue);
+      border: 3px solid var(--navy);
+    }
+    .method {
+      position: relative;
+      z-index: 2;
+      min-height: 340px;
+      padding: 30px;
+      border: 4px solid var(--navy);
+      background: var(--paper);
+      box-shadow: var(--pixel-shadow);
+    }
+    .method-num {
+      width: 88px;
+      height: 88px;
+      display: grid;
+      place-items: center;
+      margin: 20px auto 28px;
+      border: 5px solid var(--navy);
+      background: var(--mint);
+      font: 950 31px/1 ui-monospace, monospace;
+      color: var(--navy);
+    }
+    .method:nth-child(2) .method-num { background: #dcecff; }
+    .method:nth-child(3) .method-num { background: #fff0a9; }
+    .method h3 { font-size: 31px; color: var(--navy); text-align: center; }
+    .method .question { margin: 17px 0 20px; font-size: 23px; line-height: 1.4; font-weight: 800; text-align: center; color: var(--blue); }
+    .method p { font-size: 20px; line-height: 1.45; color: var(--muted); text-align: center; }
+
+    /* 12 standard process */
+    .process-stage {
+      position: relative;
+      width: 1400px;
+      height: 510px;
+      margin: 28px auto 0;
+      padding-top: 36px;
+    }
+    .process-line {
+      position: absolute;
+      left: 80px;
+      right: 80px;
+      top: 210px;
+      height: 14px;
+      border: 4px solid var(--navy);
+      background: var(--mint);
+    }
+    .process-nodes {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 20px;
+    }
+    .process-node {
+      min-height: 270px;
+      padding: 24px 17px;
+      background: var(--paper);
+      border: 4px solid var(--navy);
+      box-shadow: 6px 6px 0 rgba(8,43,76,.12);
+      text-align: center;
+    }
+    .process-node .pnum {
+      width: 64px;
+      height: 64px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 24px;
+      border: 4px solid var(--navy);
+      background: var(--yellow);
+      font: 900 24px/1 ui-monospace, monospace;
+    }
+    .process-node:nth-child(even) .pnum { background: var(--mint); }
+    .process-node h3 { font-size: 22px; color: var(--navy); margin-bottom: 12px; }
+    .process-node p { font-size: 17px; line-height: 1.45; color: var(--muted); }
+    .feedback-loop {
+      position: absolute;
+      left: 220px;
+      right: 220px;
+      bottom: 16px;
+      padding: 18px 24px;
+      border: 4px solid var(--navy);
+      background: var(--navy);
+      color: white;
+      text-align: center;
+      font-size: 23px;
+      font-weight: 850;
+      box-shadow: 8px 8px 0 var(--yellow);
+    }
+
+    /* 13 example */
+    .case-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 1.6fr;
+      gap: 34px;
+      margin-top: 32px;
+    }
+    .case-problem {
+      min-height: 510px;
+      padding: 34px;
+      background: var(--navy);
+      color: white;
+      border: 5px solid #061b30;
+      box-shadow: 9px 9px 0 var(--yellow);
+    }
+    .case-problem .case-code { color: var(--mint); font: 850 16px/1 ui-monospace, monospace; letter-spacing: .13em; }
+    .case-problem .case-title { margin-top: 24px; font-size: 36px; line-height: 1.35; font-weight: 900; }
+    .case-problem .case-detail { margin-top: 28px; font-size: 22px; color: #d8eaf7; line-height: 1.6; }
+    .case-problem .boundary { margin-top: 34px; padding: 16px; border: 3px solid var(--yellow); color: var(--yellow); font-size: 20px; font-weight: 800; }
+    .case-steps { display: grid; gap: 15px; }
+    .case-step {
+      display: grid;
+      grid-template-columns: 62px 190px 1fr;
+      align-items: center;
+      min-height: 84px;
+      padding: 12px 18px;
+      border: 4px solid var(--navy);
+      background: var(--paper);
+      box-shadow: 5px 5px 0 rgba(8,43,76,.1);
+    }
+    .case-step .n { width: 48px; height: 48px; display: grid; place-items: center; background: var(--mint); border: 3px solid var(--navy); font-weight: 900; }
+    .case-step strong { font-size: 22px; color: var(--navy); }
+    .case-step span { font-size: 19px; line-height: 1.35; color: var(--muted); }
+
+    /* 14 closing */
+    .closing {
+      background: var(--navy);
+      color: white;
+    }
+    .closing::before { color: var(--mint); }
+    .closing::after { color: rgba(255,255,255,.55); }
+    .closing h2 { color: white; }
+    .closing .subtitle { color: #c8ddec; }
+    .checklist {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 20px;
+      margin-top: 54px;
+    }
+    .check-item {
+      min-height: 270px;
+      padding: 28px 22px;
+      background: #0d3a62;
+      border: 4px solid #061b30;
+      box-shadow: 7px 7px 0 rgba(70,211,158,.4);
+    }
+    .check-item .check { color: var(--mint); font-size: 42px; font-weight: 950; }
+    .check-item h3 { margin: 18px 0 13px; color: white; font-size: 25px; }
+    .check-item p { color: #c8ddec; font-size: 18px; line-height: 1.45; }
+    .closing-line {
+      margin-top: 50px;
+      padding: 24px 34px;
+      border: 4px solid var(--yellow);
+      background: #061b30;
+      color: white;
+      text-align: center;
+      font-size: 32px;
+      font-weight: 850;
+      box-shadow: 8px 8px 0 rgba(255,214,90,.3);
+    }
+    .closing-line strong { color: var(--yellow); }
+
+    #toolbar {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 10px;
+      background: rgba(4, 22, 39, .82);
+      backdrop-filter: blur(12px);
+      z-index: 20;
+      transition: opacity .25s ease;
+    }
+    #toolbar button {
+      width: 38px;
+      height: 34px;
+      border: 0;
+      border-radius: 6px;
+      background: rgba(255,255,255,.12);
+      color: white;
+      cursor: pointer;
+      font-weight: 850;
+    }
+    #toolbar button:hover { background: rgba(70,211,158,.35); }
+    #counter { min-width: 66px; color: white; font: 750 13px/1 ui-monospace, monospace; text-align: center; }
+
+    #progress {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 12px;
+      display: flex;
+      gap: 2px;
+      padding: 3px;
+      z-index: 25;
+      background: rgba(6,27,48,.94);
+    }
+    #progress .progress-segment {
+      flex: 1; min-width: 0; border: 0; border-radius: 3px;
+      background: #30445a; cursor: not-allowed; padding: 0;
+    }
+    #progress .progress-segment.unlocked { background: var(--mint); cursor: pointer; }
+    #progress .progress-segment.current { background: #ffd166; cursor: default; }
+    #progress .progress-segment[aria-disabled="true"] { opacity: .72; }
+    #progress .progress-segment:focus-visible { outline: 2px solid white; outline-offset: 2px; }
+
+    #progress-notice {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 30;
+      transform: translate(-50%, 8px);
+      padding: 10px 14px;
+      border: 2px solid var(--yellow);
+      background: rgba(6,27,48,.96);
+      color: white;
+      font: 750 14px/1.4 ui-monospace, monospace;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .16s ease, transform .16s ease;
+    }
+    #progress-notice[data-visible="true"] { opacity: 1; transform: translate(-50%, 0); }
+
+    #help {
+      position: fixed;
+      left: 18px;
+      bottom: 18px;
+      color: rgba(255,255,255,.64);
+      font: 600 12px/1.5 ui-monospace, monospace;
+      z-index: 20;
+    }
+
+    body.overview { overflow: auto; background: #061b30; }
+    body.overview #viewport { position: static; display: block; overflow: visible; padding: 28px; }
+    body.overview #deck {
+      width: auto;
+      height: auto;
+      position: static;
+      transform: none !important;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 24px;
+      background: transparent;
+      box-shadow: none;
+    }
+    body.overview .slide {
+      position: relative;
+      display: block;
+      width: 1600px;
+      height: 900px;
+      transform: scale(.24);
+      transform-origin: top left;
+      margin-right: -1216px;
+      margin-bottom: -684px;
+      outline: 7px solid transparent;
+      cursor: pointer;
+    }
+    body.overview .slide.active { outline-color: var(--mint); }
+    body.overview #toolbar, body.overview #progress, body.overview #help { display: none; }
+
+    @media print {
+      @page { size: 16in 9in; margin: 0; }
+      html, body { width: auto; height: auto; overflow: visible; background: white; }
+      #viewport { position: static; display: block; overflow: visible; }
+      #deck { width: 1600px; height: auto; transform: none !important; box-shadow: none; }
+      .slide { position: relative; display: block !important; width: 1600px; height: 900px; page-break-after: always; }
+      [data-reveal] { opacity: 1 !important; transform: none !important; }
+      #toolbar, #progress, #progress-notice, #help { display: none !important; }
+    }
+
+
+    /* T-089 · 立棍分层控制组件 */
+    .big-question {
+      margin-top: 46px;
+      padding: 38px 46px;
+      background: var(--navy);
+      color: white;
+      border: 5px solid #061b30;
+      box-shadow: 10px 10px 0 var(--yellow);
+      font-size: 48px;
+      line-height: 1.28;
+      font-weight: 900;
+    }
+    .big-question em { color: var(--yellow); font-style: normal; }
+    .missing-grid, .failure-grid, .control-grid, .final-grid {
+      display: grid;
+      gap: 22px;
+      margin-top: 34px;
+    }
+    .missing-grid { grid-template-columns: repeat(3, 1fr); }
+    .missing-card, .failure-card, .control-card, .final-card {
+      padding: 25px 27px;
+      border: 4px solid var(--navy);
+      background: var(--paper);
+      box-shadow: 7px 7px 0 rgba(8,43,76,.12);
+    }
+    .missing-card { min-height: 180px; }
+    .missing-card .code, .failure-card .code, .control-card .code, .final-card .code {
+      color: var(--blue);
+      font: 900 16px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .1em;
+    }
+    .missing-card strong, .failure-card strong, .control-card strong, .final-card strong {
+      display: block;
+      margin-top: 15px;
+      color: var(--navy);
+      font-size: 27px;
+      line-height: 1.3;
+    }
+    .missing-card p, .failure-card p, .control-card p, .final-card p {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 20px;
+      line-height: 1.42;
+    }
+    .failure-grid { grid-template-columns: repeat(3, 1fr); }
+    .failure-card { min-height: 305px; position: relative; padding-top: 78px; }
+    .failure-card::before {
+      content: attr(data-icon);
+      position: absolute;
+      top: 18px;
+      left: 25px;
+      font-size: 40px;
+    }
+    .failure-card strong { font-size: 31px; }
+    .failure-card.bad { border-color: #8a2e31; box-shadow: 7px 7px 0 rgba(232,79,84,.24); }
+    .speed-equation {
+      margin-top: 36px;
+      padding: 24px 32px;
+      background: var(--navy);
+      color: white;
+      border: 4px solid #061b30;
+      box-shadow: 8px 8px 0 var(--mint);
+      font-size: 35px;
+      font-weight: 900;
+      text-align: center;
+    }
+    .speed-equation mark { color: var(--navy); background: var(--yellow); padding: 0 8px; }
+    .flood-stage {
+      display: grid;
+      grid-template-columns: .78fr 1.5fr;
+      gap: 34px;
+      margin-top: 32px;
+    }
+    .flood-seed {
+      display: grid;
+      place-items: center;
+      min-height: 470px;
+      padding: 42px;
+      background: var(--navy);
+      color: white;
+      border: 5px solid #061b30;
+      box-shadow: 9px 9px 0 var(--yellow);
+      text-align: center;
+    }
+    .flood-seed .prompt { color: var(--mint); font: 850 17px/1 ui-monospace, monospace; letter-spacing: .11em; }
+    .flood-seed strong { display: block; margin-top: 24px; font-size: 40px; line-height: 1.3; }
+    .branch-board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      align-content: start;
+    }
+    .branch-column { display: grid; gap: 15px; }
+    .branch-title {
+      padding: 16px;
+      color: var(--navy);
+      background: var(--yellow);
+      border: 4px solid var(--navy);
+      font-size: 23px;
+      font-weight: 900;
+      text-align: center;
+    }
+    .branch-chip {
+      min-height: 80px;
+      display: grid;
+      place-items: center;
+      padding: 12px 15px;
+      border: 3px solid var(--navy);
+      background: var(--paper);
+      color: var(--navy);
+      font-size: 20px;
+      font-weight: 800;
+      text-align: center;
+      box-shadow: 5px 5px 0 rgba(8,43,76,.1);
+    }
+    .ligun-definition {
+      margin-top: 38px;
+      padding: 42px 50px;
+      background: var(--navy);
+      color: white;
+      border: 5px solid #061b30;
+      box-shadow: 11px 11px 0 var(--mint);
+    }
+    .ligun-definition .name {
+      color: var(--yellow);
+      font: 950 70px/1 ui-monospace, monospace;
+    }
+    .ligun-definition .definition {
+      margin-top: 22px;
+      font-size: 38px;
+      line-height: 1.38;
+      font-weight: 850;
+    }
+    .analogy-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 22px; margin-top: 38px; }
+    .analogy { padding: 24px; min-height: 150px; border: 4px solid var(--navy); background: var(--paper); }
+    .analogy strong { display: block; color: var(--navy); font-size: 26px; }
+    .analogy span { display: block; margin-top: 9px; color: var(--muted); font-size: 19px; line-height: 1.4; }
+    .stick-blueprint {
+      position: relative;
+      margin-top: 30px;
+      min-height: 520px;
+      padding: 28px 32px 34px 96px;
+      border: 5px solid var(--navy);
+      background: rgba(255,253,246,.95);
+      box-shadow: 9px 9px 0 rgba(8,43,76,.13);
+    }
+    .stick-spine {
+      position: absolute;
+      left: 39px;
+      top: 31px;
+      bottom: 34px;
+      width: 22px;
+      background: var(--yellow);
+      border: 5px solid var(--navy);
+      box-shadow: 6px 0 0 rgba(70,211,158,.45);
+    }
+    .stick-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .stick-field {
+      min-height: 202px;
+      padding: 22px 23px;
+      border: 3px solid var(--navy);
+      background: white;
+    }
+    .stick-field .n { color: var(--blue); font: 900 25px/1 ui-monospace, monospace; }
+    .stick-field h3 { margin-top: 12px; color: var(--navy); font-size: 27px; }
+    .stick-field p { margin-top: 10px; color: var(--muted); font-size: 18px; line-height: 1.35; }
+    .stick-field:nth-child(5), .stick-field:nth-child(6) { border-color: #8a2e31; }
+    .tier-stack { margin-top: 28px; display: grid; gap: 18px; }
+    .tier-row {
+      display: grid;
+      grid-template-columns: 170px 230px 1fr 250px;
+      align-items: center;
+      gap: 22px;
+      min-height: 145px;
+      padding: 22px 26px;
+      border: 4px solid var(--navy);
+      background: var(--paper);
+      box-shadow: 6px 6px 0 rgba(8,43,76,.12);
+    }
+    .tier-row:nth-child(1) { background: #fff0a9; }
+    .tier-row:nth-child(2) { background: #dcecff; margin-left: 70px; }
+    .tier-row:nth-child(3) { background: #cdf5e3; margin-left: 140px; }
+    .tier-no { color: var(--navy); font: 950 25px/1 ui-monospace, monospace; }
+    .tier-row h3 { color: var(--navy); font-size: 29px; }
+    .tier-row p { color: #34516b; font-size: 20px; line-height: 1.38; }
+    .tier-owner { padding: 15px; border: 3px solid var(--navy); background: rgba(255,255,255,.72); font-size: 19px; font-weight: 850; text-align: center; }
+    .flow-stage { display: grid; grid-template-columns: 1fr 170px 1fr; gap: 28px; align-items: center; margin-top: 38px; }
+    .flow-column { min-height: 500px; padding: 30px; border: 5px solid var(--navy); background: var(--paper); box-shadow: 8px 8px 0 rgba(8,43,76,.12); }
+    .flow-column.down { border-top: 14px solid var(--blue); }
+    .flow-column.up { border-top: 14px solid var(--mint-dark); }
+    .flow-column h3 { font-size: 34px; color: var(--navy); }
+    .flow-items { display: grid; gap: 16px; margin-top: 28px; }
+    .flow-item { padding: 17px 20px; background: #eef5fc; border-left: 8px solid var(--blue); font-size: 23px; font-weight: 800; }
+    .up .flow-item { background: #effbf6; border-color: var(--mint-dark); }
+    .flow-center { display: grid; gap: 18px; text-align: center; }
+    .flow-arrow { font-size: 82px; color: var(--blue); font-weight: 950; line-height: 1; }
+    .flow-arrow.up { color: var(--mint-dark); }
+    .flow-center span { font-size: 17px; color: var(--muted); font-weight: 800; }
+    .control-grid { grid-template-columns: 1fr 1fr; }
+    .control-card { min-height: 380px; padding: 30px 34px; }
+    .control-card.human { border-top: 13px solid var(--yellow); }
+    .control-card.ai { border-top: 13px solid var(--mint); }
+    .control-card h3 { margin-top: 16px; font-size: 36px; color: var(--navy); }
+    .control-list { margin: 26px 0 0; padding: 0; list-style: none; display: grid; gap: 15px; }
+    .control-list li { padding: 13px 16px; background: #f0ead7; border-left: 7px solid var(--navy); font-size: 22px; line-height: 1.35; }
+    .control-card.ai .control-list li { background: #e7f7f0; }
+    .story-board { display: grid; grid-template-columns: .9fr 1.4fr; gap: 32px; margin-top: 34px; }
+    .story-form { min-height: 470px; padding: 32px; background: var(--navy); color: white; border: 5px solid #061b30; box-shadow: 9px 9px 0 var(--yellow); }
+    .story-form .line { margin-top: 28px; padding: 19px 18px; background: #061b30; border-left: 8px solid var(--mint); font-size: 25px; line-height: 1.45; }
+    .story-form em { color: var(--yellow); font-style: normal; font-weight: 900; }
+    .story-proof { display: grid; gap: 18px; align-content: start; }
+    .proof-card { min-height: 138px; padding: 23px 26px; border: 4px solid var(--navy); background: var(--paper); box-shadow: 6px 6px 0 rgba(8,43,76,.1); }
+    .proof-card strong { color: var(--blue); font-size: 24px; }
+    .proof-card p { margin-top: 10px; color: var(--muted); font-size: 20px; line-height: 1.38; }
+    .map-chain { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-top: 42px; }
+    .map-node { position: relative; min-height: 335px; padding: 28px 20px; border: 4px solid var(--navy); background: var(--paper); box-shadow: 6px 6px 0 rgba(8,43,76,.11); }
+    .map-node:not(:last-child)::after { content: '›'; position: absolute; right: -25px; top: 135px; z-index: 3; color: var(--blue); font-size: 50px; font-weight: 950; }
+    .map-node .num { width: 58px; height: 58px; display: grid; place-items: center; background: var(--yellow); border: 3px solid var(--navy); font: 900 21px/1 ui-monospace, monospace; }
+    .map-node:nth-child(even) .num { background: var(--mint); }
+    .map-node h3 { margin-top: 22px; color: var(--navy); font-size: 25px; }
+    .map-node p { margin-top: 14px; color: var(--muted); font-size: 18px; line-height: 1.45; }
+    .map-node .substick { margin-top: 19px; padding: 9px; background: #eaf3fb; color: var(--blue); font-size: 16px; font-weight: 850; text-align: center; }
+    .quality-example { margin-top: 28px; padding: 20px 24px; border: 4px solid #8a2e31; background: #fff2ef; color: #672527; font-size: 22px; line-height: 1.45; font-weight: 800; }
+    .operation-stage { display: grid; grid-template-columns: 1.1fr .9fr; gap: 30px; margin-top: 30px; }
+    .allocation-compact { padding: 28px; border: 4px solid var(--navy); background: var(--paper); box-shadow: 7px 7px 0 rgba(8,43,76,.12); }
+    .allocation-compact .allocation-bar { height: 125px; }
+    .allocation-compact .alloc strong { font-size: 37px; }
+    .allocation-compact .alloc span { font-size: 19px; }
+    .method-compact { margin-top: 24px; display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+    .method-chip { padding: 20px; border: 3px solid var(--navy); background: #dcecff; min-height: 140px; }
+    .method-chip:nth-child(2) { background: #cdf5e3; }
+    .method-chip:nth-child(3) { background: #fff0a9; }
+    .method-chip strong { display:block; font-size:25px; color:var(--navy); }
+    .method-chip span { display:block; margin-top:10px; font-size:18px; line-height:1.35; color:var(--muted); }
+    .roles-compact { min-height: 500px; padding: 30px; background: var(--navy); color: white; border: 5px solid #061b30; box-shadow: 8px 8px 0 var(--mint); }
+    .roles-compact h3 { color: var(--yellow); font-size: 31px; }
+    .roles-compact ul { margin: 25px 0 0; padding-left: 25px; display: grid; gap: 18px; }
+    .roles-compact li { font-size: 21px; line-height: 1.4; }
+    .practice-stage { display: grid; grid-template-columns: 1.2fr .8fr; gap: 30px; margin-top: 30px; }
+    .practice-card { min-height: 500px; padding: 30px; border: 5px solid var(--navy); background: var(--paper); box-shadow: 9px 9px 0 var(--yellow); }
+    .practice-fields { display: grid; grid-template-columns: repeat(2,1fr); gap: 13px; margin-top: 23px; }
+    .practice-field { min-height: 75px; padding: 13px 16px; border: 3px solid var(--navy); background: #f0ead7; }
+    .practice-field strong { font-size: 19px; color: var(--navy); }
+    .practice-field span { display:block; margin-top:5px; font-size:16px; color:var(--muted); }
+    .practice-clock { min-height: 500px; display: grid; align-content: center; padding: 35px; background: var(--navy); color: white; border: 5px solid #061b30; box-shadow: 9px 9px 0 var(--mint); text-align:center; }
+    .practice-clock .time { color:var(--yellow); font:950 86px/1 ui-monospace,monospace; }
+    .practice-clock h3 { margin-top:22px; color:white; font-size:32px; }
+    .practice-clock p { margin-top:18px; color:#c8ddec; font-size:21px; line-height:1.5; }
+    .final-grid { grid-template-columns: repeat(3,1fr); }
+    .final-card { min-height: 190px; background:#0d3a62; border-color:#061b30; box-shadow:7px 7px 0 rgba(70,211,158,.38); }
+    .final-card .code { color:var(--mint); }
+    .final-card strong { color:white; font-size:25px; }
+    .final-card p { color:#c8ddec; font-size:18px; }
+
+  </style>
+</head>
+<body>
+  <div id="viewport">
+    <main id="deck" aria-label="开发导师立棍课件，共 18 页">
+
+      <section class="slide cover active" data-code="MISSION 00 · OUTPUT">
+        <img class="cover-art" src="assets/cover-learning-world.png" alt="学生从发现问题、立棍、实现和测试走向可靠交付的像素冒险学习世界" />
+        <div class="cover-shade"></div>
+        <div class="cover-content">
+          <div class="cover-kicker">D MENTOR · 开发导师课件</div>
+          <h1>软件产品开发<br />先立棍，再让 AI 跑</h1>
+          <p class="subtitle">把真实需求写成可执行、可验证、可纠偏的开发任务</p>
+          <div class="cover-route">
+            <span class="tag blue">方向</span>
+            <span class="tag green">分层</span>
+            <span class="tag yellow">验收</span>
+            <span class="tag red">纠偏</span>
+          </div>
+        </div>
+        <div class="cover-foot">
+          <span class="start-key">课堂产出：开发立棍卡</span>
+          <span>方向键切换 · F 全屏 · O 总览</span>
+        </div>
+      </section>
+
+      <section class="slide" data-code="MISSION 01 · AMBIGUOUS">
+        <div class="eyebrow">STARTING PROMPT</div>
+        <h2>一句话，AI 能直接开工吗？</h2>
+        <div class="big-question">“帮我做一个<em>校园设备预约系统</em>，越快越好。”</div>
+        <div class="missing-grid">
+          <div class="missing-card" data-reveal><div class="code">MISSING 01</div><strong>到底帮谁？</strong><p>学生、设备管理员，还是值班老师？</p></div>
+          <div class="missing-card" data-reveal><div class="code">MISSING 02</div><strong>什么算完成？</strong><p>能点按钮，还是预约真的被保存且不冲突？</p></div>
+          <div class="missing-card" data-reveal><div class="code">MISSING 03</div><strong>哪些不能做？</strong><p>不能重复占用，不能“假成功”，不能乱收隐私。</p></div>
+        </div>
+        <div class="mission-strip"><strong>先别敲代码：</strong> 模糊任务 + 高速执行，常常只是更快跑偏</div>
+      </section>
+
+      <section class="slide" data-code="MISSION 02 · FAST WRONG">
+        <div class="eyebrow">AI SPEED TEST</div>
+        <h2>AI 很快，但方向错了会发生什么？</h2>
+        <p class="subtitle">十分钟生成了漂亮页面，不代表用户拿到了可靠结果</p>
+        <div class="failure-grid">
+          <div class="failure-card bad" data-icon="⚡" data-reveal><div class="code">FAIL 01</div><strong>重复预约</strong><p>两位同学同时提交，同一台设备被占了两次。</p></div>
+          <div class="failure-card bad" data-icon="✓" data-reveal><div class="code">FAIL 02</div><strong>页面假成功</strong><p>屏幕说“预约成功”，服务器却没有保存记录。</p></div>
+          <div class="failure-card bad" data-icon="🔒" data-reveal><div class="code">FAIL 03</div><strong>越界收集</strong><p>预约设备却要求家庭住址和家长手机号。</p></div>
+        </div>
+        <div class="speed-equation" data-reveal><mark>AI 速度</mark> × 模糊方向 = 更快远离真正结果</div>
+      </section>
+
+      <section class="slide" data-code="MISSION 03 · REAL JOB">
+        <div class="eyebrow">WHAT DEVELOPMENT MEANS</div>
+        <h2>开发的真正工作</h2>
+        <div class="big-idea dark-panel">开发交付的是<mark>可验证的用户结果</mark>，代码只是实现结果的一种材料</div>
+        <div class="four-layers">
+          <div class="layer pixel-box" data-reveal><div class="num">01</div><h3>用户结果</h3><p>谁遇到什么麻烦，解决后发生什么变化</p></div>
+          <div class="layer pixel-box" data-reveal><div class="num">02</div><h3>业务规则</h3><p>用户如何完成任务，边界和异常是什么</p></div>
+          <div class="layer pixel-box" data-reveal><div class="num">03</div><h3>系统协作</h3><p>对象、模块、数据和接口怎样配合</p></div>
+          <div class="layer pixel-box" data-reveal><div class="num">04</div><h3>验证证据</h3><p>用什么测试证明产品真的符合约定</p></div>
+        </div>
+      </section>
+
+      <section class="slide" data-code="MISSION 04 · COMPLEXITY FLOOD">
+        <div class="eyebrow">COMPLEXITY FLOOD</div>
+        <h2>一个小需求，会越拆越多</h2>
+        <p class="subtitle">分支、状态、依赖和例外不断增加；人的注意力却不会一起变多</p>
+        <div class="flood-stage">
+          <div class="flood-seed"><div><div class="prompt">ONE SIMPLE REQUEST</div><strong>“让学生预约一台设备”</strong></div></div>
+          <div class="branch-board">
+            <div class="branch-column" data-reveal><div class="branch-title">分支</div><div class="branch-chip">查看空闲时段</div><div class="branch-chip">创建预约</div><div class="branch-chip">取消预约</div></div>
+            <div class="branch-column" data-reveal><div class="branch-title">状态</div><div class="branch-chip">空闲 / 占用</div><div class="branch-chip">待确认 / 成功</div><div class="branch-chip">过期 / 取消</div></div>
+            <div class="branch-column" data-reveal><div class="branch-title">例外</div><div class="branch-chip">两人同时提交</div><div class="branch-chip">断网后重试</div><div class="branch-chip">页面成功但没保存</div></div>
+          </div>
+        </div>
+        <div class="mission-strip"><strong>复杂度淹没：</strong> 每一层都靠人逐项盯住，团队很快就会失去方向</div>
+      </section>
+
+      <section class="slide" data-code="MISSION 05 · LIGUN">
+        <div class="eyebrow">THE CONTROL METHOD</div>
+        <h2>“立棍”不是任务清单，而是控制系统</h2>
+        <div class="ligun-definition">
+          <div class="name">立棍</div>
+          <div class="definition">为复杂任务建立一套<br /><strong>可执行、可验证、可控制</strong>的多层标准</div>
+        </div>
+        <div class="analogy-row">
+          <div class="analogy" data-reveal><strong>🧭 导航</strong><span>有目的地、禁行边界；偏航后重新规划。</span></div>
+          <div class="analogy" data-reveal><strong>📝 课程与考试</strong><span>大目标拆成练习，每层都有“学会了”的证据。</span></div>
+          <div class="analogy" data-reveal><strong>🗼 灯塔</strong><span>不替船划每一下，但持续给出方向和危险边界。</span></div>
+        </div>
+        <div class="mission-strip"><strong>不要混淆：</strong> 端到端主干是一种开发载体，不是“立棍”的完整定义</div>
+      </section>
+
+      <section class="slide" data-code="MISSION 06 · COMPLETE STICK">
+        <div class="eyebrow">A COMPLETE STICK</div>
+        <h2>一根完整的棍，要写清 6 件事</h2>
+        <div class="stick-blueprint">
+          <div class="stick-spine" aria-hidden="true"></div>
+          <div class="stick-fields">
+            <div class="stick-field" data-reveal><div class="n">01</div><h3>当前情况</h3><p>谁、在哪、发生了什么；哪些已知，哪些未知。</p></div>
+            <div class="stick-field" data-reveal><div class="n">02</div><h3>执行者</h3><p>人和 AI 各扮演什么角色，分别能决定什么。</p></div>
+            <div class="stick-field" data-reveal><div class="n">03</div><h3>目标</h3><p>要让用户完成什么任务，得到什么结果。</p></div>
+            <div class="stick-field" data-reveal><div class="n">04</div><h3>验收标准</h3><p>出现哪些可观察证据，才算真的完成。</p></div>
+            <div class="stick-field" data-reveal><div class="n">05</div><h3>约束</h3><p>时间、资源、技术和场景边界是什么。</p></div>
+            <div class="stick-field" data-reveal><div class="n">06</div><h3>禁止事项</h3><p>不能双约、不能假成功、不能收无关隐私。</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" data-code="MISSION 07 · THREE LEVELS">
+        <div class="eyebrow">THREE-LEVEL CONTROL</div>
+        <h2>主棍、子棍、微棍：越往下越具体</h2>
+        <p class="subtitle">每一层都要带验收标准；拆得越深，也必须对齐上一级</p>
+        <div class="tier-stack">
+          <div class="tier-row" data-reveal><div class="tier-no">LEVEL 1</div><h3>一级主棍</h3><p>让学生能够公平地查看空闲时段、完成预约并获得可信结果。</p><div class="tier-owner">人来定义<br />方向与红线</div></div>
+          <div class="tier-row" data-reveal><div class="tier-no">LEVEL 2</div><h3>二级子棍</h3><p>查看时段、创建预约、冲突判断、取消预约；每根都写验收。</p><div class="tier-owner">AI 可拆<br />人来验</div></div>
+          <div class="tier-row" data-reveal><div class="tier-no">LEVEL 3</div><h3>三级微棍</h3><p>表单校验、冲突函数、数据库约束、失败测试与局部返工。</p><div class="tier-owner">AI 执行<br />自测返工</div></div>
+        </div>
+      </section>
+
+      <section class="slide" data-code="MISSION 08 · FLOW">
+        <div class="eyebrow">CONTROL INTERFACE</div>
+        <h2>复杂度向下沉，重要信号向上浮</h2>
+        <div class="flow-stage">
+          <div class="flow-column down">
+            <h3>交给下层吸收</h3>
+            <div class="flow-items">
+              <div class="flow-item" data-reveal>任务拆解与重复实现</div>
+              <div class="flow-item" data-reveal>测试、重试与局部返工</div>
+              <div class="flow-item" data-reveal>样板代码与文档整理</div>
+            </div>
+          </div>
+          <div class="flow-center"><div class="flow-arrow">↓</div><span>复杂度</span><div class="flow-arrow up">↑</div><span>判断信号</span></div>
+          <div class="flow-column up">
+            <h3>必须向上报告</h3>
+            <div class="flow-items">
+              <div class="flow-item" data-reveal>完成结果与验证证据</div>
+              <div class="flow-item" data-reveal>偏差、异常和失败原因</div>
+              <div class="flow-item" data-reveal>无法判断、需要人决定的问题</div>
+            </div>
+          </div>
+        </div>
+        <div class="mission-strip"><strong>关键接口：</strong> 人不盯每行代码，但必须看见结果、偏差、例外和风险</div>
+      </section>
+
+      <section class="slide" data-code="MISSION 09 · RESPONSIBILITY">
+        <img class="image-split right" src="assets/design-blueprint.png" alt="导师和学生制定蓝图，AI 机器人在明确标准下辅助实现" />
+        <div class="image-overlay-right"></div>
+        <div class="split-copy-left" style="margin-top:28px;width:720px">
+          <div class="eyebrow">HUMAN × AI</div>
+          <h2>把任务交给 AI，不等于交出控制权</h2>
+          <div class="control-grid" style="margin-top:26px;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="control-card human" data-reveal style="min-height:360px;padding:23px"><div class="code">HUMAN</div><h3 style="font-size:30px">人保留判断</h3><ul class="control-list"><li>方向与用户价值</li><li>边界与红线</li><li>验收与纠偏</li><li>最终责任</li></ul></div>
+            <div class="control-card ai" data-reveal style="min-height:360px;padding:23px"><div class="code">AI</div><h3 style="font-size:30px">AI 吸收执行</h3><ul class="control-list"><li>拆解与实现</li><li>生成候选方案</li><li>自测与返工</li><li>上报异常</li></ul></div>
+          </div>
+        </div>
+        <div class="mission-strip"><strong>责任规则：</strong> AI 可以说“我做完了”，完成仍要由验收证据证明</div>
+      </section>
+
+      <section class="slide" data-code="MISSION 10 · EVIDENCE">
+        <img class="image-split left" src="assets/user-investigation.png" alt="学生调查校园共享设备使用现场，并区分事实、猜测和未知" />
+        <div class="image-overlay-left"></div>
+        <div class="split-copy-right">
+          <div class="eyebrow">PROBLEM HUNTER</div>
+          <h2>主棍必须站在证据上</h2>
+          <p class="statement">先理解真实麻烦，再决定要做什么</p>
+          <div class="evidence-list">
+            <div class="evidence-row" data-reveal><div class="evidence-label">事实</div><div>放学后设备区出现排队；可以观察和核对。</div></div>
+            <div class="evidence-row" data-reveal><div class="evidence-label">猜测</div><div>“大家都想预约”；团队认为可能，但没有证据。</div></div>
+            <div class="evidence-row" data-reveal><div class="evidence-label">未知</div><div>最常用设备和峰值时段；下一步需要调查。</div></div>
+          </div>
+        </div>
+        <div class="mission-strip"><strong>调查边界：</strong> 不知道就写未知；不收集与预约无关的个人信息</div>
+      </section>
+
+      <section class="slide" data-code="MISSION 11 · STORY">
+        <div class="eyebrow">VALUE MAIN STICK</div>
+        <h2>用 Story 把用户价值立成主棍</h2>
+        <div class="story-board">
+          <div class="story-form">
+            <div class="eyebrow" style="color:var(--mint)">USER STORY</div>
+            <div class="line">作为一名<em>需要使用校园设备的学生</em>，</div>
+            <div class="line">我想<em>查看空闲时段并完成预约</em>，</div>
+            <div class="line">以便<em>减少白跑，并公平使用设备</em>。</div>
+          </div>
+          <div class="story-proof">
+            <div class="proof-card" data-reveal><strong>场景证据</strong><p>学生到器材室才发现设备被占用。</p></div>
+            <div class="proof-card" data-reveal><strong>完成证据</strong><p>预约被保存；我的预约中可见；管理员名单一致。</p></div>
+            <div class="proof-card" data-reveal><strong>边界红线</strong><p>同设备同时间不能重复预约；不得显示虚假成功。</p></div>
+          </div>
+        </div>
+        <div class="mission-strip"><strong>Story 解决：</strong> 为什么做、为谁做；它不是“写一个接口”这样的技术任务</div>
+      </section>
+
+      <section class="slide" data-code="MISSION 12 · VERTICAL SLICE">
+        <div class="eyebrow">VERTICAL SLICE</div>
+        <h2>端到端主干：主棍的开发载体</h2>
+        <p class="subtitle">它让一条用户路径可运行、可演示、可测试；但还不能替代分层验收、反馈和纠偏</p>
+        <div class="slice-board">
+          <div class="slice-side bad pixel-box" data-reveal>
+            <h3>横向堆很多</h3><p class="desc">每一块都“做了不少”，用户却无法完成一次任务</p>
+            <div class="islands"><div class="island">20 张数据表</div><div class="island">30 个接口</div><div class="island">15 个页面</div></div>
+          </div>
+          <div class="slice-side good pixel-box" data-reveal>
+            <h3>纵向跑一条</h3><p class="desc">只做必要内容，先闭环一个真实用户任务</p>
+            <div class="slice-track"><div class="slice-step">看空闲<br />UI</div><div class="slice-arrow">›</div><div class="slice-step">判冲突<br />规则</div><div class="slice-arrow">›</div><div class="slice-step">存预约<br />数据</div></div>
+            <div class="slice-result">预约结果可见、可核对、可测试</div>
+          </div>
+        </div>
+        <div class="mission-strip"><strong>关系：</strong> 垂直切片承载一次实现；立棍还控制怎么拆、怎么验、失败如何上报</div>
+      </section>
+
+      <section class="slide" data-code="MISSION 13 · DESIGN MAP">
+        <div class="eyebrow">FROM VALUE TO UI</div>
+        <h2>每一层都是一根可验收的子棍</h2>
+        <p class="subtitle">不要从“先画几个页面”直接跳到实现；中间的对象、规则和边界不能消失</p>
+        <div class="map-chain">
+          <div class="map-node" data-reveal><div class="num">01</div><h3>用户目标</h3><p>学生公平预约设备，减少白跑。</p><div class="substick">主棍方向</div></div>
+          <div class="map-node" data-reveal><div class="num">02</div><h3>主要路径</h3><p>查看时段 → 预约 → 得到可信确认。</p><div class="substick">端到端载体</div></div>
+          <div class="map-node" data-reveal><div class="num">03</div><h3>领域模型</h3><p>学生、设备、时段、预约、冲突规则。</p><div class="substick">业务子棍</div></div>
+          <div class="map-node" data-reveal><div class="num">04</div><h3>系统架构</h3><p>服务、数据、接口和一致性边界。</p><div class="substick">技术子棍</div></div>
+          <div class="map-node" data-reveal><div class="num">05</div><h3>视图与 UI</h3><p>空闲状态、预约操作和异常提示。</p><div class="substick">交互微棍</div></div>
+        </div>
+        <div class="mission-strip"><strong>向上对齐：</strong> 页面、接口和数据最后都要证明同一个用户结果</div>
+      </section>
+
+      <section class="slide" data-code="MISSION 14 · TESTS">
+        <img class="image-split right" src="assets/testing-lab.png" alt="学生与 AI 在测试实验室逐层验证预约系统" />
+        <div class="image-overlay-right" style="background:linear-gradient(90deg,var(--cream) 0%,rgba(255,248,232,.98) 39%,rgba(255,248,232,.2) 67%,rgba(255,248,232,0) 79%)"></div>
+        <div class="split-copy-left" style="margin-top:28px;width:690px">
+          <div class="eyebrow">TDD · DONE MEANS PROOF</div>
+          <h2>测试把“做完了”变成证据</h2>
+          <p class="statement" style="font-size:30px">每一层先写清失败和通过，再让 AI 实现</p>
+          <div class="test-levels">
+            <div class="test-level" data-reveal><strong>规则测试</strong><span>同设备同时间，第二次预约必须失败。</span></div>
+            <div class="test-level" data-reveal><strong>数据测试</strong><span>页面成功后，服务器必须真的保存一条记录。</span></div>
+            <div class="test-level" data-reveal><strong>路径测试</strong><span>学生能从查看时段走到可信确认。</span></div>
+            <div class="test-level" data-reveal><strong>验收测试</strong><span>真实场景下减少白跑，不突破隐私边界。</span></div>
+          </div>
+          <div class="quality-example" data-reveal>RED → GREEN → REFACTOR：先看测试失败，再做最小实现，最后整理结构。</div>
+        </div>
+      </section>
+
+      <section class="slide" data-code="MISSION 15 · TEAM SYSTEM">
+        <div class="eyebrow">TEAM OPERATING SYSTEM</div>
+        <h2>方法、精力和角色，都围绕同一根主棍</h2>
+        <div class="operation-stage">
+          <div>
+            <div class="allocation-compact">
+              <div class="allocation-bar">
+                <div class="alloc design" data-reveal><div><strong>40%</strong><span>设计</span></div></div>
+                <div class="alloc build" data-reveal><div><strong>30%</strong><span>开发</span></div></div>
+                <div class="alloc test" data-reveal><div><strong>20%</strong><span>测试</span></div></div>
+                <div class="alloc accept" data-reveal><div><strong>10%</strong><span>验收</span></div></div>
+              </div>
+              <div class="method-compact">
+                <div class="method-chip" data-reveal><strong>Story</strong><span>锁定用户价值和主棍方向</span></div>
+                <div class="method-chip" data-reveal><strong>TDD</strong><span>把每层完成写成测试</span></div>
+                <div class="method-chip" data-reveal><strong>敏捷</strong><span>小步交付，遇偏差就调整</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="roles-compact" data-reveal>
+            <h3>团队共同责任</h3>
+            <ul>
+              <li>产品 / UI：用户价值、范围、信息与操作是否清楚</li>
+              <li>架构 / 开发：对象、边界、实现和数据是否对齐</li>
+              <li>测试 / 运维：证据是否充分，异常能否恢复</li>
+              <li>AI 助手：拆解、执行、自测、反馈；不替人担责</li>
+            </ul>
+          </div>
+        </div>
+        <div class="mission-strip"><strong>40/30/20/10：</strong> 是精力提醒，不是四个互不回头的瀑布阶段</div>
+      </section>
+
+      <section class="slide" data-code="MISSION 16 · TEAM PRACTICE">
+        <div class="eyebrow">8–10 MIN TEAM MISSION</div>
+        <h2>现在，为你们的项目立一根棍</h2>
+        <div class="practice-stage">
+          <div class="practice-card">
+            <div class="eyebrow">DEVELOPMENT STICK CARD</div>
+            <h3 style="font-size:31px;color:var(--navy)">团队共同填写，不急着写代码</h3>
+            <div class="practice-fields">
+              <div class="practice-field" data-reveal><strong>① 当前情况</strong><span>真实问题和已有证据</span></div>
+              <div class="practice-field" data-reveal><strong>② 用户任务</strong><span>谁要完成什么</span></div>
+              <div class="practice-field" data-reveal><strong>③ 主棍目标</strong><span>明确的用户结果</span></div>
+              <div class="practice-field" data-reveal><strong>④ 核心路径</strong><span>从开始到结果</span></div>
+              <div class="practice-field" data-reveal><strong>⑤ 验收标准</strong><span>能观察、能判断</span></div>
+              <div class="practice-field" data-reveal><strong>⑥ 约束 / 红线</strong><span>哪些绝不能突破</span></div>
+              <div class="practice-field" data-reveal><strong>⑦ 2–3 根子棍</strong><span>每根也写验收</span></div>
+              <div class="practice-field" data-reveal><strong>⑧ 微棍 + 测试</strong><span>一项可执行检查</span></div>
+            </div>
+          </div>
+          <div class="practice-clock" data-reveal><div class="time">09:00</div><h3>交付一张开发立棍卡</h3><p>完成后交换检查：<br />方向清楚吗？标准能验吗？<br />失败时知道向谁报告吗？</p></div>
+        </div>
+      </section>
+
+      <section class="slide closing" data-code="MISSION COMPLETE · GATE">
+        <div class="eyebrow">PASS CHECK</div>
+        <h2>六问通过，才让 AI 全速开跑</h2>
+        <p class="subtitle">回看任何一层，都能找到它对齐的上级目标和完成证据</p>
+        <div class="final-grid">
+          <div class="final-card" data-reveal><div class="code">01 VALUE</div><strong>用户真的受益吗？</strong><p>不是只展示技术。</p></div>
+          <div class="final-card" data-reveal><div class="code">02 DIRECTION</div><strong>目标具体吗？</strong><p>知道服务谁、完成什么。</p></div>
+          <div class="final-card" data-reveal><div class="code">03 BOUNDARY</div><strong>红线写清了吗？</strong><p>知道哪些绝不能做。</p></div>
+          <div class="final-card" data-reveal><div class="code">04 PROOF</div><strong>完成能验证吗？</strong><p>有测试和可观察结果。</p></div>
+          <div class="final-card" data-reveal><div class="code">05 ALIGN</div><strong>上下层对齐吗？</strong><p>子棍没有另起方向。</p></div>
+          <div class="final-card" data-reveal><div class="code">06 CORRECT</div><strong>偏差会浮上来吗？</strong><p>异常可见，也能纠偏。</p></div>
+        </div>
+        <div class="closing-line"><strong>立棍的核心：</strong> 用有限的人类注意力，撬动强大的 AI 执行力</div>
+      </section>
+
+    </main>
+  </div>
+
+  <div id="toolbar" aria-label="演示控制">
+    <button id="prev" title="上一页">‹</button>
+    <span id="counter">01 / 18</span>
+    <button id="next" title="下一步">›</button>
+    <button id="overview" title="总览">▦</button>
+    <button id="fullscreen" title="全屏">⛶</button>
+  </div>
+  <div id="help">← → / Space：切换　F：全屏　O：总览　P：打印</div>
+  <div id="progress"></div>
+  <div id="progress-notice" role="status" aria-live="polite"></div>
+
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    const deck = document.getElementById('deck');
+    const viewport = document.getElementById('viewport');
+    const counter = document.getElementById('counter');
+    const progress = document.getElementById('progress');
+    const progressNotice = document.getElementById('progress-notice');
+    const params = new URLSearchParams(location.search);
+    const clampSlide = value => Math.max(0, Math.min(slides.length - 1, Number.isFinite(value) ? value : 0));
+    const requestedIndex = clampSlide(Number(params.get('slide') || 1) - 1);
+    const requestedStep = Math.max(0, Number(params.get('step') || 0) || 0);
+    const storageKey = `msv:courseware-progress:${location.pathname}:r${params.get('revision') || 'unversioned'}`;
+    const revealLimits = slides.map(slide => slide.querySelectorAll('[data-reveal]').length);
+    const defaultReveals = slides.map(slide => [...slide.querySelectorAll('[data-reveal]')].filter(el => el.classList.contains('revealed')).length);
+
+    function readProgress() {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(storageKey) || 'null');
+        if (!saved || saved.schemaVersion !== 1 || !Number.isInteger(saved.maxUnlockedState)) return null;
+        return saved;
+      } catch { return null; }
+    }
+
+    const savedProgress = readProgress();
+    let maxUnlockedState = savedProgress
+      ? clampSlide(savedProgress.maxUnlockedState)
+      : requestedIndex;
+    let index = requestedIndex <= maxUnlockedState ? requestedIndex : maxUnlockedState;
+    const maxRevealedCounts = revealLimits.map((limit, i) => Math.max(
+      defaultReveals[i],
+      Math.min(limit, Number(savedProgress?.maxRevealedCounts?.[i]) || 0),
+    ));
+    const revealedCounts = revealLimits.map((limit, i) => Math.max(
+      defaultReveals[i],
+      Math.min(limit, Number(savedProgress?.revealedCounts?.[i]) || 0),
+    ));
+    if (!savedProgress) {
+      const initialStep = Math.min(revealLimits[index], requestedStep);
+      revealedCounts[index] = initialStep;
+      maxRevealedCounts[index] = initialStep;
+    }
+    let noticeTimer;
+
+    function fitDeck() {
+      if (document.body.classList.contains('overview')) return;
+      const scale = Math.min(innerWidth / 1600, innerHeight / 900);
+      deck.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    }
+    function updateUrl() {
+      const url = new URL(location.href);
+      url.searchParams.set('slide', index + 1);
+      url.searchParams.set('step', revealedCounts[index] || 0);
+      history.replaceState(null, '', url);
+    }
+    function saveProgress() {
+      try {
+        sessionStorage.setItem(storageKey, JSON.stringify({
+          schemaVersion: 1,
+          maxUnlockedState,
+          revealedCounts,
+          maxRevealedCounts,
+        }));
+      } catch { /* 播放器在禁用存储时仍可正常工作。 */ }
+    }
+    function applyReveals(slideIndex) {
+      slides[slideIndex].querySelectorAll('[data-reveal]').forEach((node, step) => {
+        node.classList.toggle('revealed', step < revealedCounts[slideIndex]);
+      });
+    }
+    function announce(message) {
+      clearTimeout(noticeTimer);
+      progressNotice.textContent = message;
+      progressNotice.dataset.visible = 'true';
+      noticeTimer = setTimeout(() => { progressNotice.dataset.visible = 'false'; }, 1800);
+    }
+    function renderProgress() {
+      progress.replaceChildren(...slides.map((slide, i) => {
+        const button = document.createElement('button');
+        button.className = 'progress-segment' + (i <= maxUnlockedState ? ' unlocked' : '') + (i === index ? ' current' : '');
+        button.type = 'button';
+        button.setAttribute('aria-disabled', String(i > maxUnlockedState));
+        button.setAttribute('aria-current', i === index ? 'step' : 'false');
+        button.setAttribute('aria-label', `第${i + 1}页，${slide.dataset.code || '课件页面'}，${i === index ? '当前' : i <= maxUnlockedState ? '已解锁' : '尚未解锁'}`);
+        if (i > maxUnlockedState) button.tabIndex = -1;
+        button.addEventListener('click', event => {
+          event.stopPropagation();
+          if (i > maxUnlockedState) announce(`第 ${i + 1} 页尚未解锁，请继续播放当前内容。`);
+          else if (i !== index) showSlide(i, { restore: true });
+        });
+        return button;
+      }));
+    }
+    function showSlide(n, { unlockNext = false, restore = false } = {}) {
+      const target = Math.max(0, Math.min(slides.length - 1, n));
+      if (target > maxUnlockedState) {
+        const mayUnlock = unlockNext && index === maxUnlockedState && target === maxUnlockedState + 1;
+        if (!mayUnlock) {
+          announce(`第 ${target + 1} 页尚未解锁，请继续播放当前内容。`);
+          renderProgress();
+          return false;
+        }
+        maxUnlockedState = target;
+      }
+      index = target;
+      if (restore) revealedCounts[index] = maxRevealedCounts[index];
+      applyReveals(index);
+      slides.forEach((slide, i) => slide.classList.toggle('active', i === index));
+      counter.textContent = `${String(index + 1).padStart(2, '0')} / ${String(slides.length).padStart(2, '0')}`;
+      renderProgress();
+      updateUrl();
+      saveProgress();
+      return true;
+    }
+    function nextStep() {
+      if (document.body.classList.contains('overview')) return;
+      const hidden = [...slides[index].querySelectorAll('[data-reveal]:not(.revealed)')];
+      if (hidden.length) {
+        hidden[0].classList.add('revealed');
+        revealedCounts[index]++;
+        maxRevealedCounts[index] = Math.max(maxRevealedCounts[index], revealedCounts[index]);
+        updateUrl();
+        saveProgress();
+      }
+      else if (index < slides.length - 1) showSlide(index + 1, { unlockNext: true, restore: true });
+    }
+    function prevStep() {
+      if (document.body.classList.contains('overview')) return;
+      const shown = [...slides[index].querySelectorAll('[data-reveal].revealed')];
+      if (shown.length) {
+        shown.at(-1).classList.remove('revealed');
+        revealedCounts[index]--;
+        updateUrl();
+        saveProgress();
+      }
+      else if (index > 0) showSlide(index - 1, { restore: true });
+    }
+    function toggleOverview(forceOff = false) {
+      const on = forceOff ? false : !document.body.classList.contains('overview');
+      document.body.classList.toggle('overview', on);
+      if (!on) { slides.forEach((slide, i) => slide.classList.toggle('active', i === index)); fitDeck(); } else deck.style.transform = '';
+    }
+
+    document.getElementById('next').addEventListener('click', e => { e.stopPropagation(); nextStep(); });
+    document.getElementById('prev').addEventListener('click', e => { e.stopPropagation(); prevStep(); });
+    document.getElementById('overview').addEventListener('click', e => { e.stopPropagation(); toggleOverview(); });
+    document.getElementById('fullscreen').addEventListener('click', async e => { e.stopPropagation(); if (!document.fullscreenElement) await document.documentElement.requestFullscreen(); else await document.exitFullscreen(); });
+    slides.forEach((slide, i) => slide.addEventListener('click', () => {
+      if (document.body.classList.contains('overview')) {
+        if (i <= maxUnlockedState) { toggleOverview(true); showSlide(i, { restore: true }); }
+        else announce(`第 ${i + 1} 页尚未解锁，请继续播放当前内容。`);
+      } else nextStep();
+    }));
+
+    addEventListener('keydown', e => {
+      const progressControl = e.target instanceof Element && e.target.closest('#progress button');
+      if (progressControl && [' ', 'Enter'].includes(e.key)) return;
+      if (['ArrowRight', 'ArrowDown', ' ', 'PageDown', 'Enter'].includes(e.key)) { e.preventDefault(); nextStep(); }
+      else if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); prevStep(); }
+      else if (e.key.toLowerCase() === 'f') { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+      else if (e.key.toLowerCase() === 'o') toggleOverview(); else if (e.key.toLowerCase() === 'p') window.print();
+      else if (e.key === 'Home') showSlide(0, { restore: true });
+      else if (e.key === 'End') showSlide(maxUnlockedState, { restore: true });
+    });
+
+    addEventListener('resize', fitDeck);
+    slides.forEach((_slide, i) => applyReveals(i));
+    showSlide(index);
+    fitDeck();
+  </script>
+</body>
+</html>

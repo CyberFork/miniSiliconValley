@@ -1,0 +1,2551 @@
+{
+  "schemaVersion": 1,
+  "id": "msv-eleme-product-mentor-live-run-v3",
+  "title": "Mini Silicon Valley｜饿了么｜P 产品导师历史剧本 + 五步创业闭环",
+  "course": {
+    "id": "eleme-2008-find-problem",
+    "name": "饿了么｜五步创业闭环",
+    "period": "2008—2009",
+    "coverage": "完整课程 · 5 步 / 13 块",
+    "description": "B01—B04 由 P 产品导师带领学员进入 2008 年历史现场、辨认事实与未知并完成 ProductBrief；B05—B13 由 D／M／O 导师接收成果，推动学生自己的 MVP、市场、运营与六分钟 Demo Day。",
+    "learnerName": "2008 宿舍订餐创业小队",
+    "scriptId": "msv-eleme-product-mentor-live-run-v3",
+    "macroStepCount": 5,
+    "blockCount": 13,
+    "completeFiveStep": true
+  },
+  "case": {
+    "campaignId": "eleme-2008-find-problem",
+    "name": "饿了么：2008 宿舍订餐五步创业战役",
+    "learnerName": "2008 宿舍订餐创业小队",
+    "period": "2008—2009",
+    "why": "B01—B04 是 P 产品导师所有的来源驱动历史案例；从 B05 起，D／M／O 只接收已验收的学生项目成果并履行各自专业责任，不重复拥有整套饿了么剧情。"
+  },
+  "sources": [
+    {
+      "id": "src-eleme-sjtu-youth-origin",
+      "title": "青年报：从交大宿舍出发的创业故事",
+      "organization": "上海交通大学青年网",
+      "url": "https://youth.sjtu.edu.cn/index_news/1446.html",
+      "kind": "university",
+      "accessed": "2026-09-01"
+    },
+    {
+      "id": "src-eleme-sjtu-mba-origin",
+      "title": "安泰论坛嘉宾简介：2008 创业、2009 启动网站",
+      "organization": "上海交通大学安泰经济与管理学院",
+      "url": "https://mba.sjtu.edu.cn/news/forums/15315.html",
+      "kind": "university",
+      "accessed": "2026-09-01"
+    },
+    {
+      "id": "src-eleme-sjtu-youth-process",
+      "title": "从电话订餐到网络平台的早期实践",
+      "organization": "上海交通大学青年网",
+      "url": "https://youth.sjtu.edu.cn/qc_hlzb/3249.html",
+      "kind": "university",
+      "accessed": "2026-09-01"
+    },
+    {
+      "id": "src-eleme-sjtu-news-2018",
+      "title": "交大学子创新创业案例：饿了么",
+      "organization": "上海交通大学新闻网",
+      "url": "https://news.sjtu.edu.cn/zhxw/20180405/25919.html",
+      "kind": "university",
+      "accessed": "2026-09-01"
+    }
+  ],
+  "decks": [
+    {
+      "id": "eleme-2008-find-problem-find-information",
+      "macroStepId": "find",
+      "drawAtBlockId": "B01",
+      "cardsPerLearner": 3,
+      "uniqueDeal": true,
+      "shuffle": true,
+      "cards": [
+        {
+          "id": "e08-f-01",
+          "boundary": "F",
+          "title": "F-01 · 2008 年开始尝试餐饮外送",
+          "body": "历史事实：上海交通大学公开资料记载，张旭豪等人在 2008 年开始餐饮外送业务与相关创业实践。",
+          "sharePrompt": "说清这条事实能证明“有人开始行动”，但不能证明所有学生都有同样需求。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-origin",
+            "src-eleme-sjtu-news-2018"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "e08-f-02",
+          "boundary": "F",
+          "title": "F-02 · 电话和餐厅信息是早期入口",
+          "body": "历史事实：交大公开叙事描述了团队走访餐厅、整理订餐信息，并用电话处理早期订餐。它不能自动证明每家餐厅流程相同。",
+          "sharePrompt": "把“电话订餐”拆成至少三个动作，再指出哪一步还缺真实用户记录。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-process"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "e08-r-01",
+          "boundary": "R",
+          "title": "R-01 · 手里只有几张旧菜单",
+          "body": "课堂模拟：一名学生晚上想订餐，桌上只有几张不同餐厅的旧菜单；不知道信息是否还有效。",
+          "sharePrompt": "先声明这是模拟场景，再说要找什么真人或记录才能把它变成事实证据。",
+          "sourceIds": [],
+          "credibility": "medium"
+        },
+        {
+          "id": "e08-r-02",
+          "boundary": "R",
+          "title": "R-02 · 今晚营业和配送范围未知",
+          "body": "课堂模拟：学生不知道餐厅今晚是否营业、是否愿意送到这栋宿舍，只能逐个确认。",
+          "sharePrompt": "演出一次逐个确认的过程，指出时间损失发生在哪一步。",
+          "sourceIds": [],
+          "credibility": "medium"
+        },
+        {
+          "id": "e08-r-03",
+          "boundary": "R",
+          "title": "R-03 · 餐厅同时顾堂食和电话",
+          "body": "课堂模拟：餐厅工作人员一边处理堂食，一边接电话、听菜名、记宿舍地址。",
+          "sharePrompt": "列出一次可能的错漏，但不要把“可能”说成已经发生。",
+          "sourceIds": [],
+          "credibility": "medium"
+        },
+        {
+          "id": "e08-r-04",
+          "boundary": "R",
+          "title": "R-04 · 多张订单需要排路线",
+          "body": "课堂模拟：配送者同时拿到多个地址和时间要求，需要决定先送哪一单。",
+          "sharePrompt": "说明配送者的任务与学生的任务哪里不同；不要把三方问题混成一句话。",
+          "sourceIds": [],
+          "credibility": "medium"
+        },
+        {
+          "id": "e08-c-01",
+          "boundary": "F",
+          "title": "C-01 · 早期不是先做网站",
+          "body": "历史行动：公开资料把 2008 年的早期实践放在网站正式启动之前。团队先做线下订餐与配送，不可倒推为“一开始已有成熟平台”。",
+          "sharePrompt": "说出它证明团队先观察了哪些动作，又不能证明哪种产品一定正确。",
+          "sourceIds": [
+            "src-eleme-sjtu-mba-origin",
+            "src-eleme-sjtu-news-2018"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "e08-c-02",
+          "boundary": "F",
+          "title": "C-02 · 先整理餐厅信息",
+          "body": "历史行动：公开叙事描述团队走访餐厅、记录订餐信息，并印发材料帮助学生找到入口。",
+          "sharePrompt": "分别说它能证明“信息有人用行动整理”，以及不能证明“所有信息都准确”。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-process"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "e08-c-03",
+          "boundary": "F",
+          "title": "C-03 · 设置统一联系电话",
+          "body": "历史行动：公开叙事记载团队设置宿舍订餐电话，由人员接单并调度。",
+          "sharePrompt": "指出统一电话减少了哪一步来回，也指出它可能新增哪一步人工压力。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-process"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "e08-c-04",
+          "boundary": "F",
+          "title": "C-04 · 人工接单并组织配送",
+          "body": "历史行动：早期流程需要人工接听、记录和调度配送。这是完整任务链的行动证据，不是规模化能力证明。",
+          "sharePrompt": "画出接电话到送达的动作链，再圈出最容易漏信息的一步。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-process"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "e08-c-05",
+          "boundary": "F",
+          "title": "C-05 · 创始成员亲自送餐",
+          "body": "历史行动：交大公开资料记载创始团队早期亲自参与送餐。它能帮助观察流程，不能证明这种方式可以无限扩大。",
+          "sharePrompt": "说出亲自送餐能看到的一条证据，以及它无法回答的一项规模问题。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-origin",
+            "src-eleme-sjtu-news-2018"
+          ],
+          "credibility": "high"
+        },
+        {
+          "id": "e08-c-06",
+          "boundary": "F",
+          "title": "C-06 · 网站在 2009 年正式启动",
+          "body": "历史事实：上海交大安泰学院公开资料把饿了么网站正式启动放在 2009 年；不能把这一结果提前当作 2008 年的已知答案。",
+          "sharePrompt": "解释为什么知道后来有网站，也不能让团队跳过 2008 年的问题调查。",
+          "sourceIds": [
+            "src-eleme-sjtu-mba-origin"
+          ],
+          "credibility": "high"
+        }
+      ]
+    },
+    {
+      "id": "eleme-2008-find-problem-decide-information",
+      "macroStepId": "decide",
+      "drawAtBlockId": "B04",
+      "cardsPerLearner": 3,
+      "uniqueDeal": true,
+      "shuffle": true,
+      "cards": [
+        {
+          "id": "e08-decide-f01",
+          "boundary": "F",
+          "title": "F · 网站是在后面才出现的",
+          "body": "公开资料把正式网站启动放在 2009 年。2008 年做选择时，团队还不能把成熟网站当成现成答案。",
+          "sharePrompt": "告诉队友：这条事实限制了什么，但没有替我们选方案。",
+          "sourceIds": [
+            "src-eleme-sjtu-mba-origin"
+          ]
+        },
+        {
+          "id": "e08-decide-f02",
+          "boundary": "F",
+          "title": "F · 早期用统一电话接单",
+          "body": "公开叙事记载，团队设置订餐电话，由人接听、记录并安排配送。",
+          "sharePrompt": "画出统一电话少掉的一步，以及新增加的一步人工工作。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-process"
+          ]
+        },
+        {
+          "id": "e08-decide-f03",
+          "boundary": "F",
+          "title": "F · 先走访餐厅再整理信息",
+          "body": "公开资料描述了走访餐厅和整理订餐信息的行动，说明信息收集发生在复杂平台之前。",
+          "sharePrompt": "说出这条行动能支持哪条方案，又不能保证什么结果。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-process"
+          ]
+        },
+        {
+          "id": "e08-decide-r01",
+          "boundary": "R",
+          "title": "R · 桌上只有 10 枚资源币",
+          "body": "课堂模拟：做一个入口花 3 枚币，完成一次下单动作花 4 枚币，给出结果回执花 3 枚币；其他功能现在买不起。",
+          "sharePrompt": "用 10 枚币保住一单必须经过的三件事。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-decide-r02",
+          "boundary": "R",
+          "title": "R · 只服务一位宿舍同学",
+          "body": "课堂模拟：今晚只测试一名住在东区宿舍、想点晚饭的同学，不做全校平台。",
+          "sharePrompt": "把“大平台”改写成这名同学可以完成的一次动作。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-decide-r03",
+          "boundary": "R",
+          "title": "R · 餐厅听漏了楼栋",
+          "body": "课堂模拟：电话里菜名听清了，但楼栋和房间号只记到一半。",
+          "sharePrompt": "比较纸菜单、统一电话和简单网页，哪条路更早暴露这个问题。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-decide-g01",
+          "boundary": "G",
+          "title": "G · 简单网页也许能减少查菜单",
+          "body": "团队推测：把几家餐厅和菜品放到一个简单页面，可能减少学生来回翻菜单的时间。",
+          "sharePrompt": "先说“这是我们猜的”，再设计一个能让猜测失败的小测试。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-decide-g02",
+          "boundary": "G",
+          "title": "G · 统一电话也许只是转移麻烦",
+          "body": "团队推测：一个号码方便学生，却可能把大量确认工作压给接线的人。",
+          "sharePrompt": "说清谁少做了什么、谁又多做了什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-decide-g03",
+          "boundary": "G",
+          "title": "G · 纸菜单可能是最快的第一版",
+          "body": "团队推测：一张更新过的菜单也许比做网页更快得到第一次真实反馈。",
+          "sharePrompt": "提出一个今晚就能比较纸菜单和网页的办法。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-decide-u01",
+          "boundary": "U",
+          "title": "U · 旧菜单到底多常见",
+          "body": "当前未知：我们还没有真实记录说明学生碰到旧菜单的频率。",
+          "sharePrompt": "说出要问几个人、记录什么，才能继续判断。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-decide-u02",
+          "boundary": "U",
+          "title": "U · 学生愿不愿意付配送费",
+          "body": "当前未知：没有证据说明这名学生愿意为省事支付多少钱。",
+          "sharePrompt": "设计一个不诱导回答的价格问题。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-decide-u03",
+          "boundary": "U",
+          "title": "U · 餐厅愿意怎样更新信息",
+          "body": "当前未知：餐厅愿不愿意每天告诉我们售罄和营业变化，还没有被问过。",
+          "sharePrompt": "说出要找哪位餐厅工作人员问哪一个具体问题。",
+          "sourceIds": []
+        }
+      ]
+    },
+    {
+      "id": "eleme-2008-find-problem-build-information",
+      "macroStepId": "build",
+      "drawAtBlockId": "B06",
+      "cardsPerLearner": 3,
+      "uniqueDeal": true,
+      "shuffle": true,
+      "cards": [
+        {
+          "id": "e08-build-f01",
+          "boundary": "F",
+          "title": "F · 早期流程靠人接听和记录",
+          "body": "公开资料描述了电话接单和人工安排。这说明第一版可以先跑通动作，不等自动化系统齐全。",
+          "sharePrompt": "圈出必须由人完成的输入、动作和回执。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-process"
+          ]
+        },
+        {
+          "id": "e08-build-f02",
+          "boundary": "F",
+          "title": "F · 创始成员亲自送过餐",
+          "body": "上海交大公开资料记载，创始团队早期亲自参与配送。亲自做能看见流程，但不能证明可以无限扩张。",
+          "sharePrompt": "说出亲自送一单能观察什么、不能回答什么。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-origin",
+            "src-eleme-sjtu-news-2018"
+          ]
+        },
+        {
+          "id": "e08-build-f03",
+          "boundary": "F",
+          "title": "F · 2009 年才正式启动网站",
+          "body": "公开资料把网站正式启动放在 2009 年，说明 2008 年的 V0 不必假装已有成熟平台。",
+          "sharePrompt": "提醒团队只搭能让一单跑通的版本。",
+          "sourceIds": [
+            "src-eleme-sjtu-mba-origin"
+          ]
+        },
+        {
+          "id": "e08-build-r01",
+          "boundary": "R",
+          "title": "R · 测试者不能听你解释",
+          "body": "课堂模拟：队友拿到你们的纸卡、电话脚本或页面后，制作者必须安静，看他能否自己开始。",
+          "sharePrompt": "记录测试者第一次停住的位置，不要马上教他。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-build-r02",
+          "boundary": "R",
+          "title": "R · 一道菜已经卖完",
+          "body": "课堂模拟：菜单上的招牌饭今晚售罄，但 V0 仍显示可以下单。",
+          "sharePrompt": "只改一处，让用户尽早知道卖完并能继续选择。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-build-r03",
+          "boundary": "R",
+          "title": "R · 宿舍地址被记错",
+          "body": "课堂模拟：订单写成“东 3-502”，配送者走到了“东 5-302”。",
+          "sharePrompt": "找出是哪一个输入或复述步骤让错误漏过去。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-build-g01",
+          "boundary": "G",
+          "title": "G · 确认回执可能减少焦虑",
+          "body": "团队推测：明确告诉学生“已接单、预计几点送到”，可能减少重复打电话。",
+          "sharePrompt": "让一名测试者比较有回执和没回执的感受与行为。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-build-g02",
+          "boundary": "G",
+          "title": "G · 分开填写楼栋和房号可能少出错",
+          "body": "团队推测：把地址拆成楼栋、楼层、房间三格，可能比一长串口述更清楚。",
+          "sharePrompt": "设计两轮测试，只改地址输入这一处。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-build-g03",
+          "boundary": "G",
+          "title": "G · 先限制一栋楼可能更稳",
+          "body": "团队推测：V1 先只接一栋宿舍的订单，可能更容易按时送达。",
+          "sharePrompt": "说明怎样记录是否更稳，而不是只凭感觉。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-build-u01",
+          "boundary": "U",
+          "title": "U · 最常见的失败在哪一步",
+          "body": "当前未知：我们还没有足够测试记录说明查菜、下单、确认、送达哪一步最容易失败。",
+          "sharePrompt": "做一张四步记录表，每次只记第一次失败。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-build-u02",
+          "boundary": "U",
+          "title": "U · 订单最少要填哪些信息",
+          "body": "当前未知：菜品、数量、楼栋、房间、电话里哪些是不可缺的，还没经过真实测试。",
+          "sharePrompt": "让测试者少填一项，看哪一项会让订单无法继续。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-build-u03",
+          "boundary": "U",
+          "title": "U · 陌生同学能否自己完成",
+          "body": "当前未知：参与设计的队友会自动补全步骤，不能代表第一次见到 V0 的人。",
+          "sharePrompt": "找一名不知道答案的人做无讲解测试。",
+          "sourceIds": []
+        }
+      ]
+    },
+    {
+      "id": "eleme-2008-find-problem-market-information",
+      "macroStepId": "market",
+      "drawAtBlockId": "B09",
+      "cardsPerLearner": 3,
+      "uniqueDeal": true,
+      "shuffle": true,
+      "cards": [
+        {
+          "id": "e08-market-f01",
+          "boundary": "F",
+          "title": "F · 故事从校园餐饮外送开始",
+          "body": "上海交大资料把早期创业实践放在校园餐饮外送场景，而不是一开始服务所有城市用户。",
+          "sharePrompt": "用这条事实约束第一群用户的范围。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-origin",
+            "src-eleme-sjtu-news-2018"
+          ]
+        },
+        {
+          "id": "e08-market-f02",
+          "boundary": "F",
+          "title": "F · 团队曾走访餐厅",
+          "body": "公开叙事描述了团队走访餐厅、收集并整理订餐信息。",
+          "sharePrompt": "说出面对面走访能获得什么一手信息。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-process"
+          ]
+        },
+        {
+          "id": "e08-market-f03",
+          "boundary": "F",
+          "title": "F · 早期印发过订餐信息",
+          "body": "公开资料记载团队整理并印发材料，帮助学生找到订餐入口。",
+          "sharePrompt": "区分“发出了材料”和“用户真的下单”这两个证据。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-process"
+          ]
+        },
+        {
+          "id": "e08-market-r01",
+          "boundary": "R",
+          "title": "R · 今晚只能选一栋宿舍",
+          "body": "课堂模拟：团队只有 30 分钟和一张海报，只能去一栋楼找到第一批测试者。",
+          "sharePrompt": "说出楼栋、时段和这些人正在做什么。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-market-r02",
+          "boundary": "R",
+          "title": "R · 只有十秒介绍机会",
+          "body": "课堂模拟：路过的同学只愿意听十秒；不能讲完整商业计划。",
+          "sharePrompt": "用“给谁—什么麻烦—得到什么结果”说一句话。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-market-r03",
+          "boundary": "R",
+          "title": "R · 第一位同学拒绝了",
+          "body": "课堂模拟：同学说“我习惯直接打熟悉餐厅的电话”，不愿试。",
+          "sharePrompt": "原样记下拒绝理由，不要和他争辩。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-market-g01",
+          "boundary": "G",
+          "title": "G · 晚饭前的宿舍可能更容易找到人",
+          "body": "团队推测：晚饭前在宿舍楼下，比白天在教室更容易遇到正在决定吃什么的人。",
+          "sharePrompt": "说出今晚如何验证这个时段猜测。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-market-g02",
+          "boundary": "G",
+          "title": "G · “少打几个电话”可能是有效承诺",
+          "body": "团队推测：比起“餐厅更多”，“少打几个电话就知道结果”可能更贴近学生任务。",
+          "sharePrompt": "把两种说法各讲给一人，记录谁愿意开始。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-market-g03",
+          "boundary": "G",
+          "title": "G · 餐厅信息表可能成为第一渠道",
+          "body": "团队推测：一张清楚、及时的信息表可能比品牌口号更能让第一批同学尝试。",
+          "sharePrompt": "定义一次可观察的“开始使用”。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-market-u01",
+          "boundary": "U",
+          "title": "U · 一栋楼里有多少目标同学",
+          "body": "当前未知：没有真实计数说明今晚这栋楼有多少人正在找晚饭。",
+          "sharePrompt": "设计一个 15 分钟可完成的现场计数。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-market-u02",
+          "boundary": "U",
+          "title": "U · 听到承诺后有多少人会开始",
+          "body": "当前未知：我们没有触达、开始、完成三段漏斗数据。",
+          "sharePrompt": "画三个格子，每遇到一人就记在哪一步停住。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-market-u03",
+          "boundary": "U",
+          "title": "U · 找到一位新用户要花多少",
+          "body": "当前未知：海报、走访和电话各自花多少时间与资源，没有被记录。",
+          "sharePrompt": "给每次触达记时间和资源币，算出一次完成的成本。",
+          "sourceIds": []
+        }
+      ]
+    },
+    {
+      "id": "eleme-2008-find-problem-operate-information",
+      "macroStepId": "operate",
+      "drawAtBlockId": "B11",
+      "cardsPerLearner": 3,
+      "uniqueDeal": true,
+      "shuffle": true,
+      "cards": [
+        {
+          "id": "e08-operate-f01",
+          "boundary": "F",
+          "title": "F · 早期订单由人工接听和调度",
+          "body": "公开资料说明早期流程需要人接单、记录并组织配送，运营动作本身就是产品的一部分。",
+          "sharePrompt": "把从请求到送达写成换个人也能跟的步骤。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-process"
+          ]
+        },
+        {
+          "id": "e08-operate-f02",
+          "boundary": "F",
+          "title": "F · 创始团队亲自参与配送",
+          "body": "公开资料记载创始成员亲自送餐。这能帮助发现问题，却不能自动证明长期成本可承受。",
+          "sharePrompt": "指出亲自做与稳定经营之间还缺哪项数据。",
+          "sourceIds": [
+            "src-eleme-sjtu-youth-origin",
+            "src-eleme-sjtu-news-2018"
+          ]
+        },
+        {
+          "id": "e08-operate-f03",
+          "boundary": "F",
+          "title": "F · 网站启动是后续行动",
+          "body": "公开资料把网站正式启动放在 2009 年；网站出现不等于接单、配送和售后会自动完成。",
+          "sharePrompt": "说出网站之外仍需有人负责的两步。",
+          "sourceIds": [
+            "src-eleme-sjtu-mba-origin"
+          ]
+        },
+        {
+          "id": "e08-operate-r01",
+          "boundary": "R",
+          "title": "R · 六张订单同时进来",
+          "body": "课堂模拟：十分钟内收到六张订单，只有两名配送者，所有订单不可能同时送达。",
+          "sharePrompt": "先限量或排序，并告诉受影响的人下一次更新时间。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-operate-r02",
+          "boundary": "R",
+          "title": "R · 一位学生投诉送晚了",
+          "body": "课堂模拟：订单比承诺晚到二十分钟，学生追问发生了什么。",
+          "sharePrompt": "先说明影响和止损，再记录原因，不要只道歉。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-operate-r03",
+          "boundary": "R",
+          "title": "R · 新人只拿到一张 SOP",
+          "body": "课堂模拟：没有参与设计的队友只看流程卡处理一单，原作者不能在旁边提醒。",
+          "sharePrompt": "记录新人在哪一步停住，再只改 SOP 的一处。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-operate-g01",
+          "boundary": "G",
+          "title": "G · 同时接四单可能是当前上限",
+          "body": "团队推测：按现在的人手和路线，同时接四单还能保持承诺，更多就会失控。",
+          "sharePrompt": "用一轮模拟订单测试上限，并写清停止接单条件。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-operate-g02",
+          "boundary": "G",
+          "title": "G · 提前通知延误可能保护信任",
+          "body": "团队推测：比起沉默，提前说明延误和新时间可能让用户更愿意继续等待。",
+          "sharePrompt": "比较两种通知方式，记录用户下一步行为。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-operate-g03",
+          "boundary": "G",
+          "title": "G · 团队需要留钱才能跑下一轮",
+          "body": "团队推测：收入不能全部分到个人钱包，必须留下部分支付下一轮材料与配送成本。",
+          "sharePrompt": "给出一笔可守恒的分配，并解释团队为什么留这笔钱。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-operate-u01",
+          "boundary": "U",
+          "title": "U · 每完成一单到底赚还是亏",
+          "body": "当前未知：收入、餐费、材料、配送时间和退款还没有放进同一本账。",
+          "sharePrompt": "把每笔流入流出写到同一张账本，算出单笔结果。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-operate-u02",
+          "boundary": "U",
+          "title": "U · 两个人最多稳定送几单",
+          "body": "当前未知：没有多轮记录说明人手和路线的稳定容量。",
+          "sharePrompt": "连续跑两轮，在相同时间内记录完成、延误和取消。",
+          "sourceIds": []
+        },
+        {
+          "id": "e08-operate-u03",
+          "boundary": "U",
+          "title": "U · 用户会不会再来一次",
+          "body": "当前未知：一次完成不等于会复用，还没有第二次选择的证据。",
+          "sharePrompt": "约定下一次真实任务，在不提醒的情况下观察他是否回来。",
+          "sourceIds": []
+        }
+      ]
+    }
+  ],
+  "formula": {
+    "oneWorld": "真实科技史驱动的有限开放世界创业学习 RPG",
+    "twoDualTracks": [
+      "世界线双轨：只读历史世界线 ↔ 可改变的玩家平行世界线",
+      "学习双轨：历史认知 ↔ 现实项目实践"
+    ],
+    "threeGameModes": [
+      {
+        "id": "yarn",
+        "name": "毛线式信息局",
+        "purpose": "抽取、交换、追问并连接不完整信息"
+      },
+      {
+        "id": "american",
+        "name": "美式情境攻坚",
+        "purpose": "由导师推进剧情，以骰子和压力事件迫使团队行动"
+      },
+      {
+        "id": "euro",
+        "name": "德式经营决策",
+        "purpose": "用有限资源购买工具、承担成本并衡量收益"
+      }
+    ],
+    "fourMentors": [
+      {
+        "id": "mentor01",
+        "code": "P",
+        "name": "产品导师",
+        "promise": "确保团队做的是一个真实、具体、值得验证的问题",
+        "roomDuty": "主 DM"
+      },
+      {
+        "id": "mentor02",
+        "code": "D",
+        "name": "开发导师",
+        "promise": "确保方案能被做成可操作、可测试的最小产品",
+        "roomDuty": "实践 DM"
+      },
+      {
+        "id": "mentor03",
+        "code": "M",
+        "name": "市场导师",
+        "promise": "确保第一批目标用户能看见、理解并愿意尝试",
+        "roomDuty": "市场 DM"
+      },
+      {
+        "id": "mentor04",
+        "code": "O",
+        "name": "运营导师",
+        "promise": "确保团队能稳定交付、记录反馈、控制成本并持续迭代",
+        "roomDuty": "运营 DM"
+      }
+    ],
+    "fiveSteps": [
+      {
+        "id": "find",
+        "order": 1,
+        "name": "找真问题",
+        "lead": "P",
+        "output": "一张有用户、有场景损失、有证据、有未知点的问题判断"
+      },
+      {
+        "id": "decide",
+        "order": 2,
+        "name": "定真方案",
+        "lead": "P → D",
+        "output": "一项值得做且本轮做得出来的最小方案赌注"
+      },
+      {
+        "id": "build",
+        "order": 3,
+        "name": "做真产品",
+        "lead": "D",
+        "output": "一个可以被目标用户实际操作并留下试用证据的 MVP"
+      },
+      {
+        "id": "market",
+        "order": 4,
+        "name": "进真市场",
+        "lead": "M",
+        "output": "明确的首批用户、品牌表达、渠道实验和第一次真实尝试"
+      },
+      {
+        "id": "operate",
+        "order": 5,
+        "name": "跑真运营",
+        "lead": "O",
+        "output": "可重复交付的 SOP、账本、留存反馈与下一轮迭代计划"
+      }
+    ],
+    "sixMinuteDemo": "问题证据 → 方案取舍 → MVP 演示 → 用户/市场证据 → 运营账本 → 下一步请求，各 60 秒"
+  },
+  "macroSteps": [
+    {
+      "id": "find",
+      "order": 1,
+      "name": "找真问题",
+      "mentorSequence": [
+        "mentor01"
+      ],
+      "question": "我们看见的是抱怨、解决方案冲动，还是一个值得验证的真实问题？",
+      "exitGate": "明确谁在什么场景完成什么任务、卡在哪里、造成什么损失；至少两条来源证据并保留一个未知点。",
+      "blocks": [
+        "B01",
+        "B02",
+        "B03"
+      ]
+    },
+    {
+      "id": "decide",
+      "order": 2,
+      "name": "定真方案",
+      "mentorSequence": [
+        "mentor01",
+        "mentor02"
+      ],
+      "question": "哪一条路径既创造真实价值，又能在本轮资源内被验证？",
+      "exitGate": "P 先完成价值取舍，再把唯一方案赌注交给 D 完成可做性裁剪；同一时刻只有一名导师主讲。",
+      "blocks": [
+        "B04",
+        "B05"
+      ]
+    },
+    {
+      "id": "build",
+      "order": 3,
+      "name": "做真产品",
+      "mentorSequence": [
+        "mentor02"
+      ],
+      "question": "用户能否不靠讲解，亲手完成一次关键任务？",
+      "exitGate": "存在可操作 MVP、首轮试用记录、压力后的第二版，以及被证据解释的一项改动。",
+      "blocks": [
+        "B06",
+        "B07",
+        "B08"
+      ]
+    },
+    {
+      "id": "market",
+      "order": 4,
+      "name": "进真市场",
+      "mentorSequence": [
+        "mentor03"
+      ],
+      "question": "第一批用户是谁、在哪里、为什么现在愿意试？",
+      "exitGate": "锁定窄人群，完成一句可验证承诺和一次真实渠道实验；记录同意、拒绝及理由。",
+      "blocks": [
+        "B09",
+        "B10"
+      ]
+    },
+    {
+      "id": "operate",
+      "order": 5,
+      "name": "跑真运营",
+      "mentorSequence": [
+        "mentor04"
+      ],
+      "question": "团队能否稳定交付，而不靠某一个人临场救火？",
+      "exitGate": "SOP、订单/服务记录、成本收入、反馈留存、下一轮指标齐全，并完成六分钟 Demo。",
+      "blocks": [
+        "B11",
+        "B12",
+        "B13"
+      ]
+    }
+  ],
+  "blocks": [
+    {
+      "id": "B01",
+      "macroStepId": "find",
+      "title": "进入 2008：宿舍现场与随机线索",
+      "leadMentorId": "mentor01",
+      "suggestedMinutes": 8,
+      "gameModes": [
+        "american",
+        "yarn"
+      ],
+      "apiAction": "room-and-deal",
+      "underlyingClassroomPhases": [
+        "lobby",
+        "identity"
+      ],
+      "historyTrack": "只公开 2008 年上海高校宿舍的电话订餐环境；公司名称与最终结局继续密封。",
+      "realityTrack": "先观察一个人怎样完成订餐任务，不把‘饿了’或‘不方便’直接当成问题。",
+      "studentPrompt": "先看自己的三张卡：找出卡里的人、地点、动作和卡住的位置，不许先说要做 App。",
+      "mentorScript": [
+        "现在是 2008 年。宿舍里有人饿了，桌上只有旧菜单和电话；你们还不知道后来是哪家公司。",
+        "系统把 12 张线索完全随机分给四人，每人三张。先独立阅读，再给说法贴 F 有来源｜R 课堂模拟｜G 我们猜的｜U 还不知道。",
+        "这一轮只回答‘发生了什么’；出现 App、平台或公司名时，把它改写成一个待调查的问题。"
+      ],
+      "studentActions": [
+        "确认随机身份和三张私密卡",
+        "给线索标 F 有来源｜R 课堂模拟｜G 我们猜的｜U 还不知道",
+        "各写一张五格问题卡",
+        "保留至少一个未知点"
+      ],
+      "systemActions": [
+        "按饿了么课件创建隔离课堂",
+        "建立 4 导师＋4 学员席位",
+        "随机发完 12 张课件信息卡",
+        "保持学员公司答案密封"
+      ],
+      "props": [
+        "A／B／C／结局线索袋",
+        "旧菜单",
+        "空白问题卡",
+        "F 有来源｜R 课堂模拟｜G 我们猜的｜U 还不知道 标签"
+      ],
+      "evidenceGate": [
+        "导师席 4、学员席 4",
+        "四人各有三张随机私密卡且 12 张不重复",
+        "每人指出一个具体动作或阻力",
+        "没有把产品答案当问题"
+      ],
+      "fallback": [
+        "学生只说‘饿’：追问他下一步要做什么动作",
+        "学生直接说 App：把答案改问成‘谁在哪一步卡住’"
+      ],
+      "manualInteraction": "实体课可以真的抽卡；网页由服务器随机发牌。导师逐窗确认每人三张，不替学生解释答案。",
+      "order": 1,
+      "macroStepOrder": 1,
+      "learnerLens": {
+        "world": "2008 年的上海高校宿舍。桌上有旧菜单和电话，公司答案还锁在结局袋里。",
+        "say": "从一张卡开始，说清谁、在哪里、正在做什么、卡在哪一步。",
+        "ask": "问队友：这是有来源的事实、课堂模拟、我们的猜测，还是还不知道？",
+        "done": "你写出一张具体问题卡，并保留至少一个不知道的地方。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "读 2008 宿舍开场，守住公司结局，验收随机发牌和第一张具体问题卡。"
+        },
+        "mentor02": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "只记录工具和流程限制，不提出产品。"
+        },
+        "mentor03": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "只记录学生、餐厅、配送者三类人物。"
+        },
+        "mentor04": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "只记录从找菜单到送达的动作链断点。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "从三张卡里找出一个具体人物。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "从三张卡里找出一个发生地点和时间。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "从三张卡里找出一个来回或等待。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "从三张卡里找出一个还不能确定的说法。"
+        }
+      }
+    },
+    {
+      "id": "B02",
+      "macroStepId": "find",
+      "title": "毛线调查：三方麻烦、问题池与 AI 守界",
+      "leadMentorId": "mentor01",
+      "suggestedMinutes": 14,
+      "gameModes": [
+        "yarn"
+      ],
+      "apiAction": "read-and-publish",
+      "underlyingClassroomPhases": [
+        "private-read",
+        "intel-brief",
+        "intel-network"
+      ],
+      "historyTrack": "来自来源的早期行动与课堂模拟必须分开；学生、餐厅和配送者不是同一个任务。",
+      "realityTrack": "把局部线索讲给队友，形成至少四张具体问题卡，再让 AI 只检查表达与证据缺口。",
+      "studentPrompt": "每人讲一张卡：先说它知道什么，再说它不能证明什么；全队把‘点餐不方便’拆成四张具体问题卡。",
+      "mentorScript": [
+        "拿毛线的人只讲一张：一个人在什么场景做什么，卡在哪里，造成什么影响。",
+        "讲完必须说‘它还不能证明什么’，再把毛线交给能补充、限制或反驳你的队友。",
+        "最后选两张最有争议的卡给 AI；AI 只能查五格是否完整、哪句没证据、下一步还要查什么。"
+      ],
+      "studentActions": [
+        "四人各公开至少一张卡",
+        "分别建立学生／餐厅／配送者问题",
+        "完成不少于四张问题卡",
+        "用 AI 守界卡审查两张争议卡"
+      ],
+      "systemActions": [
+        "记录全部卡片已读并进入团队公开池",
+        "保持事实、课堂模拟、推测与未知的标签",
+        "汇总四人公开线索",
+        "停在证据成网之前等待人工验收"
+      ],
+      "props": [
+        "毛线球",
+        "四张以上问题卡",
+        "历史问题池",
+        "AI 审查边界卡",
+        "星星与问号贴"
+      ],
+      "evidenceGate": [
+        "四人都讲过且各至少公开一张",
+        "问题池不少于四张",
+        "学生、餐厅、配送者三方没有混成一句",
+        "AI 没有推荐产品或替团队选答案"
+      ],
+      "fallback": [
+        "问题仍太宽：强制补齐谁／哪里／任务／阻力／影响",
+        "AI 越权给答案：整段删除，只保留它指出的证据缺口"
+      ],
+      "manualInteraction": "口头交换和实体毛线是本块主体；系统只保存公开状态，不能替代学生相互讲解。",
+      "order": 2,
+      "macroStepOrder": 1,
+      "learnerLens": {
+        "world": "学生、餐厅和送餐人各有自己的任务；任何一个人都看不见完整过程。",
+        "say": "讲一条线索，再补一句‘它还不能证明什么’，然后把毛线交给能补充的人。",
+        "ask": "问 AI 或队友：五格里缺了哪一格，哪句话没有证据？不要问该做什么产品。",
+        "done": "四个人都讲过，桌上有四张以上具体问题卡，AI 没有替你们选答案。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "主持毛线交换、四张问题卡和 AI 边界检查；只追问证据，不公布公司答案。"
+        },
+        "mentor02": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "记录哪些动作可被做成最小测试，但不讲实现。"
+        },
+        "mentor03": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "检查三类人物是否被具体描述。"
+        },
+        "mentor04": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "检查任务链是否漏掉接单、记录、配送或反馈。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "讲一张学生端线索，并说它不能证明什么。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "讲一张餐厅端线索，并找出可能错漏。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "讲一张配送端线索，并和学生任务分开。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "操作 AI 审查两张争议卡，删除越权答案。"
+        }
+      }
+    },
+    {
+      "id": "B03",
+      "macroStepId": "find",
+      "title": "候选真问题：五项筛选、反证计划与历史揭晓",
+      "leadMentorId": "mentor01",
+      "suggestedMinutes": 12,
+      "gameModes": [
+        "yarn",
+        "american",
+        "euro"
+      ],
+      "apiAction": "finish-find-chapter",
+      "underlyingClassroomPhases": [
+        "intel-network",
+        "dm-gate",
+        "pdmo",
+        "challenge-one",
+        "challenge-two",
+        "growth",
+        "history",
+        "debrief"
+      ],
+      "historyTrack": "先锁定玩家问题判断，再揭晓早期团队整理餐厅信息、电话接单、人工配送以及 2009 年网站启动；历史行动不是唯一答案。",
+      "realityTrack": "用具体、反复、有损失、有行动、可验证五项检查选一张候选卡，并设计一次可能推翻它的真人调查。",
+      "studentPrompt": "选出一张可能被证明错的问题卡，写好真人调查和推翻条件，再打开结局袋；猜中公司不算通关。",
+      "mentorScript": [
+        "每张卡接受五项检查：够不够具体、会不会反复、有没有损失、当事人是否已行动、能不能找真人确认。",
+        "我会掷压力骰。你们必须写清支持线索、仍未知什么、下一位找谁，以及看到什么就承认现在错了。",
+        "冻结后再打开历史行动和结局袋。公司名只能在揭晓后出现；六分钟完整发布要留到最终 B13。"
+      ],
+      "studentActions": [
+        "建立人物—任务—阻力—影响证据网",
+        "用五项标准投票并保留淘汰理由",
+        "完成两轮压力行动和反证计划",
+        "冻结后对照历史",
+        "四人各写一份 48 小时行动"
+      ],
+      "systemActions": [
+        "检查证据网并结算团队挑战",
+        "记录四人的 TEAM 行动与个人 RP",
+        "冻结判断后揭晓历史",
+        "保存四份反思",
+        "进入第 2 步‘定真方案’"
+      ],
+      "props": [
+        "五项筛选板",
+        "实心星／空心星／问号",
+        "压力骰",
+        "历史行动袋",
+        "结局袋",
+        "48 小时行动卡"
+      ],
+      "evidenceGate": [
+        "候选卡包含人物／场景／任务／阻力／影响",
+        "至少两条有来源线索",
+        "明确未知点、真人对象和可推翻条件",
+        "先冻结后揭晓",
+        "四人反思和现实行动齐全"
+      ],
+      "fallback": [
+        "团队只想猜公司：提醒猜中不加分，退回证据编号",
+        "无法决定：优先留下最容易被真人推翻的一张",
+        "没有外部受访者：使用明确标为“R 课堂模拟”的模拟角色卡"
+      ],
+      "manualInteraction": "团队先交实体候选卡和反证计划，导师确认冻结后才开结局袋；验收后才解锁定真方案。",
+      "order": 3,
+      "macroStepOrder": 1,
+      "learnerLens": {
+        "world": "你们要先交出自己的判断，之后才能打开历史行动和公司结局。",
+        "say": "读出候选问题、支持线索、未知点，并说明看到什么会承认判断错了。",
+        "ask": "请队友用五项标准挑刺：具体、反复、有损失、有行动、可验证吗？",
+        "done": "团队先冻结一张候选卡，再揭晓历史；完成找真问题，进入定真方案。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "完成证据门、五项筛选、压力挑战与史实揭晓；将真问题送入 P 主导的方案价值取舍，随后才 P→D。"
+        },
+        "mentor02": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "只记录可做性假设；等 P 在 B04 完成价值取舍后再接棒。"
+        },
+        "mentor03": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "只核查下一位真人是否具体且找得到。"
+        },
+        "mentor04": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "只核查完整任务链和 48 小时负责人。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "引用线索编号，读出最终五格问题。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "展示 F 有来源｜R 课堂模拟｜G 我们猜的｜U 还不知道 和一张被淘汰卡。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "说明历史行动能证明与不能证明什么。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "提交真人调查、推翻条件和 48 小时负责人。"
+        }
+      }
+    },
+    {
+      "id": "B04",
+      "macroStepId": "decide",
+      "title": "三条路：传单、统一电话，还是简单网页",
+      "leadMentorId": "mentor01",
+      "suggestedMinutes": 7,
+      "gameModes": [
+        "american",
+        "yarn"
+      ],
+      "apiAction": "prepare-decide-value",
+      "underlyingClassroomPhases": [
+        "lobby",
+        "identity",
+        "private-read",
+        "intel-brief",
+        "intel-network",
+        "dm-gate",
+        "pdmo"
+      ],
+      "historyTrack": "历史只证明团队曾走访餐厅、整理信息并用电话处理早期订餐；这些不是唯一正确方案。",
+      "realityTrack": "玩家平行世界对比纸菜单、统一电话和简单网页三条路，只选一条小实验。",
+      "studentPrompt": "画三条路：哪条能让一位宿舍学生少来回几次，完成一次订餐？",
+      "mentorScript": [
+        "第一条必须不用软件，第二条允许人工处理，第三条才可使用简单数字工具。",
+        "每条都说清：学生少了哪个动作，餐厅和配送者新增了什么负担。",
+        "只选最快能被真人证伪的一条；其余进停车场。"
+      ],
+      "studentActions": [
+        "随机读新章信息卡",
+        "画三条方案路径",
+        "用价值、证据风险、可证伪性投票",
+        "写唯一价值主张"
+      ],
+      "systemActions": [
+        "新章重新随机发牌",
+        "公开信息并形成新章情报网",
+        "保存方案比较和唯一问题/价值判断"
+      ],
+      "props": [
+        "三路径画布",
+        "纸菜单卡",
+        "电话接单卡",
+        "简单网页卡",
+        "价值投票点"
+      ],
+      "evidenceGate": [
+        "候选方案≥3",
+        "至少一项非软件路径",
+        "唯一入选方案明确用户结果",
+        "落选原因可追溯"
+      ],
+      "fallback": [
+        "所有方案都像功能清单：改写为‘用户原来做 A，现在能做到 B’",
+        "争论不决：优先选能最快得到反证的一项"
+      ],
+      "manualInteraction": "P 导师把实体‘移交单’交给 D；点击验收后下一块才切换当值导师。",
+      "order": 4,
+      "macroStepOrder": 2,
+      "learnerLens": {
+        "world": "问题已经锁定。桌上有三条路：纸菜单、统一电话、简单网页。",
+        "say": "我的路径会让哪个人少做哪一步，但会给谁增加什么负担。",
+        "ask": "哪条路最快能找到真人试，并最快证明我们错了？",
+        "done": "三条路都被比过，团队只选一条，其他两条留下放弃理由。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "只负责价值与问题匹配；完成后把唯一方案移交 D，不越权讲技术。"
+        },
+        "mentor02": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "接收移交单，只记录待检查的技术与交付假设。"
+        },
+        "mentor03": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "记录用户措辞，继续待命。"
+        },
+        "mentor04": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "记录服务链变化，继续待命。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "提出一条人工/线下路径。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "提出一条数字化路径。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "提出一条改变流程而非加功能的路径。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "主持价值投票并记录落选原因。"
+        }
+      }
+    },
+    {
+      "id": "B05",
+      "macroStepId": "decide",
+      "title": "十枚资源币：裁成一单跑通的 MVP",
+      "leadMentorId": "mentor02",
+      "suggestedMinutes": 7,
+      "gameModes": [
+        "euro",
+        "american"
+      ],
+      "apiAction": "finish-decide-chapter",
+      "underlyingClassroomPhases": [
+        "challenge-one",
+        "challenge-two",
+        "growth",
+        "history",
+        "debrief"
+      ],
+      "historyTrack": "只采信‘早期线下与电话实践在先，2009 网站启动在后’；不倒推具体产品功能。",
+      "realityTrack": "玩家用 10 枚资源币买入口、菜单确认、地址记录和结果通知，删掉本轮不需要的功能。",
+      "studentPrompt": "不做‘外卖平台’；只让一位同学成功发出一单并知道结果。",
+      "mentorScript": [
+        "我只接收 P 已确认的用户结果，不重新打开‘值不值得’争论。",
+        "把方案拆成入口、关键动作、结果。其余都放入停车场。",
+        "掷压力骰后再删一次：少一半时间或少一种材料时，核心结果还能出现吗？"
+      ],
+      "studentActions": [
+        "列出入口—动作—结果",
+        "购买必要工具并记录成本",
+        "删除超预算功能",
+        "完成压力后的 MVP 边界说明"
+      ],
+      "systemActions": [
+        "由 D 账号执行挑战与结算",
+        "以 TEAM 记录四人行动",
+        "保存资源取舍",
+        "史实对照后进入做真产品"
+      ],
+      "props": [
+        "资源币×10",
+        "入口卡",
+        "菜单卡",
+        "地址单",
+        "结果回执",
+        "功能停车场"
+      ],
+      "evidenceGate": [
+        "入口/动作/结果齐全",
+        "预算不为负",
+        "至少删除一项功能",
+        "压力后核心结果保持",
+        "P→D 移交可追溯"
+      ],
+      "fallback": [
+        "无法制作：降级为纸面可点击流程",
+        "仍超预算：只保留能回答最大未知点的一步"
+      ],
+      "manualInteraction": "实体币必须真的放到工具卡上；网页余额用于对账，不用口头说‘大概够’。",
+      "order": 5,
+      "macroStepOrder": 2,
+      "learnerLens": {
+        "world": "只有 10 枚资源币。你们买不起完整平台，只能保住一单的核心结果。",
+        "say": "我们保留入口、一个关键动作和一个明确回执，删掉了什么。",
+        "ask": "如果时间少一半，用户还能完成哪一件事？",
+        "done": "资源没有透支，至少删掉一项功能，并得到一张可交给 D 导师的 MVP 赌注卡。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "只核对裁剪后是否仍解决原问题，不重新主讲。"
+        },
+        "mentor02": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "检查可做性、裁剪边界并签收 MVP 赌注；P 已退到观察席。"
+        },
+        "mentor03": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "记录未来首批用户假设。"
+        },
+        "mentor04": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "记录未来交付成本假设。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "守住核心用户结果，提醒不要偏题。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "拆入口、关键动作与结果。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "计算 10 枚资源币如何花。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "记录被删除功能和删除原因。"
+        }
+      }
+    },
+    {
+      "id": "B06",
+      "macroStepId": "build",
+      "title": "搭出 V0：让同学亲手完成一次订餐",
+      "leadMentorId": "mentor02",
+      "suggestedMinutes": 10,
+      "gameModes": [
+        "euro"
+      ],
+      "apiAction": "prepare-build-mvp",
+      "underlyingClassroomPhases": [
+        "lobby",
+        "identity",
+        "private-read",
+        "intel-brief",
+        "intel-network",
+        "dm-gate",
+        "pdmo"
+      ],
+      "historyTrack": "只展示有来源的时空限制：2008 年以线下、电话和人工处理为主；具体 V0 界面属课堂模拟。",
+      "realityTrack": "玩家用纸卡、电话脚本或可点击页面搭一条从选餐到收到回执的主路径。",
+      "studentPrompt": "把 V0 交给一个不知道答案的队友；你不准解释，只记他第一次停在哪里。",
+      "mentorScript": [
+        "先让一名学员扮演陌生用户。制作者不能说话，只能观察。",
+        "用户必须从入口完成一个关键动作并看见结果。任何依赖口头解释的步骤都贴红点。",
+        "保存 V0，不准覆盖；接下来的每次修改都要能回答‘哪条观察让我改它’。"
+      ],
+      "studentActions": [
+        "随机读本章信息卡并形成约束",
+        "搭建 V0",
+        "完成一次静默走查",
+        "标记卡点并保存照片/路径"
+      ],
+      "systemActions": [
+        "进入第三章并随机发牌",
+        "建立本章证据网和问题判断",
+        "记录 MVP V0 与首次可操作时间"
+      ],
+      "props": [
+        "纸菜单",
+        "电话接单脚本",
+        "地址记录卡",
+        "可点击原型",
+        "V0 版本牌",
+        "红点贴"
+      ],
+      "evidenceGate": [
+        "存在可操作入口",
+        "用户完成或明确卡在关键动作",
+        "V0 留档",
+        "所有功能可追到当前问题"
+      ],
+      "fallback": [
+        "技术工具失败：立即切换纸面点击原型",
+        "学员一直解释：制作者背对测试者，只允许观察员记录"
+      ],
+      "manualInteraction": "优先操作实体/真实原型；系统只保存版本、计时和证据摘要。",
+      "order": 6,
+      "macroStepOrder": 3,
+      "learnerLens": {
+        "world": "你们正在搭第一版订餐路径：可以是纸卡、电话脚本或可点击页面。",
+        "say": "这是开始位置，这是一次关键动作，这是完成后的回执。",
+        "ask": "请一位队友不听解释直接试；他第一次停在哪里？",
+        "done": "有一个真能动手操作的 V0，测试者完成或明确卡在某一步，V0 被保存。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "只检查产品是否偏离问题。"
+        },
+        "mentor02": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "守住可操作性和版本证据，不评价美观。"
+        },
+        "mentor03": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "只观察用户第一次是否理解。"
+        },
+        "mentor04": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "只记录人工交付动作。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "搭入口，让陌生用户知道从哪里开始。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "搭关键动作，只保留一条主路径。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "搭结果反馈，让用户知道是否完成。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "扮演沉默用户并逐步记录卡点。"
+        }
+      }
+    },
+    {
+      "id": "B07",
+      "macroStepId": "build",
+      "title": "突发两轮：菜单过期、地址听错、送达延误",
+      "leadMentorId": "mentor02",
+      "suggestedMinutes": 8,
+      "gameModes": [
+        "american"
+      ],
+      "apiAction": "run-build-pressure",
+      "underlyingClassroomPhases": [
+        "challenge-one",
+        "challenge-two",
+        "growth"
+      ],
+      "historyTrack": "史料能证明早期存在人工接单与配送；具体故障和频率是明确标为“R 课堂模拟”的课堂压力事件。",
+      "realityTrack": "骰子抽一个订餐故障，四人先保住核心结果，第二轮只修一处并重测。",
+      "studentPrompt": "先说哪个人受影响、怎样止损，再只改一处，不准用解释代替结果。",
+      "mentorScript": [
+        "我先选挑战，再由骰子决定压力，不为团队挑最容易的一张。",
+        "四个人都提交具体动作，但系统统一记录为 TEAM；今天不分学生 P/D/M/O。",
+        "第二轮必须写停止条件：看到什么结果就承认当前办法不行。"
+      ],
+      "studentActions": [
+        "看清挑战和骰子压力",
+        "每人提交第一轮动作",
+        "缩小范围后提交第二轮",
+        "共同演示压力后的路径"
+      ],
+      "systemActions": [
+        "选择挑战、掷压力骰",
+        "收齐四人两轮行动",
+        "由 D 用四维量规结算",
+        "记录收入、成本和学习失败"
+      ],
+      "props": [
+        "订餐压力骰",
+        "菜单过期卡",
+        "地址听错卡",
+        "配送延误卡",
+        "两轮行动单",
+        "停止条件卡"
+      ],
+      "evidenceGate": [
+        "四人第一轮行动齐全",
+        "四人第二轮行动齐全",
+        "每项有目标/方法/证据/资源/成功信号/停止条件",
+        "贡献角色全部为 TEAM"
+      ],
+      "fallback": [
+        "没有成功也可结算：保留 learning-failure 并写下一次更小实验",
+        "答案抽象：要求现场演示一个动作"
+      ],
+      "manualInteraction": "现场骰子结果可由导师输入；自动联测使用服务器随机压力并在八窗同步显示。",
+      "order": 7,
+      "macroStepOrder": 3,
+      "learnerLens": {
+        "world": "压力骰落下：可能菜单过期、地址听错，或者配送延误。",
+        "say": "谁受影响，我们先怎样止损，第二轮只改哪一处。",
+        "ask": "改完后要看到什么才算有用？连续两次没新信号时是否停止？",
+        "done": "四人两轮行动都交齐，第二轮只改一处，成功和失败都有记录。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "观察修复是否仍对应原问题。"
+        },
+        "mentor02": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "掷压力、追行动证据、公开结算；不把失败改写成成功。"
+        },
+        "mentor03": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "观察试用者是否理解变化。"
+        },
+        "mentor04": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "记录恢复时间和额外成本。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "提交一个能保住入口的动作。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "提交一个能保住关键操作的动作。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "提交一个能看见结果的动作。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "提交停止条件并负责第二轮复测。"
+        }
+      }
+    },
+    {
+      "id": "B08",
+      "macroStepId": "build",
+      "title": "只改一处：冻结订餐 MVP V1",
+      "leadMentorId": "mentor02",
+      "suggestedMinutes": 6,
+      "gameModes": [
+        "yarn",
+        "euro"
+      ],
+      "apiAction": "finish-build-chapter",
+      "underlyingClassroomPhases": [
+        "growth",
+        "history",
+        "debrief"
+      ],
+      "historyTrack": "先冻结玩家 V1，再对照历史的整理信息、统一电话、人工配送与 2009 网站启动。",
+      "realityTrack": "用‘同学动作—卡点—原因—唯一改动’冻结 V1，其他想法全部留在停车场。",
+      "studentPrompt": "拿出 V0 和 V1，圈出唯一个变化，指给队友看是哪条观察让你改它。",
+      "mentorScript": [
+        "现在不是愿望清单。用毛线连：用户做了什么、哪里停住、你们为什么认为这个改动有效。",
+        "冻结 V1 后再看历史。与历史不同可以成立，但你们必须说清证据和代价。",
+        "每人写一个 48 小时现实动作，让这项认知离开教室。"
+      ],
+      "studentActions": [
+        "连接反馈证据",
+        "选择并完成唯一改动",
+        "冻结 V1",
+        "对照历史并写现实行动"
+      ],
+      "systemActions": [
+        "保存团队决定",
+        "冻结玩家世界线",
+        "揭晓史实来源",
+        "收齐反思并进入市场步骤"
+      ],
+      "props": [
+        "V0/V1 版本牌",
+        "反馈毛线",
+        "唯一改动卡",
+        "历史行动袋",
+        "48 小时复测卡"
+      ],
+      "evidenceGate": [
+        "一条可追溯迭代因果链",
+        "V0/V1 差异可见",
+        "先冻结后揭晓",
+        "四人现实行动齐全"
+      ],
+      "fallback": [
+        "改动太多：团队投票只保留影响最大的一项",
+        "史实造成后见之明：让学员列出历史答案当时仍无法保证的结果"
+      ],
+      "manualInteraction": "导师必须口头问‘为什么只改这一处’，答完才点击验收。",
+      "order": 8,
+      "macroStepOrder": 3,
+      "learnerLens": {
+        "world": "V0 和 V1 都在桌上。先锁定自己的改动，之后再看历史团队的行动。",
+        "say": "我们只改了这一处，因为测试者在这一步做了什么。",
+        "ask": "历史行动能证明什么，又绝对不能证明什么？",
+        "done": "V0/V1 差异看得见，改动能指回用户行为，其他想法没有悄悄混进来。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "确认改动没有换掉目标问题。"
+        },
+        "mentor02": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "主持 V0→V1 证据复盘和历史对照，随后完整移交 M。"
+        },
+        "mentor03": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "接收 V1 和目标用户线索，准备市场步骤。"
+        },
+        "mentor04": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "记录未来交付风险。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "给出一条用户行为证据。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "给出一个卡点与原因假设。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "实施唯一改动并展示差异。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "记录未改事项和 48 小时行动。"
+        }
+      }
+    },
+    {
+      "id": "B09",
+      "macroStepId": "market",
+      "title": "只选第一群：哪栋宿舍、哪个时段",
+      "leadMentorId": "mentor03",
+      "suggestedMinutes": 8,
+      "gameModes": [
+        "euro",
+        "yarn"
+      ],
+      "apiAction": "prepare-market",
+      "underlyingClassroomPhases": [
+        "lobby",
+        "identity",
+        "private-read",
+        "intel-brief",
+        "intel-network",
+        "dm-gate",
+        "pdmo"
+      ],
+      "historyTrack": "来源只支持校园餐饮外送起步与整理餐厅信息；具体用户规模与转化数字不作史实。",
+      "realityTrack": "玩家从晚课后宿舍学生、做实验到深夜的学生、不熟悉餐厅的新生中只选一群。",
+      "studentPrompt": "不许说‘所有学生’；说出今晚去哪栋楼能找到他们，他们正在做什么。",
+      "mentorScript": [
+        "三张人群卡只能选一张。比较问题频率、触达位置和信任成本。",
+        "品牌不是名字和 Logo。十秒里必须出现：给谁、解决哪个具体任务、承诺什么可见结果。",
+        "用资源币支付渠道；没有成本的渠道通常意味着你们还没写出真实行动。"
+      ],
+      "studentActions": [
+        "随机读市场章信息卡",
+        "比较三个人群",
+        "购买一个渠道",
+        "写并口述十秒承诺"
+      ],
+      "systemActions": [
+        "进入第四章并随机发牌",
+        "形成市场证据网",
+        "锁定首批用户与渠道成本",
+        "保存十秒承诺"
+      ],
+      "props": [
+        "宿舍人群卡",
+        "时段卡",
+        "传单渠道卡",
+        "楼层演示卡",
+        "资源币",
+        "十秒承诺卡"
+      ],
+      "evidenceGate": [
+        "用户群不是‘所有人’",
+        "可说出线下/线上触达位置",
+        "已记录渠道成本",
+        "承诺包含用户/任务/结果"
+      ],
+      "fallback": [
+        "选不出：先选同班或同社团里最容易找到的五个人",
+        "承诺像口号：改成‘完成某任务所需时间/步骤发生什么变化’"
+      ],
+      "manualInteraction": "让学员真实站起来讲十秒；系统计时并只记录最终版本。",
+      "order": 9,
+      "macroStepOrder": 4,
+      "learnerLens": {
+        "world": "产品已能跑一单，但你们不能邀请‘所有学生’。",
+        "say": "我们先找哪栋宿舍、哪个时段、正在做什么的同学。",
+        "ask": "我们今晚在哪里真能找到五个这样的人？找他们要付出什么成本？",
+        "done": "只锁定一群可到达的人，买一个渠道，并写出‘给谁—任务—结果’十秒承诺。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "只核对人群是否仍有原问题。"
+        },
+        "mentor02": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "只核对承诺是否能由当前 MVP 展示。"
+        },
+        "mentor03": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "主持窄人群、触达成本和承诺；不回到产品功能讨论。"
+        },
+        "mentor04": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "只记录渠道带来的服务压力。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "比较人群的问题频率。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "比较三个渠道的触达成本。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "写‘给谁—任务—结果’十秒承诺。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "扮演怀疑用户，只问一个尖锐问题。"
+        }
+      }
+    },
+    {
+      "id": "B10",
+      "macroStepId": "market",
+      "title": "第一次触达：拿到一份同意或拒绝",
+      "leadMentorId": "mentor03",
+      "suggestedMinutes": 8,
+      "gameModes": [
+        "american",
+        "euro"
+      ],
+      "apiAction": "finish-market-chapter",
+      "underlyingClassroomPhases": [
+        "challenge-one",
+        "challenge-two",
+        "growth",
+        "history",
+        "debrief"
+      ],
+      "historyTrack": "对照早期走访餐厅、印发信息与电话入口的公开叙事；本轮漏斗与用户原话是玩家证据。",
+      "realityTrack": "用宿舍公告、纸面订单或当面演示完成一次触达；没有真人时必须标为“R 课堂模拟”。",
+      "studentPrompt": "把十秒承诺讲给一个具体同学；讲完就停，记下他为什么愿意或不愿意试。",
+      "mentorScript": [
+        "骰子会加入免费替代品、信任不足或渠道时间缩短。请根据压力改一句话，不许虚假承诺。",
+        "记录漏斗：看见几人、停下几人、试用几人、完成几人。再记一条原话。",
+        "第一份拒绝不是失败。把理由写清，决定改人群、改承诺还是改产品。"
+      ],
+      "studentActions": [
+        "面对市场压力改写承诺",
+        "完成一次触达",
+        "记录漏斗和用户原话",
+        "按证据选择下一步"
+      ],
+      "systemActions": [
+        "由 M 执行挑战和压力",
+        "记录 TEAM 行动与结算",
+        "保存渠道漏斗",
+        "冻结、揭晓、反思并进入运营"
+      ],
+      "props": [
+        "宿舍公告",
+        "纸面订单",
+        "十秒承诺卡",
+        "触达漏斗",
+        "用户原话贴",
+        "R 课堂模拟章"
+      ],
+      "evidenceGate": [
+        "至少一次真实/明确标注模拟的触达",
+        "同意或拒绝结果可见",
+        "漏斗数字完整",
+        "下一步选择有理由"
+      ],
+      "fallback": [
+        "现场没有外部用户：抽取带明确行为的模拟用户卡，并标为“R 课堂模拟”",
+        "只报点赞数：追问是否完成一次核心任务"
+      ],
+      "manualInteraction": "优先真人；若用模拟用户卡，窗口和回执必须显示 R 课堂模拟。",
+      "order": 10,
+      "macroStepOrder": 4,
+      "learnerLens": {
+        "world": "你们要把十秒承诺讲给一个具体的同学。同意和拒绝都是证据。",
+        "say": "我只讲承诺，不争辩；然后原样记下他愿意或拒绝的理由。",
+        "ask": "他是否开始、是否完成？下一步该改人群、改承诺，还是改产品？",
+        "done": "有一次真人触达或明确标为“R 课堂模拟”的模拟，漏斗、原话和下一步理由都被记下。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "观察用户问题是否仍成立。"
+        },
+        "mentor02": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "观察承诺与产品能力是否一致。"
+        },
+        "mentor03": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "主持市场压力、真实触达与漏斗复盘，结束后移交 O。"
+        },
+        "mentor04": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "接收订单量、等待和服务承诺。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "负责找到一个具体目标用户。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "负责讲十秒承诺并不争辩。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "负责记录漏斗数字和原话。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "负责根据拒绝理由提出下一步选择。"
+        }
+      }
+    },
+    {
+      "id": "B11",
+      "macroStepId": "operate",
+      "title": "把一单写成换个人也能照做的 SOP",
+      "leadMentorId": "mentor04",
+      "suggestedMinutes": 9,
+      "gameModes": [
+        "euro",
+        "yarn"
+      ],
+      "apiAction": "prepare-operations",
+      "underlyingClassroomPhases": [
+        "lobby",
+        "identity",
+        "private-read",
+        "intel-brief",
+        "intel-network",
+        "dm-gate",
+        "pdmo"
+      ],
+      "historyTrack": "史实只说明早期存在人工接单、记录与配送行动；具体排班、SOP 和时间数字为课堂模拟。",
+      "realityTrack": "把查菜单、确认营业、收地址、传给餐厅、配送、送达、收反馈写成可换人执行的流程。",
+      "studentPrompt": "把 SOP 交给没参与制作的队友；原作者不准提醒，看他能否处理一张测试订单。",
+      "mentorScript": [
+        "运营不是宣传后的杂事，而是把承诺兑现成重复结果。",
+        "请逐格写：谁触发、输入什么、谁负责、完成标准、异常去哪里。",
+        "用一张测试订单走完整流程。凡是靠‘到时候再说’的地方都贴风险标。"
+      ],
+      "studentActions": [
+        "随机读运营章信息卡",
+        "画服务蓝图和 SOP",
+        "用一单走查",
+        "标出异常和交接点"
+      ],
+      "systemActions": [
+        "进入第五章并随机发牌",
+        "形成运营证据网",
+        "保存流程、问题判断和资产需求",
+        "初始化订单/服务记录"
+      ],
+      "props": [
+        "订单卡",
+        "SOP 长卷",
+        "电话流水簿",
+        "配送路线板",
+        "责任夹",
+        "异常贴"
+      ],
+      "evidenceGate": [
+        "用户进入到反馈闭环完整",
+        "每一步有负责人和完成标准",
+        "至少一条异常路径",
+        "陌生队员可按纸完成走查"
+      ],
+      "fallback": [
+        "流程过长：只保留兑现核心承诺所需步骤",
+        "职责口头化：每一步必须放一个责任夹"
+      ],
+      "manualInteraction": "实体课由非制作者按 SOP 真走一单；原作者不得临场提示。",
+      "order": 11,
+      "macroStepOrder": 5,
+      "learnerLens": {
+        "world": "现在要把一次成功订餐写成流程，不能永远靠创始人亲自救火。",
+        "say": "这一步由谁做、收到什么、什么才算完成，出错后去哪里。",
+        "ask": "换一个没参与制作的人，只看这张 SOP，能处理一单吗？",
+        "done": "从学生请求到送达和反馈都有负责人、完成标准和至少一条异常路径。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "检查 SOP 是否仍服务原问题。"
+        },
+        "mentor02": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "检查工具故障时是否有降级路径。"
+        },
+        "mentor03": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "检查用户承诺是否被如实交付。"
+        },
+        "mentor04": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "主持交付蓝图、SOP 与换人走查；前三位导师退为边界观察。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "画用户进入和请求发起。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "画内部处理与资源投入。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "画交付结果和完成标准。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "扮演新值班员，按 SOP 处理测试单。"
+        }
+      }
+    },
+    {
+      "id": "B12",
+      "macroStepId": "operate",
+      "title": "经营一轮：订单、成本、反馈和个人钱包",
+      "leadMentorId": "mentor04",
+      "suggestedMinutes": 9,
+      "gameModes": [
+        "american",
+        "euro",
+        "yarn"
+      ],
+      "apiAction": "run-operations-and-freeze",
+      "underlyingClassroomPhases": [
+        "challenge-one",
+        "challenge-two",
+        "growth",
+        "history",
+        "debrief"
+      ],
+      "historyTrack": "早期人工接单和亲自配送有来源；订单量、收入、成本、利润与分配数字均标为“R 课堂模拟”。",
+      "realityTrack": "处理一队压力订单，逐笔记团队收入和成本；RP 奖励个人证据贡献，可分利润的 40% 进个人钱包。",
+      "studentPrompt": "送不完先限量和通知，不要隐藏；然后把每一笔收入和成本对上。",
+      "mentorScript": [
+        "骰子会带来延误、缺人、库存不足或投诉。先说受影响用户，再止损，再承诺下一次更新时间。",
+        "个人 RP 只奖励有证据的贡献。先记团队收入与成本；可分利润的 40% 按公开规则进入四人钱包，其余保留在团队资金中。",
+        "最后用毛线连‘用户行为—瓶颈—原因—下一轮动作’，只选一项。"
+      ],
+      "studentActions": [
+        "两轮处理运营压力",
+        "记录收入/成本和资源变化",
+        "每人指出一项队友的具体支撑",
+        "对照个人 RP、个人钱包和团队资金",
+        "连接数据并冻结下一轮动作",
+        "提交个人反思"
+      ],
+      "systemActions": [
+        "由 O 执行压力与结算",
+        "记录 TEAM 贡献和有证据的个人 RP",
+        "记入模拟订单收入与运营成本",
+        "将可分利润的 40% 转入个人钱包并保留团队余额",
+        "冻结玩家世界线并揭晓历史",
+        "收齐反思但暂不完成战役"
+      ],
+      "props": [
+        "订单队列",
+        "团队现金账本",
+        "个人钱包卡",
+        "声望 RP",
+        "配送故障卡",
+        "用户通知模板",
+        "指标毛线"
+      ],
+      "evidenceGate": [
+        "订单/服务状态可追溯",
+        "收入成本守恒且不重复入账",
+        "四名学员的 RP 都绑定具体作品理由",
+        "四个个人钱包均收到分配且团队资金仍大于零",
+        "故障有影响范围/止损/通知/恢复",
+        "下一轮只有一项动作和一个指标",
+        "四人反思齐全"
+      ],
+      "fallback": [
+        "超量：启用预约/限量并说明代价",
+        "账本对不上：停止扩张，逐笔重放，不用补一个神秘余额",
+        "争论十项改进：只选最影响核心结果的瓶颈"
+      ],
+      "manualInteraction": "实体账本与系统账本逐笔对照；不一致必须在本块修完，不能带进 Demo。",
+      "order": 12,
+      "macroStepOrder": 5,
+      "learnerLens": {
+        "world": "多张订单同时进来，还有延误或投诉。订单和金额都是标为“R 课堂模拟”的课堂模拟。",
+        "say": "先说受影响的人、止损办法和下次通知时间，再记每一笔收入和成本。",
+        "ask": "我的 RP 对应哪件证据作品？个人钱包为什么进这笔钱，团队为什么还要留钱？",
+        "done": "订单可追溯，账本守恒，四人 RP 有理由、钱包有分配、团队还有余额，下轮只改一件事。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "准备在 Demo 第一分钟核验证据。"
+        },
+        "mentor02": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "准备在 Demo 第三分钟核验 MVP。"
+        },
+        "mentor03": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "准备在 Demo 第四分钟核验用户/渠道。"
+        },
+        "mentor04": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "完成运营压力、账本、反馈留存和下一轮迭代；把团队带到 Demo 门前。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "处理订单与排队，记录完成率。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "记录收入、成本与资源余额。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "处理故障通知并记录恢复时间。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "连接反馈因果链并提出唯一下一轮动作。"
+        }
+      }
+    },
+    {
+      "id": "B13",
+      "macroStepId": "operate",
+      "title": "六分钟 Demo Day：从宿舍麻烦到稳定交付",
+      "leadMentorId": "mentor04",
+      "suggestedMinutes": 6,
+      "gameModes": [
+        "yarn",
+        "american",
+        "euro"
+      ],
+      "apiAction": "submit-demo-and-complete",
+      "underlyingClassroomPhases": [
+        "debrief",
+        "completed"
+      ],
+      "historyTrack": "史实只用于对照当时行动；方案、MVP、用户反应和账本一律作为玩家平行世界成果发布。",
+      "realityTrack": "用六个 60 秒证明：真问题、方案取舍、MVP 操作、第一群用户、SOP 与账本、下一步请求。",
+      "studentPrompt": "六分钟里必须让观众亲手完成一次关键动作，并看到一条用户证据和一本守恒账。",
+      "mentorScript": [
+        "00:00—01:00 宿舍订餐真问题；01:00—02:00 三路径取舍；02:00—03:00 MVP 现场操作。",
+        "03:00—04:00 第一群用户与触达结果；04:00—05:00 SOP、订单、成本与反馈；05:00—06:00 唯一下一步和具体请求。",
+        "历史说来源；玩家成果明确说‘我们的平行世界实验’。"
+      ],
+      "studentActions": [
+        "四人协作完成六段发布",
+        "让观众完成一次关键操作",
+        "回答一个随机压力问题",
+        "提交下一步指标和具体请求"
+      ],
+      "systemActions": [
+        "收取六段 360 秒 Demo",
+        "验证问题—方案—产品—市场—运营五步证据",
+        "生成脱敏回执",
+        "完成饿了么五步课程"
+      ],
+      "props": [
+        "真问题卡",
+        "三路径画布",
+        "MVP 与纸面备份",
+        "触达漏斗",
+        "SOP 与账本",
+        "六段计时器",
+        "评审反馈卡"
+      ],
+      "evidenceGate": [
+        "六段均有内容且总时长 360 秒",
+        "至少一次真实操作",
+        "至少一条用户/市场证据",
+        "账本/运营指标可见",
+        "下一步请求具体",
+        "API 房间最终为 completed"
+      ],
+      "fallback": [
+        "原型故障：立即切纸面流程，不停表",
+        "忘词：只读每段的证据标题",
+        "超时：O 导师强制切段并把未讲内容留入问答"
+      ],
+      "manualInteraction": "计时由操作者手动开始；联测可快速执行，但页面始终展示真实 6×60 秒结构。",
+      "order": 13,
+      "macroStepOrder": 5,
+      "learnerLens": {
+        "world": "六分钟 Demo Day：现在要证明你们从一个宿舍麻烦走到了可稳定交付。",
+        "say": "只讲你负责的一分钟，拿出一件作品和一条证据，不重复队友。",
+        "ask": "观众能否亲手完成一次关键动作？历史与我们的平行世界实验是否被清楚分开？",
+        "done": "六段共 360 秒，问题、取舍、MVP、市场、SOP/账本和下一步全部出现，课程 completed。"
+      },
+      "seatTasks": {
+        "mentor01": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "第1分钟只核验证据，不扩展讲课。"
+        },
+        "mentor02": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "第3分钟只核验可操作 MVP。"
+        },
+        "mentor03": {
+          "state": "standby",
+          "badge": "待命观察",
+          "task": "第4分钟只核验用户与渠道证据。"
+        },
+        "mentor04": {
+          "state": "active",
+          "badge": "当值导师",
+          "task": "作为 Demo Day 总控严格计时、收口交付并完成战役；P/D/M 在各自一分钟只做一次核验。"
+        },
+        "learner01": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "负责问题证据与方案取舍两段。"
+        },
+        "learner02": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "负责 MVP 实演与纸面备份。"
+        },
+        "learner03": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "负责用户/市场证据与压力应答。"
+        },
+        "learner04": {
+          "state": "active",
+          "badge": "Young Builder",
+          "task": "负责运营账本、下一步请求和总控配合。"
+        }
+      }
+    }
+  ],
+  "rules": {
+    "manualAdvance": true,
+    "courseSwitch": "new-run-only",
+    "executionStates": [
+      "ready",
+      "executing",
+      "awaiting-acceptance",
+      "error",
+      "completed"
+    ],
+    "studentPdmo": "none-by-default",
+    "cardDeal": "random-independent-of-identity",
+    "singleSpotlightMentor": true,
+    "historyBoundary": "facts-source-backed; simulations-labelled; reveal-after-freeze"
+  },
+  "contentPackages": {
+    "casePackages": [
+      {
+        "id": "case-eleme-2008-product-discovery",
+        "caseId": "eleme-2008-find-problem",
+        "title": "饿了么 2008—2009 产品发现史料包",
+        "ownerMentorRole": "P",
+        "scope": "只覆盖来源支持的早期现场、用户任务、电话与人工流程、2009 网站启动；课堂平行世界及学生方案不写回史实。",
+        "evidenceRevision": "sha256:e09f556982eeb4a41cb7f2f86cc1ea5b2222f4ebecf09e89aada76060ddebe6d",
+        "sourceIds": [
+          "src-eleme-sjtu-youth-origin",
+          "src-eleme-sjtu-mba-origin",
+          "src-eleme-sjtu-youth-process",
+          "src-eleme-sjtu-news-2018"
+        ],
+        "factCardIds": [
+          "e08-f-01",
+          "e08-f-02",
+          "e08-c-01",
+          "e08-c-02",
+          "e08-c-03",
+          "e08-c-04",
+          "e08-c-05",
+          "e08-c-06",
+          "e08-decide-f01",
+          "e08-decide-f02",
+          "e08-decide-f03",
+          "e08-build-f01",
+          "e08-build-f02",
+          "e08-build-f03",
+          "e08-market-f01",
+          "e08-market-f02",
+          "e08-market-f03",
+          "e08-operate-f01",
+          "e08-operate-f02",
+          "e08-operate-f03"
+        ],
+        "caseType": "historical"
+      }
+    ],
+    "submissionSchemas": [
+      {
+        "id": "product-brief-v1",
+        "kind": "product-brief",
+        "name": "ProductBrief／产品定义卡",
+        "learnerIntro": "这是全队要交给 P 产品导师的一张项目地图。建议由一位同学汇总提交；先写具体的人、事和证据，再写方案。",
+        "ownerMentorRole": "P",
+        "submitAtBlockId": "B04",
+        "fields": [
+          {
+            "id": "target-user",
+            "label": "目标用户",
+            "learnerPrompt": "写一个具体的人或很窄的一类人，不要写“所有人”。",
+            "mentorPrompt": "是否具体到能够找到真人核对？",
+            "input": "short-text",
+            "required": true,
+            "minLength": 4,
+            "maxLength": 160
+          },
+          {
+            "id": "user-task",
+            "label": "用户要完成的事",
+            "learnerPrompt": "他在什么场景下，真正想把哪件事做完？",
+            "mentorPrompt": "描述的是用户任务，而不是产品功能吗？",
+            "input": "long-text",
+            "required": true,
+            "minLength": 8,
+            "maxLength": 400
+          },
+          {
+            "id": "observed-problem",
+            "label": "看得见的麻烦",
+            "learnerPrompt": "写下你亲眼看见或从可靠证据中确认的卡点与损失。",
+            "mentorPrompt": "是否可观察、可复述，且没有把猜测写成事实？",
+            "input": "long-text",
+            "required": true,
+            "minLength": 8,
+            "maxLength": 500
+          },
+          {
+            "id": "facts-and-sources",
+            "label": "事实与来源",
+            "learnerPrompt": "每行写一条事实，并标出来自哪张卡、访谈或资料。",
+            "mentorPrompt": "每条事实是否可追溯，表述有没有超过来源？",
+            "input": "list",
+            "required": true,
+            "minLength": 8,
+            "maxLength": 800
+          },
+          {
+            "id": "assumptions",
+            "label": "我们现在的猜测",
+            "learnerPrompt": "每行写一个还没被证明、但会影响方案的判断。",
+            "mentorPrompt": "猜测是否与事实分开，且能被验证或推翻？",
+            "input": "list",
+            "required": true,
+            "minLength": 4,
+            "maxLength": 600
+          },
+          {
+            "id": "unknowns",
+            "label": "还不知道什么",
+            "learnerPrompt": "每行写一个未知，并补一句下一步要问谁或看什么。",
+            "mentorPrompt": "未知是否具体，并有下一步调查动作？",
+            "input": "list",
+            "required": true,
+            "minLength": 4,
+            "maxLength": 600
+          },
+          {
+            "id": "value-hypothesis",
+            "label": "价值假设",
+            "learnerPrompt": "如果解决这个麻烦，用户会少做什么、快多少或避免什么损失？",
+            "mentorPrompt": "价值是否落到用户结果，而非功能数量？",
+            "input": "long-text",
+            "required": true,
+            "minLength": 8,
+            "maxLength": 500
+          },
+          {
+            "id": "core-journey",
+            "label": "最小完整路径",
+            "learnerPrompt": "按“入口 → 关键动作 → 结果回执”写出最短的一次完整体验。",
+            "mentorPrompt": "路径是否首尾完整，用户能知道事情是否完成？",
+            "input": "list",
+            "required": true,
+            "minLength": 8,
+            "maxLength": 700
+          },
+          {
+            "id": "mvp-hypothesis",
+            "label": "MVP 要验证的赌注",
+            "learnerPrompt": "这一版最小作品只需要证明哪一个最重要的判断？",
+            "mentorPrompt": "是否只有一个关键赌注，并能被真人行动检验？",
+            "input": "long-text",
+            "required": true,
+            "minLength": 8,
+            "maxLength": 500
+          },
+          {
+            "id": "boundaries",
+            "label": "边界与不能做的事",
+            "learnerPrompt": "写下隐私、安全、合规、时间、成本或不做范围。",
+            "mentorPrompt": "边界是否具体，且没有用“以后再说”掩盖风险？",
+            "input": "list",
+            "required": true,
+            "minLength": 4,
+            "maxLength": 700
+          }
+        ],
+        "mentorRubric": [
+          "目标用户、场景和任务足够具体，能够找到真人继续验证。",
+          "事实、课堂模拟、团队猜测和未知清楚分开。",
+          "问题描述包含可观察卡点或损失，没有先偷放解决方案。",
+          "价值假设与最小路径直接回应同一个问题。",
+          "MVP 只验证一个关键赌注，边界与下一步调查可执行。"
+        ]
+      }
+    ],
+    "scriptPackages": [
+      {
+        "id": "script-eleme-2008-product-mentor",
+        "title": "P 产品导师｜饿了么历史调查与产品定义",
+        "casePackageId": "case-eleme-2008-product-discovery",
+        "ownerMentorRole": "P",
+        "coursewareRef": {
+          "mentorRole": "P",
+          "packageId": "cw-product-mentor-foundations",
+          "slug": "product-mentor-foundations",
+          "revision": 0,
+          "digest": "b2852b39462bc05464582b3c36f773e68fa84775b9e7c7673a128fac97d7cda5",
+          "sourceCommit": "679213a61b835335016eac7649213983a0e48489",
+          "sourceTree": "3a041c4714190cc026f6de8e06e15cec0e5f765d"
+        },
+        "checkpoints": [
+          {
+            "id": "p-a-enter-2008",
+            "title": "A｜进入 2008 年现场",
+            "purpose": "先看人物、任务、障碍、证据和未知，不提前揭晓名企答案。",
+            "blockIds": [
+              "B01"
+            ],
+            "coursewareCue": {
+              "label": "饿了么历史现场、规则、角色与公共线索",
+              "slideStart": 7,
+              "slideEnd": 15
+            },
+            "privateDeckIds": [
+              "eleme-2008-find-problem-find-information"
+            ],
+            "publicEvents": [
+              "公开 2008 年宿舍场景与公司结局密封规则",
+              "随机发出 F／R／G／U 信息卡"
+            ],
+            "submissionSchemaIds": []
+          },
+          {
+            "id": "p-b-find-real-problem",
+            "title": "B｜识别真正问题",
+            "purpose": "把抱怨拆成人、场景、任务、卡点和损失，用证据守住边界。",
+            "blockIds": [
+              "B02"
+            ],
+            "coursewareCue": {
+              "label": "线索分类、问题句与候选问题池",
+              "slideStart": 16,
+              "slideEnd": 20
+            },
+            "privateDeckIds": [
+              "eleme-2008-find-problem-find-information"
+            ],
+            "publicEvents": [
+              "团队毛线交换：只讲自己拿到的线索",
+              "公开事实、猜测、未知与反例板"
+            ],
+            "submissionSchemaIds": []
+          },
+          {
+            "id": "p-c-rebuild-early-mvp",
+            "title": "C｜重建早期 MVP",
+            "purpose": "分析走访、整理信息、电话接单与人工送餐各自验证了什么，也说清还不能证明什么。",
+            "blockIds": [
+              "B03"
+            ],
+            "coursewareCue": {
+              "label": "第二份档案、核心问题、案例辩护与史料对照",
+              "slideStart": 22,
+              "slideEnd": 33
+            },
+            "privateDeckIds": [
+              "eleme-2008-find-problem-find-information"
+            ],
+            "publicEvents": [
+              "冻结团队真问题后才揭晓来源支持的早期行动",
+              "对照历史路径但不倒推唯一正确答案"
+            ],
+            "submissionSchemaIds": []
+          },
+          {
+            "id": "p-d-transfer-project",
+            "title": "D｜迁移到自己的项目",
+            "purpose": "不用抄饿了么答案；把方法迁移为自己的 ProductBrief，并由 P 导师验收。",
+            "blockIds": [
+              "B04"
+            ],
+            "coursewareCue": {
+              "label": "Problem Hunter：真实观察、访谈与问题定义",
+              "slideStart": 36,
+              "slideEnd": 62
+            },
+            "privateDeckIds": [
+              "eleme-2008-find-problem-decide-information"
+            ],
+            "publicEvents": [
+              "比较人工、电话与简单网页三条路径",
+              "公开唯一价值取舍与落选理由"
+            ],
+            "submissionSchemaIds": [
+              "product-brief-v1"
+            ]
+          }
+        ],
+        "mentorRubric": [
+          "先让学生经历和表达，再进行方法命名。",
+          "只把有来源内容说成史实；R／G／U 始终保留边界。",
+          "不以“后来成功”证明早期判断必然正确。",
+          "学生提交 ProductBrief 后再给方法反馈，不替团队写答案。"
+        ],
+        "handoff": {
+          "fromBlockId": "B04",
+          "availableAtBlockId": "B05",
+          "toMentorRole": "D",
+          "submissionSchemaId": "product-brief-v1",
+          "summary": "D 导师只读取 P 已验收的 ProductBrief 作为开发上游输入；不重新拥有或讲解饿了么历史调查。"
+        }
+      }
+    ],
+    "reviewQueue": [
+      {
+        "id": "review-p-courseware-local-snapshot",
+        "status": "open",
+        "category": "courseware-version",
+        "location": "cowork/课件/product-courseware 与 runtime exact r0",
+        "title": "本地归集快照与运行时 P 课件不是同一 revision",
+        "reason": "运行时锁定 source commit 679213a… / tree 3a041c…；本地 README 记录的是后续 1d6797… 快照，不能自动视为相同字节。",
+        "recommendedAction": "继续以 runtime exact r0 完成本次测试；由课件所有者审核后，用新的不可变 courseware revision 升级，不改写 r0。"
+      },
+      {
+        "id": "review-p-courseware-slide-21-app",
+        "status": "open",
+        "category": "source-boundary",
+        "location": "P 导师课件第 21 页",
+        "title": "“2008 饿了么 App”表述存在年代与来源风险",
+        "reason": "当前四个来源支持早期电话、人工流程及 2009 网站启动，不能支持把 2008 早期路径直接称为 App。",
+        "recommendedAction": "本次检查点明确跳过第 21 页；课件所有者修订或补充可靠来源后再纳入验收。"
+      }
+    ]
+  },
+  "authoring": {
+    "status": "draft",
+    "revision": 1,
+    "updatedAt": "2026-09-09T00:00:00Z",
+    "createdBy": "T-091 local development"
+  }
+}

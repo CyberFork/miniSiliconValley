@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "product-courseware-decoupling-production-20260912",
+  "generatedAt": "2026-09-12T16:25:00+08:00",
+  "scope": [
+    "Product-manager courseware chj9-11 release r1",
+    "Course script and mentor courseware runtime decoupling",
+    "Single exact CourseDefinition selection in Classroom Factory",
+    "Latest released mentor courseware resolution on every classroom open"
+  ],
+  "source": {
+    "canonicalRepository": "https://github.com/CyberFork/miniSiliconValley.git",
+    "runtimeCommit": "cb128d17aa04a52f5161e91de47b2813ba81a713",
+    "decouplingCommit": "a2ace5cdede93ac2face47983c18fd49ea57a876",
+    "releaseMarkerCommit": "cb128d17aa04a52f5161e91de47b2813ba81a713",
+    "productCoursewareRepository": "https://github.com/CyberFork/minisv.git",
+    "productCoursewareBranch": "chj9-11",
+    "productCoursewareCommit": "d9d45f1396b54a7ac6b41715b31122d8ffc597ff",
+    "productCoursewareTree": "d26045a3eb1c249629092dcddeb82e7812ff0ff5",
+    "colleagueSourceModified": false
+  },
+  "release": {
+    "id": "20260912T131901CST-courseware-decoupled-r1",
+    "origin": "hecate",
+    "canonicalOrigin": "https://minisv.vip",
+    "hecateCurrent": "releases/20260912T131901CST-courseware-decoupled-r1",
+    "previousRelease": "20260911T192157CST-t093-t111-r2",
+    "archiveSha256OnHecate": "e681b8b57dfb191b433f772f3d018c3f52ea6f43d31e0a507edceb734cbb5c4d",
+    "appBuildId": "7f14bde3-14e8-4801-801f-56cd1b64c2f5",
+    "appSha256": "6000492e4fd6aee06d7856bf8651a3f4c8b137024d06a09ab0cd723982594a49",
+    "siteSha256": "f89e4b346df72552b072b1dce7e64193660ba89d5b90ccd302021bdfad219a4c",
+    "parentQaSha256": "abc553717c18886a7942bdbdd248ceb2392992435a1cc478018dddaaf84bc539"
+  },
+  "productCourseware": {
+    "packageId": "cw-product-mentor-foundations",
+    "mentorRole": "P",
+    "currentRevision": 1,
+    "currentRoute": "/courseware/product-mentor-foundations/r1/",
+    "artifactSha256": "adb7c133e5c8d8cb8eafc7aa230aff6f6a73818661430e96b68725bc7d17058e",
+    "files": 117,
+    "bytes": 151203148,
+    "transformed": false,
+    "historicalRevision0Preserved": true,
+    "historicalRevision0Route": "/courseware/product-mentor-foundations/"
+  },
+  "runtimeContract": {
+    "factorySelectsOneExactCourseScript": true,
+    "factoryExposesCoursewareVersionSelectors": false,
+    "clientCoursewareRefsAreAuthoritative": false,
+    "serverResolvesCurrentReleasedCourseware": true,
+    "classroomOpenReResolvesCurrentReleasedCourseware": true,
+    "creationTimeCoursewareBindingPurpose": "audit-snapshot-only",
+    "coursewareVersionMatchIsCreationGate": false,
+    "viewReceiptChecksCourseScriptOnly": true,
+    "uiReceiptCoursewareRefsPurpose": "audit-snapshot-only"
+  },
+  "automatedValidation": {
+    "typecheck": "passed",
+    "lint": "passed",
+    "platformTests": "163/163 passed",
+    "targetedFactoryDocsRoutesManualTests": "40/40 passed",
+    "deploymentUnitTests": "53/53 passed",
+    "applicationBuild": "passed",
+    "staticRender": "passed",
+    "parentQaBuild": "passed",
+    "productMentorE2E": "passed; courseware=latest-decoupled",
+    "developmentMentorE2E": "passed; courseware=latest-decoupled",
+    "coursePlatformE2E": "passed after one transient Wrangler restart retry",
+    "classroomFactoryBrowser": "passed; single script selector; no courseware selectors; phone and Pad no horizontal overflow",
+    "hecateHealthcheck": "MINISV_HECATE_HEALTHY",
+    "publicSmoke": "MINISV_PUBLIC_SMOKE_OK"
+  },
+  "productionAuthenticatedVerification": {
+    "factoryUrl": "https://minisv.vip/classroom/#factory",
+    "ordinaryLoginClick": true,
+    "selectedCourse": "eleme-2008-find-problem@r12",
+    "visibleAlternativeCourseVersions": [
+      "eleme-2008-find-problem@r9",
+      "google-1995-2004@r0"
+    ],
+    "onlySelectedCourseWasSubmitted": true,
+    "clientCoursewareRefsSent": false,
+    "serverResolvedProductRevision": 1,
+    "mentorOpenResolvedTo": "/courseware/product-mentor-foundations/r1/",
+    "isolatedTestClassroomCreated": true,
+    "isolatedTestClassroomPhysicallyDeleted": true,
+    "deletedClassroomOldLinkStatus": 410,
+    "pageErrors": 0,
+    "requestFailures": 0,
+    "productionClassroomCreated": false,
+    "existingUserClassroomDeleted": false
+  },
+  "acceptanceBoundary": {
+    "humanViewAcceptanceSignedByAutomation": false,
+    "humanUiAcceptanceSignedByAutomation": false,
+    "realIPadSafariAcceptancePending": true,
+    "realAndroidTouchAcceptancePending": true,
+    "t088Status": "in-progress",
+    "t097Status": "in-progress",
+    "t110Status": "in-progress"
+  }
+}

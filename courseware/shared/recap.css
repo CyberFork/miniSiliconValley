@@ -1,0 +1,45 @@
+/* Final recap owns its surfaces and colors in both audience and teacher shells. */
+.deck-slide .course-recap {color:#162b3a;font-size:24px;line-height:1.4;}
+.course-recap b,.course-recap h3,.course-recap strong {color:#10293f;}
+.recap-examples {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 18px;border:3px solid #35576b;background:#dfe9ff;}
+.recap-examples i {font-style:normal;color:#2154d7;font-size:32px;font-weight:800;}
+.recap-cards {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:14px;}
+.recap-cards article {min-height:302px;padding:14px 20px;border:3px solid #35576b;border-top:7px solid #2154d7;background:#fffdf7;box-shadow:5px 5px 0 #d7d7c7;}
+.recap-cards article:nth-child(2){border-top-color:#297c73;}
+.recap-cards article:nth-child(3){border-top-color:#ac7300;}
+.recap-cards h3 {font-size:29px;line-height:1.2;margin:0 0 10px;}
+.recap-question {color:#435b6a;font-size:23px;min-height:32px;margin:0 0 10px;}
+.recap-answer p {margin:0 0 10px;}
+.recap-answer strong {display:block;font-size:23px;font-weight:700;}
+.recap-fields {display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.recap-fields span {padding:3px 8px;background:#e0f3ea;border:2px solid #35576b;font-size:23px;}
+.recap-takeaway {display:flex;align-items:center;justify-content:center;gap:28px;margin-top:14px;padding:10px 18px;border:3px solid #35576b;background:#fff0ad;}
+.recap-takeaway b {flex:none;}
+.recap-exit {margin:10px 0 0;font-size:23px;text-align:center;color:#162b3a;}
+.recap-template-label {margin-bottom:6px;color:#10293f;font-size:24px;font-weight:800;}
+.recap-six {display:grid;grid-template-columns:1fr 2.2fr 1fr 1fr 1fr 1fr;gap:12px;}
+.recap-six span {padding:8px 5px;border:3px solid #35576b;background:#dfe9ff;text-align:center;color:#10293f;font-size:24px;font-weight:800;}
+.course-recap[data-recap="p2"] .recap-cards article {min-height:286px;padding:14px 20px;}
+.course-recap[data-recap="p2"] .recap-question {min-height:32px;}
+.course-recap[data-recap="p2"] .recap-takeaway {margin-top:14px;}
+/* P1 folds own their colors and fit all answers in 1600 × 900; P2 is unchanged. */
+[data-recap-fold] .recap-examples {padding:9px 14px;}
+[data-recap-fold] .recap-toolbar {display:flex;justify-content:space-between;align-items:center;margin-top:8px;color:#435b6a;font-size:21px;}
+[data-recap-fold] button {font:inherit;color:#10293f;cursor:pointer;}
+[data-recap-fold] .recap-toolbar button {padding:5px 18px;border:2px solid #35576b;background:#fff0ad;font-weight:700;}
+[data-recap-fold] .recap-cards {align-items:start;margin-top:10px;}
+[data-recap-fold] .recap-cards article {min-height:0;padding:0 16px 10px;}
+[data-recap-fold] .recap-cards h3 {margin:0;}
+[data-recap-fold] [data-recap-toggle] {display:block;width:100%;padding:10px 0 0;border:0;background:transparent;text-align:left;font-size:26px;font-weight:800;line-height:1.3;}
+[data-recap-fold] .recap-question {display:block;margin:6px 0;font-size:22px;font-weight:400;min-height:0;}
+[data-recap-fold] .recap-toggle-label {display:block;color:#2154b9;font-size:21px;}
+[data-recap-fold] button:focus-visible {outline:4px solid #2154d7;outline-offset:4px;}
+[data-recap-fold] .recap-answer {border-top:2px solid #cad3d3;margin-top:9px;padding-top:9px;color:#162b3a;}
+[data-recap-fold] .recap-answer[hidden] {display:none!important;}
+[data-recap-fold] .recap-answer ul {margin:0 0 10px;padding-left:25px;font-size:23px;line-height:1.35;}
+[data-recap-fold] .recap-answer li {margin:0 0 5px;}
+[data-recap-fold] .recap-example {padding:8px;background:#e0f3ea;color:#162b3a;font-size:22px;line-height:1.35;margin-bottom:0;}
+[data-recap-fold] .recap-fields {grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-bottom:10px;}
+[data-recap-fold] .recap-fields span {font-size:21px;padding:4px;text-align:center;white-space:nowrap;}
+[data-recap-fold] .recap-takeaway {margin-top:12px;padding:8px 14px;font-size:23px;}
+[data-recap-fold] .recap-exit {margin-top:8px;font-size:22px;}

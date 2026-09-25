@@ -1,0 +1,427 @@
+{
+  "date": "2026-09-22",
+  "build": {
+    "schemaVersion": 1,
+    "todoId": "T-132",
+    "changeTodoIds": [
+      "T-122",
+      "T-128",
+      "T-130",
+      "T-132"
+    ],
+    "coursewareId": "module-thinking-p1",
+    "releaseRevision": null,
+    "version": "2026.09.22-p1-games-draft1",
+    "releaseStatus": "draft",
+    "manualAcceptance": "not-signed-by-user",
+    "sourceXmindSha256": "a31489645adcfaf6b7afd3be734349175740c520120cda65552cfa0f3e833793",
+    "audience": [
+      {
+        "path": "audience/assets/mini-silicon-valley-logo-transparent.png",
+        "sha256": "4dbbe4dea625fd372c6d760f2344fbf62b7b15f0d2d14e490cddd56e05ffbe87",
+        "bytes": 542270
+      },
+      {
+        "path": "audience/deck-data.js",
+        "sha256": "ab8b706579dc88385736e4a93e1e8d7b29290f42a402957d72f93251e98cd576",
+        "bytes": 54548
+      },
+      {
+        "path": "audience/deck-runtime.js",
+        "sha256": "6b8ebaab525530fa43d73fd0f4f5fa5f6c307cfce8aa464904add7d11306b0dd",
+        "bytes": 22288
+      },
+      {
+        "path": "audience/deck.css",
+        "sha256": "4d8a501f34341823b8443998b4c0229ef2c700356b54e54f3d90637e9778a205",
+        "bytes": 37507
+      },
+      {
+        "path": "audience/favicon.svg",
+        "sha256": "1f8f0a43980007cbc3000449803ce1503de17155f07ee69d2eea9e76a3d7f1f4",
+        "bytes": 241
+      },
+      {
+        "path": "audience/index.html",
+        "sha256": "51381f71c43b1ad35d92deabae855a41c098e4e14a0abfe6bb9428fbeac55b1c",
+        "bytes": 1448
+      },
+      {
+        "path": "audience/lesson-tools.js",
+        "sha256": "e2425718513f97d5c931351225db2b34e38fce4d8242656c8f2cb0d6d1743596",
+        "bytes": 6317
+      },
+      {
+        "path": "audience/module-3d.js",
+        "sha256": "dbafbd370c10eddb4f064cbd9e6a8525f6eeb6667f37d8a989632fd47a1b95bd",
+        "bytes": 31817
+      },
+      {
+        "path": "audience/module-assembly-layout.js",
+        "sha256": "8c2a4c29fb9ffe8a5d1ccee3e39a310e7ecd90805cb42d3905628ab1751104d2",
+        "bytes": 533
+      },
+      {
+        "path": "audience/p1-scenes.css",
+        "sha256": "3c9c2f02b474fefd666ed21ee64591e2e330cd57ad69a23e0f842bf2ba3bf968",
+        "bytes": 13172
+      },
+      {
+        "path": "audience/printables/index.html",
+        "sha256": "145991e16ae91f65b24f3a961739b8ed5850191396b01fa4578f79e5d53f9c1f",
+        "bytes": 2729
+      },
+      {
+        "path": "audience/printables/interface-card.html",
+        "sha256": "6e38fdd6a94e7d703ec709fa3c4925b1646f58858456741d4afddff8037d7ccb",
+        "bytes": 2733
+      },
+      {
+        "path": "audience/printables/interface-card.md",
+        "sha256": "06ce5a0ceee0bc99739abf1bb7133a47b3e458df5494d72ee23934fd8072cb2f",
+        "bytes": 683
+      },
+      {
+        "path": "audience/printables/materials.zip",
+        "sha256": "4c6007d88df9b2d84a4ebcb2d2eee89563d0cca02df44c70813123b98b26e258",
+        "bytes": 9800
+      },
+      {
+        "path": "audience/printables/module-map.html",
+        "sha256": "c470a2995763d5ad25daa31f68b460e2dd62885f5a9a1488ab4ce738377ebfb4",
+        "bytes": 2709
+      },
+      {
+        "path": "audience/printables/module-map.md",
+        "sha256": "f5f6d7f58e3921e35e281c26ada01557970a891d2f0270838c3412c04653e881",
+        "bytes": 721
+      },
+      {
+        "path": "audience/printables/quick-start.html",
+        "sha256": "1e74e2615d4a18cd3194cd27c5a006e66d1c9da1da5c05e53357c141c8f4abe0",
+        "bytes": 2480
+      },
+      {
+        "path": "audience/printables/quick-start.md",
+        "sha256": "f3e5f50bc75e95c6cdc21a6a612c897f08b307eac538f69fa22681e355349384",
+        "bytes": 498
+      },
+      {
+        "path": "audience/printables/validation-record.html",
+        "sha256": "47da075460bcfc3894cb6f46d8a55713792f1b6ca9c4adaf8a072d0947d97a2b",
+        "bytes": 2931
+      },
+      {
+        "path": "audience/printables/validation-record.md",
+        "sha256": "1d8477566cfcbd863edc65981dc5c8a003d92feadf5f5f8bace7d6843e8ae359",
+        "bytes": 878
+      },
+      {
+        "path": "audience/recap.css",
+        "sha256": "bad0860b563bcf766c879c416d261c4bcbe6f7f8806125cd077def8ee9de80cd",
+        "bytes": 4026
+      },
+      {
+        "path": "audience/route-game/app.mjs",
+        "sha256": "c28f42bb72bf1c9e557bcbf079f6c01c7347b0afbb29f8e86af2dcd23cb503f8",
+        "bytes": 11018
+      },
+      {
+        "path": "audience/route-game/game.css",
+        "sha256": "4bb886f42eb93c53a4d133c421a08f542bc54adf92ba2b9a7ea6125f72816a3c",
+        "bytes": 2913
+      },
+      {
+        "path": "audience/route-game/index.html",
+        "sha256": "89f883756227d06ecd62cba2660905360c97d3ce64d7b727a97d2d16c795494f",
+        "bytes": 2039
+      },
+      {
+        "path": "audience/route-game/state.mjs",
+        "sha256": "4bca96bf08f17af94322c24634acf27883c56bb122baa9794738dc612840cd14",
+        "bytes": 2582
+      },
+      {
+        "path": "audience/text-editions.js",
+        "sha256": "0a2f589552f30783adce4844df086d712ac49d682930ef4ff70d3e0b0946f865",
+        "bytes": 8585
+      },
+      {
+        "path": "audience/text-editor.css",
+        "sha256": "c2cfef367c7ef33c591f2a5586c2e5f1f3624da8ce57458fbe97861d8bccb37e",
+        "bytes": 3207
+      },
+      {
+        "path": "audience/vendor/OrbitControls-SOURCE.md",
+        "sha256": "319b6871ca52f1e391615778b87e62b97dd9d351b530e3b6c06f8d111806d051",
+        "bytes": 314
+      },
+      {
+        "path": "audience/vendor/OrbitControls.js",
+        "sha256": "6c860c6b342200f8aef65493319c12bfb2d652107355b1d25eb2154371128391",
+        "bytes": 38719
+      },
+      {
+        "path": "audience/vendor/THREE-LICENSE.txt",
+        "sha256": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601",
+        "bytes": 1081
+      },
+      {
+        "path": "audience/vendor/three.core.min.js",
+        "sha256": "61ba0df005b05991361d040d8ff670e1aadfd0ce7aeebd1fdb0725957a8957de",
+        "bytes": 381124
+      },
+      {
+        "path": "audience/vendor/three.module.min.js",
+        "sha256": "e2b5ee6bccd38fd6d8a2428546b83c5f2426d84b152ef82be8055556e3b40eb6",
+        "bytes": 338908
+      },
+      {
+        "path": "audience/voxel-designs.js",
+        "sha256": "355f70d982d6367e4f21586dbf28620ab1ce854e95de8b54ceeed3085dfbd891",
+        "bytes": 3216
+      },
+      {
+        "path": "audience/workshop/drive-input.mjs",
+        "sha256": "04eb983ca6b1d40f9a8bef1a0bfe1f450f23744b8e0430aa63f05fe7805dca7f",
+        "bytes": 522
+      },
+      {
+        "path": "audience/workshop/model.mjs",
+        "sha256": "c7b61efa7ea003c513afc442e87752aeb6ca377f23b3b70ae081bb6cf673f9e3",
+        "bytes": 9984
+      },
+      {
+        "path": "audience/workshop/physics.mjs",
+        "sha256": "292c9a17c416e2780ec710ff0953a4a0857bb23f223c5cb1f9a370798982ae5c",
+        "bytes": 4872
+      },
+      {
+        "path": "audience/workshop/render.mjs",
+        "sha256": "5f1b20e335097d8749486da290404fab6a215536adb6e1aa552d5192552e724f",
+        "bytes": 13588
+      },
+      {
+        "path": "audience/workshop/vendor/NOTICE.md",
+        "sha256": "7189fac30c5fa2548912db511b8ad4bfc7f0f03e4d2a890aa54e3e640916618b",
+        "bytes": 484
+      },
+      {
+        "path": "audience/workshop/vendor/RAPIER-LICENSE.txt",
+        "sha256": "4c05555705e3efde601fb1252ae48f1d63992af8a8fb8947745b7fa834e8f519",
+        "bytes": 11343
+      },
+      {
+        "path": "audience/workshop/vendor/rapier.mjs",
+        "sha256": "09a000bee2ad827608780cf8821258cadc243aaeb8881ab3e769de73f945eee0",
+        "bytes": 2857590
+      }
+    ],
+    "teacher": [
+      {
+        "path": "teacher/assets/mini-silicon-valley-logo-transparent.png",
+        "sha256": "4dbbe4dea625fd372c6d760f2344fbf62b7b15f0d2d14e490cddd56e05ffbe87",
+        "bytes": 542270
+      },
+      {
+        "path": "teacher/deck-data.js",
+        "sha256": "ab8b706579dc88385736e4a93e1e8d7b29290f42a402957d72f93251e98cd576",
+        "bytes": 54548
+      },
+      {
+        "path": "teacher/deck.css",
+        "sha256": "4d8a501f34341823b8443998b4c0229ef2c700356b54e54f3d90637e9778a205",
+        "bytes": 37507
+      },
+      {
+        "path": "teacher/favicon.svg",
+        "sha256": "1f8f0a43980007cbc3000449803ce1503de17155f07ee69d2eea9e76a3d7f1f4",
+        "bytes": 241
+      },
+      {
+        "path": "teacher/lesson-tools.js",
+        "sha256": "e2425718513f97d5c931351225db2b34e38fce4d8242656c8f2cb0d6d1743596",
+        "bytes": 6317
+      },
+      {
+        "path": "teacher/module-3d.js",
+        "sha256": "dbafbd370c10eddb4f064cbd9e6a8525f6eeb6667f37d8a989632fd47a1b95bd",
+        "bytes": 31817
+      },
+      {
+        "path": "teacher/module-assembly-layout.js",
+        "sha256": "8c2a4c29fb9ffe8a5d1ccee3e39a310e7ecd90805cb42d3905628ab1751104d2",
+        "bytes": 533
+      },
+      {
+        "path": "teacher/p1-scenes.css",
+        "sha256": "3c9c2f02b474fefd666ed21ee64591e2e330cd57ad69a23e0f842bf2ba3bf968",
+        "bytes": 13172
+      },
+      {
+        "path": "teacher/presenter-notes.js",
+        "sha256": "8f7119795bf8d413712bfa7d73004413554b1f6476c9f46ea773930d8de88b15",
+        "bytes": 33636
+      },
+      {
+        "path": "teacher/presenter-runtime.js",
+        "sha256": "abdddb48e89a9fa24559f2a384848c59f45660bdcc0838219c43ede6944fa56c",
+        "bytes": 28011
+      },
+      {
+        "path": "teacher/presenter.css",
+        "sha256": "5ed742c2fa5b7f099c55b3d8a9051a8a0c9f53e81282836ce02f524249d86e5f",
+        "bytes": 6390
+      },
+      {
+        "path": "teacher/presenter.html",
+        "sha256": "01446acb800b90ab3a493ce1709f5a4fd5a0d9a272c1bbc71c9b77662d1683bf",
+        "bytes": 4694
+      },
+      {
+        "path": "teacher/recap.css",
+        "sha256": "bad0860b563bcf766c879c416d261c4bcbe6f7f8806125cd077def8ee9de80cd",
+        "bytes": 4026
+      },
+      {
+        "path": "teacher/route-game/app.mjs",
+        "sha256": "c28f42bb72bf1c9e557bcbf079f6c01c7347b0afbb29f8e86af2dcd23cb503f8",
+        "bytes": 11018
+      },
+      {
+        "path": "teacher/route-game/game.css",
+        "sha256": "4bb886f42eb93c53a4d133c421a08f542bc54adf92ba2b9a7ea6125f72816a3c",
+        "bytes": 2913
+      },
+      {
+        "path": "teacher/route-game/index.html",
+        "sha256": "89f883756227d06ecd62cba2660905360c97d3ce64d7b727a97d2d16c795494f",
+        "bytes": 2039
+      },
+      {
+        "path": "teacher/route-game/state.mjs",
+        "sha256": "4bca96bf08f17af94322c24634acf27883c56bb122baa9794738dc612840cd14",
+        "bytes": 2582
+      },
+      {
+        "path": "teacher/text-editions.js",
+        "sha256": "0a2f589552f30783adce4844df086d712ac49d682930ef4ff70d3e0b0946f865",
+        "bytes": 8585
+      },
+      {
+        "path": "teacher/text-editor-dialog.js",
+        "sha256": "9e22fd4563c2fe5a20a1864b405d979bd9cf4ff22f73491ec1cbc5608d7d1a6b",
+        "bytes": 6621
+      },
+      {
+        "path": "teacher/text-editor.css",
+        "sha256": "c2cfef367c7ef33c591f2a5586c2e5f1f3624da8ce57458fbe97861d8bccb37e",
+        "bytes": 3207
+      },
+      {
+        "path": "teacher/vendor/OrbitControls-SOURCE.md",
+        "sha256": "319b6871ca52f1e391615778b87e62b97dd9d351b530e3b6c06f8d111806d051",
+        "bytes": 314
+      },
+      {
+        "path": "teacher/vendor/OrbitControls.js",
+        "sha256": "6c860c6b342200f8aef65493319c12bfb2d652107355b1d25eb2154371128391",
+        "bytes": 38719
+      },
+      {
+        "path": "teacher/vendor/THREE-LICENSE.txt",
+        "sha256": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601",
+        "bytes": 1081
+      },
+      {
+        "path": "teacher/vendor/three.core.min.js",
+        "sha256": "61ba0df005b05991361d040d8ff670e1aadfd0ce7aeebd1fdb0725957a8957de",
+        "bytes": 381124
+      },
+      {
+        "path": "teacher/vendor/three.module.min.js",
+        "sha256": "e2b5ee6bccd38fd6d8a2428546b83c5f2426d84b152ef82be8055556e3b40eb6",
+        "bytes": 338908
+      },
+      {
+        "path": "teacher/voxel-designs.js",
+        "sha256": "355f70d982d6367e4f21586dbf28620ab1ce854e95de8b54ceeed3085dfbd891",
+        "bytes": 3216
+      },
+      {
+        "path": "teacher/workshop/app.mjs",
+        "sha256": "0971359b6c7a4bcb10affdf8b261ad6d722da88b287b8faacf238f7ec4175bed",
+        "bytes": 19945
+      },
+      {
+        "path": "teacher/workshop/audience/index.html",
+        "sha256": "973d9be2367e8b688bf444227355ce97335bf4ce96e796480181cf7d3822cd4e",
+        "bytes": 6641
+      },
+      {
+        "path": "teacher/workshop/drive-input.mjs",
+        "sha256": "04eb983ca6b1d40f9a8bef1a0bfe1f450f23744b8e0430aa63f05fe7805dca7f",
+        "bytes": 522
+      },
+      {
+        "path": "teacher/workshop/model.mjs",
+        "sha256": "c7b61efa7ea003c513afc442e87752aeb6ca377f23b3b70ae081bb6cf673f9e3",
+        "bytes": 9984
+      },
+      {
+        "path": "teacher/workshop/physics.mjs",
+        "sha256": "292c9a17c416e2780ec710ff0953a4a0857bb23f223c5cb1f9a370798982ae5c",
+        "bytes": 4872
+      },
+      {
+        "path": "teacher/workshop/render.mjs",
+        "sha256": "5f1b20e335097d8749486da290404fab6a215536adb6e1aa552d5192552e724f",
+        "bytes": 13588
+      },
+      {
+        "path": "teacher/workshop/teacher/presenter.html",
+        "sha256": "78d308133a5a4ff37b3c6bae9e41ac00a4e79e05094c09fe7be22a09b557126b",
+        "bytes": 10022
+      },
+      {
+        "path": "teacher/workshop/vendor/NOTICE.md",
+        "sha256": "7189fac30c5fa2548912db511b8ad4bfc7f0f03e4d2a890aa54e3e640916618b",
+        "bytes": 484
+      },
+      {
+        "path": "teacher/workshop/vendor/RAPIER-LICENSE.txt",
+        "sha256": "4c05555705e3efde601fb1252ae48f1d63992af8a8fb8947745b7fa834e8f519",
+        "bytes": 11343
+      },
+      {
+        "path": "teacher/workshop/vendor/rapier.mjs",
+        "sha256": "09a000bee2ad827608780cf8821258cadc243aaeb8881ab3e769de73f945eee0",
+        "bytes": 2857590
+      },
+      {
+        "path": "teacher/workshop/workshop.css",
+        "sha256": "70b502bf76368d1f3e636357dddb2114ddabf455835ea9f7d5569a8482a36194",
+        "bytes": 4780
+      }
+    ],
+    "securityBoundary": "audience 不含教师提示；teacher 必须沿用服务端导师权限保护。以新 revision URL 部署，不覆盖历史版本；人工试讲未签署。",
+    "digest": "02b6342e7acce7a4e48c36722aeb9e6a285237705cafc37fcfb79f8831e8ba19"
+  },
+  "status": "local-draft-browser-review-pending",
+  "checks": [
+    "24-slides-120-minutes",
+    "s14-s12-my-game-order",
+    "six-filled-answers",
+    "shared-handler-click-and-keyboard",
+    "both-runtime-normalization",
+    "teacher-audience-build-parity",
+    "real-threejs-focus-and-full-bag-geometries",
+    "camera-preservation",
+    "narrow-viewport-projected-labels",
+    "route-game-11-tests",
+    "shared-deck-recap-and-workshop-regression"
+  ],
+  "browserBlocker": "Native Chrome timeoutReached twice; browser inventory fetch failed. No live click, two-window or layout acceptance claimed.",
+  "deployed": false,
+  "manualAcceptanceSigned": false
+}

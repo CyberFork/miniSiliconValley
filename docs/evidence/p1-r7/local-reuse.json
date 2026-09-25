@@ -1,0 +1,74 @@
+[
+  {
+    "surface": "audience/index.html",
+    "slide": "module-s03",
+    "scene": "automation",
+    "status": "PASS"
+  },
+  {
+    "surface": "audience/index.html",
+    "slide": "module-s05",
+    "scene": "voxel",
+    "status": "PASS"
+  },
+  {
+    "surface": "audience/index.html",
+    "slide": "module-s04",
+    "scene": "transform",
+    "status": "PASS"
+  },
+  {
+    "surface": "audience/index.html",
+    "slide": "module-s14",
+    "scene": "automation",
+    "status": "PASS"
+  },
+  {
+    "surface": "teacher/presenter.html",
+    "slide": "module-s03",
+    "scene": "automation",
+    "status": "PASS"
+  },
+  {
+    "surface": "teacher/presenter.html",
+    "slide": "module-s05",
+    "scene": "voxel",
+    "status": "PASS"
+  },
+  {
+    "surface": "teacher/presenter.html",
+    "slide": "module-s04",
+    "scene": "transform",
+    "status": "PASS"
+  },
+  {
+    "surface": "teacher/presenter.html",
+    "slide": "module-s14",
+    "scene": "automation",
+    "status": "PASS"
+  },
+  {
+    "surface": "teacher → audience",
+    "slide": "module-s03",
+    "mode": "works",
+    "status": "PASS"
+  },
+  {
+    "surface": "teacher → audience",
+    "slide": "module-s05",
+    "mode": "car:components",
+    "status": "PASS"
+  },
+  {
+    "surface": "teacher → audience",
+    "slide": "module-s04",
+    "mode": "plane",
+    "status": "PASS"
+  },
+  {
+    "surface": "teacher → audience",
+    "slide": "module-s14",
+    "mode": "works",
+    "status": "PASS"
+  }
+]

@@ -1,0 +1,5 @@
+PASS release=20260924-drop-at-car; courseware r23 unchanged
+PASS 200 /healthz
+PASS 404 /courseware-maintenance/p1-ai-text/route-game/state.mjs
+PASS 401 /courseware/development-mentor-module-thinking/r23/audience/route-game/state.mjs
+PASS 401 /courseware/development-mentor-module-thinking/r22/teacher/route-game/state.mjs

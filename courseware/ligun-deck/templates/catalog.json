@@ -1,0 +1,68 @@
+[
+  {
+    "id": "alignment-prompt",
+    "title": "开始前｜逐问对齐启动词",
+    "filename": "alignment-prompt.md",
+    "kind": "blank"
+  },
+  {
+    "id": "master-rod",
+    "title": "我的整份主棍｜空白模板",
+    "filename": "master-rod.md",
+    "kind": "blank"
+  },
+  {
+    "id": "sub-rod",
+    "title": "我的模块子棍｜空白模板",
+    "filename": "sub-rod.md",
+    "kind": "blank"
+  },
+  {
+    "id": "campus-master",
+    "title": "校园寻宝｜完整示例主棍",
+    "filename": "campus-master.md",
+    "kind": "example"
+  },
+  {
+    "id": "campus-map",
+    "title": "校园寻宝｜地图子棍",
+    "filename": "campus-map.md",
+    "kind": "example"
+  },
+  {
+    "id": "campus-movement",
+    "title": "校园寻宝｜移动子棍",
+    "filename": "campus-movement.md",
+    "kind": "example"
+  },
+  {
+    "id": "campus-clues",
+    "title": "校园寻宝｜线索子棍",
+    "filename": "campus-clues.md",
+    "kind": "example"
+  },
+  {
+    "id": "campus-inventory",
+    "title": "校园寻宝｜背包子棍",
+    "filename": "campus-inventory.md",
+    "kind": "example"
+  },
+  {
+    "id": "campus-obstacles",
+    "title": "校园寻宝｜障碍子棍",
+    "filename": "campus-obstacles.md",
+    "kind": "example"
+  },
+  {
+    "id": "campus-outcome",
+    "title": "校园寻宝｜胜负子棍",
+    "filename": "campus-outcome.md",
+    "kind": "example"
+  },
+  {
+    "id": "feedback-rework",
+    "title": "检查与返工记录",
+    "filename": "feedback-rework.md",
+    "kind": "blank"
+  }
+]

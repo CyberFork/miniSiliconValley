@@ -1,0 +1,1050 @@
+#!/usr/bin/env python3
+"""Build a self-contained minisv.vip static release from verified Hecate artifacts."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import re
+import shutil
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+TEXT_SUFFIXES = {".html", ".css", ".js", ".mjs", ".json", ".svg", ".md", ".txt", ".webmanifest"}
+DEVELOPMENT_COURSEWARE = Path("courseware/development-mentor-ligun")
+MODULE_THINKING_COURSEWARE = Path("courseware/development-mentor-module-thinking")
+MARKET_COURSEWARE = Path("courseware/market-mentor-user-system")
+PRODUCT_COURSEWARE = Path("courseware/product-mentor-foundations")
+PRODUCT_COURSEWARE_R1 = PRODUCT_COURSEWARE / "r1"
+PRODUCT_COURSEWARE_R2 = PRODUCT_COURSEWARE / "r2"
+BRAND_WORDMARK = Path("assets/mini-silicon-valley-logo-transparent.png")
+BRAND_WORDMARK_SHA256 = "4dbbe4dea625fd372c6d760f2344fbf62b7b15f0d2d14e490cddd56e05ffbe87"
+REQUIRED_PAGES = (
+    "index.html", "404.html", "world/index.html", "framework/index.html",
+    "parents/index.html", "world-preview.json", "workshop/index.html",
+    "incubator/index.html", "incubator/projects/index.html",
+    "incubator/projects/recitation/index.html",
+    "incubator/projects/mistake-notebook/index.html",
+    "incubator/projects/_shared/project-shell.css",
+    "incubator/projects/_shared/phosphor/regular/Phosphor.woff2",
+    "courseware/product-mentor-foundations/index.html",
+    "courseware/product-mentor-foundations/r1/index.html",
+    "courseware/product-mentor-foundations/r2/index.html",
+    "courseware/development-mentor-ligun/index.html",
+    "courseware/development-mentor-module-thinking/audience/index.html",
+    "courseware/development-mentor-module-thinking/teacher/presenter.html",
+    "courseware/market-mentor-user-system/index.html",
+)
+PUBLIC_COURSE_NAV_PAGES = ("index.html", "world/index.html")
+FORBIDDEN = ("work.cyberforker.com", "192.168.", "127.0.0.1:18765", "/msv/", r"\/msv\/")
+THEME_VERSION = "20260914-transparent-wordmark-r7"
+THEME_ASSETS = f'<link rel="stylesheet" href="/ui-theme.css?v={THEME_VERSION}"><script src="/ui-theme.js?v={THEME_VERSION}"></script>'
+CHJ_COURSE_R0_SHA = "679213a61b835335016eac7649213983a0e48489"
+CHJ_COURSE_R0_TREE = "3a041c4714190cc026f6de8e06e15cec0e5f765d"
+CHJ_COURSE_R1_SHA = "d9d45f1396b54a7ac6b41715b31122d8ffc597ff"
+CHJ_COURSE_R1_TREE = "d26045a3eb1c249629092dcddeb82e7812ff0ff5"
+CHJ_COURSE_UI_SHA = "806d804932e4cd4ae2796d84578d39197d7ea4ce"
+CHJ_COURSE_UI_TREE = "bde3426ee770272dc3263064a16d60659fffff9b"
+WORKSHOP_OVERLAY = Path(__file__).resolve().parent / "workshop"
+INCUBATOR_PROJECTS_SOURCE = Path(__file__).resolve().parent / "incubator-projects"
+MAX_WORKSHOP_SNAPSHOT_BYTES = 1024 * 1024
+CANONICAL_REPOSITORY = "https://github.com/CyberFork/miniSiliconValley.git"
+CANONICAL_REPOSITORY_IDENTITY = "github.com/cyberfork/minisiliconvalley"
+RETIRED_WORKSPACE_MARKER = ".MINISV_WORKSPACE_RETIRED"
+
+
+def copy_entry(source: Path, target: Path) -> None:
+    if source.is_dir():
+        shutil.copytree(source, target, dirs_exist_ok=True, copy_function=shutil.copy2)
+    elif source.is_file():
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
+    else:
+        raise FileNotFoundError(source)
+
+
+def rewrite_text(text: str) -> str:
+    # Preserve human-facing semantic routes before removing the retired base path.
+    replacements = (
+        ("https://work.cyberforker.com/msv/demo/app/123456", "https://minisv.vip/framework/"),
+        ("https://work.cyberforker.com/msv/demo/app/qa", "https://minisv.vip/parents/"),
+        ("https://work.cyberforker.com/msv/demo/app", "https://minisv.vip"),
+        ("https://work.cyberforker.com/msv/123456.html", "https://minisv.vip/framework/"),
+        ("https://work.cyberforker.com/msv/demo.html", "https://minisv.vip/world/"),
+        ("https://work.cyberforker.com/msv/qa.html", "https://minisv.vip/parents/"),
+        ("https://work.cyberforker.com/msv", "https://minisv.vip"),
+        ("https:\\/\\/work.cyberforker.com\\/msv\\/demo\\/app", "https:\\/\\/minisv.vip"),
+        ("https:\\/\\/work.cyberforker.com\\/msv", "https:\\/\\/minisv.vip"),
+        ("/msv/demo/app/123456", "/framework/"),
+        ("/msv/demo/app/qa", "/parents/"),
+        ("/msv/demo/app/classroom", "/classroom"),
+        ("/msv/123456.html", "/framework/"),
+        ("/msv/demo.html", "/world/"),
+        ("/msv/qa.html", "/parents/"),
+        ("/msv/launch.html", "/workshop/"),
+        ("/msv/api/qa", "/api/qa"),
+        ("/msv/alpha/", "/alpha/"),
+        (r"\/msv\/demo\/app", ""),
+        ("/msv/demo/app", ""),
+        (r"\/msv\/", r"\/"),
+        ("/msv/", "/"),
+    )
+    for old, new in replacements:
+        text = text.replace(old, new)
+    return text.replace("https://work.cyberforker.com", "https://minisv.vip").replace("work.cyberforker.com", "minisv.vip")
+
+
+def inject_theme_assets(text: str) -> str:
+    # Adventure is the sole product UI. Mark static documents before paint;
+    # the shared runtime only classifies light/dark surface semantics.
+    if re.search(r'<html\b[^>]*\bdata-msv-theme=', text, flags=re.IGNORECASE):
+        text = re.sub(
+            r'\bdata-msv-theme=(["\']).*?\1',
+            'data-msv-theme="adventure"',
+            text,
+            count=1,
+            flags=re.IGNORECASE,
+        )
+    else:
+        text = re.sub(r'<html\b', '<html data-msv-theme="adventure"', text, count=1, flags=re.IGNORECASE)
+
+    # Older releases declared empty header slots for the retired comparison
+    # control. They must not survive when a historical static shell is reused.
+    text = re.sub(r'<div\s+data-msv-theme-slot\s*>\s*</div>', '', text, flags=re.IGNORECASE)
+    text = re.sub(r'\s+data-msv-theme-slot(?:=(["\']).*?\1)?', '', text, flags=re.IGNORECASE)
+    if "/ui-theme.js" in text:
+        text = re.sub(r"/ui-theme\.css(?:\?v=[A-Za-z0-9._-]+)?", f"/ui-theme.css?v={THEME_VERSION}", text)
+        text = re.sub(r"/ui-theme\.js(?:\?v=[A-Za-z0-9._-]+)?", f"/ui-theme.js?v={THEME_VERSION}", text)
+        return text
+    if "</head>" not in text:
+        return text
+    return text.replace("</head>", f"{THEME_ASSETS}</head>", 1)
+
+
+def transform_tree(root: Path) -> None:
+    for path in sorted(root.rglob("*")):
+        if not path.is_file() or path.suffix.lower() not in TEXT_SUFFIXES:
+            continue
+        # Exact legacy Workshop source is retained inside each release for
+        # rollback/audit only. It is blocked at the gateway and must remain
+        # byte-identical rather than receiving URL or theme rewrites.
+        if "_source" in path.relative_to(root).parts:
+            continue
+        try:
+            original = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        changed = rewrite_text(original)
+        if path.suffix.lower() == ".html":
+            changed = inject_theme_assets(changed)
+        if changed != original:
+            path.write_text(changed, encoding="utf-8")
+
+
+
+# Hydrated framework markup is never rewritten after rendering. Public home
+# navigation is mounted by the shared runtime after hydration; mutating only
+# the server HTML here would diverge from the client component tree.
+
+def canonical_digest(value: object) -> str:
+    body = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(body).hexdigest()
+
+
+def _git(root: Path, *arguments: str, optional: bool = False) -> str:
+    result = subprocess.run(
+        ("git", "-C", str(root), *arguments),
+        check=False,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    if result.returncode != 0:
+        if optional:
+            return ""
+        detail = result.stderr.strip() or result.stdout.strip() or "unknown git error"
+        raise ValueError(f"release workspace Git check failed: {detail}")
+    return result.stdout.strip()
+
+
+def _repository_identity(url: str) -> str:
+    value = url.strip().rstrip("/")
+    if value.endswith(".git"):
+        value = value[:-4]
+    for prefix in ("https://", "http://", "ssh://git@"):
+        if value.startswith(prefix):
+            value = value[len(prefix):]
+            break
+    if value.startswith("git@github.com:"):
+        value = "github.com/" + value[len("git@github.com:"):]
+    return value.lower()
+
+
+def verify_release_workspace(repo_root: Path, main_sha: str, *, dirty_reason: str | None = None) -> dict:
+    """Fail closed when a release is assembled outside the canonical audited checkout."""
+    root = repo_root.resolve()
+    if (root / RETIRED_WORKSPACE_MARKER).exists():
+        raise ValueError("retired MiniSV workspace cannot build a release")
+    top_level = Path(_git(root, "rev-parse", "--show-toplevel")).resolve()
+    if top_level != root:
+        raise ValueError(f"release workspace root mismatch: expected {root}, got {top_level}")
+    remote = _git(root, "config", "--get", "remote.origin.url")
+    if _repository_identity(remote) != CANONICAL_REPOSITORY_IDENTITY:
+        raise ValueError(f"release workspace origin is not canonical: {remote or 'missing'}")
+    head = _git(root, "rev-parse", "HEAD")
+    if not re.fullmatch(r"[0-9a-f]{40}", main_sha) or main_sha != head:
+        raise ValueError("--main-sha must equal the canonical workspace HEAD")
+    origin_main = _git(root, "rev-parse", "refs/remotes/origin/main")
+    if origin_main != head:
+        raise ValueError("canonical workspace HEAD is not synchronized with origin/main; fetch, commit and push first")
+    status = _git(root, "status", "--porcelain=v1", "--untracked-files=all")
+    reason = (dirty_reason or "").strip()
+    if status and not reason:
+        raise ValueError("canonical release workspace is dirty; commit the work or provide --allow-dirty-reason")
+    if reason and not status:
+        raise ValueError("--allow-dirty-reason was provided for a clean workspace")
+    if reason and (len(reason) < 12 or len(reason) > 500 or "\n" in reason):
+        raise ValueError("--allow-dirty-reason must be a single line of 12-500 characters")
+    branch = _git(root, "symbolic-ref", "--short", "-q", "HEAD", optional=True) or "detached"
+    return {
+        "verified": True,
+        "canonicalRepository": CANONICAL_REPOSITORY,
+        "sourceCommit": head,
+        "originMain": origin_main,
+        "branch": branch,
+        "workspaceDirty": bool(status),
+        "exceptionReason": reason or None,
+    }
+
+
+def validate_manifested_courseware(root: Path, *, label: str, slide_count: int) -> dict:
+    """Verify a repo-owned static deck against its immutable content manifest."""
+    manifest_path = root / "SOURCE-MANIFEST.json"
+    if not manifest_path.is_file():
+        raise ValueError(f"{label} courseware manifest is missing")
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError(f"{label} courseware manifest is invalid") from exc
+    if manifest.get("slideCount") != slide_count or not isinstance(manifest.get("files"), list):
+        raise ValueError(f"{label} courseware manifest has an invalid slide/file contract")
+    canonical = []
+    seen = set()
+    for item in manifest["files"]:
+        if not isinstance(item, dict):
+            raise ValueError(f"{label} courseware manifest file record is invalid")
+        relative = Path(str(item.get("path", "")))
+        if relative.is_absolute() or ".." in relative.parts or relative.as_posix() in seen:
+            raise ValueError(f"{label} courseware manifest contains an unsafe or duplicate path")
+        seen.add(relative.as_posix())
+        path = root / relative
+        if not path.is_file():
+            raise ValueError(f"{label} courseware file is missing: {relative.as_posix()}")
+        content = path.read_bytes()
+        digest = hashlib.sha256(content).hexdigest()
+        if item.get("bytes") != len(content) or item.get("sha256") != digest:
+            raise ValueError(f"{label} courseware digest mismatch: {relative.as_posix()}")
+        canonical.append(f"{relative.as_posix()}\0{digest}\n")
+    if "index.html" not in seen:
+        raise ValueError(f"{label} courseware index is missing from its manifest")
+    tree = hashlib.sha256("".join(canonical).encode("utf-8")).hexdigest()
+    if manifest.get("contentTreeSha256") != tree:
+        raise ValueError(f"{label} courseware content tree digest mismatch")
+    return {"sha256": tree, "files": len(seen), "bytes": sum(int(item["bytes"]) for item in manifest["files"])}
+
+
+def validate_development_courseware(root: Path) -> dict:
+    return validate_manifested_courseware(root, label="D-mentor", slide_count=18)
+
+
+def validate_market_courseware(root: Path) -> dict:
+    return validate_manifested_courseware(root, label="M-mentor", slide_count=49)
+
+
+def validate_module_thinking_courseware(root: Path, *, courseware_id: str = "module-thinking-p1") -> dict:
+    """Verify the separately built T-122 audience/teacher artifact boundary."""
+    manifest_path = root / "BUILD-MANIFEST.json"
+    if not manifest_path.is_file():
+        raise ValueError("T-122 module-thinking build manifest is missing")
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("T-122 module-thinking build manifest is invalid") from exc
+    if (
+        manifest.get("schemaVersion") != 1
+        or manifest.get("todoId") not in ({"T-122", "T-132"} if courseware_id == "module-thinking-p1" else {"T-133"})
+        or manifest.get("coursewareId") != courseware_id
+        or not isinstance(manifest.get("releaseRevision"), int)
+        or manifest["releaseRevision"] < 0
+        or not isinstance(manifest.get("version"), str)
+        or (courseware_id == "module-thinking-p1" and not re.fullmatch(r"[0-9a-f]{64}", str(manifest.get("sourceXmindSha256", ""))))
+    ):
+        raise ValueError("T-122 module-thinking identity contract is invalid")
+
+    canonical: list[str] = []
+    seen: set[str] = set()
+    total_bytes = 0
+    split_counts: dict[str, int] = {}
+    split_trees: dict[str, str] = {}
+    for split in ("audience", "teacher"):
+        records = manifest.get(split)
+        if not isinstance(records, list) or not records:
+            raise ValueError(f"T-122 {split} manifest is empty")
+        split_canonical: list[str] = []
+        declared: set[str] = set()
+        for item in records:
+            if not isinstance(item, dict):
+                raise ValueError(f"T-122 {split} manifest record is invalid")
+            relative = Path(str(item.get("path", "")))
+            path_value = relative.as_posix()
+            if relative.is_absolute() or ".." in relative.parts or not path_value.startswith(f"{split}/") or path_value in seen:
+                raise ValueError(f"T-122 contains an unsafe or duplicate path: {path_value}")
+            path = root / relative
+            if not path.is_file():
+                raise ValueError(f"T-122 courseware file is missing: {path_value}")
+            content = path.read_bytes()
+            digest = hashlib.sha256(content).hexdigest()
+            if item.get("bytes") != len(content) or item.get("sha256") != digest:
+                raise ValueError(f"T-122 courseware digest mismatch: {path_value}")
+            seen.add(path_value)
+            declared.add(relative.relative_to(split).as_posix())
+            line = f"{path_value}\0{digest}\n"
+            canonical.append(line)
+            split_canonical.append(line)
+            total_bytes += len(content)
+        actual = {
+            path.relative_to(root / split).as_posix()
+            for path in (root / split).rglob("*") if path.is_file()
+        }
+        if actual != declared:
+            raise ValueError(f"T-122 {split} contains undeclared or missing files")
+        split_counts[split] = len(records)
+        split_trees[split] = hashlib.sha256("".join(split_canonical).encode("utf-8")).hexdigest()
+
+    required = {"audience/index.html", "teacher/presenter.html", "teacher/presenter-notes.js"}
+    if not required.issubset(seen):
+        raise ValueError("T-122 audience/teacher entry contract is incomplete")
+    audience_text = "\n".join(
+        (root / path).read_text(encoding="utf-8", errors="ignore")
+        for path in sorted(seen) if path.startswith("audience/") and Path(path).suffix in TEXT_SUFFIXES
+    )
+    for marker in ("presenter-notes.js", "现场顺序", "可接受回答", "硅谷币提示"):
+        if marker in audience_text:
+            raise ValueError(f"T-122 audience bundle leaks teacher marker: {marker}")
+    computed_digest = hashlib.sha256("".join(canonical).encode("utf-8")).hexdigest()
+    if manifest.get("todoId") in {"T-132", "T-133"} and (
+        manifest.get("digest") != computed_digest or manifest.get("releaseStatus") != "deployment-ready"
+    ):
+        raise ValueError("120-minute courseware is not an exact deployment-ready build")
+    presenter = (root / "teacher" / "presenter.html").read_text(encoding="utf-8")
+    if 'data-audience-url="../audience/index.html"' not in presenter:
+        raise ValueError("T-122 teacher-to-audience route is invalid")
+    return {
+        "sha256": hashlib.sha256("".join(canonical).encode("utf-8")).hexdigest(),
+        "files": len(seen),
+        "bytes": total_bytes,
+        "revision": manifest["releaseRevision"],
+        "version": manifest["version"],
+        "sourceXmindSha256": manifest["sourceXmindSha256"],
+        "audienceSha256": split_trees["audience"],
+        "audienceFiles": split_counts["audience"],
+        "teacherSha256": split_trees["teacher"],
+        "teacherFiles": split_counts["teacher"],
+    }
+
+
+def validate_workshop_snapshot(path: Path) -> dict:
+    if not path.is_file() or path.stat().st_size > MAX_WORKSHOP_SNAPSHOT_BYTES:
+        raise ValueError("Workshop snapshot is missing or exceeds 1 MiB")
+    try:
+        snapshot = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("Workshop snapshot is not valid UTF-8 JSON") from exc
+    if not isinstance(snapshot, dict) or snapshot.get("snapshotVersion") != 1 or snapshot.get("scope") != "public-redacted-summary":
+        raise ValueError("Workshop snapshot is not a public-redacted v1 projection")
+    source, courses = snapshot.get("source"), snapshot.get("courses")
+    if not isinstance(source, dict) or source.get("registry") != "course-registry" or source.get("channel") != "released":
+        raise ValueError("Workshop snapshot does not originate from Released")
+    if not isinstance(courses, list) or not courses or source.get("courseCount") != len(courses):
+        raise ValueError("Workshop snapshot course count is incomplete")
+    refs = []
+    for course in courses:
+        if not isinstance(course, dict) or course.get("status") != "released" or not re.fullmatch(r"[0-9a-f]{64}", str(course.get("digest", ""))):
+            raise ValueError("Workshop snapshot contains a non-Released course ref")
+        if not isinstance(course.get("revision"), int) or course["revision"] < 0:
+            raise ValueError("Workshop snapshot revision is invalid")
+        if [item.get("id") for item in course.get("macroSteps", [])] != ["find", "decide", "build", "market", "operate"]:
+            raise ValueError("Workshop snapshot does not use the confirmed five steps")
+        if len(course.get("blocks", [])) != 13 or [item.get("order") for item in course["blocks"]] != list(range(1, 14)):
+            raise ValueError("Workshop snapshot does not contain 13 ordered Blocks")
+        decks = course.get("deckSummary", [])
+        if len(decks) != 5 or any(item.get("cardCount", 0) < 12 for item in decks):
+            raise ValueError("Workshop snapshot card decks are incomplete")
+        refs.append({key: course[key] for key in ("courseId", "schemaVersion", "revision", "digest", "status")})
+    if source.get("aggregateDigest") != canonical_digest(refs):
+        raise ValueError("Workshop snapshot aggregate digest is invalid")
+    integrity = snapshot.get("integrity")
+    unsigned = {key: value for key, value in snapshot.items() if key != "integrity"}
+    if not isinstance(integrity, dict) or integrity.get("algorithm") != "sha256" or integrity.get("digest") != canonical_digest(unsigned):
+        raise ValueError("Workshop snapshot integrity digest is invalid")
+    serialized = json.dumps(snapshot, ensure_ascii=False)
+    for forbidden in ('"mentorScript"', '"seatTasks"', '"privateConcern"', '"walletTenths"', '"teamTreasuryTenths"', '"lease":'):
+        if forbidden in serialized:
+            raise ValueError(f"Workshop snapshot leaks private field {forbidden}")
+    return snapshot
+
+
+def apply_workshop_overlay(workshop: Path, snapshot_source: Path | None = None) -> None:
+    """Freeze the early Workshop as a gated, read-only history archive.
+
+    The previous interactive bundle is preserved exactly below ``_source`` for
+    release rollback and forensic comparison, while the served ``index.html``
+    is replaced by a repo-owned reader. The reader may inspect/export existing
+    browser records but contains no local mutation or course-write path.
+    """
+    required = ("archive.html", "archive.css", "archive.js", "workshop-snapshot.schema.json")
+    source_snapshot = snapshot_source or (WORKSHOP_OVERLAY / "confirmed-baseline.json")
+    missing = [name for name in required if not (WORKSHOP_OVERLAY / name).is_file()]
+    if not source_snapshot.is_file():
+        missing.append("confirmed-baseline.json")
+    if missing:
+        raise ValueError(f"Workshop archive assets are incomplete: {', '.join(missing)}")
+    validate_workshop_snapshot(source_snapshot)
+    page = workshop / "index.html"
+    if not page.is_file():
+        raise ValueError("Workshop legacy entry is missing")
+    if "msv-workshop-archive" in page.read_text(encoding="utf-8"):
+        raise ValueError("Workshop archive was applied twice")
+
+    source_dir = workshop / "_source"
+    if source_dir.exists():
+        raise ValueError("Workshop exact source archive already exists")
+    source_dir.mkdir()
+    for item in sorted(workshop.iterdir(), key=lambda entry: entry.name):
+        if item == source_dir:
+            continue
+        shutil.move(str(item), str(source_dir / item.name))
+    source_digest, source_files, source_bytes = tree_digest(source_dir)
+    (source_dir / "SOURCE-MANIFEST.json").write_text(json.dumps({
+        "schemaVersion": 1,
+        "purpose": "exact-legacy-workshop-rollback-source",
+        "sha256": source_digest,
+        "files": source_files,
+        "bytes": source_bytes,
+    }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    copy_entry(WORKSHOP_OVERLAY / "archive.html", workshop / "index.html")
+    copy_entry(WORKSHOP_OVERLAY / "archive.css", workshop / "archive.css")
+    copy_entry(WORKSHOP_OVERLAY / "archive.js", workshop / "archive.js")
+    copy_entry(WORKSHOP_OVERLAY / "workshop-snapshot.schema.json", workshop / "workshop-snapshot.schema.json")
+    copy_entry(source_snapshot, workshop / "confirmed-baseline.json")
+
+    verified = page.read_text(encoding="utf-8")
+    script = (workshop / "archive.js").read_text(encoding="utf-8")
+    for marker in (
+        "msv-workshop-archive", 'href="/" aria-label="返回 Mini Silicon Valley 主页"',
+        f'src="/{BRAND_WORDMARK.as_posix()}"', 'data-workshop-mode="archive-readonly"',
+        'src="archive.js"', 'href="archive.css"',
+    ):
+        if marker not in verified:
+            raise ValueError(f"Workshop archive is missing marker {marker!r}")
+    for forbidden in ("localStorage.setItem", "localStorage.removeItem", "localStorage.clear"):
+        if forbidden in script:
+            raise ValueError(f"Workshop archive reader contains forbidden mutation {forbidden}")
+
+
+def tree_digest(root: Path) -> tuple[str, int, int]:
+    """Hash a directory without changing a byte in it."""
+    digest = hashlib.sha256()
+    files = 0
+    total_bytes = 0
+    for path in sorted(item for item in root.rglob("*") if item.is_file()):
+        relative = path.relative_to(root).as_posix().encode("utf-8")
+        content = path.read_bytes()
+        digest.update(len(relative).to_bytes(8, "big"))
+        digest.update(relative)
+        digest.update(len(content).to_bytes(8, "big"))
+        digest.update(content)
+        files += 1
+        total_bytes += len(content)
+    return digest.hexdigest(), files, total_bytes
+
+
+def validate_incubator_projects(source_root: Path, content_root: Path | None = None) -> dict:
+    """Validate the curated T-124 browser-only project bundle.
+
+    The source manifest is release tooling metadata and is deliberately not
+    copied to the public site. ``content_root`` lets release assembly prove the
+    copied public bytes against that private manifest.
+    """
+    manifest_path = source_root / "SOURCE-MANIFEST.json"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("T-124 incubator project manifest is missing or invalid") from exc
+    if manifest.get("schemaVersion") != 1 or manifest.get("todoId") != "T-124":
+        raise ValueError("T-124 incubator project manifest identity is invalid")
+    projects = manifest.get("projects")
+    files = manifest.get("files")
+    if not isinstance(projects, list) or not isinstance(files, list):
+        raise ValueError("T-124 incubator project manifest shape is invalid")
+    expected = {
+        ("recitation", "/incubator/projects/recitation/"),
+        ("mistake-notebook", "/incubator/projects/mistake-notebook/"),
+    }
+    if {(item.get("id"), item.get("route")) for item in projects if isinstance(item, dict)} != expected:
+        raise ValueError("T-124 incubator project routes are incomplete")
+    root = content_root or source_root
+    canonical: list[str] = []
+    seen: set[str] = set()
+    total_bytes = 0
+    for item in files:
+        if not isinstance(item, dict):
+            raise ValueError("T-124 incubator project file record is invalid")
+        relative = Path(str(item.get("path", "")))
+        key = relative.as_posix()
+        if relative.is_absolute() or ".." in relative.parts or not key or key in seen:
+            raise ValueError("T-124 incubator project manifest has an unsafe path")
+        seen.add(key)
+        path = root / relative
+        if not path.is_file():
+            raise ValueError(f"T-124 incubator project file is missing: {key}")
+        body = path.read_bytes()
+        digest = hashlib.sha256(body).hexdigest()
+        if item.get("bytes") != len(body) or item.get("sha256") != digest:
+            raise ValueError(f"T-124 incubator project digest mismatch: {key}")
+        canonical.append(f"{key}\0{digest}\n")
+        total_bytes += len(body)
+    digest = hashlib.sha256("".join(canonical).encode("utf-8")).hexdigest()
+    if manifest.get("contentTreeSha256") != digest:
+        raise ValueError("T-124 incubator project content tree digest mismatch")
+    for required in (
+        "recitation/index.html",
+        "mistake-notebook/index.html",
+        "_shared/project-shell.css",
+        "_shared/phosphor/regular/Phosphor.woff2",
+    ):
+        if required not in seen:
+            raise ValueError(f"T-124 incubator project required file is absent: {required}")
+    return {
+        "sha256": digest,
+        "files": len(seen),
+        "bytes": total_bytes,
+        "projects": projects,
+        "transforms": manifest.get("transforms", []),
+    }
+
+
+MODULE_HISTORY_DIGESTS = {
+    27: "f20048b289661f8dc8d6135cedca81a6e6cce923c3cfff3669d6df676927376f",
+    26: "0c723a3e00d7ddd1da54535eefd2e7a5ace1448e7326f46fc8cb0bb3f0b75ab8",
+    25: "61836c2daf7975515367f75de24894c9b41513172c636651e9febcdfc7ee717d",
+    24: "a0400315fbc4f1d727e61f491ec6bf6c8c8e33db43e6e969299ea8e5f9048240",
+    23: "0a92141e058e8732d3d5dbc4c101efa27a7150198abc94cfafa7a54cf3bef4e8",
+    19: "461f4b64e50661ce60e94108e4c20afe5f31681758dc1bef7acc08d88d340038",
+    20: "31d213e47e87bbee4e4a3a9330e216b9ea6e45e6a17b1124e86942f643fcd016",
+    21: "ede982efb552a7934a7557665c94a8d0b34f70ca978ff03c85c1fbbad4b10c47",
+    22: "f687f679e3353433dea312836fa076ec157334217000304d907434b9d4122706",
+    18: "7f88f44e1a55502bce80fc669d70b5609c60a3a8c32dd2712b41197997cca94c",
+    17: "b968a1ef173e2995db4f45c2116c616a2b9f775b8cecca71dca872df7d89bd60",
+    16: "7e281c9c27e960a5412a797196c5db86d4ee9969d3edf57b10056f3060bc7b59",
+    15: "2a6950171f08b4d21af1553a100fbb06f761a0022770ece24fbd956ad45398cc",
+    14: "e7f736d1bdfb1b6d46a10421ecfcd542fc87dd0cfbf60d531dab096df8498050",
+    13: "43c7a9810369b91b5a06f7e740a49f3a32f9668ffd914c1b89f35bb71c3079b7",
+    12: "894b93cd9e5cdeff31a1d4b46f8884f3720605fe1822b80eb43bada4fe126f0b",
+    11: "3b02ebf6bbc8bbe1a30d724475420ae18bbeb6864bb9c31d2b0f4c34f3282022",
+    10: "ba950877d7d786e9d4ef0441d174b10dda9d3f9891f7afb29f1197b309658e2b",
+    9: "a336543585d9b53d3bb1596f066bb4ccd8358d0df9d21152280130624d745f44",
+    8: "971cc25ef8fba30f6377a2d5caa86841f29bbf8a56f227776bc9ab0909236c17",
+    7: "dc678fb345cf938004f223e8a8c9f2faaf636fd481fa675ad3ea219199b70457",
+    6: "4d78573094e87726c45e8e8ffe13572a34ea19b042d5d7206c174b8ea0992b72",
+    5: "84ab82bcba6a34aab72284b3fc4f8d05b3f243bed4e8493c04fd9ab437b05412",
+}
+
+
+def validate_module_history(roots: list[Path], current_revision: int) -> dict[int, Path]:
+    history = {}
+    for root in roots:
+        artifact = validate_module_thinking_courseware(root)
+        revision = artifact["revision"]
+        if revision in history:
+            raise ValueError("duplicate historical P1 revision")
+        if artifact["sha256"] != MODULE_HISTORY_DIGESTS.get(revision):
+            raise ValueError("historical P1 identity mismatch")
+        history[revision] = root
+    if set(history) != set(range(5, current_revision)):
+        raise ValueError("missing or unexpected historical P1 revision")
+    return history
+
+
+LIGUN_HISTORY_DIGESTS = {
+    5: "85e007ea84325023133ec0b094fc8cabd7c9d1ea43ac505d5e741b622d6661fd",
+    4: "8e160cb6c9b57bf25dd485a591c59fbe5f20e4426f32c358070e326a9590a280",3: "dba0adb24b45d1942d36a06b9baa97fe833bffd53e0fd9a71f65956c90587396", 2: "2427551404eccf63e594b2a28654d5d06e76e0c6d6fec95b5f612cb69d954446", 1: "6b48d7d9fac75f88180bc00c8caf2f8c2a533d611580493eb538e3eef73ad1d9"}
+
+
+def validate_ligun_history(roots: list[Path], current_revision: int) -> dict[int, Path]:
+    history = {}
+    for root in roots:
+        artifact = validate_module_thinking_courseware(root, courseware_id="ligun-p2")
+        revision = artifact["revision"]
+        if revision in history:
+            raise ValueError("duplicate historical P2 revision")
+        if artifact["sha256"] != LIGUN_HISTORY_DIGESTS.get(revision):
+            raise ValueError("historical P2 identity mismatch")
+        history[revision] = root
+    if set(history) != set(range(1, current_revision)):
+        raise ValueError("missing or unexpected historical P2 revision")
+    return history
+
+
+def build(
+    legacy: Path,
+    app_client: Path,
+    app_static: Path,
+    course_static: Path,
+    product_courseware_r1: Path,
+    product_courseware_r2: Path,
+    module_thinking_courseware: Path,
+    portal: Path,
+    output: Path,
+    release_id: str,
+    *,
+    main_sha: str = "uncommitted",
+    module_previous_root: Path | None = None,
+    module_history_roots: list[Path] | None = None,
+    ligun_root: Path | None = None,
+    ligun_history_roots: list[Path] | None = None,
+    chj_sha: str = CHJ_COURSE_UI_SHA,
+    chj_tree: str = CHJ_COURSE_UI_TREE,
+    workshop_snapshot: Path | None = None,
+    workspace_provenance: dict | None = None,
+) -> None:
+    for source in (legacy, app_client, app_static, course_static, product_courseware_r1, product_courseware_r2, module_thinking_courseware, portal):
+        if not source.is_dir():
+            raise ValueError(f"required directory is missing: {source}")
+    for label, value in (("main SHA", main_sha), ("chj SHA", chj_sha), ("chj tree", chj_tree)):
+        if value != "uncommitted" and not re.fullmatch(r"[0-9a-f]{40}", value):
+            raise ValueError(f"invalid {label}: {value}")
+    development_courseware_source = app_client / DEVELOPMENT_COURSEWARE
+    development_courseware = validate_development_courseware(development_courseware_source)
+    market_courseware_source = app_client / MARKET_COURSEWARE
+    market_courseware = validate_market_courseware(market_courseware_source)
+    module_thinking = validate_module_thinking_courseware(module_thinking_courseware)
+    ligun = validate_module_thinking_courseware(ligun_root, courseware_id="ligun-p2") if ligun_root else None
+    if module_thinking["revision"] >= 5:
+        if not module_previous_root or not ligun:
+            raise ValueError("120-minute release requires immutable P1 r4 baseline and P2 split bundle")
+        previous = validate_module_thinking_courseware(module_previous_root)
+        if previous["revision"] != 4 or previous["sha256"] != "5d0e6d1dd92c10c99ad4767d33d92ef1039733996f9ec909d5a0910572787644":
+            raise ValueError("historical P1 r4 baseline identity mismatch")
+    module_history = validate_module_history(module_history_roots or [], module_thinking["revision"])
+    ligun_history = validate_ligun_history(ligun_history_roots or [], ligun["revision"] if ligun else 1)
+    incubator_projects = validate_incubator_projects(INCUBATOR_PROJECTS_SOURCE)
+    module_audience_digest = tree_digest(module_thinking_courseware / "audience")
+    module_teacher_digest = tree_digest(module_thinking_courseware / "teacher")
+    course_r0_source_digest, course_r0_source_files, course_r0_source_bytes = tree_digest(course_static)
+    course_r1_source_digest, course_r1_source_files, course_r1_source_bytes = tree_digest(product_courseware_r1)
+    course_r2_source_digest, course_r2_source_files, course_r2_source_bytes = tree_digest(product_courseware_r2)
+    if output.exists():
+        raise ValueError(f"refusing to overwrite release output: {output}")
+    output.mkdir(parents=True)
+
+    # Shared immutable client files. Dynamic and static builds use content hashes,
+    # so their _next trees can be merged without route ambiguity.
+    for name in ("_next", "assets", "favicon.svg", "og.png"):
+        if (legacy / name).exists(): copy_entry(legacy / name, output / name)
+    for name in ("_next", "assets", "fonts", "favicon.svg", "og.png", "vinext-client-entry-manifest.json"):
+        if (app_client / name).exists(): copy_entry(app_client / name, output / name)
+
+    page_map = {
+        "demo.html": "world/index.html",
+        "123456.html": "framework/index.html",
+        "qa.html": "parents/index.html",
+    }
+    for source_name, target_name in page_map.items():
+        copy_entry(legacy / source_name, output / target_name)
+
+    # Current main owns the public world shell. /course/ is served dynamically
+    # by the authenticated app; the colleague artifact is copied separately.
+    copy_entry(app_static / "world" / "index.html", output / "world" / "index.html")
+    copy_entry(app_static / "world-preview.json", output / "world-preview.json")
+    # Parent Q&A must be rendered from the same current application build as
+    # the authentication and classroom surfaces. Reusing legacy qa.html here
+    # silently dropped the shared brand/home component from new releases.
+    copy_entry(app_static / "parents" / "index.html", output / "parents" / "index.html")
+
+    # Workshop remains a coherent relative-path bundle under /workshop/.
+    workshop = output / "workshop"
+    workshop.mkdir()
+    for source_name, target_name in (
+        ("launch.html", "index.html"), ("app.js", "app.js"), ("styles.css", "styles.css"),
+        ("public-deploy.js", "public-deploy.js"), ("manifest.json", "manifest.json"),
+    ):
+        copy_entry(legacy / source_name, workshop / target_name)
+    if (legacy / "assets").exists(): copy_entry(legacy / "assets", workshop / "assets")
+
+    # Freeze the original Workshop before any global text transformation. Its
+    # exact source stays under a gateway-blocked directory; only the read-only
+    # archive shell and redacted Released snapshot are served.
+    apply_workshop_overlay(output / "workshop", workshop_snapshot)
+
+    for item in portal.iterdir(): copy_entry(item, output / item.name)
+    # Stage backward-compatible editing maintenance without mutating historical decks.
+    import runpy
+    maintenance = Path(__file__).parent / "scripts/stage-courseware-maintenance.py"
+    if maintenance.is_file():
+        runpy.run_path(str(maintenance))["stage"](output, Path(__file__).resolve().parents[2])
+    # Content-address this browser script: CDN browser TTL must never reuse
+    # an older navigation implementation after an HTML refresh.
+    chrome_bytes = (output / "courseware-current.js").read_bytes()
+    chrome_name = "courseware-current-" + hashlib.sha256(chrome_bytes).hexdigest()[:16] + ".js"
+    (output / chrome_name).write_bytes(chrome_bytes)
+    # One release-generated pointer, never a manually maintained revision link.
+    current = {}
+    for key, slug, record in (("p1", "development-mentor-module-thinking", module_thinking), ("p2", "development-mentor-ligun", ligun)):
+        if not record:
+            continue
+        teacher = f"/courseware/{slug}/r{record['revision']}/teacher/"
+        current[key] = {"teacher": teacher + "presenter.html", "workshop": teacher + "workshop/" if key == "p1" else None}
+        if key == "p2" and module_thinking and module_thinking["revision"] >= 20:
+            current[key] = {**current["p1"], "startSlide": "ai-01", "merged": True}
+        landing = output / "courseware" / "latest" / key / "index.html"
+        landing.parent.mkdir(parents=True, exist_ok=True)
+        landing.write_text(f'<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>打开最新版课件</title><body><p>正在打开最新版课件…</p><a href="/course/">返回课件库</a><script src="/{chrome_name}"></script></body></html>', encoding="utf-8")
+        if key == "p1":
+            workshop_landing = landing.parent / "workshop" / "index.html"
+            workshop_landing.parent.mkdir(parents=True, exist_ok=True)
+            workshop_landing.write_bytes(landing.read_bytes())
+            workbook_landing = landing.parent / "workbook" / "index.html"
+            workbook_landing.parent.mkdir(parents=True, exist_ok=True)
+            workbook_landing.write_bytes(landing.read_bytes())
+    (output / "courseware-current.json").write_text(json.dumps(current, ensure_ascii=False), encoding="utf-8")
+
+    transform_tree(output)
+
+    # T-124 projects are curated browser-only applications. Copy their exact
+    # declared runtime files after global text/theme transforms so the original
+    # interactions cannot be silently altered and no patch/QA workspace files
+    # can leak into the public release.
+    incubator_output = output / "incubator" / "projects"
+    incubator_output.mkdir(parents=True, exist_ok=True)
+    for item in INCUBATOR_PROJECTS_SOURCE.iterdir():
+        if item.name != "SOURCE-MANIFEST.json":
+            copy_entry(item, incubator_output / item.name)
+    if validate_incubator_projects(INCUBATOR_PROJECTS_SOURCE, incubator_output) != incubator_projects:
+        raise ValueError("T-124 incubator projects changed during release assembly")
+
+    # Never pass the colleague-owned build through rewrite_text() or the shared
+    # theme injector. It is an independently built, immutable P-mentor
+    # CoursewarePackage, not the entire course truth or /course/ library.
+    courseware_output = output / PRODUCT_COURSEWARE
+    copy_entry(course_static, courseware_output)
+    course_r0_output_digest, course_r0_output_files, course_r0_output_bytes = tree_digest(courseware_output)
+    if (course_r0_output_digest, course_r0_output_files, course_r0_output_bytes) != (
+        course_r0_source_digest, course_r0_source_files, course_r0_source_bytes
+    ):
+        raise ValueError("opaque chj product-manager r0 copy changed during release assembly")
+
+    # r1 is a new immutable version at a new URL. Never overwrite the r0 root:
+    # historical bytes remain available for audit and explicit version preview,
+    # while every classroom role route resolves the current release pointer.
+    courseware_r1_output = output / PRODUCT_COURSEWARE_R1
+    if courseware_r1_output.exists():
+        raise ValueError("product-manager r0 source unexpectedly contains an r1 directory")
+    copy_entry(product_courseware_r1, courseware_r1_output)
+    course_r1_output_digest, course_r1_output_files, course_r1_output_bytes = tree_digest(courseware_r1_output)
+    if (course_r1_output_digest, course_r1_output_files, course_r1_output_bytes) != (
+        course_r1_source_digest, course_r1_source_files, course_r1_source_bytes
+    ):
+        raise ValueError("opaque chj product-manager r1 copy changed during release assembly")
+
+    courseware_r2_output = output / PRODUCT_COURSEWARE_R2
+    if courseware_r2_output.exists():
+        raise ValueError("historical product-manager source unexpectedly contains an r2 directory")
+    copy_entry(product_courseware_r2, courseware_r2_output)
+    course_r2_output_digest, course_r2_output_files, course_r2_output_bytes = tree_digest(courseware_r2_output)
+    if (course_r2_output_digest, course_r2_output_files, course_r2_output_bytes) != (
+        course_r2_source_digest, course_r2_source_files, course_r2_source_bytes
+    ):
+        raise ValueError("opaque chj product-manager r2 copy changed during release assembly")
+
+    # D is repo-owned rather than colleague-owned, but its r0 still uses an
+    # exact byte manifest. Copy it after transform_tree() so the release
+    # assembler cannot silently inject global theme/runtime code into the deck.
+    development_courseware_output = output / DEVELOPMENT_COURSEWARE
+    copy_entry(development_courseware_source, development_courseware_output)
+    if validate_development_courseware(development_courseware_output) != development_courseware:
+        raise ValueError("D-mentor courseware changed during release assembly")
+
+    # M is another exact, repo-owned static deck. Keep it outside the release
+    # text/theme transformer for the same reason as D: a released revision is
+    # immutable classroom material, not an application shell.
+    market_courseware_output = output / MARKET_COURSEWARE
+    copy_entry(market_courseware_source, market_courseware_output)
+    if validate_market_courseware(market_courseware_output) != market_courseware:
+        raise ValueError("M-mentor courseware changed during release assembly")
+
+    # T-122 is deliberately split: audience is normal authenticated learning
+    # content; teacher contains scripts and answers and is protected by a
+    # mentor-only gateway location. Copy only declared build outputs, never the
+    # source tree or BUILD-MANIFEST.json, and prove both copies byte-identical.
+    module_output = output / MODULE_THINKING_COURSEWARE
+    if module_thinking["revision"] >= 5:
+        for split in ("audience", "teacher"):
+            copy_entry(module_previous_root / split, module_output / split)
+            if tree_digest(module_previous_root / split) != tree_digest(module_output / split):
+                raise ValueError("historical P1 changed during assembly")
+        for revision, history_root in module_history.items():
+            for split in ("audience", "teacher"):
+                destination = module_output / f"r{revision}" / split
+                copy_entry(history_root / split, destination)
+                if tree_digest(history_root / split) != tree_digest(destination):
+                    raise ValueError("historical P1 revision changed during assembly")
+        module_output = module_output / f"r{module_thinking['revision']}"
+    copy_entry(module_thinking_courseware / "audience", module_output / "audience")
+    copy_entry(module_thinking_courseware / "teacher", module_output / "teacher")
+    if tree_digest(module_output / "audience") != module_audience_digest:
+        raise ValueError("T-122 audience bundle changed during release assembly")
+    if tree_digest(module_output / "teacher") != module_teacher_digest:
+        raise ValueError("T-122 teacher bundle changed during release assembly")
+
+    for revision, history_root in ligun_history.items():
+        for split in ("audience", "teacher"):
+            destination = development_courseware_output / f"r{revision}" / split
+            copy_entry(history_root / split, destination)
+            if tree_digest(history_root / split) != tree_digest(destination):
+                raise ValueError("historical P2 revision changed during assembly")
+    if ligun:
+        ligun_output = development_courseware_output / f"r{ligun['revision']}"
+        if ligun_output.exists():
+            raise ValueError("P2 target revision already exists")
+        for split in ("audience", "teacher"):
+            copy_entry(ligun_root / split, ligun_output / split)
+            if tree_digest(ligun_root / split) != tree_digest(ligun_output / split):
+                raise ValueError("P2 split bundle changed during assembly")
+
+    (output / "release.json").write_text(json.dumps({
+        "service": "minisv", "release": release_id,
+        "builtAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "origin": "hecate", "canonicalOrigin": "https://minisv.vip",
+        "features": [
+            "unified-course-factory",
+            "dynamic-courseware-library",
+            "verbatim-product-mentor-courseware",
+            "versioned-product-manager-courseware",
+            "latest-role-courseware-resolution",
+            "exact-development-mentor-courseware",
+            "split-module-thinking-courseware",
+            "mentor-protected-teacher-courseware",
+            "exact-market-mentor-courseware",
+            "opaque-courseware-bundle",
+            "course-studio",
+            "human-review-workbench",
+            "parent-qa-review-bridge",
+            "per-classroom-controller",
+            "shared-brand-home",
+            "official-brand-wordmark",
+            "released-workshop-snapshot",
+            "read-only-workshop-history-archive",
+            "canonical-workspace-provenance",
+            "public-incubator-projects",
+        ],
+        "sources": {
+            "main": main_sha,
+            "chjCourseUi": chj_sha,
+            "chjCourseTree": chj_tree,
+            "chjCourseUiR0": CHJ_COURSE_R0_SHA,
+            "chjCourseTreeR0": CHJ_COURSE_R0_TREE,
+        },
+        "workspaceProvenance": workspace_provenance or {
+            "verified": False,
+            "mode": "library-call",
+            "sourceCommit": main_sha,
+        },
+        "coursewareArtifact": {
+            "route": "/courseware/product-mentor-foundations/r2/",
+            "mentorRole": "P",
+            "revision": 2,
+            "sourceCommit": chj_sha,
+            "sourceTree": chj_tree,
+            "sha256": course_r2_source_digest,
+            "files": course_r2_source_files,
+            "bytes": course_r2_source_bytes,
+            "transformed": False,
+        },
+        "productCoursewareArtifacts": [
+            {
+                "route": "/courseware/product-mentor-foundations/",
+                "mentorRole": "P",
+                "revision": 0,
+                "releaseStatus": "historical",
+                "sourceCommit": CHJ_COURSE_R0_SHA,
+                "sourceTree": CHJ_COURSE_R0_TREE,
+                "sha256": course_r0_source_digest,
+                "files": course_r0_source_files,
+                "bytes": course_r0_source_bytes,
+                "transformed": False,
+            },
+            {
+                "route": "/courseware/product-mentor-foundations/r1/",
+                "mentorRole": "P",
+                "revision": 1,
+                "releaseStatus": "historical",
+                "sourceCommit": CHJ_COURSE_R1_SHA,
+                "sourceTree": CHJ_COURSE_R1_TREE,
+                "sha256": course_r1_source_digest,
+                "files": course_r1_source_files,
+                "bytes": course_r1_source_bytes,
+                "transformed": False,
+            },
+            {
+                "route": "/courseware/product-mentor-foundations/r2/",
+                "mentorRole": "P",
+                "revision": 2,
+                "releaseStatus": "current",
+                "sourceCommit": chj_sha,
+                "sourceTree": chj_tree,
+                "sha256": course_r2_source_digest,
+                "files": course_r2_source_files,
+                "bytes": course_r2_source_bytes,
+                "transformed": False,
+            },
+        ],
+        "developmentCoursewareArtifact": {
+            "route": "/courseware/development-mentor-ligun/",
+            "mentorRole": "D",
+            **development_courseware,
+            "transformed": False,
+        },
+        "moduleThinkingCoursewareArtifact": {
+            "route": f"/{module_output.relative_to(output)}/audience/",
+            "teacherRoute": f"/{module_output.relative_to(output)}/teacher/presenter.html",
+            "mentorRole": "D",
+            **module_thinking,
+            "transformed": False,
+            "teacherAuthorization": "server-side-admin-or-mentor",
+        },
+        "ligun120CoursewareArtifact": ({
+            **ligun,
+            "route": f"/{DEVELOPMENT_COURSEWARE}/r{ligun['revision']}/audience/",
+            "teacherRoute": f"/{DEVELOPMENT_COURSEWARE}/r{ligun['revision']}/teacher/presenter.html",
+            "teacherAuthorization": "server-side-admin-or-mentor",
+        } if ligun else None),
+        "marketCoursewareArtifact": {
+            "route": "/courseware/market-mentor-user-system/",
+            "mentorRole": "M",
+            **market_courseware,
+            "transformed": False,
+        },
+        "incubatorProjectsArtifact": {
+            "root": "/incubator/projects/",
+            "transformed": False,
+            **incubator_projects,
+        },
+    }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    (output / "sitemap.json").write_text(json.dumps({
+        "schemaVersion": 2,
+        "scope": "public-website",
+        "routes": [
+            "/", "/world/", "/framework/", "/parents/", "/incubator/",
+            "/incubator/projects/", "/incubator/projects/recitation/",
+            "/incubator/projects/mistake-notebook/",
+        ],
+    }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    errors = []
+    for relative in REQUIRED_PAGES:
+        if not (output / relative).is_file(): errors.append(f"missing {relative}")
+    brand_wordmark = output / BRAND_WORDMARK
+    if not brand_wordmark.is_file():
+        errors.append(f"missing {BRAND_WORDMARK.as_posix()}")
+    elif hashlib.sha256(brand_wordmark.read_bytes()).hexdigest() != BRAND_WORDMARK_SHA256:
+        errors.append(f"unapproved brand wordmark bytes in {BRAND_WORDMARK.as_posix()}")
+    for relative in PUBLIC_COURSE_NAV_PAGES:
+        page = output / relative
+        if page.is_file() and not re.search(r'href=["\']/course/', page.read_text(encoding="utf-8")):
+            errors.append(f"missing stable course navigation in {relative}")
+    for revision, relative in ((0, PRODUCT_COURSEWARE), (1, PRODUCT_COURSEWARE_R1), (2, PRODUCT_COURSEWARE_R2)):
+        course_page = output / relative / "index.html"
+        if course_page.is_file():
+            course_text = course_page.read_text(encoding="utf-8")
+            for marker in ("青少年AI创业营", "MINI硅谷"):
+                if marker not in course_text:
+                    errors.append(f"opaque P-mentor r{revision} courseware is missing marker {marker!r}")
+            if "/ui-theme.js" in course_text or "data-course-outline-schema" in course_text:
+                errors.append(f"opaque P-mentor r{revision} courseware was replaced or decorated by the main application")
+    theme_script = output / "ui-theme.js"
+    if theme_script.is_file():
+        script_text = theme_script.read_text(encoding="utf-8")
+        # The shared runtime now mounts the complete public navigator from a
+        # route tuple list. Validate behavior markers and target literals
+        # instead of coupling release assembly to the retired one-off
+        # ``link.href = "/course/"`` implementation detail.
+        for marker in ("mountPublicNavigator", "msv-public-nav", "/course/"):
+            if marker not in script_text:
+                errors.append(f"missing public navigation runtime marker {marker!r}")
+        for route in ("/framework/", "/parents/"):
+            if route not in script_text:
+                errors.append(f"missing runtime public navigation for {route}")
+    for path in sorted(output.rglob("*")):
+        if not path.is_file() or path.suffix.lower() not in TEXT_SUFFIXES: continue
+        try: text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError: continue
+        for needle in FORBIDDEN:
+            if needle in text: errors.append(f"forbidden {needle!r} in {path.relative_to(output)}")
+    if errors:
+        raise ValueError("release validation failed:\n- " + "\n- ".join(errors[:100]))
+
+    manifest = []
+    for path in sorted(output.rglob("*")):
+        if path.is_file() and path.name != "MANIFEST.sha256":
+            manifest.append(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.relative_to(output).as_posix()}")
+    (output / "MANIFEST.sha256").write_text("\n".join(manifest) + "\n", encoding="utf-8")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--legacy-root", required=True, type=Path)
+    parser.add_argument("--app-client-root", required=True, type=Path)
+    parser.add_argument("--app-static-root", required=True, type=Path)
+    parser.add_argument("--course-static-root", required=True, type=Path, help="immutable product-manager r0 artifact")
+    parser.add_argument("--product-courseware-r1-root", required=True, type=Path, help="immutable chj9-11 product-manager r1 artifact")
+    parser.add_argument("--product-courseware-r2-root", required=True, type=Path, help="immutable chj9-11 product-mentor r2 artifact")
+    parser.add_argument("--module-thinking-root", required=True, type=Path, help="verified T-122 dist root containing audience and teacher bundles")
+    parser.add_argument("--module-previous-root", type=Path, help="verified immutable P1 r4 build")
+    parser.add_argument("--module-history-root", action="append", type=Path, default=[], help="verified immutable P1 r5+ builds; supply each historical revision")
+    parser.add_argument("--ligun-history-root", type=Path, action="append", default=[], help="immutable previously published P2 split build")
+    parser.add_argument("--ligun-root", type=Path, help="verified P2 split build")
+    parser.add_argument("--portal-root", required=True, type=Path)
+    parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--release-id", required=True)
+    parser.add_argument("--main-sha", default="uncommitted")
+    parser.add_argument("--chj-sha", default=CHJ_COURSE_UI_SHA)
+    parser.add_argument("--chj-tree", default=CHJ_COURSE_UI_TREE)
+    parser.add_argument("--workshop-snapshot", type=Path, help="validated public-redacted snapshot exported from the current Hecate Released registry")
+    parser.add_argument(
+        "--allow-dirty-reason",
+        help="exception record for a deliberately dirty canonical checkout; forbidden when the checkout is clean",
+    )
+    args = parser.parse_args()
+    repo_root = Path(__file__).resolve().parents[2]
+    workspace_provenance = verify_release_workspace(repo_root, args.main_sha, dirty_reason=args.allow_dirty_reason)
+    build(
+        *(getattr(args, name) for name in ("legacy_root", "app_client_root", "app_static_root", "course_static_root", "product_courseware_r1_root", "product_courseware_r2_root", "module_thinking_root", "portal_root", "output", "release_id")),
+        main_sha=args.main_sha,
+        module_previous_root=args.module_previous_root,
+        module_history_roots=args.module_history_root,
+        ligun_root=args.ligun_root,
+        ligun_history_roots=args.ligun_history_root,
+        chj_sha=args.chj_sha,
+        chj_tree=args.chj_tree,
+        workshop_snapshot=args.workshop_snapshot,
+        workspace_provenance=workspace_provenance,
+    )
+    print(f"MINISV_RELEASE_READY {args.release_id} {args.output}")
+
+
+if __name__ == "__main__":
+    main()

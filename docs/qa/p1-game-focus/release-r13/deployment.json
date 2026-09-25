@@ -1,0 +1,15 @@
+{
+  "status": "deployed-and-readonly-verified",
+  "release": "20260922T1955CST-shared-courseware-text-r13",
+  "p1Revision": 13,
+  "p2Revision": 6,
+  "recoveredFields": 3,
+  "sharedTextRevision": 5,
+  "legacyRowsUnchanged": 5,
+  "currentAssetHashesVerified": 128,
+  "historicalAssetHashesUnchanged": 1038,
+  "platformTests": 235,
+  "deploymentTests": 76,
+  "manualAcceptance": "not-signed",
+  "onlineAuthenticatedEditVerification": "pending user; actual UI save/upgrade/conflict chain verified with isolated local data"
+}

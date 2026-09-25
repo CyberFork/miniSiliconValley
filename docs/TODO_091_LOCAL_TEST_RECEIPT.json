@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "todoId": "T-091",
+  "status": "passed-local",
+  "testedAt": "2026-09-09T10:39:25Z",
+  "baseCommit": "e962b9ceb0f60df7c7513998e03eaa563f191ddd",
+  "delivery": {
+    "developed": true,
+    "deployed": false,
+    "onlineStudioImported": false,
+    "released": false,
+    "committed": false,
+    "pushed": false,
+    "reason": "The requester explicitly asked for local development without deployment."
+  },
+  "courseTruth": {
+    "courseId": "eleme-2008-find-problem",
+    "candidatePath": "tools/live-run/courses/candidates/eleme-2008-product-mentor-t091.json",
+    "candidateCourseDigest": "8f6320d43600d5f7e14ee66cdd1d3f721ebf638e87933ae13db1bdb5d8af1803",
+    "candidateFileSha256": "800ea1b778fb5a7f4dd99f097380c6a90cc17298a7aa11dcdd32f35274cfb344",
+    "immutableR0Path": "tools/live-run/live-run-script-eleme.json",
+    "immutableR0CourseDigest": "407a24b43ead68ddccf0871fe7910ae21f1ca64ec4b7232a2bc0afeb2cfecb6c",
+    "immutableR0FileSha256": "ac2c235d83e643ea5c7acaaa9b2e4618741f07de35a209e7d9951083b6f705eb"
+  },
+  "contentAcceptance": {
+    "caseType": "historical",
+    "caseOwner": "P",
+    "scriptOwner": "P",
+    "ownedBlocks": [
+      "B01",
+      "B02",
+      "B03",
+      "B04"
+    ],
+    "checkpointCount": 4,
+    "sourceCount": 4,
+    "cardCounts": {
+      "total": 60,
+      "F": 20,
+      "R": 16,
+      "G": 12,
+      "U": 12
+    },
+    "productBriefFields": 10,
+    "handoff": "P/B04 accepted ProductBrief -> D/B05",
+    "openReviewItems": 2
+  },
+  "securityAndIsolationAcceptance": {
+    "learnerMentorRubricRedacted": true,
+    "learnerDraftsPrivate": true,
+    "dmoHistoricalPrivateScriptExcluded": true,
+    "handoffAcceptedOnly": true,
+    "handoffTargetRestrictedToD": true,
+    "wrongMentorReviewDenied": true,
+    "genericSchemaCollisionDenied": true,
+    "staleReviewReplayDenied": true,
+    "exactCoursewareMismatchDenied": true
+  },
+  "validation": [
+    {
+      "command": "python3 tools/live-run/course.py --validate tools/live-run/courses/candidates/eleme-2008-product-mentor-t091.json",
+      "result": "passed"
+    },
+    {
+      "command": "npm run typecheck",
+      "result": "passed"
+    },
+    {
+      "command": "npm run lint",
+      "result": "passed with zero warnings"
+    },
+    {
+      "command": "npm run test:course-platform",
+      "result": "69 passed, 0 failed"
+    },
+    {
+      "command": "npm run build:minisv-app",
+      "result": "passed"
+    },
+    {
+      "command": "npm run test:t091:e2e",
+      "result": "passed: submit, reject, resubmit, accept, P-to-D handoff, privacy and negative permission paths"
+    },
+    {
+      "command": "npm run test:course-platform:e2e",
+      "result": "passed"
+    },
+    {
+      "command": "npm run test:classroom:e2e",
+      "result": "passed: Google and Ele.me both completed five chapters"
+    },
+    {
+      "command": "python3 tools/live-run/tests/verify_t091_product_mentor_browser.py",
+      "result": "passed on Chromium 151.0.7922.176; 0 page errors; 0 request failures; desktop and 390px page geometry contained"
+    },
+    {
+      "command": "npm test",
+      "result": "49 passed, 0 failed"
+    },
+    {
+      "command": "tools/live-run/tests/run_tests.sh",
+      "result": "80 Python tests and 5 Node tests passed; grid geometry passed"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "browserEvidence": {
+    "receipt": "docs/qa/t091-product-mentor/browser-receipt.json",
+    "screenshots": [
+      "docs/qa/t091-product-mentor/studio-p-owned-routing.png",
+      "docs/qa/t091-product-mentor/learner-product-brief-desktop.png",
+      "docs/qa/t091-product-mentor/d-handoff-desktop.png",
+      "docs/qa/t091-product-mentor/d-handoff-mobile.png"
+    ]
+  },
+  "reviewQueue": [
+    "review-p-courseware-local-snapshot",
+    "review-p-courseware-slide-21-app"
+  ],
+  "notes": [
+    "Browser and E2E classroom identifiers in the subordinate browser receipt were generated in an isolated temporary local D1 database and are not production records.",
+    "The two open review items are deliberate source/courseware governance records and do not block the verified local Candidate flow."
+  ]
+}

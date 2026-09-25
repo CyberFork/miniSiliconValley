@@ -1,0 +1,23 @@
+✔ React surfaces share one accessible root-home logo primitive (6.123209ms)
+✔ static operational surfaces use the same mark and absolute root link (0.945833ms)
+✔ shared wordmark keeps its native transparency without a synthetic white card (0.62175ms)
+✔ changed wordmark styles and runtimes are cache-busted on every static shell (1.579667ms)
+✔ Classroom top navigation has no injected UI control or reserved overlap slot (0.628291ms)
+✔ independently hydrated framework repairs its legacy top marker after load (0.196541ms)
+✔ brand metadata, manifest, error routing and editor leave guard stay coherent (0.918625ms)
+✔ timeline control clamps every input to the supported historical range (0.341708ms)
+✔ map construction layers crossfade continuously and never exceed full opacity (0.481792ms)
+✔ map labels and zoom obey the actual four-stage world model (0.091083ms)
+✔ responsive CSS contracts cover desktop, tablet, phone, modal containment and reduced motion (2.857667ms)
+✔ world UI contract retains timeline, keyboard, search, map pointer/pinch/wheel and archive controls (0.730875ms)
+✔ map tooltip raises the whole interacted hotspot above neighbouring stacking contexts (0.504416ms)
+✔ modal contract traps focus, closes safely and exposes dialog semantics (1.048375ms)
+✔ mission UI contract preserves the complete six-stage learning loop and evidence seal (0.367875ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 90.247041

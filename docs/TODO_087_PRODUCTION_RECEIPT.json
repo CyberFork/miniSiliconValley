@@ -1,0 +1,232 @@
+{
+  "receiptVersion": 1,
+  "completedAt": "2026-09-09T04:16:15+08:00",
+  "todo": "T-087",
+  "status": "completed",
+  "release": {
+    "host": "hecate",
+    "publicOrigin": "https://minisv.vip",
+    "releaseId": "20260909T040321CST-t087-account-delegation-r1",
+    "previousReleaseId": "20260909T010657CST-t086-two-stage-acceptance-r1",
+    "archiveSha256": "9d7d677676103b90b35a0f4afb6ac737e5d3c20867b6197f6b57d7d06c5bf63e",
+    "sourceCommit": "69af64e43b80862e9f59b4f6b862da4fbf98c351",
+    "siteManifestVerified": true,
+    "bundleManifestVerified": true,
+    "servicesHealthy": true,
+    "gatewayHealthy": true,
+    "classroomWorkerHealthy": true,
+    "cloudflareTunnelPreserved": true,
+    "remoteTransferVerifiedBySha256": true,
+    "remoteArchiveRemovedAfterDeploy": true,
+    "dataBackup": "/Users/hecate/Services/minisv/backups/20260908T201012Z-20260909T040321CST-t087-account-delegation-r1/classroom-data-before.tgz"
+  },
+  "product": {
+    "studioNavigation": {
+      "realHrefFallback": true,
+      "routeDerivedActiveState": true,
+      "loadingAndRetryStates": true,
+      "routes": [
+        "/studio/",
+        "/studio/editor/",
+        "/studio/preview/",
+        "/studio/courseware/",
+        "/studio/releases/"
+      ]
+    },
+    "unifiedAccountMenu": {
+      "serverLogout": true,
+      "safeReturnTo": true,
+      "storesOtherAccountPasswords": false,
+      "surfaces": [
+        "Studio",
+        "Course Editor",
+        "Classroom Hub",
+        "Classroom Runtime",
+        "Account Center",
+        "Courseware Library"
+      ],
+      "sharedProjectionScreenIntentionallyExcluded": true
+    },
+    "testImpersonation": {
+      "platformAdminOnly": true,
+      "testClassroomOnly": true,
+      "classroomMembershipOrAdminDmRequired": true,
+      "adminTargetsForbidden": true,
+      "productionForbidden": true,
+      "studioAndAccountForbidden": true,
+      "maxMinutes": 30,
+      "actorAndEffectiveIdentityAudited": true,
+      "revalidatedOnEveryRequest": true
+    },
+    "adminDmDelegation": {
+      "primaryCanDelegate": true,
+      "delegatedCanOperateClassroom": true,
+      "delegatedCanDelegate": false,
+      "delegatedCanRevokeOthers": false,
+      "delegatedCanRelinquishSelf": true,
+      "primaryProtected": true,
+      "crossClassroomInheritance": false,
+      "concurrentAndRepeatedOperationsIdempotent": true
+    },
+    "acceptanceAppBuildId": "minisv-t087-v1"
+  },
+  "dataModel": {
+    "migration": "drizzle/0006_account_switching_and_admin_dm_delegation.sql",
+    "tablesAdded": [
+      "classroom_admin_dm_grants",
+      "auth_impersonations"
+    ],
+    "authoritativeAdminDmTable": "classroom_admin_dm_grants",
+    "legacyClassroomPermissionsIsMirrorOnly": true,
+    "conflictSafeBackfill": true,
+    "revokedGrantCannotBeResurrectedByBootstrap": true,
+    "oneActivePrimaryPerClassroomDatabaseConstraint": true
+  },
+  "automatedValidation": {
+    "fullRelease": "passed",
+    "baseSuite": {
+      "passed": 28,
+      "failed": 0
+    },
+    "classroomEndToEnd": {
+      "status": "passed",
+      "googleChapters": 5,
+      "elemeChapters": 5
+    },
+    "workSuite": {
+      "passed": 137,
+      "failed": 0
+    },
+    "workApplicationSmoke": "passed",
+    "coursePlatform": {
+      "passed": 41,
+      "failed": 0
+    },
+    "minisvApplicationSmoke": "passed",
+    "coursePlatformEndToEnd": "passed",
+    "deploymentPython": {
+      "passed": 34,
+      "failed": 0
+    },
+    "dataValidation": {
+      "errors": 0,
+      "warnings": 0
+    },
+    "adventureUiRuntime": "passed",
+    "shellSyntax": "passed",
+    "gitDiffCheck": "passed"
+  },
+  "browserAcceptance": {
+    "status": "passed",
+    "engine": "Chromium",
+    "version": "151.0.7922.176",
+    "appBuildId": "minisv-t087-v1",
+    "mouseNavigation": true,
+    "keyboardEnterNavigation": true,
+    "metaOrCtrlNewTabNavigation": true,
+    "noJavaScriptNavigation": true,
+    "fullEditorWorkbenchPreserved": true,
+    "accountMenu": true,
+    "serverLogout": true,
+    "viewports": [
+      1440,
+      390
+    ],
+    "horizontalOverflow": 0,
+    "pageErrors": 0,
+    "requestFailures": 0,
+    "serverErrors": 0,
+    "receipt": "docs/qa/t087-account-navigation/browser-receipt.json",
+    "screenshots": [
+      "docs/qa/t087-account-navigation/studio-account-menu.png",
+      "docs/qa/t087-account-navigation/signed-out.png"
+    ]
+  },
+  "productionAcceptance": {
+    "publicSmoke": "passed",
+    "releaseIdentity": "passed",
+    "releaseHeaderOrigin": "hecate",
+    "authenticatedSmoke": {
+      "status": "passed",
+      "credentialSource": "Hecate private secret file",
+      "credentialOrCookiePrinted": false,
+      "role": "mentor",
+      "loginStatus": 200,
+      "sessionCacheControl": "no-store, private",
+      "studioBootstrapAppBuildId": "minisv-t087-v1",
+      "protectedPages": 8,
+      "allProtectedPagesReturned200": true,
+      "unifiedAccountMenuPresent": true,
+      "logoutStatus": 200,
+      "sessionAfterLogoutStatus": 401,
+      "courseOrClassroomDataMutated": false,
+      "authSessionAndAuditOnly": true
+    },
+    "routesVerified": [
+      "/",
+      "/world/",
+      "/framework/",
+      "/courseware/product-mentor-foundations/",
+      "/auth/login/",
+      "/studio/",
+      "/studio/editor/",
+      "/studio/preview/",
+      "/studio/releases/",
+      "/studio/courseware/",
+      "/classroom/",
+      "/account/",
+      "/course/",
+      "/healthz",
+      "/release.json"
+    ],
+    "anonymousProtectedRoutesRedirectToLogin": true,
+    "anonymousSessionStatus": 401,
+    "retiredRoutes": {
+      "/alpha/": 410,
+      "/control/": 410,
+      "/control/editor/": 410
+    },
+    "retiredPorts": {
+      "18790": "closed",
+      "18791": "closed"
+    }
+  },
+  "productionDatabase": {
+    "integrityCheck": "ok",
+    "foreignKeyViolations": 0,
+    "t087TablesPresent": 2,
+    "classrooms": 1,
+    "activePrimaryAdminDm": 1,
+    "classroomsMissingPrimary": 0,
+    "classroomsWithDuplicatePrimary": 0,
+    "invalidDelegationFlags": 0,
+    "activeDelegatedAdminDm": 0,
+    "revokedGrants": 0,
+    "impersonationRows": 0,
+    "activeImpersonations": 0,
+    "legacyAdminDmMirrorRows": 1,
+    "explanation": "Migration preserved the existing classroom owner as its sole Primary. Production had no historical delegated grant or impersonation to fabricate; complete grant, revoke, isolation and impersonation behavior is covered by the isolated D1 and HTTP E2E suite."
+  },
+  "documentation": [
+    "docs/ACCOUNT_SWITCHING_AND_ADMIN_DM_SOP.md",
+    "docs/TODO_087_IMPLEMENTATION.md",
+    "docs/AUTHENTICATION.md",
+    "docs/ADMIN_DM_UI_OPERATION_MANUAL.md",
+    "docs/COURSE_PLATFORM_ARCHITECTURE.md",
+    "docs/MSV_SITE_MAP.md",
+    "docs/TESTING.md"
+  ],
+  "security": {
+    "credentialsInReceipt": false,
+    "credentialsInRepository": false,
+    "browserCredentialsPersisted": false,
+    "productionImpersonationUsed": false,
+    "productionCourseDataMutatedByAcceptance": false,
+    "secretScan": "passed",
+    "cyberforkerDeploymentTouched": false
+  },
+  "rollback": {
+    "targetRelease": "20260909T010657CST-t086-two-stage-acceptance-r1",
+    "command": "$HOME/Services/minisv/current/ops/scripts/rollback-hecate.sh 20260909T010657CST-t086-two-stage-acceptance-r1"
+  }
+}

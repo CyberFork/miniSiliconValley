@@ -1,0 +1,11 @@
+{
+  "release": "20260919T1537CST-p1-voxel-reuse-r6",
+  "sourceCommit": "3a90216b7e16627565c6b6a99003558404b31546",
+  "p1Revision": 6,
+  "p1Digest": "4d78573094e87726c45e8e8ffe13572a34ea19b042d5d7206c174b8ea0992b72",
+  "p2Revision": 1,
+  "previousCoursewareFilesUnchanged": 444,
+  "platformTests": 222,
+  "deployTests": 62,
+  "humanAcceptance": "not-signed-by-user"
+}
