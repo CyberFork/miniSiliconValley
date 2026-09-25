@@ -5,7 +5,7 @@ const base = new URL('../', import.meta.url);
 const read = n => readFile(new URL(n, base), 'utf8');
 const box = { window: {} }; vm.runInNewContext(await read('deck-data.js'), box);
 const deck = box.window.MSV_MODULE_DECK; assert(deck);
-assert.equal(deck.slides.length, 39); assert.equal(deck.timeline.at(-1).start + deck.timeline.at(-1).minutes, 240);
+assert.equal(deck.slides.length, 41); assert.equal(deck.timeline.at(-1).start + deck.timeline.at(-1).minutes, 240);
 const ids = deck.slides.map(s => s.id), at = id => ids.indexOf(id);
 assert(at('module-s14') < at('module-s12') && at('module-s12') < at('module-my-start'), 'S12 must follow S14 and precede module-my-start');
 const s12 = deck.slides.find(s => s.id === 'module-s12'); assert(s12, 'S12 required');

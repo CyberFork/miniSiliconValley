@@ -10,14 +10,14 @@ const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const headings=['执行者','上下文与项目设计','目标','约束','避免','验收'];
 async function files(dir){const out=[];for(const name of await readdir(dir)){const p=join(dir,name);out.push(...((await stat(p)).isDirectory()?await files(p):[p]));}return out;}
 const results=[];
-for(const [name,count,times] of [['module-thinking-deck',39,[5,40,10,20,40,5,120]],['ligun-deck',28,[8,27,10,40,22,13]]]){
+for(const [name,count,times] of [['module-thinking-deck',41,[5,40,10,20,40,5,120,0]],['ligun-deck',28,[8,27,10,40,22,13]]]){
  const deckRoot=join(root,name),box={window:{}};vm.createContext(box);
  for(const file of ['deck-data.js','presenter-notes.js'])vm.runInContext(await readFile(join(deckRoot,file),'utf8'),box);
  const deck=box.window.MSV_MODULE_DECK,notes=box.window.MSV_MODULE_PRESENTER_NOTES;
  assert.equal(deck.slides.length,count);
  const phaseMinutes=new Map();
  for(const slide of deck.slides){
-  assert(slide.phase&&slide.minutes>0);const note=notes[slide.id];assert(note,'notes '+slide.id);
+  assert(slide.phase&&(slide.minutes>0||(['course-map','course-flow'].includes(slide.id)&&slide.minutes===0)));const note=notes[slide.id];assert(note,'notes '+slide.id);
   assert.equal(Number.parseInt(note.minutes),slide.minutes,'note/deck minutes '+slide.id);
   for(const field of ['goal','script','acceptable','misconception','reward','acceptance','materials'])assert(note[field]?.length,field+' '+slide.id);
   phaseMinutes.set(slide.phase,(phaseMinutes.get(slide.phase)||0)+slide.minutes);

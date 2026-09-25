@@ -10,7 +10,7 @@ vm.runInNewContext(fs.readFileSync(notesUrl, 'utf8'), context, { filename: notes
 const model = context.window.MSV_MODULE_DECK;
 const notes = context.window.MSV_MODULE_PRESENTER_NOTES;
 assert.ok(model?.slides, 'deck model should expose slides');
-assert.equal(model.slides.length, 39, 'deck must contain exactly 39 slides');
+assert.equal(model.slides.length, 41, 'deck must contain exactly 41 slides');
 const timelineMinutes = model.slides.reduce((n, item) => n + Number(item.minutes || 0), 0);
 assert.equal(timelineMinutes, 240, 'timeline must total 240 minutes');
 

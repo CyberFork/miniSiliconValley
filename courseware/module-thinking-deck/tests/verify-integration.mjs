@@ -33,7 +33,7 @@ if (manifest.releaseStatus === "draft") {
   if (registry.includes(digest) || smoke.includes(digest)) throw new Error("Unpublished draft was registered as production");
   console.log(`P1 draft isolation passed: ${digest}; published registration unchanged; deployment integration NOT claimed.`);
 } else {
-for (const [name,constant,route] of [["module-thinking-deck","DEVELOPMENT_MODULE_THINKING_R28_CONTENT_TREE","development-mentor-module-thinking/r28"],["ligun-deck","DEVELOPMENT_LIGUN_R6_CONTENT_TREE","development-mentor-ligun/r6"]]) {
+for (const [name,constant,route] of [["module-thinking-deck","DEVELOPMENT_MODULE_THINKING_R29_CONTENT_TREE","development-mentor-module-thinking/r29"],["ligun-deck","DEVELOPMENT_LIGUN_R6_CONTENT_TREE","development-mentor-ligun/r6"]]) {
   const build = name === "ligun-deck" ? JSON.parse(await readFile(join(repoRoot,"deploy/minisv/tests/fixtures/published-p2-r6.json"),"utf8")) : JSON.parse(await readFile(join(repoRoot, "courseware", name, "dist/BUILD-MANIFEST.json"), "utf8"));
   const smoke = await readFile(join(repoRoot, "deploy/minisv/scripts/public-smoke.py"), "utf8");
   if (!smoke.includes(build.digest)) throw new Error("Public smoke pins an obsolete build: " + name);

@@ -10,5 +10,5 @@ const expected=[['空','空','钥匙','空'],['金币','工具','金币','工具
 for(let i=0;i<4;i++){const slots=[...cards[i].matchAll(/class="bag-slot[^"]*">([^<]+)<\/span>/g)].map(x=>x[1]);assert.deepEqual(slots,expected[i]);assert.match(cards[i],new RegExp('0'+(i+1)+' '));}
 assert.match(cards[1],/钥匙仍留在地上/);assert.match(cards[2],/错误示范/);assert.match(cards[2],/不自动替换/);assert.match(cards[3],/先重试满包.*再丢下工具/);
 const notes=box.window.MSV_MODULE_PRESENTER_NOTES['module-my-check'];assert.match(JSON.stringify(notes),/不是游戏的正确行为/);assert.match(JSON.stringify(notes),/纸面摆卡不宣称程序测试通过/);
-assert.equal(model.slides.length,39);assert.equal(model.slides.reduce((a,s)=>a+s.minutes,0),240);
+assert.equal(model.slides.length,41);assert.equal(model.slides.reduce((a,s)=>a+s.minutes,0),240);
 console.log('HOW04_CONCRETE_BAG_PASS: normal/full/error/retest diagrams, bounded game rules and notes');

@@ -6,7 +6,7 @@ const root = new URL('../', import.meta.url);
 const box = { window: {} };
 vm.runInNewContext(await readFile(new URL('deck-data.js', root), 'utf8'), box, { filename: 'deck-data.js' });
 const deck = box.window.MSV_MODULE_DECK;
-assert.equal(deck.slides.length, 39, 'deck target is 39 slides');
+assert.equal(deck.slides.length, 41, 'deck target is 39 slides');
 assert.equal(deck.slides.reduce((sum, slide) => sum + Number(slide.minutes || 0), 0), 240);
 const p1 = deck.slides.filter((slide) => !String(slide.phase).startsWith('AI ·'));
 const ai = deck.slides.filter((slide) => String(slide.phase).startsWith('AI ·'));

@@ -4,10 +4,10 @@ import vm from 'node:vm';
 const root=new URL('../',import.meta.url);const read=f=>fs.readFileSync(new URL(f,root),'utf8');
 const box={window:{}};for(const f of ['deck-data.js','presenter-notes.js'])vm.runInNewContext(read(f),box);
 const d=box.window.MSV_MODULE_DECK,notes=box.window.MSV_MODULE_PRESENTER_NOTES;
-assert.equal(d.slides.length,39);assert.equal(d.slides.slice(0,25).reduce((n,s)=>n+s.minutes,0),120);assert.equal(d.slides.slice(25).reduce((n,s)=>n+s.minutes,0),120);
-assert.equal(d.teachingStages.length,2);assert.equal(Object.keys(notes).length,39);
+assert.equal(d.slides.length,41);assert.equal(d.slides.slice(0,25).reduce((n,s)=>n+s.minutes,0),120);assert.equal(d.slides.slice(25).reduce((n,s)=>n+s.minutes,0),120);
+assert.equal(d.teachingStages.length,2);assert.equal(Object.keys(notes).length,41);
 for(const s of d.slides){assert.equal(parseInt(notes[s.id].minutes),s.minutes);assert.ok(notes[s.id].script.length>=3);}
-const ai=d.slides.slice(25);assert.equal(ai.length,14);assert.equal(ai.at(-1).id,'ai-14');
+const ai=d.slides.slice(25,39);assert.equal(ai.length,14);assert.equal(ai.at(-1).id,'ai-14');
 assert.doesNotMatch(JSON.stringify(ai)+JSON.stringify(Object.fromEntries(Object.entries(notes).filter(([k])=>k.startsWith('ai-')))),/校园寻宝|预约系统|微棍/);
 const catalog=JSON.parse(fs.readFileSync(new URL('../../app/lib/courseware-text-catalog.json',root),'utf8'));
 const old=catalog.find(x=>x.version==='2026.09.23-p1-r19'),now=catalog.find(x=>x.version===d.version);
@@ -16,7 +16,7 @@ const changedBaseline=new Set([
   'module-my-map:subtitle','module-my-map:text.f0001','module-my-map:text.f0002','module-my-map:text.f0004'
 ]);
 for(const [k,v] of Object.entries(old.fields))if(!changedBaseline.has(k))assert.equal(now.fields[k],v,'preserved '+k);
-assert.equal(old.slideIds.length,24);assert.equal(now.slideIds.length,39);
+assert.equal(old.slideIds.length,24);assert.equal(now.slideIds.length,41);
 assert.ok(ai.filter(s=>s.content.includes('data-ai-key')).length>=10);
 assert.match(ai.find(s=>s.id==='ai-12').content,/data-car-game/);
 for(const s of ['ai-05'])assert.equal((ai.find(x=>x.id===s).content.match(/data-ai-key="field"/g)||[]).length,6);
@@ -65,7 +65,7 @@ for(const f of ['index.html','presenter.html'])assert.match(read(f),/ai-lessons\
 button.dataset={aiKey:'derive',aiValue:'1'};panel.dataset={aiPanel:'derive',aiIs:'1'};
 wire(fake,{derive:1},v=>emitted=v);assert.equal(panel.hidden,false);button.events.click({preventDefault(){},stopPropagation(){}});assert.equal(emitted.derive,1);
 wire(fake,{derive:0},null);assert.equal(panel.hidden,true);assert.equal(button.disabled,true);
-console.log('AI merge PASS: 39 pages, 120+120, 429 old fields preserved, 14 concrete slides, real bag rules, authority gates, reducer and DOM wiring, both screen adapters');
+console.log('AI merge PASS: 39 teaching + 2 reference pages, 120+120, 429 old fields preserved, 14 concrete slides, real bag rules, authority gates, reducer and DOM wiring, both screen adapters');
 const runtimeCatalog=JSON.parse(fs.readFileSync(new URL('../shared/runtime-text-catalog.json',root),'utf8'))[0];
 const status={dataset:{},textContent:''};
 const statusRoot={querySelector:selector=>selector==='.ai-lesson'?{}:selector==='[data-ai-change-status]'?status:null,querySelectorAll:()=>[]};

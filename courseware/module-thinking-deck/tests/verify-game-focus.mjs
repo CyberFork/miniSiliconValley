@@ -8,10 +8,10 @@ assert(['draft','deployment-ready'].includes(d.releaseStatus));
 const manifest=JSON.parse(await readFile(new URL('dist/BUILD-MANIFEST.json',root),'utf8'));
 assert.equal(manifest.version,d.version);assert.equal(manifest.releaseStatus,d.releaseStatus);
 if (manifest.releaseStatus === 'draft') assert.equal(manifest.releaseRevision,null);
-else { assert.equal(manifest.releaseRevision,28); assert.equal(manifest.manualAcceptance,'not-signed-by-user'); }
+else { assert.equal(manifest.releaseRevision,29); assert.equal(manifest.manualAcceptance,'not-signed-by-user'); }
 const forbidden=/失物|招领|校园订餐|配送|订单|登录模块|AI 智能体组成/;
 for(const f of ['deck-data.js','presenter-notes.js','source/content-map.md','dist/audience/deck-data.js','dist/teacher/deck-data.js','dist/teacher/presenter-notes.js'])assert.doesNotMatch(await readFile(new URL(f,root),'utf8'),forbidden,f);
-assert.equal(d.slides.length,39);assert.equal(d.slides.reduce((a,s)=>a+s.minutes,0),240);
+assert.equal(d.slides.length,41);assert.equal(d.slides.reduce((a,s)=>a+s.minutes,0),240);
 for(const s of d.slides){assert(n[s.id]);assert.equal(parseInt(n[s.id].minutes),s.minutes);}
 const byId=id=>d.slides.find(s=>s.id===id);
 assert.match(byId('module-s01').subtitle,/小车闯关游戏/);

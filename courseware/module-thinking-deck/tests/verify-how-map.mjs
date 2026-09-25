@@ -11,7 +11,7 @@ for (const file of ['deck-data.js', 'presenter-notes.js']) {
 }
 const deck = box.window.MSV_MODULE_DECK;
 const notes = box.window.MSV_MODULE_PRESENTER_NOTES;
-assert.equal(deck.slides.length, 39);
+assert.equal(deck.slides.length, 41);
 assert.equal(deck.slides.reduce((sum, slide) => sum + Number(slide.minutes || 0), 0), 240);
 
 const byId = (id) => deck.slides.find((slide) => slide.id === id);

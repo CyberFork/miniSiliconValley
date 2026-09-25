@@ -538,6 +538,7 @@ def validate_incubator_projects(source_root: Path, content_root: Path | None = N
 
 
 MODULE_HISTORY_DIGESTS = {
+    28: "86fcba6afe3d219efb9a9ca9678af4dc6732c10cc4d09ed1c6f876e6014c96cd",
     27: "f20048b289661f8dc8d6135cedca81a6e6cce923c3cfff3669d6df676927376f",
     26: "0c723a3e00d7ddd1da54535eefd2e7a5ace1448e7326f46fc8cb0bb3f0b75ab8",
     25: "61836c2daf7975515367f75de24894c9b41513172c636651e9febcdfc7ee717d",

@@ -9,7 +9,7 @@ const box = { window: {} };
 vm.runInNewContext(deckSource, box);
 const deck = box.window.MSV_MODULE_DECK;
 assert(deck, 'deck data did not initialise');
-assert.equal(deck.slides.length, 39, 'deck must contain 39 slides');
+assert.equal(deck.slides.length, 41, 'deck must contain 39 slides');
 assert.equal(deck.timeline.at(-1).start + deck.timeline.at(-1).minutes, 240, 'timeline must total 240 minutes');
 
 const s13 = deck.slides.find((slide) => slide.id === 'module-s13');

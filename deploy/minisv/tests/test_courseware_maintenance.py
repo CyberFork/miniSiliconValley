@@ -71,7 +71,7 @@ class WholeGameMapMaintenance(unittest.TestCase):
     package=site/f'courseware/development-mentor-module-thinking/r{rev}'
     (package/'audience/printables').mkdir(parents=True);(package/'teacher').mkdir()
     model=load(source/'deck-data.js');model['version']=f'fixture-r{rev}'
-    model['slides']=[s for s in model['slides'] if s['id'] not in ('module-minecraft-map','ai-minecraft-modules')]
+    model['slides']=[s for s in model['slides'] if s['id'] not in ('module-minecraft-map','ai-minecraft-modules','course-map','course-flow')]
     next(s for s in model['slides'] if s['id']=='ai-13')['minutes']=32
     next(s for s in model['slides'] if s['id']=='module-s12')['minutes']=7
     model['slides'][0]['title']='unrelated historical title'

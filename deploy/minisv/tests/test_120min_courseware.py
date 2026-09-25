@@ -15,8 +15,8 @@ class SplitReleaseTests(unittest.TestCase):
         smoke=(ROOT/'deploy/minisv/scripts/public-smoke.py').read_text()
         for folder, key, slug in [('module-thinking-deck','moduleThinkingCoursewareArtifact','development-mentor-module-thinking'),('ligun-deck','ligun120CoursewareArtifact','development-mentor-ligun')]:
             # Maintenance overlays deliberately differ from the published base.
-            # Public smoke must pin the immutable published r28, not a local rebuild.
-            path=(ROOT/'deploy/minisv/tests/fixtures/published-p1-r28.json') if folder=='module-thinking-deck' else (ROOT/'deploy/minisv/tests/fixtures/published-p2-r6.json')
+            # Public smoke must pin the immutable published r29, not a local rebuild.
+            path=(ROOT/'deploy/minisv/tests/fixtures/published-p1-r29.json') if folder=='module-thinking-deck' else (ROOT/'deploy/minisv/tests/fixtures/published-p2-r6.json')
             manifest=json.loads(path.read_text())
             digest=hashlib.sha256(''.join(i['path']+'\0'+i['sha256']+'\n' for i in manifest['audience']+manifest['teacher']).encode()).hexdigest()
             self.assertEqual(digest,manifest['digest'])
@@ -24,7 +24,7 @@ class SplitReleaseTests(unittest.TestCase):
             self.assertIn(expected, smoke)
 
     def test_both_new_artifacts_and_teacher_boundaries_are_validated(self):
-        for folder,identity,revision in [('module-thinking-deck','module-thinking-p1',28),('ligun-deck','ligun-p2',6)]:
+        for folder,identity,revision in [('module-thinking-deck','module-thinking-p1',29),('ligun-deck','ligun-p2',6)]:
             source=ROOT/'courseware'/folder/'dist'
             with tempfile.TemporaryDirectory() as temp:
                 dest=Path(temp)/'dist';shutil.copytree(source,dest)
@@ -98,10 +98,10 @@ class MinecraftAudioPolicy(unittest.TestCase):
         self.assertNotIn('media-src',general)
 
 class S06PreloadPolicy(unittest.TestCase):
-    def test_r28_preserves_audio_auth_and_no_store(self):
+    def test_r29_preserves_audio_auth_and_no_store(self):
         config=(ROOT/'deploy/minisv/gateway/default.conf').read_text()
-        line=next(x for x in config.splitlines() if x.startswith('    ~^/courseware/development-mentor-module-thinking/r28/ "'))
+        line=next(x for x in config.splitlines() if x.startswith('    ~^/courseware/development-mentor-module-thinking/r29/ "'))
         self.assertIn("media-src 'self';",line)
         self.assertIn("script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval';",line)
-        self.assertIn('location ^~ /courseware/development-mentor-module-thinking/r28/teacher/ {\n        auth_request /_minisv_mentor_courseware_auth;',config)
+        self.assertIn('location ^~ /courseware/development-mentor-module-thinking/r29/teacher/ {\n        auth_request /_minisv_mentor_courseware_auth;',config)
         self.assertIn('"private, no-store, no-transform"',config)

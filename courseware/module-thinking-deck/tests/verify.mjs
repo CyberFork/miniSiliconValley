@@ -11,7 +11,7 @@ const sandbox = { window: {} }; vm.createContext(sandbox); vm.runInContext(dataC
 const deck = sandbox.window.MSV_MODULE_DECK;
 const notes = sandbox.window.MSV_MODULE_PRESENTER_NOTES;
 const expectedSources = ["S01", "S02-A", "S02-B", "S02-C", ...Array.from({ length: 14 }, (_, index) => `S${String(index + 3).padStart(2,"0")}`)];
-if (!deck || deck.slides.length !== 39) throw new Error(`Expected 39 slides, got ${deck?.slides?.length}`);
+if (!deck || deck.slides.length !== 41) throw new Error(`Expected 41 slides, got ${deck?.slides?.length}`);
 const ids = new Set();
 for (let i = 0; i < deck.slides.length; i++) {
   const slide = deck.slides[i];
@@ -80,6 +80,6 @@ const presenter = await readFile(join(root,"dist/teacher/presenter.html"),"utf8"
 if (!presenter.includes('data-audience-url="../audience/index.html"')) throw new Error("Teacher bundle audience link is wrong");
 for (const path of ["printables/module-map.html","printables/interface-card.html"]) if (!(await readFile(join(audienceRoot,path),"utf8")).includes("@page")) throw new Error(`Missing print style ${path}`);
 for (const path of ["module-3d.js", "vendor/three.module.min.js", "vendor/three.core.min.js", "vendor/THREE-LICENSE.txt"]) if (!(await stat(join(audienceRoot,path))).isFile()) throw new Error(`Missing local 3D dependency ${path}`);
-console.log("T-132 structural checks passed (T-128/T-130 preserved): 39 slides/S08 and S11 intentionally removed, 120+120 minutes, three local 3D scenes, complete notes, separated audience bundle, printable worksheets.");
+console.log("T-132 structural checks passed (T-128/T-130 preserved): 41 slides/S08 and S11 intentionally removed, 120+120 minutes, three local 3D scenes, complete notes, separated audience bundle, printable worksheets.");
 
 await import("./verify-voxel.mjs");

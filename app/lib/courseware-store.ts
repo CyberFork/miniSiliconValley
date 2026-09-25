@@ -76,6 +76,7 @@ const DEVELOPMENT_MODULE_THINKING_R19_CONTENT_TREE = "461f4b64e50661ce60e94108e4
 const DEVELOPMENT_MODULE_THINKING_R20_CONTENT_TREE = "31d213e47e87bbee4e4a3a9330e216b9ea6e45e6a17b1124e86942f643fcd016";
 const DEVELOPMENT_MODULE_THINKING_R21_CONTENT_TREE = "ede982efb552a7934a7557665c94a8d0b34f70ca978ff03c85c1fbbad4b10c47";
 const DEVELOPMENT_MODULE_THINKING_R22_CONTENT_TREE = "f687f679e3353433dea312836fa076ec157334217000304d907434b9d4122706";
+const DEVELOPMENT_MODULE_THINKING_R29_CONTENT_TREE = "327ade76863a2d29b7fadf585dc52066916eb64fa32dbfb0527ba9857d003cfd";
 const DEVELOPMENT_MODULE_THINKING_R28_CONTENT_TREE = "86fcba6afe3d219efb9a9ca9678af4dc6732c10cc4d09ed1c6f876e6014c96cd";
 const DEVELOPMENT_MODULE_THINKING_R27_CONTENT_TREE = "f20048b289661f8dc8d6135cedca81a6e6cce923c3cfff3669d6df676927376f";
 const DEVELOPMENT_MODULE_THINKING_R26_CONTENT_TREE = "0c723a3e00d7ddd1da54535eefd2e7a5ace1448e7326f46fc8cb0bb3f0b75ab8";
@@ -519,10 +520,23 @@ const BUNDLED_VERSIONS = [
     role: "D" as const,
     revision: 28,
     releasedAt: "2026-09-24T12:43:00Z",
-    isCurrent: true,
+    isCurrent: false,
     kind: "static-bundle" as const,
     entryPath: "/courseware/development-mentor-module-thinking/r28/audience/",
     sourceIdentity: `t132:sha256:${DEVELOPMENT_MODULE_THINKING_R28_CONTENT_TREE}`,
+    html: null,
+  },
+  {
+    id: "cw-development-mentor-module-thinking",
+    slug: "development-mentor-module-thinking",
+    title: "开发导师｜模块思维与 AI 可控开发（两阶段）",
+    role: "D" as const,
+    revision: 29,
+    releasedAt: "2026-09-25T06:30:00Z",
+    isCurrent: true,
+    kind: "static-bundle" as const,
+    entryPath: "/courseware/development-mentor-module-thinking/r29/audience/",
+    sourceIdentity: `t132:sha256:${DEVELOPMENT_MODULE_THINKING_R29_CONTENT_TREE}`,
     html: null,
   },
   {

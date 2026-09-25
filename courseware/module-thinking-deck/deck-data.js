@@ -2,7 +2,7 @@
  "use strict";
  window.MSV_MODULE_DECK = Object.freeze({
   "id": "module-thinking-p1",
-  "version": "2026.09.24-p1-r28",
+  "version": "2026.09.25-p1-r29",
   "legacySlideIds": [
     "module-s01",
     "module-s02",
@@ -492,6 +492,30 @@
       "theme": "paper",
       "content": "<div class=\"ai-lesson\"><nav class=\"ai-tabs\" aria-label=\"切换示范\"><button type=\"button\" data-ai-key=\"recap\" data-ai-value=\"0\">层级：谁控制？</button><button type=\"button\" data-ai-key=\"recap\" data-ai-value=\"1\">格式：怎么写？</button><button type=\"button\" data-ai-key=\"recap\" data-ai-value=\"2\">闭环：怎么验？</button></nav><section class=\"ai-panel\" data-ai-panel=\"recap\" data-ai-is=\"0\" ><div class=\"ai-cards\"><article class=\"ai-card\"><h3 data-msv-field=\"f0001\">主棍</h3><p data-msv-field=\"f0002\">人类编写和验证，管理完整游戏。</p></article><article class=\"ai-card\"><h3 data-msv-field=\"f0003\">子棍</h3><p data-msv-field=\"f0004\">AI 根据主棍派生，人类验收。</p></article><article class=\"ai-card\"><h3 data-msv-field=\"f0005\">执行棍</h3><p data-msv-field=\"f0006\">AI 自动写、执行、检查；越界问题返回上层。</p></article></div></section><section class=\"ai-panel\" data-ai-panel=\"recap\" data-ai-is=\"1\" hidden><div class=\"ai-cards\"><article class=\"ai-card\"><h3 data-msv-field=\"f0007\">1 · 执行者</h3><p data-msv-field=\"f0008\">谁来做</p></article><article class=\"ai-card\"><h3 data-msv-field=\"f0009\">2 · 上下文与项目设计</h3><p data-msv-field=\"f0010\">已有设计与交接</p></article><article class=\"ai-card\"><h3 data-msv-field=\"f0011\">3 · 目标</h3><p data-msv-field=\"f0012\">完整目标＋本轮范围</p></article><article class=\"ai-card\"><h3 data-msv-field=\"f0013\">4 · 约束</h3><p data-msv-field=\"f0014\">必须遵守</p></article><article class=\"ai-card\"><h3 data-msv-field=\"f0015\">5 · 避免</h3><p data-msv-field=\"f0016\">不能这样做</p></article><article class=\"ai-card\"><h3 data-msv-field=\"f0017\">6 · 验收</h3><p data-msv-field=\"f0018\">实际如何证明</p></article></div></section><section class=\"ai-panel\" data-ai-panel=\"recap\" data-ai-is=\"2\" hidden><div data-msv-field=\"f0019\" class=\"ai-big-quote\">逐问对齐 → 人类确认 → 派生子棍 → 批准执行 → 实测 → 修正</div><article class=\"ai-card\"><h3 data-msv-field=\"f0020\">主棍变化时</h3><p data-msv-field=\"f0021\">AI 列出影响，同步相关子棍，再请人验收；不要各改各的。</p></article></section><p data-msv-field=\"f0022\" class=\"ai-banner\">前半段：模块组合实现功能，功能构成产品。后半段：按同一张地图，让 AI 可控地制作。</p></div>",
       "textFieldSequence": 22
+    },
+    {
+      "id": "course-map",
+      "source": "总览-01",
+      "phase": "参考 · 全课程地图",
+      "section": "实践参考",
+      "minutes": 0,
+      "title": "全课程地图：从模块到立棍",
+      "subtitle": "实践时看这里：左边想清游戏怎样组成，右边约定 AI 怎样把它做出来。",
+      "theme": "paper",
+      "content": "<div class=\"course-reference\"><div class=\"course-map-grid\">\n<article class=\"course-map-card\"><h3 data-msv-field=\"f0001\">看整体 · 模块地图</h3><p data-msv-field=\"f0002\">画出哪些模块一起工作，不是只列按钮。</p><div class=\"course-chain\"><b data-msv-field=\"f0003\">移动＋输入</b><span data-msv-field=\"f0004\">→ 驾驶</span><b data-msv-field=\"f0005\">道具＋背包</b><span data-msv-field=\"f0006\">→ 拾取、携带</span><b data-msv-field=\"f0007\">背包＋关卡</b><span data-msv-field=\"f0008\">→ 判断通关</span></div><p data-msv-field=\"f0009\" class=\"course-emphasis\">模块组合 → 功能 → 完整的小车游戏</p></article>\n<article class=\"course-map-card course-stick\"><h3 data-msv-field=\"f0010\">管整体 · 主棍</h3><p data-msv-field=\"f0011\">主棍＋模块地图＝整款游戏的宏观描述。</p><p data-msv-field=\"f0012\">带上策划、UI 和地图，说清完整愿景、本轮先做什么、全局规则和验收。</p><p data-msv-field=\"f0013\" class=\"course-example\">小车例：背包两格；带钥匙到终点才成功。</p><strong data-msv-field=\"f0014\">AI 帮助整理、提问；人决定并确认。</strong></article>\n<article class=\"course-map-card\"><h3 data-msv-field=\"f0015\">看局部 · 模块本身</h3><p data-msv-field=\"f0016\">进入一个模块，说清它怎样工作。</p><div class=\"course-module-fields\"><span data-msv-field=\"f0017\">职责</span><span data-msv-field=\"f0018\">输入</span><span data-msv-field=\"f0019\">处理规则</span><span data-msv-field=\"f0020\">输出</span><span data-msv-field=\"f0021\">接口</span><span data-msv-field=\"f0022\">正常／异常表现</span></div><p data-msv-field=\"f0023\" class=\"course-example\">背包：收到拾取请求；有空位就收，满了就拒收并返回原因。</p></article>\n<article class=\"course-map-card course-stick\"><h3 data-msv-field=\"f0024\">管局部 · 子棍</h3><p data-msv-field=\"f0025\">子棍＋模块描述＝一个模块的微观描述。</p><p data-msv-field=\"f0026\">继承主棍，写清该模块怎样做、和谁交接、怎样证明做对了。</p><p data-msv-field=\"f0027\" class=\"course-example\">背包子棍：满包不替换原物品，并通知界面显示“背包满”。</p><strong data-msv-field=\"f0028\">AI 派生；人逐个核对、调整并确认。</strong></article>\n</div><div class=\"course-format\"><b data-msv-field=\"f0029\">主棍、子棍都用这六项</b><p data-msv-field=\"f0030\">执行者 → 上下文与项目设计 → 目标 → 约束 → 避免 → 验收</p></div></div>",
+      "textFieldSequence": 30
+    },
+    {
+      "id": "course-flow",
+      "source": "总览-02",
+      "phase": "参考 · 全课程地图",
+      "section": "实践参考",
+      "minutes": 0,
+      "title": "一张图：从游戏想法到可验证的作品",
+      "subtitle": "按箭头走一遍；卡住时，回到对应一步。不需要把所有问题重新问一遍。",
+      "theme": "paper",
+      "content": "<div class=\"course-reference\"><ol class=\"course-flow\"><li><span data-msv-field=\"f0001\" class=\"course-step\">01</span><h3 data-msv-field=\"f0002\">带上我的策划与 UI</h3><p data-msv-field=\"f0003\">人提供已有材料，AI 先读；缺少的再问，可以以后补。</p><strong data-msv-field=\"f0004\">已有想法，不从零重写</strong></li><li><span data-msv-field=\"f0005\" class=\"course-step\">02</span><h3 data-msv-field=\"f0006\">画地图，说清模块</h3><p data-msv-field=\"f0007\">多条玩法路径找共用模块；选模块，说清内部六件事。</p><strong data-msv-field=\"f0008\">人设计，AI 帮助整理</strong></li><li><span data-msv-field=\"f0009\" class=\"course-step\">03</span><h3 data-msv-field=\"f0010\">对齐并确认主棍</h3><p data-msv-field=\"f0011\">AI 一次问一个决定，给选项和推荐；人选择并确认完整主棍。</p><strong data-msv-field=\"f0012\">主棍进度：已明确 n/6 项</strong></li><li><span data-msv-field=\"f0013\" class=\"course-step\">04</span><h3 data-msv-field=\"f0014\">逐个确认子棍</h3><p data-msv-field=\"f0015\">AI 按地图派生各模块子棍；人核对规则、交接和验收。</p><strong data-msv-field=\"f0016\">子棍进度：第 n 个／共 m 个</strong></li><li><span data-msv-field=\"f0017\" class=\"course-step\">05</span><h3 data-msv-field=\"f0018\">拿开发文档，开始制作</h3><p data-msv-field=\"f0019\">输出完整《基于立棍方法的开发文档》，再交给开发 AI 执行本轮范围。</p><strong data-msv-field=\"f0020\">执行棍由 AI 拆写、自查，不逐根审批</strong></li><li><span data-msv-field=\"f0021\" class=\"course-step\">06</span><h3 data-msv-field=\"f0022\">试模块，再试整个游戏</h3><p data-msv-field=\"f0023\">人实际试玩、对照验收；AI 按反馈修正。没通过就继续改。</p><strong data-msv-field=\"f0024\">先试满包拒收，再试带钥匙到终点</strong></li></ol><div class=\"course-loop\"><b data-msv-field=\"f0025\">发现问题怎么办？</b><p data-msv-field=\"f0026\">实现出错 → 改实现再测；设计改变 → 人确认主棍变更 → AI 同步相关子棍 → 人确认后再做。</p></div><p data-msv-field=\"f0027\" class=\"course-flow-boundary\">生成开发文档 ≠ 游戏已经做好。文档准备完成后，再启动开发；验收必须看实际结果。</p></div>",
+      "textFieldSequence": 27
     }
   ],
   "footer": "模块思维 → 立棍开发 · 方向在我，细节交给 AI",
@@ -554,7 +578,7 @@
       "title": "用立棍控制 AI 开发",
       "minutes": 120,
       "start": 25,
-      "count": 14
+      "count": 16
     }
   ],
   "slideAliases": {

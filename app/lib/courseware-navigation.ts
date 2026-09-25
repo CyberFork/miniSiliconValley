@@ -13,7 +13,7 @@ const COURSEWARE_PRESENTER_SURFACES: Readonly<Record<string, CoursewarePresenter
     description: "已并入开发导师课件第二阶段，120 分钟立棍与实操。",
   },
   "cw-development-mentor-module-thinking": {
-    href: "/courseware/development-mentor-module-thinking/r28/teacher/presenter.html",
+    href: "/courseware/development-mentor-module-thinking/r29/teacher/presenter.html",
     label: "打开导师讲解控制台",
     description: "教师屏包含逐页讲稿、可接受回答、常见误区、备课材料、下一页预览和投屏控制。",
   },

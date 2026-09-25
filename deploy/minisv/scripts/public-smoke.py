@@ -12,6 +12,18 @@ from urllib.parse import parse_qs, urlsplit
 
 
 EXPECTED = {
+    "/courseware/development-mentor-module-thinking/r28/audience/ai-materials/workbook/index.html": 200,
+    "/courseware/development-mentor-module-thinking/r28/audience/ai-materials/workbook/workbook.css": 200,
+    "/courseware/development-mentor-module-thinking/r28/audience/ai-materials/workbook/workbook.js": 200,
+    "/courseware/development-mentor-module-thinking/r28/audience/ai-materials/workbook/student-prompt.js": 200,
+    "/courseware/development-mentor-module-thinking/r28/audience/ai-materials/workbook/student-prompt.txt": 200,
+    "/courseware/development-mentor-module-thinking/r28/audience/ai-materials/workbook/catalog.js": 200,
+    "/courseware/development-mentor-module-thinking/r29/audience/ai-materials/workbook/index.html": 200,
+    "/courseware/development-mentor-module-thinking/r29/audience/ai-materials/workbook/workbook.css": 200,
+    "/courseware/development-mentor-module-thinking/r29/audience/ai-materials/workbook/workbook.js": 200,
+    "/courseware/development-mentor-module-thinking/r29/audience/ai-materials/workbook/student-prompt.js": 200,
+    "/courseware/development-mentor-module-thinking/r29/audience/ai-materials/workbook/student-prompt.txt": 200,
+    "/courseware/development-mentor-module-thinking/r29/audience/ai-materials/workbook/catalog.js": 200,
     "/api/courseware/text-editions/module-thinking-p1?base=2026.09.23-p1-r15": 401,
     "/api/courseware/text-editions/ligun-p2?base=2026.09.22-p2-r6": 401,
     "/": 200,
@@ -49,6 +61,7 @@ EXPECTED = {
     "/courseware/development-mentor-module-thinking/r26/audience/": 401,
     "/courseware/development-mentor-module-thinking/r27/audience/": 401,
     "/courseware/development-mentor-module-thinking/r28/audience/": 401,
+    "/courseware/development-mentor-module-thinking/r29/audience/": 401,
     "/courseware/development-mentor-module-thinking/r5/teacher/presenter.html": 401,
     "/courseware/development-mentor-module-thinking/r6/teacher/presenter.html": 401,
     "/courseware/development-mentor-module-thinking/r7/teacher/presenter.html": 401,
@@ -68,6 +81,7 @@ EXPECTED = {
     "/courseware/development-mentor-module-thinking/r26/teacher/presenter.html": 401,
     "/courseware/development-mentor-module-thinking/r27/teacher/presenter.html": 401,
     "/courseware/development-mentor-module-thinking/r28/teacher/presenter.html": 401,
+    "/courseware/development-mentor-module-thinking/r29/teacher/presenter.html": 401,
     "/courseware/development-mentor-module-thinking/r5/teacher/presenter-notes.js": 401,
     "/courseware/development-mentor-module-thinking/r6/teacher/presenter-notes.js": 401,
     "/courseware/development-mentor-module-thinking/r7/teacher/presenter-notes.js": 401,
@@ -87,6 +101,7 @@ EXPECTED = {
     "/courseware/development-mentor-module-thinking/r26/teacher/presenter-notes.js": 401,
     "/courseware/development-mentor-module-thinking/r27/teacher/presenter-notes.js": 401,
     "/courseware/development-mentor-module-thinking/r28/teacher/presenter-notes.js": 401,
+    "/courseware/development-mentor-module-thinking/r29/teacher/presenter-notes.js": 401,
     "/courseware/development-mentor-ligun/r1/audience/": 401,
     "/courseware/development-mentor-ligun/r2/audience/": 401,
     "/courseware/development-mentor-ligun/r3/audience/": 401,
@@ -166,6 +181,7 @@ COURSEWARE_MARKERS = {
     "/courseware/development-mentor-module-thinking/r26/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-module-thinking/r27/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-module-thinking/r28/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r29/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-module-thinking/r5/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-module-thinking/r6/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-module-thinking/r7/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
@@ -185,6 +201,7 @@ COURSEWARE_MARKERS = {
     "/courseware/development-mentor-module-thinking/r26/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-module-thinking/r27/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-module-thinking/r28/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r29/teacher/presenter.html": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-module-thinking/r5/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-module-thinking/r6/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-module-thinking/r7/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
@@ -204,6 +221,7 @@ COURSEWARE_MARKERS = {
     "/courseware/development-mentor-module-thinking/r26/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-module-thinking/r27/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-module-thinking/r28/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
+    "/courseware/development-mentor-module-thinking/r29/teacher/presenter-notes.js": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-ligun/r1/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-ligun/r2/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
     "/courseware/development-mentor-ligun/r3/audience/": ("MSV_MODULE_DECK", "MSV_MODULE_PRESENTER_NOTES", "MINI硅谷"),
@@ -337,7 +355,7 @@ def main() -> None:
             if development.get("sha256") != "ad6165eb01db16ad744bbfffba9fa016f5dc02e3abb5ad589fff68c30ab35234":
                 raise SystemExit("FAIL release.json: D-mentor courseware digest is not the accepted T-093 tree")
             for key, slug, revision, digest, audience_files, teacher_files in (
-                ("moduleThinkingCoursewareArtifact", "development-mentor-module-thinking", 28, "86fcba6afe3d219efb9a9ca9678af4dc6732c10cc4d09ed1c6f876e6014c96cd", 97, 64),
+                ("moduleThinkingCoursewareArtifact", "development-mentor-module-thinking", 29, "327ade76863a2d29b7fadf585dc52066916eb64fa32dbfb0527ba9857d003cfd", 97, 64),
                 ("ligun120CoursewareArtifact", "development-mentor-ligun", 6, "ebab83c20fad26b3df8152acf6d4c5f26115c1521557b2523f5a8eb9647e2cd4", 31, 14),
             ):
                 deck = release.get(key, {})
