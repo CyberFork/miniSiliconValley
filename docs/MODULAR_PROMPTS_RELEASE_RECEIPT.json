@@ -1,0 +1,192 @@
+{
+  "date": "2026-09-29",
+  "release": "20260929-modular-prompts",
+  "coursewareRevision": 29,
+  "sourceCommit": "e2c94cd916f78d118b1568e9bad9a1568909da79",
+  "archiveSha256": "7738ed24149f6632f9456de670095826c5f4e30e66b6ee766c2fe6a836ba1380",
+  "entry": "https://minisv.vip/prompts/",
+  "generalPreset": "https://minisv.vip/prompts/?game=0",
+  "gameWithPaths": "https://minisv.vip/prompts/?paths=1",
+  "selection": {
+    "required": [
+      "立棍底座（主棍＋子棍）"
+    ],
+    "game": "默认开启，可取消",
+    "paths": "默认关闭，可选"
+  },
+  "scope": [
+    "拆出通用底座、游戏领域、路径增强和启动段，共用组合函数",
+    "统一选择页面，切换保留输入，一次复制所有选定内容",
+    "路径插件先对齐用户／业务路径，再归纳模块并反向检查交接",
+    "接口技术由 AI 整理自查，用户确认具体行为，不增加二级进度",
+    "文档单一代码框，停止于方案，不执行项目"
+  ],
+  "manifests": {
+    "default": {
+      "version": "modular-prompts-1",
+      "canonical": "/prompts/",
+      "defaults": {
+        "game": true,
+        "paths": false
+      },
+      "required": [
+        "base"
+      ],
+      "moduleSha256": {
+        "base": "052570310722074cb3bbea37c7466c2b6eb05d76f287dfc3a64073703e09fc62",
+        "game": "12a1a149bf2b540d71c9954f03ec3949a9bb14cc4c65d6692f4de2d3d50a0b27",
+        "paths": "1574e7dc2d8fbe1d53556019db2b42aef8e2f45c76ac4a47cb989199b56fe794",
+        "start": "763f871a72da8ec6718ea72ec828db6aeb8b063e939760b07c567d01bafbcc9b"
+      },
+      "combinations": {
+        "general": "37fdf77dc10eefe291cf1e0d8583ac4de5841eabdfb237c2dfe1a0708b742dfc",
+        "general+paths": "f8415a8e00919afbba6a6e83209c4602479f50055fceba2d9c0af29250f8f4f7",
+        "game": "25fa42ebe1352286f71ed0d801f00742fb7283f06e7346e56ba63add636870db",
+        "game+paths": "a4515271c051f7e08737fee5558d0f5fb830400ae2c7ca72d8074fe8310b83d4"
+      },
+      "promptSha256": "25fa42ebe1352286f71ed0d801f00742fb7283f06e7346e56ba63add636870db",
+      "files": {
+        "index.html": "2a30d0777a7008de41f8b81e30bcbdc2b8b12a428c18be9982d2aca4e1938952",
+        "workbook.js": "329abac1bd6c05992d06ab656deea524af5ea01c555f5384f1fbbad79b60b7a4",
+        "workbook.css": "044bed707ea80b97217bf66f3ef4bff179cd0582cfa9902db93b0aba1e058de4",
+        "compose.js": "a0bb4d7b3b956d6625c2e2f9f25090627b1c929f503d2165352db899877865f3",
+        "student-prompt.js": "bd7c9dea576ab45521a4d811ee4c6da6b4cb4fbc882523751b7a0d6d160feb4e",
+        "student-prompt.txt": "25fa42ebe1352286f71ed0d801f00742fb7283f06e7346e56ba63add636870db"
+      },
+      "general": {
+        "version": "modular-prompts-1",
+        "canonical": "/prompts/?game=0",
+        "defaults": {
+          "game": false,
+          "paths": false
+        },
+        "required": [
+          "base"
+        ],
+        "moduleSha256": {
+          "base": "052570310722074cb3bbea37c7466c2b6eb05d76f287dfc3a64073703e09fc62",
+          "game": "12a1a149bf2b540d71c9954f03ec3949a9bb14cc4c65d6692f4de2d3d50a0b27",
+          "paths": "1574e7dc2d8fbe1d53556019db2b42aef8e2f45c76ac4a47cb989199b56fe794",
+          "start": "763f871a72da8ec6718ea72ec828db6aeb8b063e939760b07c567d01bafbcc9b"
+        },
+        "combinations": {
+          "general": "37fdf77dc10eefe291cf1e0d8583ac4de5841eabdfb237c2dfe1a0708b742dfc",
+          "general+paths": "f8415a8e00919afbba6a6e83209c4602479f50055fceba2d9c0af29250f8f4f7",
+          "game": "25fa42ebe1352286f71ed0d801f00742fb7283f06e7346e56ba63add636870db",
+          "game+paths": "a4515271c051f7e08737fee5558d0f5fb830400ae2c7ca72d8074fe8310b83d4"
+        },
+        "promptSha256": "37fdf77dc10eefe291cf1e0d8583ac4de5841eabdfb237c2dfe1a0708b742dfc",
+        "files": {
+          "index.html": "2a30d0777a7008de41f8b81e30bcbdc2b8b12a428c18be9982d2aca4e1938952",
+          "workbook.js": "329abac1bd6c05992d06ab656deea524af5ea01c555f5384f1fbbad79b60b7a4",
+          "workbook.css": "044bed707ea80b97217bf66f3ef4bff179cd0582cfa9902db93b0aba1e058de4",
+          "compose.js": "a0bb4d7b3b956d6625c2e2f9f25090627b1c929f503d2165352db899877865f3",
+          "student-prompt.js": "af6c2ef524e3a148714002a6fe01489f46928786bf322fcab97c64b3599d07a7",
+          "student-prompt.txt": "37fdf77dc10eefe291cf1e0d8583ac4de5841eabdfb237c2dfe1a0708b742dfc"
+        }
+      }
+    },
+    "general/": {
+      "version": "modular-prompts-1",
+      "canonical": "/prompts/?game=0",
+      "defaults": {
+        "game": false,
+        "paths": false
+      },
+      "required": [
+        "base"
+      ],
+      "moduleSha256": {
+        "base": "052570310722074cb3bbea37c7466c2b6eb05d76f287dfc3a64073703e09fc62",
+        "game": "12a1a149bf2b540d71c9954f03ec3949a9bb14cc4c65d6692f4de2d3d50a0b27",
+        "paths": "1574e7dc2d8fbe1d53556019db2b42aef8e2f45c76ac4a47cb989199b56fe794",
+        "start": "763f871a72da8ec6718ea72ec828db6aeb8b063e939760b07c567d01bafbcc9b"
+      },
+      "combinations": {
+        "general": "37fdf77dc10eefe291cf1e0d8583ac4de5841eabdfb237c2dfe1a0708b742dfc",
+        "general+paths": "f8415a8e00919afbba6a6e83209c4602479f50055fceba2d9c0af29250f8f4f7",
+        "game": "25fa42ebe1352286f71ed0d801f00742fb7283f06e7346e56ba63add636870db",
+        "game+paths": "a4515271c051f7e08737fee5558d0f5fb830400ae2c7ca72d8074fe8310b83d4"
+      },
+      "promptSha256": "37fdf77dc10eefe291cf1e0d8583ac4de5841eabdfb237c2dfe1a0708b742dfc",
+      "files": {
+        "index.html": "2a30d0777a7008de41f8b81e30bcbdc2b8b12a428c18be9982d2aca4e1938952",
+        "workbook.js": "329abac1bd6c05992d06ab656deea524af5ea01c555f5384f1fbbad79b60b7a4",
+        "workbook.css": "044bed707ea80b97217bf66f3ef4bff179cd0582cfa9902db93b0aba1e058de4",
+        "compose.js": "a0bb4d7b3b956d6625c2e2f9f25090627b1c929f503d2165352db899877865f3",
+        "student-prompt.js": "af6c2ef524e3a148714002a6fe01489f46928786bf322fcab97c64b3599d07a7",
+        "student-prompt.txt": "37fdf77dc10eefe291cf1e0d8583ac4de5841eabdfb237c2dfe1a0708b742dfc"
+      }
+    }
+  },
+  "verified": {
+    "nodeTests": "PASS 5 suites: public UI, generic migration parity, four compositions, legacy student prompt, legacy workbook",
+    "pythonDeploymentTests": 92,
+    "productionBrowser": {
+      "base": "https://minisv.vip",
+      "combinations": [
+        {
+          "game": true,
+          "paths": false,
+          "clipboard": "PASS",
+          "promptSha256": "25fa42ebe1352286f71ed0d801f00742fb7283f06e7346e56ba63add636870db"
+        },
+        {
+          "game": true,
+          "paths": true,
+          "clipboard": "PASS",
+          "promptSha256": "a4515271c051f7e08737fee5558d0f5fb830400ae2c7ca72d8074fe8310b83d4"
+        },
+        {
+          "game": false,
+          "paths": true,
+          "clipboard": "PASS",
+          "promptSha256": "f8415a8e00919afbba6a6e83209c4602479f50055fceba2d9c0af29250f8f4f7"
+        },
+        {
+          "game": false,
+          "paths": false,
+          "clipboard": "PASS",
+          "promptSha256": "37fdf77dc10eefe291cf1e0d8583ac4de5841eabdfb237c2dfe1a0708b742dfc"
+        }
+      ],
+      "inputPreserved": true,
+      "fallback": "PASS",
+      "missingDataDisabled": true,
+      "presetAndLegacyEntry": "PASS",
+      "viewports": [
+        1280,
+        768,
+        390
+      ],
+      "overflow": false,
+      "pageErrors": []
+    },
+    "anonymousProductionFileHashes": 12,
+    "legacyGenericRedirect": "PASS /prompts/general[/index.html] → /prompts/?game=0",
+    "courseWorkbookStableRedirect": "PASS /courseware/latest/p1/workbook/ → /prompts/",
+    "teacherAndAudienceAuth": "401 preserved",
+    "unknownPromptResources": "404",
+    "deploymentHealth": "MINISV_HECATE_HEALTHY",
+    "unchangedExistingSiteFiles": 3269,
+    "historicCourseware": "all bytes preserved; same r29 build; no saved text changes",
+    "publicSmoke": "PASS 163 routes; MINISV_PUBLIC_SMOKE_OK"
+  },
+  "parity": {
+    "general": "原通用文案拆分后除标题与阶段用语参数化，可完整复原原稿，自动断言通过",
+    "game": "保留原关键规则；具体对应见 prompts/MODULAR_PARITY.md",
+    "caveat": "静态规范与浏览器验证不能保证不同外部 AI 的实际输出行为完全等价"
+  },
+  "notVerified": [
+    "真实外部 AI 多轮路径对齐、确认停点及最终文档行为，继续由用户验收",
+    "实体平板与人工课堂试讲",
+    "完整应用 ESLint，本轮复用原应用产物"
+  ],
+  "rollback": {
+    "previousRelease": "20260929-general-prompts-v2",
+    "backup": "~/Services/minisv/backups/20260929T051246Z-20260929-modular-prompts",
+    "command": "zsh ~/Services/minisv/current/ops/scripts/rollback-hecate.sh 20260929-general-prompts-v2",
+    "executed": false
+  },
+  "dataSafety": "不上传或存储策划；URL只保存组合开关；测试仅自拟文本；未发布私人材料或账号、未修改历史课件与数据库；未改变GitHub可见性，IP迁移暂停。"
+}
