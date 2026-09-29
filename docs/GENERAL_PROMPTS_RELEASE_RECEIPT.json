@@ -1,0 +1,100 @@
+{
+  "date": "2026-09-29",
+  "release": "20260929-general-prompts-v2",
+  "coursewareRevision": 29,
+  "entries": {
+    "game": "https://minisv.vip/prompts/",
+    "general": "https://minisv.vip/prompts/general/"
+  },
+  "sourceCommit": "dd2c54209b66db4e6f3780f14e045688dfd734f8",
+  "archiveSha256": "2a8ba9db373500c899b412ca10f6d3c280af765a0b632e2e4e015b4460ab7eea",
+  "manifests": {
+    "game": {
+      "version": "public-prompts-2",
+      "promptVersion": "r24-simple-5",
+      "promptSha256": "0115cb417d432841867da325d8c822b461b14ad02030f48cb4d45abbdc8037bc",
+      "files": {
+        "index.html": "0fb923c39792480e33d18208ee3bae76bc930fe4e95dc101abc77fbdac25b858",
+        "workbook.js": "675c169b156311bce64eb350b77c0459ff3e23467ba17a1aab53af63dd3cde86",
+        "workbook.css": "c4a49e25d52d220de420ba8f9e7c316e283b44de16ed6f3ef9175135e8459e08",
+        "student-prompt.js": "f584f53cb3eb02ec9233bfca07554855fb25061c5a451ad8e747288c709d98a4",
+        "student-prompt.txt": "0115cb417d432841867da325d8c822b461b14ad02030f48cb4d45abbdc8037bc"
+      },
+      "canonical": "/prompts/",
+      "general": {
+        "version": "general-project-1",
+        "promptSha256": "d59b78cc22bc760d1281d8ee55fcd021dbe99144406c704b85aacabaf5d63aae",
+        "canonical": "/prompts/general/",
+        "files": {
+          "index.html": "0b70952ed4d4b9fc1a1db44d4ab8449cdfcf1f598ff1f12be1a71f885b248478",
+          "workbook.js": "f81b966e3bcc5eb6172d199d066269d1173cecc5f340088929e9be66748f6f66",
+          "workbook.css": "c4a49e25d52d220de420ba8f9e7c316e283b44de16ed6f3ef9175135e8459e08",
+          "student-prompt.js": "ee8a5a4526cad34fb0c0cf411e3d79039753c0e577f29ee82d835241bdf19949",
+          "student-prompt.txt": "d59b78cc22bc760d1281d8ee55fcd021dbe99144406c704b85aacabaf5d63aae"
+        }
+      }
+    },
+    "general/": {
+      "version": "general-project-1",
+      "promptSha256": "d59b78cc22bc760d1281d8ee55fcd021dbe99144406c704b85aacabaf5d63aae",
+      "canonical": "/prompts/general/",
+      "files": {
+        "index.html": "0b70952ed4d4b9fc1a1db44d4ab8449cdfcf1f598ff1f12be1a71f885b248478",
+        "workbook.js": "f81b966e3bcc5eb6172d199d066269d1173cecc5f340088929e9be66748f6f66",
+        "workbook.css": "c4a49e25d52d220de420ba8f9e7c316e283b44de16ed6f3ef9175135e8459e08",
+        "student-prompt.js": "ee8a5a4526cad34fb0c0cf411e3d79039753c0e577f29ee82d835241bdf19949",
+        "student-prompt.txt": "d59b78cc22bc760d1281d8ee55fcd021dbe99144406c704b85aacabaf5d63aae"
+      }
+    }
+  },
+  "scope": [
+    "新增通用项目版，保留游戏版正文及复制逻辑",
+    "适配数字工具、实物、活动服务、内容资料，不默认软件或APP",
+    "六项主棍与模块地图、逐个子棍确认、主动推荐与选项、整份实施文档单代码框",
+    "只交付文档，不执行项目；公共分类导航与免登录复制"
+  ],
+  "verified": {
+    "nodePromptAndWorkbookTests": "PASS 4 suites",
+    "pythonDeploymentTests": 92,
+    "productionBrowser": {
+      "base": "https://minisv.vip",
+      "normalCopy": "PASS",
+      "navigationBothDirections": "PASS",
+      "gamePromptUnchanged": "PASS",
+      "viewports": [
+        1280,
+        768,
+        390
+      ],
+      "horizontalOverflow": false,
+      "pageErrors": [],
+      "copiedSha256": "98dc28265bbd06bcb9818a4ca601735ed1c3879fd361eb5f0e0dcb4ce87d6537"
+    },
+    "anonymousProductionFileHashes": 10,
+    "teacherAndAudienceDeckAuth": "401 preserved",
+    "unknownGeneralResources": "404",
+    "generalTrailingSlashRedirect": "PASS",
+    "unchangedExistingSiteFiles": 3272,
+    "gamePromptUnchangedSha256": "0115cb417d432841867da325d8c822b461b14ad02030f48cb4d45abbdc8037bc",
+    "deploymentHealth": "MINISV_HECATE_HEALTHY",
+    "publicSmoke": "PASS 160 routes; MINISV_PUBLIC_SMOKE_OK"
+  },
+  "notVerified": [
+    "真实外部 AI 多轮问答及最终文档行为，继续由用户验收；静态断言不是行为验收",
+    "实体平板与人工课堂试讲",
+    "完整应用 ESLint，本轮复用已部署应用产物"
+  ],
+  "releaseAttempt": {
+    "firstCandidate": "20260929-general-prompts",
+    "healthGate": "作业列表接口返回504，原流程自动回滚至20260929-public-prompts-v2；回滚后接口200。未跳过健康检查。未确认首次504根因。",
+    "firstBackup": "~/Services/minisv/backups/20260929T033111Z-20260929-general-prompts",
+    "retry": "使用同一源码重新打包为不可变 general-prompts-v2，全部部署健康检查通过"
+  },
+  "rollback": {
+    "previousRelease": "20260929-public-prompts-v2",
+    "backup": "~/Services/minisv/backups/20260929T034403Z-20260929-general-prompts-v2",
+    "command": "zsh ~/Services/minisv/current/ops/scripts/rollback-hecate.sh 20260929-public-prompts-v2",
+    "executedForSuccessfulRelease": false
+  },
+  "dataSafety": "不发布私人原稿或对话；测试仅使用自拟图书交换活动文本；不更改历史课件、已保存文字、数据库、GitHub公开权限。IP迁移保持暂停。"
+}
