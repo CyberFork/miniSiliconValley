@@ -5,7 +5,7 @@ import {join,resolve} from 'node:path';
 import {createHash} from 'node:crypto';
 import vm from 'node:vm';
 import {buildStudentWorkbook} from '../scripts/prompt-packs.mjs';
-const root=resolve(import.meta.dirname,'..'),source=join(root,'ai-materials/workbook');
+const root=resolve(import.meta.dirname,'..'),source=resolve(root,'../../prompts/game-development');
 const prompt=await readFile(join(source,'student-prompt.txt'),'utf8');
 for(const term of ['主棍＋模块地图','子棍＋模块描述','执行者→上下文与项目设计→目标→约束→避免→验收','每次只展示一个模块','未确认前，不要派生子棍','不写游戏代码','完整文档交付后就停止','基于立棍方法的开发文档','不要把一条操作路线直接当成整个模块地图'])assert(prompt.includes(term),term);
 // Check the actual progress block, not unrelated mentions elsewhere in the prompt.

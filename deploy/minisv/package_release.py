@@ -725,6 +725,10 @@ def build(
 
     transform_tree(output)
 
+    # Public prompts build independently from one canonical source, not a frozen deck.
+    import subprocess
+    subprocess.run(["node", str(Path(__file__).resolve().parents[2] / "prompts/build.mjs"), str(output / "prompts")], check=True)
+
     # T-124 projects are curated browser-only applications. Copy their exact
     # declared runtime files after global text/theme transforms so the original
     # interactions cannot be silently altered and no patch/QA workspace files
@@ -949,7 +953,7 @@ def build(
         "schemaVersion": 2,
         "scope": "public-website",
         "routes": [
-            "/", "/world/", "/framework/", "/parents/", "/incubator/",
+            "/", "/world/", "/framework/", "/parents/", "/incubator/", "/prompts/",
             "/incubator/projects/", "/incubator/projects/recitation/",
             "/incubator/projects/mistake-notebook/",
         ],

@@ -8,6 +8,7 @@
   const deck = permanent ? permanent[1] : match[1] === 'development-mentor-module-thinking' ? 'p1' : 'p2';
   const workshop = path.includes('/workshop/');
   const workbook = path.includes('/workbook/');
+  if (permanent && workbook) { location.replace('/prompts/' + location.search); return; }
   const audience = /\/audience\//.test(path);
   const params = new URLSearchParams(location.search);
   function targetPath(record) {

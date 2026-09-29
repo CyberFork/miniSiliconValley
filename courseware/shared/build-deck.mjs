@@ -59,6 +59,7 @@ export async function buildDeck(name){
    if(doc.generated){Object.assign(doc,packs[doc.filename]);await writeFile(join(dist,'audience/ai-materials/templates',doc.filename),doc.text);}
    else doc.text=await readFile(join(root,'ai-materials/templates',doc.filename),'utf8');
   }
+  await mkdir(join(dist,'audience/ai-materials/workbook'),{recursive:true});
   await writeFile(join(dist,'audience/ai-materials/workbook/catalog.js'),'window.MSV_PROMPT_TEMPLATES = '+JSON.stringify(catalog)+';\nwindow.MSV_COACH_SPEC = '+JSON.stringify({...coach,compatible:spec.compatible,start:spec.start})+';\n');
   await buildStudentWorkbook(join(root,'ai-materials/workbook'),join(dist,'audience/ai-materials/workbook'));
   zip(join(dist,'audience/ai-materials/templates'),join(dist,'audience/ai-materials/templates/templates.zip'));

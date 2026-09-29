@@ -54,6 +54,7 @@
       ["课程大纲", "/framework/"],
       ["项目孵化", "/incubator/"],
       ["家长入口", "/parents/"],
+      ["提示词中心", "/prompts/"],
       ["上课入口", "/classroom/"],
       ["课件查看", "/course/"],
     ].forEach(function (item) {

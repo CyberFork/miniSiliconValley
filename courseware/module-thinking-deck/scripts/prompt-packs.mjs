@@ -28,15 +28,5 @@ export async function buildCoach(dir,output){
  return {...manifest,packageSha256:sha(await readFile(zip))};
 }
 
-// Student-facing prompt is deliberately independent of the historical Skill UI.
-// One canonical text feeds both ordinary builds and the r24 maintenance layer.
-export async function buildStudentWorkbook(source,output){
- await mkdir(output,{recursive:true});
- const text=await readFile(join(source,'student-prompt.txt'),'utf8');
- if(!text.trim())throw new Error('Student prompt is empty');
- for(const file of ['index.html','workbook.js','workbook.css'])await writeFile(join(output,file),await readFile(join(source,file)));
- await writeFile(join(output,'student-prompt.js'),'window.MSV_STUDENT_PROMPT = '+JSON.stringify(text)+';\n');
- const files={};
- for(const file of ['index.html','workbook.js','workbook.css','student-prompt.js'])files[file]=sha(await readFile(join(output,file)));
- return {version:'r24-simple-5',promptSha256:sha(text),files};
-}
+// The public prompt center owns the student source; course builds only consume it.
+export {buildStudentWorkbook,studentWorkbookSource} from '../../../prompts/build.mjs';
