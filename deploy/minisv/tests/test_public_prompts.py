@@ -9,17 +9,19 @@ class PublicPromptsTests(unittest.TestCase):
     def test_exact_public_routes_and_old_links(self):
         config = (ROOT / 'gateway/default.conf').read_text()
         for name in ['', 'index.html', 'workbook.css', 'workbook.js',
-                     'student-prompt.js', 'student-prompt.txt', 'manifest.json']:
+                     'student-prompt.js', 'student-prompt.txt', 'compose.js', 'manifest.json']:
             block = re.search(r'location = ' + re.escape('/prompts/' + name) + r' \{([^}]+)\}', config)
             self.assertIsNotNone(block, name)
             self.assertNotIn('auth_request', block[1])
             self.assertIn('try_files', block[1])
         routes=re.findall(r'location = ([^ ]+) \{',config)
         self.assertEqual(len(routes),len(set(routes)),'exact locations must be unique')
-        for name in ['', 'index.html', 'workbook.css', 'workbook.js', 'student-prompt.js', 'student-prompt.txt', 'manifest.json']:
+        for name in ['', 'index.html', 'workbook.css', 'workbook.js', 'student-prompt.js', 'student-prompt.txt', 'compose.js', 'manifest.json']:
             block=re.search(r'location = '+re.escape('/prompts/general/'+name)+r' \{([^}]+)\}',config)
             self.assertIsNotNone(block,name)
             self.assertNotIn('auth_request',block[1])
+        for route in ['/prompts/general','/prompts/general/','/prompts/general/index.html']:
+            self.assertIn(f'location = {route} {{ return 302 /prompts/?game=0; }}',config)
         self.assertIn('location ^~ /prompts/ { return 404; }', config)
         for revision in range(24, 30):
             for name in ['', 'index.html']:

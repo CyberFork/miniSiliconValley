@@ -22,10 +22,12 @@ for(const file of ['ui-theme.js','courseware-current.js'])await writeFile(join(s
 const chrome=await readFile(join(site,'courseware-current.js'));
 await writeFile(join(site,'courseware-current-'+createHash('sha256').update(chrome).digest('hex').slice(0,16)+'.js'),chrome);
 const sitemap=JSON.parse(await readFile(join(site,'sitemap.json'),'utf8'));
-for(const route of ['/prompts/','/prompts/general/'])if(!sitemap.routes.includes(route))sitemap.routes.push(route);
+sitemap.routes=sitemap.routes.filter(route=>route!=='/prompts/general/');
+for(const route of ['/prompts/'])if(!sitemap.routes.includes(route))sitemap.routes.push(route);
 await writeFile(join(site,'sitemap.json'),JSON.stringify(sitemap,null,2)+'\n');
 let xml=await readFile(join(site,'sitemap.xml'),'utf8');
-for(const route of ['/prompts/','/prompts/general/'])if(!xml.includes('https://minisv.vip'+route+'</loc>'))xml=xml.replace('</urlset>','  <url><loc>https://minisv.vip'+route+'</loc></url>\n</urlset>');
+xml=xml.replace(/\s*<url><loc>https:\/\/minisv\.vip\/prompts\/general\/<\/loc><\/url>/g,'');
+for(const route of ['/prompts/'])if(!xml.includes('https://minisv.vip'+route+'</loc>'))xml=xml.replace('</urlset>','  <url><loc>https://minisv.vip'+route+'</loc></url>\n</urlset>');
 await writeFile(join(site,'sitemap.xml'),xml);
 const metadata=JSON.parse(await readFile(join(site,'release.json'),'utf8'));
 metadata.publicPromptCenter={...manifest,previousRelease:metadata.release,sourceCommit};

@@ -953,7 +953,7 @@ def build(
         "schemaVersion": 2,
         "scope": "public-website",
         "routes": [
-            "/", "/world/", "/framework/", "/parents/", "/incubator/", "/prompts/", "/prompts/general/",
+            "/", "/world/", "/framework/", "/parents/", "/incubator/", "/prompts/",
             "/incubator/projects/", "/incubator/projects/recitation/",
             "/incubator/projects/mistake-notebook/",
         ],

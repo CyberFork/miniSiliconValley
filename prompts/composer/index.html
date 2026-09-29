@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="公开立棍提示词中心：通用主棍与子棍底座，按需加入游戏领域和路径对齐，一次复制给 AI。"><link rel="canonical" href="https://minisv.vip/prompts/"><title>提示词中心｜MINI硅谷</title><link rel="stylesheet" href="/prompts/workbook.css?v=modular-1"><link rel="icon" href="/favicon.svg" type="image/svg+xml"></head>
+<body>
+<a class="skip-link" href="#main-content">跳到提示词</a>
+<header><a class="brand" href="/" aria-label="MINI硅谷首页">MINI硅谷</a><nav aria-label="网站导航"><a href="/">首页</a><a href="/prompts/" aria-current="page">提示词中心</a><a href="/course/">课件查看</a></nav></header>
+<main id="main-content">
+<p class="label">公开使用 · 无需登录</p><h1>搭配你的立棍提示词</h1>
+<p class="intro">选好需要的内容，带上你的想法，一次复制给 AI。由 AI 提问和整理，由你决定。</p>
+<fieldset class="module-picker"><legend>提示词组合</legend>
+<div class="module-card required"><span class="badge">必选</span><strong>立棍底座 · 主棍＋子棍</strong><p>说清整体目标与模块地图，再逐个确认模块，最后拿到完整文档。</p></div>
+<label class="module-card choice" for="use-game"><input id="use-game" type="checkbox" checked disabled aria-describedby="game-hint"><span><strong>游戏领域</strong><span class="tag">默认开启</span><span class="module-hint" id="game-hint">补充玩法、设备、画面、操作与游戏 UI。取消勾选，就是通用项目版。</span></span></label>
+<label class="module-card choice" for="use-paths"><input id="use-paths" type="checkbox" disabled aria-describedby="paths-hint"><span><strong>路径对齐</strong><span class="tag">可选增强</span><span class="module-hint" id="paths-hint">先说清用户怎样完成几件主要的事，再归纳模块，并沿这些路径检查模块能否配合。</span></span></label>
+</fieldset>
+<p id="selection-summary" class="selection-summary" aria-live="polite">当前组合：立棍底座＋游戏领域</p>
+<section class="panel" aria-labelledby="planning-label">
+<label id="planning-label" for="planning">我的想法或已有策划</label>
+<p class="hint" id="planning-hint">粘贴已有方案，或者写一句想法。也可以留空，让 AI 先问你。</p>
+<textarea id="planning" aria-describedby="planning-hint" placeholder="我想做……，给……使用，希望能够……。" spellcheck="false"></textarea>
+<p class="hint">已有策划、UI、原型或参考资料？复制后可在 AI 对话中一起提供；暂时不提供也能继续，以后再补。本页不上传附件。</p>
+<button id="copy" type="button" disabled>复制提示词＋我的项目说明</button>
+<p id="status" role="status" aria-live="polite">正在准备提示词…</p>
+<noscript><p>请启用浏览器 JavaScript 后刷新，才能组合和复制提示词。</p></noscript>
+<p class="privacy">切换选项不会清空输入。本页不上传或保存项目说明；关闭或刷新前请先复制备份，不要填写账号密码。</p>
+</section>
+<section class="outcome" aria-labelledby="outcome-title"><h2 id="outcome-title">最后拿到：基于立棍方法的开发文档</h2><p><strong>宏观：主棍＋模块地图</strong>，看清整个项目。</p><p><strong>微观：子棍＋模块描述</strong>，说清每个模块。</p><p class="hint">这里仅拼好提示词。复制给 AI 后，才开始问答和整理文档；不会自动执行项目。</p></section>
+<details id="preview-panel"><summary>查看将复制的完整内容</summary><label for="preview">所选提示词＋我的项目说明</label><textarea id="preview" readonly spellcheck="false"></textarea></details>
+<footer>方向由你决定，细节让 AI 帮忙整理。<a href="/">返回 MINI硅谷首页</a></footer>
+</main><script src="/prompts/compose.js?v=modular-1"></script><script src="/prompts/student-prompt.js?v=modular-1"></script><script src="/prompts/workbook.js?v=modular-1"></script>
+</body></html>
