@@ -305,7 +305,7 @@ class CourseReleaseTests(unittest.TestCase):
             self.assertEqual(snapshot["source"]["channel"], "released")
             self.assertEqual(snapshot["scope"], "public-redacted-summary")
             self.assertEqual(json.loads((output / "sitemap.json").read_text())["routes"], [
-                "/", "/world/", "/framework/", "/parents/", "/incubator/", "/prompts/",
+                "/", "/world/", "/framework/", "/parents/", "/incubator/", "/prompts/", "/prompts/general/",
                 "/incubator/projects/", "/incubator/projects/recitation/",
                 "/incubator/projects/mistake-notebook/",
             ])

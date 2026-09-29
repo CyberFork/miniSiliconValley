@@ -4,6 +4,7 @@ import {join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 export const studentWorkbookSource=fileURLToPath(new URL('./game-development/',import.meta.url));
+export const generalWorkbookSource=fileURLToPath(new URL('./general-project/',import.meta.url));
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 export async function buildStudentWorkbook(source,output){
  await mkdir(output,{recursive:true});
@@ -18,8 +19,31 @@ export async function buildStudentWorkbook(source,output){
 }
 export async function buildPromptCenter(output){
  const manifest=await buildStudentWorkbook(studentWorkbookSource,output);
+ manifest.version='public-prompts-2';
  manifest.files['student-prompt.txt']=manifest.promptSha256;
  manifest.canonical='/prompts/';
+ manifest.general=await buildGeneralWorkbook(join(output,'general'));
+ await writeFile(join(output,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
+ return manifest;
+}
+export async function buildGeneralWorkbook(output){
+ await mkdir(output,{recursive:true});
+ const text=await readFile(join(generalWorkbookSource,'student-prompt.txt'),'utf8');
+ if(!text.trim())throw new Error('General project prompt is empty');
+ await writeFile(join(output,'index.html'),await readFile(join(generalWorkbookSource,'index.html')));
+ await writeFile(join(output,'workbook.css'),await readFile(join(studentWorkbookSource,'workbook.css')));
+ // Reuse the tested copy/fallback runtime without changing the existing game bytes.
+ let runtime=await readFile(join(studentWorkbookSource,'workbook.js'),'utf8');
+ for(const [from,to] of [['游戏策划','项目说明'],['游戏想法','项目想法'],['策划','方案']]){
+  if(!runtime.includes(from))throw new Error('Shared copy runtime changed; review project labels');
+  runtime=runtime.replaceAll(from,to);
+ }
+ await writeFile(join(output,'workbook.js'),runtime);
+ await writeFile(join(output,'student-prompt.txt'),text);
+ await writeFile(join(output,'student-prompt.js'),'window.MSV_STUDENT_PROMPT = '+JSON.stringify(text)+';\n');
+ const files={};
+ for(const file of ['index.html','workbook.js','workbook.css','student-prompt.js','student-prompt.txt'])files[file]=sha(await readFile(join(output,file)));
+ const manifest={version:'general-project-1',promptSha256:sha(text),canonical:'/prompts/general/',files};
  await writeFile(join(output,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
  return manifest;
 }
