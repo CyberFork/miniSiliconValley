@@ -463,7 +463,7 @@ def main() -> None:
             data = envelope.get("data") if envelope.get("ok") is True else None
             if not isinstance(data, dict) or not isinstance(data.get("submissions"), list):
                 raise SystemExit("FAIL public homework list: invalid response envelope")
-        if path in {"/", "/world/", "/framework/", "/parents/", "/incubator", "/incubator/", "/incubator/projects/", "/incubator/projects/recitation/", "/incubator/projects/mistake-notebook/"}:
+        if (expected != 404 and (path == "/prompts" or path.startswith("/prompts/"))) or path in {"/", "/world/", "/framework/", "/parents/", "/incubator", "/incubator/", "/incubator/projects/", "/incubator/projects/recitation/", "/incubator/projects/mistake-notebook/"}:
             if headers.get("x-robots-tag") != "index, follow":
                 raise SystemExit(f"FAIL {path}: public page is not indexable")
         elif headers.get("x-robots-tag") != "noindex, nofollow, noarchive":

@@ -1,0 +1,69 @@
+{
+  "date": "2026-09-29",
+  "release": "20260929-public-prompts-v2",
+  "coursewareRevision": 29,
+  "entry": "https://minisv.vip/prompts/",
+  "sourceCommit": "39d6ab7663b993277d36c19f6cd8b4892be85a6f",
+  "archiveSha256": "90a6cbcc2621758389b3f886f44ce82ed8b34e3a1cce664701bc1e4753064a35",
+  "promptCenter": {
+    "version": "public-prompts-1",
+    "promptVersion": "r24-simple-5",
+    "promptSha256": "0115cb417d432841867da325d8c822b461b14ad02030f48cb4d45abbdc8037bc",
+    "files": {
+      "index.html": "63277d8f5a7d61a547180b57f1e1fc159d9394a3ce2963a8451d04837ebd8981",
+      "workbook.js": "675c169b156311bce64eb350b77c0459ff3e23467ba17a1aab53af63dd3cde86",
+      "workbook.css": "ec992458a9fd10388a3f1af09e1edf4c865a8d5bbfa7656500b46c930c15be64",
+      "student-prompt.js": "f584f53cb3eb02ec9233bfca07554855fb25061c5a451ad8e747288c709d98a4",
+      "student-prompt.txt": "0115cb417d432841867da325d8c822b461b14ad02030f48cb4d45abbdc8037bc"
+    },
+    "canonical": "/prompts/"
+  },
+  "scope": [
+    "独立公开提示词中心与首页导航",
+    "策划输入与完整提示词一键复制",
+    "单一规范源，不修改原提示词正文",
+    "r24–r29及稳定workbook入口跳转，历史课件字节不变",
+    "未改变GitHub仓库可见性或许可证"
+  ],
+  "verified": {
+    "nodePromptTests": "PASS",
+    "pythonDeploymentTests": 92,
+    "localAndProductionBrowser": {
+      "base": "https://minisv.vip",
+      "clipboard": "PASS",
+      "widths": [
+        1280,
+        768,
+        390
+      ],
+      "overflow": false,
+      "pageErrors": [],
+      "copiedSha256": "65951884ec7e7b51ab60a55f8537e823bf44d9ec29334c9375ef82c8ab169f5f"
+    },
+    "anonymousProductionFileHashes": 5,
+    "legacyRedirects": "PASS r24-r29, latest/p1/workbook, /prompts",
+    "homepageNavigationClick": "PASS",
+    "teacherAndAudienceDeckAuth": "401 preserved",
+    "unchangedExistingSiteFiles": 3265,
+    "coursewareBuildDigest": "327ade76863a2d29b7fadf585dc52066916eb64fa32dbfb0527ba9857d003cfd",
+    "deploymentHealth": "MINISV_HECATE_HEALTHY",
+    "publicSmoke": "PASS 151 routes; MINISV_PUBLIC_SMOKE_OK"
+  },
+  "notVerified": [
+    "实体平板与人工课堂试讲",
+    "真实外部AI对话（正文未改，继续由用户验收）",
+    "本地完整应用ESLint（依赖不可用；本轮复用原应用产物）"
+  ],
+  "preflight": {
+    "firstCandidate": "20260929-public-prompts",
+    "result": "重复路由被nginx -t阻止，生产尚未切换；修正并新增唯一性测试后发布v2"
+  },
+  "rollback": {
+    "previousRelease": "20260925-course-map-r29",
+    "backup": "~/Services/minisv/backups/20260929T030832Z-20260929-public-prompts-v2",
+    "command": "zsh ~/Services/minisv/current/ops/scripts/rollback-hecate.sh 20260925-course-map-r29",
+    "executed": false
+  },
+  "dataSafety": "未发布私人原稿、登录资料或测试转录；未更改数据库、课件已保存文字和历史课件文件。",
+  "verificationNote": "发布后更新外网烟测的公开索引断言：公开提示词页可索引，404 仍不可索引；仅测试脚本变更，线上页面字节不变。"
+}
