@@ -14,6 +14,8 @@ class PublicPromptsTests(unittest.TestCase):
             self.assertIsNotNone(block, name)
             self.assertNotIn('auth_request', block[1])
             self.assertIn('try_files', block[1])
+        routes=re.findall(r'location = ([^ ]+) \{',config)
+        self.assertEqual(len(routes),len(set(routes)),'exact locations must be unique')
         self.assertIn('location ^~ /prompts/ { return 404; }', config)
         for revision in range(24, 30):
             for name in ['', 'index.html']:

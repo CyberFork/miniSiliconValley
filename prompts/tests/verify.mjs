@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import vm from 'node:vm';
 import { buildPromptCenter, studentWorkbookSource } from '../build.mjs';
