@@ -1,0 +1,70 @@
+{
+  "date": "2026-10-12",
+  "release": "20261012-student-showcase",
+  "sourceCommit": "c38065b6dadc6d5831fb136ea6c4029b2395d176",
+  "archiveSha256": "358279de44f2bcf46709ef00841232c3c5a8e4dce9a1dc7b3713ed0e1a6e6c28",
+  "entry": "https://minisv.vip/showcase/2026-09/",
+  "students": [
+    {
+      "name": "蔡玮恩",
+      "entry": "https://minisv.vip/showcase/2026-09/cwe/",
+      "game": "https://minisv.vip/showcase/2026-09/cwe/play/",
+      "slides": "https://minisv.vip/showcase/2026-09/cwe/slides/"
+    },
+    {
+      "name": "唐梓轩",
+      "entry": "https://minisv.vip/showcase/2026-09/tzx/",
+      "game": "https://minisv.vip/showcase/2026-09/tzx/play/",
+      "slides": "https://minisv.vip/showcase/2026-09/tzx/slides/"
+    }
+  ],
+  "nameCorrection": "公开蔡同学路演中蔡玮思→蔡玮恩，原始压缩包未更改",
+  "importManifestSha256": "518979bbe67c73a3c66dd7d3397b6e4e15cf663ef1b046c031d67cdc1310c33e",
+  "verified": {
+    "deploymentHealth": "MINISV_HECATE_HEALTHY",
+    "unitTests": 99,
+    "publicFilesHashChecked": 111,
+    "productionBrowser": {
+      "base": "https://minisv.vip",
+      "checks": [
+        "CWE nickname dialog + browser save/reload + iframe isolation",
+        "Storage key + message-source restrictions",
+        "CWE start, keyboard inputs, return-to-menu/reload",
+        "TZX start, grade/character, explicit self-reading completion, keyboard inputs, save/reload",
+        "cwe slides name, next page, fullscreen",
+        "tzx slides name, next page, fullscreen",
+        "Direct runtime HTTP sandbox",
+        "390/768/1280 layouts no outer overflow + tablet-emulated touch start"
+      ],
+      "pageErrors": []
+    },
+    "runtimeHeaders": "普通及百分号编码 runtime 地址均具有 HTTP sandbox / connect-src none；直接打开也保持隔离",
+    "preservedExistingSiteFiles": 3282,
+    "changedExistingSiteFiles": [
+      "index.html",
+      "ui-theme.js",
+      "release.json",
+      "MANIFEST.sha256"
+    ],
+    "newFiles": 111,
+    "publicSmoke": {
+      "status": "MINISV_PUBLIC_SMOKE_OK",
+      "routes": 179,
+      "includesHttpRedirect": true
+    },
+    "shareLinkCopy": "生产浏览器复制及权限拒绝后的手动复制降级均通过"
+  },
+  "notVerified": [
+    "完整通关、全部角色/模式和游戏平衡",
+    "实体手机/平板及Safari/微信内置浏览器",
+    "真人路演/课堂试讲",
+    "真实互联网组队及语音自动评分：原型模拟/公开自读模式，不作为已实现能力"
+  ],
+  "rollback": {
+    "previousRelease": "20260929-modular-prompts",
+    "backup": "~/Services/minisv/backups/20261011T174939Z-20261012-student-showcase",
+    "command": "zsh ~/Services/minisv/current/ops/scripts/rollback-hecate.sh 20260929-modular-prompts",
+    "executed": false
+  },
+  "scopeSafety": "新增同域路径；不新增子域名，不改账号映射/资料/数据库，不发布原始ZIP、私有策划/开发记录及其他学生材料，保留历史课件、提示词和教师访问控制，IP迁移保持暂停。"
+}
