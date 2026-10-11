@@ -18,7 +18,7 @@ class GatewayContractTests(unittest.TestCase):
     def test_p1_module_mime_and_local_wasm_policy(self) -> None:
         self.assertIn('include /etc/nginx/mime.types;', self.gateway)
         self.assertIn('types { application/javascript mjs; }', self.gateway)
-        mapping=self.gateway.split('map $request_uri $minisv_csp {',1)[1].split('\n}',1)[0]
+        mapping=self.gateway.split('map $request_uri $minisv_page_csp {',1)[1].split('\n}',1)[0]
         policy=next(line for line in mapping.splitlines() if line.strip().startswith('~^/courseware/development-mentor-module-thinking/ "'))
         self.assertIn("'wasm-unsafe-eval'",policy)
         self.assertNotIn("'unsafe-eval'",policy)
