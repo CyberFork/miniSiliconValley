@@ -7,6 +7,18 @@
   const allowedKeys = student === 'cwe' ? ['kirby_cp_profiles_v1', 'kirby_cp_current_user_v1'] : student === 'tzx' ? ['phantom-game-progress'] : [];
   const expected = `/showcase/2026-09/${student}/runtime/${kind === 'game' ? 'game' : 'slides'}/index.html`;
   if (!allowedKeys.length || !['game', 'slides'].includes(kind) || frame.dataset.src !== expected) return;
+  let fullscreenTarget = frame;
+  if (kind === 'slides') {
+    // Keep the student's desktop slide layout intact rather than squeezing it into phone columns.
+    const stage=document.createElement('div'); stage.className='slides-stage';
+    frame.before(stage);stage.append(frame);fullscreenTarget=stage;
+    function fitSlide() {
+      const scale=Math.min(stage.clientWidth/1280,stage.clientHeight/720);
+      Object.assign(frame.style,{width:'1280px',height:'720px',minHeight:'0',position:'absolute',left:((stage.clientWidth-1280*scale)/2)+'px',top:((stage.clientHeight-720*scale)/2)+'px',transform:`scale(${scale})`,transformOrigin:'top left'});
+    }
+    new ResizeObserver(fitSlide).observe(stage);
+    document.addEventListener('fullscreenchange',fitSlide);
+  }
   const namespace = `minisv.showcase.2026-09.${student}.`;
   const status = document.getElementById('load-status');
   const maxBytes = 200000;
@@ -46,7 +58,7 @@
   });
   document.getElementById('reload-frame')?.addEventListener('click', load);
   document.getElementById('fullscreen-frame')?.addEventListener('click', async () => {
-    try { await frame.requestFullscreen(); } catch (_) { setStatus('当前浏览器不支持全屏，可横屏或放大浏览器窗口。'); }
+    try { await fullscreenTarget.requestFullscreen(); } catch (_) { setStatus('当前浏览器不支持全屏，可横屏或放大浏览器窗口。'); }
   });
   document.getElementById('copy-link')?.addEventListener('click', async () => {
     const link = location.origin + location.pathname;
