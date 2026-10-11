@@ -22,7 +22,7 @@
   const namespace = `minisv.showcase.2026-09.${student}.`;
   const status = document.getElementById('load-status');
   const maxBytes = 200000;
-  let memory = Object.create(null), timeout;
+  let memory = Object.create(null), timeout, running = false;
   function setStatus(text) { if (status) status.textContent = text; }
   function readSaved() {
     for (const key of allowedKeys) {
@@ -32,6 +32,7 @@
   }
   function load() {
     clearTimeout(timeout);
+    running = false;
     setStatus('正在加载作品，请稍候…');
     readSaved();
     frame.src = expected;
@@ -39,7 +40,7 @@
   }
   frame.addEventListener('load', () => {
     clearTimeout(timeout);
-    setStatus(kind === 'game' ? '游戏页面已载入，正在初始化…' : '路演已载入，可使用画面内的翻页按钮。');
+    setStatus(kind === 'game' ? (running ? '游戏已初始化，点击游戏画面开始操作。存档仅保存在此浏览器。' : '游戏页面已载入，正在初始化…') : '路演已载入，可使用画面内的翻页按钮。');
   });
   // Strict source + opaque-origin + per-game key allowlist. No generic commands or site data.
   window.addEventListener('message', event => {
@@ -49,7 +50,7 @@
     if (data.type === 'minisv-showcase-ready' && typeof data.token === 'string' && data.token.length < 100) {
       event.source.postMessage({type:'minisv-showcase-seed',token:data.token,values:readSaved()}, '*');
     }
-    if (data.type === 'minisv-showcase-running') setStatus('游戏已初始化，点击游戏画面开始操作。存档仅保存在此浏览器。');
+    if (data.type === 'minisv-showcase-running') { running = true; clearTimeout(timeout); setStatus('游戏已初始化，点击游戏画面开始操作。存档仅保存在此浏览器。'); }
     if (data.type === 'minisv-showcase-save' && allowedKeys.includes(data.key) && typeof data.value === 'string' && data.value.length <= maxBytes) {
       memory[data.key] = data.value;
       try { localStorage.setItem(namespace + data.key, data.value); } catch (_) { setStatus('浏览器未允许保存存档，本次会话仍可试玩。'); }
