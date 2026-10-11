@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>《星之卡比》商业计划书路演 PPT · 蔡玮恩</title>
+  <style>
+    /* ================= 星之卡比 经典梦幻糖果 UI 视觉系统 ================= */
+    :root {
+      --kirby-pink: #ff7aa2;
+      --kirby-deep-pink: #ff4081;
+      --kirby-peach: #ffb6c1;
+      --star-gold: #ffd214;
+      --star-amber: #ff9800;
+      --dream-sky: #64b5f6;
+      --dream-cyan: #4dd0e1;
+      --cloud-white: #ffffff;
+      --card-bg: rgba(255, 255, 255, 0.94);
+      --ink-dark: #2c3445;
+      --ink-muted: #5c6b84;
+      --font-family: "Quicksand", "Yuanti SC", "YouYuan", "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background: radial-gradient(circle at 50% 20%, #ffebee 0%, #fce4ec 45%, #f3e5f5 100%);
+      min-height: 100vh;
+      color: var(--ink-dark);
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 顶部导航与操作条 */
+    .top-toolbar {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(12px);
+      border: 3px solid #ffc1e3;
+      padding: 8px 20px;
+      border-radius: 999px;
+      box-shadow: 0 8px 24px rgba(255, 122, 162, 0.22);
+    }
+
+    .badge-presenter {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--kirby-deep-pink);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .toolbar-divider {
+      width: 2px;
+      height: 18px;
+      background: #ffd1dc;
+    }
+
+    .page-indicator {
+      font-size: 15px;
+      font-weight: 900;
+      color: var(--ink-dark);
+      letter-spacing: 1px;
+      min-width: 60px;
+      text-align: center;
+    }
+
+    .tool-btn {
+      background: linear-gradient(180deg, #fff 0%, #fff0f5 100%);
+      border: 2px solid #ff80ab;
+      color: var(--kirby-deep-pink);
+      font-family: inherit;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 5px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .tool-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 64, 129, 0.3);
+      background: #ff4081;
+      color: #fff;
+    }
+
+    .tool-btn:active {
+      transform: translateY(1px);
+    }
+
+    /* 主演示画板舞台 */
+    .presentation-stage {
+      position: relative;
+      width: min(92vw, 980px);
+      height: min(78vh, 580px);
+      margin-top: 50px;
+      perspective: 1200px;
+    }
+
+    /* 每一页卡片 (Slide Card) */
+    .slide-card {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--card-bg);
+      border-radius: 36px;
+      border: 6px solid #fff;
+      box-shadow: 
+        0 0 0 4px #ffb2d9,
+        0 20px 48px rgba(255, 105, 180, 0.22),
+        inset 0 0 24px rgba(255, 182, 193, 0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 36px 44px;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.92) translateY(24px);
+      transition: opacity 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      overflow: hidden;
+    }
+
+    .slide-card.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1) translateY(0);
+      z-index: 10;
+    }
+
+    /* 卡比梦幻装饰元素背景 */
+    .star-deco {
+      position: absolute;
+      pointer-events: none;
+      filter: drop-shadow(0 4px 8px rgba(255, 193, 7, 0.4));
+      animation: floatStar 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes floatStar {
+      0% { transform: translateY(0) rotate(0deg); }
+      100% { transform: translateY(-12px) rotate(15deg); }
+    }
+
+    .star-tl { top: 22px; left: 26px; font-size: 32px; }
+    .star-tr { top: 20px; right: 28px; font-size: 36px; animation-delay: 1.2s; }
+    .star-bl { bottom: 20px; left: 32px; font-size: 28px; animation-delay: 0.6s; }
+    .star-br { bottom: 22px; right: 30px; font-size: 34px; animation-delay: 1.8s; }
+
+    /* 云朵底部衬边 */
+    .cloud-bottom {
+      position: absolute;
+      bottom: -15px;
+      left: 0;
+      width: 100%;
+      height: 48px;
+      background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.8) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* 页面分类眉签 */
+    .slide-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(90deg, #ffe082 0%, #ffd54f 100%);
+      color: #8d5b00;
+      padding: 6px 18px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 800;
+      box-shadow: 0 4px 10px rgba(255, 193, 7, 0.3);
+      margin-bottom: 16px;
+      border: 2px solid #fff;
+    }
+
+    /* 幻灯片标题 (严格不超过10个字) */
+    .slide-title {
+      font-size: clamp(28px, 4.2vw, 44px);
+      font-weight: 900;
+      color: #d81b60;
+      text-shadow: 0 3px 0 #fff, 0 6px 14px rgba(216, 27, 96, 0.2);
+      margin-bottom: 24px;
+      line-height: 1.2;
+      letter-spacing: 1px;
+    }
+
+    /* 幻灯片正文框 (严格不超过3行，每行不超过15个字) */
+    .slide-body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      max-width: 680px;
+    }
+
+    .speech-line {
+      font-size: clamp(20px, 2.7vw, 28px);
+      font-weight: 800;
+      color: #37474f;
+      line-height: 1.45;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 240, 245, 0.95));
+      padding: 4px 20px;
+      border-radius: 16px;
+      border: 2px solid rgba(255, 182, 193, 0.6);
+      box-shadow: 0 4px 12px rgba(255, 105, 180, 0.08);
+      white-space: nowrap;
+    }
+
+    /* 第5页特供：算式超级放大勋章 */
+    .math-highlight-badge {
+      display: inline-block;
+      font-size: clamp(24px, 3.6vw, 38px);
+      font-weight: 900;
+      color: #b71c1c;
+      background: linear-gradient(135deg, #fff9c4 0%, #ffecb3 50%, #ffe082 100%);
+      padding: 10px 28px;
+      border-radius: 24px;
+      border: 4px solid #fff;
+      box-shadow: 
+        0 0 0 3px #ffb300,
+        0 8px 24px rgba(255, 160, 0, 0.35);
+      animation: pulseMath 2s infinite ease-in-out;
+      margin: 4px 0;
+      white-space: nowrap;
+    }
+
+    @keyframes pulseMath {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+
+    /* 第3页特供：游戏截图建议框 */
+    .screenshot-suggestion-box {
+      margin-top: 18px;
+      background: rgba(238, 245, 255, 0.92);
+      border: 2px dashed #64b5f6;
+      border-radius: 20px;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 800;
+      color: #1565c0;
+      box-shadow: 0 4px 12px rgba(33, 150, 243, 0.12);
+    }
+
+    /* 第9页特供：实机试玩大窗口占位符 */
+    .demo-screen-mockup {
+      width: min(85%, 520px);
+      height: 190px;
+      background: linear-gradient(135deg, #0d1b2a 0%, #1b263b 100%);
+      border-radius: 24px;
+      border: 6px solid #ff80ab;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+      margin-top: 14px;
+    }
+
+    .demo-screen-mockup::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 50%, rgba(255, 215, 0, 0.25) 0%, transparent 70%);
+    }
+
+    .demo-play-icon {
+      font-size: 42px;
+      z-index: 2;
+      animation: bouncePlay 1.5s infinite;
+    }
+
+    @keyframes bouncePlay {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+
+    .demo-subtext {
+      font-size: 14px;
+      font-weight: 700;
+      color: #81d4fa;
+      z-index: 2;
+    }
+
+    /* 左右翻页大蘑菇星光按钮 */
+    .nav-arrow-btn {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 50;
+      width: clamp(52px, 6vw, 68px);
+      height: clamp(52px, 6vw, 68px);
+      border-radius: 50%;
+      border: 4px solid #fff;
+      background: linear-gradient(180deg, #ff80ab 0%, #ff4081 100%);
+      color: #fff;
+      font-size: 26px;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 
+        0 0 0 3px #ffb2d9,
+        0 10px 24px rgba(255, 64, 129, 0.35);
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .nav-arrow-btn:hover {
+      transform: translateY(-50%) scale(1.15);
+      background: linear-gradient(180deg, #ff4081 0%, #d81b60 100%);
+    }
+
+    .nav-arrow-btn:active {
+      transform: translateY(-50%) scale(0.95);
+    }
+
+    .nav-prev { left: clamp(10px, 2.5vw, 40px); }
+    .nav-next { right: clamp(10px, 2.5vw, 40px); }
+
+    /* 底部缩略点与键盘提示 */
+    .bottom-bar {
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .dots-container {
+      display: flex;
+      gap: 10px;
+    }
+
+    .dot-item {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #ffc1e3;
+      border: 2px solid #fff;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .dot-item.active {
+      width: 38px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #ff4081 0%, #ffd54f 100%);
+      box-shadow: 0 4px 10px rgba(255, 64, 129, 0.35);
+    }
+
+    .keyboard-hint {
+      font-size: 13px;
+      font-weight: 700;
+      color: #8898aa;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .kbd-key {
+      background: #fff;
+      border: 1px solid #ccd6e0;
+      padding: 2px 8px;
+      border-radius: 6px;
+      box-shadow: 0 2px 0 #b0bec5;
+      font-size: 11px;
+      color: #37474f;
+    }
+
+    /* 打印与全览模式适配 */
+    @media print {
+      body {
+        background: #fff;
+        display: block;
+      }
+      .top-toolbar, .nav-arrow-btn, .bottom-bar {
+        display: none !important;
+      }
+      .presentation-stage {
+        width: 100%;
+        height: auto;
+        margin: 0;
+      }
+      .slide-card {
+        position: relative;
+        opacity: 1 !important;
+        transform: none !important;
+        page-break-after: always;
+        height: 600px;
+        margin-bottom: 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 顶部控制条 -->
+  <header class="top-toolbar">
+    <div class="badge-presenter">
+      <span>⭐</span>
+      <span>主创：蔡玮恩 (三年级)</span>
+    </div>
+    <div class="toolbar-divider"></div>
+    <div class="page-indicator" id="page-indicator">01 / 10</div>
+    <div class="toolbar-divider"></div>
+    <button class="tool-btn" id="btn-fullscreen" title="进入全屏放映模式">
+      <span>⛶</span>
+      <span>全屏放映</span>
+    </button>
+  </header>
+
+  <!-- 左右翻页大圆按钮 -->
+  <button class="nav-arrow-btn nav-prev" id="btn-prev" title="上一页 (←)">◀</button>
+  <button class="nav-arrow-btn nav-next" id="btn-next" title="下一页 (→)">▶</button>
+
+  <!-- PPT 幻灯片主舞台 (共 10 页) -->
+  <main class="presentation-stage">
+
+    <!-- 第 1 页 · 封面 -->
+    <section class="slide-card active" data-index="1">
+      <div class="star-deco star-tl">⭐</div>
+      <div class="star-deco star-tr">✨</div>
+      <div class="star-deco star-bl">🌟</div>
+      <div class="star-deco star-br">💖</div>
+      <div class="slide-tag">🚀 AI创业课 · 我的第一份商业计划书</div>
+      <h1 class="slide-title">星之卡比发布会</h1>
+      <div class="slide-body">
+        <p class="speech-line">大家好，我是主创蔡玮恩！</p>
+        <p class="speech-line">用手机就能玩的放松游戏，</p>
+        <p class="speech-line">不用买机器也能开心冒险！</p>
+      </div>
+      <div class="cloud-bottom"></div>
+    </section>
+
+    <!-- 第 2 页 · 我的玩家 -->
+    <section class="slide-card" data-index="2">
+      <div class="star-deco star-tl">🎮</div>
+      <div class="star-deco star-tr">⭐</div>
+      <div class="star-deco star-bl">👦</div>
+      <div class="star-deco star-br">👧</div>
+      <div class="slide-tag">🎯 目标玩家画像 · 班级市场</div>
+      <h2 class="slide-title">谁最想玩我的游戏</h2>
+      <div class="slide-body">
+        <p class="speech-line">游戏机太贵，大家不想买，</p>
+        <p class="speech-line">但大家心里都很想玩游戏！</p>
+        <p class="speech-line">全班45人，有30人想玩！</p>
+      </div>
+      <div class="cloud-bottom"></div>
+    </section>
+
+    <!-- 第 3 页 · 游戏怎么玩 -->
+    <section class="slide-card" data-index="3">
+      <div class="star-deco star-tl">⚔️</div>
+      <div class="star-deco star-tr">🌪️</div>
+      <div class="star-deco star-bl">🍎</div>
+      <div class="star-deco star-br">⭐</div>
+      <div class="slide-tag">🕹️ 核心玩法 · 经典战斗循环</div>
+      <h2 class="slide-title">游戏到底怎么玩</h2>
+      <div class="slide-body">
+        <p class="speech-line">先冲上去主动攻击怪物，</p>
+        <p class="speech-line">把它打倒，吸取它的能力，</p>
+        <p class="speech-line">变身之后继续向前闯关！</p>
+      </div>
+      <div class="screenshot-suggestion-box">
+        <span>📸【建议配图】</span>
+        <span>卡比近战攻击怪物、张嘴吸入并变身获取复制能力的实机战斗特写截图</span>
+      </div>
+      <div class="cloud-bottom"></div>
+    </section>
+
+    <!-- 第 4 页 · 最特别的地方 -->
+    <section class="slide-card" data-index="4">
+      <div class="star-deco star-tl">💡</div>
+      <div class="star-deco star-tr">📱</div>
+      <div class="star-deco star-bl">🥊</div>
+      <div class="star-deco star-br">✨</div>
+      <div class="slide-tag">🌟 竞争壁垒 · 独家优势</div>
+      <h2 class="slide-title">我的游戏哪里特别</h2>
+      <div class="slide-body">
+        <p class="speech-line">别人游戏机又大又昂贵，</p>
+        <p class="speech-line">我的游戏手机随时都能玩！</p>
+        <p class="speech-line">别人都是打枪，我是近战！</p>
+      </div>
+      <div class="cloud-bottom"></div>
+    </section>
+
+    <!-- 第 5 页 · 算一笔账 -->
+    <section class="slide-card" data-index="5">
+      <div class="star-deco star-tl">💰</div>
+      <div class="star-deco star-tr">🪙</div>
+      <div class="star-deco star-bl">📈</div>
+      <div class="star-deco star-br">🎉</div>
+      <div class="slide-tag">🧮 商业模式 · 收入小算账</div>
+      <h2 class="slide-title">跟我来算一笔小账</h2>
+      <div class="slide-body">
+        <p class="speech-line">终身会员每人只要25元，</p>
+        <div class="math-highlight-badge">25元 × 10人 = 250元</div>
+        <p class="speech-line">只要10个人买我就能赚到！</p>
+      </div>
+      <div class="cloud-bottom"></div>
+    </section>
+
+    <!-- 第 6 页 · 怎么让人知道 -->
+    <section class="slide-card" data-index="6">
+      <div class="star-deco star-tl">📢</div>
+      <div class="star-deco star-tr">🎬</div>
+      <div class="star-deco star-bl">📱</div>
+      <div class="star-deco star-br">🎁</div>
+      <div class="slide-tag">📣 营销传播 · 推广矩阵</div>
+      <h2 class="slide-title">怎么让大家都知道</h2>
+      <div class="slide-body">
+        <p class="speech-line">先请全班同学免费试玩，</p>
+        <p class="speech-line">爸妈发朋友圈和班级群，</p>
+        <p class="speech-line">拍小视频发小红书和抖音！</p>
+      </div>
+      <div class="cloud-bottom"></div>
+    </section>
+
+    <!-- 第 7 页 · 我的第一步 -->
+    <section class="slide-card" data-index="7">
+      <div class="star-deco star-tl">👣</div>
+      <div class="star-deco star-tr">🏪</div>
+      <div class="star-deco star-bl">💬</div>
+      <div class="star-deco star-br">⭐</div>
+      <div class="slide-tag">📅 行动计划 · 本周启动小事</div>
+      <h2 class="slide-title">发布会后第一步</h2>
+      <div class="slide-body">
+        <p class="speech-line">先让爸妈发到朋友圈宣传，</p>
+        <p class="speech-line">我再去游戏机专卖店旁边，</p>
+        <p class="speech-line">找喜欢游戏的朋友聊一聊！</p>
+      </div>
+      <div class="cloud-bottom"></div>
+    </section>
+
+    <!-- 第 8 页 · 大梦想和感谢 -->
+    <section class="slide-card" data-index="8">
+      <div class="star-deco star-tl">🌈</div>
+      <div class="star-deco star-tr">🏰</div>
+      <div class="star-deco star-bl">🚀</div>
+      <div class="star-deco star-br">❤️</div>
+      <div class="slide-tag">🔭 长期愿景 · 发展规划</div>
+      <h2 class="slide-title">我的小小大梦想</h2>
+      <div class="slide-body">
+        <p class="speech-line">如果我的游戏做成功了，</p>
+        <p class="speech-line">我希望以后慢慢提高价格！</p>
+        <p class="speech-line">谢谢大家，请多多支持我！</p>
+      </div>
+      <div class="cloud-bottom"></div>
+    </section>
+
+    <!-- 第 9 页 · 放游戏Demo (先空着预留窗口) -->
+    <section class="slide-card" data-index="9">
+      <div class="star-deco star-tl">🕹️</div>
+      <div class="star-deco star-tr">⭐</div>
+      <div class="star-deco star-bl">🎮</div>
+      <div class="star-deco star-br">✨</div>
+      <div class="slide-tag">📺 现场试玩 · 实机连线</div>
+      <h2 class="slide-title">游戏实机试玩演示</h2>
+      <div class="slide-body">
+        <p class="speech-line">接下来是实机操作演示，</p>
+        <p class="speech-line">欢迎大家观看大屏幕，</p>
+        <p class="speech-line">见证卡比的超能力变身！</p>
+      </div>
+      <!-- 预留 Demo 放映大屏 -->
+      <div class="demo-screen-mockup">
+        <div class="demo-play-icon">▶️</div>
+        <div class="demo-subtext">【游戏实机 Demo 展示区 · 现场投屏连接】</div>
+      </div>
+      <div class="cloud-bottom"></div>
+    </section>
+
+    <!-- 第 10 页 · 结束页面 -->
+    <section class="slide-card" data-index="10">
+      <div class="star-deco star-tl">🎉</div>
+      <div class="star-deco star-tr">👏</div>
+      <div class="star-deco star-bl">🌸</div>
+      <div class="star-deco star-br">⭐</div>
+      <div class="slide-tag">💌 答辩致谢 · 体验邀请</div>
+      <h2 class="slide-title">谢谢大家</h2>
+      <div class="slide-body">
+        <p class="speech-line">我的演讲到这里结束啦，</p>
+        <p class="speech-line">欢迎大家扫码试玩体验，</p>
+        <p class="speech-line">快来当我的第一批玩家吧！</p>
+      </div>
+      <div class="cloud-bottom"></div>
+    </section>
+
+  </main>
+
+  <!-- 底部指示圆点与操作快捷键提示 -->
+  <footer class="bottom-bar">
+    <div class="dots-container" id="dots-container"></div>
+    <div class="keyboard-hint">
+      <span>提示：按键盘</span>
+      <span class="kbd-key">←</span>
+      <span class="kbd-key">→</span>
+      <span>或</span>
+      <span class="kbd-key">空格</span>
+      <span>翻页 · 支持触摸滑动</span>
+    </div>
+  </footer>
+
+  <script>
+    (function() {
+      'use strict';
+
+      const slides = Array.from(document.querySelectorAll('.slide-card'));
+      const totalSlides = slides.length;
+      let currentIndex = 0;
+
+      const indicator = document.getElementById('page-indicator');
+      const dotsContainer = document.getElementById('dots-container');
+      const btnPrev = document.getElementById('btn-prev');
+      const btnNext = document.getElementById('btn-next');
+      const btnFullscreen = document.getElementById('btn-fullscreen');
+
+      // 初始化底部圆点
+      slides.forEach((_, idx) => {
+        const dot = document.createElement('div');
+        dot.className = 'dot-item' + (idx === 0 ? ' active' : '');
+        dot.addEventListener('click', () => goToSlide(idx));
+        dotsContainer.appendChild(dot);
+      });
+      const dots = Array.from(dotsContainer.children);
+
+      function updateSlide() {
+        slides.forEach((slide, idx) => {
+          slide.classList.toggle('active', idx === currentIndex);
+        });
+        dots.forEach((dot, idx) => {
+          dot.classList.toggle('active', idx === currentIndex);
+        });
+        const currentNum = String(currentIndex + 1).padStart(2, '0');
+        const totalNum = String(totalSlides).padStart(2, '0');
+        indicator.textContent = `${currentNum} / ${totalNum}`;
+      }
+
+      function goToSlide(index) {
+        if (index < 0) index = 0;
+        if (index >= totalSlides) index = totalSlides - 1;
+        currentIndex = index;
+        updateSlide();
+      }
+
+      function nextSlide() {
+        if (currentIndex < totalSlides - 1) {
+          currentIndex++;
+          updateSlide();
+        }
+      }
+
+      function prevSlide() {
+        if (currentIndex > 0) {
+          currentIndex--;
+          updateSlide();
+        }
+      }
+
+      btnNext.addEventListener('click', nextSlide);
+      btnPrev.addEventListener('click', prevSlide);
+
+      // 键盘左右方向键与空格翻页
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+          e.preventDefault();
+          nextSlide();
+        } else if (e.key === 'ArrowLeft' || e.key === 'Backspace' || e.key === 'PageUp') {
+          e.preventDefault();
+          prevSlide();
+        }
+      });
+
+      // 触屏滑动切换
+      let touchStartX = 0;
+      window.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+      }, { passive: true });
+
+      window.addEventListener('touchend', (e) => {
+        const touchEndX = e.changedTouches[0].screenX;
+        const diff = touchEndX - touchStartX;
+        if (Math.abs(diff) > 50) {
+          if (diff < 0) nextSlide();
+          else prevSlide();
+        }
+      }, { passive: true });
+
+      // 全屏放映支持
+      btnFullscreen.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
+      });
+
+      updateSlide();
+    })();
+  </script>
+</body>
+</html>

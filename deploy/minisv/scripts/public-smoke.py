@@ -12,6 +12,24 @@ from urllib.parse import parse_qs, urlsplit
 
 
 EXPECTED = {
+    "/showcase": 302,
+    "/showcase/": 200,
+    "/showcase/2026-09/": 200,
+    "/showcase/2026-09/cwe/": 200,
+    "/showcase/2026-09/cwe/play/": 200,
+    "/showcase/2026-09/cwe/slides/": 200,
+    "/showcase/2026-09/tzx/": 200,
+    "/showcase/2026-09/tzx/play/": 200,
+    "/showcase/2026-09/tzx/slides/": 200,
+    "/showcase/2026-09/cwe/runtime/game/index.html": 200,
+    "/showcase/2026-09/tzx/runtime/game/index.html": 200,
+    "/showcase/2026-09/cwe/runtime/slides/index.html": 200,
+    "/showcase/2026-09/tzx/runtime/slides/index.html": 200,
+    "/showcase/2026-09/cwe/r%75ntime/game/index.html": 200,
+    "/showcase/import-manifest.json": 404,
+    "/showcase/2026-09/cwe/cwe.zip": 404,
+    "/showcase/2026-09/tzx/runtime/game/extracted_doc.txt": 404,
+
     "/prompts": 302,
     "/prompts/": 200,
     "/prompts/general": 302,
@@ -316,6 +334,9 @@ def main() -> None:
             raise SystemExit(f"FAIL {path}: expected {expected}, got {status}")
         if headers.get("x-minisv-origin") != "hecate":
             raise SystemExit(f"FAIL {path}: response did not originate at Hecate")
+        if path.startswith("/showcase/2026-09/") and ("/runtime/" in path or "/r%75ntime/" in path) and expected == 200:
+            if "sandbox allow-scripts allow-pointer-lock" not in headers.get("content-security-policy", "") or "allow-same-origin" in headers.get("content-security-policy", ""):
+                raise SystemExit(f"FAIL {path}: student runtime is not origin-isolated")
         if path == "/auth/login" and headers.get("location") != "/auth/login/":
             raise SystemExit("FAIL /auth/login: canonical trailing-slash redirect is invalid")
         if path == "/studio/" and headers.get("location") != "/console/studio/":

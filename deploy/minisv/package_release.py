@@ -725,6 +725,13 @@ def build(
 
     transform_tree(output)
 
+    # Student prototypes must not be rewritten by global courseware/theme transforms.
+    # This is curated public content only; original student archives stay private.
+    showcase = portal / "showcase"
+    if showcase.is_dir():
+        shutil.copytree(showcase, output / "showcase", dirs_exist_ok=True)
+
+
     # Public prompts build independently from one canonical source, not a frozen deck.
     import subprocess
     subprocess.run(["node", str(Path(__file__).resolve().parents[2] / "prompts/build.mjs"), str(output / "prompts")], check=True)

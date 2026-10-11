@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script src="/showcase/runtime-bridge.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>星之卡比 CP版 · 3D 全端探索</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="stylesheet" href="css/game.css?v=switch-hd-v2">
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #0f1923;
+      color: #fff;
+    }
+    .screen {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      display: none !important;
+      overflow: hidden;
+    }
+    .screen.active {
+      display: block !important;
+    }
+    #menu-screen {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      background: #0f1923 url("assets/title.png") center/cover no-repeat;
+      overflow-y: auto !important;
+    }
+    .menu-layout {
+      position: relative;
+      min-height: 100%;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      box-sizing: border-box;
+      padding: 3.5vh 4vw;
+      z-index: 2;
+    }
+    button {
+      color: #ffffff;
+    }
+    .world-card h4 {
+      color: #ffffff !important;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.95) !important;
+    }
+    .world-card p {
+      color: #ffe082 !important;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95) !important;
+    }
+    .world-card-content {
+      background: rgba(8, 16, 26, 0.85) !important;
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
+    }
+  </style>
+</head>
+<body>
+  <!-- ================== 1. 主菜单界面 (子棍 1) ================== -->
+  <section id="menu-screen" class="screen active">
+    <div class="menu-layout">
+      <!-- 品牌标识 -->
+      <div class="brand-box">
+        <img src="assets/logo.png" alt="星之卡比 CP版" style="max-width: 440px; width: 100%; height: auto; filter: drop-shadow(0 12px 28px rgba(0,0,0,0.75)); margin-bottom: 8px;">
+        <p>探索 3D 世界，爱心收服元素生物；<b>先舍弃当前能力，才能换新能力！</b><br>挑战高难度最终 Boss，或与模拟队友协作！</p>
+      </div>
+
+      <!-- 参数配置面板 -->
+      <div class="config-panel">
+        <!-- 账号栏与跨设备同步 -->
+        <div class="account-bar">
+          <div class="account-info">
+            <div class="avatar-circle">🌟</div>
+            <div>
+              <div class="username-text" id="display-username">星之旅行者</div>
+              <small style="opacity: 0.75; font-size: 11px;">存档保存在此浏览器</small>
+            </div>
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <button class="btn-sm" id="btn-switch-user">切换账号</button>
+            <button class="btn-sm" id="btn-open-sync">手动存档同步</button>
+          </div>
+        </div>
+
+        <!-- 模式选择 -->
+        <div class="section-title">选择游戏模式</div>
+        <div class="mode-grid">
+          <button class="mode-btn active" data-mode="solo">
+            <h3>单机模式</h3>
+            <span>击败最终 Boss</span>
+          </button>
+          <button class="mode-btn" data-mode="endless">
+            <h3>无尽模式</h3>
+            <span>连续阶段目标</span>
+          </button>
+          <button class="mode-btn" data-mode="online">
+            <h3>模拟组队</h3>
+            <span>模拟队友加入</span>
+          </button>
+        </div>
+
+        <!-- 4个世界选择 -->
+        <div class="section-title">选择 3D 世界</div>
+        <div class="world-grid">
+          <button class="world-card active" data-world="grassland" style="background-image: url('assets/grassland.png');">
+            <div class="world-card-content">
+              <h4>01 · 草原长路</h4>
+              <p>明亮丘陵与安全营地</p>
+            </div>
+          </button>
+          <button class="world-card" data-world="bunker" style="background-image: url('assets/bunker.png');">
+            <div class="world-card-content">
+              <h4>02 · 地堡裂谷</h4>
+              <p>岩层、半透平台与悬索</p>
+            </div>
+          </button>
+          <button class="world-card" data-world="dark" style="background-image: url('assets/dark.png');">
+            <div class="world-card-content">
+              <h4>03 · 夜行森林</h4>
+              <p>荧光蘑菇与幽邃古道</p>
+            </div>
+          </button>
+          <button class="world-card" data-world="arena" style="background-image: url('assets/arena.png');">
+            <div class="world-card-content">
+              <h4>04 · 星环试炼</h4>
+              <p>宏伟星环与 Boss 决战</p>
+            </div>
+          </button>
+        </div>
+
+        <!-- 4位卡比角色选择 -->
+        <div class="section-title">选择玩家角色 (原生探索形态 · 初始无技能)</div>
+        <div style="font-size: 12.5px; color: #ffeb3b; margin-top: -6px; margin-bottom: 12px; font-weight: bold; background: rgba(0,0,0,0.35); padding: 7px 12px; border-radius: 8px; border: 1px dashed rgba(255,235,59,0.5); line-height: 1.4;">
+          ⭐ 经典卡比机制：初始形态无任何技能！必须在 3D 探索中【吸入怪物】复制其专属能力！
+        </div>
+        <div class="char-grid">
+          <button class="char-card active" data-char="pink">
+            <div class="char-dot" style="background: #ff7aa2;"></div>
+            <h5>星之卡比</h5>
+            <small>原味粉红形态 (吸怪变身)</small>
+          </button>
+          <button class="char-card" data-char="meta">
+            <div class="char-dot" style="background: #1a237e;"></div>
+            <h5>魅塔骑士</h5>
+            <small>假面剑客初始形态</small>
+          </button>
+          <button class="char-card" data-char="dedede">
+            <div class="char-dot" style="background: #0288d1;"></div>
+            <h5>帝帝帝大王</h5>
+            <small>噗噗噗国王初始形态</small>
+          </button>
+          <button class="char-card" data-char="bandana">
+            <div class="char-dot" style="background: #f57c00;"></div>
+            <h5>头巾瓦豆</h5>
+            <small>忠诚护卫初始形态</small>
+          </button>
+        </div>
+
+        <!-- 开始按钮与瓦豆鲁迪小镇入口 -->
+        <button class="btn-primary-start" id="btn-start-game">进入 3D 探索</button>
+        <button class="btn-town-entry" id="btn-open-town-menu">🏡 瓦豆鲁迪小镇 (武器工坊 · 咖啡店 · 居合拔刀斩)</button>
+        <button class="btn-town-entry" id="btn-open-codex-menu" style="background: linear-gradient(135deg, #7c4dff, #3d5afe); margin-top: 8px;">📖 星之全书 · 探索发现与豪华版总纲全图鉴</button>
+
+        <!-- 操作指南说明 -->
+        <div class="controls-hint">
+          <b>电脑操作：</b> W/S/A/D 移动 · 鼠标拖拽转视角 · 左键吸入/收服/塞满嘴 · 右键/J 攻击(汽车冲/锥砸/贩卖机加特林/圈圈飓风) · C 闪避(魔女时间反击) · X 超级大招(七星巨剑/怪兽烈焰/全垒打木槌) · T 武器进化 · 空格跳跃 · Shift 穿台 · Q 舍弃/吐出<br>
+          <b>手机操作：</b> 360° 摇杆移动 · 右侧滑动转视角 · 攻 攻击(车冲/锥砸/罐射/风波) · 星 爱心/吸入 · 闪 完美闪避 · 超 超级大招 · 跳 跳跃/多段浮空 · 蹲 蹲下穿台 · 技 专属技能 · 弃 舍弃/吐出
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================== 2. 联机匹配大厅 (子棍 11) ================== -->
+  <section id="match-screen" class="screen">
+    <div class="match-card">
+      <h2>🌐 模拟组队大厅</h2>
+      <div class="match-timer" id="match-timer-num">60</div>
+      <div class="match-status" id="match-status-desc">正在随机匹配 2-10 名在线星之卡比...</div>
+
+      <div class="players-queue" id="players-queue-box">
+        <!-- 动态生成队列行 -->
+      </div>
+
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <button class="btn-primary-start" id="btn-force-start" style="padding: 12px 24px; font-size: 15px;">立刻发车开始</button>
+        <button class="btn-sm" id="btn-cancel-match" style="padding: 12px 20px; font-size: 15px;">取消匹配</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================== 3. 游戏 3D 舞台与 HUD (子棍 2, 4, 13) ================== -->
+  <section id="play-screen" class="screen">
+    <canvas id="game-canvas"></canvas>
+
+    <!-- 卡比吸入漩涡视觉指示 -->
+    <div class="inhale-vortex" id="inhale-vortex"></div>
+
+    <!-- 完美闪避慢镜头金色光环滤镜 -->
+    <div class="witch-time-overlay" id="witch-time-fx"></div>
+
+    <!-- HUD 界面 -->
+    <div id="hud">
+      <!-- 顶部状态栏 -->
+      <div class="hud-top">
+        <!-- 玩家生命、能力与专属技能 -->
+        <div class="player-vital-card">
+          <div class="hp-header">
+            <span>生命值</span>
+            <span id="hp-text">10 / 10</span>
+          </div>
+          <div class="hp-bar-track">
+            <div class="hp-bar-fill" id="hp-bar-fill"></div>
+          </div>
+          <div class="ability-badge-row">
+            <div>能力：<b class="ability-name" id="current-ability-name">无能力</b> <span id="ability-level-badge" class="badge-level" style="display: none;">Lv.1</span></div>
+            <button class="btn-evolve-sm" id="btn-evolve" style="display: none;">进化 (T)</button>
+            <button class="btn-discard-ability" id="btn-discard" style="display: none;">舍弃 (Q)</button>
+          </div>
+          <!-- 《豪华版》超级能力爆发能量槽 -->
+          <div class="super-gauge-row">
+            <span style="font-size: 11px; color: #ffeb3b; font-weight: bold;">⚡ 超级能量</span>
+            <div class="super-gauge-track">
+              <div class="super-gauge-fill" id="super-gauge-fill" style="width: 0%;"></div>
+            </div>
+            <button class="btn-super-power" id="btn-super-power" style="display: none;">爆发 (X)</button>
+          </div>
+          <div class="skill-badge-row">
+            <div>专属技能：<span id="skill-name">星光膨胀滑翔</span></div>
+            <span class="skill-cooldown-text" id="skill-cd">就绪</span>
+          </div>
+        </div>
+
+        <!-- 最终 Boss 动态血条 (靠近 Boss 时展开) -->
+        <div id="boss-hud">
+          <div class="boss-title-row">
+            <span>👾 最终 Boss：星核霸王·梦魇帝王</span>
+            <span id="boss-phase-tag" style="color: #ffeb3b; font-size: 12px;">一阶段·常态</span>
+          </div>
+          <div class="boss-hp-track">
+            <div class="boss-hp-fill" id="boss-hp-fill"></div>
+          </div>
+        </div>
+
+        <!-- 右侧状态：头部星星、瓦豆鲁迪、语音麦克风、返回与暂停 -->
+        <!-- 右侧状态：头部星星、瓦豆鲁迪、图鉴、语音麦克风、返回与暂停 -->
+        <div class="hud-top-right">
+          <div class="star-counter" style="background: rgba(255, 152, 0, 0.35);">
+            <span>🏠 营救瓦豆鲁迪:</span>
+            <b id="waddle-dee-counter">0 / 3</b>
+          </div>
+          <div class="star-counter">
+            <span>⭐ 头部星星:</span>
+            <b id="star-count-display">0</b>
+          </div>
+          <button class="hud-btn" id="btn-open-codex-hud" style="background: #7c4dff;">📖 图鉴</button>
+          <button class="hud-btn" id="btn-open-town-hud" style="background: #f57c00;">🏡 小镇</button>
+          <button class="hud-btn" id="btn-mic">🎙️ 开麦</button>
+          <button class="hud-btn" id="btn-pause">暂停</button>
+          <button class="hud-btn" id="btn-quit">返回</button>
+        </div>
+      </div>
+
+      <!-- 《探索发现》塞满嘴状态浮动卡片 -->
+      <div id="mouthful-status-card" class="mouthful-status-card" style="display: none;">
+        <span id="mouthful-title">🚗 汽车塞满嘴已激活！</span>
+        <small id="mouthful-desc">【右键/攻】涡轮爆冲破甲碾压 · 【Q/弃】吐出解除塞满嘴</small>
+      </div>
+
+      <!-- 任务与阶段卡片 -->
+      <div class="quest-card">
+        <h4 id="quest-title">任务目标</h4>
+        <div id="quest-desc">击败前线怪物并探索 Boss</div>
+        <small style="opacity: 0.8; display: block; margin-top: 4px; color: var(--star-yellow);">
+          提示：靠近小汽车/三角锥按吸入可塞满嘴变形！按 C / 闪 键可在受击前触发完美闪避！按 Shift 触发贴地滑铲！
+        </small>
+      </div>
+
+      <!-- 卡比向导浮动小助手与提示气泡 (全智能跟随与指引) -->
+      <div id="guide-companion-hud" class="guide-companion-hud">
+        <div class="guide-avatar-btn" id="guide-avatar-btn" title="点击向导卡比获取当前指引">🌟</div>
+        <div id="guide-bubble" class="guide-bubble">
+          <span class="guide-bubble-name">向导卡比 ⭐</span>
+          <p id="guide-bubble-text">波约！我是向导卡比！跟随星星指引探索世界吧！</p>
+        </div>
+      </div>
+
+      <!-- 联机战友悬浮列表 (包含 10秒紧急救援 与 5分钟倒计时) -->
+      <div id="online-team-list"></div>
+
+      <!-- 手机双召唤按钮 (联机时出现) -->
+      <div id="dual-summon-pad">
+        <small style="color: var(--star-yellow); text-align: center; font-size: 10px;">同时双击召唤</small>
+        <button class="summon-btn" id="btn-summon-1">召唤 1</button>
+        <button class="summon-btn" id="btn-summon-2">召唤 2</button>
+      </div>
+    </div>
+
+    <!-- 移动端触控摇杆与动作按钮群 -->
+    <div id="touch-layer">
+      <!-- 左侧：摇杆与前后辅助键 -->
+      <div class="touch-left">
+        <div class="virtual-joystick" id="joy">
+          <div class="joystick-dot" id="joy-dot"></div>
+        </div>
+        <div class="fwd-back-group">
+          <button class="touch-btn" id="btn-fwd">前</button>
+          <button class="touch-btn" id="btn-back">后</button>
+        </div>
+      </div>
+
+      <!-- 右侧：动作按钮网格 -->
+      <div class="touch-right">
+        <button class="touch-btn btn-discard-touch" id="btn-discard-touch">弃</button>
+        <button class="touch-btn btn-skill" id="btn-skill">技</button>
+        <button class="touch-btn btn-star-collect" id="btn-collect">星</button>
+        <button class="touch-btn btn-dodge" id="btn-dodge">闪</button>
+        <button class="touch-btn btn-super-touch" id="btn-super-touch" style="display: none;">超</button>
+        <button class="touch-btn btn-attack" id="btn-attack">攻</button>
+        <button class="touch-btn" id="btn-crouch">蹲</button>
+        <button class="touch-btn" id="btn-jump">跳</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================== 通用通知与模态框 ================== -->
+  <div class="toast-msg" id="toast"></div>
+
+  <!-- 确认/提示弹窗 -->
+  <div class="modal-dialog" id="modal-dialog">
+    <div class="modal-card">
+      <h2 id="modal-title">提示</h2>
+      <p id="modal-desc">内容文本</p>
+      <div class="modal-actions">
+        <button class="btn-modal-primary" id="btn-modal-ok">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 手动存档同步与账号管理弹窗 -->
+  <div class="modal-dialog" id="sync-modal">
+    <div class="modal-card">
+      <h2>☁️ 存档导出／导入（手动）</h2>
+      <p style="text-align: left; font-size: 13px;">
+        复制下方数据码可在其他电脑、手机或平板中导入，保留已解锁的世界、能力、角色与头部星星！
+      </p>
+      <textarea id="sync-code-area" style="width: 100%; height: 80px; border-radius: 12px; padding: 8px; font-size: 11px; background: #f0f4f8; border: 1px solid #cfd8dc; outline: none; margin-bottom: 12px;"></textarea>
+      <div class="modal-actions">
+        <button class="btn-sm" id="btn-copy-sync">复制同步码</button>
+        <button class="btn-sm" id="btn-import-sync">从剪贴板导入</button>
+        <button class="btn-modal-secondary" id="btn-close-sync">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================== 4. 瓦豆鲁迪小镇主模态框 (探索发现 & 豪华版) ================== -->
+  <div class="modal-dialog" id="town-modal">
+    <div class="town-card-modal">
+      <div class="town-header">
+        <h2>🏡 瓦豆鲁迪小镇 · 梦幻枢纽</h2>
+        <button class="btn-sm" id="btn-close-town" style="padding: 6px 14px; font-size: 14px;">✕ 关闭</button>
+      </div>
+
+      <!-- 选项卡导航 -->
+      <div class="town-tabs-nav">
+        <button class="town-tab-btn active" data-tab="weapons">⚔️ 武器进化工坊</button>
+        <button class="town-tab-btn" data-tab="cafe">☕ 瓦豆鲁迪咖啡店</button>
+        <button class="town-tab-btn" data-tab="quickdraw">⚡ 刹那间居合斩</button>
+      </div>
+
+      <!-- Tab 1: 武器进化工坊 -->
+      <div class="town-tab-pane active" id="tab-weapons">
+        <div style="background: rgba(255, 122, 162, 0.2); border: 1.5px solid rgba(255, 122, 162, 0.6); border-radius: 12px; padding: 12px 16px; margin-bottom: 18px; font-size: 13.5px; line-height: 1.6; color: #ffebee;">
+          💡 <b>工坊觉醒法则</b>：初始技能无法直接勾选！卡比必须先在 3D 关卡中吸入怪物（如【利剑骑士】获得利剑、【热头小子】获得烈火、【奇力雪人】获得冰冻）后，才可在工坊中觉醒进化至 Lv.2 / Lv.3 更强形态！
+        </div>
+        <div class="weapons-grid">
+          <!-- 剑系进化 -->
+          <div class="weapon-evo-card">
+            <div class="weapon-evo-header">⚔️ 经典利剑 (Lv.1)</div>
+            <div class="weapon-evo-desc">快速三连斩与近战压制，灵活轻巧。</div>
+            <button class="btn-equip-weapon" onclick="KirbyGame.equipTownWeapon('sword', 1)">觉醒形态 (需吸入利剑怪)</button>
+          </div>
+          <div class="weapon-evo-card" style="border-color: #ffb300;">
+            <div class="weapon-evo-header">🛡️ 庞大剑 (Gigant Lv.2)</div>
+            <div class="weapon-evo-desc">重装战盔，超大阔剑破甲重斩带地裂冲击波。</div>
+            <button class="btn-equip-weapon" onclick="KirbyGame.equipTownWeapon('sword', 2)">觉醒 Lv.2 (需持有利剑)</button>
+          </div>
+          <div class="weapon-evo-card" style="border-color: #d81b60;">
+            <div class="weapon-evo-header">🦋 摩弗之剑 (Morpho Lv.3)</div>
+            <div class="weapon-evo-desc">冥蝶光翼与暗金魔剑，攻击吸血恢复自身生命！</div>
+            <button class="btn-equip-weapon" onclick="KirbyGame.equipTownWeapon('sword', 3)">觉醒 Lv.3 (需持有利剑)</button>
+          </div>
+
+          <!-- 火系进化 -->
+          <div class="weapon-evo-card">
+            <div class="weapon-evo-header">🔥 经典烈火 (Lv.1)</div>
+            <div class="weapon-evo-desc">向前喷射狂暴烈焰吐息，灼烧前方敌人。</div>
+            <button class="btn-equip-weapon" onclick="KirbyGame.equipTownWeapon('fire', 1)">觉醒形态 (需吸入火炎怪)</button>
+          </div>
+          <div class="weapon-evo-card" style="border-color: #e64a19;">
+            <div class="weapon-evo-header">🌋 火山火 (Volcano Lv.2)</div>
+            <div class="weapon-evo-desc">抛射火山熔岩爆石，多段溅射大范围持续灼烧。</div>
+            <button class="btn-equip-weapon" onclick="KirbyGame.equipTownWeapon('fire', 2)">觉醒 Lv.2 (需持有烈火)</button>
+          </div>
+          <div class="weapon-evo-card" style="border-color: #8e24aa;">
+            <div class="weapon-evo-header">🐉 龙之火 (Dragon Lv.3)</div>
+            <div class="weapon-evo-desc">紫炎飞龙长程激光吐息，冲刺身后留下熊熊火海！</div>
+            <button class="btn-equip-weapon" onclick="KirbyGame.equipTownWeapon('fire', 3)">觉醒 Lv.3 (需持有烈火)</button>
+          </div>
+
+          <!-- 冰系进化 -->
+          <div class="weapon-evo-card">
+            <div class="weapon-evo-header">❄️ 冰霜晶雪 (Lv.1)</div>
+            <div class="weapon-evo-desc">喷射冰雾，将敌人完全冰冻并减速。</div>
+            <button class="btn-equip-weapon" onclick="KirbyGame.equipTownWeapon('ice', 1)">觉醒形态 (需吸入奇力雪人)</button>
+          </div>
+          <div class="weapon-evo-card" style="border-color: #00bcd4;">
+            <div class="weapon-evo-header">🌨️ 暴风雪 (Frost Lv.2)</div>
+            <div class="weapon-evo-desc">制造寒冰结晶墙棱镜，呼啸暴风雪连续冻结。</div>
+            <button class="btn-equip-weapon" onclick="KirbyGame.equipTownWeapon('ice', 2)">觉醒 Lv.2 (需持有冰雪)</button>
+          </div>
+          <div class="weapon-evo-card" style="border-color: #00838f;">
+            <div class="weapon-evo-header">🧊 狂野冰霜 (Wild Lv.3)</div>
+            <div class="weapon-evo-desc">投掷巨型雪怪坚冰，全屏爆发绝对零度碎裂爆伤！</div>
+            <button class="btn-equip-weapon" onclick="KirbyGame.equipTownWeapon('ice', 3)">觉醒 Lv.3 (需持有冰雪)</button>
+          </div>
+
+          <!-- 特殊基础能力 -->
+          <div class="weapon-evo-card">
+            <div class="weapon-evo-header">⚡ 电光雷暴 (Spark)</div>
+            <div class="weapon-evo-desc">周身爆发 360° 环形高压闪电电磁球。</div>
+            <button class="btn-equip-weapon" onclick="KirbyGame.equipTownWeapon('spark', 1)">觉醒形态 (需吸入电光怪)</button>
+          </div>
+          <div class="weapon-evo-card">
+            <div class="weapon-evo-header">💧 狂涌水龙卷 (Water)</div>
+            <div class="weapon-evo-desc">奔腾冲击波与水幕冲刷，击退前方一切阻挡。</div>
+            <button class="btn-equip-weapon" onclick="KirbyGame.equipTownWeapon('water', 1)">觉醒形态 (需吸入水流怪)</button>
+          </div>
+          <div class="weapon-evo-card">
+            <div class="weapon-evo-header">🔮 暗影追踪刃 (Shadow)</div>
+            <div class="weapon-evo-desc">撕裂虚空的追踪暗夜月牙飞刃。</div>
+            <button class="btn-equip-weapon" onclick="KirbyGame.equipTownWeapon('shadow', 1)">觉醒形态 (需吸入暗夜怪)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: 瓦豆鲁迪咖啡店 -->
+      <div class="town-tab-pane" id="tab-cafe">
+        <div class="cafe-grid">
+          <div class="cafe-item-card">
+            <div class="cafe-item-icon">🍅</div>
+            <div class="cafe-item-title">M-番茄 (Maxim Tomato)</div>
+            <div class="cafe-item-desc">噗噗噗国传世美味！立刻完全恢复所有生命值 (HP 10/10)！</div>
+            <button class="btn-buy-cafe" onclick="KirbyGame.consumeCafeItem('tomato')">🌸 享用 M-番茄</button>
+          </div>
+          <div class="cafe-item-card">
+            <div class="cafe-item-icon">🍭</div>
+            <div class="cafe-item-title">无敌糖果 (Invincible Candy)</div>
+            <div class="cafe-item-desc">彩虹闪耀！获得 10 秒完全免疫伤害无敌状态，触碰敌人直接秒杀！</div>
+            <button class="btn-buy-cafe" onclick="KirbyGame.consumeCafeItem('candy')">🌈 品尝无敌糖果</button>
+          </div>
+          <div class="cafe-item-card">
+            <div class="cafe-item-icon">⚡</div>
+            <div class="cafe-item-title">元气能量药水 (Energy Potion)</div>
+            <div class="cafe-item-desc">瞬间充能！超级大招能量槽瞬间满载 100%，随时爆发超级大招！</div>
+            <button class="btn-buy-cafe" onclick="KirbyGame.consumeCafeItem('potion')">⚡ 喝下能量药水</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: 刹那间居合斩小游戏 -->
+      <div class="town-tab-pane" id="tab-quickdraw">
+        <div class="quick-draw-arena">
+          <h3 style="color: #ffeb3b; font-size: 18px;">⚡ 刹那间居合斩 (Quick Draw)</h3>
+          <p style="font-size: 13px; color: #b0bec5; max-width: 440px;">
+            在对决中凝神屏息！当看到圆圈变成红色闪烁<b>【！/ 斩】</b>时，以最快反应速度点击【居合斩】或按空格键！<b>抢跑直接判负！</b>
+          </p>
+
+          <div class="qd-prompt-box" id="qd-prompt-indicator">？</div>
+          <div class="qd-timer-text" id="qd-status-text">对决就绪，点击开始拔刀！</div>
+
+          <div style="display: flex; gap: 12px; justify-content: center; width: 100%;">
+            <button class="btn-sm" id="btn-qd-prepare" onclick="KirbyGame.startQuickDrawDuel()" style="padding: 12px 24px; font-size: 15px; background: #ff9800;">开始对决</button>
+            <button class="btn-qd-strike" id="btn-qd-slash" onclick="KirbyGame.triggerQuickDrawSlash()" style="display: none;">⚡ 斩！</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================== 5. 星之全书 · 探索发现与豪华版全总纲大图鉴 (Codex Modal) ================== -->
+  <div class="modal-dialog" id="codex-modal">
+    <div class="codex-card-modal">
+      <div class="codex-header">
+        <div>
+          <h2>📖 星之全书 · 探索发现与豪华版全总纲图鉴</h2>
+          <small style="color: #b0bec5; font-size: 12px;">Kirby: Omniverse Deluxe & The Forgotten Wonders · 终极全宇宙融合设计案</small>
+        </div>
+        <button class="btn-sm" id="btn-close-codex" style="padding: 6px 14px; font-size: 14px;">✕ 关闭</button>
+      </div>
+
+      <!-- 图鉴选项卡导航 -->
+      <div class="codex-tabs-nav">
+        <button class="codex-tab-btn active" data-tab="codex-moves">🎮 动作指令表</button>
+        <button class="codex-tab-btn" data-tab="codex-evolve">⚔️ 能力进化树</button>
+        <button class="codex-tab-btn" data-tab="codex-mouthful">🚗 塞满嘴大典</button>
+        <button class="codex-tab-btn" data-tab="codex-super">⚡ 超级大招指南</button>
+        <button class="codex-tab-btn" data-tab="codex-allstars">👑 梦幻四天王</button>
+        <button class="codex-tab-btn" data-tab="codex-bestiary">👾 怪物生态图鉴</button>
+        <button class="codex-tab-btn" data-tab="codex-stages">🗺️ 世界关卡一览</button>
+      </div>
+
+      <!-- Tab 1: 动作指令与搓招表 -->
+      <div class="codex-tab-pane active" id="tab-codex-moves">
+        <div class="codex-intro-box">
+          <b>手感融合哲学：</b> 融合 2D 经典作的精确指令判定与《星之卡比：探索发现》的 3D 自由空间感，支持键鼠与触控全端微操。
+        </div>
+        <table class="codex-table">
+          <thead>
+            <tr>
+              <th>动作招式</th>
+              <th>电脑按键</th>
+              <th>触控按键</th>
+              <th>机制效果与无敌判定</th>
+              <th>原型来源</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>吸入 / 塞满嘴</b></td>
+              <td>左键 / <code>K</code></td>
+              <td><code>[星]</code></td>
+              <td>产生前方螺旋气旋涡流。吸入小怪吞咽或吐星；吸入车辆/三角锥/贩卖机/圈圈直接进入塞满嘴形态。</td>
+              <td>探索发现 & 经典作</td>
+            </tr>
+            <tr>
+              <td><b>攻击 / 元素特技</b></td>
+              <td>右键 / <code>J</code></td>
+              <td><code>[攻]</code></td>
+              <td>根据当前获得的能力施展专属连招；塞满嘴形态下释放涡轮冲刺、千斤顶、加特林扫射或飓风波。</td>
+              <td>全系列经典</td>
+            </tr>
+            <tr>
+              <td><b>贴地滑铲 (Slide Dash)</b></td>
+              <td><code>Shift</code> / <code>S + 空格</code></td>
+              <td>滑铲手势</td>
+              <td>身体贴地高速突进，自带下盘受击体积折减，撞击小怪造成击飞硬直并激起星之碎屑！</td>
+              <td>经典全系列核心</td>
+            </tr>
+            <tr>
+              <td><b>膨胀滞空 / 吐气下落</b></td>
+              <td>空中连续 <code>空格</code> / 空中按 <code>J</code></td>
+              <td>空中连续 <code>[跳]</code> / 空中按 <code>[攻]</code></td>
+              <td>粉卡比可连续 5 段扑翼悬浮；滞空时按攻击键可吐出【空气弹 (Air Puff)】射向敌人并极速下落！</td>
+              <td>豪华版 & 探索发现</td>
+            </tr>
+            <tr>
+              <td><b>完美闪避 (魔女时间)</b></td>
+              <td>受击瞬间按 <code>C</code></td>
+              <td><code>[闪]</code></td>
+              <td>在即将遭受攻击前 0.2 秒瞬时翻滚，全场触发慢动作金色特写镜头，按攻击可瞬星反击！</td>
+              <td>探索发现核心</td>
+            </tr>
+            <tr>
+              <td><b>超级能力爆发</b></td>
+              <td>能量满时按 <code>X</code></td>
+              <td><code>[超]</code></td>
+              <td>消耗 100 点超级能量，轮换释放超级剑、怪兽烈焰或全垒打木槌，摧毁大范围一切阻碍！</td>
+              <td>Wii 豪华版独占</td>
+            </tr>
+            <tr>
+              <td><b>舍弃 / 吐出当前能力</b></td>
+              <td><code>Q</code> 键</td>
+              <td><code>[弃]</code></td>
+              <td>严格遵循「先舍弃再换新」原则；塞满嘴形态下吐出道具并还原常态。</td>
+              <td>全系列铁律</td>
+            </tr>
+            <tr>
+              <td><b>角色专属神技</b></td>
+              <td><code>E</code> 键</td>
+              <td><code>[技]</code></td>
+              <td>释放所选角色的固有神技（玛赫龙卷风、喷射大锤、连环枪雨等），带冷却时间。</td>
+              <td>梦幻同盟与豪华版</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tab 2: 复制能力多阶进化树 -->
+      <div class="codex-tab-pane" id="tab-codex-evolve">
+        <div class="codex-intro-box">
+          <b>多阶进化体系：</b> 在瓦豆鲁迪小镇武器工坊，消耗探索收集的星星与设计图，将基础能力进化到终极神话阶层！
+        </div>
+        <div class="codex-grid-cards">
+          <!-- 利剑 -->
+          <div class="codex-card">
+            <div class="codex-card-title">⚔️ 利剑进化系 (Sword)</div>
+            <div class="codex-stage-item">
+              <span class="codex-tag tag-lv1">Lv.1 经典利剑</span>
+              <p>灵动迅捷的三连斩、飞升斩与回旋斩，近距离极速压制。</p>
+            </div>
+            <div class="codex-stage-item">
+              <span class="codex-tag tag-lv2">Lv.2 庞大剑 (Gigant)</span>
+              <p>重甲骑士头盔与宽阔重刃，具备盾牌格挡硬直减免与地裂重劈冲击波。</p>
+            </div>
+            <div class="codex-stage-item">
+              <span class="codex-tag tag-lv3">Lv.3 摩弗之剑 (Morpho Knight)</span>
+              <p>冥蝶光翼与暗金魔剑，攻击命中附带吸血恢复生命，瞬移剑气斩断时空！</p>
+            </div>
+          </div>
+          <!-- 烈火 -->
+          <div class="codex-card">
+            <div class="codex-card-title">🔥 烈火进化系 (Fire)</div>
+            <div class="codex-stage-item">
+              <span class="codex-tag tag-lv1">Lv.1 经典烈火</span>
+              <p>扇形狂暴烈焰吐息，点燃野草引线与点火机关，造成持续灼烧。</p>
+            </div>
+            <div class="codex-stage-item">
+              <span class="codex-tag tag-lv2">Lv.2 火山火 (Volcano)</span>
+              <p>熔岩碎石角盔，连续抛射火山熔岩爆石，落地形成大范围持续熔岩火海。</p>
+            </div>
+            <div class="codex-stage-item">
+              <span class="codex-tag tag-lv3">Lv.3 龙之火 (Dragon)</span>
+              <p>紫炎飞龙长程激光喷射，空中冲刺滑翔并在身后留下滔天烈焰火径！</p>
+            </div>
+          </div>
+          <!-- 冰霜 -->
+          <div class="codex-card">
+            <div class="codex-card-title">❄️ 冰冻进化系 (Ice)</div>
+            <div class="codex-stage-item">
+              <span class="codex-tag tag-lv1">Lv.1 经典冰冻</span>
+              <p>向前方喷射极寒冰雾，将普通杂兵彻底冻结为冰块并击飞撞墙。</p>
+            </div>
+            <div class="codex-stage-item">
+              <span class="codex-tag tag-lv2">Lv.2 霜冻冰 (Frosty)</span>
+              <p>堆积雪人冰霜坚盾，制造巨大雪球投掷并在地面铺设极速滑冰冰轨。</p>
+            </div>
+            <div class="codex-stage-item">
+              <span class="codex-tag tag-lv3">Lv.3 暴风雪冰 (Blizzard)</span>
+              <p>冰皇冠冕，召唤全场极光暴风雪冰锥雨，持续冻结重型 Boss 并造成巨额易伤！</p>
+            </div>
+          </div>
+          <!-- 电火花 -->
+          <div class="codex-card">
+            <div class="codex-card-title">⚡ 电火花进化系 (Spark)</div>
+            <div class="codex-stage-item">
+              <span class="codex-tag tag-lv1">Lv.1 经典电火花</span>
+              <p>周身释放环形高压电弧，近身电击电离周围敌人并激活通电设备。</p>
+            </div>
+            <div class="codex-stage-item">
+              <span class="codex-tag tag-lv2">Lv.2 等离子火花 (Plasma)</span>
+              <p>移动摇杆聚能摩擦充电，射出多段穿透等离子光球与贯穿电浆束。</p>
+            </div>
+            <div class="codex-stage-item">
+              <span class="codex-tag tag-lv3">Lv.3 机甲电能核心 (Mecha Core)</span>
+              <p>古代神兵雷光核心，全弹齐射追踪电离子导弹，构筑高能反物质电磁力场。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: 塞满嘴变形大典 -->
+      <div class="codex-tab-pane" id="tab-codex-mouthful">
+        <div class="codex-intro-box">
+          <b>塞满嘴法则：</b> 当卡比试图吸入比自己身体大得多的古代工业机械时，身体将被撑开包裹整个物体，获得无与伦比的物理机能与解谜能力！
+        </div>
+        <div class="codex-grid-cards">
+          <div class="codex-card">
+            <div class="codex-card-title">🚗 汽车塞满嘴 (Car Mouth)</div>
+            <p><b>操作指令：</b> 右键 / <code>J</code> / <code>[攻]</code> 极速涡轮爆冲破甲</p>
+            <p><b>特性：</b> 移速飙升 + 转向甩尾漂移 + 极速破甲碾压。可直接撞碎混凝土重装障碍并飞跃悬崖跳台！</p>
+          </div>
+          <div class="codex-card">
+            <div class="codex-card-title">⚠️ 三角锥塞满嘴 (Cone Mouth)</div>
+            <p><b>操作指令：</b> 空中按右键 / <code>J</code> / <code>[攻]</code> 千斤顶暴砸</p>
+            <p><b>特性：</b> 倒立下落泰山千斤顶坠击。可凿穿龟裂地面暗格，击爆生锈地下水管引发喷泉将卡比冲向高空！</p>
+          </div>
+          <div class="codex-card">
+            <div class="codex-card-title">🥤 自动贩卖机塞满嘴 (Vending Mouth)</div>
+            <p><b>操作指令：</b> 右键 / <code>J</code> / <code>[攻]</code> 易拉罐加特林超速连射</p>
+            <p><b>特性：</b> 存储海量易拉罐弹药，如同加特林机枪疯狂扫射，瞬间轰碎坚固铁皮卷帘门并击溃群兽！</p>
+          </div>
+          <div class="codex-card">
+            <div class="codex-card-title">🌀 圈圈塞满嘴 (Ring Mouth)</div>
+            <p><b>操作指令：</b> 右键 / <code>J</code> / <code>[攻]</code> 狂暴飓风强风波</p>
+            <p><b>特性：</b> 张开大嘴呼啸喷射压缩强风飓风波，吹动风车机械开关，吹散风沙迷雾，驱动风帆极速破浪！</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4: 超级能力爆发指南 -->
+      <div class="codex-tab-pane" id="tab-codex-super">
+        <div class="codex-intro-box">
+          <b>超级能力机制：</b> 击溃带星敌人与收集掉落的头部星星，可蓄积 100 点超级能量！按 <code>X</code> 即可轮换触发毁天灭地的超级必杀技！
+        </div>
+        <div class="codex-grid-cards">
+          <div class="codex-card" style="border-color: #ffd700;">
+            <div class="codex-card-title" style="color: #ffeb3b;">🗡️ 超级大剑 (Ultra Sword)</div>
+            <p><b>持续时间：</b> 16 秒霸体与巨刃挥斩</p>
+            <p><b>特效：</b> 手握 7 米黄金星光屠龙大宝剑，附带耀眼星芒，一刀横劈即可切碎全屏杂兵与 Boss 重装护甲，连同山体一同斩断！</p>
+          </div>
+          <div class="codex-card" style="border-color: #ff5722;">
+            <div class="codex-card-title" style="color: #ff7043;">🐉 超级怪兽烈焰 (Monster Flame)</div>
+            <p><b>攻击范围：</b> 14 米全走廊毁灭冲击</p>
+            <p><b>特效：</b> 召唤一条由地心熔岩与紫炎凝成的百米炽热火龙，贴地咆哮贯穿整条 3D 走廊，焚尽一切冰川阻隔与敌人！</p>
+          </div>
+          <div class="codex-card" style="border-color: #00e5ff;">
+            <div class="codex-card-title" style="color: #18ffff;">🔨 全垒打木槌 (Grand Hammer)</div>
+            <p><b>攻击范围：</b> 全场震荡波与敲钟地裂</p>
+            <p><b>特效：</b> 挥动重逾万钧的擎天星之木槌重砸大地，激起高达数十米的地裂能量喷泉，将巨型 Boss 与杂兵直接打飞全垒打！</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 5: 梦幻四天王 -->
+      <div class="codex-tab-pane" id="tab-codex-allstars">
+        <div class="codex-intro-box">
+          <b>梦幻全明星战队：</b> 支持自由切换 4 名标志性角色出击，每位英雄均具备完全不同的战斗手感与专属全屏神技！
+        </div>
+        <div class="codex-grid-cards">
+          <div class="codex-card">
+            <div class="codex-card-title">🌸 星之卡比 (Kirby)</div>
+            <p><b>神技：</b> 星光膨胀滑翔 (持续多段漂浮滞空)</p>
+            <p><b>定位：</b> 全能复制变身者 · 塞满嘴变形核心 · 超级能力驾驭者。</p>
+          </div>
+          <div class="codex-card">
+            <div class="codex-card-title">⚔️ 魅塔骑士 (Meta Knight)</div>
+            <p><b>神技：</b> 玛赫龙卷风 (Mach Tornado)</p>
+            <p><b>定位：</b> 宝剑迦拉西亚极速突刺与暗黑剑气，瞬移虚化回避，召唤毁灭剑刃龙卷风牵引绞杀全场！</p>
+          </div>
+          <div class="codex-card">
+            <div class="codex-card-title">🔨 帝帝帝大王 (King Dedede)</div>
+            <p><b>神技：</b> 喷射大锤跃击 (Jet Hammer)</p>
+            <p><b>定位：</b> 启动大锤喷射火箭助推，冲天跃起后毁灭级下砸，激起波及全场的震荡地裂波，强力打断 Boss！</p>
+          </div>
+          <div class="codex-card">
+            <div class="codex-card-title">🔱 头巾瓦豆鲁迪 (Bandana Dee)</div>
+            <p><b>神技：</b> 连环枪雨神技 (Spear Rain)</p>
+            <p><b>定位：</b> 标枪百烈连刺突化作残影，多角度同时投掷三柄破甲投枪，中远程精准歼敌与辅助。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 6: 怪物生态图鉴 -->
+      <div class="codex-tab-pane" id="tab-codex-bestiary">
+        <div class="codex-intro-box">
+          <b>原生生态大图鉴：</b> 从《探索发现》全新野兽军团，到全系列经典标志性怪物，均拥有独立的 3D 建模与攻击生态！
+        </div>
+        <table class="codex-table">
+          <thead>
+            <tr>
+              <th>怪物名称</th>
+              <th>形态外观</th>
+              <th>攻击生态与行为</th>
+              <th>可复制能力</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>加鲁鲁菲 (Awoofy)</b></td>
+              <td>橙白四足萌犬野兽，尖耸狐狸耳与绒毛尾巴</td>
+              <td>《探索发现》原生野兽，成群结队巡逻，发现卡比后会猛烈飞扑撕咬。</td>
+              <td>无 (产生强化星弹)</td>
+            </tr>
+            <tr>
+              <td><b>利剑骑士 (Blade Knight)</b></td>
+              <td>银色战盔、护额与持剑铁足</td>
+              <td>经典利剑侍从，手持精钢利剑巡逻，靠近时施展连环横斩与上挑劈砍。</td>
+              <td>⚔️【利剑】能力</td>
+            </tr>
+            <tr>
+              <td><b>火炎怪 (Hot Head)</b></td>
+              <td>红橙圆滚球体，头顶燃烧炽烈火羽毛发</td>
+              <td>体内蕴含高温火种，周期性朝前方喷吐跳跃的火球，靠近则施展近身火圈。</td>
+              <td>🔥【烈火】能力</td>
+            </tr>
+            <tr>
+              <td><b>奇力雪人 (Chilly)</b></td>
+              <td>双层白雪球躯体，头戴蓝色绒球毛线帽</td>
+              <td>极寒冰之精灵，向身体四周扩散极低温冰霜之环，能将走近的目标瞬间冻结。</td>
+              <td>❄️【冰冻】能力</td>
+            </tr>
+            <tr>
+              <td><b>蹦蹦鸟 (Bronto Burt)</b></td>
+              <td>粉橙色圆鸟，扇动小小羽翼在半空巡弋</td>
+              <td>空中巡逻飞行单位，发现玩家后会极速俯冲俯冲轰炸撞击，需跳跃或滑铲规避。</td>
+              <td>无 (产生飞行星弹)</td>
+            </tr>
+            <tr>
+              <td><b>戈鲁多刺球 (Gordo)</b></td>
+              <td>漆黑反光金属刺球，周身长满致命钢针，黄色冷酷双眼</td>
+              <td><b>【绝对无敌障碍物】</b>任何攻击都无法对其造成伤害！上下浮动或横向巡逻，必须小心绕开！</td>
+              <td>❌ 无法吞咽 / 无法伤及</td>
+            </tr>
+            <tr>
+              <td><b>回旋镖骑士 (Sir Kibble)</b></td>
+              <td>黄金甲胄重装头盔，头顶回旋飞刃</td>
+              <td>取下头顶金黄利刃向前投掷，飞刃会在前方划出抛物线后回旋归位，兼顾远近攻击。</td>
+              <td>⚔️【利剑】/ 切割能力</td>
+            </tr>
+            <tr>
+              <td><b>斯卡菲 (Scarfy)</b></td>
+              <td>橘金猫耳萌系浮球，大眼睛与治愈微笑</td>
+              <td>平时在空中轻柔漂浮，一旦被卡比靠近或吸入，立刻变脸龇牙化作红眼怒鬼狂冲！击败掉落烈火水晶。</td>
+              <td>🔥【烈火】能力 (击溃掉落)</td>
+            </tr>
+            <tr>
+              <td><b>沙袋先生 (Sandbag)</b></td>
+              <td>粗麻布袋扎口柱，十字缝线纽扣眼与厚重底座</td>
+              <td>《探索发现》武器店打靶木桩！永不倒下，拥有逼真弹簧物理受击回弹，供卡比尽情测试技能连招！</td>
+              <td>🏋️ 打靶训练专属 (无限受击)</td>
+            </tr>
+            <tr>
+              <td><b>风语大树 (Whispy Woods)</b></td>
+              <td>百年参天古木，具备拟人面庞与巨大树冠</td>
+              <td>经典常驻首领！摇晃树枝掉落红苹果、深呼吸喷射强力空气炮并召唤地下穿刺树根！</td>
+              <td>Boss (掉落海量星星与M番茄)</td>
+            </tr>
+            <tr>
+              <td><b>梦魇帝王 (Nightmare)</b></td>
+              <td>紫黑星云核心、猩红独眼与悬浮重装魔掌</td>
+              <td>最终首领！一阶段地面巨掌重砸冲击波；二阶段狂暴血月光环、星弹狂暴连发！</td>
+              <td>最终挑战</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tab 7: 世界关卡一览 -->
+      <div class="codex-tab-pane" id="tab-codex-stages">
+        <div class="codex-intro-box">
+          <b>3D 箱庭探索世界：</b> 从人类遗落的绿野都市，到星际古代文明遗迹，每个世界都有着独一无二的视觉主题与机关机制！
+        </div>
+        <div class="codex-grid-cards">
+          <div class="codex-card">
+            <div class="codex-card-title">🌿 01 · 始源草原 (Natural Plains)</div>
+            <p><b>风格主题：</b> 明丽丘陵、遗落废弃公路与安全野营地。</p>
+            <p><b>推荐搭配：</b> 汽车塞满嘴极速漂移冲撞，利剑与烈火三连斩扫荡前线野兽。</p>
+          </div>
+          <div class="codex-card">
+            <div class="codex-card-title">⛏️ 02 · 地堡裂谷 (Bunker Abyss)</div>
+            <p><b>风格主题：</b> 悬崖岩层、半透悬浮跳台与工业锈蚀悬索。</p>
+            <p><b>推荐搭配：</b> 三角锥千斤顶砸穿地下水管喷泉，高空滑翔穿透多层半透跳台。</p>
+          </div>
+          <div class="codex-card">
+            <div class="codex-card-title">🌲 03 · 夜行森林 (Dark Forest)</div>
+            <p><b>风格主题：</b> 荧光蘑菇林、深邃古树长径与风语大树领地。</p>
+            <p><b>推荐搭配：</b> 圈圈强风波吹散迷雾沙尘，烈火与电火花照亮昏暗古道。</p>
+          </div>
+          <div class="codex-card">
+            <div class="codex-card-title">🌌 04 · 星环神殿 (Astral Colosseum)</div>
+            <p><b>风格主题：</b> 古代哈鲁康德拉星舟祭坛与宏伟星环决战场。</p>
+            <p><b>推荐搭配：</b> 超级大剑斩破时空，全明星四天王合力终结梦魇帝王！</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 引入 Three.js 核心库 (优先本地，缺失则走 CDN) -->
+  <script type="application/x-minisv-student" data-src="assets/three.min.js"></script>
+
+
+  <!-- 引入业务模块 -->
+  <script type="application/x-minisv-student" data-src="js/audio.js?v=switch-hd-v8"></script>
+  <script type="application/x-minisv-student" data-src="js/store.js?v=switch-hd-v8"></script>
+  <script type="application/x-minisv-student" data-src="js/worlds.js?v=switch-hd-v8"></script>
+  <script type="application/x-minisv-student" data-src="js/entities.js?v=switch-hd-v8"></script>
+  <script type="application/x-minisv-student" data-src="js/multiplayer.js?v=switch-hd-v8"></script>
+  <script type="application/x-minisv-student" data-src="js/game.js?v=switch-hd-v8"></script>
+
+  <!-- 页面交互绑定逻辑 -->
+  <script type="application/x-minisv-student">
+    (function () {
+      'use strict';
+      let selectedMode = 'solo';
+      let selectedWorld = 'grassland';
+      let selectedChar = 'pink';
+
+      // 初始化显示当前用户
+      try {
+        const currentUser = (typeof KirbyStore !== 'undefined' && KirbyStore.getCurrentUser) ? KirbyStore.getCurrentUser() : { username: '星之旅行者' };
+        const uEl = document.getElementById('display-username');
+        if (uEl && currentUser) uEl.textContent = currentUser.username;
+      } catch (e) {
+        console.warn('Initial user load warning:', e);
+      }
+
+      // 模式切换
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          selectedMode = btn.dataset.mode;
+        });
+      });
+
+      // 世界切换
+      document.querySelectorAll('.world-card').forEach(card => {
+        card.addEventListener('click', () => {
+          document.querySelectorAll('.world-card').forEach(c => c.classList.remove('active'));
+          card.classList.add('active');
+          selectedWorld = card.dataset.world;
+        });
+      });
+
+      // 角色切换
+      document.querySelectorAll('.char-card').forEach(card => {
+        card.addEventListener('click', () => {
+          document.querySelectorAll('.char-card').forEach(c => c.classList.remove('active'));
+          card.classList.add('active');
+          selectedChar = card.dataset.char;
+        });
+      });
+
+      // 切换账号按钮
+      document.getElementById('btn-switch-user').addEventListener('click', async () => {
+        const name = await window.MSV_PROMPT('请输入你要切换或创建的卡比账号昵称：', KirbyStore.getCurrentUser().username);
+        if (name && name.trim()) {
+          const user = KirbyStore.switchUser(name.trim());
+          document.getElementById('display-username').textContent = user.username;
+          KirbyGame.showToast(`✨ 已成功切换到账号【${user.username}】！`);
+        }
+      });
+
+      // 手动存档同步弹窗
+      document.getElementById('btn-open-sync').addEventListener('click', () => {
+        const modal = document.getElementById('sync-modal');
+        const area = document.getElementById('sync-code-area');
+        area.value = KirbyStore.exportSyncData();
+        modal.classList.add('show');
+      });
+      document.getElementById('btn-close-sync').addEventListener('click', () => {
+        document.getElementById('sync-modal').classList.remove('show');
+      });
+      document.getElementById('btn-copy-sync').addEventListener('click', () => {
+        const area = document.getElementById('sync-code-area');
+        area.select();
+        document.execCommand('copy');
+        KirbyGame.showToast('📋 同步数据码已复制到剪贴板！');
+      });
+      document.getElementById('btn-import-sync').addEventListener('click', async () => {
+        const code = await window.MSV_PROMPT('请粘贴在其他设备上导出的同步数据码：');
+        if (code) {
+          const res = KirbyStore.importSyncData(code);
+          KirbyGame.showToast(res.message);
+          if (res.success) {
+            document.getElementById('display-username').textContent = KirbyStore.getCurrentUser().username;
+            document.getElementById('sync-modal').classList.remove('show');
+          }
+        }
+      });
+
+      // 点击开始游戏
+      document.getElementById('btn-start-game').addEventListener('click', () => {
+        if (selectedMode === 'online') {
+          // 进入联机随机匹配界面
+          startOnlineMatchmaking();
+        } else {
+          // 直接进入单机或无尽 3D 世界
+          enterPlayScreen(selectedMode);
+        }
+      });
+
+      function enterPlayScreen(m) {
+        if (typeof KirbyAudio !== 'undefined') KirbyAudio.init();
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('play-screen').classList.add('active');
+        KirbyGame.init();
+        KirbyGame.start(m, selectedWorld, selectedChar);
+      }
+
+      // 联机随机匹配流程
+      function startOnlineMatchmaking() {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('match-screen').classList.add('active');
+
+        const queueBox = document.getElementById('players-queue-box');
+        const timerNum = document.getElementById('match-timer-num');
+
+        KirbyMultiplayer.startMatchmaking(
+          KirbyStore.getCurrentUser().username,
+          selectedChar,
+          (remainSec, count) => {
+            timerNum.textContent = remainSec;
+            renderQueue(queueBox);
+          },
+          () => {
+            // 开始联机游戏
+            enterPlayScreen('online');
+          }
+        );
+      }
+
+      function renderQueue(box) {
+        const st = KirbyMultiplayer.getState();
+        box.innerHTML = st.players.map(p => `
+          <div class="queue-row">
+            <span>${p.isHost ? '👑 ' : ''}${p.name}</span>
+            <span class="queue-tag ${p.isHost ? 'tag-host' : 'tag-peer'}">${p.isHost ? '1号主玩家' : '战友'}</span>
+          </div>
+        `).join('');
+      }
+
+      // 联机强制立刻发车
+      document.getElementById('btn-force-start').addEventListener('click', () => {
+        KirbyMultiplayer.forceStartNow(() => {
+          enterPlayScreen('online');
+        });
+      });
+
+      // 取消联机匹配
+      document.getElementById('btn-cancel-match').addEventListener('click', () => {
+        KirbyMultiplayer.disconnect();
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('menu-screen').classList.add('active');
+      });
+
+      // 游戏中功能按钮
+      document.getElementById('btn-discard').addEventListener('click', () => {
+        KirbyGame.discardAbility();
+      });
+      document.getElementById('btn-pause').addEventListener('click', () => {
+        KirbyGame.togglePause();
+      });
+      document.getElementById('btn-quit').addEventListener('click', async () => {
+        if (await window.MSV_CONFIRM('是否退出当前探索并返回主菜单？已收集的星星与进度将自动保存。')) {
+          KirbyMultiplayer.disconnect();
+          window.MSV_SHOWCASE_RELOAD();
+        }
+      });
+
+      // 瓦豆鲁迪小镇弹窗控制
+      const townModal = document.getElementById('town-modal');
+      const openTown = () => {
+        if (typeof KirbyAudio !== 'undefined') KirbyAudio.init();
+        townModal.classList.add('show');
+      };
+      const closeTown = () => townModal.classList.remove('show');
+
+      const btnTownMenu = document.getElementById('btn-open-town-menu');
+      if (btnTownMenu) btnTownMenu.addEventListener('click', openTown);
+      const btnTownHud = document.getElementById('btn-open-town-hud');
+      if (btnTownHud) btnTownHud.addEventListener('click', openTown);
+      const btnCloseTown = document.getElementById('btn-close-town');
+      if (btnCloseTown) btnCloseTown.addEventListener('click', closeTown);
+
+      // 小镇选项卡切换
+      document.querySelectorAll('.town-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.town-tab-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.town-tab-pane').forEach(p => p.classList.remove('active'));
+          btn.classList.add('active');
+          const tabPane = document.getElementById('tab-' + btn.dataset.tab);
+          if (tabPane) tabPane.classList.add('active');
+        });
+      });
+
+      // 星之全书 · 融合总纲大图鉴弹窗控制
+      const codexModal = document.getElementById('codex-modal');
+      const openCodex = () => {
+        if (typeof KirbyAudio !== 'undefined') KirbyAudio.init();
+        codexModal.classList.add('show');
+      };
+      const closeCodex = () => codexModal.classList.remove('show');
+
+      const btnCodexMenu = document.getElementById('btn-open-codex-menu');
+      if (btnCodexMenu) btnCodexMenu.addEventListener('click', openCodex);
+      const btnCodexHud = document.getElementById('btn-open-codex-hud');
+      if (btnCodexHud) btnCodexHud.addEventListener('click', openCodex);
+      const btnCloseCodex = document.getElementById('btn-close-codex');
+      if (btnCloseCodex) btnCloseCodex.addEventListener('click', closeCodex);
+
+      // 图鉴选项卡切换
+      document.querySelectorAll('.codex-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.codex-tab-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.codex-tab-pane').forEach(p => p.classList.remove('active'));
+          btn.classList.add('active');
+          const tabPane = document.getElementById('tab-' + btn.dataset.tab);
+          if (tabPane) tabPane.classList.add('active');
+        });
+      });
+
+      // 向导卡比小助手点击触发指引
+      const guideAvatar = document.getElementById('guide-avatar-btn');
+      if (guideAvatar) {
+        guideAvatar.addEventListener('click', () => {
+          if (typeof KirbyGame !== 'undefined' && KirbyGame.triggerGuideAdvice) {
+            KirbyGame.triggerGuideAdvice();
+          }
+        });
+      }
+
+      // 麦克风开关
+      document.getElementById('btn-mic').addEventListener('click', () => {
+        const active = KirbyMultiplayer.toggleMic();
+        const btn = document.getElementById('btn-mic');
+        btn.classList.toggle('mic-active', active);
+        btn.textContent = active ? '🔊 麦克风开启' : '🎙️ 开麦';
+        KirbyGame.showToast(active ? '🎙️ 已开启麦克风语音通信' : '🔇 麦克风已静音');
+      });
+
+    })();
+  </script>
+</body>
+</html>

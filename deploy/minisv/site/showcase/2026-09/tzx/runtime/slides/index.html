@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>《零号纪元》商业计划书路演发布会 · 唐梓轩</title>
+  <style>
+    /* ================= 零号纪元 · 未来科幻教室设计系统 ================= */
+    :root {
+      --bg-dark: #0a0f1d;
+      --bg-deep: #070a14;
+      --card-bg: rgba(16, 24, 46, 0.88);
+      --card-border: rgba(0, 229, 255, 0.28);
+      --card-hover-border: rgba(0, 229, 255, 0.7);
+      
+      --cyan-neon: #00e5ff;
+      --cyan-glow: rgba(0, 229, 255, 0.45);
+      --orange-neon: #ff9100;
+      --orange-glow: rgba(255, 145, 0, 0.45);
+      --gold-neon: #ffd600;
+      --green-neon: #00e676;
+      --purple-neon: #b388ff;
+      
+      --text-white: #ffffff;
+      --text-muted: #94a3b8;
+      --text-sub: #cbd5e1;
+      
+      --font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background: radial-gradient(circle at 50% 20%, #132247 0%, #080d1a 60%, #03060d 100%);
+      color: var(--text-white);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* 背景科幻粒子与全息网格 */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(0, 229, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 229, 255, 0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .ambient-glow-1 {
+      position: fixed;
+      top: -150px;
+      left: 15%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(0, 229, 255, 0.18) 0%, transparent 70%);
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .ambient-glow-2 {
+      position: fixed;
+      bottom: -150px;
+      right: 15%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(255, 145, 0, 0.14) 0%, transparent 70%);
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* 顶部控制栏 */
+    .top-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      background: rgba(10, 15, 29, 0.75);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0, 229, 255, 0.15);
+      z-index: 100;
+    }
+
+    .brand-zone {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--cyan-neon) 0%, #0091ea 100%);
+      color: #051024;
+      font-weight: 900;
+      font-size: 13px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      letter-spacing: 1px;
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-creator {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 400;
+      padding-left: 8px;
+      border-left: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    /* 页码指示 */
+    .page-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: monospace;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--cyan-neon);
+      background: rgba(0, 229, 255, 0.08);
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      padding: 5px 16px;
+      border-radius: 20px;
+    }
+
+    .indicator-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .dot.active {
+      background: var(--cyan-neon);
+      box-shadow: 0 0 8px var(--cyan-neon);
+      transform: scale(1.3);
+    }
+
+    /* 顶部操作按钮 */
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ctrl-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #e2e8f0;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .ctrl-btn:hover {
+      background: rgba(0, 229, 255, 0.15);
+      border-color: var(--cyan-neon);
+      color: var(--cyan-neon);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+    }
+
+    .ctrl-btn.active-note {
+      background: rgba(255, 145, 0, 0.2);
+      border-color: var(--orange-neon);
+      color: var(--orange-neon);
+    }
+
+    /* 主舞台容器 */
+    .stage-container {
+      position: relative;
+      width: min(94vw, 1160px);
+      height: min(82vh, 660px);
+      margin-top: 48px;
+      z-index: 10;
+    }
+
+    /* 幻灯片单页卡片 */
+    .slide-card {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: 28px;
+      box-shadow: 
+        0 24px 60px rgba(0, 0, 0, 0.6),
+        inset 0 0 40px rgba(0, 229, 255, 0.06);
+      display: flex;
+      flex-direction: column;
+      padding: 38px 48px 30px;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.96) translateY(16px);
+      transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+    }
+
+    .slide-card.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1) translateY(0);
+      z-index: 10;
+    }
+
+    /* 幻灯片头部标签与标题 */
+    .slide-header {
+      margin-bottom: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .slide-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: fit-content;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      color: var(--cyan-neon);
+      text-transform: uppercase;
+      background: rgba(0, 229, 255, 0.1);
+      padding: 3px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 229, 255, 0.25);
+    }
+
+    .slide-title {
+      font-size: clamp(28px, 3.2vw, 38px);
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      color: var(--text-white);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .title-highlight {
+      background: linear-gradient(135deg, #ffd600 0%, #ff9100 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* 演讲核心台词区（不超过3行，每行不超过15字） */
+    .speech-highlight-box {
+      background: rgba(0, 229, 255, 0.06);
+      border-left: 4px solid var(--cyan-neon);
+      border-radius: 0 16px 16px 0;
+      padding: 14px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .speech-line {
+      font-size: 20px;
+      font-weight: 700;
+      color: #f1f5f9;
+      line-height: 1.4;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .speech-line.highlight {
+      color: var(--orange-neon);
+    }
+
+    .speech-icon {
+      color: var(--cyan-neon);
+      font-size: 16px;
+    }
+
+    /* 内容主体布局 */
+    .slide-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 20px;
+      position: relative;
+    }
+
+    /* 底部专属统一Footer */
+    .slide-footer {
+      margin-top: auto;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .footer-brand {
+      color: var(--cyan-neon);
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    /* ================= 各种卡片布局网格 ================= */
+    .bento-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      height: 100%;
+    }
+
+    .bento-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      height: 100%;
+    }
+
+    .bento-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 18px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bento-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--cyan-neon), transparent);
+    }
+
+    .bento-card.orange::before {
+      background: linear-gradient(90deg, var(--orange-neon), transparent);
+    }
+
+    .bento-card.green::before {
+      background: linear-gradient(90deg, var(--green-neon), transparent);
+    }
+
+    .bento-card.gold::before {
+      background: linear-gradient(90deg, var(--gold-neon), transparent);
+    }
+
+    .bento-card:hover {
+      border-color: rgba(0, 229, 255, 0.4);
+      background: rgba(0, 229, 255, 0.04);
+      transform: translateY(-2px);
+    }
+
+    .bento-tag {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--cyan-neon);
+      margin-bottom: 6px;
+    }
+
+    .bento-card.orange .bento-tag { color: var(--orange-neon); }
+    .bento-card.green .bento-tag { color: var(--green-neon); }
+    .bento-card.gold .bento-tag { color: var(--gold-neon); }
+
+    .bento-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .bento-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* 超大数字展示 */
+    .big-stat {
+      font-size: 52px;
+      font-weight: 900;
+      font-family: monospace;
+      color: var(--cyan-neon);
+      line-height: 1.1;
+      margin: 8px 0;
+      text-shadow: 0 0 20px var(--cyan-glow);
+    }
+
+    .big-stat.orange {
+      color: var(--orange-neon);
+      text-shadow: 0 0 20px var(--orange-glow);
+    }
+
+    /* 第5页：放大的大算式 */
+    .huge-math-banner {
+      background: linear-gradient(135deg, rgba(255, 145, 0, 0.15) 0%, rgba(255, 214, 0, 0.1) 100%);
+      border: 2px solid var(--gold-neon);
+      border-radius: 20px;
+      padding: 24px;
+      text-align: center;
+      box-shadow: 0 0 35px rgba(255, 214, 0, 0.2);
+      margin-bottom: 12px;
+    }
+
+    .math-formula {
+      font-size: clamp(34px, 4.2vw, 54px);
+      font-weight: 900;
+      background: linear-gradient(180deg, #ffffff 0%, #ffd600 60%, #ff9100 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 2px;
+      text-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    }
+
+    /* 封面专属样式 */
+    .cover-layout {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 32px;
+      height: 100%;
+      align-items: center;
+    }
+
+    .cover-left {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .cover-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 229, 255, 0.12);
+      border: 1px solid var(--cyan-neon);
+      color: var(--cyan-neon);
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 800;
+      width: fit-content;
+      margin-bottom: 16px;
+    }
+
+    .cover-title {
+      font-size: clamp(48px, 6vw, 68px);
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 2px;
+      line-height: 1.1;
+      margin-bottom: 12px;
+      text-shadow: 0 0 30px rgba(0, 229, 255, 0.35);
+    }
+
+    .cover-sub {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--orange-neon);
+      margin-bottom: 24px;
+    }
+
+    .cover-capsules {
+      display: flex;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .cover-capsule {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      padding: 8px 18px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #e2e8f0;
+    }
+
+    .cover-right {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      position: relative;
+    }
+
+    .poster-frame {
+      width: 100%;
+      max-height: 480px;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 3px solid rgba(0, 229, 255, 0.5);
+      box-shadow: 
+        0 15px 40px rgba(0, 0, 0, 0.8),
+        0 0 30px rgba(0, 229, 255, 0.35);
+      transition: transform 0.4s ease;
+    }
+
+    .poster-frame:hover {
+      transform: scale(1.02);
+    }
+
+    .poster-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* 第9页 Demo巨幕样式 */
+    .demo-screen-box {
+      flex: 1;
+      border: 2px dashed rgba(0, 229, 255, 0.4);
+      background: rgba(0, 229, 255, 0.02);
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .demo-screen-box::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(0, 229, 255, 0.05) 0%, transparent 60%);
+      animation: rotateGlow 12s linear infinite;
+    }
+
+    @keyframes rotateGlow {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* 左右浮动翻页手柄 */
+    .nav-arrow {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: rgba(16, 24, 46, 0.85);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      color: var(--cyan-neon);
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+      transition: all 0.25s ease;
+      z-index: 90;
+    }
+
+    .nav-arrow:hover {
+      background: var(--cyan-neon);
+      color: #051024;
+      box-shadow: 0 0 20px var(--cyan-neon);
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    .nav-arrow.prev { left: 24px; }
+    .nav-arrow.next { right: 24px; }
+
+    /* 演讲提词器抽屉 (Speaker Notes) */
+    .notes-drawer {
+      position: fixed;
+      bottom: 24px;
+      right: 28px;
+      width: 360px;
+      background: rgba(13, 22, 44, 0.95);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--orange-neon);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 145, 0, 0.25);
+      border-radius: 18px;
+      padding: 18px 22px;
+      z-index: 150;
+      transform: translateY(120%);
+      opacity: 0;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+    }
+
+    .notes-drawer.open {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .notes-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+
+    .notes-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--orange-neon);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .notes-close {
+      cursor: pointer;
+      font-size: 18px;
+      color: var(--text-muted);
+    }
+
+    .notes-close:hover { color: #fff; }
+
+    .notes-content {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #e2e8f0;
+    }
+
+    .notes-action {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.15);
+      font-size: 12px;
+      color: var(--gold-neon);
+    }
+
+    /* 页面目录弹窗 (Overview Drawer) */
+    .overview-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 10, 20, 0.88);
+      backdrop-filter: blur(14px);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+      padding: 40px;
+    }
+
+    .overview-modal.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      max-width: 1100px;
+      width: 100%;
+    }
+
+    .overview-thumb {
+      background: rgba(16, 24, 46, 0.9);
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      border-radius: 12px;
+      padding: 16px 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .overview-thumb:hover {
+      border-color: var(--cyan-neon);
+      box-shadow: 0 0 16px var(--cyan-glow);
+      transform: translateY(-4px);
+    }
+
+    .overview-thumb.active {
+      border-color: var(--orange-neon);
+      box-shadow: 0 0 18px var(--orange-glow);
+    }
+
+    .thumb-num {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--cyan-neon);
+      margin-bottom: 6px;
+    }
+
+    .thumb-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    /* 快捷键提示条 */
+    .key-hints {
+      position: fixed;
+      bottom: 12px;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.35);
+      z-index: 80;
+      display: flex;
+      gap: 16px;
+    }
+
+    .key-badge {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #cbd5e1;
+    }
+
+    /* 响应式优化 */
+    @media (max-width: 1024px) {
+      .stage-container { width: 95vw; height: 86vh; margin-top: 60px; }
+      .slide-card { padding: 24px 28px; }
+      .cover-layout { grid-template-columns: 1fr; }
+      .cover-right { display: none; }
+      .bento-grid-3 { grid-template-columns: 1fr; }
+      .overview-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-grid"></div>
+  <div class="ambient-glow-1"></div>
+  <div class="ambient-glow-2"></div>
+
+  <!-- 顶部控制栏 -->
+  <header class="top-header">
+    <div class="brand-zone">
+      <div class="brand-badge">NO.0 ERA</div>
+      <div class="brand-title">
+        《零号纪元》商业计划书
+        <span class="brand-creator">制作人：唐梓轩 (三年级)</span>
+      </div>
+    </div>
+
+    <div class="page-indicator">
+      <span id="pageText">01 / 10</span>
+      <div class="indicator-dots" id="dotsContainer"></div>
+    </div>
+
+    <div class="header-actions">
+      <button class="ctrl-btn" id="btnOverview" title="按 O 打开目录">
+        <span>📋</span> 页面导航
+      </button>
+      <button class="ctrl-btn" id="btnNotes" title="按 T 打开小创客提词器">
+        <span>🎤</span> 台词提词
+      </button>
+      <button class="ctrl-btn" id="btnFullscreen" title="按 F 进入全屏">
+        <span>⛶</span> 全屏演示
+      </button>
+    </div>
+  </header>
+
+  <!-- 翻页手柄 -->
+  <button class="nav-arrow prev" id="btnPrev" title="上一页 (←)">‹</button>
+  <button class="nav-arrow next" id="btnNext" title="下一页 (→ / 空格)">›</button>
+
+  <!-- 主演示舞台 -->
+  <main class="stage-container">
+
+    <!-- ================= 第1页：封面 ================= -->
+    <section class="slide-card active" data-slide="1">
+      <div class="cover-layout">
+        <div class="cover-left">
+          <div class="cover-badge">★ 少年创客游戏发布会 ★</div>
+          <h1 class="cover-title">零号纪元</h1>
+          <div class="cover-sub">专治不想学英语的打怪游戏！</div>
+          
+          <div class="speech-highlight-box">
+            <div class="speech-line"><span class="speech-icon">▶</span> 大家好，我是创作者唐梓轩！</div>
+            <div class="speech-line"><span class="speech-icon">▶</span> 今天带来新游戏《零号纪元》，</div>
+            <div class="speech-line highlight"><span class="speech-icon">★</span> 专治所有不想学英语的同学！</div>
+          </div>
+
+          <div class="cover-capsules">
+            <div class="cover-capsule">🎯 枪战闯关</div>
+            <div class="cover-capsule">🗣 单词口语</div>
+            <div class="cover-capsule">⚡ 轻松入门</div>
+          </div>
+        </div>
+
+        <div class="cover-right">
+          <div class="poster-frame">
+            <img class="poster-img" src="assets/zero_era_poster.jpg" alt="零号纪元海报" onerror="this.src='06387856c42efe4999cf311100ea9960.jpg'">
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span class="footer-brand">零号纪元 | NO.0 ERA</span>
+        <span>拿起知识武器，枪战之中学好英语</span>
+      </div>
+    </section>
+
+    <!-- ================= 第2页：我的玩家 ================= -->
+    <section class="slide-card" data-slide="2">
+      <div class="slide-header">
+        <span class="slide-tag">目标用户画像 · 市场规模</span>
+        <h2 class="slide-title">谁最想玩<span class="title-highlight">我的游戏</span></h2>
+      </div>
+
+      <div class="speech-highlight-box">
+        <div class="speech-line"><span class="speech-icon">▶</span> 我的玩家是不会读英语的同学，</div>
+        <div class="speech-line"><span class="speech-icon">▶</span> 他们总觉得学英语非常头疼。</div>
+        <div class="speech-line highlight"><span class="speech-icon">★</span> 我们班45人，至少25人想玩！</div>
+      </div>
+
+      <div class="slide-body">
+        <div class="bento-grid-2">
+          <div class="bento-card">
+            <div class="bento-tag">👥 班级调研总人数</div>
+            <div class="big-stat">45 <span style="font-size:24px; color:#cbd5e1;">人</span></div>
+            <div class="bento-title">同班同学大调研</div>
+            <div class="bento-desc">许多同学平时总觉得死记硬背单词特别无聊、想逃避。</div>
+          </div>
+          <div class="bento-card orange">
+            <div class="bento-tag">🔥 强烈意向玩家</div>
+            <div class="big-stat orange">25 <span style="font-size:24px; color:#cbd5e1;">人</span></div>
+            <div class="bento-title">超一半同学想要玩！</div>
+            <div class="bento-desc">只要把背单词变成打怪射击，全班过半同学都抢着试玩！</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span class="footer-brand">零号纪元 | NO.0 ERA</span>
+        <span>专为学英语感到头疼的小伙伴量身打造</span>
+      </div>
+    </section>
+
+    <!-- ================= 第3页：游戏怎么玩 ================= -->
+    <section class="slide-card" data-slide="3">
+      <div class="slide-header">
+        <span class="slide-tag">核心玩法与流程闭环</span>
+        <h2 class="slide-title">这个游戏<span class="title-highlight">怎么玩</span></h2>
+      </div>
+
+      <div class="speech-highlight-box">
+        <div class="speech-line"><span class="speech-icon">▶</span> 第一步：大声把英语单词读对！</div>
+        <div class="speech-line"><span class="speech-icon">▶</span> 第二步：端起枪瞄准打机器人！</div>
+        <div class="speech-line highlight"><span class="speech-icon">★</span> 只要把机器人打倒，你就赢啦！</div>
+      </div>
+
+      <div class="slide-body">
+        <div class="bento-grid-3">
+          <div class="bento-card">
+            <div class="bento-tag">STEP 01 · 发音充能</div>
+            <div class="bento-title">大声朗读单词</div>
+            <div class="bento-desc">屏幕弹出单词与音标，只要发音标准读对，手里的能量枪就会蓄满激光！</div>
+            <div style="margin-top:auto; padding-top:12px; font-size:12px; color:var(--cyan-neon);">
+              📸 配图：单词浮空 + 绿色PERFECT音波识别
+            </div>
+          </div>
+
+          <div class="bento-card orange">
+            <div class="bento-tag">STEP 02 · 瞄准射击</div>
+            <div class="bento-title">端起枪打机器人</div>
+            <div class="bento-desc">第一人称射击模式，瞄准迎面走来的机械小怪兽，扣下扳机猛烈开火！</div>
+            <div style="margin-top:auto; padding-top:12px; font-size:12px; color:var(--orange-neon);">
+              📸 配图：能量枪射出青蓝激光击中机器人
+            </div>
+          </div>
+
+          <div class="bento-card green">
+            <div class="bento-tag">STEP 03 · 胜利结算</div>
+            <div class="bento-title">把机器人打倒获胜</div>
+            <div class="bento-desc">机械怪兽冒烟倒地，瞬间结算关卡经验、金币与全校战力积分！</div>
+            <div style="margin-top:auto; padding-top:12px; font-size:12px; color:var(--green-neon);">
+              📸 配图：爆出VICTORY金币雨和大奖章
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span class="footer-brand">零号纪元 | NO.0 ERA</span>
+        <span>读准单词蓄满能量，一枪击败机械怪兽！</span>
+      </div>
+    </section>
+
+    <!-- ================= 第4页：最特别的地方 ================= -->
+    <section class="slide-card" data-slide="4">
+      <div class="slide-header">
+        <span class="slide-tag">核心壁垒与差异化价值</span>
+        <h2 class="slide-title">我的游戏<span class="title-highlight">最特别</span></h2>
+      </div>
+
+      <div class="speech-highlight-box">
+        <div class="speech-line"><span class="speech-icon">▶</span> 有好多关卡、积分和酷炫枪械，</div>
+        <div class="speech-line"><span class="speech-icon">▶</span> 还能比拼战力、换皮肤冲排行！</div>
+        <div class="speech-line highlight"><span class="speech-icon">★</span> 更有不同等级任你选，超好玩！</div>
+      </div>
+
+      <div class="slide-body">
+        <div class="bento-grid-3">
+          <div class="bento-card">
+            <div class="bento-tag">FEATURE 01</div>
+            <div class="bento-title">未来军械库与关卡</div>
+            <div class="bento-desc">拥有火焰枪、激光脉冲等炫彩武器，数十道梯度关卡，每一关都有新Boss！</div>
+          </div>
+
+          <div class="bento-card orange">
+            <div class="bento-tag">FEATURE 02</div>
+            <div class="bento-title">战力排行榜与酷皮肤</div>
+            <div class="bento-desc">酷炫限定装扮自由切换，和同班同学一较高下，看谁的英语战力高居榜首！</div>
+          </div>
+
+          <div class="bento-card gold">
+            <div class="bento-tag">FEATURE 03</div>
+            <div class="bento-title">自由等级难度任选</div>
+            <div class="bento-desc">初学者有简单练习模式，学霸有深渊极限挑战，每个人都能找到自己的快乐！</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span class="footer-brand">零号纪元 | NO.0 ERA</span>
+        <span>别人没有的武器库，我的游戏全都有</span>
+      </div>
+    </section>
+
+    <!-- ================= 第5页：算一笔账 ================= -->
+    <section class="slide-card" data-slide="5">
+      <div class="slide-header">
+        <span class="slide-tag">商业模式与收入模型</span>
+        <h2 class="slide-title">算一笔<span class="title-highlight">小账</span></h2>
+      </div>
+
+      <!-- 核心算式单独放大 -->
+      <div class="huge-math-banner">
+        <div style="font-size:13px; font-weight:800; color:var(--orange-neon); letter-spacing:2px; margin-bottom:4px;">★ 核心盈利小算盘 ★</div>
+        <div class="math-formula">10元 × 100人 ＝ 1000元！</div>
+      </div>
+
+      <div class="speech-highlight-box">
+        <div class="speech-line"><span class="speech-icon">▶</span> 我有超帅皮肤和50元至尊卡，</div>
+        <div class="speech-line"><span class="speech-icon">▶</span> 前7天免费试玩，先吸引大家！</div>
+        <div class="speech-line highlight"><span class="speech-icon">★</span> 只要一百个人买，就能赚一千块！</div>
+      </div>
+
+      <div class="slide-body">
+        <div class="bento-grid-3">
+          <div class="bento-card green">
+            <div class="bento-tag">💡 低门槛获客</div>
+            <div class="bento-title">免费畅玩 7 天</div>
+            <div class="bento-desc">先体验全部基础关卡，好玩再付费，彻底打消玩家顾虑！</div>
+          </div>
+
+          <div class="bento-card">
+            <div class="bento-tag">🌟 会员月卡</div>
+            <div class="bento-title">19.9 元 / 月</div>
+            <div class="bento-desc">每月持续解锁高难度全新关卡与机械怪兽，源源不断产生内容。</div>
+          </div>
+
+          <div class="bento-card gold">
+            <div class="bento-tag">👑 终极爆款方案</div>
+            <div class="bento-title">50 元 至尊VIP卡</div>
+            <div class="bento-desc">买全场皮肤享受大折扣，一次性打包全部关卡，性价比最高！</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span class="footer-brand">零号纪元 | NO.0 ERA</span>
+        <span>合理定价与良心福利，让每个小朋友都能玩得起</span>
+      </div>
+    </section>
+
+    <!-- ================= 第6页：怎么让人知道 ================= -->
+    <section class="slide-card" data-slide="6">
+      <div class="slide-header">
+        <span class="slide-tag">营销推广与获客策略</span>
+        <h2 class="slide-title">怎么让大家都<span class="title-highlight">知道</span></h2>
+      </div>
+
+      <div class="speech-highlight-box">
+        <div class="speech-line"><span class="speech-icon">▶</span> 先请全班同学免费试玩体验！</div>
+        <div class="speech-line"><span class="speech-icon">▶</span> 开服前两个月，天天送登录礼！</div>
+        <div class="speech-line highlight"><span class="speech-icon">★</span> 平时要花钱的皮肤，直接送！</div>
+      </div>
+
+      <div class="slide-body">
+        <div class="bento-grid-2">
+          <div class="bento-card">
+            <div class="bento-tag">🚀 获客招式 01</div>
+            <div class="bento-title">全班同学现场免费公测</div>
+            <div class="bento-desc">放学后直接邀请同班同学免费实机上手，一人玩得爽，全班跟着一起组队冲榜！</div>
+          </div>
+
+          <div class="bento-card orange">
+            <div class="bento-tag">🎁 获客招式 02</div>
+            <div class="bento-title">开服前 2 个月限时空投</div>
+            <div class="bento-desc">只要在开服前两个月内登录，送登录大礼包！平时要花钱的绝版机甲皮肤，完全免费送！</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span class="footer-brand">零号纪元 | NO.0 ERA</span>
+        <span>好玩的口碑 + 诚意福利，大家都会抢着玩！</span>
+      </div>
+    </section>
+
+    <!-- ================= 第7页：我的第一步 ================= -->
+    <section class="slide-card" data-slide="7">
+      <div class="slide-header">
+        <span class="slide-tag">执行节奏与近周里程碑</span>
+        <h2 class="slide-title">发布会后的<span class="title-highlight">第一步</span></h2>
+      </div>
+
+      <div class="speech-highlight-box">
+        <div class="speech-line"><span class="speech-icon">▶</span> 开完发布会，我马上就去行动！</div>
+        <div class="speech-line"><span class="speech-icon">▶</span> 认真听取10个小伙伴的建议，</div>
+        <div class="speech-line highlight"><span class="speech-icon">★</span> 把不足的地方改好，游戏更棒！</div>
+      </div>
+
+      <div class="slide-body">
+        <div class="bento-grid-2">
+          <div class="bento-card">
+            <div class="bento-tag">📝 本周小目标 01</div>
+            <div class="bento-title">倾听 10 位小伙伴的反馈</div>
+            <div class="bento-desc">拿上手账本，一对一记录同班10位朋友试玩后的意见，记录他们最喜欢的关卡和吐槽！</div>
+          </div>
+
+          <div class="bento-card green">
+            <div class="bento-tag">⚙️ 本周小目标 02</div>
+            <div class="bento-title">对不足之处火速升级优化</div>
+            <div class="bento-desc">针对大家提出的操作手感和发音识别问题快速打磨迭代，做最负责任的游戏制作人！</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span class="footer-brand">零号纪元 | NO.0 ERA</span>
+        <span>认真倾听玩家意见，是成为顶级制作人的第一步</span>
+      </div>
+    </section>
+
+    <!-- ================= 第8页：大梦想和感谢 ================= -->
+    <section class="slide-card" data-slide="8">
+      <div class="slide-header">
+        <span class="slide-tag">长期愿景与真诚致谢</span>
+        <h2 class="slide-title">我的<span class="title-highlight">大梦想</span></h2>
+      </div>
+
+      <div class="speech-highlight-box">
+        <div class="speech-line"><span class="speech-icon">▶</span> 以后要做更多关卡和超酷皮肤，</div>
+        <div class="speech-line highlight"><span class="speech-icon">★</span> 价格绝对不涨，让每个人都能玩！</div>
+        <div class="speech-line"><span class="speech-icon">❤</span> 谢谢大家的鼓励，请为我加油！</div>
+      </div>
+
+      <div class="slide-body">
+        <div class="bento-grid-3">
+          <div class="bento-card">
+            <div class="bento-tag">DREAM 01</div>
+            <div class="bento-title">做更多酷皮肤与关卡</div>
+            <div class="bento-desc">不断扩大游戏宇宙，加入更多高难度机械首领，赚更多钱开发新玩法！</div>
+          </div>
+
+          <div class="bento-card gold">
+            <div class="bento-tag">DREAM 02</div>
+            <div class="bento-title">价格永远不涨的承诺</div>
+            <div class="bento-desc">无论游戏多受欢迎，坚持良心定价，不搞昂贵套路，让所有人买得起！</div>
+          </div>
+
+          <div class="bento-card green">
+            <div class="bento-tag">DREAM 03</div>
+            <div class="bento-title">让每个人都快乐学英语</div>
+            <div class="bento-desc">让所有原本觉得英语枯燥的小伙伴，都在充满笑声的枪战中成为英语高手！</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span class="footer-brand">零号纪元 | NO.0 ERA</span>
+        <span>做一款真正能给人带来快乐与进步的好游戏</span>
+      </div>
+    </section>
+
+    <!-- ================= 第9页：放游戏Demo ================= -->
+    <section class="slide-card" data-slide="9">
+      <div class="slide-header">
+        <span class="slide-tag">实机操作演示</span>
+        <h2 class="slide-title">游戏<span class="title-highlight">实机演示</span></h2>
+      </div>
+
+      <div class="slide-body">
+        <div class="demo-screen-box">
+          <div style="font-size:48px;">🎮</div>
+          <div style="font-size:24px; font-weight:900; color:var(--cyan-neon); letter-spacing:2px;">DEMO SHOWTIME · 实机战斗打响</div>
+          <div style="font-size:15px; color:var(--text-muted); text-align:center; max-width:500px; line-height:1.6;">
+            【此处预留给小制作人实机操作投屏 / 视频切入】<br>
+            请看大屏幕，小英雄唐梓轩将现场演示读单词、射击机器人的完整战斗！
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span class="footer-brand">零号纪元 | NO.0 ERA</span>
+        <span>现场实机开打，感受声控射击的畅快体验！</span>
+      </div>
+    </section>
+
+    <!-- ================= 第10页：结束页面 ================= -->
+    <section class="slide-card" data-slide="10">
+      <div class="slide-header" style="text-align:center; align-items:center;">
+        <span class="slide-tag">路演谢幕 · Q&A 互动</span>
+        <h2 class="slide-title" style="font-size:48px;">谢谢<span class="title-highlight">大家！</span></h2>
+      </div>
+
+      <div class="speech-highlight-box" style="margin: 0 auto 24px; max-width: 600px; text-align: center; border-left: none; border-bottom: 3px solid var(--orange-neon); border-radius: 16px;">
+        <div class="speech-line" style="justify-content:center;"><span class="speech-icon">▶</span> 我的游戏是《零号纪元》，</div>
+        <div class="speech-line" style="justify-content:center;"><span class="speech-icon">▶</span> 欢迎大家下课后来找我试玩！</div>
+        <div class="speech-line highlight" style="justify-content:center;"><span class="speech-icon">★</span> 有想提问的投资人吗？请举手！</div>
+      </div>
+
+      <div class="slide-body">
+        <div class="bento-grid-2">
+          <div class="bento-card" style="text-align:center; align-items:center;">
+            <div style="font-size:36px; margin-bottom:8px;">🕹️</div>
+            <div class="bento-title">课后免费试玩专区</div>
+            <div class="bento-desc">教室后排设置实机试玩台，带上耳机体验一枪干倒机器人的爽快感！</div>
+          </div>
+
+          <div class="bento-card orange" style="text-align:center; align-items:center;">
+            <div style="font-size:36px; margin-bottom:8px;">🙋‍♂️</div>
+            <div class="bento-title">投资人提问环节 (Q&A)</div>
+            <div class="bento-desc">各位老师、评委和家长投资人，有什么想了解的商业机密，尽管问我吧！</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span class="footer-brand">零号纪元 | NO.0 ERA</span>
+        <span>感谢聆听！制作人：唐梓轩</span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 演讲提词器抽屉 (Speaker Notes Drawer) -->
+  <aside class="notes-drawer" id="notesDrawer">
+    <div class="notes-header">
+      <div class="notes-title">
+        <span>🎤</span> 小制作人台词与舞台动作
+      </div>
+      <div class="notes-close" id="btnCloseNotes">✕</div>
+    </div>
+    <div class="notes-content" id="notesText">
+      正在加载提词...
+    </div>
+    <div class="notes-action" id="notesAction">
+      💡 动作提示：微笑自信挥手
+    </div>
+  </aside>
+
+  <!-- 页面概览弹窗 (Overview Modal) -->
+  <div class="overview-modal" id="overviewModal">
+    <div class="overview-grid" id="overviewGrid">
+      <!-- 动态生成10页缩略导航 -->
+    </div>
+  </div>
+
+  <!-- 底部快捷键提示 -->
+  <div class="key-hints">
+    <span>翻页: <span class="key-badge">←</span> <span class="key-badge">→</span> / <span class="key-badge">Space</span></span>
+    <span>提词器: <span class="key-badge">T</span></span>
+    <span>目录: <span class="key-badge">O</span></span>
+    <span>全屏: <span class="key-badge">F</span></span>
+  </div>
+
+  <script>
+    // ================= PPT 控制交互逻辑 =================
+    const slides = document.querySelectorAll('.slide-card');
+    const totalSlides = slides.length;
+    let currentSlide = 1;
+
+    // 提词卡与动作数据
+    const speakerNotes = {
+      1: {
+        text: "大家好，我是创作者唐梓轩！今天带来新游戏《零号纪元》，专治所有不想学英语的同学！",
+        action: "【开场动作】：微笑、昂首挺胸向台下评委和家长挥手，声音洪亮有精神！"
+      },
+      2: {
+        text: "我的玩家是不会读英语的同学，他们总觉得学英语非常头疼。我们班45人，至少25人想玩！",
+        action: "【动作配合】：双手比划出大数字，说到25人时伸出两个手指，眼神带着满满的自信！"
+      },
+      3: {
+        text: "第一步：大声把英语单词读对！第二步：端起枪瞄准打机器人！只要把机器人打倒，你就赢啦！",
+        action: "【动作配合】：依次比划：手放在嘴边大声喊、双手握枪瞄准、击倒时用力挥舞胜利拳头！"
+      },
+      4: {
+        text: "有好多关卡、积分和酷炫枪械，还能比拼战力、换皮肤冲排行！更有不同等级任你选，超好玩！",
+        action: "【动作配合】：手指指向屏幕上的武器库与排行榜，语气自豪、语调轻快！"
+      },
+      5: {
+        text: "我有超帅皮肤和50元至尊卡，前7天免费试玩，先吸引大家！只要一百个人买，就能赚一千块！",
+        action: "【重点高潮】：转身用手指着被放大的大算式“1000元”，大声念出来，全场焦点！"
+      },
+      6: {
+        text: "先请全班同学免费试玩体验！开服前两个月，天天送登录礼！平时要花钱的皮肤，直接送！",
+        action: "【动作配合】：双手大方摊开，表现出“开服大放送”的慷慨豪气！"
+      },
+      7: {
+        text: "开完发布会，我马上就去行动！认真听取10个小伙伴的建议，把不足的地方改好，游戏更棒！",
+        action: "【动作配合】：表情变得认真坚毅，右手握拳在胸口轻砸一下，展示超强执行力！"
+      },
+      8: {
+        text: "以后要做更多关卡和超酷皮肤，价格绝对不涨，让每个人都能玩！谢谢大家的鼓励，请为我加油！",
+        action: "【动作配合】：双手轻抚胸口，微微弯腰向全场深深鞠一躬致谢，台下必定掌声雷动！"
+      },
+      9: {
+        text: "接下来，请看大屏幕！我来为大家现场演示一把真正的战斗！",
+        action: "【动作配合】：右手优雅地指向大屏幕，从容走到操作台拿起演示设备准备打怪！"
+      },
+      10: {
+        text: "我的游戏是《零号纪元》，欢迎大家下课后来找我试玩！有想提问的投资人吗？请举手！",
+        action: "【幽默谢幕】：调皮一笑，看向台下的老师、家长评委们，举手做邀请提问动作！"
+      }
+    };
+
+    const titles = [
+      "封面 · 零号纪元", "我的玩家", "游戏怎么玩", "最特别的地方", "算一笔小账",
+      "怎么让人知道", "我的第一步", "我的大梦想", "游戏实机演示", "结束致谢 Q&A"
+    ];
+
+    // 初始化指示器
+    const pageText = document.getElementById('pageText');
+    const dotsContainer = document.getElementById('dotsContainer');
+    const overviewGrid = document.getElementById('overviewGrid');
+
+    for (let i = 1; i <= totalSlides; i++) {
+      // 顶部圆点
+      const dot = document.createElement('div');
+      dot.className = `dot ${i === 1 ? 'active' : ''}`;
+      dot.onclick = () => goToSlide(i);
+      dotsContainer.appendChild(dot);
+
+      // 目录缩略项
+      const thumb = document.createElement('div');
+      thumb.className = `overview-thumb ${i === 1 ? 'active' : ''}`;
+      thumb.innerHTML = `
+        <div class="thumb-num">PAGE 0${i}</div>
+        <div class="thumb-title">${titles[i-1]}</div>
+      `;
+      thumb.onclick = () => {
+        goToSlide(i);
+        closeOverview();
+      };
+      overviewGrid.appendChild(thumb);
+    }
+
+    function updateView() {
+      slides.forEach((s, idx) => {
+        if (idx + 1 === currentSlide) {
+          s.classList.add('active');
+        } else {
+          s.classList.remove('active');
+        }
+      });
+
+      pageText.textContent = `${String(currentSlide).padStart(2, '0')} / ${String(totalSlides).padStart(2, '0')}`;
+
+      // 更新圆点
+      document.querySelectorAll('.dot').forEach((d, idx) => {
+        d.classList.toggle('active', idx + 1 === currentSlide);
+      });
+
+      // 更新目录激活
+      document.querySelectorAll('.overview-thumb').forEach((t, idx) => {
+        t.classList.toggle('active', idx + 1 === currentSlide);
+      });
+
+      // 更新提词器
+      const note = speakerNotes[currentSlide];
+      if (note) {
+        document.getElementById('notesText').textContent = note.text;
+        document.getElementById('notesAction').textContent = note.action;
+      }
+    }
+
+    function goToSlide(n) {
+      if (n < 1) n = 1;
+      if (n > totalSlides) n = totalSlides;
+      currentSlide = n;
+      updateView();
+    }
+
+    function nextSlide() { goToSlide(currentSlide + 1); }
+    function prevSlide() { goToSlide(currentSlide - 1); }
+
+    // 绑定翻页按钮
+    document.getElementById('btnNext').onclick = nextSlide;
+    document.getElementById('btnPrev').onclick = prevSlide;
+
+    // 提词器抽屉开关
+    const btnNotes = document.getElementById('btnNotes');
+    const notesDrawer = document.getElementById('notesDrawer');
+    const btnCloseNotes = document.getElementById('btnCloseNotes');
+
+    function toggleNotes() {
+      notesDrawer.classList.toggle('open');
+      btnNotes.classList.toggle('active-note', notesDrawer.classList.contains('open'));
+    }
+    btnNotes.onclick = toggleNotes;
+    btnCloseNotes.onclick = toggleNotes;
+
+    // 目录弹窗开关
+    const btnOverview = document.getElementById('btnOverview');
+    const overviewModal = document.getElementById('overviewModal');
+
+    function toggleOverview() {
+      overviewModal.classList.toggle('open');
+    }
+    function closeOverview() {
+      overviewModal.classList.remove('open');
+    }
+    btnOverview.onclick = toggleOverview;
+    overviewModal.onclick = (e) => {
+      if (e.target === overviewModal) closeOverview();
+    };
+
+    // 全屏模式
+    const btnFullscreen = document.getElementById('btnFullscreen');
+    btnFullscreen.onclick = () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => alert(err.message));
+      } else {
+        document.exitFullscreen();
+      }
+    };
+
+    // 键盘快捷键监听
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key.toLowerCase() === 't') {
+        toggleNotes();
+      } else if (e.key.toLowerCase() === 'o') {
+        toggleOverview();
+      } else if (e.key.toLowerCase() === 'f') {
+        btnFullscreen.click();
+      } else if (e.key === 'Escape') {
+        closeOverview();
+      }
+    });
+
+    // 触摸滑动手势支持
+    let touchStartX = 0;
+    window.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, false);
+    window.addEventListener('touchend', (e) => {
+      const touchEndX = e.changedTouches[0].screenX;
+      if (touchEndX - touchStartX > 50) prevSlide();
+      if (touchStartX - touchEndX > 50) nextSlide();
+    }, false);
+
+    // 初始化更新
+    updateView();
+  </script>
+</body>
+</html>

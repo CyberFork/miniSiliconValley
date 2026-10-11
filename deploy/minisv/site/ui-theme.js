@@ -53,6 +53,7 @@
       ["历史世界", "/world/"],
       ["课程大纲", "/framework/"],
       ["项目孵化", "/incubator/"],
+      ["学生作品", "/showcase/"],
       ["家长入口", "/parents/"],
       ["提示词中心", "/prompts/"],
       ["上课入口", "/classroom/"],

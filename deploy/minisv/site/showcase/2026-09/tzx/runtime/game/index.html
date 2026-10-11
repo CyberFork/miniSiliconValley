@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script src="/showcase/runtime-bridge.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>幻核游戏 - 月球战场与英语挑战</title>
+  <link rel="stylesheet" href="css/style.css?v=mobile_fix_v7">
+</head>
+<body>
+
+  <!-- 3D WebGL 渲染画布挂载容器 -->
+  <div id="canvas-container"></div>
+
+  <!-- 横竖屏强制检测遮罩 (竖屏时自动提示) -->
+  <div id="orientation-overlay">
+    <div class="rotate-icon"></div>
+    <div class="rotate-title">请横过来玩</div>
+    <div class="rotate-desc">为呈现 5v5 宏大月球战场与第三人称最佳射击视野，请将手机或平板旋转至横屏状态游玩。</div>
+  </div>
+
+  <!-- 全白色终局统一过渡层 -->
+  <div id="white-fade-overlay"></div>
+
+  <!-- 获得 BOSS 钥匙提示浮条 -->
+  <div id="boss-key-toast">
+    <span style="font-size: 22px;">🔑</span>
+    <span>芯片已拾取</span>
+  </div>
+
+  <!-- UI 根容器 -->
+  <div id="ui-root">
+
+    <!-- 顶部 HUD 状态栏 -->
+    <div id="top-hud">
+      <!-- 左侧：玩家头像、名称与血条 -->
+      <div class="player-status-card interactive">
+        <div class="avatar-wrapper" id="player-avatar-icon">
+          <img class="avatar-image" src="assets/characters/card_ayla.png" alt="艾拉">
+        </div>
+        <div class="player-info-meta">
+          <div class="player-name-row">
+            <span id="player-name-text">艾拉</span>
+            <span id="team-status-tag" title="存活队友" aria-label="4 名队友存活">
+              <span class="control-icon icon-team" aria-hidden="true"></span>
+              <span id="team-count-text">4</span>
+            </span>
+          </div>
+          <div class="hp-bar-outer">
+            <div class="hp-bar-inner" id="hp-bar-fill" style="width: 100%;"></div>
+            <div class="hp-text" id="hp-text">100/100</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧：关卡与雷达 -->
+      <div class="top-right-group interactive">
+        <div class="top-mission-banner">
+          <span id="banner-level-text">第 1 关</span>
+        </div>
+        <div class="radar-disc" id="radar-disc-widget" title="战术雷达">
+          <div class="radar-sweep"></div>
+          <div class="radar-reticle"></div>
+          <div id="radar-blips-container"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 战术方位罗盘 (Delta Force 风格顶部罗盘与声纹指示) -->
+    <div id="tactical-compass-container">
+      <div class="compass-pointer">▼</div>
+      <div id="tactical-compass-tape">
+        <!-- 动态更新角度与据点/声纹图标 -->
+      </div>
+    </div>
+
+    <!-- 唯一的当前目标，随关卡进度更新 -->
+    <div id="tutorial-guide-banner" role="status" aria-live="polite" style="display: none;"></div>
+
+    <!-- 屏幕中央准星与命中反馈 (Hitmarker) -->
+    <div id="reticle-container">
+      <div id="crosshair-center">
+        <div class="crosshair-dot"></div>
+        <div class="crosshair-line line-t"></div>
+        <div class="crosshair-line line-b"></div>
+        <div class="crosshair-line line-l"></div>
+        <div class="crosshair-line line-r"></div>
+      </div>
+      <!-- 命中红/白 X 闪烁反馈 -->
+      <div id="hitmarker" class="hitmarker-x"></div>
+    </div>
+
+    <!-- 浮动伤害跳字容器 -->
+    <div id="floating-dmg-container"></div>
+
+    <!-- 受击红光边缘预警 (指示中弹方向) -->
+    <div id="damage-vignette"></div>
+
+    <!-- 战术无线电实时呼叫提示条 -->
+    <div id="radio-chatter-box" style="display: none;">
+      <div class="radio-avatar" id="radio-speaker-avatar">📻</div>
+      <div class="radio-body">
+        <div class="radio-speaker" id="radio-speaker-name">无线电通讯 - 凯恩</div>
+        <div class="radio-text" id="radio-speaker-content">“侦测到敌方巡逻队，各单位保持警戒！”</div>
+      </div>
+      <div class="radio-wave-bars">
+        <span></span><span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <!-- 触控区域：左半屏移动摇杆 -->
+    <div id="joystick-zone">
+      <div id="joystick-base">
+        <div id="joystick-stick"></div>
+      </div>
+    </div>
+
+    <!-- 触控区域：右半屏拖动转视角 -->
+    <div id="touch-look-zone"></div>
+
+    <!-- 右下角：开枪、换枪与战术扫描控件组 -->
+    <div id="action-controls">
+      <!-- 战术声呐脉冲扫描按钮 (Delta Force 寻敌技能) -->
+      <button id="btn-tactical-scan" class="interactive" aria-label="侦测敌人" title="侦测敌人" data-tooltip="侦测敌人">
+        <span class="control-icon icon-scan" aria-hidden="true"></span>
+        <span class="scan-btn-cd" id="scan-cd-text"></span>
+      </button>
+
+      <!-- 换枪按钮 -->
+      <button id="btn-switch-weapon" class="interactive" aria-label="切换武器" title="切换武器" data-tooltip="切换武器">
+        <span class="control-icon icon-switch" aria-hidden="true"></span>
+        <span class="weapon-state" aria-hidden="true"><i></i><i></i></span>
+      </button>
+
+      <!-- 攻击大圆形按钮 -->
+      <button id="btn-attack" class="interactive" aria-label="攻击" title="攻击">
+        <span class="control-icon icon-attack" aria-hidden="true"></span>
+        <span>攻击</span>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- 模态框 1：游戏初始加载弹窗 -->
+  <div id="modal-loading" class="modal-layer active">
+    <div class="loading-box cyber-panel">
+      <div class="game-logo-title">幻核游戏</div>
+      <div class="game-sub-title">月球战场 · 三关英语挑战</div>
+      <div class="progress-bar-container">
+        <div class="progress-fill" id="loading-fill"></div>
+      </div>
+      <div class="loading-desc" id="loading-desc">正在构建月球 3D 地形与星际力场...</div>
+      <div class="loading-error" id="loading-error" role="alert"></div>
+      <button id="btn-start-game" class="btn-primary-action interactive" style="display: none; margin-top: 20px;">
+        进入星际战场
+      </button>
+    </div>
+  </div>
+
+  <!-- 模态框 2：英语等级选择 -->
+  <div id="modal-grade-select" class="modal-layer">
+    <div class="grade-dialog cyber-panel">
+      <div class="dialog-header">选择英语等级</div>
+      <div class="dialog-subtitle">本局三关都会使用所选等级的英语输入方式</div>
+      <div class="grade-grid">
+        <button class="grade-card selected interactive" data-grade="junior1_up">
+          <span class="grade-card-title">初一上</span>
+          <span class="grade-card-mode">看词输入</span>
+        </button>
+        <button class="grade-card interactive" data-grade="junior1_down">
+          <span class="grade-card-title">初一下</span>
+          <span class="grade-card-mode">缺字母填空</span>
+        </button>
+        <button class="grade-card interactive" data-grade="junior2_up">
+          <span class="grade-card-title">初二上</span>
+          <span class="grade-card-mode">中译英</span>
+        </button>
+        <button class="grade-card interactive" data-grade="junior2_down">
+          <span class="grade-card-title">初二下</span>
+          <span class="grade-card-mode">句子填空</span>
+        </button>
+        <button class="grade-card interactive" data-grade="junior3_up">
+          <span class="grade-card-title">初三上</span>
+          <span class="grade-card-mode">听音输入</span>
+        </button>
+        <button class="grade-card interactive" data-grade="junior3_down">
+          <span class="grade-card-title">初三下</span>
+          <span class="grade-card-mode">混合实战</span>
+        </button>
+      </div>
+      <button id="btn-confirm-grade" class="btn-primary-action interactive">确认英语等级</button>
+    </div>
+  </div>
+
+  <!-- 模态框 3：选角色弹窗 -->
+  <div id="modal-char-select" class="modal-layer">
+    <div class="char-dialog cyber-panel">
+      <div class="dialog-header">选择登月出战英雄</div>
+      <div class="chars-row">
+        <!-- 艾拉 -->
+        <div class="char-card selected" data-char="ayla">
+          <div class="char-avatar-big" style="background: radial-gradient(circle, #2d5584 0%, #0d1e33 100%);">
+            <img src="assets/characters/card_ayla.png" alt="艾拉">
+          </div>
+          <div class="char-title-name">艾拉</div>
+          <div class="char-title-role">宇宙治疗者</div>
+          <div class="char-trait-desc">支援定位：可自动复活倒下的机甲队友</div>
+        </div>
+        <!-- 凯恩 -->
+        <div class="char-card" data-char="kane">
+          <div class="char-avatar-big" style="background: radial-gradient(circle, #663344 0%, #201018 100%);">
+            <img src="assets/characters/card_kane.png" alt="凯恩">
+          </div>
+          <div class="char-title-name">凯恩</div>
+          <div class="char-title-role">宇宙战斗者</div>
+          <div class="char-trait-desc">战斗定位：更容易吸引巨大 BOSS 的攻击</div>
+        </div>
+        <!-- 纪元行者 -->
+        <div class="char-card" data-char="walker">
+          <div class="char-avatar-big" style="background: radial-gradient(circle, #336677 0%, #102028 100%);">
+            <img src="assets/characters/card_walker.png" alt="纪元行者">
+          </div>
+          <div class="char-title-name">纪元行者</div>
+          <div class="char-title-role">敏捷突击者</div>
+          <div class="char-trait-desc">突击定位：机动灵活，适合快速接近目标</div>
+        </div>
+      </div>
+      <button id="btn-confirm-char" class="btn-primary-action interactive">
+        选定并开始战斗
+      </button>
+    </div>
+  </div>
+
+  <!-- 模态框 4：关卡核心英语挑战弹窗 (第1关朗读 / 第2关填空 / 第3关双考) -->
+  <div id="modal-english-challenge" class="modal-layer">
+    <div class="challenge-dialog cyber-panel">
+      <div class="challenge-content">
+        <div class="challenge-type-badge" id="challenge-type-badge">英语核能充能挑战</div>
+        <div class="challenge-word-prompt" id="challenge-word-prompt">VICTORY</div>
+        <div class="challenge-phonetic" id="challenge-phonetic">/ˈvɪktəri/</div>
+        <div class="challenge-translation" id="challenge-translation">胜利（击败所有敌人后的战果）</div>
+
+        <!-- 麦克风动态波形 (朗读题) -->
+        <div class="mic-wave-container" id="mic-wave-box" style="display: none;">
+          <div class="mic-bar"></div>
+          <div class="mic-bar"></div>
+          <div class="mic-bar"></div>
+          <div class="mic-bar"></div>
+          <div class="mic-bar"></div>
+        </div>
+
+        <!-- 填空输入格子 (填空题) -->
+        <div class="spelling-input-row" id="spelling-input-box" style="display: none;"></div>
+
+        <!-- 虚拟键盘 (填空题) -->
+        <div class="virtual-keyboard" id="virtual-keyboard" style="display: none;"></div>
+
+        <div class="challenge-status-text" id="challenge-status-text">请准备作答...</div>
+      </div>
+
+      <div class="dialog-actions-row">
+        <button id="btn-listen-word" class="btn-secondary interactive" title="聆听发音">
+          🔊 听发音
+        </button>
+        <button id="btn-retry-mic" class="btn-secondary interactive" style="display: none;">
+          🎙️ 重新朗读
+        </button>
+        <button id="btn-submit-spell" class="btn-primary-action interactive" style="display: none;">
+          提交填空答案
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模态框 5：失败结算弹窗 -->
+  <div id="modal-defeat" class="modal-layer">
+    <div class="defeat-dialog cyber-panel">
+      <div class="defeat-crest">失 败</div>
+      <div class="defeat-detail-text" id="defeat-reason-text">受到致命摧毁！任务失败</div>
+      <div class="defeat-hp-line">
+        <div class="defeat-hp-zero"></div>
+      </div>
+      <div class="dialog-actions-row">
+        <button id="btn-prev-level" class="btn-danger interactive">
+          ⟵ 回到上一关
+        </button>
+        <button id="btn-retry-level" class="btn-secondary interactive">
+          重新挑战本关
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模态框 6：胜利结算弹窗 (通关第3关) -->
+  <div id="modal-victory" class="modal-layer">
+    <div class="victory-dialog cyber-panel">
+      <div class="victory-crest">胜 利</div>
+      <div class="victory-tagline">任务完成，月球基地已守住</div>
+      <div class="defeat-detail-text" id="victory-stats-text">击败敌人: 0 个 ｜ 终局奖励已结算</div>
+      <div class="settlement-balances">
+        <span>金币 <strong id="coin-count-text">850</strong></span>
+        <span>星星 <strong id="star-count-text">120</strong></span>
+      </div>
+      
+      <div class="rewards-grid">
+        <div class="reward-card">
+          <div class="reward-icon">🪙</div>
+          <div class="reward-val">+2000</div>
+          <div class="reward-name">星际金币</div>
+        </div>
+        <div class="reward-card">
+          <div class="reward-icon">⭐</div>
+          <div class="reward-val">+250</div>
+          <div class="reward-name">能量星星</div>
+        </div>
+        <div class="reward-card">
+          <div class="reward-icon">🔫</div>
+          <div class="reward-val">零号极光</div>
+          <div class="reward-name">枪械限定皮肤</div>
+        </div>
+        <div class="reward-card">
+          <div class="reward-icon">👑</div>
+          <div class="reward-val">宇宙统帅</div>
+          <div class="reward-name">新能力称号</div>
+        </div>
+      </div>
+
+      <button id="btn-restart-all" class="btn-primary-action interactive">
+        重新开启纪元 (再来一局)
+      </button>
+    </div>
+  </div>
+
+  <!-- 核心代码加载 (加入版本控制防移动端深缓存) -->
+  <script type="application/x-minisv-student" data-src="js/libs/three.min.js?v=delta_v4"></script>
+  <script type="application/x-minisv-student" data-src="js/game/audio.js?v=delta_v4"></script>
+  <script type="application/x-minisv-student" data-src="js/engine/scene.js?v=delta_v4"></script>
+  <script type="application/x-minisv-student" data-src="js/engine/controls.js?v=goals_v6"></script>
+  <script type="application/x-minisv-student" data-src="js/game/characters.js?v=mobile_fix_v7"></script>
+  <script type="application/x-minisv-student" data-src="js/game/combat.js?v=delta_v4"></script>
+  <script type="application/x-minisv-student" data-src="js/game/ai.js?v=delta_v4"></script>
+  <script type="application/x-minisv-student" data-src="js/game/english.js?v=delta_v4"></script>
+  <script type="application/x-minisv-student" data-src="js/game/ui.js?v=goals_v6"></script>
+  <script type="application/x-minisv-student" data-src="js/game/levels.js?v=goals_v6"></script>
+  <script type="application/x-minisv-student" data-src="js/main.js?v=goals_v6"></script>
+</body>
+</html>
