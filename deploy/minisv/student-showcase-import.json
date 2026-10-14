@@ -505,6 +505,196 @@
       "path": "2026-09/tzx/runtime/slides/06387856c42efe4999cf311100ea9960.jpg",
       "sha256": "40a4c2b51f1c9d18cdc4f8c632797e5eb997ec0456a7ec48cabd85d75112c987",
       "source": "cwe.zip:06387856c42efe4999cf311100ea9960.jpg"
+    },
+    {
+      "path": "2026-09/zrq/runtime/game/assets/battlestart_bg.png",
+      "sha256": "6948c66fa95bdfb3623eed5e331e52ea875d6f376b4ea5b17a4d18e574698ab0",
+      "source": "章-末日生存-开发包-20261012.zip:doomsday/assets/battlestart_bg.png"
+    },
+    {
+      "path": "2026-09/zrq/runtime/game/assets/sheet_boss.png",
+      "sha256": "4c793577fa5924b9ade5a67d79ef1c48f5f1f60affc24a40a548ffe2fd77b7ee",
+      "source": "章-末日生存-开发包-20261012.zip:doomsday/assets/sheet_boss.png"
+    },
+    {
+      "path": "2026-09/zrq/runtime/game/assets/sheet_cmdo.png",
+      "sha256": "930235c19fb9560cda291e7b34c57a1b2107caaa3cd1f32d9130cc095ea3a1fc",
+      "source": "章-末日生存-开发包-20261012.zip:doomsday/assets/sheet_cmdo.png"
+    },
+    {
+      "path": "2026-09/zrq/runtime/game/assets/sheet_hero.png",
+      "sha256": "857f4702d94ad436b6d4a6f4b24add39b2dbff1fa68893f0aaa9b34f59338c53",
+      "source": "章-末日生存-开发包-20261012.zip:doomsday/assets/sheet_hero.png"
+    },
+    {
+      "path": "2026-09/zrq/runtime/game/assets/sheet_mate.png",
+      "sha256": "1698b709baff5d54c00c16c069516f990f3d38630100dcc458b2340e7fc0289b",
+      "source": "章-末日生存-开发包-20261012.zip:doomsday/assets/sheet_mate.png"
+    },
+    {
+      "path": "2026-09/zrq/runtime/game/assets/sheet_mecha.png",
+      "sha256": "119439f481ae3fefd631357688749a554e65204c1f39af41b3f4d429c4dd93be",
+      "source": "章-末日生存-开发包-20261012.zip:doomsday/assets/sheet_mecha.png"
+    },
+    {
+      "path": "2026-09/zrq/runtime/game/assets/sheet_zombie.png",
+      "sha256": "bc264c23952bed0c328a9d0161a3beae65809431577bbcde5b394d0ef0dbcc22",
+      "source": "章-末日生存-开发包-20261012.zip:doomsday/assets/sheet_zombie.png"
+    },
+    {
+      "path": "2026-09/zrq/runtime/game/assets/boot.png",
+      "sha256": "21d226988f4e850d39f8066b588ff8f547f7e807128592f3e62133bd37107b37",
+      "source": "章-末日生存-开发包-20261012.zip:doomsday/assets/开机页面.png"
+    },
+    {
+      "path": "2026-09/zrq/runtime/game/assets/login.png",
+      "sha256": "10214bf0ddb66d47cfc88ce68b035cbcac874b0c182ed09bb8e9cdf16c80e7b9",
+      "source": "章-末日生存-开发包-20261012.zip:doomsday/assets/登陆界面.png"
+    },
+    {
+      "path": "2026-09/zrq/runtime/game/index.html",
+      "sha256": "5b53ef06f76e8160f94bf0c713195a07618f5445d82ce64dd148e83c42f0cbb1",
+      "source": "章-末日生存-开发包-20261012.zip:doomsday/index.html"
+    },
+    {
+      "path": "2026-09/zrq/runtime/game/js/data.js",
+      "sha256": "2fce93ca2617b0d69f65d6edf5329613e04e3ad874b55200fa508e042c213464",
+      "source": "章-末日生存-开发包-20261012.zip:doomsday/js/data.js"
+    },
+    {
+      "path": "2026-09/zrq/runtime/game/js/game.js",
+      "sha256": "72c041df09c986cdde9e112bc3538dbe1df92ff1008c7eaca7fb296f1cf9e32a",
+      "source": "章-末日生存-开发包-20261012.zip:doomsday/js/game.js"
+    },
+    {
+      "path": "2026-09/zrq/runtime/game/js/main.js",
+      "sha256": "d48e1c8f68c04009de268fea75a6fda49d29e459f51c347e789038ae1406bfb3",
+      "source": "章-末日生存-开发包-20261012.zip:doomsday/js/main.js"
+    },
+    {
+      "path": "2026-09/zrq/runtime/game/js/sprites.js",
+      "sha256": "a049103e92f5c29d1b472144aa61b6adbf7d86da986673b13a2b02a0bbd7de82",
+      "source": "章-末日生存-开发包-20261012.zip:doomsday/js/sprites.js"
+    },
+    {
+      "path": "2026-09/zrq/runtime/game/js/ui.js",
+      "sha256": "7972bf6945f689fa5b290f852c3f7cc3f8aaecff03ce100c4d97de0c7ffa213e",
+      "source": "章-末日生存-开发包-20261012.zip:doomsday/js/ui.js"
+    },
+    {
+      "path": "2026-09/zrq/runtime/game/js/world.js",
+      "sha256": "8a953b0aa95c8e37d8c136fb8bb4648a97c0ec8e034cbe3b80bba7ac7fd6e7f3",
+      "source": "章-末日生存-开发包-20261012.zip:doomsday/js/world.js"
+    },
+    {
+      "path": "2026-09/zrq/runtime/game/lib/three.min.js",
+      "sha256": "8a5f7249903b54d30f79f708699d2fed2d6a1d0741a4cd41377d1f01bb5a2271",
+      "source": "章-末日生存-开发包-20261012.zip:doomsday/lib/three.min.js"
+    },
+    {
+      "path": "2026-09/zrq/runtime/slides/index.html",
+      "sha256": "d1412a30fb3fe374b74cc7603281d406984edb1297a7610663a1e34d9ab69681",
+      "source": "cwe.zip:末日战争.html"
+    },
+    {
+      "path": "2026-09/zrq/runtime/slides/assets/doomsday_ppt/slide_01_img_1.png",
+      "sha256": "2b65b53258b0409d1be55c651a70cd59e14c46136d62841c81c01ae4ab5233f3",
+      "source": "cwe.zip:assets/doomsday_ppt/slide_01_img_1.png"
+    },
+    {
+      "path": "2026-09/zrq/runtime/slides/assets/doomsday_ppt/slide_02_img_1.png",
+      "sha256": "1ff66d4032c1160490e85727cc846ab27300a307fa3ec028f523146564c438ab",
+      "source": "cwe.zip:assets/doomsday_ppt/slide_02_img_1.png"
+    },
+    {
+      "path": "2026-09/zrq/runtime/slides/assets/doomsday_ppt/slide_03_img_1.jpg",
+      "sha256": "9a2b65ef6e273906f6fce84f022361095136a1cf43c936bbf2eb99561a430d19",
+      "source": "cwe.zip:assets/doomsday_ppt/slide_03_img_1.jpg"
+    },
+    {
+      "path": "2026-09/zrq/runtime/slides/assets/doomsday_ppt/slide_04_img_1.png",
+      "sha256": "e032fd6f8148c05e8d715cd46bf85a51b1de6b7aae904d88845de9b97866f966",
+      "source": "cwe.zip:assets/doomsday_ppt/slide_04_img_1.png"
+    },
+    {
+      "path": "2026-09/zrq/runtime/slides/assets/doomsday_ppt/slide_05_img_1.png",
+      "sha256": "dd306f45ca38a6bc6b57af043dacc6f6ad5d96e43049e3260088ec9ead952bad",
+      "source": "cwe.zip:assets/doomsday_ppt/slide_05_img_1.png"
+    },
+    {
+      "path": "2026-09/zrq/runtime/slides/assets/doomsday_ppt/slide_06_img_1.png",
+      "sha256": "10f08803ad8d84a0d875dd35ad1d053da160ef7f410dcb1fae99761c9a5b3896",
+      "source": "cwe.zip:assets/doomsday_ppt/slide_06_img_1.png"
+    },
+    {
+      "path": "2026-09/zrq/runtime/slides/assets/doomsday_ppt/slide_11_img_1.png",
+      "sha256": "10f08803ad8d84a0d875dd35ad1d053da160ef7f410dcb1fae99761c9a5b3896",
+      "source": "cwe.zip:assets/doomsday_ppt/slide_11_img_1.png"
+    },
+    {
+      "path": "2026-09/zrq/runtime/slides/assets/doomsday_ppt/slide_12_img_1.png",
+      "sha256": "4aa0ae3a887a94ff760ff265699e5b9dfe3f1c21596e7b908137753c04ef638e",
+      "source": "cwe.zip:assets/doomsday_ppt/slide_12_img_1.png"
+    },
+    {
+      "path": "2026-09/dky/runtime/game/index.html",
+      "sha256": "e3dfe9e4da3af742ba7d42a13470d9d8f802402a277aae15e97dffb40504841f",
+      "source": "段-回声断层_开发文件_2026-10-13.zip:回音断层/回声断层_游戏原型.html (BUILD v0.22.0)"
+    },
+    {
+      "path": "2026-09/dky/runtime/slides/slide-01.jpg",
+      "sha256": "3835b31e09aa707f6e6b1746fe55ed99a3ed65cd11d7b1f5ab7a864e09bba4f5",
+      "source": "cwe.zip:回声断层_我的第一份商业计划书.pptx#slide1"
+    },
+    {
+      "path": "2026-09/dky/runtime/slides/slide-02.jpg",
+      "sha256": "8b9cd5b810dd70995e7aa27720d994a7c78ea76c44aaafb64a051533440eedc4",
+      "source": "cwe.zip:回声断层_我的第一份商业计划书.pptx#slide2"
+    },
+    {
+      "path": "2026-09/dky/runtime/slides/slide-03.jpg",
+      "sha256": "6c94e32a784afb4ceeaacd6a673dfb3cdc37f6e2eb2de8bc9a7cc9ac6e839314",
+      "source": "cwe.zip:回声断层_我的第一份商业计划书.pptx#slide3"
+    },
+    {
+      "path": "2026-09/dky/runtime/slides/slide-04.jpg",
+      "sha256": "dce0b3753f12a131630822632e44631732d00889cfd9f8bbb467a749c98e8f5c",
+      "source": "cwe.zip:回声断层_我的第一份商业计划书.pptx#slide4"
+    },
+    {
+      "path": "2026-09/dky/runtime/slides/slide-05.jpg",
+      "sha256": "83cfbba16c022f2e86b5f7eecd25aa40f9b9e95602a61701fd980a59bf731ba9",
+      "source": "cwe.zip:回声断层_我的第一份商业计划书.pptx#slide5"
+    },
+    {
+      "path": "2026-09/dky/runtime/slides/slide-06.jpg",
+      "sha256": "b330400309f1ad8aeefba6dd4b44f6a8f27fdc616aacfe997c73b6da208da8de",
+      "source": "cwe.zip:回声断层_我的第一份商业计划书.pptx#slide6"
+    },
+    {
+      "path": "2026-09/dky/runtime/slides/slide-07.jpg",
+      "sha256": "faf870a164c7dd95d00c54509ded599b735e6cb32a41de154414539cf15a4114",
+      "source": "cwe.zip:回声断层_我的第一份商业计划书.pptx#slide7"
+    },
+    {
+      "path": "2026-09/dky/runtime/slides/slide-08.jpg",
+      "sha256": "901cbd59999e019b16a99dc5ff3fa87de527737fe6d58e7d74ea32c8b7107877",
+      "source": "cwe.zip:回声断层_我的第一份商业计划书.pptx#slide8"
+    },
+    {
+      "path": "2026-09/dky/runtime/slides/slide-09.jpg",
+      "sha256": "e102721260b83437859a134f97ea346810da2e875c38b4848f11d7e05797ba9b",
+      "source": "cwe.zip:回声断层_我的第一份商业计划书.pptx#slide9"
+    },
+    {
+      "path": "2026-09/dky/runtime/slides/slide-10.jpg",
+      "sha256": "ab53bdf0356f83c2ae4677edfc4a25f2c2bad9ee5f2dfe375f00299f853c36b7",
+      "source": "cwe.zip:回声断层_我的第一份商业计划书.pptx#slide10"
+    },
+    {
+      "path": "2026-09/dky/runtime/slides/index.html",
+      "sha256": "fd42bd42e144d44eb426e1ef029eeb272cd70b9c520da6f84927e0cb0e0f2503",
+      "source": "Web viewer for supplied PPTX rendered pages (10 slides)"
     }
   ],
   "adaptations": [
@@ -512,6 +702,138 @@
     "Local-only Three.js; no CDN fallback",
     "Origin-isolated, namespaced browser storage bridge; in-frame dialogs",
     "CWE multiplayer labelled simulation, sync labelled manual; nickname handler scope repaired",
-    "TZX public voice task is explicit self-reading, not automatic scoring; no microphone"
-  ]
+    "TZX public voice task is explicit self-reading, not automatic scoring; no microphone",
+    "Zhang: opaque-origin storage, in-frame reset confirmation, boot after storage seed; Chinese image URLs renamed ASCII only",
+    "Duan: latest v0.22.0 only, opaque-origin storage; existing PPTX rendered as 10 browser slides; no historical builds or development source bundle",
+    "Zhang sprite loader uses anonymous CORS for sandbox canvas readback; no fallback silhouette regression"
+  ],
+  "additionalSources": {
+    "zrq": {
+      "archiveSha256": "6c8b27b81286367292c0ff55be25989e97a04af7248fc281fc01e312b77a3d19",
+      "game": "末日生存",
+      "slides": "末日战争",
+      "slideAuthor": "章睿棋"
+    },
+    "dky": {
+      "version": "v0.22.0",
+      "originalHtmlSha256": "bc0ba95681aa609bae3f786e120abcafa8679d82e60399a2722a652b8dcff9b4",
+      "pptxSha256": "2e4d8834fd67fe3be3e998170daf40fbd85a0a079271da7453d064a0e9f57c47",
+      "slideAuthor": "段柯屹",
+      "gameSelfContained": true,
+      "archiveSha256": "40284f9ae6bd1998f48bac0587a2bca16da6a6bd7ca866830f6b93971a1707a5"
+    }
+  },
+  "updateBaseline": {
+    "2026-09/cwe/index.html": "b585d45670ad71f0c2d1567c51edf2371309add218f76081c7dfb0e418db3545",
+    "2026-09/cwe/play/index.html": "72038f0f5cc5d2c3bf57d9cb6b06e678262a353f89b7b0bf961483329ea5f3c3",
+    "2026-09/cwe/runtime/game/assets/arena.png": "83dace63f2a3f1794ba9afa0b5dc38db756844cb4e8a3e1fc233123388bb3902",
+    "2026-09/cwe/runtime/game/assets/bunker.png": "a2edfee790b15c0f2361e5f15143015d8524d02c7828bc199e0c7b27fdf8f8ab",
+    "2026-09/cwe/runtime/game/assets/dark.png": "54940b6ce8a60a46f8fcf88876ccbe0b43abe52ac7a8be8d7e7ef9501118c18c",
+    "2026-09/cwe/runtime/game/assets/grassland.png": "6c1600bb52dd80e2c68552fdc76621080d3bf4ed4aa7377419790311d805977f",
+    "2026-09/cwe/runtime/game/assets/logo.png": "5aab3a771b09ad4dfb675c0f2aa0a3f804828f979c58c94e5d80f1cf6cc2b373",
+    "2026-09/cwe/runtime/game/assets/three.min.js": "9274bbcec8d96168626c732b5d31c775aa8cfb7eaa0599bec0c175908a2c1ce2",
+    "2026-09/cwe/runtime/game/assets/title.png": "161600a2f6bf35b50f6a88c7a5f3a9efceb5dc5192bdad76a9b8d97ddc35dfd2",
+    "2026-09/cwe/runtime/game/css/game.css": "c16c5601819a9a0588f4f8ec7f545d782c7414267e7f7ec1e6d6d22dae5022fe",
+    "2026-09/cwe/runtime/game/favicon.ico": "5aab3a771b09ad4dfb675c0f2aa0a3f804828f979c58c94e5d80f1cf6cc2b373",
+    "2026-09/cwe/runtime/game/index.html": "e8f7e801040885b7f229d3283945ea4143b37be78921db288858694493af9934",
+    "2026-09/cwe/runtime/game/js/audio.js": "80f21e080a0e211d8c0e06c6e3118858eae1fa38017996b3c5d4e9b18b4beae1",
+    "2026-09/cwe/runtime/game/js/entities.js": "4695d4866373a6b377fce3a38eb6f692dc371822a2965dc9241face3f64820ce",
+    "2026-09/cwe/runtime/game/js/game.js": "60cb51563133ddc4c21eb1e7ecafbd4218be84e1d66b61e62f6dc1162caa424c",
+    "2026-09/cwe/runtime/game/js/multiplayer.js": "286461f7848cf1b19692e7e9c487285b5ed9cc1e41104987f64781f91d0e4fa7",
+    "2026-09/cwe/runtime/game/js/store.js": "408be251431c646308782003c81d5aa38b9f1e18dc61ae9328bb28eee5fdbab7",
+    "2026-09/cwe/runtime/game/js/worlds.js": "5209923f93faac72b01c98511ec456f1ce5cc399a50198da6dec8f81d815cd70",
+    "2026-09/cwe/runtime/slides/index.html": "5aba2c357efdde1fae2c4993c6a3884cd468a9f1237569c5e01943d7713dfd02",
+    "2026-09/cwe/slides/index.html": "d1692624e88a6756749c7a3a32a13023626753d8a4ece7144ac41f6851f15b8f",
+    "2026-09/index.html": "9ec308e09f8c77aad262b70a91535731875d698c8e8bfb9afbe4f7d4140e5d68",
+    "2026-09/tzx/index.html": "0e33d93c28e0a847422f19b89b6db434801be54386a28935af56eff5546f986f",
+    "2026-09/tzx/play/index.html": "2b7d2ec79866890e1f45224d1b43b7bd7c407d9f48a492d2bf26637b071c09d4",
+    "2026-09/tzx/runtime/game/assets/avatars/avatar_ayla.png": "445c81a5e34c0842b2e510296793a35a4fc324d455abacc027eee90977f152bf",
+    "2026-09/tzx/runtime/game/assets/avatars/avatar_ayla_circle.png": "355201a1d38a65116ed383d1a7392eb1ba67478297329dbb4473d3ce64bcda96",
+    "2026-09/tzx/runtime/game/assets/avatars/avatar_kane.png": "809ea0d0e163501c45e11eb2c692a97832635876b968e446cb71b77a938c6e1f",
+    "2026-09/tzx/runtime/game/assets/avatars/avatar_kane_circle.png": "d98c35cce8a74177ac9a1de466574b94466aa17edd7ba57aa3c219611451eaee",
+    "2026-09/tzx/runtime/game/assets/avatars/avatar_walker.png": "7690b5af409a20dd3bcb6038d899447b23b93978f039342ab66144309cd7f902",
+    "2026-09/tzx/runtime/game/assets/avatars/avatar_walker_circle.png": "082c1691a428c10894b62770a23264d5c9e4a459d8491d556bf0468e2e28d695",
+    "2026-09/tzx/runtime/game/assets/avatars/ayla_boss_card.png": "1840ce4589f5c05d470c6327bd27e345a616f58da3a5016f5df56e6c27a7d300",
+    "2026-09/tzx/runtime/game/assets/avatars/ayla_card.png": "048dc9c06b81e73ecee09fe6322e6c10f7ebbf7f23d30cdcb87e0593e4e9cf18",
+    "2026-09/tzx/runtime/game/assets/avatars/ayla_face.png": "4301c4cbb1a44d7d387ddd2ae7ae3735145bf24a32d21dc5d7c66fd8cf449763",
+    "2026-09/tzx/runtime/game/assets/avatars/kane_card.png": "b4a86f6da50c1ca7886d56f8faa3b11934e6ac17996ac1c4b254b42f335f53fa",
+    "2026-09/tzx/runtime/game/assets/avatars/kane_face.png": "dfc9f7e9b1806c0e074cea5d49ff09347b6a640801f1578676b15eed39924422",
+    "2026-09/tzx/runtime/game/assets/avatars/walker_card.png": "56f38ce3cef024ff835efc79e6d08b1be41c56632fdb8b9f3702cb0e5bea9640",
+    "2026-09/tzx/runtime/game/assets/avatars/walker_face.png": "575c98826507406ca88c8336cf819f55b8540eb92400447dde35843fb92d3caa",
+    "2026-09/tzx/runtime/game/assets/buttons/btn_attack.png": "e59a5c240113eedbaf8e64b9c197f8edc7a905fd18f964ad82ce3a77c86d0a41",
+    "2026-09/tzx/runtime/game/assets/buttons/btn_attack_raw.png": "ef23bccfd01a3b2c5dc1d5d3671da1cfc75a2d2263ea16314678ae993f7e2451",
+    "2026-09/tzx/runtime/game/assets/buttons/btn_b1.png": "589bdb03ba466e8b735cf484d7a128cab8e7a9bf94e7a8e065ea0f464422fba4",
+    "2026-09/tzx/runtime/game/assets/buttons/btn_b2.png": "1d3008541a1cc7416f48b5f2923e2e351387750b1088a7724c6ba51d24c4c336",
+    "2026-09/tzx/runtime/game/assets/buttons/btn_b3.png": "f0b730a2e6750db64755beb0049d8149381f2db95369002ef53cd38323223f64",
+    "2026-09/tzx/runtime/game/assets/buttons/btn_b4.png": "f9edc583a3b286d89f666bdbe3728cdf62917d9487a6213f6c63b892e98a0eee",
+    "2026-09/tzx/runtime/game/assets/buttons/btn_cyber_pill.png": "d420ab544e3901b87869da95516c5031a7ed4ee662e12462fdf785ab08d90f26",
+    "2026-09/tzx/runtime/game/assets/buttons/btn_home.png": "db4642c702bb767b552727d480b09a53298d994e0bfad8a297663747b4cdc3e1",
+    "2026-09/tzx/runtime/game/assets/buttons/btn_retry.png": "67a49c111e8118c88881513a7f6384ca326b5dc4e479656f46e2274bd7eb562d",
+    "2026-09/tzx/runtime/game/assets/buttons/btn_start_combat.png": "c5373fca958317baba12793e3986685007cbc1c0496f701f397d5f9f59afe950",
+    "2026-09/tzx/runtime/game/assets/buttons/btn_switch_gun.png": "040ed2c4f0f7239a489f632f4bace223b4ce612f2b1505b7803b82dc68c2a408",
+    "2026-09/tzx/runtime/game/assets/buttons/btn_victory_again.png": "a90a42449973dbf642e7960acd33cac8c28f4d5cc27f31d844322541023531bb",
+    "2026-09/tzx/runtime/game/assets/buttons/btn_victory_home.png": "a1695c14cab66f310c3ce02a73904a6f32d5a84878f5789a6595e24f1bdab60a",
+    "2026-09/tzx/runtime/game/assets/buttons/btn_victory_restart.png": "c4c5721872b6d39d125c7e3107fbb87511b4b4bf6ef1ef296521f5c79a7a0d77",
+    "2026-09/tzx/runtime/game/assets/buttons/panel_defeat_buttons.png": "8773965c0c0afbd7b7be72fd5e52ca2d45f26bde065101cd5f7f22377c3f1be3",
+    "2026-09/tzx/runtime/game/assets/buttons/test_quadrant.png": "885d179dbc189204a8800e3d9e2db079dea918f62aa66a0c751e2323811403e4",
+    "2026-09/tzx/runtime/game/assets/buttons/test_start.png": "79d015ee99d41d03d2236802d142681f071b3d6912be41e99b231255d050e88c",
+    "2026-09/tzx/runtime/game/assets/characters/ayla_full.png": "6fe36268939b50098dbefdfb65a434ebefd703a0f14ff3237a1f2bcba89af830",
+    "2026-09/tzx/runtime/game/assets/characters/boss_full.png": "6c9c0361eedc7a2f0aa21ef7e5b444fb3a22649ec3915295a509259b3b6e23f7",
+    "2026-09/tzx/runtime/game/assets/characters/card_ayla.png": "3615b7aacc8370fc8462641bb620a7e30ee5354b3bcbe65801440365b420550f",
+    "2026-09/tzx/runtime/game/assets/characters/card_kane.png": "394cb6a4237968b7555bc955dba05268c764b7352ce93e34945896d565554801",
+    "2026-09/tzx/runtime/game/assets/characters/card_walker.png": "362d3c26c05d5f4f4717e29b991201a6e164b4ac02c8546b77feab8376c823bc",
+    "2026-09/tzx/runtime/game/assets/characters/char_ayla.png": "4ad195b29ec373fa6cd72c81485787bedfcb80a8903f4e8453bdabb5e050aec3",
+    "2026-09/tzx/runtime/game/assets/characters/char_boss.png": "a3dd7b16e37a554043113058ff9a6363ace341894f437159d39174579d620673",
+    "2026-09/tzx/runtime/game/assets/characters/char_enemy.png": "ee02049d9a7244acd92763c64370e9e9e45266ce4421be2a189dbc6f0e19c7a9",
+    "2026-09/tzx/runtime/game/assets/characters/char_kane.png": "bbe14042b06566fdd776f8468e14d37f6fed93c8e78f764c9ce6e90f5f846695",
+    "2026-09/tzx/runtime/game/assets/characters/char_walker.png": "4eed0879d26e8724e80b27e81ad59ca90e66d4c6159f169208fa5014e689bc2e",
+    "2026-09/tzx/runtime/game/assets/characters/enemy_minion.png": "f0acc4002afbb0aabb8da035c659266d625c0e386ac4444337aed972d3822aea",
+    "2026-09/tzx/runtime/game/assets/characters/kane_full.png": "115e8eb5e0098448b6c14c3f4cd5f43160e5906cf048e3c5eaba9b826a6a5f46",
+    "2026-09/tzx/runtime/game/assets/characters/test_ayla.png": "e8d82e1f0b77bce66d3f9bb8f4d91bee7c8620cefe38e2dcb14361b7fcbcae6f",
+    "2026-09/tzx/runtime/game/assets/characters/test_boss.png": "c7907f7e00435247ca39e4afd8952ab5fc96ddc8994b4b5c3a9d2cc6c49e965e",
+    "2026-09/tzx/runtime/game/assets/characters/test_kane.png": "2cdc2810b9e5ada0eb5355a8aea0c8500657b4aabca33b0ed9c7f37053c88537",
+    "2026-09/tzx/runtime/game/assets/characters/test_walker.png": "2b968d2f8de12df4375b8d0c34edf7ea2e5b26787b581f2626b22e421ef2eea0",
+    "2026-09/tzx/runtime/game/assets/characters/walker_full.png": "789f512f64ff9289c745e7c2659175862d31bd2b3eeb3be5799a6527d149be9c",
+    "2026-09/tzx/runtime/game/assets/medals/medal_defeat.png": "de4816602b24b0f523bd242b4be64a5c0b371a904e346a20f1b546059ecab35c",
+    "2026-09/tzx/runtime/game/assets/medals/medal_defeat_feathered.png": "c40a7e02451455e4cb9c668d4e40afd3947a9ea4dd4388e5519b183b8fa58965",
+    "2026-09/tzx/runtime/game/assets/medals/medal_defeat_raw.png": "72cc602b80519ab60638bad8e40db1c92c184810eecceebfdca23a2eee3d1e2a",
+    "2026-09/tzx/runtime/game/assets/medals/medal_victory.png": "142328c31bad0d5c5f6e317b82f81f3d1cda59e5db29ba7989a84550ac5fc463",
+    "2026-09/tzx/runtime/game/assets/medals/medal_victory_feathered.png": "8ba9d8d094db93b343ec100d61c1dd329b2f03adb70fd8cae38ecbd2ae02b97b",
+    "2026-09/tzx/runtime/game/assets/medals/medal_victory_raw.png": "29946acf8b43d0e8fc49fd5bda25c09792f9f465dabab35d1d023240cb29216a",
+    "2026-09/tzx/runtime/game/assets/ui/bar_defeat_hp.png": "a7d8198ec32a1f50a88c04f8f463c57963a7fcfb9995c3102e7053a64ee48bc6",
+    "2026-09/tzx/runtime/game/assets/ui/bg_lunar_battle.jpg": "daa62355d2ec95cf07bf9251441a0b7a8d097588de62ced5131639ee59b1c33e",
+    "2026-09/tzx/runtime/game/assets/ui/crosshair.svg": "496108b34a12fd951bda7f3655e530e47601e8c802c471b2d1103463bfbfdb3b",
+    "2026-09/tzx/runtime/game/assets/ui/currency_bar.png": "b1ace63a76c727dda34dc1756d8013dbcb48a9d2d9a414f410530f5d9fea51f0",
+    "2026-09/tzx/runtime/game/assets/ui/dialog_english_frame.png": "70994390d26846111ccb92a0b387acc0cefe193a5692cb3e36de93f73b20d6e6",
+    "2026-09/tzx/runtime/game/assets/ui/mission_card_bg.png": "b59ffe724702549c74c2da793f0b46c1a45329e134c9e2883a7fa4b7d8d80de0",
+    "2026-09/tzx/runtime/game/assets/ui/mission_panel_raw.png": "755df4f02e7bce2a45f730aa807203ae0b52e6bbd5e2d6dee285d2e9597363a8",
+    "2026-09/tzx/runtime/game/assets/ui/panel_defeat_left.png": "b4a825cc0df1a95f7ecd1d4178675e44c73b25d3f95edabcb57df525f834296c",
+    "2026-09/tzx/runtime/game/assets/ui/panel_victory_stats.png": "fb66baeb8743315827918bc34c44427098213dc89c7e236e1a7941bf7bc62ec6",
+    "2026-09/tzx/runtime/game/assets/ui/radar.svg": "2b502208132aa5c14c57d776301dc2f5efd0ba27577aa2c81d18377e84b1d873",
+    "2026-09/tzx/runtime/game/assets/ui/radar_reticle.png": "57d896f0727c91c0c455a54675ed683719dcb29c8f06d9d50951aa3287a65437",
+    "2026-09/tzx/runtime/game/assets/ui/repeat-2.svg": "8d47bb497814639a86387c5521f6ee87f73a722b1816297916c518f7d4df3bc2",
+    "2026-09/tzx/runtime/game/assets/ui/top_banner.png": "8e685b014e3b33e94a36a30fa476138f46e163e6c6232d6111f63a626935807a",
+    "2026-09/tzx/runtime/game/assets/ui/users-round.svg": "e7ccd113816a1631cefa00ffadc7d6ec3d439d1fb706bae8c390047edd6e71a2",
+    "2026-09/tzx/runtime/game/css/style.css": "4e62ff1e14c3cd9a9335a5691c6e4acd5b56a7b36919b65bde2414f35bb96d4f",
+    "2026-09/tzx/runtime/game/index.html": "4f94488904381fcd64a4ec1c65f7931cad0fc523029ada9af96e9a08b3314bcf",
+    "2026-09/tzx/runtime/game/js/engine/controls.js": "f8d9bcf37c1aab00584def8e7cfaf48552ca751e60edd6b36465ef0cc0a269f8",
+    "2026-09/tzx/runtime/game/js/engine/scene.js": "45de4e87ed53ebb9aa08e8dc923c3913e6b8c63712e671a196dd94794fec8cff",
+    "2026-09/tzx/runtime/game/js/game/ai.js": "4540ad2d17efeb0a1f0cf036a9c3643cafa08180f7611b47f139901d1d36e939",
+    "2026-09/tzx/runtime/game/js/game/audio.js": "4af3161164481c8ff9b18242a6a9ee1c86497c322f167afa78081dbada1c6772",
+    "2026-09/tzx/runtime/game/js/game/characters.js": "bf4662516d2d94df6e5c093203d9fd2dbec2b9c885578a09620c1700e4a4cd61",
+    "2026-09/tzx/runtime/game/js/game/combat.js": "e6ccb1607d8c65e8f8462bf47923d4133697e383e9c491a7dd9a04f3d7542cf9",
+    "2026-09/tzx/runtime/game/js/game/english.js": "71d0627cacc6d1d6289a76a9efaf747cba8e715b1805c60ca2ac39d1d4e97395",
+    "2026-09/tzx/runtime/game/js/game/levels.js": "9f0adbe327b106c6de18a2dfc2e8d944b7ea04ebe7a70794b0c647deb998219f",
+    "2026-09/tzx/runtime/game/js/game/ui.js": "ac4d2fdd4943969f4b3f1ad75ce25a7b25abb92f9331e68c769f99ce8c0a7ba1",
+    "2026-09/tzx/runtime/game/js/libs/three.min.js": "9274bbcec8d96168626c732b5d31c775aa8cfb7eaa0599bec0c175908a2c1ce2",
+    "2026-09/tzx/runtime/game/js/main.js": "aac3857d8bcc91c2c665b8dd49666923bc79d7bc75a9d76b8bbe232a180702cc",
+    "2026-09/tzx/runtime/slides/06387856c42efe4999cf311100ea9960.jpg": "40a4c2b51f1c9d18cdc4f8c632797e5eb997ec0456a7ec48cabd85d75112c987",
+    "2026-09/tzx/runtime/slides/assets/zero_era_poster.jpg": "9ed400cca9e33c29177d6d54539874a4baeea889c3ad5a7e900409980b8683e8",
+    "2026-09/tzx/runtime/slides/index.html": "474795412cc0601dab76a5d9a75a8cf1456f1f74e5be9da33dcaba23081f0128",
+    "2026-09/tzx/slides/index.html": "f4bcc7d8375ec8e58691512d0617aabfc297cd080824942ab55d677a99e69147",
+    "host.js": "7dfcf4633a4108eb438626659beee2b6cd9aacfb29c4c0f9abb118d09dec9921",
+    "index.html": "5b9298d6d2010aac8f453bef47a1cf7f176c2b9e213f63c7c101a50d4fe721ae",
+    "runtime-bridge.js": "f8091d8cbbb5e89958fbf98e44bef442f1b610fcb22ab55eed73b8c40c86120f",
+    "showcase.css": "35804553a08a87b8b29382682eb77b7f2cacca0010b634597123f1b7bd46b2bc"
+  }
 }

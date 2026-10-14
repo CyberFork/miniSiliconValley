@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>《末日战争》商业计划书路演发布会 · 章睿棋 (HTML演示文稿)</title>
+  <style>
+    /* ================= 炭黑废土机甲 · 原版设计系统规范 ================= */
+    :root {
+      --bg-dark: #14161A;             /* 原版炭黑背景 */
+      --card-bg: #1F242B;             /* 原版卡片背景 */
+      --card-border: #2E3540;         /* 卡片边框 */
+      --yellow-accent: #D8C25A;       /* 原版暖金黄装饰线/主强调 */
+      --yellow-deep: #8F8540;         /* 深金色 */
+      --red-alert: #D94F43;           /* 原版警戒猩红 */
+      --text-white: #FFFFFF;          /* 纯白 */
+      --text-primary: #E8E2D0;        /* 原版米白主字 */
+      --text-muted: #8A8F96;          /* 原版次级冷灰 */
+      --text-sub: #6E747C;            /* 暗灰 */
+      --font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s ease;
+    }
+
+    /* 顶部控制栏 */
+    .top-navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      background: rgba(20, 22, 26, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(216, 194, 90, 0.2);
+      z-index: 100;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tag-badge {
+      background: var(--yellow-accent);
+      color: #14161A;
+      font-size: 11px;
+      font-weight: 900;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 1px;
+    }
+
+    .deck-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .nav-center {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .page-indicator-pill {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--yellow-accent);
+      padding: 5px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+    }
+
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-tool {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-primary);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 7px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-tool:hover {
+      background: #2a313c;
+      border-color: var(--yellow-accent);
+      color: var(--yellow-accent);
+      transform: translateY(-1px);
+    }
+
+    /* 幻灯片视口 */
+    .deck-container {
+      position: relative;
+      width: 1200px;
+      height: 675px;
+      max-width: 94vw;
+      max-height: 82vh;
+      aspect-ratio: 16 / 9;
+      margin-top: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    /* 单张幻灯片卡片 (幻灯片播放模式) */
+    .slide-item {
+      position: absolute;
+      inset: 0;
+      background: var(--bg-dark);
+      border: 1px solid #282D36;
+      border-radius: 14px;
+      padding: 36px 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.98);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+    }
+
+    .slide-item.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+    }
+
+    /* 标题区域 */
+    .slide-top {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+
+    .slide-h1 {
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--text-primary);
+      letter-spacing: -0.5px;
+    }
+
+    .yellow-underline {
+      width: 120px;
+      height: 5px;
+      background: var(--yellow-accent);
+      border-radius: 3px;
+      margin-top: 6px;
+    }
+
+    .sub-desc-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 6px;
+      font-size: 15px;
+      color: var(--text-muted);
+    }
+
+    .badge-pill-right {
+      background: #2A303A;
+      color: var(--text-muted);
+      border: 1px solid #3A4350;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 12px;
+      border-radius: 999px;
+    }
+
+    /* 幻灯片主体 */
+    .slide-content-area {
+      flex: 1;
+      display: flex;
+      gap: 28px;
+      align-items: stretch;
+      overflow: hidden;
+    }
+
+    /* 原图容器 */
+    .media-box {
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #2B313B;
+      background: #0B0D10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      position: relative;
+    }
+
+    .media-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* 原版圆角矩形内容卡片 */
+    .ppt-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 22px 24px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 原版红底横幅或按钮 */
+    .btn-red-pill {
+      background: var(--red-alert);
+      color: #FFFFFF;
+      font-size: 16px;
+      font-weight: 800;
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    /* 幻灯片页脚 */
+    .slide-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* 底部悬浮翻页器 */
+    .floating-nav {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: rgba(20, 22, 26, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      padding: 8px 24px;
+      border-radius: 999px;
+      z-index: 100;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .btn-arrow {
+      background: none;
+      border: none;
+      color: var(--yellow-accent);
+      font-size: 18px;
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .btn-arrow:hover {
+      background: rgba(216, 194, 90, 0.2);
+      transform: scale(1.1);
+    }
+
+    .dots-strip {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .dot-pill {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #474E59;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .dot-pill.active {
+      width: 22px;
+      border-radius: 4px;
+      background: var(--yellow-accent);
+    }
+
+    /* ================= 演讲提词悬浮窗 ================= */
+    .teleprompter-box {
+      position: fixed;
+      bottom: 80px;
+      right: 32px;
+      width: 380px;
+      background: #1B1E24;
+      border: 1.5px solid var(--yellow-accent);
+      border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.8);
+      z-index: 200;
+      display: none;
+    }
+
+    .teleprompter-box.show {
+      display: block;
+      animation: popIn 0.25s ease;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .tele-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #2B313B;
+    }
+
+    .tele-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--yellow-accent);
+    }
+
+    .tele-body {
+      font-size: 13.5px;
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    .tele-tip {
+      margin-top: 10px;
+      background: rgba(216, 194, 90, 0.12);
+      border-left: 3px solid var(--yellow-accent);
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #E8D992;
+    }
+
+    /* ================= 纵向滚动模式 / 长图视图样式 ================= */
+    body.scroll-mode {
+      overflow-y: auto !important;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 80px 0 60px;
+    }
+
+    body.scroll-mode .deck-container {
+      display: flex;
+      flex-direction: column;
+      height: auto;
+      max-height: none;
+      gap: 36px;
+      aspect-ratio: auto;
+      margin-top: 0;
+    }
+
+    body.scroll-mode .slide-item {
+      position: relative;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+      transform: none !important;
+      width: 1100px;
+      height: 620px;
+      flex-shrink: 0;
+    }
+
+    body.scroll-mode .floating-nav {
+      display: none;
+    }
+
+    @media print {
+      .top-navbar, .floating-nav, .teleprompter-box { display: none !important; }
+      body { background: #14161A !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .deck-container { display: block !important; margin: 0 !important; width: 100% !important; }
+      .slide-item { page-break-after: always; break-after: page; width: 100% !important; height: 100vh !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 顶部工具栏 -->
+  <header class="top-navbar">
+    <div class="nav-brand">
+      <span class="tag-badge">BATTLE START</span>
+      <span class="deck-title">末日战争 · 商业计划书路演发布会</span>
+    </div>
+
+    <div class="nav-center">
+      <span class="page-indicator-pill" id="pageTag">01 / 12</span>
+    </div>
+
+    <div class="nav-controls">
+      <button class="btn-tool" onclick="toggleScrollMode()" id="btnMode">
+        <span>📜 切换长图视图</span>
+      </button>
+      <button class="btn-tool" onclick="toggleTeleprompter()">
+        <span>🎙️ 提词助手 (T)</span>
+      </button>
+      <button class="btn-tool" onclick="toggleFullscreen()">
+        <span>⛶ 全屏演示 (F)</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- 幻灯片主体视口 -->
+  <main class="deck-container" id="deckContainer">
+
+    <!-- ================= 01 封面 ================= -->
+    <section class="slide-item active" id="slide-1">
+      <div class="slide-content-area" style="align-items: center; gap: 40px;">
+        <!-- 左侧文本 -->
+        <div style="flex: 1.1; display: flex; flex-direction: column; justify-content: center;">
+          <div style="font-size: 13px; font-weight: 800; color: var(--yellow-accent); letter-spacing: 1.5px; margin-bottom: 6px;">
+            BATTLE START
+          </div>
+          <div style="font-size: 14px; font-weight: 700; color: var(--text-muted); margin-bottom: 14px;">
+            我的第一份商业计划书 · 路演发布会
+          </div>
+
+          <h1 style="font-size: 56px; font-weight: 900; color: var(--text-white); margin-bottom: 16px; letter-spacing: 1px;">
+            末日战争
+          </h1>
+
+          <div class="yellow-underline" style="margin-bottom: 24px;"></div>
+
+          <div style="font-size: 24px; font-weight: 800; color: var(--red-alert); line-height: 1.4; margin-bottom: 24px;">
+            不用花大钱，也能玩得超爽的<br>末日机甲游戏！
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 16px; color: var(--text-muted); font-size: 14px; font-weight: 600;">
+            <span>路演人：章睿棋</span>
+            <span>·</span>
+            <span>2026.10.11</span>
+          </div>
+        </div>
+
+        <!-- 右侧原图 -->
+        <div style="flex: 1.2; height: 100%; display: flex; align-items: center;">
+          <div class="media-box" style="width: 100%; height: 440px;">
+            <img src="assets/doomsday_ppt/slide_01_img_1.png" alt="末日避难所废墟封面原图">
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-bottom">
+        <span>末日战争 · 路演发布会</span>
+        <span>01 / 12</span>
+      </div>
+    </section>
+
+    <!-- ================= 02 我的玩家 ================= -->
+    <section class="slide-item" id="slide-2">
+      <div class="slide-top">
+        <h2 class="slide-h1">我的玩家</h2>
+        <div class="yellow-underline"></div>
+      </div>
+
+      <div class="slide-content-area" style="align-items: center;">
+        <!-- 左侧文字痛点与大数字 -->
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 24px;">
+          <div style="display: flex; flex-direction: column; gap: 10px; font-size: 20px; font-weight: 700; color: var(--text-primary); line-height: 1.6;">
+            <div>我的玩家是 5～10 岁的儿童，</div>
+            <div style="color: var(--red-alert); font-size: 24px; font-weight: 900;">
+              他们最大的烦恼是：好无聊！
+            </div>
+            <div>所以我想让他们玩得超开心～</div>
+          </div>
+
+          <div class="ppt-card" style="border-left: 5px solid var(--yellow-accent); flex-direction: row; align-items: center; gap: 20px;">
+            <div style="font-size: 64px; font-weight: 900; color: var(--yellow-accent); line-height: 1;">
+              43
+            </div>
+            <div style="font-size: 22px; font-weight: 800; color: var(--text-white); line-height: 1.4;">
+              个同学，<br>个个都想玩！
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧原图 -->
+        <div style="flex: 1.1; height: 100%; display: flex; align-items: center;">
+          <div class="media-box" style="width: 100%; height: 420px;">
+            <img src="assets/doomsday_ppt/slide_02_img_1.png" alt="客厅三个孩子快乐玩游戏原图">
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-bottom">
+        <span>末日战争 · 路演发布会</span>
+        <span>02 / 12</span>
+      </div>
+    </section>
+
+    <!-- ================= 03 游戏怎么玩 · 第一步 ================= -->
+    <section class="slide-item" id="slide-3">
+      <div class="slide-top">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <h2 class="slide-h1">游戏怎么玩 · 第一步</h2>
+          <span class="badge-pill-right">游戏开场剧情</span>
+        </div>
+        <div class="yellow-underline"></div>
+        <div class="sub-desc-row">
+          <span style="font-size: 32px; font-weight: 900; color: var(--yellow-accent);">1</span>
+          <span style="font-size: 18px; font-weight: 700; color: var(--text-white);">说清楚游戏的背景，更沉浸</span>
+        </div>
+      </div>
+
+      <div class="slide-content-area" style="flex-direction: column; justify-content: center;">
+        <!-- 原图剧情截图横幅居中 -->
+        <div class="media-box" style="width: 100%; height: 380px;">
+          <img src="assets/doomsday_ppt/slide_03_img_1.jpg" alt="末日生存开场剧情原图">
+        </div>
+      </div>
+
+      <div class="slide-bottom">
+        <span>末日战争 · 路演发布会</span>
+        <span>03 / 12</span>
+      </div>
+    </section>
+
+    <!-- ================= 04 游戏怎么玩 · 第二步 ================= -->
+    <section class="slide-item" id="slide-4">
+      <div class="slide-top">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <h2 class="slide-h1">游戏怎么玩 · 第二步</h2>
+          <span class="badge-pill-right">人物与技能界面</span>
+        </div>
+        <div class="yellow-underline"></div>
+        <div class="sub-desc-row">
+          <span style="font-size: 32px; font-weight: 900; color: var(--yellow-accent);">2</span>
+          <span style="font-size: 18px; font-weight: 700; color: var(--text-white);">选择游戏身份和技能</span>
+        </div>
+      </div>
+
+      <div class="slide-content-area" style="flex-direction: column; justify-content: center;">
+        <!-- 原图人物与技能界面截图 -->
+        <div class="media-box" style="width: 100%; height: 380px;">
+          <img src="assets/doomsday_ppt/slide_04_img_1.png" alt="人物与技能界面原图">
+        </div>
+      </div>
+
+      <div class="slide-bottom">
+        <span>末日战争 · 路演发布会</span>
+        <span>04 / 12</span>
+      </div>
+    </section>
+
+    <!-- ================= 05 游戏怎么玩 · 第三步 ================= -->
+    <section class="slide-item" id="slide-5">
+      <div class="slide-top">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <h2 class="slide-h1">游戏怎么玩 · 第三步</h2>
+          <span class="badge-pill-right">出发准备界面</span>
+        </div>
+        <div class="yellow-underline"></div>
+        <div class="sub-desc-row">
+          <span style="font-size: 32px; font-weight: 900; color: var(--yellow-accent);">3</span>
+          <span style="font-size: 18px; font-weight: 700; color: var(--text-white);">准备好啦，出发开启末日生存挑战！</span>
+        </div>
+      </div>
+
+      <div class="slide-content-area" style="flex-direction: column; justify-content: center;">
+        <!-- 原图出发准备界面截图 -->
+        <div class="media-box" style="width: 100%; height: 380px;">
+          <img src="assets/doomsday_ppt/slide_05_img_1.png" alt="出发准备界面原图">
+        </div>
+      </div>
+
+      <div class="slide-bottom">
+        <span>末日战争 · 路演发布会</span>
+        <span>05 / 12</span>
+      </div>
+    </section>
+
+    <!-- ================= 06 最特别的地方 ================= -->
+    <section class="slide-item" id="slide-6">
+      <div class="slide-top">
+        <h2 class="slide-h1">最特别的地方</h2>
+        <div class="yellow-underline"></div>
+      </div>
+
+      <div class="slide-content-area" style="align-items: center; gap: 36px;">
+        <!-- 左侧机甲立绘原图 -->
+        <div style="flex: 1; height: 100%; display: flex; align-items: center;">
+          <div class="media-box" style="width: 100%; height: 420px;">
+            <img src="assets/doomsday_ppt/slide_06_img_1.png" alt="霸气绿色重机甲立绘原图">
+          </div>
+        </div>
+
+        <!-- 右侧卖点要点 -->
+        <div style="flex: 1.1; display: flex; flex-direction: column; gap: 20px;">
+          <div class="ppt-card" style="gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 14px; font-size: 22px; font-weight: 800; color: var(--text-white);">
+              <span>🪜</span>
+              <span>可以爬梯子打怪</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 14px; font-size: 22px; font-weight: 800; color: var(--text-white);">
+              <span>🥚</span>
+              <span>每两天刷一次小怪，超期待～</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 14px; font-size: 22px; font-weight: 800; color: var(--text-white);">
+              <span>🎵</span>
+              <span>还有专属音乐，特别潮！</span>
+            </div>
+          </div>
+
+          <div style="background: var(--yellow-accent); color: #14161A; font-size: 24px; font-weight: 900; padding: 14px 28px; border-radius: 8px; text-align: center; letter-spacing: 1px;">
+            别人没有的，我有！
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-bottom">
+        <span>末日战争 · 路演发布会</span>
+        <span>06 / 12</span>
+      </div>
+    </section>
+
+    <!-- ================= 07 算一笔账 ================= -->
+    <section class="slide-item" id="slide-7">
+      <div class="slide-top">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <h2 class="slide-h1">算一笔账（我的游戏赚钱）</h2>
+          <span style="font-size: 20px; font-weight: 900; color: var(--yellow-accent);">💰 COIN</span>
+        </div>
+        <div class="yellow-underline"></div>
+      </div>
+
+      <div class="slide-content-area" style="flex-direction: column; gap: 20px;">
+        <!-- 上方三张卡片 -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; flex: 1;">
+          <div class="ppt-card" style="justify-content: center; border-top: 4px solid var(--red-alert);">
+            <div style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">🎨 卖好看的皮肤</div>
+            <div style="font-size: 28px; font-weight: 900; color: var(--yellow-accent);">9.9 元 一个</div>
+          </div>
+
+          <div class="ppt-card" style="justify-content: center; border-top: 4px solid var(--yellow-accent);">
+            <div style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">📺 看广告复活</div>
+            <div style="font-size: 20px; font-weight: 800; color: var(--text-white);">不用花钱，<br>看广告就能复活！</div>
+          </div>
+
+          <div class="ppt-card" style="justify-content: center; border-top: 4px solid #4CAF50;">
+            <div style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">👑 会员月卡</div>
+            <div style="font-size: 26px; font-weight: 900; color: var(--yellow-accent); margin-bottom: 6px;">10 元 一个月</div>
+            <div style="font-size: 14px; color: var(--text-muted);">全关卡畅玩，皮肤打折</div>
+          </div>
+        </div>
+
+        <!-- 中间大算式卡片 -->
+        <div class="ppt-card" style="align-items: center; justify-content: center; padding: 24px; background: #262D36; border: 2px dashed var(--yellow-accent);">
+          <div style="font-size: 44px; font-weight: 900; color: var(--yellow-accent); letter-spacing: 2px;">
+            5人 × 10元 = 50元！
+          </div>
+          <div style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin-top: 10px;">
+            如果有 5 个人买，每人付 10 元，我能收到 50 元
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-bottom">
+        <span>末日战争 · 路演发布会</span>
+        <span>07 / 12</span>
+      </div>
+    </section>
+
+    <!-- ================= 08 怎么让人知道 ================= -->
+    <section class="slide-item" id="slide-8">
+      <div class="slide-top">
+        <h2 class="slide-h1">怎么让人知道</h2>
+        <div class="yellow-underline"></div>
+      </div>
+
+      <div class="slide-content-area" style="align-items: center;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 20px; width: 100%; height: 100%;">
+          <div class="ppt-card" style="justify-content: center;">
+            <div style="font-size: 32px; margin-bottom: 6px;">🎮</div>
+            <div style="font-size: 20px; font-weight: 800; color: var(--text-white); margin-bottom: 4px;">全班同学免费试玩</div>
+            <div style="font-size: 15px; color: var(--text-muted);">先让好朋友们玩起来</div>
+          </div>
+
+          <div class="ppt-card" style="justify-content: center;">
+            <div style="font-size: 32px; margin-bottom: 6px;">📱</div>
+            <div style="font-size: 20px; font-weight: 800; color: var(--text-white); margin-bottom: 4px;">爸妈发朋友圈</div>
+            <div style="font-size: 15px; color: var(--text-muted);">还有班级群也发一发</div>
+          </div>
+
+          <div class="ppt-card" style="justify-content: center;">
+            <div style="font-size: 32px; margin-bottom: 6px;">🖼️</div>
+            <div style="font-size: 20px; font-weight: 800; color: var(--text-white); margin-bottom: 4px;">画一张大海报</div>
+            <div style="font-size: 15px; color: var(--text-muted);">贴出来给大家看</div>
+          </div>
+
+          <div class="ppt-card" style="justify-content: center;">
+            <div style="font-size: 32px; margin-bottom: 6px;">🎁</div>
+            <div style="font-size: 20px; font-weight: 800; color: var(--text-white); margin-bottom: 4px;">首发优惠＋每日宝箱</div>
+            <div style="font-size: 15px; color: var(--text-muted);">早点来有礼物哦！</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-bottom">
+        <span>末日战争 · 路演发布会</span>
+        <span>08 / 12</span>
+      </div>
+    </section>
+
+    <!-- ================= 09 我的第一步 ================= -->
+    <section class="slide-item" id="slide-9">
+      <div class="slide-top">
+        <h2 class="slide-h1">我的第一步（行动计划）</h2>
+        <div class="yellow-underline"></div>
+        <div style="font-size: 17px; font-weight: 700; color: var(--text-primary); margin-top: 10px;">
+          发布会开完，我也不偷懒，这周要做一件小事：
+        </div>
+      </div>
+
+      <div class="slide-content-area" style="align-items: center; justify-content: center;">
+        <div style="display: flex; align-items: center; gap: 20px; width: 100%;">
+          <!-- 第一步 -->
+          <div class="ppt-card" style="flex: 1; min-height: 200px; justify-content: center; align-items: center; text-align: center;">
+            <div style="background: var(--yellow-accent); color: #14161A; font-weight: 900; font-size: 14px; padding: 4px 14px; border-radius: 999px; margin-bottom: 12px;">
+              第一步
+            </div>
+            <div style="font-size: 20px; font-weight: 800; color: var(--text-white); line-height: 1.5;">
+              把游戏<br>系统设计得更好
+            </div>
+          </div>
+
+          <div style="font-size: 28px; font-weight: 900; color: var(--yellow-accent);">→</div>
+
+          <!-- 第二步 -->
+          <div class="ppt-card" style="flex: 1; min-height: 200px; justify-content: center; align-items: center; text-align: center;">
+            <div style="background: var(--yellow-accent); color: #14161A; font-weight: 900; font-size: 14px; padding: 4px 14px; border-radius: 999px; margin-bottom: 12px;">
+              第二步
+            </div>
+            <div style="font-size: 20px; font-weight: 800; color: var(--text-white); line-height: 1.5;">
+              周日请3个小朋友<br>来试玩，反馈评价
+            </div>
+          </div>
+
+          <div style="font-size: 28px; font-weight: 900; color: var(--yellow-accent);">→</div>
+
+          <!-- 然后呢 -->
+          <div class="ppt-card" style="flex: 1; min-height: 200px; justify-content: center; align-items: center; text-align: center; border: 2px solid var(--red-alert);">
+            <div style="background: var(--red-alert); color: #FFFFFF; font-weight: 900; font-size: 14px; padding: 4px 14px; border-radius: 999px; margin-bottom: 12px;">
+              然后呢？
+            </div>
+            <div style="font-size: 24px; font-weight: 900; color: var(--yellow-accent);">
+              越做越好玩！
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-bottom">
+        <span>末日战争 · 路演发布会</span>
+        <span>09 / 12</span>
+      </div>
+    </section>
+
+    <!-- ================= 10 大梦想和感谢 ================= -->
+    <section class="slide-item" id="slide-10">
+      <div class="slide-top">
+        <h2 class="slide-h1">大梦想和感谢</h2>
+        <div class="yellow-underline"></div>
+      </div>
+
+      <div class="slide-content-area" style="flex-direction: column; justify-content: center; gap: 24px;">
+        <div class="ppt-card" style="border-left: 6px solid var(--yellow-accent); padding: 28px;">
+          <div style="font-size: 32px; font-weight: 900; color: var(--yellow-accent); line-height: 1.4;">
+            🌟 我的梦想：大家都爱玩我的游戏！
+          </div>
+        </div>
+
+        <div class="ppt-card" style="border-left: 6px solid #4CAF50; padding: 24px; gap: 12px;">
+          <div style="font-size: 22px; font-weight: 800; color: var(--text-white);">
+            ❤️ 谢谢爸爸妈妈和老师一直帮我～
+          </div>
+          <div style="font-size: 22px; font-weight: 800; color: var(--text-white);">
+            👏 也谢谢今天的每一位听众！
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-bottom">
+        <span>末日战争 · 路演发布会</span>
+        <span>10 / 12</span>
+      </div>
+    </section>
+
+    <!-- ================= 11 游戏演示 ================= -->
+    <section class="slide-item" id="slide-11">
+      <div class="slide-top">
+        <h2 class="slide-h1">游戏演示</h2>
+        <div class="yellow-underline"></div>
+      </div>
+
+      <div class="slide-content-area" style="align-items: center; gap: 32px;">
+        <!-- 左侧演示机甲原图 -->
+        <div style="flex: 1; height: 100%; display: flex; align-items: center;">
+          <div class="media-box" style="width: 100%; height: 420px;">
+            <img src="assets/doomsday_ppt/slide_11_img_1.png" alt="游戏演示机甲原图">
+          </div>
+        </div>
+
+        <!-- 右侧演示说明卡片 -->
+        <div style="flex: 1.1; height: 100%; display: flex; align-items: center;">
+          <div class="ppt-card" style="width: 100%; height: 420px; justify-content: center; align-items: center; text-align: center; gap: 18px; border: 2px dashed #4E5766;">
+            <div style="font-size: 34px; font-weight: 900; color: var(--yellow-accent);">
+              演示画面放这里！
+            </div>
+            <div style="font-size: 24px; font-weight: 800; color: var(--text-white);">
+              现场看我玩一段～
+            </div>
+            <div style="font-size: 16px; color: var(--text-muted);">
+              （发布会时替换成游戏实录）
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-bottom">
+        <span>末日战争 · 路演发布会</span>
+        <span>11 / 12</span>
+      </div>
+    </section>
+
+    <!-- ================= 12 GAME CLEAR ================= -->
+    <section class="slide-item" id="slide-12">
+      <div class="slide-content-area" style="align-items: center; gap: 36px;">
+        <!-- 左侧文字 -->
+        <div style="flex: 1.2; display: flex; flex-direction: column; justify-content: center;">
+          <div style="font-size: 40px; font-weight: 900; color: var(--yellow-accent); margin-bottom: 12px; letter-spacing: 2px;">
+            GAME CLEAR
+          </div>
+
+          <h2 style="font-size: 48px; font-weight: 900; color: var(--text-white); margin-bottom: 16px;">
+            谢谢大家！
+          </h2>
+
+          <div class="yellow-underline" style="margin-bottom: 24px;"></div>
+
+          <div style="font-size: 26px; font-weight: 800; color: var(--text-primary); margin-bottom: 16px;">
+            欢迎来玩《末日战争》
+          </div>
+
+          <div style="font-size: 28px; font-weight: 900; color: var(--red-alert); letter-spacing: 1px;">
+            末日开战，一分不花，照样封神！
+          </div>
+        </div>
+
+        <!-- 右侧Q版胜利机甲原图 -->
+        <div style="flex: 1; height: 100%; display: flex; align-items: center;">
+          <div class="media-box" style="width: 100%; height: 420px;">
+            <img src="assets/doomsday_ppt/slide_12_img_1.png" alt="Q版机甲与小助手原画">
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-bottom">
+        <span>末日战争 · 路演发布会</span>
+        <span>12 / 12</span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 底部悬浮翻页导航 -->
+  <nav class="floating-nav" id="floatingNav">
+    <button class="btn-arrow" onclick="prevSlide()" title="上一页 (←)">◀</button>
+    <div class="dots-strip" id="dotsContainer"></div>
+    <button class="btn-arrow" onclick="nextSlide()" title="下一页 (→)">▶</button>
+  </nav>
+
+  <!-- 演讲提词浮窗 (按 T 呼出) -->
+  <aside class="teleprompter-box" id="teleprompter">
+    <div class="tele-header">
+      <span class="tele-title" id="teleTitle">第 1 页提词</span>
+      <button onclick="toggleTeleprompter()" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px;">✕</button>
+    </div>
+    <div class="tele-body" id="teleText">加载中...</div>
+    <div class="tele-tip" id="teleTip">动作提示：...</div>
+  </aside>
+
+  <script>
+    const totalSlides = 12;
+    let currentSlide = 1;
+    let isScrollMode = false;
+
+    // 提词卡数据（小制作人章睿棋定制台词与动作）
+    const prompts = {
+      1: {
+        title: "第 1 页：封面 · 震撼开场",
+        speech: "大家好！我是小制作人章睿棋。今天带来我的第一份商业计划书——《末日战争》！不用花大钱，也能玩得超爽的末日机甲游戏！",
+        tip: "【动作】面带自信微笑，昂首挺胸向全场评委老师招手！"
+      },
+      2: {
+        title: "第 2 页：我的玩家 · 痛点与调研",
+        speech: "我的玩家是 5 到 10 岁的小朋友，大家最大的烦恼就是：好无聊！所以我想让他们玩得超开心。我们班 43 个同学，个个都想玩！",
+        tip: "【动作】说到‘好无聊’时可爱地摊摊手，说到‘43个同学’时自信伸手指向大屏幕！"
+      },
+      3: {
+        title: "第 3 页：玩法第一步 · 剧情沉浸",
+        speech: "第一步：说清楚背景！城市停电168小时，街上的东西不再是人了，我和同伴白天找物资，天黑回安全屋。活下去，就是唯一的胜利！",
+        tip: "【动作】语气带点末日探险的紧张感，说到‘活下去’时握紧右拳！"
+      },
+      4: {
+        title: "第 4 页：玩法第二步 · 身份技能",
+        speech: "第二步：选择身份和技能！姜叶凡冲在前面清丧尸，近战输出最高；张艺凡是辅助，负责治疗和冰冻控场。每人带3个技能，安全屋随便换！",
+        tip: "【动作】模仿一下双手挥剑近战与冰冻控场的动作。"
+      },
+      5: {
+        title: "第 5 页：玩法第三步 · 整备出击",
+        speech: "第三步：准备好啦，整装出发！你可以离开安全屋去街区搜物资，也可以睡觉跳到下一天。记住：背包12格，两个人都不倒才能继续生存！",
+        tip: "【动作】拍拍胸脯展示小战士出征的自豪感。"
+      },
+      6: {
+        title: "第 6 页：最特别的地方 · 独家卖点",
+        speech: "我们最特别的地方在哪里？可以爬梯子打怪！每两天刷一次小怪超期待！还有专属机甲潮流音乐！别人没有的，我有！",
+        tip: "【动作】大声喊出‘别人没有的，我有！’，挺胸抬头，气势拉满！"
+      },
+      7: {
+        title: "第 7 页：算一笔账 · 商业头脑 (高潮)",
+        speech: "我们怎么赚钱呢？卖9.9元皮肤；看广告免花钱复活；还有10元会员月卡。大家看：5个人买月卡，每人10块，我能收到50块！完全可以自给自足！",
+        tip: "【动作】眼神放光，声音提高！右手食指直接指向‘5人×10元=50元’！"
+      },
+      8: {
+        title: "第 8 页：怎么让人知道 · 营销推广",
+        speech: "怎么让人知道呢？四步走：先请全班免费试玩；爸妈发朋友圈和班级群；画一张霸气大海报贴出来；还有首发礼包和每日宝箱吸引大家天天来！",
+        tip: "【动作】伸出4根手指逐一数出，条理分明。"
+      },
+      9: {
+        title: "第 9 页：我的第一步 · 马上行动",
+        speech: "发布会开完，我也不偷懒！这周先把系统手感调得更好；周日请3个小朋友来试玩；然后认真吸纳反馈，越做越好玩！",
+        tip: "【动作】表情认真沉稳，展示‘我是个认真负责的产品经理’！"
+      },
+      10: {
+        title: "第 10 页：大梦想和感谢",
+        speech: "我的大梦想就是：大家都爱玩我的游戏！谢谢爸爸妈妈和老师一直支持我，也谢谢今天现场的每一位听众！",
+        tip: "【动作】双手叠放在胸前，深深向台下鞠躬致谢！"
+      },
+      11: {
+        title: "第 11 页：游戏演示 · 实机互动",
+        speech: "耳听为虚，现场看我玩一段！大家看大屏幕，看我如何操控机甲爬梯子打怪、配合队友求生！",
+        tip: "【动作】身体转向操作台/大屏，展示实机操作。"
+      },
+      12: {
+        title: "第 12 页：GAME CLEAR · 完美定格",
+        speech: "谢谢大家！欢迎大家都来玩《末日战争》！记住我们的口号：末日开战，一分不花，照样封神！",
+        tip: "【动作】高举右手做胜利手势，向全场听众热情挥手谢幕！"
+      }
+    };
+
+    // 初始化小圆点
+    const dotsContainer = document.getElementById('dotsContainer');
+    for (let i = 1; i <= totalSlides; i++) {
+      const dot = document.createElement('div');
+      dot.className = `dot-pill ${i === 1 ? 'active' : ''}`;
+      dot.onclick = () => goToSlide(i);
+      dotsContainer.appendChild(dot);
+    }
+
+    function updateDeck() {
+      if (isScrollMode) return;
+
+      document.querySelectorAll('.slide-item').forEach((item, idx) => {
+        if (idx + 1 === currentSlide) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
+        }
+      });
+
+      document.querySelectorAll('.dot-pill').forEach((dot, idx) => {
+        if (idx + 1 === currentSlide) {
+          dot.classList.add('active');
+        } else {
+          dot.classList.remove('active');
+        }
+      });
+
+      const pageStr = `${String(currentSlide).padStart(2, '0')} / ${String(totalSlides).padStart(2, '0')}`;
+      document.getElementById('pageTag').innerText = pageStr;
+
+      // 更新提词卡
+      if (prompts[currentSlide]) {
+        document.getElementById('teleTitle').innerText = prompts[currentSlide].title;
+        document.getElementById('teleText').innerText = prompts[currentSlide].speech;
+        document.getElementById('teleTip').innerText = prompts[currentSlide].tip;
+      }
+    }
+
+    function goToSlide(n) {
+      if (n >= 1 && n <= totalSlides) {
+        currentSlide = n;
+        updateDeck();
+      }
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        currentSlide++;
+        updateDeck();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        currentSlide--;
+        updateDeck();
+      }
+    }
+
+    function toggleScrollMode() {
+      isScrollMode = !isScrollMode;
+      document.body.classList.toggle('scroll-mode', isScrollMode);
+      const btn = document.getElementById('btnMode');
+      if (isScrollMode) {
+        btn.innerHTML = '<span>🖥️ 切换幻灯片视图</span>';
+      } else {
+        btn.innerHTML = '<span>📜 切换长图视图</span>';
+        updateDeck();
+      }
+    }
+
+    function toggleTeleprompter() {
+      const tele = document.getElementById('teleprompter');
+      tele.classList.toggle('show');
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    // 快捷键支持
+    window.addEventListener('keydown', (e) => {
+      if (isScrollMode) return;
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'Backspace' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        toggleFullscreen();
+      } else if (e.key.toLowerCase() === 't') {
+        e.preventDefault();
+        toggleTeleprompter();
+      }
+    });
+
+    updateDeck();
+  </script>
+</body>
+</html>

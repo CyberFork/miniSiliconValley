@@ -4,7 +4,8 @@
   const frame = document.getElementById('student-frame');
   if (!frame) return;
   const student = frame.dataset.student, kind = frame.dataset.kind;
-  const allowedKeys = student === 'cwe' ? ['kirby_cp_profiles_v1', 'kirby_cp_current_user_v1'] : student === 'tzx' ? ['phantom-game-progress'] : [];
+  const keysByStudent = {cwe:['kirby_cp_profiles_v1','kirby_cp_current_user_v1'],tzx:['phantom-game-progress'],zrq:['doomsday_endless_v1'],dky:['echofault.save.v1']};
+  const allowedKeys = Object.hasOwn(keysByStudent, student) ? keysByStudent[student] : [];
   const expected = `/showcase/2026-09/${student}/runtime/${kind === 'game' ? 'game' : 'slides'}/index.html`;
   if (!allowedKeys.length || !['game', 'slides'].includes(kind) || frame.dataset.src !== expected) return;
   let fullscreenTarget = frame;
@@ -54,6 +55,10 @@
     if (data.type === 'minisv-showcase-save' && allowedKeys.includes(data.key) && typeof data.value === 'string' && data.value.length <= maxBytes) {
       memory[data.key] = data.value;
       try { localStorage.setItem(namespace + data.key, data.value); } catch (_) { setStatus('浏览器未允许保存存档，本次会话仍可试玩。'); }
+    }
+    if (data.type === 'minisv-showcase-remove' && allowedKeys.includes(data.key)) {
+      delete memory[data.key];
+      try { localStorage.removeItem(namespace + data.key); } catch (_) {}
     }
     if (data.type === 'minisv-showcase-reload') load();
   });

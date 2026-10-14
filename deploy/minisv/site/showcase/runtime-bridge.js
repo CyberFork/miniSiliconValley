@@ -39,6 +39,10 @@
   });
   window.MSV_SHOWCASE_STORAGE = Object.freeze({
     getItem(key) { return Object.prototype.hasOwnProperty.call(values, key) ? values[key] : null; },
+    removeItem(key) {
+      delete values[key];
+      if (parent !== window) parent.postMessage({type:'minisv-showcase-remove',key}, '*');
+    },
     setItem(key, value) {
       value = String(value); if (value.length > 200000) return;
       values[key] = value;
