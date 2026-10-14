@@ -1,0 +1,97 @@
+{
+  "date": "2026-10-14",
+  "release": "20261014-student-showcase",
+  "sourceCommit": "e7d66414d982ee499bee4be63392d477b50f3567",
+  "archiveSha256": "451eff02ed91a7e87a38ae5e1bbe9b19d20e56eb149403042791b1918b713d32",
+  "importManifestSha256": "b0d745bfec61bf240948891803945c33147ebd69bdabac8d0662d7d193b5acba",
+  "entry": "https://minisv.vip/showcase/2026-09/",
+  "addedStudents": [
+    {
+      "name": "章睿棋",
+      "entry": "https://minisv.vip/showcase/2026-09/zrq/",
+      "game": "https://minisv.vip/showcase/2026-09/zrq/play/",
+      "slides": "https://minisv.vip/showcase/2026-09/zrq/slides/"
+    },
+    {
+      "name": "段柯屹",
+      "entry": "https://minisv.vip/showcase/2026-09/dky/",
+      "game": "https://minisv.vip/showcase/2026-09/dky/play/",
+      "slides": "https://minisv.vip/showcase/2026-09/dky/slides/"
+    }
+  ],
+  "duanVersion": "v0.22.0",
+  "localCleanup": {
+    "removedHistoricalPrototypeHtmlFiles": 13,
+    "keptOriginalHtmlSha256": "bc0ba95681aa609bae3f786e120abcafa8679d82e60399a2722a652b8dcff9b4",
+    "assetsAndDevelopmentDocsPreserved": true,
+    "recoveryArchive": "段-回声断层_开发文件_2026-10-13.zip (用户原始 /Volumes/Data 归档，不发布)"
+  },
+  "verified": {
+    "health": "MINISV_HECATE_HEALTHY",
+    "unitTests": 100,
+    "publicFilesSha256Checked": 155,
+    "productionBrowser": {
+      "base": "https://minisv.vip",
+      "checks": [
+        "Zhang original sprites loaded with anonymous CORS, not fallback silhouettes",
+        "Zhang boot, intro, safehouse/day/save, movement, bag, reload persistence, cancel/confirm reset",
+        "Duan v0.22.0 map/start, pointer lock, keyboard movement/reload/switch, browser save persistence; cross-student removal blocked",
+        "Both slide viewers next/previous, images, fullscreen; direct runtime sandbox",
+        "390/768/1280 outer layouts without horizontal overflow; Duan desktop-only guidance"
+      ],
+      "pageErrors": [],
+      "failedResponses": []
+    },
+    "existingStudentsProductionRegression": {
+      "base": "https://minisv.vip",
+      "checks": [
+        "CWE nickname dialog + browser save/reload + iframe isolation",
+        "Storage key + message-source restrictions",
+        "CWE start, keyboard inputs, return-to-menu/reload",
+        "TZX start, grade/character, explicit self-reading completion, keyboard inputs, save/reload",
+        "cwe slides name, next page, fullscreen",
+        "tzx slides name, next page, fullscreen",
+        "Direct runtime HTTP sandbox",
+        "390/768/1280 layouts no outer overflow + tablet-emulated touch start"
+      ],
+      "pageErrors": []
+    },
+    "publicSmoke": {
+      "status": "MINISV_PUBLIC_SMOKE_OK",
+      "okChecksIncludingHttpRedirect": 196
+    },
+    "shareCopy": "zrq/dky 生产匿名复制成功；拒绝剪贴板时显示可手动复制链接",
+    "tabletEmulation": "本地 1024×768 触屏模拟：章同学启动、过场、进入街区通过",
+    "preservation": {
+      "unchangedExistingSiteFiles": 3391,
+      "changedExistingFiles": [
+        "MANIFEST.sha256",
+        "release.json",
+        "showcase/host.js",
+        "showcase/runtime-bridge.js",
+        "showcase/index.html",
+        "showcase/2026-09/index.html"
+      ],
+      "newFiles": 44,
+      "cweTzxRuntimeUnchanged": true
+    },
+    "verificationScriptSha256": "5efe7c6e036df2b9429bdcd0ebd87ce8ddfcba02e2fd845227ba1bbc72a9fd92"
+  },
+  "notes": [
+    "首次远端测试发现干净工作区未生成课件 dist，补跑既有构建后 100 项通过；此前没有切换生产。",
+    "上线后仅修正验收脚本的 wait_for_function 写法以符合既有 CSP；未放宽 CSP、未改已发布网站字节。",
+    "段游戏只发布自包含最新版 HTML，不公开 20 多份历史/辅助页面或模型开发目录。章路演保留原题《末日战争》，游戏题《末日生存》。"
+  ],
+  "notVerified": [
+    "完整通关、全部角色/模式和玩法平衡",
+    "实体手机/平板、Safari、微信内置浏览器",
+    "真人路演/课堂试讲",
+    "段游戏手机触控操作：原作以电脑键鼠为主，已在入口明确提示"
+  ],
+  "rollback": {
+    "release": "20261012-student-showcase",
+    "command": "zsh ~/Services/minisv/current/ops/scripts/rollback-hecate.sh 20261012-student-showcase",
+    "backup": "~/Services/minisv/backups/20261014T101952Z-20261014-student-showcase",
+    "executed": false
+  }
+}
