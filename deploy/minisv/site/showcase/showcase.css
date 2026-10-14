@@ -3,3 +3,6 @@
 #student-frame:fullscreen{width:100vw;height:100dvh;min-height:0;background:#10283b}button{cursor:pointer}button:focus-visible,a:focus-visible{outline:3px solid #2b50d9;outline-offset:3px}#load-status{font-size:.9rem;flex:1 1 260px}body:has(#student-frame) .wrap{width:min(1440px,calc(100% - 24px))}body:has(#student-frame) .hero{padding:20px 0 12px}body:has(#student-frame) .hero h1{font-size:clamp(1.6rem,4vw,2.3rem)}body:has(#student-frame) .panel{padding:10px}@media(max-width:700px){.frame-shell{padding:4px}.frame-head{padding:6px}#student-frame{min-height:420px}}
 
 .slides-stage{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;background:#10283b}.slides-stage:fullscreen{width:100vw;height:100dvh;aspect-ratio:auto}
+
+/* Shared showcase cards: consistent hierarchy and bottom-aligned actions. */
+.grid{grid-auto-rows:1fr}.grid>.card{display:flex;flex-direction:column}.grid>.card>.eyebrow{margin:0 0 12px}.grid>.card>h2{margin:0 0 12px}.grid>.card>p:not(.eyebrow){margin:0 0 20px}.grid>.card>.actions{margin-top:auto}

@@ -21,7 +21,82 @@ class References(HTMLParser):
             if k in ('src','href','data-src') and v: self.refs.append(v)
 
 
+class ShowcaseCards(HTMLParser):
+    """Collect the small, deliberately rigid public card contract."""
+    def __init__(self):
+        super().__init__()
+        self.cards = []
+        self._card = None
+        self._depth = 0
+        self._child = None
+        self._link_text = None
+
+    def handle_starttag(self, tag, attrs):
+        attrs = tuple(sorted((k, v or "") for k, v in attrs))
+        if self._card is None:
+            if tag == "article" and "card" in dict(attrs).get("class", "").split():
+                self._card = []
+                self._depth = 1
+            return
+        self._depth += 1
+        if self._depth == 2:
+            self._child = [tag, attrs, [], []]
+        elif self._child is not None:
+            self._child[3].append(("start", tag, attrs))
+            if tag == "a":
+                self._link_text = []
+
+    def handle_data(self, data):
+        if self._child is not None:
+            self._child[2].append(data)
+            if self._link_text is not None:
+                self._link_text.append(data)
+
+    def handle_endtag(self, tag):
+        if self._card is None:
+            return
+        if self._depth == 2 and self._child is not None:
+            tag_name, attrs, text, nested = self._child
+            self._card.append((tag_name, attrs, " ".join("".join(text).split()), tuple(nested)))
+            self._child = None
+        elif self._link_text is not None and tag == "a":
+            kind, name, attrs = self._child[3][-1]
+            self._child[3][-1] = (kind, name, attrs, "".join(self._link_text).strip())
+            self._link_text = None
+        self._depth -= 1
+        if self._depth == 0:
+            self.cards.append(tuple(self._card))
+            self._card = None
+
+
 class ShowcaseTests(unittest.TestCase):
+    def test_student_showcase_cards_have_one_shared_contract(self):
+        students = ("cwe", "tzx", "zrq", "dky")
+        pages = [SHOWCASE / "index.html", COHORT / "index.html"]
+        parsed = []
+        for page in pages:
+            parser = ShowcaseCards()
+            parser.feed(page.read_text())
+            self.assertEqual(len(parser.cards), 4, page)
+            for card in parser.cards:
+                self.assertEqual([child[0] for child in card], ["p", "h2", "p", "div"], page)
+                self.assertEqual(card[0][1], (("class", "eyebrow"),), page)
+                self.assertEqual(card[3][1], (("class", "actions"),), page)
+                self.assertEqual([event[1] for event in card[3][3]], ["a", "a"], page)
+                self.assertEqual([dict(event[2]).get("class") for event in card[3][3]], ["btn", "btn"], page)
+                self.assertEqual([event[3] for event in card[3][3]], ["试玩游戏", "看路演"], page)
+            parsed.append(parser.cards)
+        self.assertEqual(parsed[0], parsed[1])
+        expected = {
+            student: (f"/showcase/2026-09/{student}/play/", f"/showcase/2026-09/{student}/slides/")
+            for student in students
+        }
+        for card in parsed[0]:
+            hrefs = tuple(dict(event[2])["href"] for event in card[3][3])
+            self.assertIn(hrefs, expected.values())
+        self.assertEqual({hrefs for hrefs in expected.values()},
+                         {tuple(dict(event[2])["href"] for event in card[3][3]) for card in parsed[0]})
+
     def test_fourteen_public_pages_and_names(self):
         # showcase root + cohort + four creator pages + eight wrappers
         students = ("cwe", "tzx", "zrq", "dky")
