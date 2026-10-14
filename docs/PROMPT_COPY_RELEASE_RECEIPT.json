@@ -1,0 +1,104 @@
+{
+  "date": "2026-10-15",
+  "release": "20261015-prompt-copy",
+  "sourceCommit": "3522186c2d0c0f9b1eb603d5ab8b36b641eb2f4a",
+  "archiveSha256": "1c99b0a2f0d1a25bb1460c71fc4b14d43be9a77268bac158a30e55761538faf5",
+  "entry": "https://minisv.vip/prompts/",
+  "version": "modular-prompts-2",
+  "scope": [
+    "普通复制保留段落，统一 LF 并去尾部换行",
+    "终端复制为可逆 JSON 字符串承载，零真实换行及终端控制字符",
+    "TXT 下载所选组合与用户输入，复制失败手动降级"
+  ],
+  "verified": {
+    "unitTests": 101,
+    "nodeSuites": [
+      "verify.mjs",
+      "verify-general.mjs",
+      "verify-modular.mjs"
+    ],
+    "productionBrowser": {
+      "base": "https://minisv.vip",
+      "combinations": 4,
+      "clipboard": "normal and reversible single-line",
+      "download": "TXT exact bytes",
+      "fallback": true,
+      "widths": [
+        1440,
+        768,
+        390
+      ],
+      "pageErrors": []
+    },
+    "publicFileHashes": [
+      {
+        "path": "index.html",
+        "sha256": "2a57bab80229762a6e1eca5549d8b5347befe883b12eb421c92718cf23f97ae0"
+      },
+      {
+        "path": "workbook.js",
+        "sha256": "cdb3f8f30cc847d8356df919abab3e98e09148ada4c37d8518405de112a73b6c"
+      },
+      {
+        "path": "student-prompt.js",
+        "sha256": "bd7c9dea576ab45521a4d811ee4c6da6b4cb4fbc882523751b7a0d6d160feb4e"
+      },
+      {
+        "path": "workbook.css",
+        "sha256": "9acbd71cfcabce745e15a155da8842d0316e4c29059e528e9488404f1c58f078"
+      },
+      {
+        "path": "compose.js",
+        "sha256": "8fd1dd6d2248459d82c0c90bf7a2b1f490235248a91320238c80eaa3e77ec5e9"
+      },
+      {
+        "path": "manifest.json",
+        "sha256": "62951cb8fee8b3a6080c5c5420a2b5335910bd0e18f8e59465d8619d3b3b528e"
+      },
+      {
+        "path": "student-prompt.txt",
+        "sha256": "25fa42ebe1352286f71ed0d801f00742fb7283f06e7346e56ba63add636870db"
+      },
+      {
+        "path": "general/workbook.js",
+        "sha256": "cdb3f8f30cc847d8356df919abab3e98e09148ada4c37d8518405de112a73b6c"
+      },
+      {
+        "path": "general/student-prompt.js",
+        "sha256": "af6c2ef524e3a148714002a6fe01489f46928786bf322fcab97c64b3599d07a7"
+      },
+      {
+        "path": "general/workbook.css",
+        "sha256": "9acbd71cfcabce745e15a155da8842d0316e4c29059e528e9488404f1c58f078"
+      },
+      {
+        "path": "general/compose.js",
+        "sha256": "8fd1dd6d2248459d82c0c90bf7a2b1f490235248a91320238c80eaa3e77ec5e9"
+      },
+      {
+        "path": "general/manifest.json",
+        "sha256": "392a2efff8b1c11c21e698c328a9ee0f30711025563af2b80ff44eee24b48753"
+      },
+      {
+        "path": "general/student-prompt.txt",
+        "sha256": "37fdf77dc10eefe291cf1e0d8583ac4de5841eabdfb237c2dfe1a0708b742dfc"
+      }
+    ],
+    "legacyGeneralRedirect": true,
+    "health": "MINISV_HECATE_HEALTHY",
+    "allFourPromptCombinationHashesUnchanged": true,
+    "unrelatedSiteBytesUnchanged": true,
+    "newSiteFiles": 0
+  },
+  "notVerified": [
+    "用户发生拆分的原终端粘贴链路，需用户重试",
+    "真实外部 AI 对 JSON 运输提示词的完整多轮执行效果",
+    "实体手机/平板、Safari/微信浏览器"
+  ],
+  "buildRecovery": "仅新构建的 Git alternates 链过深，展开后 repack 成独立对象库并 git fsck 通过；未修改既有构建及生产文件。",
+  "rollback": {
+    "release": "20261014-showcase-cards",
+    "backup": "~/Services/minisv/backups/20261014T184034Z-20261015-prompt-copy",
+    "command": "zsh ~/Services/minisv/current/ops/scripts/rollback-hecate.sh 20261014-showcase-cards"
+  }
+}
