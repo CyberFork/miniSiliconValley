@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-14",
+  "release": "20261014-showcase-cards",
+  "sourceCommit": "ed8ec1078c62488c36f1f3355bb1412bfc236138",
+  "archiveSha256": "79958b90d1ee70482f9bcd84698974729c1a56b1b80c19a4897e283d9ee64b19",
+  "entries": [
+    "https://minisv.vip/showcase/",
+    "https://minisv.vip/showcase/2026-09/"
+  ],
+  "change": "统一四张卡片为姓名、作品名、简介、试玩游戏/看路演；卡片等高、按钮底部对齐。",
+  "verified": {
+    "unitTests": 101,
+    "health": "MINISV_HECATE_HEALTHY",
+    "productionPublicFileHashes": 155,
+    "productionBrowser": {
+      "widths": [
+        1440,
+        768,
+        390
+      ],
+      "pages": 2,
+      "checks": [
+        "四张卡片结构、姓名、按钮一致",
+        "等高、同排按钮对齐",
+        "无横向溢出",
+        "桌面与手机截图目视检查（手机本地、桌面生产）"
+      ]
+    },
+    "changedSiteFiles": [
+      "release.json",
+      "MANIFEST.sha256",
+      "showcase/index.html",
+      "showcase/2026-09/index.html",
+      "showcase/showcase.css"
+    ],
+    "newSiteFiles": 0,
+    "allOtherSiteBytesUnchanged": true,
+    "appDistUnchangedExcludingWranglerRuntimeTmp": true
+  },
+  "notVerified": [
+    "实体手机/平板、Safari/微信内置浏览器",
+    "本次不重复完整游戏流程验收；游戏及路演字节与前次发布一致"
+  ],
+  "rollback": {
+    "release": "20261014-student-showcase",
+    "backup": "~/Services/minisv/backups/20261014T110119Z-20261014-showcase-cards",
+    "command": "zsh ~/Services/minisv/current/ops/scripts/rollback-hecate.sh 20261014-student-showcase"
+  },
+  "publicFiles": [
+    {
+      "path": "showcase/index.html",
+      "sha256": "ff4a4c84b53e52272aa1c82eed5a92a7ef98fa4e19977fcaabf6427fcf0ae7d6"
+    },
+    {
+      "path": "showcase/2026-09/index.html",
+      "sha256": "2af85fa976714a9d9680b9f5318c67a3c910e222391e222751308705e656ed27"
+    },
+    {
+      "path": "showcase/showcase.css",
+      "sha256": "fb6d5e9728fbbcc68655261cf12b90bce6edec1467881b61e155a8f88349b06f"
+    }
+  ]
+}
