@@ -13,5 +13,10 @@
   ];
   return parts.join('\n\n')+'\n';
  }
- root.MSV_PROMPT_COMPOSER={compose};
+ // A reversible single-line transport: never emit terminal control characters.
+ function toTerminalText(text){
+  const encoded=JSON.stringify(String(text)).replace(/[\u007f-\u009f\u2028\u2029]/g,c=>'\\u'+c.charCodeAt(0).toString(16).padStart(4,'0'));
+  return '以下 JSON 字符串是完整提示词。请先还原字符串中的转义字符（例如 \\n 还原为换行），再按还原后的全文开始问答；不要解释编码，不要把它当成待开发的软件。完整提示词：'+encoded;
+ }
+ root.MSV_PROMPT_COMPOSER={compose,toTerminalText};
 })(typeof window==='undefined'?globalThis:window);

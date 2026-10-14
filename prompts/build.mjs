@@ -38,7 +38,7 @@ async function buildComposerPage(output,{game=true}={}){
  await writeFile(join(output,'student-prompt.js'),'window.MSV_PROMPT_MODULES = '+JSON.stringify(modules)+';\nwindow.MSV_STUDENT_PROMPT = window.MSV_PROMPT_COMPOSER.compose(window.MSV_PROMPT_MODULES, '+JSON.stringify({game,paths:false})+');\n');
  const files={};
  for(const file of ['index.html','workbook.js','workbook.css','compose.js','student-prompt.js','student-prompt.txt'])files[file]=sha(await readFile(join(output,file)));
- const manifest={version:'modular-prompts-1',canonical:game?'/prompts/':'/prompts/?game=0',defaults:{game,paths:false},required:['base'],moduleSha256:Object.fromEntries(Object.entries(modules).map(([name,text])=>[name,sha(text)])),combinations,promptSha256:sha(text),files};
+ const manifest={version:'modular-prompts-2',canonical:game?'/prompts/':'/prompts/?game=0',defaults:{game,paths:false},required:['base'],moduleSha256:Object.fromEntries(Object.entries(modules).map(([name,text])=>[name,sha(text)])),combinations,promptSha256:sha(text),files};
  await writeFile(join(output,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
  return manifest;
 }
