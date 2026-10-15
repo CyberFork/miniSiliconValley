@@ -12,6 +12,8 @@ SHOWCASE = ROOT / "site" / "showcase"
 COHORT = SHOWCASE / "2026-09"
 MANIFEST = ROOT / "student-showcase-import.json"
 GATEWAY = ROOT / "gateway" / "default.conf"
+HOST = SHOWCASE / "host.js"
+STYLES = SHOWCASE / "showcase.css"
 DISPLAY = list(SHOWCASE.rglob("*.html"))
 
 class References(HTMLParser):
@@ -116,7 +118,10 @@ class ShowcaseTests(unittest.TestCase):
             refs = parser.refs
             for ref in refs:
                 if ref.startswith(("#", "mailto:", "javascript:", "data:", "http:", "https:")): continue
-                target = urlparse(ref).path
+                # Query-only links (for example ?view=game) must resolve
+                # against the containing page; existence checks only use path.
+                parsed_ref = urlparse(ref)
+                target = parsed_ref.path
                 if not target or target == "/": continue
                 candidate = SHOWCASE / target.removeprefix("/showcase/") if target.startswith("/showcase/") else (page.parent / target.split("?",1)[0])
                 self.assertTrue((candidate.is_file() or (candidate.is_dir() and (candidate / "index.html").is_file())), f"{page}: missing {ref} -> {candidate}")
@@ -129,6 +134,26 @@ class ShowcaseTests(unittest.TestCase):
                 self.assertIn('sandbox="allow-scripts allow-pointer-lock"', text)
                 self.assertNotIn("allow-same-origin", text)
                 self.assertNotIn("allow-top-navigation", text)
+                if kind == 'game':
+                    pure = re.search(r'<a\b[^>]*href="\?view=game"[^>]*>', text)
+                    self.assertIsNotNone(pure, f"{student} play page missing pure-game link")
+                    self.assertIn('target="_blank"', pure.group(0))
+                    self.assertIn('rel="noopener"', pure.group(0))
+                    self.assertIn("纯游戏窗口", text)
+
+    def test_pure_play_host_and_fullscreen_contract(self):
+        host = HOST.read_text()
+        self.assertIn("URLSearchParams", host)
+        self.assertIn("const purePlay = kind === 'game' &&", host)
+        self.assertIn("/play/?view=game", host)
+        self.assertRegex(host, r"URLSearchParams\([^)]*location\.search[^)]*\).*get\([\"\']view")
+        self.assertRegex(host, r"get\([\"\']view[\"\']\)\s*===\s*[\"\']game")
+        self.assertRegex(host, r"classList\.add\([\"\']pure-play[\"\']\)")
+        self.assertIn("location.origin + location.pathname", host)
+        css = STYLES.read_text()
+        self.assertRegex(css, r"\.pure-play #student-frame\s*\{[^}]*position:fixed")
+        self.assertRegex(css, r"\.pure-play #student-frame\s*\{[^}]*inset:0")
+        self.assertRegex(css, r"\.pure-play #student-frame\s*\{[^}]*height:100dvh")
 
     def test_game_runtime_bridge_and_no_remote_cdn(self):
         for student in ("cwe", "tzx", "zrq", "dky"):

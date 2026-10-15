@@ -6,3 +6,11 @@
 
 /* Shared showcase cards: consistent hierarchy and bottom-aligned actions. */
 .grid{grid-auto-rows:1fr}.grid>.card{display:flex;flex-direction:column}.grid>.card>.eyebrow{margin:0 0 12px}.grid>.card>h2{margin:0 0 12px}.grid>.card>p:not(.eyebrow){margin:0 0 20px}.grid>.card>.actions{margin-top:auto}
+
+/* Pure play uses the full browser viewport without the Fullscreen API.
+   The invisible trusted host and sandbox still preserve isolated local saves. */
+.frame-actions .pure-play-link{display:inline-block;padding:8px 10px;border:2px solid var(--navy);background:var(--yellow);color:var(--ink);font-size:13px;font-weight:900;text-decoration:none}
+body.pure-play{height:100vh;height:100dvh;overflow:hidden;background:#0b1722}
+.pure-play>.top,.pure-play>.footer,.pure-play .hero,.pure-play .frame-head,.pure-play .note{display:none}
+body.pure-play .wrap,body.pure-play .panel,.pure-play .frame-shell{width:100%;height:100%;margin:0;padding:0;border:0;box-shadow:none}
+.pure-play #student-frame{position:fixed;inset:0;width:100%;height:100vh;height:100dvh;min-height:0;border:0;z-index:1}

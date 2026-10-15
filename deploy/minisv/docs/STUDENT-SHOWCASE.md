@@ -54,3 +54,7 @@ CORS `*` 仅适用公开 runtime 图片/文件，满足 Three.js TextureLoader �
 - 增量 staging 先核对上一发布完整 showcase 字节哈希（维护 manifest 的 `updateBaseline`），不接受未知线上修改；仅更新作品树和发布元数据，首页及原有导航无需重写。蔡、唐原作品运行字节保持不变。
 
 本轮上线后整组回滚目标：`20261012-student-showcase`。实际发布状态与包摘要见 `docs/STUDENT_SHOWCASE_OCT14_RELEASE_RECEIPT.json`，未经记录不得视为已上线。
+
+## 纯试玩分享入口
+
+游戏页“复制链接”统一复制 `/showcase/2026-09/{student}/play/?view=game`；“纯游戏窗口”也可直接打开。此模式隐藏页头、说明和外层按钮，iframe 固定铺满浏览器视口，不依赖 Fullscreen API；地址栏/系统栏仍遵循浏览器限制。普通 `/play/` 保留作品说明与操作；路演复制不变。纯试玩不直链 runtime、不修改沙盒权限、不改变存档桥接，普通与纯试玩共享原有学生存档命名空间。游戏自身内部的菜单、比例和移动端限制仍保留。

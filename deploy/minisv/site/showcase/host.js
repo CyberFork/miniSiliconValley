@@ -8,6 +8,8 @@
   const allowedKeys = Object.hasOwn(keysByStudent, student) ? keysByStudent[student] : [];
   const expected = `/showcase/2026-09/${student}/runtime/${kind === 'game' ? 'game' : 'slides'}/index.html`;
   if (!allowedKeys.length || !['game', 'slides'].includes(kind) || frame.dataset.src !== expected) return;
+  const purePlay = kind === 'game' && new URLSearchParams(location.search).get('view') === 'game';
+  if (purePlay) document.body.classList.add('pure-play');
   let fullscreenTarget = frame;
   if (kind === 'slides') {
     // Keep the student's desktop slide layout intact rather than squeezing it into phone columns.
@@ -64,11 +66,11 @@
   });
   document.getElementById('reload-frame')?.addEventListener('click', load);
   document.getElementById('fullscreen-frame')?.addEventListener('click', async () => {
-    try { await fullscreenTarget.requestFullscreen(); } catch (_) { setStatus('当前浏览器不支持全屏，可横屏或放大浏览器窗口。'); }
+    try { await fullscreenTarget.requestFullscreen(); } catch (_) { setStatus('当前浏览器不支持全屏。游戏可点击“纯游戏窗口”铺满浏览器，路演可横屏查看。'); }
   });
   document.getElementById('copy-link')?.addEventListener('click', async () => {
-    const link = location.origin + location.pathname;
-    try { await navigator.clipboard.writeText(link); setStatus('作品链接已复制，可以发给朋友。'); }
+    const link = kind === 'game' ? location.origin + `/showcase/2026-09/${student}/play/?view=game` : location.origin + location.pathname;
+    try { await navigator.clipboard.writeText(link); setStatus(kind === 'game' ? '纯游戏链接已复制，打开即可铺满浏览器。' : '路演链接已复制，可以发给朋友。'); }
     catch (_) {
       const field = document.createElement('input'); field.value = link; field.readOnly = true; field.setAttribute('aria-label', '分享链接');
       status.replaceChildren(document.createTextNode('请复制：'), field); field.select();
