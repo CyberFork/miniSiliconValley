@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-15",
+  "release": "20261015-pure-play",
+  "sourceCommit": "ed2d7fa146f8d4a3aa0bddf1cd5fe2843fa89cd6",
+  "archiveSha256": "e0697edc94373ba2c5775ef3e3979cb1c4aeb08ec86809e5891e5e9e78a6f16d",
+  "purePlayUrls": {
+    "cwe": "https://minisv.vip/showcase/2026-09/cwe/play/?view=game",
+    "tzx": "https://minisv.vip/showcase/2026-09/tzx/play/?view=game",
+    "zrq": "https://minisv.vip/showcase/2026-09/zrq/play/?view=game",
+    "dky": "https://minisv.vip/showcase/2026-09/dky/play/?view=game"
+  },
+  "scope": [
+    "游戏复制链接规范化为纯试玩视图（含复制失败手动降级）",
+    "四位学生普通游戏页增加纯游戏窗口入口",
+    "纯试玩隐藏外层页头说明、铺满浏览器视口，不依赖 Fullscreen API",
+    "保留沙盒/原存档键/路演分享，运行游戏字节未改"
+  ],
+  "verified": {
+    "unitTests": 102,
+    "health": "MINISV_HECATE_HEALTHY",
+    "productionBrowser": {
+      "base": "https://minisv.vip",
+      "checks": [
+        "cwe: share/fallback to pure URL; 3 viewport sizes; initialized and start interaction; iframe isolation",
+        "tzx: share/fallback to pure URL; 3 viewport sizes; initialized and start interaction; iframe isolation",
+        "zrq: share/fallback to pure URL; 3 viewport sizes; initialized and start interaction; iframe isolation",
+        "dky: share/fallback to pure URL; 3 viewport sizes; initialized and start interaction; iframe isolation",
+        "CWE saves shared between normal/pure views",
+        "Fullscreen API rejected throughout",
+        "Slides ignore game mode and retain normal share"
+      ],
+      "pageErrors": []
+    },
+    "publicFileHashes": 155,
+    "unrelatedSiteBytesUnchanged": true,
+    "gameRuntimeBytesUnchanged": true,
+    "newSiteFiles": 0
+  },
+  "notVerified": [
+    "实体 Safari/微信等浏览器的系统栏行为与所有设备兼容性",
+    "完整游戏通关；未给原电脑键鼠游戏新增手机控制"
+  ],
+  "fullscreenBoundary": "占满浏览器可用内容区域；不承诺自动隐藏地址栏或操作系统栏。",
+  "rollback": {
+    "release": "20261015-prompt-copy",
+    "backup": "~/Services/minisv/backups/20261015T071335Z-20261015-pure-play",
+    "command": "zsh ~/Services/minisv/current/ops/scripts/rollback-hecate.sh 20261015-prompt-copy"
+  }
+}
