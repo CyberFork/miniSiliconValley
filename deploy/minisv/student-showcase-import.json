@@ -488,12 +488,12 @@
     },
     {
       "path": "2026-09/cwe/runtime/slides/index.html",
-      "sha256": "5aba2c357efdde1fae2c4993c6a3884cd468a9f1237569c5e01943d7713dfd02",
+      "sha256": "a9b8c05e86040641698e43d995bee063c6ba609eb046cdffc6cdfd3fc6ed7543",
       "source": "cwe.zip:kirby_pitch_deck.bak.html"
     },
     {
       "path": "2026-09/tzx/runtime/slides/index.html",
-      "sha256": "474795412cc0601dab76a5d9a75a8cf1456f1f74e5be9da33dcaba23081f0128",
+      "sha256": "041fdd4fece468b229b27db10ab5f7f60f9ec6f9dc5b76d6d4ee60d853bf1a68",
       "source": "cwe.zip:zero_era_pitch_deck.html"
     },
     {
@@ -593,7 +593,7 @@
     },
     {
       "path": "2026-09/zrq/runtime/slides/index.html",
-      "sha256": "d1412a30fb3fe374b74cc7603281d406984edb1297a7610663a1e34d9ab69681",
+      "sha256": "594bfa5e886cb97b692c3d351432658b22f7c150a8dcd466e9caf502ed85e228",
       "source": "cwe.zip:末日战争.html"
     },
     {
@@ -693,8 +693,48 @@
     },
     {
       "path": "2026-09/dky/runtime/slides/index.html",
-      "sha256": "fd42bd42e144d44eb426e1ef029eeb272cd70b9c520da6f84927e0cb0e0f2503",
+      "sha256": "c0c0fda4d0243f1385a228ceaf0617922abb85cf3f12413a36ffce817c967acb",
       "source": "Web viewer for supplied PPTX rendered pages (10 slides)"
+    },
+    {
+      "path": "2026-09/cwe/runtime/slides/game-demo.mp4",
+      "sha256": "6333775a473fc6d0bea9d5e4c1519a89cd5ea54e9a5cb13db6592c275b4cc570",
+      "source": "星之卡比.mp4 (browser transcode/poster)"
+    },
+    {
+      "path": "2026-09/cwe/runtime/slides/game-demo.jpg",
+      "sha256": "b5a9dc7a22018cb7b95c5ba73d1c106edb2e7d588507be1d9633e79473c94547",
+      "source": "星之卡比.mp4 (browser transcode/poster)"
+    },
+    {
+      "path": "2026-09/tzx/runtime/slides/game-demo.mp4",
+      "sha256": "148886449bfe5a01b5850de96fd6a5f13ff1e129e1cd07d971184240ddc26752",
+      "source": "零号纪元.mp4 (browser transcode/poster)"
+    },
+    {
+      "path": "2026-09/tzx/runtime/slides/game-demo.jpg",
+      "sha256": "860456249adab51c261a4a0122cb70377de622f0090a3fb1d22efd9a68da399e",
+      "source": "零号纪元.mp4 (browser transcode/poster)"
+    },
+    {
+      "path": "2026-09/zrq/runtime/slides/game-demo.mp4",
+      "sha256": "7325baf27315d09bf63e6f2fe05a19d1f7dcad46a2968c2f4090feb6809def29",
+      "source": "末日生存.mp4 (browser transcode/poster)"
+    },
+    {
+      "path": "2026-09/zrq/runtime/slides/game-demo.jpg",
+      "sha256": "81bc62f0f7a7396a826c6d17be0e754876b701b267c6114fdad74a99d3be301e",
+      "source": "末日生存.mp4 (browser transcode/poster)"
+    },
+    {
+      "path": "2026-09/dky/runtime/slides/game-demo.mp4",
+      "sha256": "76fd9124ecd9ef90face313332c951357f99ef14c81c50a2df1193eadd9cef98",
+      "source": "回声断层.mp4 (browser transcode/poster)"
+    },
+    {
+      "path": "2026-09/dky/runtime/slides/game-demo.jpg",
+      "sha256": "b86abcf7326669c2c8e59c129dc9886b60623dfcf0786a0afc5aba16f395b08a",
+      "source": "回声断层.mp4 (browser transcode/poster)"
     }
   ],
   "adaptations": [
@@ -725,7 +765,7 @@
   },
   "updateBaseline": {
     "2026-09/cwe/index.html": "b585d45670ad71f0c2d1567c51edf2371309add218f76081c7dfb0e418db3545",
-    "2026-09/cwe/play/index.html": "72038f0f5cc5d2c3bf57d9cb6b06e678262a353f89b7b0bf961483329ea5f3c3",
+    "2026-09/cwe/play/index.html": "f09fc7a0b8a04915f2526e3c07259aee6e00e2bda5b75c095a09e77c56ce136b",
     "2026-09/cwe/runtime/game/assets/arena.png": "83dace63f2a3f1794ba9afa0b5dc38db756844cb4e8a3e1fc233123388bb3902",
     "2026-09/cwe/runtime/game/assets/bunker.png": "a2edfee790b15c0f2361e5f15143015d8524d02c7828bc199e0c7b27fdf8f8ab",
     "2026-09/cwe/runtime/game/assets/dark.png": "54940b6ce8a60a46f8fcf88876ccbe0b43abe52ac7a8be8d7e7ef9501118c18c",
@@ -745,7 +785,7 @@
     "2026-09/cwe/runtime/slides/index.html": "5aba2c357efdde1fae2c4993c6a3884cd468a9f1237569c5e01943d7713dfd02",
     "2026-09/cwe/slides/index.html": "d1692624e88a6756749c7a3a32a13023626753d8a4ece7144ac41f6851f15b8f",
     "2026-09/dky/index.html": "43a2f12a84912aa01a943cea541e4232ca3b6f5aa2afb200632edaf2693b9752",
-    "2026-09/dky/play/index.html": "404e6ed30abcc2c7e1dd7a1971fa087ab10cc555ef70f66b1cfd3a791858ec46",
+    "2026-09/dky/play/index.html": "4f2b1912c0ff067e9f49fdaedfc174f1976d0e6c5cb42cb8fff8a1bb1d8ec7a2",
     "2026-09/dky/runtime/game/index.html": "e3dfe9e4da3af742ba7d42a13470d9d8f802402a277aae15e97dffb40504841f",
     "2026-09/dky/runtime/slides/index.html": "fd42bd42e144d44eb426e1ef029eeb272cd70b9c520da6f84927e0cb0e0f2503",
     "2026-09/dky/runtime/slides/slide-01.jpg": "3835b31e09aa707f6e6b1746fe55ed99a3ed65cd11d7b1f5ab7a864e09bba4f5",
@@ -761,7 +801,7 @@
     "2026-09/dky/slides/index.html": "dc5762fa8b0e1fc5303dd3617c70968715a05b163127c63a33fcf7864a5bd9e1",
     "2026-09/index.html": "2af85fa976714a9d9680b9f5318c67a3c910e222391e222751308705e656ed27",
     "2026-09/tzx/index.html": "0e33d93c28e0a847422f19b89b6db434801be54386a28935af56eff5546f986f",
-    "2026-09/tzx/play/index.html": "2b7d2ec79866890e1f45224d1b43b7bd7c407d9f48a492d2bf26637b071c09d4",
+    "2026-09/tzx/play/index.html": "4f065f12b08c6f6f01024516d8d11f544c96a4a48cc2b5fabf6ca6516273f0c0",
     "2026-09/tzx/runtime/game/assets/avatars/avatar_ayla.png": "445c81a5e34c0842b2e510296793a35a4fc324d455abacc027eee90977f152bf",
     "2026-09/tzx/runtime/game/assets/avatars/avatar_ayla_circle.png": "355201a1d38a65116ed383d1a7392eb1ba67478297329dbb4473d3ce64bcda96",
     "2026-09/tzx/runtime/game/assets/avatars/avatar_kane.png": "809ea0d0e163501c45e11eb2c692a97832635876b968e446cb71b77a938c6e1f",
@@ -847,7 +887,7 @@
     "2026-09/tzx/runtime/slides/index.html": "474795412cc0601dab76a5d9a75a8cf1456f1f74e5be9da33dcaba23081f0128",
     "2026-09/tzx/slides/index.html": "f4bcc7d8375ec8e58691512d0617aabfc297cd080824942ab55d677a99e69147",
     "2026-09/zrq/index.html": "18ebab60210215717f78444a1a8ab793f1185a89acbb36a87c77331000af2703",
-    "2026-09/zrq/play/index.html": "d269b62e368cb959cd2bbbdeba1d26d6aff4bb5ff6d23f28f4386dba48c98c73",
+    "2026-09/zrq/play/index.html": "cb292f5b13edb4ebf6c47382ba95275e5fa70c550d1b53818ecedd1c67c8cf42",
     "2026-09/zrq/runtime/game/assets/battlestart_bg.png": "6948c66fa95bdfb3623eed5e331e52ea875d6f376b4ea5b17a4d18e574698ab0",
     "2026-09/zrq/runtime/game/assets/boot.png": "21d226988f4e850d39f8066b588ff8f547f7e807128592f3e62133bd37107b37",
     "2026-09/zrq/runtime/game/assets/login.png": "10214bf0ddb66d47cfc88ce68b035cbcac874b0c182ed09bb8e9cdf16c80e7b9",
@@ -875,9 +915,111 @@
     "2026-09/zrq/runtime/slides/assets/doomsday_ppt/slide_12_img_1.png": "4aa0ae3a887a94ff760ff265699e5b9dfe3f1c21596e7b908137753c04ef638e",
     "2026-09/zrq/runtime/slides/index.html": "d1412a30fb3fe374b74cc7603281d406984edb1297a7610663a1e34d9ab69681",
     "2026-09/zrq/slides/index.html": "1ccedd3947f1e3c9d0f5151444db5ec8308982ba419dff43d9f0945de6a64932",
-    "host.js": "e9ad2f8084a30d7802605dd231546483da19e8ee3db211aee858a630ce8d64f7",
+    "host.js": "80b6848c8e90e817dad2d4a122fced0372f4e036e7f23edc3c3f2aee748340b2",
     "index.html": "ff4a4c84b53e52272aa1c82eed5a92a7ef98fa4e19977fcaabf6427fcf0ae7d6",
     "runtime-bridge.js": "a63d62555cd87ba6f4464bbb805c8202bf2cebec895e9fa07cf9657e79f50995",
-    "showcase.css": "fb6d5e9728fbbcc68655261cf12b90bce6edec1467881b61e155a8f88349b06f"
-  }
+    "showcase.css": "bb5dc43d20b20aebab55114c9644d7dce0cea1b033e8a980c3fb5b774ea8323b"
+  },
+  "roadshowVideos": [
+    {
+      "student": "cwe",
+      "sourceFilename": "星之卡比.mp4",
+      "sourceSha256": "187bc011e8301c944abe39558773b00c6ec363b0edbcae84227ceecfb8106d51",
+      "sourceBytes": 344770971,
+      "publishedBytes": 16562633,
+      "publishedSha256": "6333775a473fc6d0bea9d5e4c1519a89cd5ea54e9a5cb13db6592c275b4cc570",
+      "duration": 177.566016,
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "width": 1280,
+          "height": 626,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_type": "audio",
+          "codec_name": "aac",
+          "width": null,
+          "height": null,
+          "pix_fmt": null
+        }
+      ]
+    },
+    {
+      "student": "tzx",
+      "sourceFilename": "零号纪元.mp4",
+      "sourceSha256": "7202c2dd007d3ca4ff0f788711841c2229aaee49a308b49fab723080567b2322",
+      "sourceBytes": 121234708,
+      "publishedBytes": 4743144,
+      "publishedSha256": "148886449bfe5a01b5850de96fd6a5f13ff1e129e1cd07d971184240ddc26752",
+      "duration": 67.466667,
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "width": 960,
+          "height": 720,
+          "pix_fmt": "yuvj420p"
+        },
+        {
+          "codec_type": "audio",
+          "codec_name": "aac",
+          "width": null,
+          "height": null,
+          "pix_fmt": null
+        }
+      ]
+    },
+    {
+      "student": "zrq",
+      "sourceFilename": "末日生存.mp4",
+      "sourceSha256": "f8730ad57a82ea0b60cced0c53194614c9a1baf92272abd808effabdfb611a70",
+      "sourceBytes": 101973474,
+      "publishedBytes": 3543805,
+      "publishedSha256": "7325baf27315d09bf63e6f2fe05a19d1f7dcad46a2968c2f4090feb6809def29",
+      "duration": 75.666667,
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "width": 960,
+          "height": 720,
+          "pix_fmt": "yuvj420p"
+        },
+        {
+          "codec_type": "audio",
+          "codec_name": "aac",
+          "width": null,
+          "height": null,
+          "pix_fmt": null
+        }
+      ]
+    },
+    {
+      "student": "dky",
+      "sourceFilename": "回声断层.mp4",
+      "sourceSha256": "562645fa4c241040629d2bfee8b0bf1f1077a6f30b93102465470aef7c778219",
+      "sourceBytes": 359074069,
+      "publishedBytes": 12633603,
+      "publishedSha256": "76fd9124ecd9ef90face313332c951357f99ef14c81c50a2df1193eadd9cef98",
+      "duration": 191.7,
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "width": 960,
+          "height": 720,
+          "pix_fmt": "yuvj420p"
+        },
+        {
+          "codec_type": "audio",
+          "codec_name": "aac",
+          "width": null,
+          "height": null,
+          "pix_fmt": null
+        }
+      ]
+    }
+  ]
 }

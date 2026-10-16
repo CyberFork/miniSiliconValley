@@ -38,7 +38,7 @@ with sync_playwright() as pw:
     report['checks'].append('TZX start, grade/character, explicit self-reading completion, keyboard inputs, save/reload')
     for student in ['cwe','tzx']:
         f=open_frame(student,'slides');button='#btn-next' if student=='cwe' else '#btnNext';f.locator(button).click();page.wait_for_timeout(200)
-        assert '02 / 10' in f.locator('body').inner_text();assert ('蔡玮恩' if student=='cwe' else '唐梓轩') in f.locator('body').inner_text()
+        assert '02 / 11' in f.locator('body').inner_text();assert ('蔡玮恩' if student=='cwe' else '唐梓轩') in f.locator('body').inner_text()
         page.locator('#fullscreen-frame').click();page.wait_for_function('() => document.fullscreenElement!==null');page.evaluate('document.exitFullscreen()');page.screenshot(path=str(out/f'{student}-slides.png'),full_page=True)
         report['checks'].append(student+' slides name, next page, fullscreen')
     page.goto(f'{base}/showcase/2026-09/cwe/runtime/game/index.html');assert page.evaluate("(()=>{try{return localStorage.length}catch(e){return e.name}})()")=='SecurityError';report['checks'].append('Direct runtime HTTP sandbox')

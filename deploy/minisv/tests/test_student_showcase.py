@@ -166,7 +166,7 @@ class ShowcaseTests(unittest.TestCase):
 
     def test_published_files_have_allowed_suffixes_and_no_private_markers(self):
         forbidden = ("蔡玮思", "private", ".zip", ".docx", ".pptx", ".md")
-        allowed = {".html", ".css", ".js", ".json", ".png", ".jpg", ".jpeg", ".svg", ".ico", ".woff", ".woff2", ".mp3", ".wav", ".webp"}
+        allowed = {".html", ".css", ".js", ".json", ".png", ".jpg", ".jpeg", ".svg", ".ico", ".woff", ".woff2", ".mp3", ".wav", ".webp", ".mp4"}
         for p in COHORT.rglob("*"):
             if not p.is_file(): continue
             self.assertIn(p.suffix.lower(), allowed, p)
@@ -193,6 +193,19 @@ class ShowcaseTests(unittest.TestCase):
             self.assertTrue(p.is_file(), rel)
             self.assertEqual(hashlib.sha256(p.read_bytes()).hexdigest(), expected, rel)
 
+    def test_runtime_slides_video_contract(self):
+        expected_pages = {"cwe": 11, "tzx": 11, "zrq": 13, "dky": 11}
+        for student, pages in expected_pages.items():
+            slides = COHORT / student / "runtime" / "slides"
+            text = (slides / "index.html").read_text()
+            self.assertIn('id="game-demo"', text, student)
+            self.assertIn('controls playsinline preload="none" poster="game-demo.jpg"', text, student)
+            self.assertIn('<source src="game-demo.mp4" type="video/mp4">', text, student)
+            self.assertNotRegex(text, r"<video[^>]*\bautoplay\b", student)
+            self.assertTrue((slides / "game-demo.mp4").is_file(), student)
+            self.assertTrue((slides / "game-demo.jpg").is_file(), student)
+            self.assertIn(f"{pages}", text, student)
+
     def test_gateway_runtime_policy_and_existing_auth_surface(self):
         text = GATEWAY.read_text()
         self.assertRegex(text, r"~\^/showcase/2026-09/\(cwe\|tzx\|zrq\|dky\)/runtime/")
@@ -208,6 +221,8 @@ class ShowcaseTests(unittest.TestCase):
             runtime = COHORT / student / "runtime"
             for path in runtime.rglob("*"):
                 if not path.is_file():
+                    continue
+                if path.parent.name == "slides" and path.name in {"index.html", "game-demo.mp4", "game-demo.jpg"}:
                     continue
                 repo = ROOT.parent.parent
                 rel = path.relative_to(repo)

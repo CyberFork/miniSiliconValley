@@ -34,9 +34,9 @@ with sync_playwright() as pw:
  for sid in ['zrq','dky']:
   f=open_frame(sid,'slides');isolated(f);page.locator('#fullscreen-frame').click();page.wait_for_function('() => document.fullscreenElement!==null')
   if sid=='dky':
-   f.locator('#next').click();assert f.locator('#count').inner_text()=='2 / 10'
-   for _ in range(8):f.locator('#next').click()
-   assert f.locator('#next').is_disabled();f.locator('#prev').click();assert f.locator('#count').inner_text()=='9 / 10'
+   f.locator('#next').click();assert f.locator('#count').inner_text()=='2 / 11'
+   for _ in range(9):f.locator('#next').click()
+   assert f.locator('#next').is_disabled();f.locator('#prev').click();assert f.locator('#count').inner_text()=='10 / 11'
   else:
    f.locator('.btn-arrow').last.click();assert f.evaluate('currentSlide')==2
   f.wait_for_function('() => Array.from(document.images).filter(i=>i.offsetWidth>0).every(i=>i.complete && i.naturalWidth>0)')

@@ -426,7 +426,14 @@
       .deck-container { display: block !important; margin: 0 !important; width: 100% !important; }
       .slide-item { page-break-after: always; break-after: page; width: 100% !important; height: 100vh !important; }
     }
-  </style>
+
+/* Appended recording page; original slide content stays intact. */
+.video-slide{padding:20px 28px!important;gap:10px;justify-content:flex-start!important;align-items:stretch!important;text-align:center}
+.video-slide h2{font-size:30px;margin:0;line-height:1.3;flex:0 0 auto}
+.video-slide p{font-size:16px;margin:0;line-height:1.4;flex:0 0 auto}
+.video-slide video{display:block;width:100%;min-height:0;flex:1 1 0;object-fit:contain;background:#000;border-radius:8px}
+.video-slide[hidden]{display:none!important}
+</style>
 </head>
 <body>
 
@@ -438,7 +445,7 @@
     </div>
 
     <div class="nav-center">
-      <span class="page-indicator-pill" id="pageTag">01 / 12</span>
+      <span class="page-indicator-pill" id="pageTag">01 / 13</span>
     </div>
 
     <div class="nav-controls">
@@ -496,7 +503,7 @@
 
       <div class="slide-bottom">
         <span>末日战争 · 路演发布会</span>
-        <span>01 / 12</span>
+        <span>01 / 13</span>
       </div>
     </section>
 
@@ -538,7 +545,7 @@
 
       <div class="slide-bottom">
         <span>末日战争 · 路演发布会</span>
-        <span>02 / 12</span>
+        <span>02 / 13</span>
       </div>
     </section>
 
@@ -565,7 +572,7 @@
 
       <div class="slide-bottom">
         <span>末日战争 · 路演发布会</span>
-        <span>03 / 12</span>
+        <span>03 / 13</span>
       </div>
     </section>
 
@@ -592,7 +599,7 @@
 
       <div class="slide-bottom">
         <span>末日战争 · 路演发布会</span>
-        <span>04 / 12</span>
+        <span>04 / 13</span>
       </div>
     </section>
 
@@ -619,7 +626,7 @@
 
       <div class="slide-bottom">
         <span>末日战争 · 路演发布会</span>
-        <span>05 / 12</span>
+        <span>05 / 13</span>
       </div>
     </section>
 
@@ -663,7 +670,7 @@
 
       <div class="slide-bottom">
         <span>末日战争 · 路演发布会</span>
-        <span>06 / 12</span>
+        <span>06 / 13</span>
       </div>
     </section>
 
@@ -710,7 +717,7 @@
 
       <div class="slide-bottom">
         <span>末日战争 · 路演发布会</span>
-        <span>07 / 12</span>
+        <span>07 / 13</span>
       </div>
     </section>
 
@@ -751,7 +758,7 @@
 
       <div class="slide-bottom">
         <span>末日战争 · 路演发布会</span>
-        <span>08 / 12</span>
+        <span>08 / 13</span>
       </div>
     </section>
 
@@ -805,7 +812,7 @@
 
       <div class="slide-bottom">
         <span>末日战争 · 路演发布会</span>
-        <span>09 / 12</span>
+        <span>09 / 13</span>
       </div>
     </section>
 
@@ -835,7 +842,7 @@
 
       <div class="slide-bottom">
         <span>末日战争 · 路演发布会</span>
-        <span>10 / 12</span>
+        <span>10 / 13</span>
       </div>
     </section>
 
@@ -872,7 +879,7 @@
 
       <div class="slide-bottom">
         <span>末日战争 · 路演发布会</span>
-        <span>11 / 12</span>
+        <span>11 / 13</span>
       </div>
     </section>
 
@@ -910,10 +917,11 @@
 
       <div class="slide-bottom">
         <span>末日战争 · 路演发布会</span>
-        <span>12 / 12</span>
+        <span>12 / 13</span>
       </div>
     </section>
 
+<section class="slide-item video-slide" id="slide-13"><h2>《末日生存》试玩视频</h2><p>点击播放 · 可暂停、调节音量或拖动进度</p><video id="game-demo" controls playsinline preload="none" poster="game-demo.jpg" aria-label="游戏试玩视频"><source src="game-demo.mp4" type="video/mp4">当前浏览器无法播放此视频，请使用支持 MP4 的浏览器。</video></section>
   </main>
 
   <!-- 底部悬浮翻页导航 -->
@@ -934,12 +942,13 @@
   </aside>
 
   <script>
-    const totalSlides = 12;
+    const totalSlides = 13;
     let currentSlide = 1;
     let isScrollMode = false;
 
     // 提词卡数据（小制作人章睿棋定制台词与动作）
     const prompts = {
+      13: {title:"第 13 页：游戏试玩视频",speech:"下面是《末日生存》的试玩录像。",tip:"点击播放，按需暂停讲解。"},
       1: {
         title: "第 1 页：封面 · 震撼开场",
         speech: "大家好！我是小制作人章睿棋。今天带来我的第一份商业计划书——《末日战争》！不用花大钱，也能玩得超爽的末日机甲游戏！",
@@ -1012,6 +1021,7 @@
     }
 
     function updateDeck() {
+      if(currentSlide!==totalSlides) document.getElementById('game-demo').pause();
       if (isScrollMode) return;
 
       document.querySelectorAll('.slide-item').forEach((item, idx) => {
@@ -1091,6 +1101,7 @@
 
     // 快捷键支持
     window.addEventListener('keydown', (e) => {
+        if (e.target.closest?.('video')) return;
       if (isScrollMode) return;
       if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
         e.preventDefault();
@@ -1109,5 +1120,5 @@
 
     updateDeck();
   </script>
-</body>
+<script>document.addEventListener('visibilitychange',()=>{if(document.hidden)document.getElementById('game-demo').pause();});</script></body>
 </html>

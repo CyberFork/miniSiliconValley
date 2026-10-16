@@ -779,7 +779,14 @@
       .bento-grid-3 { grid-template-columns: 1fr; }
       .overview-grid { grid-template-columns: repeat(2, 1fr); }
     }
-  </style>
+
+/* Appended recording page; original slide content stays intact. */
+.video-slide{padding:20px 28px!important;gap:10px;justify-content:flex-start!important;align-items:stretch!important;text-align:center}
+.video-slide h2{font-size:30px;margin:0;line-height:1.3;flex:0 0 auto}
+.video-slide p{font-size:16px;margin:0;line-height:1.4;flex:0 0 auto}
+.video-slide video{display:block;width:100%;min-height:0;flex:1 1 0;object-fit:contain;background:#000;border-radius:8px}
+.video-slide[hidden]{display:none!important}
+</style>
 </head>
 <body>
 
@@ -1200,6 +1207,7 @@
       </div>
     </section>
 
+<section class="slide-card video-slide" data-slide="11"><h2>《零号纪元》试玩视频</h2><p>点击播放 · 可暂停、调节音量或拖动进度</p><video id="game-demo" controls playsinline preload="none" poster="game-demo.jpg" aria-label="游戏试玩视频"><source src="game-demo.mp4" type="video/mp4">当前浏览器无法播放此视频，请使用支持 MP4 的浏览器。</video></section>
   </main>
 
   <!-- 演讲提词器抽屉 (Speaker Notes Drawer) -->
@@ -1241,6 +1249,7 @@
 
     // 提词卡与动作数据
     const speakerNotes = {
+      11: {text:"下面是《零号纪元》的试玩录像。",action:"点击播放，按需暂停讲解。"},
       1: {
         text: "大家好，我是创作者唐梓轩！今天带来新游戏《零号纪元》，专治所有不想学英语的同学！",
         action: "【开场动作】：微笑、昂首挺胸向台下评委和家长挥手，声音洪亮有精神！"
@@ -1285,7 +1294,7 @@
 
     const titles = [
       "封面 · 零号纪元", "我的玩家", "游戏怎么玩", "最特别的地方", "算一笔小账",
-      "怎么让人知道", "我的第一步", "我的大梦想", "游戏实机演示", "结束致谢 Q&A"
+      "怎么让人知道", "我的第一步", "我的大梦想", "游戏实机演示", "结束致谢 Q&A", "游戏试玩视频"
     ];
 
     // 初始化指示器
@@ -1315,6 +1324,7 @@
     }
 
     function updateView() {
+      if(currentSlide!==totalSlides) document.getElementById('game-demo').pause();
       slides.forEach((s, idx) => {
         if (idx + 1 === currentSlide) {
           s.classList.add('active');
@@ -1396,6 +1406,7 @@
 
     // 键盘快捷键监听
     window.addEventListener('keydown', (e) => {
+        if (e.target.closest?.('video')) return;
       if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
         e.preventDefault();
         nextSlide();
@@ -1416,9 +1427,11 @@
     // 触摸滑动手势支持
     let touchStartX = 0;
     window.addEventListener('touchstart', (e) => {
+        if (e.target.closest?.('video')) return;
       touchStartX = e.changedTouches[0].screenX;
     }, false);
     window.addEventListener('touchend', (e) => {
+        if (e.target.closest?.('video')) return;
       const touchEndX = e.changedTouches[0].screenX;
       if (touchEndX - touchStartX > 50) prevSlide();
       if (touchStartX - touchEndX > 50) nextSlide();
@@ -1427,5 +1440,5 @@
     // 初始化更新
     updateView();
   </script>
-</body>
+<script>document.addEventListener('visibilitychange',()=>{if(document.hidden)document.getElementById('game-demo').pause();});</script></body>
 </html>

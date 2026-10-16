@@ -424,7 +424,14 @@
         margin-bottom: 40px;
       }
     }
-  </style>
+
+/* Appended recording page; original slide content stays intact. */
+.video-slide{padding:20px 28px!important;gap:10px;justify-content:flex-start!important;align-items:stretch!important;text-align:center}
+.video-slide h2{font-size:30px;margin:0;line-height:1.3;flex:0 0 auto}
+.video-slide p{font-size:16px;margin:0;line-height:1.4;flex:0 0 auto}
+.video-slide video{display:block;width:100%;min-height:0;flex:1 1 0;object-fit:contain;background:#000;border-radius:8px}
+.video-slide[hidden]{display:none!important}
+</style>
 </head>
 <body>
 
@@ -619,6 +626,7 @@
       <div class="cloud-bottom"></div>
     </section>
 
+<section class="slide-card video-slide" data-index="11"><h2>《星之卡比 CP版》试玩视频</h2><p>点击播放 · 可暂停、调节音量或拖动进度</p><video id="game-demo" controls playsinline preload="none" poster="game-demo.jpg" aria-label="游戏试玩视频"><source src="game-demo.mp4" type="video/mp4">当前浏览器无法播放此视频，请使用支持 MP4 的浏览器。</video></section>
   </main>
 
   <!-- 底部指示圆点与操作快捷键提示 -->
@@ -658,6 +666,7 @@
       const dots = Array.from(dotsContainer.children);
 
       function updateSlide() {
+        if(currentIndex!==totalSlides-1) document.getElementById('game-demo').pause();
         slides.forEach((slide, idx) => {
           slide.classList.toggle('active', idx === currentIndex);
         });
@@ -695,6 +704,7 @@
 
       // 键盘左右方向键与空格翻页
       window.addEventListener('keydown', (e) => {
+        if (e.target.closest?.('video')) return;
         if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
           e.preventDefault();
           nextSlide();
@@ -707,10 +717,12 @@
       // 触屏滑动切换
       let touchStartX = 0;
       window.addEventListener('touchstart', (e) => {
+        if (e.target.closest?.('video')) return;
         touchStartX = e.changedTouches[0].screenX;
       }, { passive: true });
 
       window.addEventListener('touchend', (e) => {
+        if (e.target.closest?.('video')) return;
         const touchEndX = e.changedTouches[0].screenX;
         const diff = touchEndX - touchStartX;
         if (Math.abs(diff) > 50) {
@@ -731,5 +743,5 @@
       updateSlide();
     })();
   </script>
-</body>
+<script>document.addEventListener('visibilitychange',()=>{if(document.hidden)document.getElementById('game-demo').pause();});</script></body>
 </html>
