@@ -1,0 +1,221 @@
+{
+  "date": "2026-10-16",
+  "release": "20261016-roadshow-videos",
+  "sourceCommit": "58a34f751d6ee79c332922d745885b38dfd278ba",
+  "archiveSha256": "4ea32ff8f0497fbd5b4cd1978dbea11d7ac26871b78691ee2a332e19af1f2e74",
+  "cohortUrl": "https://minisv.vip/showcase/2026-09/",
+  "slidesUrls": {
+    "cwe": "https://minisv.vip/showcase/2026-09/cwe/slides/",
+    "tzx": "https://minisv.vip/showcase/2026-09/tzx/slides/",
+    "zrq": "https://minisv.vip/showcase/2026-09/zrq/slides/",
+    "dky": "https://minisv.vip/showcase/2026-09/dky/slides/"
+  },
+  "scope": [
+    "四位学生现有路演末尾追加一页试玩录像",
+    "H.264/AAC 浏览器 MP4、封面、原生播放控件；不自动播放、不提前下载，翻页离开暂停",
+    "精确开放四个录屏路径；保留沙箱和访问控制；原始录屏未修改"
+  ],
+  "videos": [
+    {
+      "student": "cwe",
+      "sourceFilename": "星之卡比.mp4",
+      "sourceSha256": "187bc011e8301c944abe39558773b00c6ec363b0edbcae84227ceecfb8106d51",
+      "sourceBytes": 344770971,
+      "publishedBytes": 16562633,
+      "publishedSha256": "6333775a473fc6d0bea9d5e4c1519a89cd5ea54e9a5cb13db6592c275b4cc570",
+      "duration": 177.566016,
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "width": 1280,
+          "height": 626,
+          "pix_fmt": "yuv420p"
+        },
+        {
+          "codec_type": "audio",
+          "codec_name": "aac",
+          "width": null,
+          "height": null,
+          "pix_fmt": null
+        }
+      ]
+    },
+    {
+      "student": "tzx",
+      "sourceFilename": "零号纪元.mp4",
+      "sourceSha256": "7202c2dd007d3ca4ff0f788711841c2229aaee49a308b49fab723080567b2322",
+      "sourceBytes": 121234708,
+      "publishedBytes": 4743144,
+      "publishedSha256": "148886449bfe5a01b5850de96fd6a5f13ff1e129e1cd07d971184240ddc26752",
+      "duration": 67.466667,
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "width": 960,
+          "height": 720,
+          "pix_fmt": "yuvj420p"
+        },
+        {
+          "codec_type": "audio",
+          "codec_name": "aac",
+          "width": null,
+          "height": null,
+          "pix_fmt": null
+        }
+      ]
+    },
+    {
+      "student": "zrq",
+      "sourceFilename": "末日生存.mp4",
+      "sourceSha256": "f8730ad57a82ea0b60cced0c53194614c9a1baf92272abd808effabdfb611a70",
+      "sourceBytes": 101973474,
+      "publishedBytes": 3543805,
+      "publishedSha256": "7325baf27315d09bf63e6f2fe05a19d1f7dcad46a2968c2f4090feb6809def29",
+      "duration": 75.666667,
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "width": 960,
+          "height": 720,
+          "pix_fmt": "yuvj420p"
+        },
+        {
+          "codec_type": "audio",
+          "codec_name": "aac",
+          "width": null,
+          "height": null,
+          "pix_fmt": null
+        }
+      ]
+    },
+    {
+      "student": "dky",
+      "sourceFilename": "回声断层.mp4",
+      "sourceSha256": "562645fa4c241040629d2bfee8b0bf1f1077a6f30b93102465470aef7c778219",
+      "sourceBytes": 359074069,
+      "publishedBytes": 12633603,
+      "publishedSha256": "76fd9124ecd9ef90face313332c951357f99ef14c81c50a2df1193eadd9cef98",
+      "duration": 191.7,
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "width": 960,
+          "height": 720,
+          "pix_fmt": "yuvj420p"
+        },
+        {
+          "codec_type": "audio",
+          "codec_name": "aac",
+          "width": null,
+          "height": null,
+          "pix_fmt": null
+        }
+      ]
+    }
+  ],
+  "verified": {
+    "unitTests": 103,
+    "health": "MINISV_HECATE_HEALTHY",
+    "unchangedExistingSiteFiles": 3436,
+    "newMediaFiles": 8,
+    "gameRuntimeBytesUnchanged": true,
+    "productionRange": [
+      {
+        "student": "cwe",
+        "status": 206,
+        "contentRange": "bytes 100000-100999/16562633",
+        "type": "video/mp4"
+      },
+      {
+        "student": "tzx",
+        "status": 206,
+        "contentRange": "bytes 100000-100999/4743144",
+        "type": "video/mp4"
+      },
+      {
+        "student": "zrq",
+        "status": 206,
+        "contentRange": "bytes 100000-100999/3543805",
+        "type": "video/mp4"
+      },
+      {
+        "student": "dky",
+        "status": 206,
+        "contentRange": "bytes 100000-100999/12633603",
+        "type": "video/mp4"
+      }
+    ],
+    "productionBrowser": [
+      {
+        "student": "cwe",
+        "duration": 177.566016,
+        "videoBox": {
+          "x": 184,
+          "y": 265.59375,
+          "width": 912,
+          "height": 428.203125
+        },
+        "playsAndPausesOnPrevious": true,
+        "seekVerified": true,
+        "noEarlyMp4Fetch": true
+      },
+      {
+        "student": "tzx",
+        "duration": 67.466667,
+        "videoBox": {
+          "x": 89,
+          "y": 281.1875,
+          "width": 1102,
+          "height": 467
+        },
+        "playsAndPausesOnPrevious": true,
+        "seekVerified": true,
+        "noEarlyMp4Fetch": true
+      },
+      {
+        "student": "zrq",
+        "duration": 75.666667,
+        "videoBox": {
+          "x": 69,
+          "y": 272.1875,
+          "width": 1142,
+          "height": 467
+        },
+        "playsAndPausesOnPrevious": true,
+        "seekVerified": true,
+        "noEarlyMp4Fetch": true
+      },
+      {
+        "student": "dky",
+        "duration": 191.7,
+        "videoBox": {
+          "x": 28,
+          "y": 191.390625,
+          "width": 1224,
+          "height": 546.609375
+        },
+        "playsAndPausesOnPrevious": true,
+        "seekVerified": true,
+        "noEarlyMp4Fetch": true
+      }
+    ],
+    "publicFileHashes": 163
+  },
+  "notVerified": [
+    "真实 iPad/Safari/微信浏览器；移动和平板仅浏览器尺寸模拟",
+    "未逐秒观看完整录像或逐段听音；未代签人工试讲"
+  ],
+  "rollback": {
+    "release": "20261015-pure-play",
+    "backup": "~/Services/minisv/backups/20261016T095205Z-20261016-roadshow-videos",
+    "command": "zsh ~/Services/minisv/current/ops/scripts/rollback-hecate.sh 20261015-pure-play"
+  },
+  "verificationNotes": [
+    "首次公网冷缓存拉取时，视频中段跳转曾超时；完整公网资源校验预热后，四个视频的原生播放按钮、跳转至中段、翻回前页暂停全部通过。",
+    "本地原始录屏保持不变；线上使用约 37.5 MB 的四份压缩录像与封面。"
+  ]
+}

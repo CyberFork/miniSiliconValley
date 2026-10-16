@@ -22,8 +22,8 @@ with sync_playwright() as p:
   v=f.locator('#game-demo');v.wait_for(state='visible');page.wait_for_timeout(600)
   box=v.bounding_box();assert box['height']>200,box
   assert v.evaluate('(v)=>v.paused')
-  v.evaluate('(v)=>v.play()');f.wait_for_function('() => document.querySelector("#game-demo").currentTime>0.2',timeout=30000)
-  duration=v.evaluate('(v)=>v.duration');v.evaluate('(v)=>v.currentTime=v.duration/2');f.wait_for_function('() => !document.querySelector("#game-demo").seeking',timeout=30000)
+  v.click(position={'x':30,'y':v.evaluate('(v)=>v.clientHeight')-48});f.wait_for_function('() => document.querySelector("#game-demo").currentTime>0.2',timeout=120000)
+  duration=v.evaluate('(v)=>v.duration');v.evaluate('(v)=>v.currentTime=v.duration/2');f.wait_for_function('() => !document.querySelector("#game-demo").seeking',timeout=120000)
   if 'https:' in base: assert v.evaluate('(v)=>v.currentTime')>duration/2-2
   page.screenshot(path=str(out/(sid+'.png')))
   if sid=='zrq':f.locator('.btn-arrow').first.click()
