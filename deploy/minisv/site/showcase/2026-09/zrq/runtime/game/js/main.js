@@ -38,13 +38,15 @@ Object.assign(Game, {
 
   /* 回到安全屋 */
   backToPrep() {
+    if (!World.inSafehouse(this.cur().x, this.cur().z)) { UI.toast('请先走回地图中央安全屋，再进入安全区准备和合成'); return; }
+    this.pauseForUI = false;
     this.running = false;
     UI.go('prep');
     UI.toast('你回到了安全屋。记得在这里存档');
   },
 
   closePage() {
-    if (this.S.started && !this.dead) {
+    if (this.uiReturnScreen === 'battle' && !this.dead) {
       UI.go('battle');
       setTimeout(() => World.onResize(), 40);
       if (this.pauseForUI) {
@@ -57,11 +59,13 @@ Object.assign(Game, {
   },
 
   openBag() {
+    this.uiReturnScreen = document.getElementById('battle').classList.contains('active') ? 'battle' : 'prep';
     if (this.running) { this.pauseForUI = true; this.running = false; }
     UI.tab = 'bag'; UI.sel = null;
     UI.go('bag');
   },
   openChar() {
+    this.uiReturnScreen = document.getElementById('battle').classList.contains('active') ? 'battle' : 'prep';
     if (this.running) { this.pauseForUI = true; this.running = false; }
     UI.go('char');
   },

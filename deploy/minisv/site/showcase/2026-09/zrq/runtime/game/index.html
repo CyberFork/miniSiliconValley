@@ -117,7 +117,7 @@
   .skill.big{width:80px;height:80px}
   .hint{position:absolute;left:50%;bottom:5%;transform:translateX(-50%);font-size:12px;font-weight:700;
     color:#cfc7b6;background:rgba(6,8,11,.6);padding:6px 14px;border-radius:10px;border:1px solid rgba(232,226,212,.15)}
-  .toast{position:absolute;left:50%;top:14%;transform:translateX(-50%);z-index:8;font-size:13px;font-weight:800;
+  .toast{position:fixed;pointer-events:none;left:50%;top:14%;transform:translateX(-50%);z-index:1000;font-size:13px;font-weight:800;
     color:#f3ead9;background:rgba(10,12,16,.88);padding:9px 18px;border-radius:11px;border:1px solid rgba(232,226,212,.25);
     display:none;max-width:76vw;text-align:center}
   .dmgfx{position:absolute;z-index:7;font-size:20px;font-weight:900;color:#ff7b6b;pointer-events:none;
@@ -303,6 +303,7 @@
       <div class="tab on" data-tab="bag" onclick="UI.bagTab('bag')" data-page-node-id="04psJgBimNOCDN8oH4gFW5">背包</div>
       <div class="tab" data-tab="craft" onclick="UI.bagTab('craft')" data-page-node-id="4zqcGrLEnUNvetg0JS5sNq">合成台</div>
     </div>
+    <p id="bag-result" role="status" aria-live="polite" style="min-height:24px;margin:10px 18px;color:#e9c16b;font-weight:800"></p>
     <div class="grid inv" id="bag-grid" data-page-node-id="kFcGWIcoP15wdgAijB3PnP"></div>
     <div class="detail" data-page-node-id="UqNJIEMlGZvbm2xBdfJ3tm">
       <div class="info" id="bag-info" data-page-node-id="EX8RWjmkxqQPuQmiDoICJ1">点一个物品，看看它是什么。</div>
@@ -325,11 +326,11 @@
 
 </div>
 <script type="application/x-minisv-student" data-src="lib/three.min.js"></script>
-<script type="application/x-minisv-student" data-src="js/data.js"></script>
+<script type="application/x-minisv-student" data-src="js/data.js?v=craft-flow-20261017"></script>
 <script type="application/x-minisv-student" data-src="js/sprites.js"></script>
 <script type="application/x-minisv-student" data-src="js/world.js"></script>
-<script type="application/x-minisv-student" data-src="js/game.js"></script>
-<script type="application/x-minisv-student" data-src="js/ui.js?v=craft-table-20261017"></script>
-<script type="application/x-minisv-student" data-src="js/main.js"></script>
+<script type="application/x-minisv-student" data-src="js/game.js?v=craft-flow-20261017"></script>
+<script type="application/x-minisv-student" data-src="js/ui.js?v=craft-flow-20261017"></script>
+<script type="application/x-minisv-student" data-src="js/main.js?v=craft-flow-20261017"></script>
 </body>
 </html>

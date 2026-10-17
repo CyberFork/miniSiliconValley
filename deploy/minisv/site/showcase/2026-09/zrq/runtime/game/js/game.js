@@ -371,6 +371,7 @@ const Game = {
     if (sid === 'throw') {
       if (!this.S.bag.molotov || this.S.bag.molotov <= 0) { UI.toast('没有燃烧瓶了，先在合成台做几个'); return; }
       this.S.bag.molotov--;
+      if (this.S.bag.molotov <= 0) delete this.S.bag.molotov;
     }
     const me = this.S.chars[this.S.active];
     const fwd = this.forward();
@@ -508,6 +509,7 @@ const Game = {
   updateEffects(dt) {
     for (let i = this.effects.length - 1; i >= 0; i--) {
       const e = this.effects[i];
+      const activeDt = Math.min(dt, Math.max(0, e.life));
       e.life -= dt;
       const k = Math.max(0, e.life / e.max);
       if (e.kind === 'ring') {
@@ -518,18 +520,10 @@ const Game = {
         e.obj.material.opacity = 0.5 * k + 0.08;
         e.obj.scale.set(1 + Math.sin(this.time * 6) * 0.04, 1, 1);
         if (e.light) e.light.intensity = 1.2 * k;
-        e.tick -= dt;
-        if (e.tick <= 0) {
-          e.tick = 0.25;
-          this.mobs.forEach((m) => {
-            if (m.dead) return;
-            if (Math.hypot(m.pos.x - e.x, m.pos.z - e.z) <= e.radius) {
-              this.hurtZombie(m, e.dps * 0.25, true);
-              m.burn = Math.max(m.burn, 0.6);
-              if (m.burnDps < e.dps) m.burnDps = e.dps;
-            }
-          });
-        }
+        this.mobs.forEach((m) => {
+          if (!m.dead && Math.hypot(m.pos.x - e.x, m.pos.z - e.z) <= e.radius)
+            this.hurtZombie(m, e.dps * activeDt, true);
+        });
         if (!this.fireHiss) this.fireHiss = 0;
       } else {
         e.obj.material.opacity = 0.8 * k;
@@ -569,12 +563,14 @@ const Game = {
       c.hunger = Math.min(100, c.hunger + it.food);
       UI.toast('吃掉 ' + it.name + '，饥饿 +' + it.food);
     } else if (it.kind === 'throw') {
+      if (!this.pauseForUI && !this.running) { UI.toast('请先出发进入街区，再使用燃烧瓶投掷'); return; }
       const fwd = this.forward();
-      const p = { x: c.x + fwd.x * 8, z: c.z + fwd.z * 8 };
+      const p = { x: c.x + fwd.x * 9, z: c.z + fwd.z * 9 };
       World.resolve(p, 0.4);
       this.spawnFire(p.x, p.z, it.radius, it.dps, it.duration);
       Sfx.skill('fire'); UI.toast('扔出 ' + it.name + '，点燃前方');
     } else if (it.kind === 'passive') {
+      if (this.S.passives[kind]) { UI.toast(it.name + ' 已装备，效果不叠加，不消耗物品'); return; }
       this.S.passives[kind] = 1;
       if (kind === 'armor') { ['jy', 'zy'].forEach((id) => { this.S.chars[id].maxHp = this.maxHpFor(id); }); }
       Sfx.craft();
@@ -582,18 +578,32 @@ const Game = {
     } else { UI.toast(it.name + ' 是合成材料，拿去合成台用'); return; }
     this.S.bag[kind]--; if (this.S.bag[kind] <= 0) delete this.S.bag[kind];
     UI.updateHUD();
+    if (it.kind === 'throw' && UI.bagOpen) this.closePage();
+  },
+  craftCheck(recipeId) {
+    const r = RECIPES.find((x) => x.id === recipeId);
+    if (!r) return { ok:false, reason:'没有这个配方' };
+    if (!World.inSafehouse(this.cur().x, this.cur().z))
+      return { ok:false, reason:'请先回到安全区合成（地图中央安全屋）' };
+    const missing = Object.keys(r.need).filter((k) => (this.S.bag[k] || 0) < r.need[k]);
+    if (missing.length) return { ok:false, reason:'材料不足：' + missing.map((k) => ITEMS[k].name + '还缺' + (r.need[k] - (this.S.bag[k] || 0))).join('、') };
+    // Check capacity AFTER consuming materials, without mutating the real inventory on failure.
+    const bag = { ...this.S.bag };
+    for (const k in r.need) { bag[k] -= r.need[k]; if (bag[k] <= 0) delete bag[k]; }
+    bag[r.out] = (bag[r.out] || 0) + r.n;
+    if (Object.keys(bag).filter((k) => bag[k] > 0).length > CONFIG.BAG_CAPACITY)
+      return { ok:false, reason:'合成后背包空间不足，请先使用物品腾出一格' };
+    return { ok:true, bag, recipe:r };
   },
   craft(recipeId) {
-    const r = RECIPES.find((x) => x.id === recipeId); if (!r) return;
-    if (!World.inSafehouse(this.cur().x, this.cur().z)) { UI.toast('只有在安全屋的合成台才能合成'); return; }
-    for (const k in r.need) if ((this.S.bag[k] || 0) < r.need[k]) { UI.toast('材料不够：还缺 ' + ITEMS[k].name); return; }
-    if (this.bagFull(r.out)) { UI.toast('背包已满，先腾一格'); return; }
-    for (const k in r.need) { this.S.bag[k] -= r.need[k]; if (this.S.bag[k] <= 0) delete this.S.bag[k]; }
-    this.S.bag[r.out] = (this.S.bag[r.out] || 0) + r.n;
+    const check = this.craftCheck(recipeId);
+    if (!check.ok) { UI.toast(check.reason); return false; }
+    this.S.bag = check.bag;
     this.S.stats.crafts++;
     Sfx.craft();
-    UI.toast('合成成功：' + ITEMS[r.out].name + ' ×' + r.n);
     UI.renderBag();
+    UI.toast('合成成功：' + ITEMS[check.recipe.out].name + ' ×' + check.recipe.n + '，已放入背包。切回背包可使用或装备。');
+    return true;
   },
 
   /* ---------------- 循环 ---------------- */
@@ -642,6 +652,7 @@ const Game = {
     // 世界
     this.syncCharSprites();
     World.update(dt, this.time);
+    this.updateFlashlight();
     World.renderer.render(World.scene, World.camera);
     UI.updateHUD();
   },
@@ -693,6 +704,18 @@ const Game = {
   },
 
   /* ---------------- 输入：移动 / 视角 ---------------- */
+  updateFlashlight() {
+    // 手电筒（夜里 + 有手电筒更亮）
+    if (this.S.passives.flashlight) {
+      if (!this.flashlight) {
+        this.flashlight = new THREE.PointLight(0xffe9b0, 0, 22, 2);
+        World.scene.add(this.flashlight);
+      }
+      this.flashlight.position.copy(World.camera.position);
+      this.flashlight.intensity = 0.2 + this.nightF * 1.6;
+      World.scene.fog.density = 0.016 + this.nightF * 0.024;
+    } else if (this.flashlight) { this.flashlight.intensity = 0; }
+  },
   updatePlayer(dt) {
     const c = this.cur();
     // 键盘（电脑上也能试玩）
@@ -726,16 +749,6 @@ const Game = {
       World.camera.rotateZ((Math.random() - 0.5) * this.cameraShake * 0.3);
     }
     World.camera.position.set(c.x, CONFIG.EYE_HEIGHT + bob, c.z);
-    // 手电筒（夜里 + 有手电筒更亮）
-    if (this.S.passives.flashlight) {
-      if (!this.flashlight) {
-        this.flashlight = new THREE.PointLight(0xffe9b0, 0, 22, 2);
-        World.scene.add(this.flashlight);
-      }
-      this.flashlight.position.copy(World.camera.position);
-      this.flashlight.intensity = 0.2 + this.nightF * 1.6;
-      World.scene.fog.density = 0.022 + this.nightF * 0.018;
-    }
     // 安全屋提示
     this.atSafe = World.inSafehouse(c.x, c.z);
     // 拾取

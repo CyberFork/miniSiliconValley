@@ -553,22 +553,22 @@
     },
     {
       "path": "2026-09/zrq/runtime/game/index.html",
-      "sha256": "61ef8afa32b51ddc216c861b531f7de533636828164c873895a7b47499615d4c",
+      "sha256": "9e8eafa203e13ca01395927ad91c10f854989e1030c4bd25d12b57db6f24adbf",
       "source": "章-末日生存-开发包-20261012.zip:doomsday/index.html"
     },
     {
       "path": "2026-09/zrq/runtime/game/js/data.js",
-      "sha256": "2fce93ca2617b0d69f65d6edf5329613e04e3ad874b55200fa508e042c213464",
+      "sha256": "b550387f5256d2c3635a5c0c080af192405b618f5d305152854c05703e5b8256",
       "source": "章-末日生存-开发包-20261012.zip:doomsday/js/data.js"
     },
     {
       "path": "2026-09/zrq/runtime/game/js/game.js",
-      "sha256": "72c041df09c986cdde9e112bc3538dbe1df92ff1008c7eaca7fb296f1cf9e32a",
+      "sha256": "f643852c25bea54e348104a7e0ba30e0a8b313b2e2d7137bc29c4dbc8aa6c6d0",
       "source": "章-末日生存-开发包-20261012.zip:doomsday/js/game.js"
     },
     {
       "path": "2026-09/zrq/runtime/game/js/main.js",
-      "sha256": "d48e1c8f68c04009de268fea75a6fda49d29e459f51c347e789038ae1406bfb3",
+      "sha256": "58f5911851144cc8cf891ade44bee1d9fa59ab2a57a579a6c6be76e93675d21f",
       "source": "章-末日生存-开发包-20261012.zip:doomsday/js/main.js"
     },
     {
@@ -578,7 +578,7 @@
     },
     {
       "path": "2026-09/zrq/runtime/game/js/ui.js",
-      "sha256": "f42cbf4a6774934b5a71eecf1bdd62f357d612da95a31c7396a44a9850c2119f",
+      "sha256": "167c4b7bc6eede6c0179b786a01e0e38cfb38cb0c44ba3069dea44910ed26ee8",
       "source": "章-末日生存-开发包-20261012.zip:doomsday/js/ui.js"
     },
     {
@@ -788,7 +788,7 @@
     "2026-09/cwe/slides/index.html": "d1692624e88a6756749c7a3a32a13023626753d8a4ece7144ac41f6851f15b8f",
     "2026-09/dky/index.html": "43a2f12a84912aa01a943cea541e4232ca3b6f5aa2afb200632edaf2693b9752",
     "2026-09/dky/play/index.html": "4f2b1912c0ff067e9f49fdaedfc174f1976d0e6c5cb42cb8fff8a1bb1d8ec7a2",
-    "2026-09/dky/runtime/game/index.html": "e3dfe9e4da3af742ba7d42a13470d9d8f802402a277aae15e97dffb40504841f",
+    "2026-09/dky/runtime/game/index.html": "cee0f5502ec82349d4086b832e4bc51dd6cc14f52bddf00dc42718ad5750425a",
     "2026-09/dky/runtime/slides/game-demo.jpg": "b86abcf7326669c2c8e59c129dc9886b60623dfcf0786a0afc5aba16f395b08a",
     "2026-09/dky/runtime/slides/game-demo.mp4": "76fd9124ecd9ef90face313332c951357f99ef14c81c50a2df1193eadd9cef98",
     "2026-09/dky/runtime/slides/index.html": "b55e22f5189af2ce4a350d0f74a59fb6c3c2e1361cb88fbbae0fb11d8ccaf5e2",

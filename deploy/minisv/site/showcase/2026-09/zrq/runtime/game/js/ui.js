@@ -28,7 +28,10 @@ const UI = {
   },
   toast(msg) {
     const t = document.getElementById('toast');
-    t.textContent = msg; t.style.display = 'block';
+    if (t.parentElement !== document.body) document.body.appendChild(t);
+    const status = document.getElementById('bag-result');
+    if (this.bagOpen && status) status.textContent = msg;
+    t.textContent = msg; t.style.display = this.bagOpen ? 'none' : 'block';
     clearTimeout(this._tt);
     this._tt = setTimeout(() => { t.style.display = 'none'; }, 2300);
   },
@@ -210,16 +213,16 @@ const UI = {
   },
 
   /* ---------------- 背包与合成 ---------------- */
-  bagTab(t) { this.tab = t; this.sel = null; this.renderBag(); },
+  bagTab(t) { this.tab = t; this.sel = null; document.getElementById('bag-result').textContent = ''; this.renderBag(); },
   renderBag() {
     const grid = document.getElementById('bag-grid');
     if (!grid) return;
     grid.style.gridTemplateColumns = this.tab === 'bag' ? '' : 'repeat(auto-fill,minmax(200px,1fr))';
     document.querySelectorAll('#bag-tabs .tab').forEach((el) => el.classList.toggle('on', el.dataset.tab === this.tab));
-    const canCraft = World.inSafehouse(Game.cur().x, Game.cur().z) || !Game.S.started;
+    const canCraft = World.inSafehouse(Game.cur().x, Game.cur().z);
     document.getElementById('bag-sub').textContent =
       '背包 ' + Object.keys(Game.S.bag).length + '/' + CONFIG.BAG_CAPACITY + ' 格 · ' +
-      (canCraft ? '在安全屋，可以用合成台' : '离开安全屋了，回到安全屋才能合成');
+      (canCraft ? '在安全屋，可以用合成台' : '请先回到安全区合成（地图中央安全屋）');
     if (this.tab === 'bag') {
       const keys = Object.keys(Game.S.bag);
       let html = keys.map((k) => {
@@ -233,12 +236,12 @@ const UI = {
       grid.innerHTML = html;
     } else {
       grid.innerHTML = RECIPES.map((r) => {
-        const ok = Object.keys(r.need).every((k) => (Game.S.bag[k] || 0) >= r.need[k]);
+        const check = Game.craftCheck(r.id), ok = check.ok;
         const need = Object.keys(r.need).map((k) => ITEMS[k].name + '×' + r.need[k] + '（有' + (Game.S.bag[k] || 0) + '）').join(' + ');
-        return '<div class="pcard" data-recipe="' + r.id + '" style="' + (ok ? 'border-color:#8fa832' : 'opacity:.65') + '">' +
+        return '<div class="pcard" style="' + (ok ? 'border-color:#8fa832' : 'opacity:.65') + '">' +
           '<b>' + ITEMS[r.out].icon + ' ' + ITEMS[r.out].name + ' ×' + r.n + '</b>' +
           '需要：' + need + '<br><small>' + ITEMS[r.out].desc + '</small>' +
-          '<div style="margin-top:6px"><span class="tab ' + (ok ? 'on' : '') + '" style="padding:4px 10px">' + (ok ? '点这里合成' : '材料不足') + '</span></div></div>';
+          '<div style="margin-top:6px"><button type="button" class="tab ' + (ok ? 'on' : '') + '" data-recipe="' + r.id + '" style="padding:6px 10px">' + (ok ? '合成并放入背包' : check.reason) + '</button></div></div>';
       }).join('');
     }
     // 详情
@@ -247,10 +250,11 @@ const UI = {
       const it = ITEMS[this.sel];
       info.innerHTML = '<b>' + it.icon + ' ' + it.name + ' ×' + Game.S.bag[this.sel] + '</b><br>' + it.desc;
       const useLabel = it.kind === 'heal' ? '使用（回血）' : it.kind === 'food' ? '使用（吃 / 喝）' :
-        it.kind === 'throw' ? '使用（投掷）' : it.kind === 'passive' ? '装备（永久生效）' : '材料（拿去合成）';
+        it.kind === 'throw' ? '使用（投掷）' : it.kind === 'passive' ? (Game.S.passives[this.sel] ? '已装备（不叠加）' : '装备（永久生效）') : '材料（拿去合成）';
       acts.innerHTML = '<button class="btn btn-rust" data-use="' + this.sel + '">' + useLabel + '</button>';
     } else {
-      info.textContent = this.tab === 'bag' ? '点一个物品，看看它是什么。' : '把材料凑齐，就能在这里做出新东西。';
+      const equipped = Object.keys(Game.S.passives).filter((k) => Game.S.passives[k] && ITEMS[k]).map((k) => ITEMS[k].name).join('、');
+      info.textContent = this.tab === 'bag' ? '点一个物品，看看它是什么。' + (equipped ? ' 已永久装备：' + equipped : '') : '把材料凑齐，就能在这里做出新东西。';
       acts.innerHTML = '';
     }
   },

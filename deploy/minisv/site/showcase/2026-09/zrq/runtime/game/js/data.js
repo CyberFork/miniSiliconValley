@@ -99,10 +99,10 @@ const ITEMS = {
   metal:     { id:'metal',     icon:'🔩', name:'金属零件',   kind:'material', desc:'合成材料。' },
   wood:      { id:'wood',      icon:'🪵', name:'木板',       kind:'material', desc:'合成材料。' },
   bandage_hi:{ id:'bandage_hi',icon:'🏥', name:'高级绷带',   kind:'heal',   heal:45,  desc:'回复 45 点生命。' },
-  molotov:   { id:'molotov',   icon:'🍾', name:'燃烧瓶',     kind:'throw',  radius:5, dps:22, duration:4, desc:'扔出去，点燃一片区域。' },
-  armor:     { id:'armor',     icon:'🛡️', name:'铁甲护具',   kind:'passive',bonus:{maxHp:25}, desc:'永久装备：生命上限 +25。' },
-  knife:     { id:'knife',     icon:'🗡️', name:'猎刀',       kind:'passive',bonus:{atk:12},   desc:'永久装备：技能伤害 +12。' },
-  flashlight:{ id:'flashlight',icon:'🔦', name:'手电筒',     kind:'passive',bonus:{light:true},desc:'永久装备：夜里看得更远。' },
+  molotov:   { id:'molotov',   icon:'🍾', name:'燃烧瓶',     kind:'throw',  radius:5, dps:22, duration:4, desc:'出发后投向前方；半径 5 米内每秒伤害 22，持续 4 秒。背包投掷和燃烧瓶技能共用库存。' },
+  armor:     { id:'armor',     icon:'🛡️', name:'铁甲护具',   kind:'passive',bonus:{maxHp:25}, desc:'永久装备：两名角色生命上限各 +25，不直接回血，不重复叠加。' },
+  knife:     { id:'knife',     icon:'🗡️', name:'猎刀',       kind:'passive',bonus:{atk:12},   desc:'永久装备：普通攻击及直接伤害技能 +12；不增加回血或燃烧伤害，不重复叠加。' },
+  flashlight:{ id:'flashlight',icon:'🔦', name:'手电筒',     kind:'passive',bonus:{light:true},desc:'永久装备：夜间增加照明并减淡远处雾气，不重复叠加。' },
 };
 
 /* ---------------- 合成配方（安全屋合成台） ---------------- */
