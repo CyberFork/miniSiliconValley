@@ -9,7 +9,7 @@ with sync_playwright() as pw:
  b=pw.chromium.launch(headless=True,args=['--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader'])
  for mode,query,touch in [('normal','',False),('pure','?view=game',False),('tablet','?view=game',True)]:
   ctx=b.new_context(viewport={'width':1024 if touch else 1280,'height':800},has_touch=touch);p=ctx.new_page();p.on('pageerror',lambda e:report['pageErrors'].append(str(e)))
-  p.goto(a.base.rstrip('/')+'/showcase/2026-09/zrq/play/'+query);p.wait_for_function("() => document.querySelector('#load-status').textContent.includes('已初始化')",timeout=90000)
+  p.goto(a.base.rstrip('/')+'/showcase/2026-09/zrq/play/'+query,timeout=90000);p.wait_for_function("() => document.querySelector('#load-status').textContent.includes('已初始化')",timeout=90000)
   f=next(f for f in p.frames if '/runtime/game/' in f.url)
   def click(loc):loc.tap() if touch else loc.click()
   if not query:click(p.locator('#fullscreen-frame'))
@@ -89,7 +89,7 @@ with sync_playwright() as pw:
   click(f.get_by_role('button',name='返回',exact=True));assert f.locator('#prep').is_visible();click(f.get_by_role('button',name='存档',exact=True))
   expected=f.evaluate('({bag:Game.S.bag,passives:Game.S.passives})')
   p.wait_for_function("(expected) => {const s=JSON.parse(localStorage.getItem('minisv.showcase.2026-09.zrq.doomsday_endless_v1')||'null');return s && JSON.stringify({bag:s.bag,passives:s.passives})===JSON.stringify(expected)}",arg=expected)
-  p.reload();p.wait_for_function("() => document.querySelector('#load-status').textContent.includes('已初始化')",timeout=90000)
+  p.reload(timeout=90000);p.wait_for_function("() => document.querySelector('#load-status').textContent.includes('已初始化')",timeout=90000)
   f=next(f for f in p.frames if '/runtime/game/' in f.url);f.wait_for_function('() => typeof Game!=="undefined" && !!Game.S')
   assert f.evaluate('({bag:Game.S.bag,passives:Game.S.passives})')==expected,(mode,expected,f.evaluate('({bag:Game.S.bag,passives:Game.S.passives})'))
   report['checks'].append({'mode':mode,'allSixRecipes':True,'outsideSafeAreaVisibleRejection':True,'noLossOnFailure':True,'postConsumptionCapacity':True,'healingAndNoWaste':True,'armorBothCharacters':True,'knifeActualDamage':True,'flashlightNightEffect':True,'molotovBothPathsAnd88Damage':True,'duplicateEquipmentNoWaste':True,'saveReload':True})

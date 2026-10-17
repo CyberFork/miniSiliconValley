@@ -1,0 +1,185 @@
+{
+  "date": "2026-10-17",
+  "release": "20261017-zrq-craft-flow",
+  "sourceCommit": "66b15697f45b56c5298b9ff91e4208f53adb2d96",
+  "archiveSha256": "6666dd02c0f6b64fec24e731e3f3590442b030796530d11f107f6ba3fdd6df97",
+  "rootCause": "区外合成被正确拒绝，但提示挂在隐藏的战斗页中；线上旧版复现材料未变、提示存在但不可见。",
+  "scope": [
+    "保留仅安全区合成规则，区外明确提示，请走回中央安全屋；准备菜单不再冒称区外已回安全屋",
+    "合成台持久状态提示、明确按钮，材料扣除后检查空间；失败不扣材料",
+    "六种成品都有实际用途：绷带/急救回血，铁甲双方生命上限，猎刀直接伤害，手电夜间照明，燃烧瓶区域持续伤害",
+    "禁止重复装备消耗；背包投掷返回战斗显示火焰，准备页投掷不消耗；技能和背包共用库存",
+    "保留存档键、存档结构和网站安全隔离"
+  ],
+  "verified": {
+    "unitTests": 104,
+    "productionBrowser": {
+      "base": "https://minisv.vip",
+      "checks": [
+        {
+          "mode": "normal",
+          "allSixRecipes": true,
+          "outsideSafeAreaVisibleRejection": true,
+          "noLossOnFailure": true,
+          "postConsumptionCapacity": true,
+          "healingAndNoWaste": true,
+          "armorBothCharacters": true,
+          "knifeActualDamage": true,
+          "flashlightNightEffect": true,
+          "molotovBothPathsAnd88Damage": true,
+          "duplicateEquipmentNoWaste": true,
+          "saveReload": true
+        },
+        {
+          "mode": "pure",
+          "allSixRecipes": true,
+          "outsideSafeAreaVisibleRejection": true,
+          "noLossOnFailure": true,
+          "postConsumptionCapacity": true,
+          "healingAndNoWaste": true,
+          "armorBothCharacters": true,
+          "knifeActualDamage": true,
+          "flashlightNightEffect": true,
+          "molotovBothPathsAnd88Damage": true,
+          "duplicateEquipmentNoWaste": true,
+          "saveReload": true
+        },
+        {
+          "mode": "tablet",
+          "allSixRecipes": true,
+          "outsideSafeAreaVisibleRejection": true,
+          "noLossOnFailure": true,
+          "postConsumptionCapacity": true,
+          "healingAndNoWaste": true,
+          "armorBothCharacters": true,
+          "knifeActualDamage": true,
+          "flashlightNightEffect": true,
+          "molotovBothPathsAnd88Damage": true,
+          "duplicateEquipmentNoWaste": true,
+          "saveReload": true
+        }
+      ],
+      "pageErrors": []
+    },
+    "localBrowser": {
+      "base": "http://127.0.0.1:18218",
+      "checks": [
+        {
+          "mode": "normal",
+          "allSixRecipes": true,
+          "outsideSafeAreaVisibleRejection": true,
+          "noLossOnFailure": true,
+          "postConsumptionCapacity": true,
+          "healingAndNoWaste": true,
+          "armorBothCharacters": true,
+          "knifeActualDamage": true,
+          "flashlightNightEffect": true,
+          "molotovBothPathsAnd88Damage": true,
+          "duplicateEquipmentNoWaste": true,
+          "saveReload": true
+        },
+        {
+          "mode": "pure",
+          "allSixRecipes": true,
+          "outsideSafeAreaVisibleRejection": true,
+          "noLossOnFailure": true,
+          "postConsumptionCapacity": true,
+          "healingAndNoWaste": true,
+          "armorBothCharacters": true,
+          "knifeActualDamage": true,
+          "flashlightNightEffect": true,
+          "molotovBothPathsAnd88Damage": true,
+          "duplicateEquipmentNoWaste": true,
+          "saveReload": true
+        },
+        {
+          "mode": "tablet",
+          "allSixRecipes": true,
+          "outsideSafeAreaVisibleRejection": true,
+          "noLossOnFailure": true,
+          "postConsumptionCapacity": true,
+          "healingAndNoWaste": true,
+          "armorBothCharacters": true,
+          "knifeActualDamage": true,
+          "flashlightNightEffect": true,
+          "molotovBothPathsAnd88Damage": true,
+          "duplicateEquipmentNoWaste": true,
+          "saveReload": true
+        }
+      ],
+      "pageErrors": []
+    },
+    "legacyBrowser": {
+      "base": "http://127.0.0.1:18218",
+      "checks": [
+        {
+          "mode": "normal",
+          "sixRecipes": true,
+          "craftConsumesAndProduces": true,
+          "insufficientMaterialsNoMutation": true,
+          "bagGridRestored": true,
+          "reopenAndReturn": true
+        },
+        {
+          "mode": "pure",
+          "sixRecipes": true,
+          "craftConsumesAndProduces": true,
+          "insufficientMaterialsNoMutation": true,
+          "bagGridRestored": true,
+          "reopenAndReturn": true
+        },
+        {
+          "mode": "tablet",
+          "sixRecipes": true,
+          "craftConsumesAndProduces": true,
+          "insufficientMaterialsNoMutation": true,
+          "bagGridRestored": true,
+          "reopenAndReturn": true
+        }
+      ],
+      "pageErrors": []
+    },
+    "publicFileHashes": [
+      {
+        "path": "showcase/2026-09/zrq/runtime/game/index.html",
+        "sha256": "9e8eafa203e13ca01395927ad91c10f854989e1030c4bd25d12b57db6f24adbf",
+        "matches": true
+      },
+      {
+        "path": "showcase/2026-09/zrq/runtime/game/js/data.js",
+        "sha256": "b550387f5256d2c3635a5c0c080af192405b618f5d305152854c05703e5b8256",
+        "matches": true
+      },
+      {
+        "path": "showcase/2026-09/zrq/runtime/game/js/game.js",
+        "sha256": "f643852c25bea54e348104a7e0ba30e0a8b313b2e2d7137bc29c4dbc8aa6c6d0",
+        "matches": true
+      },
+      {
+        "path": "showcase/2026-09/zrq/runtime/game/js/main.js",
+        "sha256": "58f5911851144cc8cf891ade44bee1d9fa59ab2a57a579a6c6be76e93675d21f",
+        "matches": true
+      },
+      {
+        "path": "showcase/2026-09/zrq/runtime/game/js/ui.js",
+        "sha256": "167c4b7bc6eede6c0179b786a01e0e38cfb38cb0c44ba3069dea44910ed26ee8",
+        "matches": true
+      }
+    ],
+    "unchangedSiteFiles": 3443,
+    "newSiteFiles": 0,
+    "health": "MINISV_HECATE_HEALTHY"
+  },
+  "observations": [
+    "第一次生产导航在30秒load阈值超时，测试导航上限改为90秒后完整通过；未放宽任何游戏功能断言。"
+  ],
+  "notVerified": [
+    "实体平板、Safari和微信浏览器",
+    "从零随机搜集材料的人工完整通关；自动化使用匿名测试存档和内存目标验证状态、伤害与持久化"
+  ],
+  "dataSafety": "所有测试在独立匿名浏览器中，不读取修改用户存档；其他作品、视频、课件字节未变。",
+  "rollback": {
+    "previousRelease": "20261017-dky-fire",
+    "backup": "~/Services/minisv/backups/20261017T025324Z-20261017-zrq-craft-flow"
+  }
+}
