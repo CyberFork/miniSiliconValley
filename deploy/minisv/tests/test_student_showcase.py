@@ -164,6 +164,14 @@ class ShowcaseTests(unittest.TestCase):
         self.assertIn("echofault.save.v1", (COHORT / "dky" / "runtime" / "game" / "index.html").read_text())
         self.assertIn("BUILD v0.22.0", (COHORT / "dky" / "runtime" / "game" / "index.html").read_text())
 
+    def test_zrq_bag_handlers_use_ui(self):
+        html = (COHORT / "zrq" / "runtime" / "game" / "index.html").read_text()
+        ui = (COHORT / "zrq" / "runtime" / "game" / "js" / "ui.js").read_text()
+        self.assertRegex(html, r"onclick=\"UI\.bagTab\\?\(\\?'bag'\\?\)")
+        self.assertRegex(html, r"onclick=\"UI\.bagTab\\?\(\\?'craft'\\?\)")
+        self.assertNotIn("Game.bagTab", html)
+        self.assertRegex(ui, r"\bbagTab\s*\(t\)")
+
     def test_published_files_have_allowed_suffixes_and_no_private_markers(self):
         forbidden = ("蔡玮思", "private", ".zip", ".docx", ".pptx", ".md")
         allowed = {".html", ".css", ".js", ".json", ".png", ".jpg", ".jpeg", ".svg", ".ico", ".woff", ".woff2", ".mp3", ".wav", ".webp", ".mp4"}
@@ -218,6 +226,7 @@ class ShowcaseTests(unittest.TestCase):
                 self.assertNotIn("发布会时替换成游戏实录", text, student)
             elif student == "dky":
                 self.assertIn('video-page', text, student)
+                self.assertIn('hidden=n!==9', text, student)
 
     def test_gateway_runtime_policy_and_existing_auth_surface(self):
         text = GATEWAY.read_text()

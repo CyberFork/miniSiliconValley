@@ -553,7 +553,7 @@
     },
     {
       "path": "2026-09/zrq/runtime/game/index.html",
-      "sha256": "5b53ef06f76e8160f94bf0c713195a07618f5445d82ce64dd148e83c42f0cbb1",
+      "sha256": "61ef8afa32b51ddc216c861b531f7de533636828164c873895a7b47499615d4c",
       "source": "章-末日生存-开发包-20261012.zip:doomsday/index.html"
     },
     {
@@ -578,7 +578,7 @@
     },
     {
       "path": "2026-09/zrq/runtime/game/js/ui.js",
-      "sha256": "7972bf6945f689fa5b290f852c3f7cc3f8aaecff03ce100c4d97de0c7ffa213e",
+      "sha256": "f42cbf4a6774934b5a71eecf1bdd62f357d612da95a31c7396a44a9850c2119f",
       "source": "章-末日生存-开发包-20261012.zip:doomsday/js/ui.js"
     },
     {
@@ -693,7 +693,7 @@
     },
     {
       "path": "2026-09/dky/runtime/slides/index.html",
-      "sha256": "46a8e61c811fb1202785323254111b804f1f989b8b267420049bc7badf879340",
+      "sha256": "b55e22f5189af2ce4a350d0f74a59fb6c3c2e1361cb88fbbae0fb11d8ccaf5e2",
       "source": "Web viewer for supplied PPTX rendered pages (10 slides)"
     },
     {
@@ -784,14 +784,14 @@
     "2026-09/cwe/runtime/game/js/worlds.js": "5209923f93faac72b01c98511ec456f1ce5cc399a50198da6dec8f81d815cd70",
     "2026-09/cwe/runtime/slides/game-demo.jpg": "b5a9dc7a22018cb7b95c5ba73d1c106edb2e7d588507be1d9633e79473c94547",
     "2026-09/cwe/runtime/slides/game-demo.mp4": "6333775a473fc6d0bea9d5e4c1519a89cd5ea54e9a5cb13db6592c275b4cc570",
-    "2026-09/cwe/runtime/slides/index.html": "a9b8c05e86040641698e43d995bee063c6ba609eb046cdffc6cdfd3fc6ed7543",
+    "2026-09/cwe/runtime/slides/index.html": "87947df41524925ecdbb08a0dd231ba942575726027c06c0f90664aec86d023f",
     "2026-09/cwe/slides/index.html": "d1692624e88a6756749c7a3a32a13023626753d8a4ece7144ac41f6851f15b8f",
     "2026-09/dky/index.html": "43a2f12a84912aa01a943cea541e4232ca3b6f5aa2afb200632edaf2693b9752",
     "2026-09/dky/play/index.html": "4f2b1912c0ff067e9f49fdaedfc174f1976d0e6c5cb42cb8fff8a1bb1d8ec7a2",
     "2026-09/dky/runtime/game/index.html": "e3dfe9e4da3af742ba7d42a13470d9d8f802402a277aae15e97dffb40504841f",
     "2026-09/dky/runtime/slides/game-demo.jpg": "b86abcf7326669c2c8e59c129dc9886b60623dfcf0786a0afc5aba16f395b08a",
     "2026-09/dky/runtime/slides/game-demo.mp4": "76fd9124ecd9ef90face313332c951357f99ef14c81c50a2df1193eadd9cef98",
-    "2026-09/dky/runtime/slides/index.html": "c0c0fda4d0243f1385a228ceaf0617922abb85cf3f12413a36ffce817c967acb",
+    "2026-09/dky/runtime/slides/index.html": "46a8e61c811fb1202785323254111b804f1f989b8b267420049bc7badf879340",
     "2026-09/dky/runtime/slides/slide-01.jpg": "3835b31e09aa707f6e6b1746fe55ed99a3ed65cd11d7b1f5ab7a864e09bba4f5",
     "2026-09/dky/runtime/slides/slide-02.jpg": "8b9cd5b810dd70995e7aa27720d994a7c78ea76c44aaafb64a051533440eedc4",
     "2026-09/dky/runtime/slides/slide-03.jpg": "6c94e32a784afb4ceeaacd6a673dfb3cdc37f6e2eb2de8bc9a7cc9ac6e839314",
@@ -890,7 +890,7 @@
     "2026-09/tzx/runtime/slides/assets/zero_era_poster.jpg": "9ed400cca9e33c29177d6d54539874a4baeea889c3ad5a7e900409980b8683e8",
     "2026-09/tzx/runtime/slides/game-demo.jpg": "860456249adab51c261a4a0122cb70377de622f0090a3fb1d22efd9a68da399e",
     "2026-09/tzx/runtime/slides/game-demo.mp4": "148886449bfe5a01b5850de96fd6a5f13ff1e129e1cd07d971184240ddc26752",
-    "2026-09/tzx/runtime/slides/index.html": "041fdd4fece468b229b27db10ab5f7f60f9ec6f9dc5b76d6d4ee60d853bf1a68",
+    "2026-09/tzx/runtime/slides/index.html": "8d3c634fc5dbc7f5acd1ac6841ca3ad0cd878fef602c381cfa935b4bf270eac5",
     "2026-09/tzx/slides/index.html": "f4bcc7d8375ec8e58691512d0617aabfc297cd080824942ab55d677a99e69147",
     "2026-09/zrq/index.html": "18ebab60210215717f78444a1a8ab793f1185a89acbb36a87c77331000af2703",
     "2026-09/zrq/play/index.html": "cb292f5b13edb4ebf6c47382ba95275e5fa70c550d1b53818ecedd1c67c8cf42",
@@ -921,7 +921,7 @@
     "2026-09/zrq/runtime/slides/assets/doomsday_ppt/slide_12_img_1.png": "4aa0ae3a887a94ff760ff265699e5b9dfe3f1c21596e7b908137753c04ef638e",
     "2026-09/zrq/runtime/slides/game-demo.jpg": "81bc62f0f7a7396a826c6d17be0e754876b701b267c6114fdad74a99d3be301e",
     "2026-09/zrq/runtime/slides/game-demo.mp4": "7325baf27315d09bf63e6f2fe05a19d1f7dcad46a2968c2f4090feb6809def29",
-    "2026-09/zrq/runtime/slides/index.html": "594bfa5e886cb97b692c3d351432658b22f7c150a8dcd466e9caf502ed85e228",
+    "2026-09/zrq/runtime/slides/index.html": "9335b8d3897740d26162fa682dc112bfe2ed2b5aa349e9962ae5dd3616aff0ce",
     "2026-09/zrq/slides/index.html": "1ccedd3947f1e3c9d0f5151444db5ec8308982ba419dff43d9f0945de6a64932",
     "host.js": "80b6848c8e90e817dad2d4a122fced0372f4e036e7f23edc3c3f2aee748340b2",
     "index.html": "ff4a4c84b53e52272aa1c82eed5a92a7ef98fa4e19977fcaabf6427fcf0ae7d6",
@@ -1031,7 +1031,7 @@
           "pix_fmt": null
         }
       ],
-      "slideNumber": 10
+      "slideNumber": 9
     }
   ]
 }

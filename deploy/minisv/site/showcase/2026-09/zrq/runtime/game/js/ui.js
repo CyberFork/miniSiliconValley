@@ -214,6 +214,7 @@ const UI = {
   renderBag() {
     const grid = document.getElementById('bag-grid');
     if (!grid) return;
+    grid.style.gridTemplateColumns = this.tab === 'bag' ? '' : 'repeat(auto-fill,minmax(200px,1fr))';
     document.querySelectorAll('#bag-tabs .tab').forEach((el) => el.classList.toggle('on', el.dataset.tab === this.tab));
     const canCraft = World.inSafehouse(Game.cur().x, Game.cur().z) || !Game.S.started;
     document.getElementById('bag-sub').textContent =
@@ -231,7 +232,6 @@ const UI = {
       for (let i = keys.length; i < CONFIG.BAG_CAPACITY; i++) html += '<div class="cell empty"></div>';
       grid.innerHTML = html;
     } else {
-      grid.style.gridTemplateColumns = 'repeat(auto-fill,minmax(220px,1fr))';
       grid.innerHTML = RECIPES.map((r) => {
         const ok = Object.keys(r.need).every((k) => (Game.S.bag[k] || 0) >= r.need[k]);
         const need = Object.keys(r.need).map((k) => ITEMS[k].name + '×' + r.need[k] + '（有' + (Game.S.bag[k] || 0) + '）').join(' + ');
@@ -240,7 +240,6 @@ const UI = {
           '需要：' + need + '<br><small>' + ITEMS[r.out].desc + '</small>' +
           '<div style="margin-top:6px"><span class="tab ' + (ok ? 'on' : '') + '" style="padding:4px 10px">' + (ok ? '点这里合成' : '材料不足') + '</span></div></div>';
       }).join('');
-      grid.style.gridTemplateColumns = 'repeat(auto-fill,minmax(200px,1fr))';
     }
     // 详情
     const info = document.getElementById('bag-info'), acts = document.getElementById('bag-actions');

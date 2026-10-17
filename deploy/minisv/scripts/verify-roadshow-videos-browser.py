@@ -9,7 +9,7 @@ with sync_playwright() as p:
  b=p.chromium.launch(headless=True)
  page=b.new_page(viewport={'width':1280,'height':900});errors=[]
  page.on('pageerror',lambda e:errors.append(str(e)))
- for sid,total_pages,video_page,nxt,prev in [('cwe',10,9,'#btn-next','#btn-prev'),('tzx',10,9,'#btnNext','#btnPrev'),('zrq',12,11,'.btn-arrow:last-child','.btn-arrow:first-child'),('dky',10,10,'#next','#prev')]:
+ for sid,total_pages,video_page,nxt,prev in [('cwe',10,9,'#btn-next','#btn-prev'),('tzx',10,9,'#btnNext','#btnPrev'),('zrq',12,11,'.btn-arrow:last-child','.btn-arrow:first-child'),('dky',10,9,'#next','#prev')]:
   requests=[];page.on('request',lambda r:requests.append(r.url))
   page.goto(f'{base}/showcase/2026-09/{sid}/slides/');page.wait_for_function("document.querySelector('#student-frame').src.includes('/runtime/')")
   page.locator('#fullscreen-frame').click();page.wait_for_timeout(300)
@@ -38,7 +38,9 @@ with sync_playwright() as p:
    f.locator(nxt).click();assert '10 / 10' in f.locator('body').inner_text()
    closing=f.locator('[data-index="10"]' if sid=='cwe' else '[data-slide="10"]');assert closing.is_visible()
   elif sid=='dky':
-   f.locator(prev).click();assert f.locator('#count').inner_text()=='9 / 10'
+   f.locator(nxt).click();assert f.locator('#count').inner_text()=='10 / 10'
+   assert f.locator('#video-page').is_hidden()
+   assert f.locator('#slide').get_attribute('src')=='slide-10.jpg'
   else:f.locator(prev).click()
   assert v.evaluate('(v)=>v.paused')
   report.append({'student':sid,'duration':duration,'videoBox':box,'videoPage':video_page,'totalPages':total_pages,'playsAndPausesWhenLeaving':True,'seekVerified':'https:' in base,'noEarlyMp4Fetch':True})
