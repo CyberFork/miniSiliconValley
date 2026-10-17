@@ -1,0 +1,132 @@
+{
+  "date": "2026-10-17",
+  "release": "20261017-craft-table",
+  "sourceCommit": "0712cc44ca7bb8a2bda47f97e47f865a25f134d8",
+  "archiveSha256": "b2246c264a2efde16c03ff343e6b81c5e2370416dbdfa3b5ed451d77b3d9ab82",
+  "scope": [
+    "合成台绑定 UI.bagTab，切回背包恢复网格",
+    "段路演视频改到第9页，保留第10页结束页",
+    "蔡路演原稿没有配图，按用户要求不补图"
+  ],
+  "verified": {
+    "unitTests": 104,
+    "craftBrowser": {
+      "base": "https://minisv.vip",
+      "checks": [
+        {
+          "mode": "normal",
+          "sixRecipes": true,
+          "craftConsumesAndProduces": true,
+          "insufficientMaterialsNoMutation": true,
+          "bagGridRestored": true,
+          "reopenAndReturn": true
+        },
+        {
+          "mode": "pure",
+          "sixRecipes": true,
+          "craftConsumesAndProduces": true,
+          "insufficientMaterialsNoMutation": true,
+          "bagGridRestored": true,
+          "reopenAndReturn": true
+        },
+        {
+          "mode": "tablet",
+          "sixRecipes": true,
+          "craftConsumesAndProduces": true,
+          "insufficientMaterialsNoMutation": true,
+          "bagGridRestored": true,
+          "reopenAndReturn": true
+        }
+      ],
+      "pageErrors": []
+    },
+    "slidesBrowser": [
+      {
+        "student": "cwe",
+        "duration": 177.566016,
+        "videoBox": {
+          "x": 250,
+          "y": 355.59375,
+          "width": 780,
+          "height": 328.203125
+        },
+        "videoPage": 9,
+        "totalPages": 10,
+        "playsAndPausesWhenLeaving": true,
+        "seekVerified": true,
+        "noEarlyMp4Fetch": true
+      },
+      {
+        "student": "tzx",
+        "duration": 67.466667,
+        "videoBox": {
+          "x": 111,
+          "y": 326.796875,
+          "width": 1058,
+          "height": 377.390625
+        },
+        "videoPage": 9,
+        "totalPages": 10,
+        "playsAndPausesWhenLeaving": true,
+        "seekVerified": true,
+        "noEarlyMp4Fetch": true
+      },
+      {
+        "student": "zrq",
+        "duration": 75.666667,
+        "videoBox": {
+          "x": 643.328125,
+          "y": 293,
+          "width": 538.671875,
+          "height": 364
+        },
+        "videoPage": 11,
+        "totalPages": 12,
+        "playsAndPausesWhenLeaving": true,
+        "seekVerified": true,
+        "noEarlyMp4Fetch": true
+      },
+      {
+        "student": "dky",
+        "duration": 191.7,
+        "videoBox": {
+          "x": 651.859375,
+          "y": 223.59375,
+          "width": 510.640625,
+          "height": 287.21875
+        },
+        "videoPage": 9,
+        "totalPages": 10,
+        "playsAndPausesWhenLeaving": true,
+        "seekVerified": true,
+        "noEarlyMp4Fetch": true
+      }
+    ],
+    "publicFiles": [
+      {
+        "path": "showcase/2026-09/zrq/runtime/game/index.html",
+        "sha256": "61ef8afa32b51ddc216c861b531f7de533636828164c873895a7b47499615d4c"
+      },
+      {
+        "path": "showcase/2026-09/zrq/runtime/game/js/ui.js",
+        "sha256": "f42cbf4a6774934b5a71eecf1bdd62f357d612da95a31c7396a44a9850c2119f"
+      },
+      {
+        "path": "showcase/2026-09/dky/runtime/slides/index.html",
+        "sha256": "b55e22f5189af2ce4a350d0f74a59fb6c3c2e1361cb88fbbae0fb11d8ccaf5e2"
+      }
+    ],
+    "unchangedSiteFiles": 3445,
+    "newSiteFiles": 0,
+    "health": "MINISV_HECATE_HEALTHY"
+  },
+  "notVerified": [
+    "实体平板、Safari、微信浏览器",
+    "人工完整游戏通关"
+  ],
+  "dataSafety": "匿名隔离浏览器测试；不修改用户存档与存档协议",
+  "rollback": {
+    "previousRelease": "20261017-video-slots",
+    "backup": "~/Services/minisv/backups/20261017T020753Z-20261017-craft-table"
+  }
+}
