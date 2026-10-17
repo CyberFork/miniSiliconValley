@@ -638,7 +638,7 @@
     },
     {
       "path": "2026-09/dky/runtime/game/index.html",
-      "sha256": "e3dfe9e4da3af742ba7d42a13470d9d8f802402a277aae15e97dffb40504841f",
+      "sha256": "cee0f5502ec82349d4086b832e4bc51dd6cc14f52bddf00dc42718ad5750425a",
       "source": "段-回声断层_开发文件_2026-10-13.zip:回音断层/回声断层_游戏原型.html (BUILD v0.22.0)"
     },
     {
@@ -791,7 +791,7 @@
     "2026-09/dky/runtime/game/index.html": "e3dfe9e4da3af742ba7d42a13470d9d8f802402a277aae15e97dffb40504841f",
     "2026-09/dky/runtime/slides/game-demo.jpg": "b86abcf7326669c2c8e59c129dc9886b60623dfcf0786a0afc5aba16f395b08a",
     "2026-09/dky/runtime/slides/game-demo.mp4": "76fd9124ecd9ef90face313332c951357f99ef14c81c50a2df1193eadd9cef98",
-    "2026-09/dky/runtime/slides/index.html": "46a8e61c811fb1202785323254111b804f1f989b8b267420049bc7badf879340",
+    "2026-09/dky/runtime/slides/index.html": "b55e22f5189af2ce4a350d0f74a59fb6c3c2e1361cb88fbbae0fb11d8ccaf5e2",
     "2026-09/dky/runtime/slides/slide-01.jpg": "3835b31e09aa707f6e6b1746fe55ed99a3ed65cd11d7b1f5ab7a864e09bba4f5",
     "2026-09/dky/runtime/slides/slide-02.jpg": "8b9cd5b810dd70995e7aa27720d994a7c78ea76c44aaafb64a051533440eedc4",
     "2026-09/dky/runtime/slides/slide-03.jpg": "6c94e32a784afb4ceeaacd6a673dfb3cdc37f6e2eb2de8bc9a7cc9ac6e839314",
@@ -903,12 +903,12 @@
     "2026-09/zrq/runtime/game/assets/sheet_mate.png": "1698b709baff5d54c00c16c069516f990f3d38630100dcc458b2340e7fc0289b",
     "2026-09/zrq/runtime/game/assets/sheet_mecha.png": "119439f481ae3fefd631357688749a554e65204c1f39af41b3f4d429c4dd93be",
     "2026-09/zrq/runtime/game/assets/sheet_zombie.png": "bc264c23952bed0c328a9d0161a3beae65809431577bbcde5b394d0ef0dbcc22",
-    "2026-09/zrq/runtime/game/index.html": "5b53ef06f76e8160f94bf0c713195a07618f5445d82ce64dd148e83c42f0cbb1",
+    "2026-09/zrq/runtime/game/index.html": "61ef8afa32b51ddc216c861b531f7de533636828164c873895a7b47499615d4c",
     "2026-09/zrq/runtime/game/js/data.js": "2fce93ca2617b0d69f65d6edf5329613e04e3ad874b55200fa508e042c213464",
     "2026-09/zrq/runtime/game/js/game.js": "72c041df09c986cdde9e112bc3538dbe1df92ff1008c7eaca7fb296f1cf9e32a",
     "2026-09/zrq/runtime/game/js/main.js": "d48e1c8f68c04009de268fea75a6fda49d29e459f51c347e789038ae1406bfb3",
     "2026-09/zrq/runtime/game/js/sprites.js": "a049103e92f5c29d1b472144aa61b6adbf7d86da986673b13a2b02a0bbd7de82",
-    "2026-09/zrq/runtime/game/js/ui.js": "7972bf6945f689fa5b290f852c3f7cc3f8aaecff03ce100c4d97de0c7ffa213e",
+    "2026-09/zrq/runtime/game/js/ui.js": "f42cbf4a6774934b5a71eecf1bdd62f357d612da95a31c7396a44a9850c2119f",
     "2026-09/zrq/runtime/game/js/world.js": "8a953b0aa95c8e37d8c136fb8bb4648a97c0ec8e034cbe3b80bba7ac7fd6e7f3",
     "2026-09/zrq/runtime/game/lib/three.min.js": "8a5f7249903b54d30f79f708699d2fed2d6a1d0741a4cd41377d1f01bb5a2271",
     "2026-09/zrq/runtime/slides/assets/doomsday_ppt/slide_01_img_1.png": "2b65b53258b0409d1be55c651a70cd59e14c46136d62841c81c01ae4ab5233f3",

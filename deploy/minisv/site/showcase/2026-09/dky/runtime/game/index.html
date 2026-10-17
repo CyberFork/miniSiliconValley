@@ -340,7 +340,7 @@
     <div id="toast"></div>
     <div id="lockHint">
       <h2>点击进入研究站</h2>
-      <p>鼠标会被锁定，按 Esc 可以解开；如果浏览器不给锁定，按住左键拖动或用 ← → 也能转头</p>
+      <p>鼠标会被锁定，按 Esc 可以解开；如果浏览器不给锁定，左键单击开枪，按住拖动或用 ← → 转头</p>
       <div class="keys">
         <kbd>WASD</kbd> 移动　<kbd>鼠标</kbd> 转头　<kbd>滚轮</kbd> 安静／走路／快跑<br>
         <kbd>左键</kbd> 开枪　<kbd>右键按住</kbd> 回声模式　<kbd>R</kbd> 换弹　<kbd>Q</kbd> 换枪<br>
@@ -1741,17 +1741,24 @@ view.addEventListener("contextmenu", e=>e.preventDefault());
 
 const lockHint = document.getElementById("lockHint");
 lockHint.addEventListener("click", ()=>{
-  view.requestPointerLock && view.requestPointerLock();
+  if(!view.requestPointerLock){ enterDragControls(); return; }
+  try {
+    const pending = view.requestPointerLock();
+    if(pending && pending.catch) pending.catch(enterDragControls);
+  } catch (_) { enterDragControls(); }
 });
 document.addEventListener("pointerlockchange", ()=>{
   const locked = document.pointerLockElement === view;
+  fallbackPress = null; dragging = false; echoMode = false;
   lockHint.style.display = locked ? "none" : "flex";
   if(!locked) keys.w = keys.a = keys.s = keys.d = false;
 });
-document.addEventListener("pointerlockerror", ()=>{
+function enterDragControls(){
   lockHint.style.display = "none";
-  toast("浏览器不允许锁定鼠标：按住左键拖动来转头，或用 ← → 转身", 5000);
-});
+  toast("鼠标未锁定：左键单击开枪，按住拖动转头；右键按住回声模式，← → 也能转身", 5000);
+}
+document.addEventListener("pointerlockerror", enterDragControls);
+let fallbackPress = null; // 无锁定时区分单击射击与拖动转头，避免转头时误开枪
 let dragging = false;      // 指针锁定不可用时的兜底：按住拖动也能转头
 function rotate(rot){
   const ox = run.dx;
@@ -1763,20 +1770,35 @@ addEventListener("mousemove", e=>{
   const locked = document.pointerLockElement === view;
   if(!locked && !dragging) return;
   if(!locked && !(e.buttons & 1) && !(e.buttons & 2)) return;
+  if(!locked && fallbackPress){
+    fallbackPress.distance += Math.hypot(e.movementX, e.movementY);
+    if(fallbackPress.distance <= 5) return;
+  }
   rotate(e.movementX * 0.0022);
 });
 addEventListener("mousedown", e=>{
   if(curScreen !== "game" || !run || run.done) return;
   const locked = document.pointerLockElement === view;
-  if(!locked){ dragging = true; lockHint.style.display = "none"; return; }
+  // The entry overlay only requests pointer lock; it must not shoot or swallow its own click.
+  if(!locked){
+    if(!view.contains(e.target) || lockHint.contains(e.target) || ![0,2].includes(e.button)) return;
+    dragging = true;
+    fallbackPress = e.button === 0 ? {distance:0} : null;
+    if(e.button === 2) echoMode = true;
+    return;
+  }
   if(e.button === 0) doFire();
   if(e.button === 2) echoMode = true;
 });
 addEventListener("mouseup", e=>{
+  const clickToFire = e.button === 0 && fallbackPress && fallbackPress.distance <= 5
+    && view.contains(e.target) && curScreen === "game" && run && !run.done;
+  fallbackPress = null;
   dragging = false;
+  if(clickToFire) doFire();
   if(e.button === 2) echoMode = false;
 });
-addEventListener("blur", ()=>{ echoMode = false; dragging = false; for(const k in keys) keys[k]=false; });
+addEventListener("blur", ()=>{ echoMode = false; dragging = false; fallbackPress = null; for(const k in keys) keys[k]=false; });
 
 /* =====================================================================
    动作
