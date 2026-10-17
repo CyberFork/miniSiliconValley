@@ -164,6 +164,17 @@ class ShowcaseTests(unittest.TestCase):
         self.assertIn("echofault.save.v1", (COHORT / "dky" / "runtime" / "game" / "index.html").read_text())
         self.assertIn("BUILD v0.22.0", (COHORT / "dky" / "runtime" / "game" / "index.html").read_text())
 
+    def test_zrq_video_fullscreen_contract(self):
+        text = (COHORT / "zrq/runtime/slides/index.html").read_text()
+        self.assertIn('id="video-fullscreen"', text)
+        self.assertIn('await video.requestFullscreen()', text)
+        self.assertIn('video.webkitEnterFullscreen()', text)
+        self.assertIn("demo.preload = 'metadata'", text)
+        self.assertIn("if (currentSlide !== 11) demo.pause()", text)
+        self.assertIn("else if (!demo.dataset.prepared)", text)
+        self.assertIn("#game-demo:fullscreen", text)
+        self.assertIn("video, #video-fullscreen", text)
+
     def test_zrq_bag_handlers_use_ui(self):
         html = (COHORT / "zrq" / "runtime" / "game" / "index.html").read_text()
         ui = (COHORT / "zrq" / "runtime" / "game" / "js" / "ui.js").read_text()
