@@ -1,0 +1,138 @@
+{
+  "date": "2026-10-17",
+  "release": "20261017-dky-fire",
+  "sourceCommit": "81eddf7dbcf2017e2cac1c59ecf09130cc54ff4a",
+  "archiveSha256": "c28d0028e8fb794c6aca754f438d6d0ba8399dc3fb6b8a1bab611ee5f0875293",
+  "scope": [
+    "只修改段回声断层输入与降级提示，不更改游戏数值、资源、存档或安全隔离",
+    "未锁定鼠标时单击开枪，拖动转头不误射，右键回声可用",
+    "捕获鼠标锁定拒绝和API不支持，首次进入点击不射击"
+  ],
+  "rootCause": "原 mousedown 在未锁定鼠标时直接 return，射击和回声只在锁定分支；旧版线上复现弹药6→6。现有隔离窗口原生锁定拒绝，保留安全隔离并完善降级输入。",
+  "verified": {
+    "unitTests": 104,
+    "local": {
+      "base": "http://127.0.0.1:18218",
+      "checks": [
+        {
+          "mode": "native",
+          "pointerLocked": false,
+          "pure": false,
+          "entryDoesNotFire": true,
+          "clickFires": true,
+          "dragDoesNotFire": true,
+          "rightHeldEcho": true,
+          "damageApplied": true,
+          "reload": true
+        },
+        {
+          "mode": "denied",
+          "pointerLocked": false,
+          "pure": false,
+          "entryDoesNotFire": true,
+          "clickFires": true,
+          "dragDoesNotFire": true,
+          "rightHeldEcho": true,
+          "damageApplied": true,
+          "reload": true
+        },
+        {
+          "mode": "denied",
+          "pointerLocked": false,
+          "pure": true,
+          "entryDoesNotFire": true,
+          "clickFires": true,
+          "dragDoesNotFire": true,
+          "rightHeldEcho": true,
+          "damageApplied": true,
+          "reload": true
+        },
+        {
+          "mode": "unsupported",
+          "pointerLocked": false,
+          "pure": true,
+          "entryDoesNotFire": true,
+          "clickFires": true,
+          "dragDoesNotFire": true,
+          "rightHeldEcho": true,
+          "damageApplied": true,
+          "reload": true
+        }
+      ],
+      "pageErrors": []
+    },
+    "production": {
+      "base": "https://minisv.vip",
+      "checks": [
+        {
+          "mode": "native",
+          "pointerLocked": false,
+          "pure": false,
+          "entryDoesNotFire": true,
+          "clickFires": true,
+          "dragDoesNotFire": true,
+          "rightHeldEcho": true,
+          "damageApplied": true,
+          "reload": true
+        },
+        {
+          "mode": "denied",
+          "pointerLocked": false,
+          "pure": false,
+          "entryDoesNotFire": true,
+          "clickFires": true,
+          "dragDoesNotFire": true,
+          "rightHeldEcho": true,
+          "damageApplied": true,
+          "reload": true
+        },
+        {
+          "mode": "denied",
+          "pointerLocked": false,
+          "pure": true,
+          "entryDoesNotFire": true,
+          "clickFires": true,
+          "dragDoesNotFire": true,
+          "rightHeldEcho": true,
+          "damageApplied": true,
+          "reload": true
+        },
+        {
+          "mode": "unsupported",
+          "pointerLocked": false,
+          "pure": true,
+          "entryDoesNotFire": true,
+          "clickFires": true,
+          "dragDoesNotFire": true,
+          "rightHeldEcho": true,
+          "damageApplied": true,
+          "reload": true
+        }
+      ],
+      "pageErrors": []
+    },
+    "publicResource": {
+      "path": "showcase/2026-09/dky/runtime/game/index.html",
+      "sha256": "cee0f5502ec82349d4086b832e4bc51dd6cc14f52bddf00dc42718ad5750425a",
+      "matches": true,
+      "request": "Public runtime with normal play-page Referer"
+    },
+    "unchangedSiteFiles": 3447,
+    "changedSiteFiles": [
+      "release.json",
+      "showcase/2026-09/dky/runtime/game/index.html"
+    ],
+    "newSiteFiles": 0,
+    "health": "MINISV_HECATE_HEALTHY"
+  },
+  "testData": "匿名隔离浏览器临时局，伤害断言使用内存测试目标，不读取或修改真实用户存档",
+  "notVerified": [
+    "实际允许指针锁定浏览器的锁定分支（本轮测试原生拒绝，已验证降级）",
+    "实体平板、Safari、微信浏览器",
+    "人工完整通关"
+  ],
+  "rollback": {
+    "previousRelease": "20261017-craft-table",
+    "backup": "~/Services/minisv/backups/20261017T022328Z-20261017-dky-fire"
+  }
+}
