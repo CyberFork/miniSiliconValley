@@ -194,7 +194,7 @@ class ShowcaseTests(unittest.TestCase):
             self.assertEqual(hashlib.sha256(p.read_bytes()).hexdigest(), expected, rel)
 
     def test_runtime_slides_video_contract(self):
-        expected_pages = {"cwe": 11, "tzx": 11, "zrq": 13, "dky": 11}
+        expected_pages = {"cwe": 10, "tzx": 10, "zrq": 12, "dky": 10}
         for student, pages in expected_pages.items():
             slides = COHORT / student / "runtime" / "slides"
             text = (slides / "index.html").read_text()
@@ -205,6 +205,19 @@ class ShowcaseTests(unittest.TestCase):
             self.assertTrue((slides / "game-demo.mp4").is_file(), student)
             self.assertTrue((slides / "game-demo.jpg").is_file(), student)
             self.assertIn(f"{pages}", text, student)
+            self.assertEqual(len(re.findall(r'id="game-demo"', text)), 1, student)
+            if student == "cwe":
+                self.assertRegex(text, r'(?s)<section[^>]+data-index="9"[^>]*>(?:(?!</section>).)*id="game-demo"', student)
+            elif student == "tzx":
+                self.assertRegex(text, r'(?s)<section[^>]+data-slide="9"[^>]*>(?:(?!</section>).)*id="game-demo"', student)
+            elif student == "zrq":
+                self.assertRegex(text, r'(?s)<section[^>]+id="slide-11"[^>]*>(?:(?!</section>).)*id="game-demo"', student)
+                self.assertIn('id="slide-12"', text, student)
+                self.assertNotIn('id="slide-13"', text, student)
+                self.assertNotIn("演示画面放这里", text, student)
+                self.assertNotIn("发布会时替换成游戏实录", text, student)
+            elif student == "dky":
+                self.assertIn('video-page', text, student)
 
     def test_gateway_runtime_policy_and_existing_auth_surface(self):
         text = GATEWAY.read_text()
