@@ -1,0 +1,118 @@
+{
+  "date": "2026-10-17",
+  "release": "20261017-video-slots",
+  "sourceCommit": "90adeee66f460a61630e81514cf8292d2f6d249f",
+  "archiveSha256": "0b884f1bb8d77f98e19db1b9756ffaf85398d6e8bdef460d388921fdf49b18cf",
+  "videoPages": {
+    "cwe": 9,
+    "tzx": 9,
+    "zrq": 11,
+    "dky": 10
+  },
+  "totalPages": {
+    "cwe": 10,
+    "tzx": 10,
+    "zrq": 12,
+    "dky": 10
+  },
+  "scope": [
+    "视频移入指定页对应展示区域，删除四份路演追加的视频末页",
+    "保留原有结束页；段第10页保留谢幕文字、视频覆盖右侧媒体区域",
+    "仅修改四份路演HTML；游戏、视频和其他站点内容字节未变"
+  ],
+  "verified": {
+    "unitTests": 103,
+    "productionBrowser": [
+      {
+        "student": "cwe",
+        "duration": 177.566016,
+        "videoBox": {
+          "x": 250,
+          "y": 355.59375,
+          "width": 780,
+          "height": 328.203125
+        },
+        "videoPage": 9,
+        "totalPages": 10,
+        "playsAndPausesWhenLeaving": true,
+        "seekVerified": true,
+        "noEarlyMp4Fetch": true
+      },
+      {
+        "student": "tzx",
+        "duration": 67.466667,
+        "videoBox": {
+          "x": 111,
+          "y": 326.796875,
+          "width": 1058,
+          "height": 377.390625
+        },
+        "videoPage": 9,
+        "totalPages": 10,
+        "playsAndPausesWhenLeaving": true,
+        "seekVerified": true,
+        "noEarlyMp4Fetch": true
+      },
+      {
+        "student": "zrq",
+        "duration": 75.666667,
+        "videoBox": {
+          "x": 643.328125,
+          "y": 293,
+          "width": 538.671875,
+          "height": 364
+        },
+        "videoPage": 11,
+        "totalPages": 12,
+        "playsAndPausesWhenLeaving": true,
+        "seekVerified": true,
+        "noEarlyMp4Fetch": true
+      },
+      {
+        "student": "dky",
+        "duration": 191.7,
+        "videoBox": {
+          "x": 651.859375,
+          "y": 223.59375,
+          "width": 510.640625,
+          "height": 287.21875
+        },
+        "videoPage": 10,
+        "totalPages": 10,
+        "playsAndPausesWhenLeaving": true,
+        "seekVerified": true,
+        "noEarlyMp4Fetch": true
+      }
+    ],
+    "publicHtmlHashes": [
+      {
+        "path": "showcase/2026-09/cwe/runtime/slides/index.html",
+        "sha256": "87947df41524925ecdbb08a0dd231ba942575726027c06c0f90664aec86d023f"
+      },
+      {
+        "path": "showcase/2026-09/tzx/runtime/slides/index.html",
+        "sha256": "8d3c634fc5dbc7f5acd1ac6841ca3ad0cd878fef602c381cfa935b4bf270eac5"
+      },
+      {
+        "path": "showcase/2026-09/zrq/runtime/slides/index.html",
+        "sha256": "9335b8d3897740d26162fa682dc112bfe2ed2b5aa349e9962ae5dd3616aff0ce"
+      },
+      {
+        "path": "showcase/2026-09/dky/runtime/slides/index.html",
+        "sha256": "46a8e61c811fb1202785323254111b804f1f989b8b267420049bc7badf879340"
+      }
+    ],
+    "health": "MINISV_HECATE_HEALTHY",
+    "unchangedExistingSiteFiles": 3444,
+    "newSiteFiles": 0
+  },
+  "notVerified": [
+    "真实平板/Safari/微信设备；响应式仅浏览器视口模拟",
+    "完整录像逐秒人工审听及现场路演未代签"
+  ],
+  "rollback": {
+    "release": "20261016-roadshow-videos",
+    "backup": "~/Services/minisv/backups/20261017T015911Z-20261017-video-slots",
+    "command": "zsh ~/Services/minisv/current/ops/scripts/rollback-hecate.sh 20261016-roadshow-videos"
+  }
+}
