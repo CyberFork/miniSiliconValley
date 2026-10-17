@@ -1,0 +1,193 @@
+{
+  "date": "2026-10-17",
+  "release": "20261017-video-fullscreen",
+  "sourceCommit": "ed0e7e9c38e9c5388436deec1f4e87a8b2183e8f",
+  "archiveSha256": "006893662749d72be36d3e818ddb65d2d37a519e9722a54919de6ce21921fec5",
+  "rootCause": "复现 Chromium 原生视频全屏按钮在 readyState=0 时无响应；加载媒体信息后，相同点击可从路演全屏进入视频全屏。",
+  "scope": [
+    "仅 ZRQ 路演第 11 页：进入时准备视频 metadata，不提前下载、不自动播放",
+    "新增明确的视频全屏按钮，标准 Fullscreen API 与 WebKit 分支，失败显示提示",
+    "视频全屏样式、按钮键盘事件隔离；保留页面与播放进度"
+  ],
+  "verified": {
+    "unitTests": 105,
+    "productionBrowser": {
+      "base": "https://minisv.vip",
+      "checks": [
+        {
+          "deckFullscreen": "outer",
+          "control": "native",
+          "metadataUnavailable": false,
+          "fillsViewport": true,
+          "doesNotAutoplay": true,
+          "returnsToPage11AndKeepsTime": true,
+          "leavingPauses": true,
+          "noEarlyVideoFetch": true
+        },
+        {
+          "deckFullscreen": "inner",
+          "control": "button",
+          "metadataUnavailable": false,
+          "fillsViewport": true,
+          "doesNotAutoplay": true,
+          "returnsToPage11AndKeepsTime": true,
+          "leavingPauses": true,
+          "noEarlyVideoFetch": true
+        },
+        {
+          "deckFullscreen": "normal",
+          "control": "button",
+          "metadataUnavailable": false,
+          "fillsViewport": true,
+          "doesNotAutoplay": true,
+          "returnsToPage11AndKeepsTime": true,
+          "leavingPauses": true,
+          "noEarlyVideoFetch": true
+        },
+        {
+          "deckFullscreen": "outer",
+          "control": "button",
+          "metadataUnavailable": true,
+          "fillsViewport": true,
+          "doesNotAutoplay": true,
+          "returnsToPage11AndKeepsTime": true,
+          "leavingPauses": true,
+          "noEarlyVideoFetch": true
+        }
+      ],
+      "pageErrors": []
+    },
+    "localBrowser": {
+      "base": "http://127.0.0.1:18218",
+      "checks": [
+        {
+          "deckFullscreen": "outer",
+          "control": "native",
+          "metadataUnavailable": false,
+          "fillsViewport": true,
+          "doesNotAutoplay": true,
+          "returnsToPage11AndKeepsTime": true,
+          "leavingPauses": true,
+          "noEarlyVideoFetch": true
+        },
+        {
+          "deckFullscreen": "inner",
+          "control": "button",
+          "metadataUnavailable": false,
+          "fillsViewport": true,
+          "doesNotAutoplay": true,
+          "returnsToPage11AndKeepsTime": true,
+          "leavingPauses": true,
+          "noEarlyVideoFetch": true
+        },
+        {
+          "deckFullscreen": "normal",
+          "control": "button",
+          "metadataUnavailable": false,
+          "fillsViewport": true,
+          "doesNotAutoplay": true,
+          "returnsToPage11AndKeepsTime": true,
+          "leavingPauses": true,
+          "noEarlyVideoFetch": true
+        },
+        {
+          "deckFullscreen": "outer",
+          "control": "button",
+          "metadataUnavailable": true,
+          "fillsViewport": true,
+          "doesNotAutoplay": true,
+          "returnsToPage11AndKeepsTime": true,
+          "leavingPauses": true,
+          "noEarlyVideoFetch": true
+        }
+      ],
+      "pageErrors": []
+    },
+    "allFourSlidesLocalRegression": [
+      {
+        "student": "cwe",
+        "duration": 177.566016,
+        "videoBox": {
+          "x": 250,
+          "y": 355.59375,
+          "width": 780,
+          "height": 328.203125
+        },
+        "videoPage": 9,
+        "totalPages": 10,
+        "playsAndPausesWhenLeaving": true,
+        "seekVerified": false,
+        "noEarlyMp4Fetch": true
+      },
+      {
+        "student": "tzx",
+        "duration": 67.466667,
+        "videoBox": {
+          "x": 111,
+          "y": 326.796875,
+          "width": 1058,
+          "height": 377.390625
+        },
+        "videoPage": 9,
+        "totalPages": 10,
+        "playsAndPausesWhenLeaving": true,
+        "seekVerified": false,
+        "noEarlyMp4Fetch": true
+      },
+      {
+        "student": "zrq",
+        "duration": 75.666667,
+        "videoBox": {
+          "x": 643.328125,
+          "y": 293,
+          "width": 538.671875,
+          "height": 349
+        },
+        "videoPage": 11,
+        "totalPages": 12,
+        "playsAndPausesWhenLeaving": true,
+        "seekVerified": false,
+        "noEarlyMp4Fetch": true
+      },
+      {
+        "student": "dky",
+        "duration": 191.7,
+        "videoBox": {
+          "x": 651.859375,
+          "y": 223.59375,
+          "width": 510.640625,
+          "height": 287.21875
+        },
+        "videoPage": 9,
+        "totalPages": 10,
+        "playsAndPausesWhenLeaving": true,
+        "seekVerified": false,
+        "noEarlyMp4Fetch": true
+      }
+    ],
+    "publicHtmlSha256": "be8d0eebc416664b72fa4d0e4e1f09c1d6a3d3f2c87757ef627d94848439cb29",
+    "health": "MINISV_HECATE_HEALTHY",
+    "unchangedExistingSiteFiles": 3447,
+    "changedSiteFiles": [
+      "release.json",
+      "showcase/2026-09/zrq/runtime/slides/index.html"
+    ],
+    "newSiteFiles": 0
+  },
+  "preserved": [
+    "所有视频文件原字节",
+    "其他路演与游戏",
+    "iframe sandbox 和权限策略",
+    "用户存档"
+  ],
+  "notVerified": [
+    "实体 Safari/iPad/微信浏览器；WebKit 分支尚未实机验证",
+    "真实外部键盘 Esc 的全屏层级行为；自动测试以 document.exitFullscreen 退出，验证页码和播放进度"
+  ],
+  "rollback": {
+    "previousRelease": "20261017-zrq-craft-flow",
+    "backup": "/Users/hecate/Services/minisv/backups/20261017T031310Z-20261017-video-fullscreen",
+    "method": "沿既有 deploy-hecate 发布回滚流程恢复上一 release 与同组备份"
+  },
+  "url": "https://minisv.vip/showcase/2026-09/zrq/slides/"
+}
